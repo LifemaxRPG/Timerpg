@@ -1,0 +1,22 @@
+[
+  {
+    "shop": "driftline",
+    "visible_triangles": 2190,
+    "collision_boxes": 16,
+    "materials_including_collision": 12,
+    "max_uv_edge_error_m": 1.8e-06,
+    "open_doors_checked": 2,
+    "display_sightlines_sampled": 35,
+    "overlay_clear_fraction_for_masked_loader": 0.99805
+  },
+  {
+    "shop": "tideglass",
+    "visible_triangles": 2044,
+    "collision_boxes": 16,
+    "materials_including_collision": 12,
+    "max_uv_edge_error_m": 1.73e-06,
+    "open_doors_checked": 2,
+    "display_sightlines_sampled": 24,
+    "overlay_clear_fraction_for_masked_loader": 0.99805
+  }
+]

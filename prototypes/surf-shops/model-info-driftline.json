@@ -1,0 +1,293 @@
+{
+  "name": "Driftline Surf & Repair",
+  "id": "driftline",
+  "era": "1960 onward",
+  "file": "driftline.glb",
+  "dimensions_m": {
+    "width": 12.4,
+    "depth": 9.66,
+    "height": 5.36
+  },
+  "axes": "glTF metres, Y up and +Z toward the sidewalk. Front center at grade.",
+  "triangles": 2190,
+  "materials": [
+    "detail_frames",
+    "detail_ivory",
+    "detail_stock",
+    "detail_storefront_overlay",
+    "floor_timber",
+    "glow_shop",
+    "ground_sidewalk",
+    "roof_shop",
+    "sign_name",
+    "wall_detail",
+    "wall_shop"
+  ],
+  "anchors": {
+    "door_back": [
+      2.74,
+      0.162,
+      -9.76
+    ],
+    "door_main": [
+      0,
+      0.162,
+      -0.37
+    ]
+  },
+  "storefront_panes": [
+    {
+      "name": "Main display glass",
+      "axis": "front",
+      "fixed_m": 0.075,
+      "span_m": [
+        -5.64,
+        -1.34
+      ],
+      "heights_m": [
+        0.69,
+        3.13
+      ]
+    },
+    {
+      "name": "Main display glass",
+      "axis": "front",
+      "fixed_m": 0.075,
+      "span_m": [
+        1.34,
+        5.64
+      ],
+      "heights_m": [
+        0.69,
+        3.13
+      ]
+    }
+  ],
+  "collision": {
+    "boxes_blender_z_up": [
+      {
+        "name": "Side masonry wall",
+        "center": [
+          -6.2,
+          4.8585,
+          2.035
+        ],
+        "size": [
+          0.2560000000000002,
+          9.603,
+          3.75
+        ]
+      },
+      {
+        "name": "Side masonry wall",
+        "center": [
+          6.2,
+          4.8585,
+          2.035
+        ],
+        "size": [
+          0.2560000000000002,
+          9.603,
+          3.75
+        ]
+      },
+      {
+        "name": "Rear wall",
+        "center": [
+          -2.065,
+          9.51,
+          2.035
+        ],
+        "size": [
+          8.23,
+          0.21999999999999886,
+          3.75
+        ]
+      },
+      {
+        "name": "Rear wall",
+        "center": [
+          4.805,
+          9.51,
+          2.035
+        ],
+        "size": [
+          2.7499999999999996,
+          0.21999999999999886,
+          3.75
+        ]
+      },
+      {
+        "name": "Front facade pier",
+        "center": [
+          -5.92,
+          0.095,
+          1.955
+        ],
+        "size": [
+          0.5600000000000005,
+          0.31,
+          3.59
+        ]
+      },
+      {
+        "name": "Front facade pier",
+        "center": [
+          -1.19,
+          0.095,
+          1.955
+        ],
+        "size": [
+          0.30000000000000004,
+          0.31,
+          3.59
+        ]
+      },
+      {
+        "name": "Front facade pier",
+        "center": [
+          1.19,
+          0.095,
+          1.955
+        ],
+        "size": [
+          0.30000000000000004,
+          0.31,
+          3.59
+        ]
+      },
+      {
+        "name": "Front facade pier",
+        "center": [
+          5.92,
+          0.095,
+          1.955
+        ],
+        "size": [
+          0.5600000000000005,
+          0.31,
+          3.59
+        ]
+      },
+      {
+        "name": "Main display glass",
+        "center": [
+          -3.4899999999999998,
+          0.07500000000000001,
+          1.91
+        ],
+        "size": [
+          4.3,
+          0.12000000000000001,
+          2.44
+        ]
+      },
+      {
+        "name": "Main display glass",
+        "center": [
+          3.4899999999999998,
+          0.07500000000000001,
+          1.91
+        ],
+        "size": [
+          4.3,
+          0.12000000000000001,
+          2.44
+        ]
+      },
+      {
+        "name": "Door return",
+        "center": [
+          -1.088,
+          0.43,
+          1.7765
+        ],
+        "size": [
+          0.18399999999999994,
+          0.66,
+          3.2270000000000003
+        ]
+      },
+      {
+        "name": "Door return",
+        "center": [
+          1.088,
+          0.43,
+          1.7765
+        ],
+        "size": [
+          0.18399999999999994,
+          0.66,
+          3.2270000000000003
+        ]
+      },
+      {
+        "name": "Fixed front counter",
+        "center": [
+          4.8149999999999995,
+          5.485,
+          0.6415000000000001
+        ],
+        "size": [
+          2.1100000000000003,
+          1.5899999999999999,
+          0.9570000000000001
+        ]
+      },
+      {
+        "name": "Repair bench",
+        "center": [
+          -4.34,
+          7.895,
+          0.6455
+        ],
+        "size": [
+          3.0,
+          2.1900000000000004,
+          0.9649999999999999
+        ]
+      },
+      {
+        "name": "Utility crate",
+        "center": [
+          -6.61,
+          -0.5914999999999999,
+          0.2645
+        ],
+        "size": [
+          0.39400000000000013,
+          0.483,
+          0.391
+        ],
+        "group": "lot",
+        "attachment": "lot"
+      },
+      {
+        "name": "Utility crate",
+        "center": [
+          5.8,
+          -0.7015,
+          0.2645
+        ],
+        "size": [
+          0.39400000000000013,
+          0.483,
+          0.391
+        ],
+        "group": "lot",
+        "attachment": "lot"
+      }
+    ]
+  },
+  "optional_nodes": [
+    "lot",
+    "display_stock"
+  ],
+  "swatches": [
+    "pavement",
+    "plank_horizontal",
+    "roof_tin_brown"
+  ],
+  "display_board_source": "Beach Day Prop Pack, PR #35. Display copies preserve original geometry and texel density.",
+  "glazing": "The storefront uses an alpha overlay under a BODY-role name so the current loader's painted-room glass rule does not replace the see-through view."
+}

@@ -1,0 +1,7 @@
+{
+  "name": "Surf Shop Pair",
+  "assets": [
+    {"id": "driftline", "file": "driftline.glb", "info": "model-info-driftline.json"},
+    {"id": "tideglass", "file": "tideglass.glb", "info": "model-info-tideglass.json"}
+  ]
+}
