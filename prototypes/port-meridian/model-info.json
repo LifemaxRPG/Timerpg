@@ -1,0 +1,947 @@
+{
+  "name": "Port Meridian",
+  "era": "1996 onward passenger terminal",
+  "footprint_m": {
+    "quay_length": 386,
+    "landward_extent": 121,
+    "clock_roof_above_grade": 32.15
+  },
+  "waterline_gltf_y": -2.4,
+  "coordinate_system": "glTF metres, +Y up, +X seaward and +Z along the bow approach. Origin at grade at the quay edge.",
+  "triangles": 11952,
+  "materials": [
+    "detail_fenders",
+    "detail_port_steel",
+    "detail_safety_ochre",
+    "glass_terminal",
+    "glow_terminal",
+    "ground_boarding_deck",
+    "ground_port_asphalt",
+    "roof_patinated_copper",
+    "sign_port",
+    "wall_quay_masonry",
+    "wall_terminal_brick",
+    "wall_terminal_stone"
+  ],
+  "swatches": [
+    "plank_horizontal"
+  ],
+  "berth": {
+    "id": "berth_01",
+    "vessel": "MV Copperwake",
+    "vessel_length_m": 309,
+    "vessel_beam_m": 39.26,
+    "vessel_origin_gltf_m": [
+      22.4,
+      -11.75,
+      0
+    ],
+    "vessel_heading_deg": 0,
+    "vessel_waterline_above_keel_m": 9.35,
+    "required_design_depth_m": 12.5,
+    "quay_limits_gltf_z_m": [
+      -193,
+      193
+    ],
+    "ship_port_anchor_local_gltf_m": [
+      -17.6,
+      21.26,
+      29
+    ],
+    "ship_port_anchor_world_gltf_m": [
+      4.8,
+      9.51,
+      29
+    ]
+  },
+  "boarding_path_gltf_m": [
+    [
+      -27.1,
+      8.2,
+      29
+    ],
+    [
+      -4.2,
+      8.9,
+      29
+    ],
+    [
+      2.36,
+      9.344622222222222,
+      30.04
+    ],
+    [
+      4.8,
+      9.51,
+      30.04
+    ]
+  ],
+  "onboard_transfer_gltf_m": [
+    [
+      4.8,
+      9.51,
+      30.04
+    ],
+    [
+      4.8,
+      9.51,
+      29
+    ]
+  ],
+  "landing_deck_width_m": 1.24,
+  "boarding_leaf_node": "deployable_gangway_leaf",
+  "stair_runs": [
+    {
+      "name": "stair_1_lower",
+      "x_center": -66.05,
+      "start_blender_y": -54.8,
+      "direction": 1,
+      "run_m": 8.64,
+      "from_y_m": 0.112,
+      "to_y_m": 4.156,
+      "treads": 24
+    },
+    {
+      "name": "stair_1_upper",
+      "x_center": -60.75,
+      "start_blender_y": -46.16,
+      "direction": -1,
+      "run_m": 8.64,
+      "from_y_m": 4.156,
+      "to_y_m": 8.2,
+      "treads": 24
+    },
+    {
+      "name": "stair_2_lower",
+      "x_center": -66.05,
+      "start_blender_y": 28.2,
+      "direction": 1,
+      "run_m": 8.64,
+      "from_y_m": 0.112,
+      "to_y_m": 4.156,
+      "treads": 24
+    },
+    {
+      "name": "stair_2_upper",
+      "x_center": -60.75,
+      "start_blender_y": 36.84,
+      "direction": -1,
+      "run_m": 8.64,
+      "from_y_m": 4.156,
+      "to_y_m": 8.2,
+      "treads": 24
+    }
+  ],
+  "anchors": {
+    "door_main": {
+      "xyz_gltf_m": [
+        -81.55,
+        0.112,
+        43
+      ],
+      "clear_width_m": 5.4
+    },
+    "door_arrivals": {
+      "xyz_gltf_m": [
+        -81.55,
+        0.112,
+        -12
+      ],
+      "clear_width_m": 5.4
+    },
+    "door_baggage": {
+      "xyz_gltf_m": [
+        -26.6,
+        0.112,
+        52
+      ],
+      "clear_width_m": 6.0
+    },
+    "stair_1_lower_foot": {
+      "xyz_gltf_m": [
+        -66.05,
+        0.112,
+        54.8
+      ]
+    },
+    "stair_1_lower_landing": {
+      "xyz_gltf_m": [
+        -66.05,
+        4.156,
+        46.16
+      ]
+    },
+    "stair_1_upper_foot": {
+      "xyz_gltf_m": [
+        -60.75,
+        4.156,
+        46.16
+      ]
+    },
+    "stair_1_upper_landing": {
+      "xyz_gltf_m": [
+        -60.75,
+        8.2,
+        54.8
+      ]
+    },
+    "stair_2_lower_foot": {
+      "xyz_gltf_m": [
+        -66.05,
+        0.112,
+        -28.2
+      ]
+    },
+    "stair_2_lower_landing": {
+      "xyz_gltf_m": [
+        -66.05,
+        4.156,
+        -36.84
+      ]
+    },
+    "stair_2_upper_foot": {
+      "xyz_gltf_m": [
+        -60.75,
+        4.156,
+        -36.84
+      ]
+    },
+    "stair_2_upper_landing": {
+      "xyz_gltf_m": [
+        -60.75,
+        8.2,
+        -28.200000000000003
+      ]
+    },
+    "door_gate_01": {
+      "xyz_gltf_m": [
+        -27.28,
+        8.2,
+        29
+      ],
+      "clear_width_m": 4.24
+    },
+    "gangway_deck_hinge": {
+      "xyz_gltf_m": [
+        -4.2,
+        8.9,
+        29
+      ]
+    },
+    "gangway_ship_end": {
+      "xyz_gltf_m": [
+        4.8,
+        9.51,
+        30.04
+      ]
+    },
+    "ship_port_transfer": {
+      "xyz_gltf_m": [
+        4.8,
+        9.51,
+        29
+      ],
+      "ship_node": "gangway_port"
+    },
+    "berth_01_mv_copperwake": {
+      "xyz_gltf_m": [
+        22.4,
+        -11.75,
+        0
+      ],
+      "heading_deg": 0,
+      "waterline_y_m": -2.4,
+      "required_depth_m": 12.5
+    },
+    "approach_aft": {
+      "xyz_gltf_m": [
+        30,
+        -2.4,
+        -400
+      ],
+      "lane_width_m": 95
+    },
+    "approach_forward": {
+      "xyz_gltf_m": [
+        30,
+        -2.4,
+        400
+      ],
+      "lane_width_m": 95
+    },
+    "mooring_aft": {
+      "xyz_gltf_m": [
+        -1.85,
+        0.035,
+        -150
+      ]
+    },
+    "mooring_forward": {
+      "xyz_gltf_m": [
+        -1.85,
+        0.035,
+        150
+      ]
+    },
+    "lift_ground": {
+      "xyz_gltf_m": [
+        -72.82,
+        0.112,
+        5.62
+      ]
+    },
+    "lift_departure": {
+      "xyz_gltf_m": [
+        -72.82,
+        8.2,
+        5.62
+      ]
+    },
+    "door_service": {
+      "xyz_gltf_m": [
+        -56.55,
+        0.081,
+        -105
+      ],
+      "clear_width_m": 12
+    }
+  },
+  "wall_collision_boxes": [
+    {
+      "name": "Mooring bollard",
+      "center_gltf_m": [
+        -1.85,
+        0.5225,
+        167.0
+      ],
+      "size_gltf_m": [
+        0.6799999999999999,
+        0.975,
+        0.6800000000000068
+      ],
+      "group": "berth_01_quay"
+    },
+    {
+      "name": "Mooring bollard",
+      "center_gltf_m": [
+        -1.85,
+        0.5225,
+        145.0
+      ],
+      "size_gltf_m": [
+        0.6799999999999999,
+        0.975,
+        0.6800000000000068
+      ],
+      "group": "berth_01_quay"
+    },
+    {
+      "name": "Mooring bollard",
+      "center_gltf_m": [
+        -1.85,
+        0.5225,
+        118.0
+      ],
+      "size_gltf_m": [
+        0.6799999999999999,
+        0.975,
+        0.6800000000000068
+      ],
+      "group": "berth_01_quay"
+    },
+    {
+      "name": "Mooring bollard",
+      "center_gltf_m": [
+        -1.85,
+        0.5225,
+        88.0
+      ],
+      "size_gltf_m": [
+        0.6799999999999999,
+        0.975,
+        0.6800000000000068
+      ],
+      "group": "berth_01_quay"
+    },
+    {
+      "name": "Mooring bollard",
+      "center_gltf_m": [
+        -1.85,
+        0.5225,
+        61.0
+      ],
+      "size_gltf_m": [
+        0.6799999999999999,
+        0.975,
+        0.6800000000000068
+      ],
+      "group": "berth_01_quay"
+    },
+    {
+      "name": "Mooring bollard",
+      "center_gltf_m": [
+        -1.85,
+        0.5225,
+        26.0
+      ],
+      "size_gltf_m": [
+        0.6799999999999999,
+        0.975,
+        0.6799999999999997
+      ],
+      "group": "berth_01_quay"
+    },
+    {
+      "name": "Mooring bollard",
+      "center_gltf_m": [
+        -1.85,
+        0.5225,
+        -9.0
+      ],
+      "size_gltf_m": [
+        0.6799999999999999,
+        0.975,
+        0.6799999999999997
+      ],
+      "group": "berth_01_quay"
+    },
+    {
+      "name": "Mooring bollard",
+      "center_gltf_m": [
+        -1.85,
+        0.5225,
+        -46.0
+      ],
+      "size_gltf_m": [
+        0.6799999999999999,
+        0.975,
+        0.6800000000000068
+      ],
+      "group": "berth_01_quay"
+    },
+    {
+      "name": "Mooring bollard",
+      "center_gltf_m": [
+        -1.85,
+        0.5225,
+        -83.0
+      ],
+      "size_gltf_m": [
+        0.6799999999999999,
+        0.975,
+        0.6800000000000068
+      ],
+      "group": "berth_01_quay"
+    },
+    {
+      "name": "Mooring bollard",
+      "center_gltf_m": [
+        -1.85,
+        0.5225,
+        -120.0
+      ],
+      "size_gltf_m": [
+        0.6799999999999999,
+        0.975,
+        0.6800000000000068
+      ],
+      "group": "berth_01_quay"
+    },
+    {
+      "name": "Mooring bollard",
+      "center_gltf_m": [
+        -1.85,
+        0.5225,
+        -150.0
+      ],
+      "size_gltf_m": [
+        0.6799999999999999,
+        0.975,
+        0.6800000000000068
+      ],
+      "group": "berth_01_quay"
+    },
+    {
+      "name": "Mooring bollard",
+      "center_gltf_m": [
+        -1.85,
+        0.5225,
+        -170.0
+      ],
+      "size_gltf_m": [
+        0.6799999999999999,
+        0.975,
+        0.6800000000000068
+      ],
+      "group": "berth_01_quay"
+    },
+    {
+      "name": "City side brick wall",
+      "center_gltf_m": [
+        -80.805,
+        2.396,
+        58.0
+      ],
+      "size_gltf_m": [
+        0.39000000000000057,
+        4.568,
+        24
+      ],
+      "group": "passenger_terminal"
+    },
+    {
+      "name": "City side brick wall",
+      "center_gltf_m": [
+        -80.805,
+        2.396,
+        15.5
+      ],
+      "size_gltf_m": [
+        0.39000000000000057,
+        4.568,
+        49
+      ],
+      "group": "passenger_terminal"
+    },
+    {
+      "name": "City side brick wall",
+      "center_gltf_m": [
+        -80.805,
+        2.396,
+        -36.5
+      ],
+      "size_gltf_m": [
+        0.39000000000000057,
+        4.568,
+        43
+      ],
+      "group": "passenger_terminal"
+    },
+    {
+      "name": "Quay side brick wall",
+      "center_gltf_m": [
+        -27.189999999999998,
+        2.856,
+        62.5
+      ],
+      "size_gltf_m": [
+        0.379999999999999,
+        5.4879999999999995,
+        15
+      ],
+      "group": "passenger_terminal"
+    },
+    {
+      "name": "Quay side brick wall",
+      "center_gltf_m": [
+        -27.189999999999998,
+        2.856,
+        -4.5
+      ],
+      "size_gltf_m": [
+        0.379999999999999,
+        5.4879999999999995,
+        107
+      ],
+      "group": "passenger_terminal"
+    },
+    {
+      "name": "Terminal end masonry shell",
+      "center_gltf_m": [
+        -53.995,
+        3.355,
+        70.0
+      ],
+      "size_gltf_m": [
+        53.230000000000004,
+        6.489999999999999,
+        0.3199999999999932
+      ],
+      "group": "passenger_terminal"
+    },
+    {
+      "name": "Terminal end masonry shell",
+      "center_gltf_m": [
+        -53.995,
+        3.355,
+        -58.0
+      ],
+      "size_gltf_m": [
+        53.230000000000004,
+        6.489999999999999,
+        0.3199999999999932
+      ],
+      "group": "passenger_terminal"
+    },
+    {
+      "name": "City clerestory",
+      "center_gltf_m": [
+        -80.89,
+        5.635,
+        57.85
+      ],
+      "size_gltf_m": [
+        0.21999999999999886,
+        1.9100000000000001,
+        23.700000000000003
+      ],
+      "group": "passenger_terminal"
+    },
+    {
+      "name": "City clerestory",
+      "center_gltf_m": [
+        -80.89,
+        5.635,
+        15.5
+      ],
+      "size_gltf_m": [
+        0.21999999999999886,
+        1.9100000000000001,
+        49
+      ],
+      "group": "passenger_terminal"
+    },
+    {
+      "name": "City clerestory",
+      "center_gltf_m": [
+        -80.89,
+        5.635,
+        -36.35
+      ],
+      "size_gltf_m": [
+        0.21999999999999886,
+        1.9100000000000001,
+        42.7
+      ],
+      "group": "passenger_terminal"
+    },
+    {
+      "name": "Upper hall glazing",
+      "center_gltf_m": [
+        -80.97,
+        12.91,
+        6.0
+      ],
+      "size_gltf_m": [
+        0.30000000000001137,
+        9.420000000000002,
+        128
+      ],
+      "group": "departure_hall"
+    },
+    {
+      "name": "Upper hall glazing",
+      "center_gltf_m": [
+        -27.08,
+        12.91,
+        51.0
+      ],
+      "size_gltf_m": [
+        0.29999999999999716,
+        9.420000000000002,
+        38.0
+      ],
+      "group": "departure_hall"
+    },
+    {
+      "name": "Upper hall glazing",
+      "center_gltf_m": [
+        -27.08,
+        12.91,
+        -16.0
+      ],
+      "size_gltf_m": [
+        0.29999999999999716,
+        9.420000000000002,
+        84.0
+      ],
+      "group": "departure_hall"
+    },
+    {
+      "name": "Terminal end upper glazing",
+      "center_gltf_m": [
+        -54.004999999999995,
+        12.91,
+        70.0
+      ],
+      "size_gltf_m": [
+        53.37,
+        9.420000000000002,
+        0.30000000000001137
+      ],
+      "group": "departure_hall"
+    },
+    {
+      "name": "Terminal end upper glazing",
+      "center_gltf_m": [
+        -54.004999999999995,
+        12.91,
+        -58.0
+      ],
+      "size_gltf_m": [
+        53.37,
+        9.420000000000002,
+        0.29999999999999716
+      ],
+      "group": "departure_hall"
+    },
+    {
+      "name": "Link bridge pier",
+      "center_gltf_m": [
+        -22.0,
+        4.2575,
+        31.25
+      ],
+      "size_gltf_m": [
+        1.8800000000000026,
+        8.445,
+        1.3599999999999994
+      ],
+      "group": "fixed_passenger_link"
+    },
+    {
+      "name": "Link bridge pier",
+      "center_gltf_m": [
+        -22.0,
+        4.2575,
+        26.75
+      ],
+      "size_gltf_m": [
+        1.8800000000000026,
+        8.445,
+        1.3599999999999994
+      ],
+      "group": "fixed_passenger_link"
+    },
+    {
+      "name": "Link bridge pier",
+      "center_gltf_m": [
+        -9.9,
+        4.2575,
+        31.25
+      ],
+      "size_gltf_m": [
+        1.879999999999999,
+        8.445,
+        1.3599999999999994
+      ],
+      "group": "fixed_passenger_link"
+    },
+    {
+      "name": "Link bridge pier",
+      "center_gltf_m": [
+        -9.9,
+        4.2575,
+        26.75
+      ],
+      "size_gltf_m": [
+        1.879999999999999,
+        8.445,
+        1.3599999999999994
+      ],
+      "group": "fixed_passenger_link"
+    },
+    {
+      "name": "Lift shaft masonry core",
+      "center_gltf_m": [
+        -75.825,
+        13.505999999999998,
+        5.375
+      ],
+      "size_gltf_m": [
+        5.349999999999994,
+        26.788,
+        6.75
+      ],
+      "group": "passenger_terminal"
+    },
+    {
+      "name": "Service house sided wall",
+      "center_gltf_m": [
+        -83.85,
+        2.8055000000000003,
+        -107.5
+      ],
+      "size_gltf_m": [
+        0.29999999999999716,
+        5.449,
+        29
+      ],
+      "group": "service_apron"
+    },
+    {
+      "name": "Service house sided wall",
+      "center_gltf_m": [
+        -70.35,
+        2.8055000000000003,
+        -121.85
+      ],
+      "size_gltf_m": [
+        26.700000000000003,
+        5.449,
+        0.29999999999999716
+      ],
+      "group": "service_apron"
+    },
+    {
+      "name": "Service house sided wall",
+      "center_gltf_m": [
+        -70.35,
+        2.8055000000000003,
+        -93.15
+      ],
+      "size_gltf_m": [
+        26.700000000000003,
+        5.449,
+        0.29999999999999716
+      ],
+      "group": "service_apron"
+    },
+    {
+      "name": "Service house sided wall",
+      "center_gltf_m": [
+        -57.15,
+        2.8055000000000003,
+        -96.15
+      ],
+      "size_gltf_m": [
+        0.29999999999999716,
+        5.449,
+        5.700000000000003
+      ],
+      "group": "service_apron"
+    },
+    {
+      "name": "Service house sided wall",
+      "center_gltf_m": [
+        -57.15,
+        2.8055000000000003,
+        -116.35
+      ],
+      "size_gltf_m": [
+        0.29999999999999716,
+        5.449,
+        10.700000000000003
+      ],
+      "group": "service_apron"
+    },
+    {
+      "name": "Baggage container",
+      "center_gltf_m": [
+        -39.0,
+        1.4569999999999999,
+        -89.0
+      ],
+      "size_gltf_m": [
+        3.0999999999999943,
+        2.886,
+        11.599999999999994
+      ],
+      "group": "lot"
+    },
+    {
+      "name": "Baggage container",
+      "center_gltf_m": [
+        -45.0,
+        1.4569999999999999,
+        -89.0
+      ],
+      "size_gltf_m": [
+        3.0999999999999943,
+        2.886,
+        11.599999999999994
+      ],
+      "group": "lot"
+    },
+    {
+      "name": "Baggage container",
+      "center_gltf_m": [
+        -52.0,
+        1.4569999999999999,
+        -89.0
+      ],
+      "size_gltf_m": [
+        3.0999999999999943,
+        2.886,
+        11.599999999999994
+      ],
+      "group": "lot"
+    },
+    {
+      "name": "Baggage container",
+      "center_gltf_m": [
+        -47.0,
+        1.4569999999999999,
+        -150.0
+      ],
+      "size_gltf_m": [
+        3.0999999999999943,
+        2.886,
+        11.600000000000023
+      ],
+      "group": "lot"
+    },
+    {
+      "name": "Baggage container",
+      "center_gltf_m": [
+        -54.0,
+        1.4569999999999999,
+        -150.0
+      ],
+      "size_gltf_m": [
+        3.0999999999999943,
+        2.886,
+        11.600000000000023
+      ],
+      "group": "lot"
+    },
+    {
+      "name": "Baggage container",
+      "center_gltf_m": [
+        -60.0,
+        1.4569999999999999,
+        -147.0
+      ],
+      "size_gltf_m": [
+        3.0999999999999943,
+        2.886,
+        11.600000000000023
+      ],
+      "group": "lot"
+    },
+    {
+      "name": "Parked shuttle coach",
+      "center_gltf_m": [
+        -100.25,
+        1.66,
+        42.04
+      ],
+      "size_gltf_m": [
+        2.5600000000000023,
+        3.3000000000000003,
+        13.040000000000006
+      ],
+      "group": "optional_shuttle_coaches"
+    },
+    {
+      "name": "Parked shuttle coach",
+      "center_gltf_m": [
+        -100.25,
+        1.66,
+        -12.96
+      ],
+      "size_gltf_m": [
+        2.5600000000000023,
+        3.3000000000000003,
+        13.04
+      ],
+      "group": "optional_shuttle_coaches"
+    }
+  ],
+  "optional_nodes": [
+    "deployable_gangway_leaf",
+    "lot",
+    "optional_shuttle_coaches"
+  ],
+  "runtime": "Use authored floors and steps for walking surfaces. The leaf is shown deployed at mean water. Hide or replace it when no ship is present. No runtime gangway movement, tides or ship transit are implemented by this asset."
+}
