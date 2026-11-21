@@ -1,0 +1,17 @@
+{
+  "visible_triangles": 3597,
+  "materials": 11,
+  "embedded_pixel_aligned_images": 11,
+  "max_uv_edge_error_m": 1.5e-06,
+  "min_triangle_area_m2": 7.9515e-05,
+  "height_m": 11.21,
+  "named_anchors": 6,
+  "open_cockpit_samples": 3,
+  "steering_pivot_gltf_m": [
+    0,
+    1.44,
+    -3.2
+  ],
+  "draft_m": 1.43,
+  "length_m": 8.6
+}
