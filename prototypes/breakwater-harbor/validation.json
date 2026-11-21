@@ -1,0 +1,15 @@
+{
+  "triangles": 11872,
+  "materials": 12,
+  "pixel_aligned_pngs": 12,
+  "max_uv_edge_error_m": 1.203e-05,
+  "dock_top_y_m": -0.48,
+  "sailboat_berths_checked": 6,
+  "clear_yacht_envelope_m": [
+    44,
+    8.3
+  ],
+  "ramp_slope_and_water_intersection": true,
+  "rack_tiers_verified_per_side": 3,
+  "anchor_nodes_checked": 20
+}
