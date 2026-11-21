@@ -1,0 +1,274 @@
+{
+  "props_validated": 24,
+  "triangle_range": [
+    76,
+    472
+  ],
+  "texture_texel_m": 0.0388,
+  "models": [
+    {
+      "id": "umbrella-coral",
+      "triangles": 364,
+      "max_uv_error_m": 7.1e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          256
+        ]
+      ]
+    },
+    {
+      "id": "umbrella-teal",
+      "triangles": 364,
+      "max_uv_error_m": 6.9e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          256
+        ]
+      ]
+    },
+    {
+      "id": "towel-coral",
+      "triangles": 284,
+      "max_uv_error_m": 5.5e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          256
+        ]
+      ]
+    },
+    {
+      "id": "towel-teal",
+      "triangles": 284,
+      "max_uv_error_m": 5.6e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          256
+        ]
+      ]
+    },
+    {
+      "id": "surf-longboard",
+      "triangles": 124,
+      "max_uv_error_m": 7.5e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          256
+        ]
+      ]
+    },
+    {
+      "id": "surf-fish",
+      "triangles": 124,
+      "max_uv_error_m": 6.2e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          256
+        ]
+      ]
+    },
+    {
+      "id": "surf-shortboard",
+      "triangles": 148,
+      "max_uv_error_m": 6e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          256
+        ]
+      ]
+    },
+    {
+      "id": "bodyboard",
+      "triangles": 120,
+      "max_uv_error_m": 5.1e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          128
+        ]
+      ]
+    },
+    {
+      "id": "ball-beach",
+      "triangles": 144,
+      "max_uv_error_m": 5.9e-07,
+      "packed_texture_dimensions": [
+        [
+          512,
+          256
+        ]
+      ]
+    },
+    {
+      "id": "ball-volleyball",
+      "triangles": 144,
+      "max_uv_error_m": 6.5e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          256
+        ]
+      ]
+    },
+    {
+      "id": "bucket",
+      "triangles": 308,
+      "max_uv_error_m": 6.6e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          256
+        ]
+      ]
+    },
+    {
+      "id": "shovel",
+      "triangles": 132,
+      "max_uv_error_m": 4.5e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          256
+        ]
+      ]
+    },
+    {
+      "id": "rake",
+      "triangles": 156,
+      "max_uv_error_m": 5.2e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          128
+        ]
+      ]
+    },
+    {
+      "id": "star-mold",
+      "triangles": 76,
+      "max_uv_error_m": 3.5e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          128
+        ]
+      ]
+    },
+    {
+      "id": "sandcastle",
+      "triangles": 468,
+      "max_uv_error_m": 3.5e-07,
+      "packed_texture_dimensions": [
+        [
+          128,
+          128
+        ]
+      ]
+    },
+    {
+      "id": "flying-disc",
+      "triangles": 116,
+      "max_uv_error_m": 5.9e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          128
+        ]
+      ]
+    },
+    {
+      "id": "cooler",
+      "triangles": 160,
+      "max_uv_error_m": 8.3e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          256
+        ]
+      ]
+    },
+    {
+      "id": "tote",
+      "triangles": 384,
+      "max_uv_error_m": 7.1e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          256
+        ]
+      ]
+    },
+    {
+      "id": "folding-chair",
+      "triangles": 336,
+      "max_uv_error_m": 7.3e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          256
+        ]
+      ]
+    },
+    {
+      "id": "lounger",
+      "triangles": 376,
+      "max_uv_error_m": 7e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          256
+        ]
+      ]
+    },
+    {
+      "id": "swim-ring",
+      "triangles": 212,
+      "max_uv_error_m": 5.3e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          128
+        ]
+      ]
+    },
+    {
+      "id": "air-mattress",
+      "triangles": 472,
+      "max_uv_error_m": 5.9e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          128
+        ]
+      ]
+    },
+    {
+      "id": "flip-flops",
+      "triangles": 280,
+      "max_uv_error_m": 5.3e-07,
+      "packed_texture_dimensions": [
+        [
+          256,
+          256
+        ]
+      ]
+    },
+    {
+      "id": "volleyball-net",
+      "triangles": 412,
+      "max_uv_error_m": 1.12e-06,
+      "packed_texture_dimensions": [
+        [
+          512,
+          256
+        ]
+      ]
+    }
+  ]
+}
