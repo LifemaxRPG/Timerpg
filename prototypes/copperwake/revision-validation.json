@@ -1,0 +1,26 @@
+{
+  "verified_triangles": {
+    "ss-copperwake": 10672,
+    "ss-copperwake-laid-up": 10828,
+    "copperwake-mid": 3732,
+    "copperwake-far": 228,
+    "ss-copperwake-mid": 4452,
+    "ss-copperwake-far": 248,
+    "ss-copperwake-laid-up-mid": 4560,
+    "ss-copperwake-laid-up-far": 248,
+    "mv-grand-atrium": 3788,
+    "mv-main-dining": 844,
+    "mv-theatre": 2484,
+    "mv-bridge": 948,
+    "mv-observation-lounge": 712,
+    "mv-stateroom": 300,
+    "mv-suite": 588,
+    "ss-grand-staircase": 2252,
+    "ss-first-class-dining": 844,
+    "ss-smoking-room": 592,
+    "copperwake": 29826
+  },
+  "room_count": 10,
+  "largest_shared_mesh_node_count": 418,
+  "modern_collision_boxes": 438
+}

@@ -1,0 +1,1132 @@
+{
+  "ss-copperwake": {
+    "triangles": 10672,
+    "materials": 9,
+    "length_m": 260,
+    "waterline_above_keel_m": 8.3,
+    "era": "1952\u20131978",
+    "anchors": [
+      {
+        "node": "gangway_port",
+        "position_gltf_m": [
+          -14.8,
+          17.49,
+          29
+        ],
+        "outward_gltf": [
+          -1,
+          0,
+          0
+        ]
+      },
+      {
+        "node": "gangway_starboard",
+        "position_gltf_m": [
+          14.8,
+          17.49,
+          29
+        ],
+        "outward_gltf": [
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "node": "mooring_bow",
+        "position_gltf_m": [
+          3,
+          17.49,
+          106
+        ],
+        "outward_gltf": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "node": "mooring_stern",
+        "position_gltf_m": [
+          -3,
+          17.49,
+          -113
+        ],
+        "outward_gltf": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "node": "captain_spawn",
+        "position_gltf_m": [
+          0,
+          31.18,
+          59
+        ],
+        "outward_gltf": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "node": "arriving_in_port",
+        "position_gltf_m": [
+          58,
+          25,
+          95
+        ],
+        "outward_gltf": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "node": "visit_ss_grand_staircase",
+        "position_gltf_m": [
+          -14.65,
+          17.49,
+          24
+        ],
+        "outward_gltf": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "node": "visit_ss_first_class_dining",
+        "position_gltf_m": [
+          -14.65,
+          17.49,
+          -72
+        ],
+        "outward_gltf": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "node": "visit_ss_smoking_room",
+        "position_gltf_m": [
+          -14.65,
+          17.49,
+          -12
+        ],
+        "outward_gltf": [
+          0,
+          0,
+          1
+        ]
+      }
+    ],
+    "collision_boxes_gltf_m": [
+      {
+        "name": "Hull section",
+        "group": "hull",
+        "center": [
+          0,
+          8.7,
+          97.5
+        ],
+        "size": [
+          24.048,
+          17.4,
+          43.0
+        ]
+      },
+      {
+        "name": "Hull section",
+        "group": "hull",
+        "center": [
+          0,
+          8.7,
+          -17.0
+        ],
+        "size": [
+          33.4,
+          17.4,
+          186.0
+        ]
+      },
+      {
+        "name": "Hull section",
+        "group": "hull",
+        "center": [
+          0,
+          8.7,
+          -117.5
+        ],
+        "size": [
+          20.708,
+          17.4,
+          15.0
+        ]
+      },
+      {
+        "name": "Promenade rail",
+        "group": "rail",
+        "center": [
+          -13.08,
+          18.049999999999997,
+          -3.0
+        ],
+        "size": [
+          0.16,
+          1.12,
+          182
+        ]
+      },
+      {
+        "name": "Promenade rail",
+        "group": "rail",
+        "center": [
+          13.08,
+          18.049999999999997,
+          -3.0
+        ],
+        "size": [
+          0.16,
+          1.12,
+          182
+        ]
+      },
+      {
+        "name": "Promenade rail",
+        "group": "rail",
+        "center": [
+          -12.379999999999999,
+          21.759999999999998,
+          -2.0
+        ],
+        "size": [
+          0.16,
+          1.12,
+          168
+        ]
+      },
+      {
+        "name": "Promenade rail",
+        "group": "rail",
+        "center": [
+          12.379999999999999,
+          21.759999999999998,
+          -2.0
+        ],
+        "size": [
+          0.16,
+          1.12,
+          168
+        ]
+      },
+      {
+        "name": "Funnel",
+        "group": "superstructure",
+        "center": [
+          0,
+          36.92,
+          43
+        ],
+        "size": [
+          6.8,
+          12.3,
+          8.84
+        ]
+      },
+      {
+        "name": "Funnel",
+        "group": "superstructure",
+        "center": [
+          0,
+          36.92,
+          14
+        ],
+        "size": [
+          6.8,
+          12.3,
+          8.84
+        ]
+      },
+      {
+        "name": "Funnel",
+        "group": "superstructure",
+        "center": [
+          0,
+          36.92,
+          -15
+        ],
+        "size": [
+          6.8,
+          12.3,
+          8.84
+        ]
+      },
+      {
+        "name": "Mast",
+        "group": "superstructure",
+        "center": [
+          0,
+          40.08,
+          67.2
+        ],
+        "size": [
+          0.57,
+          13,
+          1.7
+        ]
+      },
+      {
+        "name": "Mast",
+        "group": "superstructure",
+        "center": [
+          0,
+          34.3,
+          -63.8
+        ],
+        "size": [
+          0.57,
+          13,
+          1.7
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          -16.189999999999998,
+          17.93,
+          58.0
+        ],
+        "size": [
+          0.14,
+          1.06,
+          52
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          -16.189999999999998,
+          17.93,
+          58.0
+        ],
+        "size": [
+          0.14,
+          1.06,
+          52
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          -16.189999999999998,
+          17.93,
+          -38.0
+        ],
+        "size": [
+          0.14,
+          1.06,
+          128
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          -16.189999999999998,
+          17.93,
+          -38.0
+        ],
+        "size": [
+          0.14,
+          1.06,
+          128
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          -13.4,
+          21.72,
+          -2.5
+        ],
+        "size": [
+          0.14,
+          1.06,
+          149
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          -13.4,
+          21.72,
+          -2.5
+        ],
+        "size": [
+          0.14,
+          1.06,
+          149
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          16.189999999999998,
+          17.93,
+          58.0
+        ],
+        "size": [
+          0.14,
+          1.06,
+          52
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          16.189999999999998,
+          17.93,
+          58.0
+        ],
+        "size": [
+          0.14,
+          1.06,
+          52
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          16.189999999999998,
+          17.93,
+          -38.0
+        ],
+        "size": [
+          0.14,
+          1.06,
+          128
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          16.189999999999998,
+          17.93,
+          -38.0
+        ],
+        "size": [
+          0.14,
+          1.06,
+          128
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          13.4,
+          21.72,
+          -2.5
+        ],
+        "size": [
+          0.14,
+          1.06,
+          149
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          13.4,
+          21.72,
+          -2.5
+        ],
+        "size": [
+          0.14,
+          1.06,
+          149
+        ]
+      },
+      {
+        "name": "Aft pool long edge",
+        "group": "pool",
+        "center": [
+          -3.55,
+          25.099999999999998,
+          -83
+        ],
+        "size": [
+          0.29,
+          0.63,
+          10.1
+        ]
+      },
+      {
+        "name": "Aft pool long edge",
+        "group": "pool",
+        "center": [
+          3.55,
+          25.099999999999998,
+          -83
+        ],
+        "size": [
+          0.29,
+          0.63,
+          10.1
+        ]
+      },
+      {
+        "name": "Aft pool end edge",
+        "group": "pool",
+        "center": [
+          0,
+          25.099999999999998,
+          -78
+        ],
+        "size": [
+          6.82,
+          0.63,
+          0.29
+        ]
+      },
+      {
+        "name": "Aft pool end edge",
+        "group": "pool",
+        "center": [
+          0,
+          25.099999999999998,
+          -88
+        ],
+        "size": [
+          6.82,
+          0.63,
+          0.29
+        ]
+      },
+      {
+        "name": "Aft pool water surface",
+        "group": "pool",
+        "center": [
+          0,
+          25.18,
+          -83
+        ],
+        "size": [
+          6.8,
+          0.04,
+          9.6
+        ]
+      }
+    ],
+    "axes": "Y up, bow +Z, origin amidships at keel"
+  },
+  "ss-copperwake-laid-up": {
+    "triangles": 10828,
+    "materials": 9,
+    "length_m": 260,
+    "waterline_above_keel_m": 8.3,
+    "era": "1979 onward, laid up",
+    "anchors": [
+      {
+        "node": "gangway_port",
+        "position_gltf_m": [
+          -14.8,
+          17.49,
+          29
+        ],
+        "outward_gltf": [
+          -1,
+          0,
+          0
+        ]
+      },
+      {
+        "node": "gangway_starboard",
+        "position_gltf_m": [
+          14.8,
+          17.49,
+          29
+        ],
+        "outward_gltf": [
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "node": "mooring_bow",
+        "position_gltf_m": [
+          3,
+          17.49,
+          106
+        ],
+        "outward_gltf": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "node": "mooring_stern",
+        "position_gltf_m": [
+          -3,
+          17.49,
+          -113
+        ],
+        "outward_gltf": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "node": "captain_spawn",
+        "position_gltf_m": [
+          0,
+          31.18,
+          59
+        ],
+        "outward_gltf": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "node": "arriving_in_port",
+        "position_gltf_m": [
+          58,
+          25,
+          95
+        ],
+        "outward_gltf": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "node": "visit_ss_grand_staircase",
+        "position_gltf_m": [
+          -14.65,
+          17.49,
+          24
+        ],
+        "outward_gltf": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "node": "visit_ss_first_class_dining",
+        "position_gltf_m": [
+          -14.65,
+          17.49,
+          -72
+        ],
+        "outward_gltf": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "node": "visit_ss_smoking_room",
+        "position_gltf_m": [
+          -14.65,
+          17.49,
+          -12
+        ],
+        "outward_gltf": [
+          0,
+          0,
+          1
+        ]
+      }
+    ],
+    "collision_boxes_gltf_m": [
+      {
+        "name": "Hull section",
+        "group": "hull",
+        "center": [
+          0,
+          8.7,
+          97.5
+        ],
+        "size": [
+          24.048,
+          17.4,
+          43.0
+        ]
+      },
+      {
+        "name": "Hull section",
+        "group": "hull",
+        "center": [
+          0,
+          8.7,
+          -17.0
+        ],
+        "size": [
+          33.4,
+          17.4,
+          186.0
+        ]
+      },
+      {
+        "name": "Hull section",
+        "group": "hull",
+        "center": [
+          0,
+          8.7,
+          -117.5
+        ],
+        "size": [
+          20.708,
+          17.4,
+          15.0
+        ]
+      },
+      {
+        "name": "Promenade rail",
+        "group": "rail",
+        "center": [
+          -13.08,
+          18.049999999999997,
+          -3.0
+        ],
+        "size": [
+          0.16,
+          1.12,
+          182
+        ]
+      },
+      {
+        "name": "Promenade rail",
+        "group": "rail",
+        "center": [
+          13.08,
+          18.049999999999997,
+          -3.0
+        ],
+        "size": [
+          0.16,
+          1.12,
+          182
+        ]
+      },
+      {
+        "name": "Promenade rail",
+        "group": "rail",
+        "center": [
+          -12.379999999999999,
+          21.759999999999998,
+          -2.0
+        ],
+        "size": [
+          0.16,
+          1.12,
+          168
+        ]
+      },
+      {
+        "name": "Promenade rail",
+        "group": "rail",
+        "center": [
+          12.379999999999999,
+          21.759999999999998,
+          -2.0
+        ],
+        "size": [
+          0.16,
+          1.12,
+          168
+        ]
+      },
+      {
+        "name": "Funnel",
+        "group": "superstructure",
+        "center": [
+          0,
+          36.92,
+          43
+        ],
+        "size": [
+          6.8,
+          12.3,
+          8.84
+        ]
+      },
+      {
+        "name": "Funnel",
+        "group": "superstructure",
+        "center": [
+          0,
+          36.92,
+          14
+        ],
+        "size": [
+          6.8,
+          12.3,
+          8.84
+        ]
+      },
+      {
+        "name": "Funnel",
+        "group": "superstructure",
+        "center": [
+          0,
+          36.92,
+          -15
+        ],
+        "size": [
+          6.8,
+          12.3,
+          8.84
+        ]
+      },
+      {
+        "name": "Mast",
+        "group": "superstructure",
+        "center": [
+          0,
+          40.08,
+          67.2
+        ],
+        "size": [
+          0.57,
+          13,
+          1.7
+        ]
+      },
+      {
+        "name": "Mast",
+        "group": "superstructure",
+        "center": [
+          0,
+          34.3,
+          -63.8
+        ],
+        "size": [
+          0.57,
+          13,
+          1.7
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          -16.189999999999998,
+          17.93,
+          58.0
+        ],
+        "size": [
+          0.14,
+          1.06,
+          52
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          -16.189999999999998,
+          17.93,
+          58.0
+        ],
+        "size": [
+          0.14,
+          1.06,
+          52
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          -16.189999999999998,
+          17.93,
+          -38.0
+        ],
+        "size": [
+          0.14,
+          1.06,
+          128
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          -16.189999999999998,
+          17.93,
+          -38.0
+        ],
+        "size": [
+          0.14,
+          1.06,
+          128
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          -13.4,
+          21.72,
+          -2.5
+        ],
+        "size": [
+          0.14,
+          1.06,
+          149
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          -13.4,
+          21.72,
+          -2.5
+        ],
+        "size": [
+          0.14,
+          1.06,
+          149
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          16.189999999999998,
+          17.93,
+          58.0
+        ],
+        "size": [
+          0.14,
+          1.06,
+          52
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          16.189999999999998,
+          17.93,
+          58.0
+        ],
+        "size": [
+          0.14,
+          1.06,
+          52
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          16.189999999999998,
+          17.93,
+          -38.0
+        ],
+        "size": [
+          0.14,
+          1.06,
+          128
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          16.189999999999998,
+          17.93,
+          -38.0
+        ],
+        "size": [
+          0.14,
+          1.06,
+          128
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          13.4,
+          21.72,
+          -2.5
+        ],
+        "size": [
+          0.14,
+          1.06,
+          149
+        ]
+      },
+      {
+        "name": "Rail line",
+        "group": "rail",
+        "center": [
+          13.4,
+          21.72,
+          -2.5
+        ],
+        "size": [
+          0.14,
+          1.06,
+          149
+        ]
+      },
+      {
+        "name": "Aft pool long edge",
+        "group": "pool",
+        "center": [
+          -3.55,
+          25.099999999999998,
+          -83
+        ],
+        "size": [
+          0.29,
+          0.63,
+          10.1
+        ]
+      },
+      {
+        "name": "Aft pool long edge",
+        "group": "pool",
+        "center": [
+          3.55,
+          25.099999999999998,
+          -83
+        ],
+        "size": [
+          0.29,
+          0.63,
+          10.1
+        ]
+      },
+      {
+        "name": "Aft pool end edge",
+        "group": "pool",
+        "center": [
+          0,
+          25.099999999999998,
+          -78
+        ],
+        "size": [
+          6.82,
+          0.63,
+          0.29
+        ]
+      },
+      {
+        "name": "Aft pool end edge",
+        "group": "pool",
+        "center": [
+          0,
+          25.099999999999998,
+          -88
+        ],
+        "size": [
+          6.82,
+          0.63,
+          0.29
+        ]
+      },
+      {
+        "name": "Aft pool water surface",
+        "group": "pool",
+        "center": [
+          0,
+          25.18,
+          -83
+        ],
+        "size": [
+          6.8,
+          0.04,
+          9.6
+        ]
+      }
+    ],
+    "axes": "Y up, bow +Z, origin amidships at keel"
+  },
+  "copperwake-mid": {
+    "triangles": 3732,
+    "materials": 7,
+    "length_m": 309,
+    "waterline_above_keel_m": 9.35,
+    "era": "1996 onward",
+    "anchors": [],
+    "collision_boxes_gltf_m": [],
+    "axes": "Y up, bow +Z, origin amidships at keel"
+  },
+  "copperwake-far": {
+    "triangles": 228,
+    "materials": 4,
+    "length_m": 309,
+    "waterline_above_keel_m": 9.35,
+    "era": "1996 onward",
+    "anchors": [],
+    "collision_boxes_gltf_m": [],
+    "axes": "Y up, bow +Z, origin amidships at keel"
+  },
+  "ss-copperwake-mid": {
+    "triangles": 4452,
+    "materials": 7,
+    "length_m": 260,
+    "waterline_above_keel_m": 8.3,
+    "era": "1952\u20131978",
+    "anchors": [],
+    "collision_boxes_gltf_m": [],
+    "axes": "Y up, bow +Z, origin amidships at keel"
+  },
+  "ss-copperwake-far": {
+    "triangles": 248,
+    "materials": 4,
+    "length_m": 260,
+    "waterline_above_keel_m": 8.3,
+    "era": "1952\u20131978",
+    "anchors": [],
+    "collision_boxes_gltf_m": [],
+    "axes": "Y up, bow +Z, origin amidships at keel"
+  },
+  "ss-copperwake-laid-up-mid": {
+    "triangles": 4560,
+    "materials": 7,
+    "length_m": 260,
+    "waterline_above_keel_m": 8.3,
+    "era": "1979 onward, laid up",
+    "anchors": [],
+    "collision_boxes_gltf_m": [],
+    "axes": "Y up, bow +Z, origin amidships at keel"
+  },
+  "ss-copperwake-laid-up-far": {
+    "triangles": 248,
+    "materials": 4,
+    "length_m": 260,
+    "waterline_above_keel_m": 8.3,
+    "era": "1979 onward, laid up",
+    "anchors": [],
+    "collision_boxes_gltf_m": [],
+    "axes": "Y up, bow +Z, origin amidships at keel"
+  }
+}
