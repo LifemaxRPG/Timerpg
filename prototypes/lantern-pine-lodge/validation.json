@@ -1,0 +1,13 @@
+{
+  "visible_triangles": 9191,
+  "materials": 12,
+  "embedded_pixel_aligned_images": 12,
+  "max_uv_edge_error_m": 2.7e-06,
+  "min_triangle_area_m2": 0.000492868,
+  "height_m": 11.0778,
+  "roof_vertical_clearance_m": 0.04,
+  "collision_boxes": 74,
+  "clear_doors": 2,
+  "woodland_trees": 17,
+  "building_height_m": 8.595
+}
