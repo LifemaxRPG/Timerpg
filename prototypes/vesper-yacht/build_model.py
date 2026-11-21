@@ -19,13 +19,13 @@ upper=group("pilothouse_deck",boat)
 fly=group("flybridge",boat)
 hardware=group("marine_hardware",boat)
 furniture=group("lot",boat)
-navy=material("wall_hull","hull")
+hull_white=material("wall_hull","hull")
 ivory=material("wall_superstructure","ivory")
 boot=material("detail_antifouling","boot")
 steel=material("detail_marine_trim","trim")
 brass=material("detail_champagne","champagne")
 teak=material("ground_teak","teak")
-olive=material("detail_olive","olive")
+pearl=material("detail_pearl_upholstery","olive")
 linen=material("detail_linen","linen")
 glass=material("glass_tinted","glass",.10)
 amber=material("glow_deck_lamps","amber",.50)
@@ -59,7 +59,7 @@ sections=[(.0,.32,8.2,4.65,0),(.42,.56,6.15,3.55,0),(1.17,.77,3.9,2.22,.035),
           (2.1,.91,2.66,1.45,.05),(2.21,.925,2.45,1.36,.07),
           (3.68,.98,.70,.45,.54),(4.28,1,0,0,1),(4.42,1,0,0,1)]
 rings=[perimeter(*section) for section in sections]
-loft("Continuous hull shell",hull,rings,lambda i,_:(boot,boot,boot,brass,navy,navy,ivory)[i],ends=False)
+loft("Continuous hull shell",hull,rings,lambda i,_:(boot,boot,boot,hull_white,hull_white,hull_white,ivory)[i],ends=False)
 mesh("Keel closure",hull,rings[0],[tuple(reversed(range(len(rings[0]))))],boot)
 # Terminate the weather deck at the transom break. The exposed beach level
 # has its own flat floor, so it never inherits the hull's sloped sheer.
@@ -85,7 +85,7 @@ for side in (-1,1):
     for dx,dz in ((.36,.24),(-.36,-.24),(-.24,.36),(.24,-.36)):
         beam("Propeller blade",hardware,(x,16.83,.46),(x+dx,16.91,.46+dz),
              (.08,.072),(.046,.053),brass,n=6)
-    block("Spade rudder",hardware,x,17.41,.19,.145,.49,1.91,navy)
+    block("Spade rudder",hardware,x,17.41,.19,.145,.49,1.91,hull_white)
 
 for side in (-1,1):
     for x,y,z,w in [(3.45,-8.5,3.08,2.13),(3.71,-4.55,3.03,2.03),
@@ -226,9 +226,9 @@ def settee(name,parent,x,y,z,w,d,back_side):
     block("Settee pedestal",g,x,y,z+.022,w,d,.31,teak)
     block("Seat cushion",g,x,y,z+.333,w+.026,d+.03,.16,linen)
     if back_side:
-        block("Settee back",g,x+back_side*(w*.5-.071),y,z+.47,.15,d+.028,.44,olive)
+        block("Settee back",g,x+back_side*(w*.5-.071),y,z+.47,.15,d+.028,.44,pearl)
     else:
-        block("Settee back",g,x,y+d*.5-.08,z+.47,w+.014,.16,.44,olive)
+        block("Settee back",g,x,y+d*.5-.08,z+.47,w+.014,.16,.44,pearl)
     return g
 
 
@@ -250,7 +250,7 @@ for x in (-1.18,1.18):
     block("Recessed sunpad base",seat,x,-12.18,4.48,1.68,2.77,.156,ivory)
     block("Foredeck sunpad",seat,x,-12.18,4.637,1.62,2.64,.115,linen)
     beam("Raised sunpad back",seat,(x,-13.38,4.75),(x,-13.87,5.11),
-         (.72,.07),(.72,.07),olive,n=4)
+         (.72,.07),(.72,.07),pearl,n=4)
 for x in (-.81,.85):
     settee(f"fly_lounge_{x}",furniture,x,.88,fly_floor,1.21,1.22,0)
 table("Flybridge low table",fly,.68,-.35,fly_floor,.83,1.11)
@@ -299,8 +299,8 @@ beam("Stainless anchor roller",hardware,(0,-21.43,4.87),(0,-20.23,4.83),
      (.096,.083),(.079,.083),steel,n=6)
 
 w,h=84*T,22*T
-block("Aft garage bulkhead",main,0,15.60,2.70,3.72,.19,1.66,navy)
-block("Transom name panel",main,0,15.698,3.045,w+.08,.027,h+.073,navy)
+block("Aft garage bulkhead",main,0,15.60,2.70,3.72,.19,1.66,hull_white)
+block("Transom name panel",main,0,15.698,3.045,w+.08,.027,h+.073,hull_white)
 y=15.715
 z=3.51
 plaque("sign_name",main,[(w/2,y,z-h/2),(-w/2,y,z-h/2),(-w/2,y,z+h/2),(w/2,y,z+h/2)],

@@ -1,6 +1,6 @@
 # Vesper
 
-A 41.94 m modern motor yacht with slate-blue topsides, tinted glazing and a stepped teak stern. The design has a 7.92 m beam and a 2.10 m design draft. At the stern, a swim ladder rises to the beach platform, with two stair runs continuing to the aft dining terrace. A stair on the starboard side reaches the pilothouse terrace, and another reaches the hardtop flybridge. The salon and pilothouse have modeled interiors and clear aft portals. The foredeck has two sunpads. Below the waterline are twin shafts, propellers and rudders.
+A 41.94 m modern motor yacht with pearl-white topsides, a warm white superstructure, tinted glazing and a stepped teak stern. The design has a 7.92 m beam and a 2.10 m design draft. At the stern, a swim ladder rises to the beach platform, with two stair runs continuing to the aft dining terrace. A stair on the starboard side reaches the pilothouse terrace, and another reaches the hardtop flybridge. The salon and pilothouse have modeled interiors and clear aft portals. The foredeck has two sunpads. Below the waterline are twin shafts, propellers and rudders.
 
 The GLB has 6,926 triangles and eleven matte materials. Teak uses Timerpg's shared timber swatch. Original paint, glass and upholstery use 2×2 art pixels, nearest/repeat filtering and 0.0388 m per texel. Seats and sunpads are named groups under `lot`.
 

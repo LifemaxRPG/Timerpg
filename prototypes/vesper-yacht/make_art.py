@@ -22,13 +22,13 @@ x,y,w,h=[catalog["plank_horizontal"][key] for key in ("x","y","w","h")]
 save("teak",atlas.crop((x,y,x+w,y+h)).resize((w//2,h//2),Image.Resampling.NEAREST))
 
 palette={
-    "hull":("#344c58","#455d64","#2d404b","#52656a"),
-    "ivory":("#c8c2ac","#dcd2bb","#a5a597","#b7b5a5"),
-    "boot":("#915c4a","#a6634d","#734b40","#a16952"),
+    "hull":("#eeefe8","#f5f5ee","#d8dedb","#e2e7e1"),
+    "ivory":("#f1efe6","#f7f5ee","#dddcd3","#e9e7dc"),
+    "boot":("#dde1db","#e9ebe5","#c9d1ce","#d3dad5"),
     "trim":("#535d5b","#68736c","#374a49","#536866"),
     "champagne":("#a38a5e","#c2aa75","#84734e","#a69670"),
-    "olive":("#657969","#798c78","#4b6258","#6e7f68"),
-    "linen":("#bbab8b","#cfc0a0","#998c74","#c0b096"),
+    "olive":("#d7d7ce","#e4e3d9","#bdbfb7","#cccec4"),
+    "linen":("#e3dece","#efe9db","#cdc7b9","#dcd7c8"),
     "amber":("#bda06f","#dfc18a","#927954","#cdad77"),
 }
 for i,(name,cols) in enumerate(palette.items()):
@@ -57,11 +57,11 @@ for i in range(3):
     draw.line((base+8,23,base+22,18),fill="#657d79")
 save("glass",im)
 
-im=Image.new("RGB",(42,11),"#344c58")
+im=Image.new("RGB",(42,11),palette["hull"][0])
 draw=ImageDraw.Draw(im)
 for i,ch in enumerate("VESPER"):
     for y,row in enumerate(FONT[ch]):
         for x,p in enumerate(row):
             if p=="1":
-                draw.point((3+i*6+x,2+y),fill="#d8c394")
+                draw.point((3+i*6+x,2+y),fill="#414f50")
 save("name",im)
