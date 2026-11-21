@@ -1,0 +1,496 @@
+{
+  "name": "Timerpg landscape palm collection",
+  "scope": "Common mainland US landscape palms",
+  "units": "glTF metres, Y up, root on terrain at the planting point",
+  "texel_size_m": 0.0388,
+  "texels_per_art_pixel": 2,
+  "types": [
+    {
+      "id": "mexican-fan",
+      "name": "Mexican fan palm",
+      "near": {
+        "file": "glb/mexican-fan.glb",
+        "triangles": 936,
+        "min_gltf_m": [
+          -2.3839,
+          0.0,
+          -2.9488
+        ],
+        "max_gltf_m": [
+          3.0245,
+          17.1044,
+          3.2471
+        ]
+      },
+      "mid": {
+        "file": "glb/mexican-fan-mid.glb",
+        "triangles": 146,
+        "min_gltf_m": [
+          -2.3161,
+          0.0,
+          -2.7408
+        ],
+        "max_gltf_m": [
+          3.0148,
+          17.1075,
+          3.1292
+        ]
+      },
+      "collision": {
+        "anchor": "trunk base",
+        "radius_m": 0.3906,
+        "height_m": 2.08
+      }
+    },
+    {
+      "id": "california-fan",
+      "name": "California fan palm",
+      "near": {
+        "file": "glb/california-fan.glb",
+        "triangles": 898,
+        "min_gltf_m": [
+          -3.2846,
+          0.0,
+          -3.2667
+        ],
+        "max_gltf_m": [
+          3.5683,
+          12.727,
+          3.105
+        ]
+      },
+      "mid": {
+        "file": "glb/california-fan-mid.glb",
+        "triangles": 126,
+        "min_gltf_m": [
+          -3.2645,
+          0.0,
+          -3.0468
+        ],
+        "max_gltf_m": [
+          3.5625,
+          12.6633,
+          3.0344
+        ]
+      },
+      "collision": {
+        "anchor": "trunk base",
+        "radius_m": 0.7434,
+        "height_m": 2.08
+      }
+    },
+    {
+      "id": "sabal",
+      "name": "Sabal palm",
+      "near": {
+        "file": "glb/sabal.glb",
+        "triangles": 854,
+        "min_gltf_m": [
+          -2.4955,
+          0.0,
+          -2.8851
+        ],
+        "max_gltf_m": [
+          2.8671,
+          9.0214,
+          3.2118
+        ]
+      },
+      "mid": {
+        "file": "glb/sabal-mid.glb",
+        "triangles": 116,
+        "min_gltf_m": [
+          -2.4907,
+          0.0,
+          -2.8484
+        ],
+        "max_gltf_m": [
+          2.8115,
+          9.0199,
+          2.6683
+        ]
+      },
+      "collision": {
+        "anchor": "trunk base",
+        "radius_m": 0.5418,
+        "height_m": 2.08
+      }
+    },
+    {
+      "id": "windmill",
+      "name": "Windmill palm",
+      "near": {
+        "file": "glb/windmill.glb",
+        "triangles": 822,
+        "min_gltf_m": [
+          -1.898,
+          0.0,
+          -1.7917
+        ],
+        "max_gltf_m": [
+          1.9516,
+          6.3242,
+          1.9465
+        ]
+      },
+      "mid": {
+        "file": "glb/windmill-mid.glb",
+        "triangles": 116,
+        "min_gltf_m": [
+          -1.8795,
+          0.0,
+          -1.7749
+        ],
+        "max_gltf_m": [
+          1.9509,
+          6.3071,
+          1.5815
+        ]
+      },
+      "collision": {
+        "anchor": "trunk base",
+        "radius_m": 0.35280000000000006,
+        "height_m": 2.08
+      }
+    },
+    {
+      "id": "mediterranean-fan",
+      "name": "Mediterranean fan palm",
+      "near": {
+        "file": "glb/mediterranean-fan.glb",
+        "triangles": 1158,
+        "min_gltf_m": [
+          -2.0761,
+          0.0,
+          -1.5612
+        ],
+        "max_gltf_m": [
+          1.9659,
+          4.1044,
+          1.4332
+        ]
+      },
+      "mid": {
+        "file": "glb/mediterranean-fan-mid.glb",
+        "triangles": 158,
+        "min_gltf_m": [
+          -1.9902,
+          0.0,
+          -1.3797
+        ],
+        "max_gltf_m": [
+          1.9537,
+          4.0645,
+          1.3355
+        ]
+      },
+      "collision": {
+        "anchor": "trunk base",
+        "radius_m": 0.2898,
+        "height_m": 2.08
+      }
+    },
+    {
+      "id": "saw-palmetto",
+      "name": "Saw palmetto",
+      "near": {
+        "file": "glb/saw-palmetto.glb",
+        "triangles": 1026,
+        "min_gltf_m": [
+          -2.3224,
+          0.0,
+          -2.0942
+        ],
+        "max_gltf_m": [
+          2.3035,
+          2.4713,
+          1.6835
+        ]
+      },
+      "mid": {
+        "file": "glb/saw-palmetto-mid.glb",
+        "triangles": 158,
+        "min_gltf_m": [
+          -2.2655,
+          0.0,
+          -1.8198
+        ],
+        "max_gltf_m": [
+          2.2329,
+          2.4713,
+          1.4743
+        ]
+      },
+      "collision": {
+        "anchor": "trunk base",
+        "radius_m": 0.18,
+        "height_m": 1.1
+      }
+    },
+    {
+      "id": "true-date",
+      "name": "Date palm",
+      "near": {
+        "file": "glb/true-date.glb",
+        "triangles": 1078,
+        "min_gltf_m": [
+          -3.6493,
+          0.0,
+          -4.0234
+        ],
+        "max_gltf_m": [
+          4.148,
+          13.0006,
+          3.5409
+        ]
+      },
+      "mid": {
+        "file": "glb/true-date-mid.glb",
+        "triangles": 112,
+        "min_gltf_m": [
+          -3.6496,
+          0.0,
+          -4.0236
+        ],
+        "max_gltf_m": [
+          4.1481,
+          12.874,
+          3.5412
+        ]
+      },
+      "collision": {
+        "anchor": "trunk base",
+        "radius_m": 0.5418,
+        "height_m": 2.08
+      }
+    },
+    {
+      "id": "canary-date",
+      "name": "Canary Island date palm",
+      "near": {
+        "file": "glb/canary-date.glb",
+        "triangles": 1048,
+        "min_gltf_m": [
+          -4.1368,
+          0.0,
+          -4.4028
+        ],
+        "max_gltf_m": [
+          4.5935,
+          9.2042,
+          4.6055
+        ]
+      },
+      "mid": {
+        "file": "glb/canary-date-mid.glb",
+        "triangles": 102,
+        "min_gltf_m": [
+          -4.1372,
+          0.0,
+          -4.4032
+        ],
+        "max_gltf_m": [
+          4.5936,
+          9.1756,
+          4.6059
+        ]
+      },
+      "collision": {
+        "anchor": "trunk base",
+        "radius_m": 0.9198,
+        "height_m": 2.08
+      }
+    },
+    {
+      "id": "queen",
+      "name": "Queen palm",
+      "near": {
+        "file": "glb/queen.glb",
+        "triangles": 1034,
+        "min_gltf_m": [
+          -3.0171,
+          0.0,
+          -3.6681
+        ],
+        "max_gltf_m": [
+          4.0246,
+          12.5871,
+          3.5848
+        ]
+      },
+      "mid": {
+        "file": "glb/queen-mid.glb",
+        "triangles": 112,
+        "min_gltf_m": [
+          -3.0172,
+          0.0,
+          -3.6683
+        ],
+        "max_gltf_m": [
+          4.0249,
+          12.5275,
+          3.3123
+        ]
+      },
+      "collision": {
+        "anchor": "trunk base",
+        "radius_m": 0.378,
+        "height_m": 2.08
+      }
+    },
+    {
+      "id": "royal",
+      "name": "Royal palm",
+      "near": {
+        "file": "glb/royal.glb",
+        "triangles": 1110,
+        "min_gltf_m": [
+          -3.37,
+          0.0,
+          -3.8216
+        ],
+        "max_gltf_m": [
+          3.9709,
+          18.0191,
+          3.7318
+        ]
+      },
+      "mid": {
+        "file": "glb/royal-mid.glb",
+        "triangles": 148,
+        "min_gltf_m": [
+          -3.3701,
+          0.0,
+          -3.8218
+        ],
+        "max_gltf_m": [
+          3.9713,
+          17.9929,
+          3.4589
+        ]
+      },
+      "collision": {
+        "anchor": "trunk base",
+        "radius_m": 0.6048,
+        "height_m": 2.08
+      }
+    },
+    {
+      "id": "foxtail",
+      "name": "Foxtail palm",
+      "near": {
+        "file": "glb/foxtail.glb",
+        "triangles": 1046,
+        "min_gltf_m": [
+          -2.5738,
+          0.0,
+          -3.2343
+        ],
+        "max_gltf_m": [
+          3.3145,
+          10.1367,
+          2.78
+        ]
+      },
+      "mid": {
+        "file": "glb/foxtail-mid.glb",
+        "triangles": 128,
+        "min_gltf_m": [
+          -2.5743,
+          0.0,
+          -3.2345
+        ],
+        "max_gltf_m": [
+          3.3148,
+          9.9844,
+          2.78
+        ]
+      },
+      "collision": {
+        "anchor": "trunk base",
+        "radius_m": 0.378,
+        "height_m": 2.08
+      }
+    },
+    {
+      "id": "areca",
+      "name": "Areca palm",
+      "near": {
+        "file": "glb/areca.glb",
+        "triangles": 1200,
+        "min_gltf_m": [
+          -2.4918,
+          0.0,
+          -2.5092
+        ],
+        "max_gltf_m": [
+          2.7567,
+          6.214,
+          2.67
+        ]
+      },
+      "mid": {
+        "file": "glb/areca-mid.glb",
+        "triangles": 158,
+        "min_gltf_m": [
+          -1.7361,
+          0.0,
+          -2.5097
+        ],
+        "max_gltf_m": [
+          2.757,
+          6.1859,
+          2.6704
+        ]
+      },
+      "collision": {
+        "anchor": "trunk base",
+        "radius_m": 0.18,
+        "height_m": 2.08
+      }
+    },
+    {
+      "id": "pygmy-date",
+      "name": "Pygmy date palm",
+      "near": {
+        "file": "glb/pygmy-date.glb",
+        "triangles": 1014,
+        "min_gltf_m": [
+          -1.4414,
+          0.0,
+          -1.605
+        ],
+        "max_gltf_m": [
+          1.9671,
+          3.5157,
+          1.6502
+        ]
+      },
+      "mid": {
+        "file": "glb/pygmy-date-mid.glb",
+        "triangles": 102,
+        "min_gltf_m": [
+          -1.4416,
+          0.0,
+          -1.5626
+        ],
+        "max_gltf_m": [
+          1.9671,
+          3.504,
+          1.6502
+        ]
+      },
+      "collision": {
+        "anchor": "trunk base",
+        "radius_m": 0.1953,
+        "height_m": 2.08
+      }
+    }
+  ],
+  "existing_coconut": {
+    "name": "Coconut palm",
+    "source": "Coastal Palm, draft PR #30",
+    "source_url": "https://github.com/LifemaxRPG/Timerpg/pull/30",
+    "commit": "2be664833370d6a71c5aa797debac6c96ecc7f86"
+  }
+}
