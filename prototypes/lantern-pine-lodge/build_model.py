@@ -159,13 +159,15 @@ def roof_plate(name,parent,points,thickness,material):
     if normal.z<0:
         pts.reverse()
     verts=[p-Vector((0,0,thickness)) for p in pts]+pts
-    return mesh(name,parent,verts,[(3,2,1,0),(4,5,6,7),(0,1,5,4),(1,2,6,5),
-                                     (2,3,7,6),(3,0,4,7)],material)
+    ob=mesh(name,parent,verts,[(3,2,1,0),(4,5,6,7),(0,1,5,4),(1,2,6,5),
+                               (2,3,7,6),(3,0,4,7)],material)
+    ob["keep"]=True
+    return ob
 
 
 for s in (-1,1):
     x=s*6.45
-    roof_plate("Cedar gable roof",overhead,[(0,-4.45,7.23),(x,-4.45,4.18),
+    roof_plate("roof_main_west" if s<0 else "roof_main_east",overhead,[(0,-4.45,7.23),(x,-4.45,4.18),
            (x,6.38,4.18),(0,6.38,7.23)],.19,roof)
     for y in (-4.49,6.41):
         beam("Gable bargeboard",overhead,(0,y,7.225),(x,y,4.19),(.106,.096),(.106,.096),trim,n=4)
@@ -182,23 +184,36 @@ for y,face in ((-3.60,-1),(5.6,1)):
 for y in (-1.44,1.25,3.97):
     beam("Great-room collar tie",lodge,(-3.51,y,5.10),(3.51,y,5.10),(.158,.154),(.158,.154),wood,n=4)
 
-roof_plate("Porch shed roof",overhead,[(-6.46,-7.62,3.64),(6.46,-7.62,3.64),
-            (6.46,-3.07,4.55),(-6.46,-3.07,4.55)],.18,roof)
-beam("Porch front fascia",overhead,(-6.46,-7.63,3.61),(6.46,-7.63,3.61),
-     (.108,.106),(.108,.106),trim,n=4)
+# The shed roof terminates at the front wall below the underside of the gable eaves.
+porch_front=-7.62
+porch_back=-3.60
+front_height=3.29
+back_height=3.95
+roof_plate("roof_porch",overhead,[(-6.46,porch_front,front_height),
+           (6.46,porch_front,front_height),(6.46,porch_back,back_height),
+           (-6.46,porch_back,back_height)],.18,roof)
+beam("Porch front fascia",overhead,(-6.46,-7.64,3.232),(6.46,-7.64,3.232),
+     (.087,.103),(.087,.103),trim,n=4)
+for x in (-6.446,6.446):
+    beam("Porch rake fascia",overhead,(x,porch_front,3.22),(x,porch_back,3.88),
+         (.074,.078),(.074,.078),trim,n=4)
+block("Folded wall flashing",overhead,0,-3.735,3.905,11.58,.20,.034,iron)
+block("Upstand of wall flashing",overhead,0,-3.64,3.925,11.58,.027,.166,iron)
+
 for x in (-5.72,-2.80,2.54,5.71):
     y=-6.98
     block("Porch footing",entry,x,y,.54,.58,.58,.36,stone,True)
-    block("Square porch post",entry,x,y,.88,.268,.268,2.79,log,True)
+    block("Square porch post",entry,x,y,.88,.268,.268,2.355,log,True)
     for s in (-1,1):
-        beam("Porch knee brace",entry,(x,y,3.02),(x+s*.60,y,3.58),(.089,.079),(.089,.079),trim,n=4)
+        beam("Porch knee brace",entry,(x,y,2.71),(x+s*.60,y,3.205),
+             (.089,.079),(.089,.079),trim,n=4)
 
-# The carved timber sign hangs below the eave on iron straps.
-x,y,z=2.02,-7.11,3.00
+# The sign sits on the fascia face beyond the stair opening.
+x,y,z=3.15,-7.787,3.02
 w,h=96*T,36*T
-block("Hanging address sign",entry,x,y,2.29,w+.07,.104,h+.029,iron)
+block("Fascia-mounted timber sign",entry,x,y,z-h/2-.014,w+.07,.104,h+.029,iron)
 for sx in (-1.55,1.55):
-    beam("Sign iron hanger",entry,(x+sx,y,3.70),(x+sx,y,3.79),(.04,.03),(.04,.03),iron,n=4)
+    block("Fascia sign iron bracket",entry,x+sx,-7.712,3.14,.077,.125,.124,iron)
 pts=[(x-w/2,y-.055,z-h/2),(x+w/2,y-.055,z-h/2),
      (x+w/2,y-.055,z+h/2),(x-w/2,y-.055,z+h/2)]
 plaque("sign_name",entry,pts,sign,(0,0,96,36),(96,36))

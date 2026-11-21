@@ -101,7 +101,7 @@ def light(name,p,target,power,color,size):
 
 
 lights=[
-    light("Porch amber",(-3.65,-5.49,3.22),(-2.5,-7.8,.43),166,(1,.70,.39),2.3),
+    light("Porch amber",(-3.65,-5.49,2.86),(-2.5,-7.8,.43),138,(1,.70,.39),1.05),
     light("Window spill",(3.3,-3.80,2.44),(3.3,-6.2,.65),145,(1,.72,.38),2.1),
     light("Door lantern",(-2.55,-4.47,2.44),(-1.49,-3.58,1.85),104,(1,.69,.34),1.2),
     light("Hearth fire",(-4.33,3.51,1.45),(-1.94,3.48,1.44),330,(1,.57,.26),1.45),
@@ -116,13 +116,14 @@ cam.data.clip_end=1200
 scene.camera=cam
 for name,where,target,lens,night in [
     ("dusk",(-12.0,-21.7,6.45),(.20,-1.75,3.31),39,True),
+    ("roof-detail",(-10.8,-9.1,7.45),(-5.45,-4.18,4.46),42,False),
     ("day",(-18.5,-27,13.6),(0,-.4,3.0),38,False),
     ("rear",(9.1,9.7,7.7),(2.2,3.4,2.85),27,False),
     ("above",(7,-8,49),(0,0,1.4),38,False),
     ("porch",(-3.9,-13.48,1.71),(-.3,-4.89,2.42),23,True),
     ("hearth",(3.72,.75,2.31),(-4.74,3.53,1.98),26,True)
 ]:
-    if os.environ.get("LODGE_VIEW") not in (None,name):
+    if os.environ.get("LODGE_VIEW") and name not in os.environ["LODGE_VIEW"].split(","):
         continue
     cam.location=pos(where)
     cam.rotation_euler=(pos(target)-cam.location).to_track_quat("-Z","Y").to_euler()

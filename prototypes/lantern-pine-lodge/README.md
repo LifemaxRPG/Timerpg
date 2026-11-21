@@ -2,11 +2,11 @@
 
 A compact 1930s woodland lodge on a 34 × 29 m clearing. Interlocking log courses frame an open great room with exposed collar ties, deep window casings and a fieldstone fireplace. A porch with amber lanterns and a bench faces a short gravel path. A rear stoop and covered woodshed sit behind the lodge. Seventeen removable pines frame the clearing, and a small picnic table sits off the side path.
 
-The parcel model uses 9,143 visible triangles and twelve matte materials. All images use whole 2×2 texel art pixels, 0.0388 m per texel, and nearest/repeat sampling. The cedar roof and plank textures use Timerpg swatches. Cedar is toned down for the woodland palette. Log grain, stone, lantern glass and the sign use original pixel textures.
+The parcel model uses 9,191 visible triangles and twelve matte materials. All images use whole 2×2 texel art pixels, 0.0388 m per texel, and nearest/repeat sampling. The cedar roof and plank textures use Timerpg swatches. Cedar is toned down for the woodland palette. Log grain, stone, lantern glass and the sign use original pixel textures.
 
 ## Placement
 
-The GLB uses metres, Y up, and a +Z-facing front. Its origin sits at ground level at the center of the south parcel edge. Front and rear entries, the footpath, the hearth and the woodshed approach have anchors. Door openings and their floor support are checked against export geometry. The metadata lists tagged collision boxes. Scenic trees, rocks and furniture live under `lot`.
+The GLB uses metres, Y up, and a +Z-facing front. Its origin sits at ground level at the center of the south parcel edge. Front and rear entries, the footpath, the hearth and the woodshed approach have anchors. The porch roof slopes away from the front wall and sits at least 40 mm below the main eave. Folded flashing covers the wall junction. Roof clearance, door openings and floor support are checked against the exported geometry. The metadata lists tagged collision boxes. Scenic trees, rocks and furniture live under `lot`.
 
 ## Build
 

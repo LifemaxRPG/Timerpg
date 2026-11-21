@@ -83,6 +83,19 @@ names=list(node_indices)
 assert "lot" in names and "roof_and_rafters" in names
 assert len([n for n in names if n.startswith("tree_") and "__" not in n])==17
 assert any(m["name"]=="glass_lodge" and "emissiveTexture" in m for m in g["materials"])
+# Verify the actual exported roof solids. The porch falls away from the wall and
+# stays below both gable eaves, including where their horizontal footprints overlap.
+upper=parts["roof_porch"]
+shed_top=float(upper[:,:,1].max())
+gable_bottom=min(float(parts[name][:,:,1].min()) for name in ("roof_main_west","roof_main_east"))
+gap=gable_bottom-shed_top
+assert gap>=.035, (gable_bottom,shed_top)
+front_y=float(upper[:,:,2].max())
+rear_y=float(upper[:,:,2].min())
+low_end=upper[:,:,1][np.isclose(upper[:,:,2],front_y)].max()
+high_end=upper[:,:,1][np.isclose(upper[:,:,2],rear_y)].max()
+assert high_end-low_end>.50 and abs(rear_y+10.90)<.001
+result["roof_vertical_clearance_m"]=round(gap,3)
 result.update(collision_boxes=len(colliders),clear_doors=len(info["doors"]),
               woodland_trees=17,building_height_m=info["building_height_m"])
 (R/"validation.json").write_text(json.dumps(result,indent=2)+"\n")

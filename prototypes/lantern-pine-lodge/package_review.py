@@ -6,7 +6,7 @@ root=Path(__file__).resolve().parent
 views=[
     ("dusk","Lanterns in the pines"),("day","Daylight and approach"),("porch","At the foot of the porch"),
     ("rear","Rear stoop and woodshed"),("hearth","Fieldstone hearth"),("above","Clearing and roof plan"),
-    ("filament","Export in desktop Filament")
+    ("roof-detail","Porch junction and wall flashing"),("filament","Export in desktop Filament")
 ]
 views=[(name,label) for name,label in views if (root/"renders"/f"{name}.png").exists()]
 assert len(views)>=6
