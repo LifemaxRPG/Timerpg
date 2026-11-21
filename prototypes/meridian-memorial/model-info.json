@@ -1,0 +1,37 @@
+{
+  "name": "The Meridian Memorial",
+  "era": "1941 design, suitable from the 1940s onward",
+  "height_m": 232,
+  "footprint_m": [
+    176,
+    236
+  ],
+  "ring_outer_diameter_m": 66.9,
+  "triangles_visible": 8600,
+  "materials": [
+    "detail_bronze",
+    "detail_foliage",
+    "detail_patina",
+    "detail_timber",
+    "detail_water",
+    "glow_amber",
+    "ground_grass",
+    "ground_paving",
+    "sign_name",
+    "wall_ashlar",
+    "wall_granite",
+    "wall_limestone"
+  ],
+  "units": "glTF metres, Y up, +Z south, origin at south plaza edge",
+  "doors": [],
+  "collision": {
+    "use_the_walls": true,
+    "notes": "Public ground-level terraces and ramps. Upper bearing gallery is sculptural. Treat reflecting basins as obstructions."
+  },
+  "texel_size_m": 0.0388,
+  "texels_per_art_pixel": 2,
+  "swatches_used": [
+    "pavement",
+    "plank_horizontal"
+  ]
+}
