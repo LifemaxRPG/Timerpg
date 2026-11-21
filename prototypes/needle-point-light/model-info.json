@@ -1,0 +1,19 @@
+{
+  "name": "Needle Point Light",
+  "origin": "Shared front path origin. glTF Y up, +Z toward the town approach.",
+  "variants": [
+    {
+      "id": "historic",
+      "from": 1892,
+      "to": 2007,
+      "file": "needle-point-historic.glb",
+      "info": "model-info-historic.json"
+    },
+    {
+      "id": "modern",
+      "from": 2008,
+      "file": "needle-point-modern.glb",
+      "info": "model-info-modern.json"
+    }
+  ]
+}
