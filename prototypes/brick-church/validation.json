@@ -1,0 +1,38 @@
+{
+  "variants": [
+    {
+      "variant": "brick",
+      "visible_triangles": 9328,
+      "materials": 12,
+      "embedded_images": 13,
+      "curved_glass_windows": 20,
+      "glass_geometry_area_m2": 220.86528,
+      "non_window_glow_m2": 3.41073,
+      "open_exterior_entries": 3,
+      "collision_boxes": 27,
+      "max_uv_edge_error_m": 3.1570434586569718e-06,
+      "largest_lot_prop_triangles": 88,
+      "bytes": 734100
+    },
+    {
+      "variant": "country",
+      "visible_triangles": 4794,
+      "materials": 12,
+      "embedded_images": 13,
+      "curved_glass_windows": 10,
+      "glass_geometry_area_m2": 64.33587,
+      "non_window_glow_m2": 1.84507,
+      "open_exterior_entries": 2,
+      "collision_boxes": 12,
+      "max_uv_edge_error_m": 1.0547637945279575e-06,
+      "largest_lot_prop_triangles": 88,
+      "bytes": 399964
+    }
+  ],
+  "art": "Actual GLB PNGs are exact 2x2 texel blocks, nearest/repeat; UV edges retain 0.0388m per texel, with active constant paving colours.",
+  "architecture": "Actual pointed/round glass areas match the clipped arch polygons; open exterior apertures, room shells, separate rear hall/vestry and hidden collision boxes checked.",
+  "collision": "Exact exported box corners match glTF Y-up metre metadata and support floors. Architectural surfaces provide wall/floor/stair collision. Paths have no overlapping triangle areas.",
+  "budget": "Both alternatives are below 12000 visible triangles and 12 materials. Every optional lot prop is below 500 triangles; non-window glow is below 15m2.",
+  "runtime": "Asset geometry only. Navigation, collision parsing, lights, pane masks, furnishing, town-name repainting and church/bell interactions need game integration.",
+  "renders": "Actual Blender desktop previews, not Filament/S25 captures."
+}
