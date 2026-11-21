@@ -1,0 +1,14 @@
+{
+  "visible_triangles": 6926,
+  "materials": 11,
+  "embedded_pixel_aligned_images": 11,
+  "max_uv_edge_error_m": 4.6e-06,
+  "min_triangle_area_m2": 0.000270623,
+  "height_m": 13.88,
+  "open_lower_stern": true,
+  "verified_stair_treads": 50,
+  "room_portals": 2,
+  "named_anchors": 8,
+  "length_m": 41.942,
+  "draft_m": 2.1
+}
