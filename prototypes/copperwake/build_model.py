@@ -8,6 +8,8 @@ import bpy
 from mathutils import Vector
 ROOT=Path(__file__).resolve().parent
 sys.path.insert(0,str(ROOT))
+from revision_common import emitter, collider, share_translated
+from modern_details import fittings
 from sculpture_tools import T, beam, box, group, loft, material, mesh, oval, plaque
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -18,9 +20,10 @@ boats=group("lifeboats",ship)
 public=group("public_spaces",ship)
 hardware=group("marine_hardware",ship)
 lot=group("lot",ship)
-navy=material("wall_hull","navy")
+navy=material("wall_hull","plating")
+emitter(navy,"plating_emission",.38)
 white=material("wall_superstructure","white")
-copper=material("detail_copper","copper")
+copper=material("detail_copper","painted_steel")
 teal=material("detail_teal","teal")
 deck=material("ground_teak","teak")
 water=material("detail_pool_water","water")
@@ -28,11 +31,24 @@ rubber=material("detail_rubber","rubber")
 brass=material("detail_brass","brass")
 glow=material("glow_amber","amber",.5)
 cabin=material("wall_balcony_bays","balconies")
+emitter(cabin,"balcony_emission",.9)
 glass=material("glass_navigation","glazing")
-sign=material("sign_name","name")
+signal=material("glow_signals","signals",.75)
+
+
+collision_boxes=[]
+
+
+def collision(name, category, x, y, z, w, d, h):
+    collision_boxes.append(collider(name,category,(x,y,z),(w,d,h)))
 
 
 def block(name,parent,x,y,z,w,d,h,mat):
+    if name in {"Lower glazed side sill","Glazed side ribbon","End wall and opening jamb",
+                "Opening lintel","Long coping","End coping","Pixel water surface",
+                "Built-in observation bench","Built-in cabin shelf","Bed frame","Radome support"}:
+        collision(name,"pool" if "coping" in name or "water" in name else "fittings",
+                  x,y,z+h/2,w,d,h)
     return box(name,parent,(x,y,z+h/2),(w,d,h),mat)
 
 
@@ -46,11 +62,12 @@ def hull_ring(z,scale,shift_bow=0,shift_stern=0):
 
 
 levels=[
-    (0,.52,21,-24),(2.6,.77,18,-15),(8.15,.96,10,-4.5),(9.35,.99,8,-3.6),
-    (9.52,.993,7.8,-3.55),(14.0,1,4,-1.3),(20.6,1,0,0),(21.1,1,0,0)
+    (0,.52,21,-24),(2.6,.77,18,-15),(8.15,.96,10,-4.5),(10.85,.99,8,-3.6),
+    (12.05,.997,6.4,-2.7),(14.0,1,4,-1.3),(20.37,1,.14,-.04),(20.56,1,.04,-.01),(21.1,1,0,0)
 ]
+hull_levels=levels
 loft("Continuous plated hull",hull,[hull_ring(*row) for row in levels],
-     lambda segment,_edge: [copper,copper,copper,brass,navy,navy,white][segment])
+     lambda segment,_edge: [copper,copper,copper,rubber,navy,navy,brass,white][segment])
 loft("Weather deck",hull,[hull_ring(21.10,1),hull_ring(21.26,1)],
      lambda _seg,_edge: deck)
 # Stern propulsion pods and low-profile bilge keels.
@@ -71,6 +88,8 @@ def rail(name,parent,points,z,cadence=3.6):
         length=hypot(u-x,v-y)
         for dz,r in ((.54,.065),(1.12,.092)):
             beam(name,parent,(x,y,z+dz),(u,v,z+dz),(r,r),(r,r),white,n=4)
+        collision(name,"railing",(x+u)/2,(y+v)/2,z+.56,
+                  max(abs(u-x),.13)+.06,max(abs(v-y),.13)+.06,1.12)
         count=max(1,round(length/cadence))
         for j in range(count+int(i==len(points)-2)):
             t=j/count
@@ -99,33 +118,33 @@ for side in (-1,1):
                 width=xa+(xb-xa)*(y-ya)/(yb-ya)
                 block("Hull port",hull,side*width,y,16.06,.42,1.55,.88,glass)
                 break
-    x=side*19.54
-    w,h=384*T,64*T
-    corners=[(x,-42-w/2,13.2-h/2),(x,-42+w/2,13.2-h/2),
-             (x,-42+w/2,13.2+h/2),(x,-42-w/2,13.2+h/2)]
-    plaque("sign_name" if side>0 else "sign_name_port",hull,
-           corners if side>0 else [corners[i] for i in (1,0,3,2)], sign, (0,0,384,64),(384,64))
-
 # Deck block outlines clip the corners so the bow elevation wraps cleanly.
 def clipped_outline(w,f,a,cut,z):
     return [(-w+cut,f,z),(w-cut,f,z),(w,f+cut,z),(w,a-cut,z),
             (w-cut,a,z),(-w+cut,a,z),(-w,a-cut,z),(-w,f+cut,z)]
 
 
+def cabin_outline(w,f,a,z):
+    right=[(w-3.35,f,z),(w,f+3.35,z),(w,-60,z),
+           (w-.64,-48,z),(w-.64,29,z),(w-.25,41,z),
+           (w-.25,a-3.35,z),(w-3.60,a,z)]
+    return right+[(-x,y,zz) for x,y,zz in reversed(right)]
+
+
 def cabin_floor(index,w,f,a,z):
-    outer=clipped_outline(w,f,a,3.35,z)
-    top=[(x,y,z+3.104) for x,y,_ in outer]
+    outer=cabin_outline(w,f,a,z)
+    upper=cabin_outline(w,f+2.2,a,z+3.104)
     g=group(f"deck_{index:02d}",hotel)
-    floor=loft("Cabin band",g,[outer,top],lambda seg,edge:cabin if edge in (2,6) else glass)
-    # Map each side face from its own lower corner, using the physical repeat period.
+    floor=loft("Cabin band",g,[outer,upper],
+               lambda _seg,edge:cabin if edge in (1,2,3,4,5,9,10,11,12,13) else glass)
     for face in floor.data.polygons:
         if floor.data.materials[face.material_index]!=cabin:
             continue
         coords=[floor.data.vertices[floor.data.loops[j].vertex_index].co for j in face.loop_indices]
-        lo=min(co.y for co in coords)
+        tangent=(coords[1]-coords[0]).normalized()
         for j,co in zip(face.loop_indices,coords):
-            floor.data.uv_layers.active.data[j].uv=((co.y-lo)/3.104,(co.z-z)/3.104)
-    ledge=clipped_outline(w+.56,f-.40,a+.54,3.48,z+3.104)
+            floor.data.uv_layers.active.data[j].uv=((co-coords[0]).dot(tangent)/15.52,(co.z-z)/3.104)
+    ledge=cabin_outline(w+.56,f+1.80,a+.54,z+3.104)
     loft("Painted deck fascia",g,[ledge,[(x,y,zz+.31) for x,y,zz in ledge]],white)
     return g
 
@@ -142,13 +161,21 @@ for i,(width,front,back) in enumerate(levels):
     rail("Stern terrace rail",hardware,xy,z+3.414,2.3)
     rail("Stern terrace rail",hardware,[( -x,y) for x,y in xy],z+3.414,2.3)
     rail("Center terrace rail",hardware,[(-6.5,back-.2),(6.5,back-.2)],z+3.414,2.8)
-    rail("Forward terrace rail",hardware,[(-width+3.5,front-.1),(width-3.5,front-.1)],z+3.414,3.45)
+    rail("Forward terrace rail",hardware,[(-width+3.5,front+2.1),(width-3.5,front+2.1)],z+3.414,3.45)
 
 
 def stairs(name,x,y,lower,upper,run,width=2.75,direction=1):
     count=round((upper-lower)/.19)
     rise=(upper-lower)/count
     pitch=run/count
+    for i in range(count):
+        height=(i+1)*rise
+        collision(name,"stair",x,y+direction*(i+.5)*pitch,lower+height/2,width,pitch,height)
+    for side in (-1,1):
+        for i in range(3):
+            t=(i+.5)/3
+            collision("Stair handrail","railing",x+side*width/2,y+direction*run*t,
+                      lower+(upper-lower)*t+.55,.095,run/3,1.10)
     # One closed mesh for the profile keeps the step volume solid.
     outline=[(0,0),(run,0),(run,upper-lower)]
     for i in reversed(range(count)):
@@ -208,7 +235,7 @@ loft("Wheelhouse and bridge wings",hotel,bridge,lambda i,j:glass if i==1 else wh
 # A genuine walk-in observation lounge, bounded on all sides with two openings.
 def room(name,x,y,z,w,d,door_span,scheme):
     g=group(name,public)
-    block("Room floor",g,x,y,z,w,d,.115,deck)
+    block("floor_"+name,g,x,y,z,w,d,.115,deck)
     for side in (-1,1):
         block("Lower glazed side sill",g,x+side*(w/2-.15),y,z+.115,.30,d,.67,white)
         block("Glazed side ribbon",g,x+side*(w/2-.15),y,z+.785,.30,d,2.11,scheme)
@@ -286,7 +313,7 @@ for side,x,y in [(-1,-5.8,-44),(1,5.8,-37)]:
     oval("Raked copper funnel",hardware,[(x,y,top+1.67,3.1,4.85),
             (x,y+1.5,top+9.65,2.94,4.6),(x,y+2.15,top+11.65,2.64,3.92)],copper,n=12)
     oval("Dark funnel rim",hardware,[(x,y+2.15,top+11.52,2.76,4.03),
-            (x,y+2.46,top+12.27,2.64,3.8)],rubber,n=12)
+            (x,y+2.46,top+12.04,2.88,4.27),(x,y+2.57,top+12.27,2.54,3.78)],rubber,n=12)
     for dy in (-1.25,1.25):
         oval("Exhaust outlet",hardware,[(x,y+2.47+dy,top+12.24,.72,.90),
             (x,y+2.48+dy,top+12.76,.68,.84)],navy,n=8)
@@ -324,11 +351,35 @@ anchors=[marker("gangway_port",-17.6,-29,21.26,-pi/2),
          marker("door_sample_stateroom",8.8,-117.2,21.385,pi),
          marker("pool_deck",0,31,top+.11)]
 
+for x,y in ((-4.3,-137),(4.3,143)):
+    anchors.append(marker(f"mooring_{'bow' if y<0 else 'stern'}",x,y,21.3))
+anchors+= [marker("captain_spawn",0,-93,top+1.1),
+            marker("arriving_in_port",58,-99,35)]
+fittings(globals())
+for y0,y1,half in [(-150,-141,2.1),(-141,-129,5.4),(-129,-111,10.8),(-111,-91,16.0),
+                  (-91,-55,18.36),(-55,106,19.28),(106,133,18.42),(133,152,12.9)]:
+    collision("Outer hull section","hull",0,(y0+y1)/2,10.55,2*half,y1-y0,21.10)
+for i,(half,f,a) in enumerate(levels):
+    collision("Closed passenger block","deckhouse",0,(f+a)/2,bottom+(i+.5)*3.414,
+              2*(half-.22),a-f,3.414)
+for x,y in ((-5.8,-44),(5.8,-37)):
+    collision("Funnel shell","fittings",x,y+.9,top+6.22,6.8,11,12.44)
+collision("Mast","fittings",0,-81,top+7.94,.8,2.8,8.1)
+for x in (-17.12,17.12):
+    collision("Bridge wing","fittings",x,-94,top+2,.55,3.0,1.7)
+
+shared_candidates=[ob for ob in ship.children_recursive if ob.type=="MESH" and
+        (ob.name.startswith(("Guardrail post","Molded lifeboat","Lifeboat cabin",
+                            "Davit fall","Pivoting launch davit","Deck chair","Raised backrest",
+                            "Lower promenade picture window"))
+         or (ob.parent and ob.parent.name.startswith("lifeboat_")))]
+shared_meshes=share_translated(shared_candidates)
+
 # Batch meshes by material while preserving subassemblies and removable props.
 for parent in [hull,hotel,public,hardware,*[o for g in (hotel,public,boats,lot) for o in g.children if o.type=="EMPTY"]]:
     bins={}
     for ob in parent.children:
-        if ob.type=="MESH" and not ob.name.startswith("sign_name"):
+        if ob.type=="MESH" and not ob.get("keep") and not ob.name.startswith(("sign_name","floor_")):
             bins.setdefault(tuple(m.name for m in ob.data.materials),[]).append(ob)
     for i,objects in enumerate(bins.values()):
         bpy.ops.object.select_all(action="DESELECT")
@@ -342,15 +393,17 @@ for parent in [hull,hotel,public,hardware,*[o for g in (hotel,public,boats,lot) 
 objects=[o for o in ship.children_recursive if o.type=="MESH"]
 triangles=sum(len(p.vertices)-2 for o in objects for p in o.data.polygons)
 mats=sorted({m.name for o in objects for m in o.data.materials})
-bounds=[v.co for o in objects for v in o.data.vertices]
+bpy.context.view_layer.update()
+bounds=[o.matrix_world@v.co for o in objects for v in o.data.vertices]
 dims=[round(max(v[i] for v in bounds)-min(v[i] for v in bounds),4) for i in range(3)]
-assert triangles<=20000 and len(mats)<=12,(triangles,len(mats))
-info={"name":"MV Copperwake","era":"Modern cruise liner, 2000s onward",
+assert triangles<=30000 and len(mats)<=12,(triangles,len(mats))
+info={"name":"MV Copperwake","era":"Modern cruise liner, 1996 onward",
       "dimensions_m":{"beam":dims[0],"length_overall":dims[1],"keel_to_funnel":dims[2]},
       "waterline_above_keel_m":9.35,"triangles_visible":triangles,"materials":mats,
       "axes":"glTF metres, Y up, bow +Z, origin amidships at keel",
       "doors":anchors,"stairs_blender_z_up_m":links,
-      "collision":{"use_the_walls":True,"notes":"Generate deck-specific navigation from exposed floors. The asset includes connected exterior levels and two modeled rooms. The hull and closed cabin blocks are solid."},
+      "shared_fittings":{"nodes":len(shared_candidates),"unique_meshes":shared_meshes},
+      "collision":{"boxes_gltf_m":collision_boxes,"notes":"Generate deck-specific navigation from exposed floors. The hull boxes are broad-phase only. Walkable decks and room portals require engine integration."},
       "texel_size_m":T,"texels_per_art_pixel":2,"swatches_used":["plank_horizontal"]}
 (ROOT/"model-info.json").write_text(json.dumps(info,indent=2)+"\n")
 bpy.ops.export_scene.gltf(filepath=str(ROOT/"copperwake.glb"),export_format="GLB",export_extras=True)
