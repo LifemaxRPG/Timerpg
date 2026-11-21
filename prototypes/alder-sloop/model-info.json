@@ -1,0 +1,113 @@
+{
+  "name": "Alder",
+  "type": "8.6 m masthead cruising sloop",
+  "era": "Late 1970s onward",
+  "length_overall_m": 8.6,
+  "beam_m": 2.9434,
+  "draft_m": 1.43,
+  "bounding_size_gltf_m": [
+    2.9434,
+    11.21,
+    8.6769
+  ],
+  "waterline_above_keel_m": 1.43,
+  "triangles_visible": 3597,
+  "materials": [
+    "detail_antifouling",
+    "detail_cushion",
+    "detail_metal",
+    "detail_rope",
+    "glass_ports",
+    "glow_masthead",
+    "ground_teak",
+    "sign_name",
+    "wall_deck",
+    "wall_hull",
+    "wall_sailcloth"
+  ],
+  "anchors": [
+    {
+      "node": "helm",
+      "position_gltf_m": [
+        0.43,
+        1.878,
+        -2.66
+      ],
+      "forward_gltf": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "node": "deck_board_port",
+      "position_gltf_m": [
+        -1.34,
+        2.22,
+        -0.59
+      ],
+      "forward_gltf": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "node": "deck_board_starboard",
+      "position_gltf_m": [
+        1.34,
+        2.22,
+        -0.59
+      ],
+      "forward_gltf": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "node": "bow_mooring",
+      "position_gltf_m": [
+        0,
+        2.43,
+        4.17
+      ],
+      "forward_gltf": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "node": "stern_mooring",
+      "position_gltf_m": [
+        0,
+        2.13,
+        -3.96
+      ],
+      "forward_gltf": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "node": "waterline",
+      "position_gltf_m": [
+        0,
+        1.43,
+        0
+      ],
+      "forward_gltf": [
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "axes": "glTF metres, Y up; bow +Z; origin at keel elevation, amidships",
+  "rig_state": "Both sails deployed in one fixed trim. Individual nodes for mainsail, jib, mast and rudder assembly.",
+  "collision": "Use hull and deck geometry to derive watercraft and standing collision. No vehicle runtime authored.",
+  "texel_size_m": 0.0388,
+  "texels_per_art_pixel": 2
+}
