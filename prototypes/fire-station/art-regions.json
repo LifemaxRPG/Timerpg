@@ -1,0 +1,313 @@
+{
+  "shared_swatches": [
+    {
+      "id": "brick_red",
+      "file": "brick_red.png",
+      "size": [
+        60,
+        48
+      ],
+      "role": "1924 brick firehouse walls, parapet, and hose-drying tower"
+    },
+    {
+      "id": "block_courses",
+      "file": "block_courses.png",
+      "size": [
+        48,
+        48
+      ],
+      "role": "1988 modern split-face concrete block walls and upper crew wing"
+    },
+    {
+      "id": "roof_slate",
+      "file": "roof_slate.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "1924 pyramidal slate roof on the hose-drying tower"
+    },
+    {
+      "id": "ballast",
+      "file": "ballast.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Flat tar-and-gravel main roof decks on both 1924 and 1988 stations"
+    },
+    {
+      "id": "roof_membrane_grey",
+      "file": "roof_membrane_grey.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Parapet coping, metal flashing, and modern entrance canopy soffit"
+    },
+    {
+      "id": "asphalt_worn",
+      "file": "asphalt_worn.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "East employee parking lot and rear apparatus service lane"
+    },
+    {
+      "id": "pavement",
+      "file": "pavement.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Front concrete apparatus apron, sidewalks, curb, and clean interior bay floor"
+    }
+  ],
+  "regions": {
+    "1924": {
+      "details": {
+        "bay_door": [
+          0,
+          0,
+          64,
+          56
+        ],
+        "entry_door": [
+          64,
+          0,
+          24,
+          40
+        ],
+        "louver_vent": [
+          88,
+          0,
+          40,
+          40
+        ],
+        "red_metal": [
+          64,
+          40,
+          32,
+          24
+        ],
+        "dark_metal": [
+          96,
+          40,
+          32,
+          24
+        ],
+        "brass_gold": [
+          0,
+          56,
+          32,
+          24
+        ],
+        "wood_trim": [
+          32,
+          56,
+          32,
+          24
+        ],
+        "yellow_stripe": [
+          64,
+          64,
+          64,
+          16
+        ],
+        "interior_wall": [
+          0,
+          80,
+          64,
+          48
+        ],
+        "dumpster_green": [
+          64,
+          80,
+          64,
+          48
+        ]
+      },
+      "signs": {
+        "main_tablet": [
+          0,
+          0,
+          128,
+          20
+        ],
+        "date_stone": [
+          0,
+          20,
+          44,
+          16
+        ],
+        "bay1_plate": [
+          44,
+          20,
+          36,
+          12
+        ],
+        "bay2_plate": [
+          82,
+          20,
+          36,
+          12
+        ],
+        "fire_flag": [
+          0,
+          36,
+          32,
+          20
+        ],
+        "keep_clear": [
+          64,
+          36,
+          64,
+          28
+        ]
+      },
+      "glow": {
+        "backlit_sign": [
+          0,
+          0,
+          88,
+          16
+        ],
+        "red_globe": [
+          0,
+          20,
+          16,
+          12
+        ],
+        "warm_bulb": [
+          16,
+          20,
+          16,
+          12
+        ]
+      }
+    },
+    "1988": {
+      "details": {
+        "bay_door": [
+          0,
+          0,
+          64,
+          56
+        ],
+        "entry_door": [
+          64,
+          0,
+          24,
+          40
+        ],
+        "louver_vent": [
+          88,
+          0,
+          40,
+          40
+        ],
+        "red_metal": [
+          64,
+          40,
+          32,
+          24
+        ],
+        "dark_metal": [
+          96,
+          40,
+          32,
+          24
+        ],
+        "brass_gold": [
+          0,
+          56,
+          32,
+          24
+        ],
+        "wood_trim": [
+          32,
+          56,
+          32,
+          24
+        ],
+        "yellow_stripe": [
+          64,
+          64,
+          64,
+          16
+        ],
+        "interior_wall": [
+          0,
+          80,
+          64,
+          48
+        ],
+        "dumpster_green": [
+          64,
+          80,
+          64,
+          48
+        ]
+      },
+      "signs": {
+        "main_tablet": [
+          0,
+          0,
+          128,
+          20
+        ],
+        "date_stone": [
+          0,
+          20,
+          44,
+          16
+        ],
+        "bay1_plate": [
+          44,
+          20,
+          36,
+          12
+        ],
+        "bay2_plate": [
+          82,
+          20,
+          36,
+          12
+        ],
+        "fire_flag": [
+          0,
+          36,
+          32,
+          20
+        ],
+        "keep_clear": [
+          64,
+          36,
+          64,
+          28
+        ]
+      },
+      "glow": {
+        "backlit_sign": [
+          0,
+          0,
+          88,
+          16
+        ],
+        "red_globe": [
+          0,
+          20,
+          16,
+          12
+        ],
+        "warm_bulb": [
+          16,
+          20,
+          16,
+          12
+        ]
+      }
+    }
+  }
+}
