@@ -1,0 +1,162 @@
+{
+  "name": "Vesper",
+  "type": "Raised-pilothouse luxury motor yacht",
+  "era": "2010s onward",
+  "length_overall_m": 41.942,
+  "beam_m": 7.92,
+  "waterline_above_keel_m": 2.1,
+  "height_m": 13.88,
+  "triangles_visible": 6926,
+  "materials": [
+    "detail_antifouling",
+    "detail_champagne",
+    "detail_linen",
+    "detail_marine_trim",
+    "detail_olive",
+    "glass_tinted",
+    "glow_deck_lamps",
+    "ground_teak",
+    "sign_name",
+    "wall_hull",
+    "wall_superstructure"
+  ],
+  "anchors": [
+    {
+      "node": "board_stern",
+      "position_gltf_m": [
+        0,
+        2.72,
+        -19.97
+      ],
+      "heading_deg": 180
+    },
+    {
+      "node": "board_starboard",
+      "position_gltf_m": [
+        3.65,
+        4.46,
+        -11.76
+      ],
+      "heading_deg": 90
+    },
+    {
+      "node": "salon_entry",
+      "position_gltf_m": [
+        0,
+        4.46,
+        -6.5
+      ],
+      "heading_deg": 180
+    },
+    {
+      "node": "wheelhouse_entry",
+      "position_gltf_m": [
+        0,
+        7.15,
+        -2.05
+      ],
+      "heading_deg": 180
+    },
+    {
+      "node": "fly_helm",
+      "position_gltf_m": [
+        0.54,
+        9.81,
+        5.61
+      ],
+      "heading_deg": 0
+    },
+    {
+      "node": "captain_spawn",
+      "position_gltf_m": [
+        0.55,
+        7.15,
+        5.15
+      ],
+      "heading_deg": 0
+    },
+    {
+      "node": "mooring_bow",
+      "position_gltf_m": [
+        0,
+        4.76,
+        20.48
+      ],
+      "heading_deg": 0
+    },
+    {
+      "node": "mooring_stern",
+      "position_gltf_m": [
+        2.91,
+        4.47,
+        -14.16
+      ],
+      "heading_deg": 0
+    }
+  ],
+  "stairs": [
+    {
+      "name": "beach stair -1",
+      "foot_gltf_m": [
+        -2.43,
+        2.72,
+        -18.45
+      ],
+      "landing_gltf_m": [
+        -2.43,
+        4.46,
+        -15.38
+      ],
+      "treads": 10
+    },
+    {
+      "name": "beach stair 1",
+      "foot_gltf_m": [
+        2.43,
+        2.72,
+        -18.45
+      ],
+      "landing_gltf_m": [
+        2.43,
+        4.46,
+        -15.38
+      ],
+      "treads": 10
+    },
+    {
+      "name": "main to pilothouse deck",
+      "foot_gltf_m": [
+        2.31,
+        4.46,
+        -12.79
+      ],
+      "landing_gltf_m": [
+        2.31,
+        7.15,
+        -7.88
+      ],
+      "treads": 15
+    },
+    {
+      "name": "pilothouse to flybridge",
+      "foot_gltf_m": [
+        -1.99,
+        7.15,
+        -6.83
+      ],
+      "landing_gltf_m": [
+        -1.99,
+        9.81,
+        -2.91
+      ],
+      "treads": 15
+    }
+  ],
+  "axes": "glTF metres Y up, bow +Z, origin amidships at the keel",
+  "texel_size_m": 0.0388,
+  "texels_per_art_pixel": 2,
+  "swatches_used": [
+    "plank_horizontal"
+  ],
+  "collision": "Derive vehicle collision from hull and deck shapes. The two rooms have open aft portals. Game navigation to be integrated."
+}
