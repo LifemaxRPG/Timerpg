@@ -445,6 +445,59 @@ Desktop renders and JVM tests only, not yet run on the S25.
   above_13h, night}` for each placed model and the depot (`glb_depot_*`); `open.txt` lists them (triangles, solid shapes,
   doors). The open preview now draws the railroad too (-Drail=0 leaves it out).
 
+## Animated nodes
+
+Named nodes inside a landmark `.glb` can animate in place while the town runs without breaking static material merging.
+During `LandmarkKit.build`, any node matching an animation rule (and its children) is kept out of the merged static
+meshes and stored as its own small node-local renderable (`AnimatedNodePart`), pivoted at the node's own origin. At run
+time, `LandmarkAnimator` updates only those renderables through Filament's `TransformManager` with zero per-frame
+allocations, skipping landmarks that are off-screen or past the near-model range. Existing static-only models produce
+the exact same renderables and triangle counts as before.
+
+### Declarative table format
+
+Rules are resolved in order: `landmarks.json` (`"animations"` on a landmark entry) > `model-info.json` (`"animations"`
+array or structured `states` / `armillary_nodes` / `beacon_beam` / `lift_car` fields) > `LandmarkAnimRule.DEFAULT_TABLE`.
+Node patterns use case-insensitive glob matching (`*`, `?`). A glTF node with `extras.motion = "fixed"` (such as
+`armillary_outer`) always stays static.
+
+```json
+{
+  "clock_stopped": "4:17",
+  "animations": [
+    { "node": "clock_hour*",        "kind": "clock_hour" },
+    { "node": "clock_minute*",      "kind": "clock_minute" },
+    { "node": "armillary_ecliptic", "kind": "slow_spin",  "axis": [-0.39715, 0.91775, 0.0], "period_game_hours": 24 },
+    { "node": "beacon_beam",        "kind": "sweep_beam", "period_s": 10, "night_only": true, "direction": [0, -0.05, 1], "color": "#FFFFFF" },
+    { "node": "bell_*",             "kind": "swing",      "axis": [1, 0, 0], "amplitude_deg": 30, "period_s": 2.4, "swings_on_hour": 5 },
+    { "node": "lift_car",           "kind": "lift",       "stops_y_m": [6.52, 24.06, 58.04], "wait_s": 6, "speed_mps": 2.5 }
+  ]
+}
+```
+
+### Kinds and parameters
+
+| kind | default pattern(s) | parameters | behaviour |
+|---|---|---|---|
+| `clock_hour` | `clock_hour*` | `period_game_hours` (12), `stopped_at` (`"h:mm"`) | 1 rev / 12 game hours clockwise on the dial face; holds fixed time when stopped (`clock_stopped`, `stopped_at`, `model-info` `clock_active: false`, or node `extras.active: false` + `extras.time`). |
+| `clock_minute` | `clock_minute*` | `period_game_hours` (1), `stopped_at` (`"h:mm"`) | 1 rev / game hour clockwise on the dial face; shares stopped-clock overrides. |
+| `slow_spin` | `armillary_ecliptic*`, `armillary_globe*` | `axis` (node-local or `extras.rotation_axis`), `period_game_hours` (24) or `period_s` | Constant rotation about `axis` (default 1 rev / game day). |
+| `sweep_beam` | `beacon_beam*` | `axis` (`[0,1,0]`), `period_s` (10), `night_only` (`true`), `active` (`true`), `direction`, `color` | Turns once per `period_s` real seconds between dusk and dawn; hidden by day or when `active: false`. Empty locator nodes get a lightweight glowing searchlight cone (`casts = false`). |
+| `swing` | `bell`, `bell_*` | `axis` (`[1,0,0]`), `amplitude_deg` (30), `period_s` (2.4), `phase_deg`, `swings_on_hour` (5) | Pendulum swing triggered on the hour (easing back to rest) or via `FilamentTown.ringLandmarkBells(...)` / `TownLandmark.ringBells(...)`. Multiple bells auto-stagger out of phase. |
+| `lift` | `lift_car*` | `stops_y_m` (metres), `wait_s` (6), `speed_mps` (2.5) | Smooth ping-pong vertical loop along `+Y` between listed stops, waiting `wait_s` at each stop. |
+
+### How model authors name and pivot nodes
+
+- **Place each animated node's origin at its pivot** (dial hub for clock hands, sphere centre for armillary rings, yoke
+  hinge for bells, lantern centre for `beacon_beam`). Both TRS (`translation` / `rotation` / `scale`) and 4x4 `matrix`
+  glTF node transforms are supported.
+- **Clock hands:** model each hand pointing up along local `+Y` (12 o'clock) with the dial's outward normal along local
+  `+Z`. The engine derives the 12-o'clock basis from the node's outward `+Z` and world `+Y`, so any static pose baked
+  into the `.glb` (such as `10:10`) is ignored when live and respected when stopped.
+- **Materials, shadows, and glow:** animated nodes keep their material roles (`glass_*`, `glow_*`, `sign_*`, opaque body)
+  and shadow casting (`beacon_beam` synthetic cones do not cast shadows).
+- **Collision:** animated nodes are excluded from static collision boxes (dynamic lift-car collision is left as a TODO).
+
 ### Left
 
 - The models have no shut or reused looks: a shut one is drawn whole and dark (the reused repair garage hides its pumps);
@@ -454,5 +507,4 @@ Desktop renders and JVM tests only, not yet run on the S25.
 - Gamma's bowling alley found no plot; dense towns place fewer of the big highway models.
 - The laundromat's fixtures kit and every model's interior (rooms behind the doors) are the interiors job's.
 - No far box: the models are drawn whole to 12,000 units (3-12k triangles each); measure on the S25.
-
-
+- Animated nodes: dynamic collision for moving `lift_car` parts is not implemented (`TODO` in `LandmarkKit.kt`), bell audio is not triggered with visual swings, and measurements/renders so far are desktop headless Filament (not phone captures).

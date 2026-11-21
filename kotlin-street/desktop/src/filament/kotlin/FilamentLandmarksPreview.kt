@@ -4,6 +4,8 @@ import com.google.android.filament.Material
 import com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaLayer
 import com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaLights
 import com.lifemax.rpg.feature.habits.presentation.scene3d.GlbFile
+import com.lifemax.rpg.feature.habits.presentation.scene.FrameWork
+import com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkAnimator
 import com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkKit
 import com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkSpec
 import com.lifemax.rpg.feature.habits.presentation.scene3d.PropLayer
@@ -26,6 +28,12 @@ import kotlin.math.max
  * -Dyear= for another year (the price board). Writes build/preview/landmarks/ and landmarks.txt.
  */
 fun renderLandmarks(out: String) {
+    val movingDemo = System.getProperty("movingDemo")?.takeIf { it.isNotBlank() }
+    if (movingDemo != null) {
+        val movingOut = File(System.getProperty("movingOut")?.takeIf { it.isNotBlank() } ?: File(out, "moving").path)
+        renderMovingDemo(File(movingDemo), movingOut)
+        return
+    }
     val dir = File(out, "landmarks").also { it.mkdirs() }
     val root = File(assetsDir(), "landmarks")
     val specs = LandmarkSpec.catalogue(File(root, "landmarks.json").readText())
@@ -72,12 +80,14 @@ fun renderLandmarks(out: String) {
         val at = floatArrayOf(0f, lm.front, 1f, 0f, 0f, -1f, 0f)
         val layer = CinemaLayer(stage.props)
         layer.add(m, at)
+        val anim = LandmarkAnimator.add(stage.props, layer, lm, at)
         val lamps = CinemaLights(engine, stage.scene).also { it.add(m.lights, at) }
         // the reference store to the left, its front on the line
         val rw = ref.block[2] - ref.block[0]
         val rx = fp[0] - rw / 2f - 160f - (ref.block[0] + ref.block[2]) / 2f
         layer.add(ref.model, floatArrayOf(rx, ref.block[1], 1f, 0f, 0f, -1f, 0f))
-        stage.after = { dark -> layer.update(dark, 0.0); lamps.update(dark) }
+        var animHour = 13f
+        stage.after = { dark -> anim?.update(animHour, 0.0, dark, active = true); layer.update(dark, 0.0); lamps.update(dark) }
         // the world: model (x, z) -> (x, front - z)
         fun wz(mz: Float) = lm.front - mz
         val door = lm.doors.firstOrNull { it.name == "door_main" } ?: lm.doors.firstOrNull()
@@ -115,6 +125,7 @@ fun renderLandmarks(out: String) {
             }
             val after0 = stage.after
             stage.after = { dark -> after0(dark); faces.update(stage.look, dark) }
+            animHour = hour
             val ht = "%.1f".format(hour).replace(".0", "").replace(".", "_")
             stage.shoot(File(dir, "${tag}_${sn}_$ht.png"), hour, eye, look, fov)
             stage.after = after0
@@ -183,4 +194,293 @@ private fun plan(file: File, lm: com.lifemax.rpg.feature.habits.presentation.sce
     for (d in lm.doors) { g.fillOval(px(d.x) - 6, pz(d.z) - 6, 12, 12); g.drawLine(px(d.x), pz(d.z), px(d.x + d.outX * 40f), pz(d.z + d.outZ * 40f)) }
     g.dispose()
     ImageIO.write(img, "png", file)
+}
+
+/**
+ * Desktop headless Filament demo & CPU benchmark for animated landmark nodes
+ * (`-Dmode=filament-landmarks -DmovingDemo=/path/to/test-models -DmovingOut=/path/to/out`).
+ * Loads the prototype Courthouse and Great Meridian models from [modelsDir] (kept outside the repo),
+ * renders the courthouse clock at 3:00 and 4:30 (plus 1988 stopped at 4:17), renders a 4-frame night
+ * strip of Great Meridian's rotating armillary rings and sweeping aviation beacon (plus a daytime
+ * check and 12 armillary frames), and measures per-frame CPU cost and allocations with both active.
+ */
+private fun renderMovingDemo(modelsDir: File, outDir: File) {
+    outDir.mkdirs()
+    Filament.init()
+    val engine = Engine.create(Engine.Backend.OPENGL)
+    val assets = File(assetsDir(), "filament")
+    fun mat(n: String): Material {
+        val b = File(assets, "$n.filamat").readBytes()
+        return Material.Builder().payload(ByteBuffer.allocateDirect(b.size).put(b).flip(), b.size).build(engine)
+    }
+    val lit = mat("street_lit")
+    val proxy = mat("shadow_proxy")
+    val U = LandmarkKit.UNITS_PER_METRE
+
+    fun buildProto(sub: String, file: String, year: Int, kind: String, name: String, wM: Float, dM: Float): com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkModel {
+        val dir = File(modelsDir, sub)
+        val glb = GlbFile.read(File(dir, file).readBytes())
+        val info = File(dir, "model-info.json").takeIf { it.exists() }?.readText()
+        val spec = LandmarkSpec(
+            kind = kind, name = name, file = file, info = "model-info.json", role = "civic",
+            from = 1890, to = 2025, built = year, lotW = wM, lotD = dM, buildingW = wM * 0.6f, buildingD = dM * 0.6f,
+        )
+        return LandmarkKit.build(glb, spec, year, seed = 7, info = info)
+    }
+
+    val court1894 = buildProto("county-courthouse", "courthouse-1894.glb", 1894, "landmark_glb_courthouse", "County Courthouse", 88f, 88f)
+    val court1988 = buildProto("county-courthouse", "courthouse-1988.glb", 1988, "landmark_glb_courthouse_1988", "County Courthouse (1988)", 88f, 88f)
+    val meridian1926 = buildProto("great-meridian-monument", "great-meridian-1926.glb", 1926, "landmark_glb_meridian", "The Great Meridian Monument", 120f, 120f)
+
+    // --- 1. Courthouse south clock dial: 3:00 (15:00 daylight), 4:30 (16:30 daylight), and 1988 stopped at 4:17 ---
+    fun shootClock(lm: com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkModel, file: File, skyHour: Float, animHour: Float) {
+        val stage = StoreStage(engine, lit, proxy, 960, 960, anisotropy = 1f)
+        stage.view.setDynamicLightingOptions(10f, 6000f)
+        val fp = lm.model.footprint
+        stage.ground(fp[0] - 900f, fp[2] + 900f)
+        field(stage, fp[0] - 900f, fp[2] + 900f, (fp[3] - fp[1]) + 1500f)
+        val at = floatArrayOf(0f, lm.front, 1f, 0f, 0f, -1f, 0f)
+        val layer = CinemaLayer(stage.props)
+        layer.add(lm.model, at)
+        val anim = LandmarkAnimator.add(stage.props, layer, lm, at)
+        val lamps = CinemaLights(engine, stage.scene).also { it.add(lm.model.lights, at) }
+        stage.after = { dark -> anim?.update(animHour, 0.0, dark, active = true); layer.update(dark, 0.0); lamps.update(dark) }
+        val hand = lm.animated.firstOrNull { it.nodeName == "clock_hour_s" } ?: lm.animated.first { it.nodeName.startsWith("clock_hour") }
+        val px = hand.restModel[12]
+        val py = hand.restModel[13]
+        val pz = lm.front - hand.restModel[14]
+        val eye = floatArrayOf(px + 0.6f * U, py + 0.15f * U, pz - 8.2f * U)
+        val look = floatArrayOf(px, py, pz)
+        stage.shoot(file, skyHour, eye, look, fov = 30f)
+        lamps.destroy()
+        stage.destroy()
+    }
+
+    val f300 = File(outDir, "courthouse_clock_3_00.png")
+    val f430 = File(outDir, "courthouse_clock_4_30.png")
+    val f417 = File(outDir, "courthouse_1988_stopped_4_17.png")
+    shootClock(court1894, f300, skyHour = 14.5f, animHour = 15.0f)
+    shootClock(court1894, f430, skyHour = 14.5f, animHour = 16.5f)
+    shootClock(court1988, f417, skyHour = 14.5f, animHour = 15.0f)
+    stitchRow(
+        listOf(
+            f300 to "1894 Courthouse Clock — 3:00 (hour=15.0)",
+            f430 to "1894 Courthouse Clock — 4:30 (hour=16.5)",
+            f417 to "1988 Courthouse — Stopped at 4:17 (hour=15.0)",
+        ),
+        File(outDir, "courthouse_clock_comparison.png"),
+    )
+
+    // --- 2. Great Meridian Monument: 4-frame night strip (rings + sweeping beacon), close-up rings strip, 12 GIF frames, daytime check ---
+    run {
+        val lm = meridian1926
+        val fp = lm.model.footprint
+        val cz = lm.front - (-59.9848f * U)
+        val at = floatArrayOf(0f, lm.front, 1f, 0f, 0f, -1f, 0f)
+
+        // 2a. Full monument + beacon at night (4 frames, 720x900 each -> 2880x900 strip) + daytime check
+        val nightStage = StoreStage(engine, lit, proxy, 720, 900, anisotropy = 1f)
+        nightStage.view.setDynamicLightingOptions(10f, 10000f)
+        nightStage.ground(fp[0] - 1200f, fp[2] + 1200f)
+        field(nightStage, fp[0] - 1200f, fp[2] + 1200f, (fp[3] - fp[1]) + 2000f)
+        val nightLayer = CinemaLayer(nightStage.props)
+        nightLayer.add(lm.model, at)
+        val nightAnim = LandmarkAnimator.add(nightStage.props, nightLayer, lm, at)
+        val nightLamps = CinemaLights(engine, nightStage.scene).also { it.add(lm.model.lights, at) }
+        var curHour = 0f
+        var curSec = 0.0
+        nightStage.after = { dark ->
+            nightAnim?.update(curHour, curSec, dark, active = true)
+            nightLayer.update(dark, curSec)
+            nightLamps.update(dark)
+        }
+        val eyeFull = floatArrayOf(-76f * U, 74f * U, cz - 128f * U)
+        val lookFull = floatArrayOf(0f, 62f * U, cz)
+        val nightFrames = mutableListOf<Pair<File, String>>()
+        val steps = listOf(0f to 0.0, 6f to 2.5, 12f to 5.0, 18f to 7.5)
+        for ((idx, st) in steps.withIndex()) {
+            curHour = st.first; curSec = st.second
+            val outF = File(outDir, "meridian_night_f$idx.png")
+            nightStage.shoot(outF, hour = 22.5f, eye = eyeFull, at = lookFull, fov = 56f)
+            nightFrames += outF to "Frame ${idx + 1} — beacon t=${"%.1f".format(curSec)}s (${idx * 90}°), rings h=${curHour.toInt()}:00"
+        }
+        stitchRow(nightFrames, File(outDir, "meridian_night_strip.png"))
+        // Daytime check: beacon must be hidden
+        curHour = 13.0f; curSec = 2.5
+        nightStage.shoot(File(outDir, "meridian_day_check.png"), hour = 13.0f, eye = eyeFull, at = lookFull, fov = 56f)
+        nightLamps.destroy()
+        nightStage.destroy()
+
+        // 2b. Armillary sphere close-up at night (4-frame strip + 12 frames for optional GIF)
+        val ringStage = StoreStage(engine, lit, proxy, 640, 640, anisotropy = 1f)
+        ringStage.view.setDynamicLightingOptions(10f, 10000f)
+        ringStage.ground(fp[0] - 1200f, fp[2] + 1200f)
+        field(ringStage, fp[0] - 1200f, fp[2] + 1200f, (fp[3] - fp[1]) + 2000f)
+        val ringLayer = CinemaLayer(ringStage.props)
+        ringLayer.add(lm.model, at)
+        val ringAnim = LandmarkAnimator.add(ringStage.props, ringLayer, lm, at)
+        val ringLamps = CinemaLights(engine, ringStage.scene).also { it.add(lm.model.lights, at) }
+        var rHour = 0f; var rSec = 0.0
+        ringStage.after = { dark ->
+            ringAnim?.update(rHour, rSec, dark, active = true)
+            ringLayer.update(dark, rSec)
+            ringLamps.update(dark)
+        }
+        val eyeRing = floatArrayOf(3.8f * U, 42.5f * U, cz - 29.0f * U)
+        val lookRing = floatArrayOf(0f, 41.0f * U, cz)
+        val gifDir = File(outDir, "rings_frames").also { it.mkdirs() }
+        val ringStrip = mutableListOf<Pair<File, String>>()
+        for (i in 0 until 12) {
+            rHour = i * 2f
+            rSec = i * (10.0 / 12.0)
+            val f = File(gifDir, "ring_%02d.png".format(i))
+            ringStage.shoot(f, hour = 22.5f, eye = eyeRing, at = lookRing, fov = 48f)
+            if (i % 3 == 0) {
+                ringStrip += f to "Armillary h=${rHour.toInt()}:00 (${(i * 30)}°)"
+            }
+        }
+        stitchRow(ringStrip, File(outDir, "meridian_rings_strip.png"))
+        ringLamps.destroy()
+        ringStage.destroy()
+    }
+
+    // --- 3. Measured extra per-frame CPU cost with BOTH landmarks animating ---
+    run {
+        val benchStage = StoreStage(engine, lit, proxy, 1280, 720, anisotropy = 1f)
+        benchStage.view.setDynamicLightingOptions(10f, 10000f)
+        val layer = CinemaLayer(benchStage.props)
+        val atCourt = floatArrayOf(-80f * U, court1894.front, 1f, 0f, 0f, -1f, 0f)
+        val atMerid = floatArrayOf(+80f * U, meridian1926.front, 1f, 0f, 0f, -1f, 0f)
+        layer.add(court1894.model, atCourt)
+        layer.add(meridian1926.model, atMerid)
+        val courtAnim = LandmarkAnimator.add(benchStage.props, layer, court1894, atCourt)!!
+        val meridAnim = LandmarkAnimator.add(benchStage.props, layer, meridian1926, atMerid)!!
+        // Trigger bells so all 5 animation kinds (clock, spin, sweep beam, swing bells, lift) are active
+        courtAnim.ringBells(0.0, swings = 500)
+
+        val look = benchStage.look
+        val warm = 300
+        val iters = 2000
+        val dark = 1.0f // night: beacon active + lit materials active
+
+        // Warmup
+        for (i in 0 until warm) {
+            val sec = i * (1.0 / 60.0)
+            val hr = 22.0f + (sec / 120.0).toFloat()
+            courtAnim.update(hr, sec, dark, active = true)
+            meridAnim.update(hr, sec, dark, active = true)
+            benchStage.props.update(look, dark)
+            layer.update(dark, sec)
+        }
+
+        val tmb = java.lang.management.ManagementFactory.getThreadMXBean() as? com.sun.management.ThreadMXBean
+        val tid = Thread.currentThread().id
+
+        val samples = LongArray(iters)
+        fun formatStats(label: String, allocBytes: Long, fwDelta: Long): String {
+            samples.sort()
+            var sum = 0L
+            for (k in 0 until iters) sum += samples[k]
+            val meanUs = (sum.toDouble() / iters) / 1000.0
+            val p50Us = samples[iters / 2] / 1000.0
+            val p95Us = samples[(iters * 95) / 100] / 1000.0
+            val maxUs = samples[iters - 1] / 1000.0
+            return "$label: mean=${"%.2f".format(meanUs)} us, p50=${"%.2f".format(p50Us)} us, p95=${"%.2f".format(p95Us)} us, max=${"%.2f".format(maxUs)} us | alloc=$allocBytes B over $iters frames (${"%.2f".format(allocBytes.toDouble() / iters)} B/frame) | GPU upload delta=${fwDelta} B"
+        }
+
+        val rBaseline = run {
+            val a0 = tmb?.getThreadAllocatedBytes(tid) ?: -1L
+            val fw0 = FrameWork.bytes
+            var i = 0
+            while (i < iters) {
+                val sec = i * (1.0 / 60.0)
+                val t0 = System.nanoTime()
+                benchStage.props.update(look, dark)
+                layer.update(dark, sec)
+                samples[i] = System.nanoTime() - t0
+                i++
+            }
+            val fw1 = FrameWork.bytes
+            val a1 = tmb?.getThreadAllocatedBytes(tid) ?: -1L
+            formatStats("Baseline (PropLayer + CinemaLayer only)", if (a0 >= 0 && a1 >= 0) a1 - a0 else -1L, fw1 - fw0)
+        }
+        val rAnimOnly = run {
+            val a0 = tmb?.getThreadAllocatedBytes(tid) ?: -1L
+            val fw0 = FrameWork.bytes
+            var i = 0
+            while (i < iters) {
+                val sec = i * (1.0 / 60.0)
+                val hr = 22.0f + (sec / 120.0).toFloat()
+                val t0 = System.nanoTime()
+                courtAnim.update(hr, sec, dark, active = true)
+                meridAnim.update(hr, sec, dark, active = true)
+                samples[i] = System.nanoTime() - t0
+                i++
+            }
+            val fw1 = FrameWork.bytes
+            val a1 = tmb?.getThreadAllocatedBytes(tid) ?: -1L
+            formatStats("Extra cost (LandmarkAnimator.update x2: ${courtAnim.nodeCount + meridAnim.nodeCount} animated nodes)", if (a0 >= 0 && a1 >= 0) a1 - a0 else -1L, fw1 - fw0)
+        }
+        val rCombined = run {
+            val a0 = tmb?.getThreadAllocatedBytes(tid) ?: -1L
+            val fw0 = FrameWork.bytes
+            var i = 0
+            while (i < iters) {
+                val sec = i * (1.0 / 60.0)
+                val hr = 22.0f + (sec / 120.0).toFloat()
+                val t0 = System.nanoTime()
+                courtAnim.update(hr, sec, dark, active = true)
+                meridAnim.update(hr, sec, dark, active = true)
+                benchStage.props.update(look, dark)
+                layer.update(dark, sec)
+                samples[i] = System.nanoTime() - t0
+                i++
+            }
+            val fw1 = FrameWork.bytes
+            val a1 = tmb?.getThreadAllocatedBytes(tid) ?: -1L
+            formatStats("Combined (Animators x2 + PropLayer + CinemaLayer)", if (a0 >= 0 && a1 >= 0) a1 - a0 else -1L, fw1 - fw0)
+        }
+
+        val summary = buildString {
+            appendLine("=== Moving Landmarks Desktop Headless Benchmark ===")
+            appendLine("Courthouse (1894): ${courtAnim.nodeCount} animated nodes (clock hands + swinging bells)")
+            appendLine("Great Meridian (1926): ${meridAnim.nodeCount} animated nodes (armillary rings + night beacon + lift car)")
+            appendLine("Warmup: $warm frames, Measured: $iters frames (night, all 5 animation kinds active)")
+            appendLine(rBaseline)
+            appendLine(rAnimOnly)
+            appendLine(rCombined)
+        }
+        File(outDir, "moving_bench.txt").writeText(summary)
+        print(summary)
+        benchStage.destroy()
+    }
+
+    engine.destroyMaterial(lit)
+    engine.destroyMaterial(proxy)
+    engine.destroy()
+}
+
+/** Stitches [frames] (file to caption) side-by-side into [out] with a clean dark header bar. */
+private fun stitchRow(frames: List<Pair<File, String>>, out: File) {
+    if (frames.isEmpty()) return
+    val imgs = frames.map { (f, cap) -> ImageIO.read(f) to cap }
+    val w = imgs.first().first.width
+    val h = imgs.first().first.height
+    val bar = 44
+    val gap = 8
+    val totalW = imgs.size * w + (imgs.size - 1) * gap
+    val canvas = java.awt.image.BufferedImage(totalW, h + bar, java.awt.image.BufferedImage.TYPE_INT_RGB)
+    val g = canvas.createGraphics()
+    g.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING, java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+    g.color = java.awt.Color(18, 20, 26)
+    g.fillRect(0, 0, totalW, h + bar)
+    g.font = java.awt.Font("SansSerif", java.awt.Font.BOLD, 18)
+    for ((idx, pair) in imgs.withIndex()) {
+        val x = idx * (w + gap)
+        g.drawImage(pair.first, x, bar, null)
+        g.color = java.awt.Color(235, 240, 248)
+        g.drawString(pair.second, x + 14, 29)
+    }
+    g.dispose()
+    ImageIO.write(canvas, "png", out)
 }
