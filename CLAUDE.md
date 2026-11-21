@@ -41,6 +41,11 @@ Elite for Galaxy: 8 fast Oryon cores, no little cores; Adreno 830 GPU; Hexagon N
   street view stays only as an option for comparison. Exception (the owner's request, 2026-11-19): while riding the
   bicycle the camera follows behind the rider by default; touching the camera gives full manual control, and after a
   few seconds without camera input it eases back to following (a setting can turn it off).
+- **Hand-made hub towns plus procedural fill** (the owner's decision, 2026-11-21): the world has a set of pre-made,
+  hand-authored towns and cities, each with its own big landmarks that make them worth travelling to, and
+  procedural generation fills the gaps between them: terrain, countryside, farms and small towns. The town generator
+  becomes an authoring tool (draft a layout from a seed, then edit it and save it as data); people, households and
+  history are still simulated on top. Travel between hubs by road, rail and, later, ocean liner.
 - **Build the world complete from every side**: nothing is built only for one view. Buildings have real backs and
   roofs, every lot has a front yard AND a backyard (fences, patios, sheds, gardens, play sets, pools for the rich
   homes, clotheslines, bins), blocks have alleys and back lanes, and the player's position is kept in world
