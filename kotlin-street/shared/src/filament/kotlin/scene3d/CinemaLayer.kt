@@ -34,12 +34,19 @@ internal class CinemaLayer(private val props: PropLayer) {
         }
     }
 
+    /** Registers a separately uploaded batch (e.g. an animated landmark node) for dusk/night glow updates. */
+    fun track(mi: MaterialInstance, role: CinemaPart.Role) {
+        if (role != CinemaPart.Role.BODY) lits += Lit(mi, role)
+    }
+
     /** [dark] how dark it is (0 day, 1 night), [seconds] the clock the bulbs chase by. */
     fun update(dark: Float, seconds: Double) {
         val night = smooth((dark - .3f) / .4f)
         val dusk = smooth((dark - .12f) / .3f)
         val step = (floor(seconds * CHASE_RATE).toLong() % 3).toInt()
-        for (l in lits) when (l.role) {
+        for (i in 0 until lits.size) {
+            val l = lits[i]
+            when (l.role) {
             CinemaPart.Role.WINDOWS -> l.mi.setParameter("glow", 1.7f, 1.25f, .7f, night)
             CinemaPart.Role.SIGN -> l.mi.setParameter("glow", PropLayer.GLOW, PropLayer.GLOW, PropLayer.GLOW, dusk)
             CinemaPart.Role.CHASE0, CinemaPart.Role.CHASE1, CinemaPart.Role.CHASE2 -> {
@@ -52,6 +59,7 @@ internal class CinemaLayer(private val props: PropLayer) {
                 l.mi.setParameter("glow", PropLayer.GLOW, PropLayer.GLOW, PropLayer.GLOW, dusk * if (k == page) 1f else .22f)
             }
             CinemaPart.Role.BODY -> {}
+            }
         }
     }
 
