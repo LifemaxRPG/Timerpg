@@ -1,0 +1,12 @@
+{
+  "visible_triangles": 7228,
+  "materials": 11,
+  "embedded_pixel_aligned_images": 11,
+  "max_uv_edge_error_m": 7.2e-06,
+  "min_triangle_area_m2": 0.000550002,
+  "height_m": 9.776,
+  "collision_boxes": 105,
+  "clear_restroom_openings": 2,
+  "truck_pull_through_bays": 4,
+  "named_site_anchors": 6
+}
