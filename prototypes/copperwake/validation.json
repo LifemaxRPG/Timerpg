@@ -1,0 +1,13 @@
+{
+  "triangles": 19524,
+  "materials": 12,
+  "pixel_grid_images": 12,
+  "max_physical_uv_edge_error_m": 1.95e-05,
+  "stair_treads_checked": 216,
+  "checked_room_floors": 2,
+  "clear_room_portals": 4,
+  "boarding_openings": 2,
+  "named_anchors": 6,
+  "lifeboat_hulls": 16,
+  "clearance_beneath_lifeboats_m": 2.87
+}
