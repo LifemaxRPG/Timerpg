@@ -1,0 +1,14 @@
+{
+  "near": {
+    "triangles": 1190,
+    "height_m": 9.9126,
+    "max_uv_edge_error_m": 8.8e-07,
+    "materials": 2
+  },
+  "mid": {
+    "triangles": 168,
+    "height_m": 9.8457,
+    "max_uv_edge_error_m": 9.7e-07,
+    "materials": 2
+  }
+}

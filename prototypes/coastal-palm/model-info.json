@@ -1,0 +1,54 @@
+{
+  "name": "Coastal Palm",
+  "archetype": "Mature feather palm with a curved trunk",
+  "near": {
+    "file": "coastal-palm.glb",
+    "triangles": 1190,
+    "min_gltf_m": [
+      -2.3661,
+      0.0,
+      -4.5432
+    ],
+    "max_gltf_m": [
+      5.5319,
+      9.9126,
+      3.8643
+    ]
+  },
+  "mid": {
+    "file": "coastal-palm-mid.glb",
+    "triangles": 168,
+    "min_gltf_m": [
+      -2.2732,
+      0.0,
+      -4.5438
+    ],
+    "max_gltf_m": [
+      5.533,
+      9.8457,
+      3.8645
+    ]
+  },
+  "units": "glTF metres, Y up, base center at terrain level",
+  "collision": {
+    "boxes_blender_z_up": [
+      {
+        "name": "Trunk lower reach",
+        "group": "tree",
+        "attachment": "trunk",
+        "center": [
+          0.075,
+          -0.04,
+          1.04
+        ],
+        "size": [
+          0.92,
+          0.86,
+          2.08
+        ]
+      }
+    ]
+  },
+  "texel_size_m": 0.0388,
+  "texels_per_art_pixel": 2
+}
