@@ -39,11 +39,15 @@ object ModelRoles {
          *  else [WORK_BYTES]. */
         val bankWorkBytes: Long = WORK_BYTES,
         val liveWorkBytes: Long = WORK_BYTES,
+        /** What Android is expected to find beyond [freeBytes] for a copy on the device when asked (cached apps ended,
+         *  swap): [com.timerpg.street.llm.NpuGate]'s figure. Only copies count it, and a load that needs it is a try. */
+        val reclaimBytes: Long = 0,
     )
 
     sealed interface Choice
-    /** Load [role]'s model: [copied] on the chosen device, else on the CPU from the file's mapping. */
-    data class Load(val role: ModelRole, val copied: Boolean) : Choice
+    /** Load [role]'s model: [copied] on the chosen device, else on the CPU from the file's mapping. [tried]: the copy
+     *  fits only with what Android is expected to find ([Input.reclaimBytes]): the load is watched, and falls back. */
+    data class Load(val role: ModelRole, val copied: Boolean, val tried: Boolean = false) : Choice
     /** Load nothing now ([why]); try again later. */
     data class Wait(val why: String, val needBytes: Long = 0) : Choice
     object NoModel : Choice
@@ -82,6 +86,7 @@ object ModelRoles {
             play && !live && !i.forceBank -> {
                 val t = Load(ModelRole.BANK, copied = true)
                 if (i.accelerated && !i.lowMemory && i.freeBytes >= need(t)) return t
+                if (i.accelerated && !i.lowMemory && i.reclaimBytes > 0 && i.freeBytes + i.reclaimBytes >= need(t)) return t.copy(tried = true)
                 return NeedLive("The light model for replies in play is not downloaded, and the main model does not fit beside the town " +
                     "(${i.freeBytes shr 20} MB free, ${need(t) shr 20} MB needed).", need(t))
             }
@@ -106,7 +111,17 @@ object ModelRoles {
                 add(ModelRole.LIVE, false)
             }
         }
-        for (t in tries) if (!i.lowMemory && i.freeBytes >= need(t)) return t
+        // each in order: fits in the free memory; else (a copy) fits with what Android finds when asked: tried (the light
+        // model's NPU copy, tried, is far better than it on the CPU from the file; writing, the main model's copy tried
+        // is better than the light one's). In play with the light model there, the main model's copy is never a try (the
+        // riskiest load beside the town): the light one's goes first
+        // (and only with the game in front or writing: a process behind is the first Android ends)
+        fun tryable(t: Load) = t.copied && i.reclaimBytes > 0 && i.freeBytes + i.reclaimBytes >= need(t) &&
+            (i.foreground || i.writing) && !(play && live && t.role == ModelRole.BANK)
+        if (!i.lowMemory) for (t in tries) {
+            if (i.freeBytes >= need(t)) return t
+            if (tryable(t)) return t.copy(tried = true)
+        }
         val last = tries.last()
         return Wait("Not enough free memory to load the model (${i.freeBytes shr 20} MB free, about ${need(last) shr 20} MB needed with room for the game).", need(last))
     }

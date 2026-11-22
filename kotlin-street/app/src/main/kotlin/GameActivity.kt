@@ -1313,6 +1313,40 @@ private object VoiceTurns {
 private val FIRST_SENTENCE = Regex("""^(.{8,}?[.!?])\s+\S""")
 private val PANEL = Color(0xCC101420)
 private val DIM = Color(0xFFB8C2D6)
+
+/**
+ * Starts the NPU fit test from the AI panel: with the town loaded (when it is), then with it unloaded (the old crossroads
+ * for the time of the test), then the town back and built before the dialogue model loads again.
+ */
+private fun startFitTest(ctx: android.content.Context) {
+    val app = ctx.applicationContext
+    val main = android.os.Handler(android.os.Looper.getMainLooper())
+    fun onMain(block: () -> Unit) { val l = java.util.concurrent.CountDownLatch(1); main.post { try { block() } finally { l.countDown() } }; l.await(5, java.util.concurrent.TimeUnit.SECONDS) }
+    fun waitFor(ms: Long, cond: () -> Boolean) { val end = android.os.SystemClock.elapsedRealtime() + ms; while (!cond() && android.os.SystemClock.elapsedRealtime() < end) Thread.sleep(250) }
+    val town = StreetRenderer.town
+    val withTown = StreetRenderer.townMode && TownSession.loaded != null
+    val conditions = if (withTown) listOf("town", "no town") else listOf("no town")
+    com.timerpg.street.llm.NpuFitTest.start(app, conditions, com.timerpg.street.llm.NpuFitTest.Hooks(
+        prepare = { c ->
+            when (c) {
+                "town" -> if (TownSession.built) "the town built ($town)" else "the town loaded but not all built ($town)"
+                else -> if (!withTown) "the town was not loaded when the test started" else {
+                    onMain { StreetRenderer.setTown(app, StreetRenderer.CROSSROADS) }
+                    waitFor(15_000) { TownSession.loaded == null }
+                    // (its GPU memory and caches a moment to go)
+                    Thread.sleep(8000)
+                    "the town unloaded for the test (the old crossroads shown meanwhile)"
+                }
+            }
+        },
+        finish = {
+            if (withTown && StreetRenderer.town != town) {
+                onMain { StreetRenderer.setTown(app, town) }
+                waitFor(120_000) { TownSession.built }
+            }
+        },
+    ))
+}
 private val AI_BLUE = Color(0xFF6FA8FF)
 
 /** The conversation: who, where, what they said (and whose words: the model's or the game's), and what to ask next. */
@@ -1776,6 +1810,22 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             Text("NPU setting: ${NpuTune.chosen(pc) ?: "default"}" + (s.loadInfo?.let { " · $it" } ?: ""), 12.sp, color = DIM)
             Chip("Tune the NPU (tries ${NpuTune.CONFIGS.size} settings, restarts the game)", false) { act?.let { NpuTune.begin(it) } }
             for (line in NpuTune.results(pc)) Text(line, 11.sp, color = DIM)
+        }
+        // the NPU fit test: does each model's copy load here, with the town and without it, and how fast (a report to Claude)
+        run {
+            val pc = androidx.compose.ui.platform.LocalContext.current
+            val ft by com.timerpg.street.llm.NpuFitTest.status.collectAsState()
+            Chip(if (ft.running) "NPU fit test: ${ft.progress ?: "…"}" else "NPU fit test (with the town, then without; a few minutes; sends a report)", ft.running) {
+                if (!ft.running) startFitTest(pc)
+            }
+            ft.last?.let { Text("Fit test: $it", 11.sp, color = DIM) }
+            var gate by remember { mutableStateOf(com.timerpg.street.llm.NpuGate.enabled(pc)) }
+            Chip(if (gate) "NPU copy: counts memory Android frees on demand" else "NPU copy: only Android's free count", gate) {
+                gate = !gate; com.timerpg.street.llm.NpuGate.setEnabled(pc, gate); engine.reload()
+            }
+            engine.gateText?.let { Text("Device gate: $it", 11.sp, color = DIM) }
+            var gpuFb by remember { mutableStateOf(engine.gpuFallbackWanted) }
+            Chip(if (gpuFb) "If the NPU fails: the GPU, then the CPU" else "If the NPU fails: the CPU", gpuFb) { gpuFb = !gpuFb; engine.setGpuFallback(gpuFb) }
         }
         // the CPU's fast kernels copy the whole model into memory (faster prompts; speech and the voices may not fit)
         if (s.runsOn == 0) {

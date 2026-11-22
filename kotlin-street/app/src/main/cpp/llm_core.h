@@ -133,7 +133,10 @@ public:
      *  the whole model in memory the system cannot reclaim); without it the weights stay mapped from the file. */
     /** Bit 5 (32): the attention cache (KV) in 8 bits (q8_0) instead of 16, about half its memory (it needs flash
      *  attention; where that cannot be had the load falls back to the 16-bit cache). */
-    void set_device(int kind) { device_ = kind & 3; repack_ = (kind & 16) != 0; kv_q8_ = (kind & 32) != 0; mtp_n_ = (kind >> 8) & 15; }
+    /** Bits 12-14: the batch the prompt is processed in (0: 512 tokens, 1: 256, 2: 128): a smaller one shrinks the
+     *  compute buffers (memory beside the weights) at some cost in prompt speed. */
+    void set_device(int kind) { device_ = kind & 3; repack_ = (kind & 16) != 0; kv_q8_ = (kind & 32) != 0; mtp_n_ = (kind >> 8) & 15;
+                                const int b = (kind >> 12) & 7; batch_max_ = b == 1 ? 256 : b == 2 ? 128 : 512; }
     /** Whether the loaded model's cache is in 8 bits. */
     bool kv_q8() const { return ctx_ && kv_q8_used_; }
     /** Whether the loaded model writes with MTP speculative decoding (it has the prediction head and it was asked for). */
@@ -193,6 +196,7 @@ private:
     bool kv_q8_ = false;
     bool kv_q8_used_ = false;
     int mtp_n_ = 0;                          // tokens to guess ahead with the MTP head (0: off)
+    int batch_max_ = 512;                    // the prompt's batch (n_batch = n_ubatch), at most the context
     llama_context * dft_ = nullptr;          // the MTP head's context (shares the main context's memory)
     common_speculative * spec_ = nullptr;
     std::vector<int32_t> dft_cached_;       // the tokens the head's own cache holds, position i = dft_cached_[i]

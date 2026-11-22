@@ -36,6 +36,9 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     @Volatile var mtp = 0
     /** The attention cache (KV) in 8 bits from the next load (about half its memory; falls back to 16 where it cannot). */
     @Volatile var kvQ8 = false
+    /** The batch the prompt is processed in from the next load (512, 256 or 128 tokens): smaller shrinks the compute
+     *  buffers beside the weights, at some cost in prompt speed. */
+    @Volatile var batch = 512
     /** The loaded model's cache is in 8 bits. */
     val kvQ8Used: Boolean get() = handle != 0L && runCatching { nativeKvQ8(handle) }.getOrDefault(false)
     /**
@@ -128,7 +131,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
                 error = "cancelled"
                 return false
             }
-            runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0) or (if (kvQ8) 32 else 0) or (mtp.coerceIn(0, 15) shl 8)) }
+            runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0) or (if (kvQ8) 32 else 0) or (mtp.coerceIn(0, 15) shl 8) or (batchCode(batch) shl 12)) }
             loaded = false  // the native load frees the old model first
             val ok = try {
                 nativeLoad(handle, path.toByteArray(Charsets.UTF_8), t, ctx)
@@ -315,6 +318,8 @@ class NativeLlm(context: Context? = null) : LlmBackend {
         const val CPU = 0
         const val GPU = 1
         const val NPU = 2
+        /** [batch] as the native engine takes it (0: 512, 1: 256, 2: 128). */
+        fun batchCode(n: Int) = when { n <= 128 -> 2; n <= 256 -> 1; else -> 0 }
         private const val TAG = "NativeLlm"
         /** Qwen3-0.6B's KV cache in f16: 28 layers x 8 heads x 128 x 2 (K and V) x 2 bytes, rounded up. */
         private const val KV_BYTES_PER_TOKEN = 120L * 1024
