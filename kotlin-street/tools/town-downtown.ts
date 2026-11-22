@@ -193,7 +193,10 @@ export function extraBuildings(b: Buildings, plan: TownPlan, layout: TownLayout,
   const hall = townHall(plan);
   // (the hall is wider than the plaza at the art's scale: only where nothing stands within two tiles of the plaza's sides)
   const pz = plan.v2?.townHall ?? plan.plaza;
-  const crowded = [...plan.candidates, ...plan.landmarks].some((q) => q.x < pz.x + pz.w + 2 && pz.x - 2 < q.x + q.w && q.y < pz.y + pz.h && pz.y < q.y + q.h);
+  // (the planned town's square: the hall's own band across its back, the post office and clock tower on its front corners)
+  const band = plan.v2 && !plan.v2.townHall
+    ? { x: pz.x + pz.w / 2 - 9, w: 18, y: plan.mainY >= pz.y + pz.h / 2 ? pz.y : pz.y + pz.h - 10, h: 10 } : pz;
+  const crowded = [...plan.candidates, ...plan.landmarks].some((q) => q.x < band.x + band.w + 2 && band.x - 2 < q.x + q.w && q.y < band.y + band.h && band.y < q.y + q.h);
   if (hall && hall.built <= year && !crowded) {
     // at the back of the plaza: its front ~1 tile behind the fountain's ring, its back a tile short of the plaza's
     const deep = hall.rect.h * 44.5;                               // world units (position scale)

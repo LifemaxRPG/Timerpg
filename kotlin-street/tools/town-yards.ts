@@ -288,8 +288,13 @@ export function townYards(g: TownGraph): Yards {
       if (front.d1 - front.d0 >= 34 && (style === 'flower' || style === 'formal' || R(id, 'fbed') < 0.5)) {
         const bd0 = B.d0 - 14, bd1 = B.d0 - 2;
         if (pathL) {
-          if (pathL.u0 - 4 - (B.u0 + 4) >= 16) add('flowerBed', { u0: B.u0 + 4, u1: pathL.u0 - 4, d0: bd0, d1: bd1 }, 'object', 'front', [0, -1], v('fb1', 6));
-          if (B.u1 - 4 - (pathL.u1 + 4) >= 16) add('flowerBed', { u0: pathL.u1 + 4, u1: B.u1 - 4, d0: bd0, d1: bd1 }, 'object', 'front', [0, -1], v('fb2', 6));
+          // (clear of the driveway where it runs past the front wall)
+          const bed = (u0: number, u1: number, key: string): void => {
+            if (driveL && u0 < driveL.u1 + 4 && driveL.u0 - 4 < u1) { if (driveL.u0 - 4 - u0 >= u1 - driveL.u1 - 4) u1 = driveL.u0 - 4; else u0 = driveL.u1 + 4; }
+            if (u1 - u0 >= 16) add('flowerBed', { u0, u1, d0: bd0, d1: bd1 }, 'object', 'front', [0, -1], v(key, 6));
+          };
+          bed(B.u0 + 4, pathL.u0 - 4, 'fb1');
+          bed(pathL.u1 + 4, B.u1 - 4, 'fb2');
         }
       }
     } else if (front) {

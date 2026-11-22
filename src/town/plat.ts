@@ -15,15 +15,15 @@ import type { Rect, Road } from './kinds';
 //  - the RAIL BAND: in most towns a row of the grid one block south of Main Street (Railroad Avenue on its town side,
 //    South Street on the other, the track between, the depot at the foot of Depot Street, the civic block's side street);
 //    in a T-plan town a column at the core's west end (Main Street runs up from the depot);
-//  - the RIVER (a seed with one) through the core in a column of its own, Main Street and a parallel street or two on
-//    bridges, its banks a park; it may jog a block sideways through the back lots of the core's north row (the shops
-//    there back onto it);
+//  - the RIVER (a seed with one) through the middle of the core in a column of its own, the core straddling it (about as
+//    many blocks on each bank, the civic block one block from it), Main Street and a parallel street or two on bridges,
+//    its banks a park and the riverwalk;
 //  - every other block given a DISTRICT (old town, West Main, across the tracks, post-war, heights, later subdivisions,
 //    the edge) by where it lies, and the streets between blocks with the plan's exceptions (few crossings of the
 //    track, few bridges, cul-de-sac stubs in the later subdivisions).
 //
 // The seed varies the block widths and depths, the plan form (parallel rail or T), which side the rail band and the
-// strip take (the plan is mirrored), the river's column and its jog, the strip's and the core's length. Everything is
+// strip take (the plan is mirrored), which side of the civic block the river takes, the strip's and the core's length. Everything is
 // built in an abstract frame (u along Main Street towards the strip, v towards the rail side) and mirrored at the end, so
 // the streets stay axis-aligned rectangles split at every junction (src/town/network.ts's convention: a crossing's
 // square belongs to neither street, Main Street is never split). src/town/districts.ts lays the lots and the reserved
@@ -81,7 +81,7 @@ export interface Plat {
   /** The civic block's ground (the square or the plaza's block). */
   civic: Block;
   railBand: RailBand | null;
-  /** The river's course as rects of channel (plan tiles): vertical runs down its column, the jog across a block's back. */
+  /** The river's course as rects of channel (plan tiles): one run down its column. */
   river: { channel: Rect[]; column: Rect[] } | null;
   /** Service alleys and old-town alleys (walkable ground, not streets). */
   alleys: Rect[];
@@ -135,9 +135,21 @@ export function platTown(seed: string): Plat {
 
   // ---------------------------------------------------------------------------------------------- the grid
   const coreBase = size === 'S' ? 1 : 2;
-  const coreW = Math.min(3, Math.max(1, coreBase + (seat ? 1 : 0) - (size !== 'S' && R('coreW') < 0.3 ? 1 : 0)));
-  // (a river town's core is two blocks east of the civic block at least: the river runs between core blocks)
-  const coreE = Math.min(3, Math.max(river ? 2 : 1, coreBase + (seat ? 1 : 0) + (size === 'L' && R('coreE') < 0.5 ? 1 : 0)));
+  let coreW = Math.min(3, Math.max(1, coreBase + (seat ? 1 : 0) - (size !== 'S' && R('coreW') < 0.3 ? 1 : 0)));
+  let coreE = Math.min(3, Math.max(1, coreBase + (seat ? 1 : 0) + (size === 'L' && R('coreE') < 0.5 ? 1 : 0)));
+  // A river town's downtown STRADDLES the river (the owner's choice, "river through downtown"): Main Street crosses it in
+  // the middle of the core, the civic block one block from it on one bank (a core block between them), and about as many
+  // core blocks on the other bank as on the civic block's (at most one more or fewer). [far] core blocks lie beyond the
+  // civic block, away from the river; [other] on the far bank. The river takes the strip's side of the civic block or the
+  // other, by the seed (never leaving the civic block on the core's strip end: the strip starts past a core block).
+  let riverSide: 1 | -1 = 1, other = 0;
+  if (river) {
+    const far = size === 'S' ? 0 : Math.min(2, 1 + (seat || (size === 'L' && R('coreFar') < 0.5) ? 1 : 0));
+    other = Math.min(3, Math.max(1, far + 2 - (R('coreOther') < 0.4 ? 1 : 0)));
+    riverSide = far > 0 && R('riverSide') < 0.5 ? -1 : 1;
+    // (the river's column goes in between the civic side's core and the far bank's below)
+    if (riverSide > 0) { coreW = far; coreE = 1 + other; } else { coreW = 1 + other; coreE = far; }
+  }
   const westCols = size === 'S' ? 1 : size === 'M' ? jit(1, 2, 'westCols') : jit(2, 3, 'westCols');
   const stripCols = size === 'S' ? 2 : size === 'M' ? jit(2, 3, 'stripCols') : 3;
   const edgeW = needs.superstore !== undefined ? jit(146, 154, 'edgeW') : needs.supermarket !== undefined ? jit(98, 106, 'edgeW') : jit(70, 84, 'edgeW');
@@ -152,38 +164,11 @@ export function platTown(seed: string): Plat {
   for (let i = 1; i <= stripCols; i++) cols.push({ kind: 'strip', w: jit(60, 68, 'cw', 's', i) });
   cols.push({ kind: 'edge', w: edgeW });
 
-  // the river's column (or two, when it jogs): through the core, at the core's edge in a mill town
-  let riverB = -1, riverA = -1;
+  // the river's column through the core: between the core block beside the civic block and the far bank's core
+  let riverB = -1;
   if (river) {
-    const coreIdx = cols.map((c, i) => (c.kind === 'core' || c.kind === 'civic' ? i : -1)).filter((i) => i >= 0);
-    const first = coreIdx[0]!, last = coreIdx[coreIdx.length - 1]!;
-    // gaps: before index g (between g-1 and g); not touching the civic block
-    const inner = coreIdx.filter((i) => i > first && i !== civicCol && i !== civicCol + 1);
-    const edges = [first, last + 1];
-    const mill = type === 'mill' || type === 'mining';
-    // (through downtown, the owner's choice: between two core blocks, core on both banks; a mill town's too, its works on
-    // the river where it meets the rail side)
-    void mill;
-    const options = inner.length ? inner : edges;
-    riverB = options[Math.floor(R('riverB') * options.length)]!;
+    riverB = riverSide > 0 ? civicCol + 2 : civicCol - 1;
     cols.splice(riverB, 0, { kind: 'river', w: jit(32, 36, 'riverW') });
-    // (indexes past the insertion move along)
-    const civicNow = civicCol + (riverB <= civicCol ? 1 : 0);
-    // the jog: north of the core the river runs a block or two further from the square, through the core's north back lots
-    if (R('jog') < 0.55) {
-      const away = riverB <= civicNow ? -1 : 1;
-      const step = 1 + (R('jogStep') < 0.35 ? 1 : 0);
-      let a = riverB + away * step + (away > 0 ? 1 : 0);
-      // (stay inside the town's columns, west of the strip)
-      const lastStrip = cols.findIndex((c) => c.kind === 'strip');
-      // (and through the core there too: core blocks on both of its banks)
-      const coreLike = (c?: Col): boolean => !!c && (c.kind === 'core' || c.kind === 'civic');
-      if (a > 0 && a < cols.length - 1 && (lastStrip < 0 || a <= lastStrip) && coreLike(cols[a - 1]) && coreLike(cols[a])) {
-        cols.splice(a, 0, { kind: 'river', w: jit(30, 34, 'riverWA') });
-        if (a <= riverB) riverB++;
-        riverA = a;
-      }
-    }
   }
   const civic = cols.findIndex((c) => c.kind === 'civic');
 
@@ -213,13 +198,8 @@ export function platTown(seed: string): Plat {
 
   // ---------------------------------------------------------------------------------------------- districts
   const riverCol = (ci: number): boolean => cols[ci]!.kind === 'river';
-  /** Does the river run through cell (ci, rj)? (column A north of the core's north row, B from it south; both in the jog row) */
-  const riverHere = (ci: number, rj: number): boolean => {
-    if (!riverCol(ci)) return false;
-    if (riverA < 0) return true;
-    if (ci === riverA) return rj <= coreNRow;
-    return rj >= coreNRow;
-  };
+  /** Does the river run through cell (ci, rj)? (its column, from end to end) */
+  const riverHere = (ci: number, _rj: number): boolean => riverCol(ci);
   const stripStart = cols.findIndex((c) => c.kind === 'strip');
   const westmain = cols.findIndex((c) => c.kind === 'westmain');
   const railcol = cols.findIndex((c) => c.kind === 'railcol');
@@ -354,18 +334,8 @@ export function platTown(seed: string): Plat {
     const channel: Rect[] = [], column: Rect[] = [];
     const top = Y[0]! - 80, bottom = Y[rows.length]! + 80;
     const cB = X[riverB]! + cols[riverB]!.w / 2;
-    if (riverA >= 0) {
-      const cA = X[riverA]! + cols[riverA]!.w / 2;
-      // the jog runs through the back of the core's north row: 4-14 tiles from its north street
-      const jy = Y[coreNRow]! + 4;
-      channel.push({ x: cA - 5, y: top, w: 10, h: jy + 10 - top });
-      channel.push({ x: Math.min(cA, cB) - 5, y: jy, w: Math.abs(cB - cA) + 10, h: 10 });
-      channel.push({ x: cB - 5, y: jy, w: 10, h: bottom - jy });
-      column.push({ x: X[riverA]!, y: top, w: cols[riverA]!.w, h: Y[coreNRow + 1]! - top }, { x: X[riverB]!, y: Y[coreNRow]!, w: cols[riverB]!.w, h: bottom - Y[coreNRow]! });
-    } else {
-      channel.push({ x: cB - 5, y: top, w: 10, h: bottom - top });
-      column.push({ x: X[riverB]!, y: top, w: cols[riverB]!.w, h: bottom - top });
-    }
+    channel.push({ x: cB - 5, y: top, w: 10, h: bottom - top });
+    column.push({ x: X[riverB]!, y: top, w: cols[riverB]!.w, h: bottom - top });
     riverOut = { channel, column };
   }
 

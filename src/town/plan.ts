@@ -366,7 +366,7 @@ function planTownV2(seed: string): TownPlan {
   }
   const sites: (Candidate & { rank: number })[] = lots.map((l) => {
     const id = `${l.kind}:${l.x},${l.y}`;
-    const f = l.kind === 'shop' ? streetBlockBuilt(seed, id, l.order, l.district !== 'core') : from.get(l.id)!;
+    const f = l.kind === 'shop' ? streetBlockBuilt(seed, id, l.order, l.district !== 'core' && l.district !== 'square') : from.get(l.id)!;
     return { x: l.x, y: l.y, w: l.w, h: l.h, id, kind: l.kind, rank: l.order, neighborhood: HOOD[l.district], district: l.district, from: f };
   });
   sites.sort((a, b) => a.rank - b.rank || (a.id < b.id ? -1 : 1));
@@ -408,13 +408,27 @@ function planTownV2(seed: string): TownPlan {
     }
   }
   if (!plat.countySeat) {
+    // the town square (districts.ts): its front on Main Street, the town hall across its back (about 10 tiles), the post
+    // office and the clock tower on its front corners. A fountain in the middle of the open ground, benches round it,
+    // trees in grates down both sides of the middle, planters along the front and before the hall, lamps.
     const pcx = plaza.x + plaza.w / 2;
-    const pby = plaza.y + plaza.h - 1;
-    add('fountain2', pcx, pby - 4, look('fountain'));
-    add('bench', pcx - 4, pby - 2, 0.1);
-    add('bench', pcx + 4, pby - 2, 0.1);
-    for (let i = 0; i < 6; i++) add('tree', plaza.x + 1.5 + (i % 3) * ((plaza.w - 3) / 2), plaza.y + 3 + Math.floor(i / 3) * 2.2, look('ptree', i));
-    for (let i = 0; i < 4; i++) add('flowerBush', plaza.x + 3 + i * 3.4, pby, look('pfb', i));
+    const frontBottom = mainY >= plaza.y + plaza.h / 2;
+    const at = (dx: number, d: number): [number, number] => [pcx + dx, frontBottom ? plaza.y + plaza.h - d : plaza.y + d];
+    const open = Math.max(14, plaza.h - 11);
+    const df = Math.round(open / 2) + 1;
+    add('fountain2', ...at(0, df), look('fountain'));
+    for (const [bx, bd] of [[0, df - 4], [0, df + 4]] as const) add('bench', ...at(bx, bd), 0.1);
+    // (rows of trees in grates: two down the middle from the front, two more along the square's sides,
+    // benches between the trees of the inner rows facing the middle, lamps at the rows' ends)
+    const side = plaza.w / 2 - 1.5;
+    for (let d = 3; d < open; d += 3) for (const sx of [-1, 1]) {
+      add('tree', ...at(sx * 6, d), look('ptree', d, sx));
+      add('tree', ...at(sx * side, d + 1.5), look('ptree2', d, sx));
+      if (d + 1.5 < open && Math.abs(d + 1.5 - df) > 4) add('bench', ...at(sx * 4.3, d + 1.5), 0.1);
+    }
+    for (const dx of [-3, 3]) add('flowerBush', ...at(dx, 1), look('pfb', dx));
+    for (let dx = -side + 2; dx <= side - 2; dx += 3) if (Math.abs(dx) > 2) add('flowerBush', ...at(dx, open), look('pfb2', dx));
+    for (const [lx, ld] of [[-side, 1.5], [side, 1.5], [-side, open], [side, open], [-3, df], [3, df]] as const) add('lamp', ...at(lx, ld), look('plamp', lx, ld));
   }
   const developed = new Grid(width, height);
   for (const r of roads) developed.mark(r, 1);
@@ -423,6 +437,8 @@ function planTownV2(seed: string): TownPlan {
   for (const q of reserved) developed.mark(q, 1);
   for (const a of dist.alleys) developed.mark(mv(a), 0);
   developed.mark(plaza, 1);
+  // (downtown's blocks are paved to their streets, no woods or lawns in them: the export paves them)
+  for (const b of plat.blocks) if (b.district === 'core' || (b.district === 'square' && !plat.countySeat)) developed.mark(mv(b), 1);
   const wet = new Grid(width, height);
   if (water) for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) if (water.raw[y * width + x]) wet.mark({ x, y, w: 1, h: 1 }, 2);
   props.push(...greenery(seed, developed, wet));

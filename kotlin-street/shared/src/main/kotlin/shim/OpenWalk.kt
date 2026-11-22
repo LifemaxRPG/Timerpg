@@ -113,7 +113,9 @@ class OpenWalk(
         val r = town.row(town.spawn.row)
         val p = r.pointAt(town.spawn.x, town.spawn.lane)
         val a = r.alongAt(town.spawn.x)
-        placeAt(p.x, p.z, a.x, a.z)
+        // (facing the way the town says: along Main Street to the plaza)
+        val d = if (town.spawn.dir < 0f) -1f else 1f
+        placeAt(p.x, p.z, a.x * d, a.z * d)
     }
 
     /**

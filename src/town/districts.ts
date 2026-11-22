@@ -151,13 +151,16 @@ function fill(p: Plat): Districts {
     reserved.push({ ...r, id: 'glb:county_courthouse', district: 'square', face: mf, chain: chainOf(tenures.filter((t) => t.kind.startsWith('landmark_glb_county_courthouse_')), 'square') });
     plaza = r;
   } else {
-    // (the plaza paved across the block between the post office and the clock tower; the town hall at its back)
-    const pzW = Math.max(16, civic.w - 22);
-    const pz = onFace(civic, mf, pzW, 13, Math.round((civic.w - pzW) / 2));
+    // the town square: paved from Main Street back (a strip short of the back street, so the town hall at its back fronts
+    // Main Street across it), the post office and the clock tower on the block's front corners beside it, the town hall at
+    // its back; the fountain, benches, trees in grates and lamps between (plan.ts); the shops across its side streets face
+    // it (the core's corner shops)
+    // (the square proper between them, the whole depth; the corners behind them paved too: the export paves the block)
+    const pz = onFace(civic, mf, civic.w - 20, civic.h - 3, 10);
     reserved.push({ ...pz, id: 'civic:plaza', district: 'square', face: mf, chain: [{ use: 'plaza', from: 0 }] });
     plaza = pz;
-    if (civicKinds.includes('post')) reserve('landmark:post', lm('post'), [civic], () => [mf], [spec('post')], 'near', { pad: 0, keep: (r) => pz.x - (r.x + r.w) >= 2 && pz.x - (r.x + r.w) <= 4 });
-    if (civicKinds.includes('clocktower')) reserve('landmark:clocktower', lm('clocktower'), [civic], () => [mf], [spec('clocktower')], 'near', { pad: 0, keep: (r) => r.x - (pz.x + pz.w) >= 2 && r.x - (pz.x + pz.w) <= 4 });
+    if (civicKinds.includes('post')) reserve('landmark:post', lm('post'), [civic], () => [mf], [spec('post')], 'near', { pad: 0, keep: (r) => r.x + r.w <= pz.x - 1 });
+    if (civicKinds.includes('clocktower')) reserve('landmark:clocktower', lm('clocktower'), [civic], () => [mf], [spec('clocktower')], 'near', { pad: 0, keep: (r) => r.x >= pz.x + pz.w + 1 });
   }
   const civic2 = at(0, -2);
   const behind = [civic2, at(1, -2), at(-1, -2)].filter((b): b is Block => !!b && b.district !== 'river');
@@ -269,7 +272,9 @@ function fill(p: Plat): Districts {
   const fh = has('funeral_home');
   if (fh.length) {
     const wm = byNear([...blocksOf('westmain', -1), ...blocksOf('westmain', 0), ...blocksOf('old', -2), ...blocksOf('old')]);
-    reserve('glb:funeral_home', [{ use: 'house', from: fh[0]!.houseBuilt ?? 1915, to: fh[0]!.opened }, ...fh.map((t) => ({ use: t.kind, from: t.opened }))], wm, (b) => [mainFace(b), back(mainFace(b))], [tiles('landmark_glb_funeral_home')], 'near');
+    // (fronting the cross street at the corner, or the block's back street: a house lot off Main Street itself)
+    const toCore = (b: Block): Face => (b.x + b.w / 2 < cx ? 'E' : 'W');
+    reserve('glb:funeral_home', [{ use: 'house', from: fh[0]!.houseBuilt ?? 1915, to: fh[0]!.opened }, ...fh.map((t) => ({ use: t.kind, from: t.opened }))], wm, (b) => [back(mainFace(b)), toCore(b), mainFace(b)], [tiles('landmark_glb_funeral_home')], 'near');
   }
   // ---- the water tower on the heights' crest (else behind the civic block)
   const wt = has('water_tower');
@@ -355,11 +360,9 @@ function fill(p: Plat): Districts {
         const ay = mfb === 'S' ? b.y + b.h - SIZES.shop.h - 3 : b.y + SIZES.shop.h;
         const alley = { x: b.x, y: ay, w: b.w, h: 3 };
         if (!wet(alley, 0)) alleys.push(alley);
-        // a county seat's blocks beside the square turn their shops round the corner to face it
-        if (p.countySeat && b.row === -1 && Math.abs(b.col) === 1) {
-          const toward: Face = b.x < civic.x ? 'E' : 'W';
-          face(b, toward, k('shop'), () => 0, true);
-        }
+        // the street wall turns every corner: shops down the side streets too, from the corner shop to the apartments at
+        // the back (a county seat's blocks beside the square face it so; downtown's cross streets are shop streets)
+        for (const f of ['E', 'W'] as Face[]) if (b.faces.includes(f)) face(b, f, k('shop'), () => 0, true);
         // the blocks on the river's banks turn their shops round the corner to face the riverwalk
         for (const f of ['E', 'W'] as Face[]) {
           const side = f === 'E' ? { x: b.x + b.w + 4, y: b.y, w: 6, h: b.h } : { x: b.x - 10, y: b.y, w: 6, h: b.h };
@@ -367,7 +370,10 @@ function fill(p: Plat): Districts {
         }
         break;
       }
-      case 'square': case 'civic':
+      case 'square':
+        // (the civic block is the town square: its plaza and civic buildings, no lots)
+        break;
+      case 'civic':
         face(b, mfb, one(mfb, 'house'), g(1, 2));
         face(b, bk, one(bk, 'house'), g(1, 2));
         break;
@@ -422,7 +428,7 @@ function fill(p: Plat): Districts {
   const BASE: Partial<Record<District, number>> = { core: 0, square: 40, civic: 40, old: 40, westmain: 40, worker: 250, strip: 350, postwar: 450, heights: 600, late: 800, edge: 900 };
   for (const l of lots) {
     const d = Math.hypot(l.x + l.w / 2 - cx, (l.y + l.h / 2 - cy) * 1.2);
-    l.order = (l.kind === 'shop' ? (l.district === 'core' ? 0 : 100) : BASE[l.district] ?? 900) + d + R('rank', l.id) * 6;
+    l.order = (l.kind === 'shop' ? (l.district === 'core' || l.district === 'square' ? 0 : 100) : BASE[l.district] ?? 900) + d + R('rank', l.id) * 6;
   }
   lots.sort((a, b) => a.order - b.order || (a.id < b.id ? -1 : 1));
   return { lots, reserved, alleys, plaza };

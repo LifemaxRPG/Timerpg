@@ -143,6 +143,19 @@ describe('the planned town', () => {
         expect(core.some((b) => Math.abs(b.x + b.w - c.x) <= 6), `${s} core west of the river`).toBe(true);
         expect(core.some((b) => Math.abs(c.x + c.w - b.x) <= 6), `${s} core east of the river`).toBe(true);
       }
+      // the core straddles the river: Main Street's bridge inside the core's span, and the core's blocks along Main Street
+      // (the civic block's column too) as many on each bank, give or take one
+      const mainBridge = bridges.find((b) => b.y <= main.y && b.y + b.h >= main.y + main.h)!;
+      const midX = mainBridge.x + mainBridge.w / 2;
+      const onMain = p.v2!.blocks.filter((b) => (b.district === 'core' || b.district === 'square') && (b.row === 0 || b.row === -1));
+      const coreX0 = Math.min(...onMain.map((b) => b.x)), coreX1 = Math.max(...onMain.map((b) => b.x + b.w));
+      expect(mainBridge.x > coreX0 && mainBridge.x + mainBridge.w < coreX1, `${s} Main Street's bridge inside the core`).toBe(true);
+      const cols = (west: boolean): number => new Set(onMain.filter((b) => (b.x + b.w / 2 < midX) === west).map((b) => b.col)).size;
+      expect(Math.abs(cols(true) - cols(false)), `${s} core blocks each bank: ${cols(true)} | ${cols(false)}`).toBeLessThanOrEqual(1);
+      // (the civic block one block from the river: a core block between them)
+      const civic = p.v2!.blocks.find((b) => b.col === 0 && b.row === -1)!;
+      const between = onMain.filter((b) => b.row === -1 && b !== civic && (b.x + b.w / 2 - midX) * (civic.x + civic.w / 2 - midX) > 0 && Math.abs(b.x + b.w / 2 - midX) < Math.abs(civic.x + civic.w / 2 - midX));
+      expect(between.length, `${s} one block between the civic block and the river`).toBe(1);
       const coreRows = p.v2!.blocks.filter((b) => b.district === 'core');
       const y0 = Math.min(...coreRows.map((b) => b.y)) - 6, y1 = Math.max(...coreRows.map((b) => b.y + b.h)) + 6;
       expect(bridges.filter((b) => b.y >= y0 && b.y + b.h <= y1).length, `${s} core bridges`).toBeGreaterThanOrEqual(2);

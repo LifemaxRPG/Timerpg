@@ -86,7 +86,7 @@ export function runOf(plan: TownPlan, c: Candidate): Candidate[] {
 /** Whether the block face of [c] lies out past the old core (its plots' mean rank): a post-war strip. */
 export function stripFace(plan: TownPlan, c: Candidate): boolean {
   // the planned town: by district (a core face is always a street wall, a strip face always car parks in front)
-  if (c.district) return c.district !== 'core';
+  if (c.district) return c.district !== 'core' && c.district !== 'square';
   const run = runOf(plan, c);
   return run.reduce((s, q) => s + q.rank, 0) / run.length >= CORE_RANK;
 }
@@ -281,7 +281,8 @@ export function townHall(plan: TownPlan): CivicBuilding | undefined {
   const R = (...k: (string | number)[]): number => rand(plan.seed, 'downtown', 'townhall', ...k);
   // (a county seat's stands on its own plot facing the square: it always has one)
   if (plan.v2?.townHall) return { kind: 'townhall', name: 'Town Hall', built: 1880 + Math.floor(R('built') * 31), rect: { ...plan.v2.townHall } };
-  if (R('has') >= 0.75) return undefined;
+  // (the planned town's square always has its hall across its back; the old plan's plaza three times in four)
+  if (!plan.v2 && R('has') >= 0.75) return undefined;
   return { kind: 'townhall', name: 'Town Hall', built: 1880 + Math.floor(R('built') * 31), rect: { ...plan.plaza } };
 }
 

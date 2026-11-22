@@ -25,10 +25,11 @@ describe('town buildings', () => {
     const before: Record<string, string> = {
       // re-recorded when towns big enough got a cinema (src/town/cinema.ts), and again when every town got its stores
       // (src/town/stores.ts: the general store and the market take main-street plots, the plan grows for the rest), and again
-      // for the planned town (src/town/plat.ts: the crossroads are Main Street and the civic avenue of the platted town)
-      vale: '7f93ef705e104afdbd461f81dad1256eecff4c957fec2756f6d16f45bbb3a80b',
-      alpha: 'fb47e54217e14aa63cdea84ee79a8c51d29cf99df4fbb49ea74dec7048622a41',
-      gamma: '69944233c61cfc2c96a76c502a1e841257f77e8e5a9254217f9d4d91d1ec214a',
+      // for the planned town (src/town/plat.ts: the crossroads are Main Street and the civic avenue of the platted town), and
+      // again for the downtown that straddles its river, the town square and the core's side-street shops
+      vale: 'b2ed05d85e9adc16376257fd9ef8c12cd0e132958ebafaf1581bf9a07ecb4b30',
+      alpha: 'cb6a1db217a8e14bac76e89373be662fbfe76b3817a1500a145554e437436cdb',
+      gamma: '55b1fc030bbb0dac0f6b0a05b9083c8488292b01fc0db845dc527e8ff2a62fcc',
     };
     for (const [seed, h] of Object.entries(before)) expect(sha(streetJson(seed)), seed).toBe(h);
   });

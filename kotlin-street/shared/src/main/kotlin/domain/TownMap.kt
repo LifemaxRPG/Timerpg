@@ -18,7 +18,8 @@ import kotlin.math.sqrt
 data class TownPoint(val x: Float, val z: Float)
 
 /** Where the player starts: on [row], [x] along it, in [lane]. */
-data class Spawn(val row: String, val x: Float, val lane: Float)
+/** Where the player starts: on [row] at [x], in [lane], facing along the row ([dir] +1) or against it (-1). */
+data class Spawn(val row: String, val x: Float, val lane: Float, val dir: Float = 1f)
 
 class Neighbourhood(val id: String, val name: String, val palette: String, val yard: String, val shopColour: String)
 
@@ -252,6 +253,8 @@ class Town(
     val water: List<List<TownPoint>>,
     val bridges: List<Bridge>,
     val props: List<Prop>,
+    /** Downtown's ground paved to its streets ([x0, z0, x1, z1] and "lot", the core's asphalt, or "square", the plaza's stone). */
+    val paved: List<Pair<FloatArray, String>> = emptyList(),
 ) {
     /**
      * Ground kept clear of the forest's trees and bushes (the railroad's bed: [RailScene.onBed]): set before the town is
@@ -358,7 +361,7 @@ class Town(
                 k = g.getDouble("k").toFloat(),
                 unitPerTile = g.getDouble("unitPerTile").toFloat(),
                 scale = g.optDouble("scale", g.getDouble("k") * g.getDouble("unitPerTile")).toFloat(),
-                spawn = Spawn(sp.getString("row"), sp.getDouble("x").toFloat(), sp.getDouble("lane").toFloat()),
+                spawn = Spawn(sp.getString("row"), sp.getDouble("x").toFloat(), sp.getDouble("lane").toFloat(), sp.optDouble("dir", 1.0).toFloat()),
                 civicRoad = civic?.optInt("road"),
                 civicName = civic?.optString("name"),
                 neighbourhoods = g.getJSONArray("neighbourhoods").objects().map {
@@ -388,6 +391,7 @@ class Town(
                 water = water?.optJSONArray("polys")?.let { ps -> (0 until ps.length()).map { points(ps.getJSONArray(it)) } } ?: emptyList(),
                 bridges = g.optJSONArray("bridges")?.objects()?.map { Bridge(it.getJSONArray("rect").floats(), it.optBoolean("horizontal")) } ?: emptyList(),
                 props = g.optJSONArray("props")?.let { props(it) } ?: emptyList(),
+                paved = g.optJSONArray("paved")?.objects()?.map { it.getJSONArray("rect").floats() to it.optString("kind", "lot") } ?: emptyList(),
             )
         }
 

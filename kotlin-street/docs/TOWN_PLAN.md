@@ -409,3 +409,24 @@ depot stands two blocks south of Main Street on the column); a town whose throug
 on that line (the second band is to come); successor uses after a model goes (garden apartments, offices) are ledger data
 only; the cemetery is reserved ground (no headstones yet); one chapel (no more church models); the NPCs to talk to fell
 from 146 to 101 in gamma (more households share apartment blocks near the core).
+
+### Final round (2026-11-22)
+
+- **Downtown straddles the river** (src/town/plat.ts): in a river town the core is laid round the river's column, the
+  civic block one core block from it on one bank, about as many core blocks on the other (`far` beyond the civic block,
+  `other` on the far bank: they differ by at most one), the river on the strip's side of the civic block or the other by
+  the seed. Main Street's bridge is in the middle of the core. The jog through the north row's back lots is gone (it put
+  a core column on one bank only). plat.test.ts checks the bank counts, the bridge inside the core's span and the block
+  between the civic block and the river for every test seed; gamma 3 | 3, pi 3 | 2, orbit 2 | 2, rho 4 | 3 (a seat).
+  A mill town's works stay on the rail band by the river.
+- **Downtown reads as one**: every core block's shops turn its corners and run down the side streets (the street wall on
+  the cross streets too); the civic block is the **town square**: paved from Main Street to a strip short of the back
+  street, the post office and the clock tower on its front corners, the town hall across its back (always, in the planned
+  town), a fountain (a wide basin) in the middle, benches, two rows of trees in iron grates down the middle and one down
+  each side, planters, lamps. The core's blocks are paved to their streets (street.json `graph.paved`: the back lots
+  asphalt, the square's block in its stone); greenery keeps out of them.
+- **The start**: the player stands on Main Street a block down from the square, facing it (street.json `spawn.dir`), so
+  the start view looks along Main Street between its street walls to the square (`OpenWalk.spawn`; the camera starts
+  behind the player as before).
+- **Memory** (townMemoryCheck, the shipped gamma, three runs): held peak 144-164 MB of 256 (was 249-303 measured the same
+  way before this round). See TOWN.md "Memory, the final round".

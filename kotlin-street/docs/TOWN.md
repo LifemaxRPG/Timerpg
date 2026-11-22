@@ -888,3 +888,26 @@ reserved plots and the lots; network.ts and frontage.ts stay behind `setPlanVers
 - **Previews**: `gradle :desktop:preview -Dmode=filament-open -Dshots=plan [-Dtown=<folder>]`: the start spot, the river
   crossing, the rail side, the strip, a street of filler homes front and back, downtown from above, the radio station,
   the courthouse in a county seat (export one with tools/export-town.ts and make_buildings.py into build-town/<seed>).
+
+### Memory, the final round (2026-11-22)
+
+Measured with townMemoryCheck's new tools: `-DmemOwners` (every direct buffer of the town comes from
+`TownMemory.direct`; the ones held at the peak, by the code that made them), `-DmemDump=MB` / `-DmemDumpEnd` (a heap dump
+at that much held, or once the town is in; a small hprof reader attributed the live objects to the town's classes).
+
+- The character sheets: the preview decoded all of each 1792 x 1312 sheet (72 MB of pictures packed for the GPU); the app
+  decodes only the 768 x 320 it draws (GameActivity). The preview now crops them the same way (8 MB). A measuring fix.
+- The parsed street.json and a second, unbuilt FilamentTown were held through the check by the preview; the app's load
+  (TownSession) lets the JSON go and builds one town. The check now does the same. A measuring fix (about 30 MB).
+- The windows' night light (FilamentModels.Night) was two ints a glowing pixel and one a glass pixel, kept for the
+  building's life: 29 MB for gamma's models once built. Now runs along a row (a window's pixels, one light): 5 MB.
+- The bridges' boxes wore pictures as long as they are (one 1024 x 2341 atlas: 10 MB of heap and 10 MB to upload, and
+  13 MB of GPU memory with mipmaps): now 3 m lengths sharing their pictures.
+- The ground's pieces are made one kind at a time as they are packed (TownGround.pieces is a sequence): the grass's
+  2048 x 2048 picture (16 MB) is let go once packed, not held until the last piece.
+
+Held peak (live heap after a full collection + direct buffers), three runs each: before 249, 255, 264 MB (and 261-303 in
+earlier runs); after 144, 149, 164 MB (with this round's larger downtown). Open: the GPU estimate is 2.3 GB on the
+desktop (textures 1.8 GB with mipmaps: 445 prop and yard atlases of 512 x 512, and every model's atlas and its night
+mask the same size): on the phone's shared memory that is the next thing to cut (night masks as one channel, the yards'
+atlases shared), not measured on the S25.

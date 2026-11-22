@@ -84,14 +84,17 @@ describe('town graph', () => {
     }
     expect(seen.size).toBe(g.graph.rows.length);
     const spawn = rows.get(g.graph.spawn.row) as RowJson;
-    // the planned town: on Main Street in front of the civic block (its post office, clock tower and town hall), the
-    // cinema across it (the view from the square)
+    // the planned town: on Main Street a block down from the civic block, facing it (the start view looks along Main
+    // Street to the square): the next stretch ahead has its post office and clock tower, the cinema across from them
     expect(g.graph.roads[spawn.road]!.name).toBe('Main Street');
     expect(g.graph.spawn.x).toBeGreaterThan(89);
     expect(g.graph.spawn.x).toBeLessThan(spawn.length - 89);
-    expect(spawn.buildings.map((b) => b.lot)).toEqual(expect.arrayContaining(['landmark:post', 'landmark:clocktower']));
-    const across = rows.get(spawn.ends.start.cross!)!;
-    expect(across.buildings.map((b) => b.lot)).toContain('landmark:cinema');
+    expect(spawn.buildings.filter((b) => b.kind === 'shop').length, 'a street wall at the start').toBeGreaterThanOrEqual(2);
+    const dir = g.graph.spawn.dir ?? 1;
+    const ahead = rows.get((dir < 0 ? spawn.ends.start.straight : spawn.ends.end.straight)!)!;
+    expect(ahead.buildings.map((b) => b.lot)).toEqual(expect.arrayContaining(['landmark:post', 'landmark:clocktower']));
+    const across = [ahead.ends.start.cross, ahead.ends.end.cross].map((id) => rows.get(id!)!);
+    expect(across.flatMap((r) => r.buildings.map((b) => b.lot))).toContain('landmark:cinema');
     // the civic avenue still has its name (the v1 crossroads' junction is on it)
     expect(g.graph.roads.some((r) => r.name === 'Civic Avenue')).toBe(true);
   });

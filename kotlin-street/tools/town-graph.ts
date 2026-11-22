@@ -128,7 +128,7 @@ export interface RowJson {
 export interface LotJson { id: string; sprite: string; row: string; rect: [number, number, number, number]; kind: string; neighbourhood: string; yard: string }
 export interface TownMapJson {
   seed: string; year: number; k: number; unitPerTile: number; scale: number; frontTiles: number;
-  spawn: { row: string; x: number; lane: number };
+  spawn: { row: string; x: number; lane: number; dir?: number };
   civic: { road: number; name: string };
   neighbourhoods: { id: string; name: string; palette: string; yard: string; shopColour: string }[];
   nodes: NodeJson[]; roads: RoadJson[]; rows: RowJson[];
@@ -148,6 +148,7 @@ export interface TownMapJson {
   glbLandmarks?: GlbJson[];
   storePeople?: [number, number][];
   plaza: { rect: [number, number, number, number]; props: { kind: string; x: number; z: number; look: number }[] };
+  paved: { rect: [number, number, number, number]; kind: string }[];
   water: { kind: string; polys: P[][] } | null;
   bridges: { rect: [number, number, number, number]; horizontal: boolean }[];
   props: { kind: string; x: number; z: number; look: number }[];
@@ -629,9 +630,18 @@ export function townGraph(seed: string, year: number): TownGraph {
   let spawnX = pzS.off > 0 && pzS.off < pz.w + FRONT_TILES + 2 ? pzS.s * SCALE : (spawnRow.items[0]?.x0 ?? MARGIN + 40);
   // the planned town: on Main Street in front of the civic block (the plaza and town hall, or the courthouse square),
   // on its side of the street, at the block's middle
+  // (the start view looks along Main Street to the plaza: the player stands a block down it, in the next core block's
+  // middle, facing the civic block, the street walls of both sides receding ahead; [spawnDir] +1: along the row)
+  let spawnDir = 1;
   if (plan.v2) {
     const civ = plan.v2.blocks.find((b) => b.col === 0 && b.row === -1)!;
-    const at: P = [civ.x + civ.w / 2, civ.y + civ.h / 2];
+    const cAt: P = [civ.x + civ.w / 2, civ.y + civ.h / 2];
+    // the core block beside it on Main Street: away from the river when there is one there, else towards it
+    const beside = (dc: number) => plan.v2!.blocks.find((b) => b.col === dc && b.row === -1 && (b.district === 'core'));
+    const riverX = plan.v2.blocks.find((b) => b.district === 'river' && b.row === -1);
+    const away = riverX ? (riverX.x > civ.x ? -1 : 1) : -1;
+    const nb = beside(away) ?? beside(-away);
+    const at: P = nb ? [nb.x + nb.w / 2, nb.y + nb.h / 2] : cAt;
     let best: { row: Row; s: number; d: number } | undefined;
     for (const c of mains) for (const row of [rowsOf.get(c)!.L, rowsOf.get(c)!.R]) {
       const q = project(row.front, row.cum, at);
@@ -639,7 +649,11 @@ export function townGraph(seed: string, year: number): TownGraph {
       if (q.off <= 0 || q.s < 1 || q.s > row.length - 1) continue;
       if (!best || q.off < best.d) best = { row, s: q.s, d: q.off };
     }
-    if (best) { spawnRow = best.row; spawnX = best.s * SCALE; }
+    if (best) {
+      spawnRow = best.row; spawnX = best.s * SCALE;
+      const qc = project(best.row.front, best.row.cum, cAt);
+      spawnDir = qc.s >= best.s ? 1 : -1;
+    }
   }
 
   // ---------------------------------------------------------------------------------------------- names
@@ -737,7 +751,7 @@ export function townGraph(seed: string, year: number): TownGraph {
   const ids = new Map([...kept].map((n, i) => [n, i]));
   const graph: TownMapJson = {
     seed, year, k: Math.round(K * 1e4) / 1e4, unitPerTile: r3(UNIT_PER_TILE), scale: r3(SCALE), frontTiles: FRONT_TILES,
-    spawn: { row: spawnRow.id, x: r3(spawnX), lane: SPAWN_LANE },
+    spawn: { row: spawnRow.id, x: r3(spawnX), lane: SPAWN_LANE, dir: spawnDir },
     civic: { road: civicChain.id, name: lineName.get(find(civicChain.id))! },
     neighbourhoods: plan.neighborhoods.map((n) => ({ id: n.id, name: n.name, palette: n.palette, yard: n.yard, shopColour: n.shopColour })),
     nodes: [...kept].map((n) => ({
@@ -760,6 +774,10 @@ export function townGraph(seed: string, year: number): TownGraph {
     extras: extras.filter((x) => rowIdOfSprite.has(x.sprite)).map((x) => ({ id: `extra:${x.id}`, sprite: x.sprite, kind: x.kind, name: x.name, row: rowIdOfSprite.get(x.sprite)!,
       storeys: x.storeys, built: x.built, ...(x.demolished !== undefined ? { demolished: x.demolished } : {}) })),
     plaza: { rect: rectW(pz), props: plazaProps },
+    // downtown's ground: its blocks paved to their streets (the core's back lots asphalt, the civic block round the plaza
+    // in the plaza's stone; a county seat's square keeps its lawn), under the buildings and their yards
+    paved: (plan.v2?.blocks ?? []).filter((b) => b.district === 'core' || (b.district === 'square' && !plan.v2!.countySeat))
+      .map((b) => ({ rect: rectW(b), kind: b.district === 'square' ? 'square' : 'lot' })),
     water,
     bridges: (plan.water?.bridges ?? []).map((b) => ({ rect: rectW(b), horizontal: b.horizontal })),
     props,

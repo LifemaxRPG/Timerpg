@@ -226,9 +226,16 @@ fun renderFilamentOpen(out: String) {
         val sp = g.getJSONObject("spawn")
         val sr = town.rows.first { it.id == sp.get("row").toString() }
         val sx = sp.getDouble("x").toFloat()
-        val s0 = sr.pointAt(sx, 7f); val sa = sr.alongAt(sx); val sn = sr.normalAt(sx)
-        view("plan_start", s0.x, s0.z, sa.x, sa.z, heading(sn.x, sn.z) + 25f, 16f, 520f, 13f, "the start spot: Main Street before the civic block")
-        view("plan_above", s0.x, s0.z, sa.x, sa.z, heading(sa.x, sa.z) + 30f, 62f, OrbitCamera.DIST_MAX, 13f, "the downtown from above, from the start spot")
+        val s0 = sr.pointAt(sx, 7f); val sa0 = sr.alongAt(sx); val sn = sr.normalAt(sx)
+        // (the way the player faces at the start: along Main Street to the plaza)
+        val sd = sp.optDouble("dir", 1.0).toFloat().let { if (it < 0f) -1f else 1f }
+        val sa = com.lifemax.rpg.feature.habits.domain.TownPoint(sa0.x * sd, sa0.z * sd)
+        view("plan_start", s0.x, s0.z, sa.x, sa.z, heading(sa.x, sa.z), OrbitCamera.PITCH0, OrbitCamera.DIST0, 13f, "the start view as the app opens it: behind the player, along Main Street to the plaza")
+        // Main Street at a person's height: low behind the player, a little to the side, the street walls receding
+        view("plan_main", s0.x, s0.z, sa.x, sa.z, heading(sa.x, sa.z) + 12f, OrbitCamera.PITCH_MIN, 160f, 13f, "Main Street at a person's height")
+        // (downtown from above: over the civic block's plaza, looking along Main Street)
+        val pzc = g.optJSONObject("plaza")?.getJSONArray("rect")?.let { mid4(it) } ?: floatArrayOf(s0.x, s0.z)
+        view("plan_above", (pzc[0] + s0.x) / 2f, (pzc[1] + s0.z) / 2f, sa.x, sa.z, heading(sa.x, sa.z) + 35f, 48f, OrbitCamera.DIST_MAX, 13f, "the downtown from above, by the square")
         // the river: the bridge nearest the start spot
         g.optJSONArray("bridges")?.let { b -> (0 until b.length()).map { mid4(b.getJSONObject(it).getJSONArray("rect")) }.minByOrNull { hypot(it[0] - s0.x, it[1] - s0.z) } }
             ?.let { at("plan_river", it[0], it[1], 70f, 24f, 700f, 13f, "the river crossing downtown") }
