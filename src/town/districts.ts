@@ -297,6 +297,17 @@ function fill(p: Plat): Districts {
     }
   }
 
+  // ---- room for what is to come (the capital and test city, CLAUDE.md "Hand-made hub towns plus procedural fill": every
+  // new model goes into it as it is made): empty civic and landmark plots, reserved last, so a new kind added to the ledger
+  // takes one of them (or ground after them) and never moves a plot reserved before it
+  const future: [string, Block[], [number, number]][] = [
+    ['future:civic:1', byNear(blocksOf(['old', 'civic', 'westmain'])), [24, 18]],
+    ['future:civic:2', byNear(blocksOf(['old', 'civic', 'westmain'])), [20, 16]],
+    ['future:landmark:1', byNear(blocksOf(['postwar', 'strip'])), [30, 20]],
+    ['future:landmark:2', byNear(blocksOf(['late', 'edge', 'postwar'])), [40, 24]],
+  ];
+  for (const [id, bs, size] of future) reserve(id, [{ use: 'reserved', from: 0 }], bs, (b) => [back(mainFace(b)), mainFace(b)], [size], 'far', { pad: 2 });
+
   // ---------------------------------------------------------------------------------------------- the lots
   const occupied = (r: Rect): boolean => reserved.some((q) => hit(r, q, 1)) || lots.some((l) => hit(r, l, 0)) || wet(r) || onTrack(r);
   const S = (k: LotKind): [number, number] => [SIZES[k].w, SIZES[k].h];

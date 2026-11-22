@@ -164,6 +164,17 @@ describe('the planned town', () => {
     expect(n).toBeGreaterThan(0);
   });
 
+  it('keeps room for more: empty civic and landmark plots reserved last in the ledger (a new model never moves a plot)', () => {
+    for (const s of SEEDS) {
+      const ids = plan(s).v2!.reserved.map((q) => q.id);
+      const fut = ids.filter((i) => i.startsWith('future:'));
+      expect(fut.length, s).toBeGreaterThanOrEqual(3);
+      // (every future plot after every other: the ledger's order is the claim order)
+      expect(ids.slice(ids.findIndex((i) => i.startsWith('future:'))).every((i) => i.startsWith('future:')), s).toBe(true);
+      for (const q of plan(s).v2!.reserved.filter((r) => r.id.startsWith('future:'))) expect(q.chain.every((u) => u.use === 'reserved')).toBe(true);
+    }
+  });
+
   it('changes who lives where, never who exists: people, businesses and events as under the old plan', () => {
     for (const seed of ['gamma', 'pi', 'orbit', 'tau', 'beta', 'rho', 'alpha', 'eta']) {
       const run = (v: 1 | 2) => {

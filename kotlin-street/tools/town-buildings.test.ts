@@ -27,7 +27,7 @@ describe('town buildings', () => {
       // (src/town/stores.ts: the general store and the market take main-street plots, the plan grows for the rest), and again
       // for the planned town (src/town/plat.ts: the crossroads are Main Street and the civic avenue of the platted town)
       vale: '7f93ef705e104afdbd461f81dad1256eecff4c957fec2756f6d16f45bbb3a80b',
-      alpha: 'e99412d648c9c57d16642ef82172f6bb849d1bf66057c26f8524c42642bb78d8',
+      alpha: 'fb47e54217e14aa63cdea84ee79a8c51d29cf99df4fbb49ea74dec7048622a41',
       gamma: '69944233c61cfc2c96a76c502a1e841257f77e8e5a9254217f9d4d91d1ec214a',
     };
     for (const [seed, h] of Object.entries(before)) expect(sha(streetJson(seed)), seed).toBe(h);
