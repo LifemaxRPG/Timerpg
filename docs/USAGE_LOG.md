@@ -70,3 +70,4 @@ row per accepted or revised delivery here, so we can compare cost per finished i
 
 | Task | Worker (model, setting) | Kind | Tokens or effort | Rounds to accept | Verdict |
 |---|---|---|---|---|---|
+| C001 five-and-dime | ChatGPT (setting not reported) | model, 4 states + LODs | not reported (delivered before the usage rule) | 1 | revise: lettering clipped, roof texture |
