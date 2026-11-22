@@ -34,9 +34,12 @@ Below that come the brief and the acceptance checks.
 1. Fetch and read this README and the task list from `origin/ccr-52e43ebb-xnmj2e`.
 2. **Revisions first:** if one of your tasks has status `revise`, read its newest review file and do that revision
    on the same branch.
-3. **Otherwise, a new task:** take your lowest-numbered task with status `open` that has no branch on GitHub yet
-   (check with `git ls-remote origin <branch>`; if the branch exists, it is in progress or delivered: skip it unless
-   it is your revision).
+3. **Otherwise, a new task:** take your lowest-numbered task with status `open` that has not been delivered yet.
+   Delivered means its branch on GitHub already contains a `DELIVERY.md` naming that task ID; check with
+   `git ls-remote origin <branch>`, then look for the file. A task may name an existing branch to continue (such as
+   G001); the branch existing doesn't mean the task is done.
+   **Only take tasks whose Assignee is you.** If you are ChatGPT, take `chatgpt` tasks only; if you are Gemini,
+   `gemini` tasks only.
 4. **Do the task** exactly as its file says, and follow `docs/CHATGPT_MODEL_GUIDE.md` (models) or the task's own rules
    (engineering).
 5. **Deliver:**
