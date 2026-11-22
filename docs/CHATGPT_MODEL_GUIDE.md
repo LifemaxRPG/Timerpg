@@ -88,3 +88,11 @@ On a branch `codex/<model-name>` under `prototypes/<model-name>/`:
 - Lot ground at y 0 or above; every collision box full height and listed in `model-info.json`.
 
 How the game loads these files (scale, roles, lighting, collision, doors, the price panel): `kotlin-street/docs/LANDMARKS_GLB.md`.
+
+## 6. Delivery is only done when it is on GitHub (must)
+
+- Push your branch, then prove it: run `git ls-remote origin <your-branch>` and paste the line it prints in your
+  final message. No line = not delivered.
+- If the push fails (no credentials, an expired token, a network error), say so plainly and ask the owner for access.
+  Never report a model as delivered from your local copy alone.
+- Never commit a token, password or key to the repository, and never write one into a file in it.
