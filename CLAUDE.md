@@ -66,6 +66,11 @@ Elite for Galaxy: 8 fast Oryon cores, no little cores; Adreno 830 GPU; Hexagon N
   and shadowed like the buildings), not faked from the 2D picture.
 - NPC voices: **Kokoro-82M and Supertonic**, both on device (ONNX Runtime), voices blended per NPC from their seed and traits.
 
+- **Claude leads the project** (the owner's decision, 2026-11-22): Claude runs the project day to day and directs
+  ChatGPT and Gemini through the work queue (docs/queue/README.md): it assigns them tasks by strength and cost per
+  finished item (docs/USAGE_LOG.md, "Contributors"), reviews and accepts or revises their deliveries, and brings
+  accepted work into the game. The owner steps in for taste, direction and approvals; bring those to them, decide the
+  rest.
 - **Models for agents** (the owner's decision, 2026-11-19): repetitive bulk work (converting pack sprites to 3D with the
   existing pipeline, cutting textures, routine checks, follow-up fixes with a known cause) runs on Sonnet agents; the
   main session and hard work (diagnosis, architecture, judging renders, orchestration) stay on Opus. Check Sonnet's
