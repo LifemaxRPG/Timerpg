@@ -1,0 +1,65 @@
+{
+  "model": "beach-blvd-rex.glb",
+  "all_pass": true,
+  "file_bytes": 264800,
+  "visible_triangles": 2988,
+  "collision_triangles": 36,
+  "material_count": 9,
+  "checks": [
+    {
+      "name": "glb_header",
+      "pass": true,
+      "detail": "magic=b'glTF' version=2 bytes=264800"
+    },
+    {
+      "name": "required_nodes",
+      "pass": true,
+      "detail": "present=['collision', 'door_main', 'lot', 'rex_statue']"
+    },
+    {
+      "name": "material_budget",
+      "pass": true,
+      "detail": "count=9 (max 12)"
+    },
+    {
+      "name": "nearest_repeat_samplers",
+      "pass": true,
+      "detail": "samplers=[{'magFilter': 9728, 'minFilter': 9728, 'wrapS': 10497, 'wrapT': 10497}]"
+    },
+    {
+      "name": "no_nan_or_inf",
+      "pass": true,
+      "detail": "nan_or_inf_verts=0"
+    },
+    {
+      "name": "triangle_budget",
+      "pass": true,
+      "detail": "visible_tris=2988, collision_tris=36"
+    },
+    {
+      "name": "proper_real_world_scale",
+      "pass": true,
+      "detail": "rex_height=6.268m (20.6ft), rex_length=7.521m (24.7ft)"
+    },
+    {
+      "name": "origin_and_ground",
+      "pass": true,
+      "detail": "lot_z=[-11.40, 0.00], lot_y=[-0.06, 1.91]"
+    },
+    {
+      "name": "emissive_material_present",
+      "pass": true,
+      "detail": "emissive_materials=['glow_rex_eyes']"
+    },
+    {
+      "name": "emissive_black_mask",
+      "pass": true,
+      "detail": "non_emissive_leaks=0, lit_eye_texels=304"
+    },
+    {
+      "name": "even_2x2_texture_grid",
+      "pass": true,
+      "detail": "embedded_images=10, odd=[]"
+    }
+  ]
+}

@@ -26,12 +26,13 @@ export type GlbLandmarkKind =
   | 'landmark_glb_reel_time_video_1984'
   | 'landmark_glb_reel_time_video_1996'
   | 'landmark_glb_reel_time_video_2011'
-  | 'landmark_glb_reel_time_video_2020';
+  | 'landmark_glb_reel_time_video_2020'
+  | 'landmark_glb_beach_blvd_rex';
 
 export interface GlbLandmarkSpec {
   name: string;
   /** The business it houses. */
-  role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot' | 'laundromat' | 'factory' | 'funeral_home' | 'video_store' | 'phone_repair';
+  role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot' | 'laundromat' | 'factory' | 'funeral_home' | 'video_store' | 'phone_repair' | 'monument';
   /** The design's years: built from..to (it may stand long after, as the simulation decides), and its sample year. */
   era: { from: number; to: number; built: number };
   /** The lot, metres: width along the street, depth back from it; the building's walls. */
@@ -85,6 +86,8 @@ export const GLB_LANDMARKS: Record<GlbLandmarkKind, GlbLandmarkSpec> = {
   landmark_glb_reel_time_video_1996: { name: 'Reel Time Video', role: 'video_store', era: { from: 1990, to: 1997, built: 1996 }, lot: [36.01, 28.56], building: [32.28, 11.17] },
   landmark_glb_reel_time_video_2011: { name: 'Reel Time Video', role: 'video_store', era: { from: 2008, to: 2013, built: 2011 }, lot: [36.01, 28.56], building: [32.28, 11.17] },
   landmark_glb_reel_time_video_2020: { name: 'Cell Fix', role: 'phone_repair', era: { from: 2009, to: 2015, built: 2013 }, lot: [36.01, 28.56], building: [32.28, 11.17] },
+  // 1964 roadside dinosaur statue from 10150 Beach Blvd, Jacksonville FL (vermilion rough back / smooth face, teal belly, 10 ft white bone cane)
+  landmark_glb_beach_blvd_rex: { name: 'Rex — Beach Blvd Dinosaur', role: 'monument', era: { from: 1964, to: 1972, built: 1964 }, lot: [9.6, 11.4], building: [4.86, 7.26] },
 };
 export const GLB_LANDMARK_KINDS = Object.keys(GLB_LANDMARKS) as GlbLandmarkKind[];
 

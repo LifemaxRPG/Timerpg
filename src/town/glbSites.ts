@@ -69,6 +69,7 @@ const LOT_TYPE: Record<GlbLandmarkKind, GlbLotType> = {
   landmark_glb_starling_lanes: 'highway',
   landmark_glb_starlight_drive_in: 'highway',
   landmark_glb_roadside_motel: 'highway',
+  landmark_glb_beach_blvd_rex: 'highway',
   // (the depot is the railroad's: src/town/rail.ts puts it on the depot's straight stretch)
   landmark_glb_premier_railroad_depot: 'civic',
 };
@@ -188,6 +189,8 @@ export function glbTenures(seed: string): GlbTenure[] {
 
   // every town's water tower (built 1920-65, repainted, never pulled down)
   add('landmark_glb_water_tower', { opened: open('landmark_glb_water_tower') });
+  // roadside mid-century dinosaur statue (built 1964-72, stands on as a beloved landmark)
+  if (peak >= 1500 && R('has', 'rex') < 0.75) add('landmark_glb_beach_blvd_rex', { opened: open('landmark_glb_beach_blvd_rex') });
   // the weekly paper (built 1905-40) in a town of 1,500 and more; many fold 2008-20 (the building stands on, dark)
   if (peak >= 1500 && R('has', 'gazette') < 0.85) {
     const closed = R('closes', 'gazette') < 0.5 ? yr(2008, 2020, 'closed', 'gazette') : undefined;
