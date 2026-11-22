@@ -27,7 +27,7 @@
 // standing on them (`on`). Nothing overlaps a building, a road, another yard or another item of its layer.
 import { rand } from '../../src/sim/rng';
 import type { Lot } from '../../src/town/layout';
-import { MOUTH, type RowJson, type TownGraph } from './town-graph';
+import { MOUTH, SCALE, type RowJson, type TownGraph } from './town-graph';
 
 type P = [number, number];
 export type Rect4 = [number, number, number, number];
@@ -215,11 +215,13 @@ export function townYards(g: TownGraph): Yards {
     let driveL: L | null = null, padL: L | null = null, driveSide: 'u0' | 'u1' | null = null;
     const rich = pc.tier === 'villa' || pc.tier === 'estate' || wealth >= 400;
     const backDepth = back.d1 - back.d0;
-    if (gd && front) {
-      const W = B.u1 - B.u0;
-      driveL = { u0: B.u0 + gd[0] * W, u1: B.u0 + gd[1] * W, d0: P.d0, d1: B.d0 };
+    const gdW = B.u1 - B.u0;
+    // (in front of its own garage door only where no street lamp or bench of the row stands at its dropped kerb)
+    const gdClear = !!gd && !pc.row.furniture.some((fu) => fu.x > B.u0 + gd[0] * gdW - FURNITURE_CLEAR && fu.x < B.u0 + gd[1] * gdW + FURNITURE_CLEAR);
+    if (gd && front && gdClear) {
+      driveL = { u0: B.u0 + gd[0] * gdW, u1: B.u0 + gd[1] * gdW, d0: P.d0, d1: B.d0 };
       drive = 'garage';
-    } else if (!flats) {
+    } else if (!flats && !(gd && front)) {
       // the roomier side first; a side only if the drive fits and its dropped kerb meets the carriageway there
       const first: 'u0' | 'u1' = rightW > leftW || (rightW === leftW && R(id, 'side') < 0.5) ? 'u1' : 'u0';
       for (const side of [first, first === 'u1' ? 'u0' : 'u1'] as const) {
@@ -243,7 +245,8 @@ export function townYards(g: TownGraph): Yards {
         const padD = drive === 'pad' ? 150 : 170;
         driveL = { u0: du0, u1: du1, d0: P.d0, d1: B.d1 + 8 };
         padL = { u0: du0, u1: du1, d0: B.d1 + 8, d1: B.d1 + 8 + padD };
-        if (drive === 'garage') { const gw = Math.min(u1 - u0, 110); padL = side === 'u1' ? { ...padL, u1: du0 + gw } : { ...padL, u0: du1 - gw }; }
+        // (the garage keeps inside the side strip, the drive slid along it or not: never over the side fence)
+        if (drive === 'garage') padL = side === 'u1' ? { ...padL, u1: du0 + Math.min(u1 - du0, 110) } : { ...padL, u0: du1 - Math.min(du1 - u0, 110) };
         break;
       }
     }
@@ -285,8 +288,13 @@ export function townYards(g: TownGraph): Yards {
       if (front.d1 - front.d0 >= 34 && (style === 'flower' || style === 'formal' || R(id, 'fbed') < 0.5)) {
         const bd0 = B.d0 - 14, bd1 = B.d0 - 2;
         if (pathL) {
-          if (pathL.u0 - 4 - (B.u0 + 4) >= 16) add('flowerBed', { u0: B.u0 + 4, u1: pathL.u0 - 4, d0: bd0, d1: bd1 }, 'object', 'front', [0, -1], v('fb1', 6));
-          if (B.u1 - 4 - (pathL.u1 + 4) >= 16) add('flowerBed', { u0: pathL.u1 + 4, u1: B.u1 - 4, d0: bd0, d1: bd1 }, 'object', 'front', [0, -1], v('fb2', 6));
+          // (clear of the driveway where it runs past the front wall)
+          const bed = (u0: number, u1: number, key: string): void => {
+            if (driveL && u0 < driveL.u1 + 4 && driveL.u0 - 4 < u1) { if (driveL.u0 - 4 - u0 >= u1 - driveL.u1 - 4) u1 = driveL.u0 - 4; else u0 = driveL.u1 + 4; }
+            if (u1 - u0 >= 16) add('flowerBed', { u0, u1, d0: bd0, d1: bd1 }, 'object', 'front', [0, -1], v(key, 6));
+          };
+          bed(B.u0 + 4, pathL.u0 - 4, 'fb1');
+          bed(pathL.u1 + 4, B.u1 - 4, 'fb2');
         }
       }
     } else if (front) {
@@ -529,9 +537,42 @@ export function townYards(g: TownGraph): Yards {
   }
 
   // ------------------------------------------------------------------------------------------- lanes and verges
-  const lanes = backLanes(g, parcels.map(parcelRect), parcels.map((p) => p.f), parcels.map((p) => p.p), fixed, bodies, roads, R);
-  // gaps left along a row between parcels: verges
+  // (a strip found from both of its backyards' sides once only: the first kept)
+  const lanes = backLanes(g, parcels.map(parcelRect), parcels.map((p) => p.f), parcels.map((p) => p.p), fixed, bodies, roads, R)
+    .filter((l, i, a) => !a.slice(0, i).some((o) => hit(l.rect, o.rect)));
+  // the planned town's alleys (src/town/districts.ts: down the old town's blocks, behind Main Street's shops): walkable
+  // lanes where the backyards and buildings leave them free (cut short of anything in the way)
   const taken: Rect4[] = [...parcels.map(parcelRect), ...lanes.map((l) => l.rect)];
+  (g.layout.plan.v2?.alleys ?? []).forEach((a, i) => {
+    const axis: 'x' | 'z' = a.w >= a.h ? 'x' : 'z';
+    const w = [a.x * SCALE, a.y * SCALE, (a.x + a.w) * SCALE, (a.y + a.h) * SCALE] as Rect4;
+    // (the longest free piece along it, in steps of a tile)
+    const blocked = (r: Rect4): boolean => fixed.some((o) => hit(r, o)) || bodies.some((o) => hit(r, o)) || taken.some((o) => hit(r, o));
+    const n = Math.round(axis === 'x' ? a.w : a.h);
+    let best: [number, number] | null = null;
+    for (let k0 = 0; k0 < n;) {
+      let k1 = k0;
+      const piece = (p0: number, p1: number): Rect4 => (axis === 'x' ? [w[0] + p0 * SCALE, w[1] + 4, w[0] + p1 * SCALE, w[3] - 4] : [w[0] + 4, w[1] + p0 * SCALE, w[2] - 4, w[1] + p1 * SCALE]);
+      while (k1 < n && !blocked(piece(k1, k1 + 1))) k1++;
+      if (k1 > k0 && (!best || k1 - k0 > best[1] - best[0])) best = [k0, k1];
+      k0 = k1 + 1;
+    }
+    if (!best || best[1] - best[0] < 6) return;
+    const r: Rect4 = axis === 'x' ? [w[0] + best[0] * SCALE, w[1] + 4, w[0] + best[1] * SCALE, w[3] - 4] : [w[0] + 4, w[1] + best[0] * SCALE, w[2] - 4, w[1] + best[1] * SCALE];
+    lanes.push({ id: `alley:${i}`, kind: 'lane', rect: r, axis, reaches: 2, items: [] });
+    taken.push(r);
+  });
+  // the riverwalk: a paved path along both banks of the river through the core (its lamps and benches are the plan's props)
+  for (const b of (g.layout.plan.v2?.blocks ?? []).filter((q) => q.district === 'river' && (q.row === 0 || q.row === -1))) {
+    for (const [i, x0] of [b.x, b.x + b.w - 2].entries()) {
+      const r: Rect4 = [x0 * SCALE + 6, b.y * SCALE, (x0 + 2) * SCALE - 6, (b.y + b.h) * SCALE];
+      if (fixed.some((o) => hit(r, o)) || taken.some((o) => hit(r, o))) continue;
+      lanes.push({ id: `riverwalk:${b.col},${b.row},${i}`, kind: 'lane', rect: r, axis: 'z', reaches: 2,
+        items: [{ kind: 'frontPath', rect: r, face: [i ? -1 : 1, 0], variant: 0, layer: 'surface', zone: 'street' }] });
+      taken.push(r);
+    }
+  }
+  // gaps left along a row between parcels: verges
   for (const row of graph.rows) {
     const mine = parcels.filter((p) => p.row === row).sort((a, b) => a.p.u0 - b.p.u0);
     for (let i = 1; i < mine.length; i++) {

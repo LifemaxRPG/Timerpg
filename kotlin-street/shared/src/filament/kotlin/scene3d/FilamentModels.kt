@@ -913,9 +913,13 @@ internal object FilamentModels {
         // town's models, which ran the phone's Java heap out (TOWN.md T10). Now only the pixels that glow or are glass are
         // kept, in parallel arrays sorted by pixel (9 bytes each for a glowing pixel, 5 for glass), and the mask is
         // written straight into the buffer Filament takes, never as an int array.
-        /** The glowing pixels (the glow picture's alpha over 8): the pixel, its light, its red when lit (alpha x brightness). */
-        private val glowAt: IntArray
-        private val glowOwner: IntArray
+        /**
+         * The glowing pixels (the glow picture's alpha over 8) in runs along the atlas's rows (a window's row of pixels, one
+         * light): each run's first pixel, its length and its light ([glowRuns]: three ints a run); each pixel's red when lit
+         * (alpha x brightness), in pixel order. (Kept a pixel at a time, as two ints each, these were the town's largest
+         * holding once it was built: 18 MB of gamma's 29 MB of night light, for runs a window wide.)
+         */
+        private val glowRuns: IntArray
         private val glowRed: ByteArray
         /**
          * Of the glowing pixels, those that light in their own colours (as the classic overlays its glow picture): whatever
@@ -923,8 +927,8 @@ internal object FilamentModels {
          * hours, whatever pane they stand in: their colour (linear when the pictures are sRGB), or -1 (most).
          */
         private val glowOwn: IntArray?
-        /** The glass pixels (square panes) and their green. */
-        private val glassAt: IntArray
+        /** The glass pixels (square panes), in runs along the rows: each run's first pixel and its length. */
+        private val glassRuns: IntArray
         private var lit = BooleanArray(0)
         private var done = false
         /** Many windows (a tower, a hotel): a share of them lit by the hour ([BuildingMeshes.towerShare]), each window by its own draw. */
@@ -1008,7 +1012,7 @@ internal object FilamentModels {
                 top = top.coerceAtLeast(1)
                 var n = 0
                 for (c in glow) if ((c ushr 24) > 8) n++
-                glowAt = IntArray(n); glowOwner = IntArray(n); glowRed = ByteArray(n)
+                val glowAt = IntArray(n); val glowOwner = IntArray(n); glowRed = ByteArray(n)
                 var own: IntArray? = null
                 var k = 0
                 for (i in owner.indices) {
@@ -1027,15 +1031,37 @@ internal object FilamentModels {
                     k++
                 }
                 glowOwn = own
-                glassAt = IntArray(glassG.cardinality()).also { a -> var j = 0; var i = glassG.nextSetBit(0); while (i >= 0) { a[j++] = i; i = glassG.nextSetBit(i + 1) } }
+                // (runs: consecutive pixels of one row and one light)
+                val runs = IntArray(n * 3).let { a ->
+                    var r = 0; var k0 = 0
+                    while (k0 < n) {
+                        var k1 = k0 + 1
+                        while (k1 < n && glowAt[k1] == glowAt[k1 - 1] + 1 && glowAt[k1] % w != 0 && glowOwner[k1] == glowOwner[k0]) k1++
+                        a[r++] = glowAt[k0]; a[r++] = k1 - k0; a[r++] = glowOwner[k0]
+                        k0 = k1
+                    }
+                    a.copyOf(r)
+                }
+                glowRuns = runs
+                glassRuns = IntArray(glassG.cardinality() * 2).let { a ->
+                    var r = 0
+                    var i = glassG.nextSetBit(0)
+                    while (i >= 0) {
+                        var j = i + 1
+                        while (j % w != 0 && glassG.get(j)) j++
+                        a[r++] = i; a[r++] = j - i
+                        i = glassG.nextSetBit(j)
+                    }
+                    a.copyOf(r)
+                }
                 lit = BooleanArray(seeds.size)
             } else {
-                glowAt = IntArray(0); glowOwner = IntArray(0); glowRed = ByteArray(0); glowOwn = null; glassAt = IntArray(0)
+                glowRuns = IntArray(0); glowRed = ByteArray(0); glowOwn = null; glassRuns = IntArray(0)
             }
         }
 
         /** Heap bytes kept for the night light (the breadcrumbs' and the town report's memory lines). */
-        val bytes: Long get() = glowAt.size * 9L + glassAt.size * 4L + (glowOwn?.size ?: 0) * 4L
+        val bytes: Long get() = glowRuns.size * 4L + glowRed.size + glassRuns.size * 4L + (glowOwn?.size ?: 0) * 4L
 
         fun update(hour: Float) {
             if (!glows) return
@@ -1056,21 +1082,25 @@ internal object FilamentModels {
             val buf = StreetTextures.blank(w, h, linear = true).buf
             for (i in 0 until w * h) buf.put(StreetTextures.offset(i, w, h) + 3, 255.toByte())
             val glassByte = PANE_GLASS.toByte()
-            for (i in glassAt) buf.put(StreetTextures.offset(i, w, h) + 1, glassByte)
+            for (g in 0 until glassRuns.size step 2) for (i in glassRuns[g] until glassRuns[g] + glassRuns[g + 1]) buf.put(StreetTextures.offset(i, w, h) + 1, glassByte)
             val own = glowOwn
-            for (k in glowAt.indices) {
-                val o = StreetTextures.offset(glowAt[k], w, h)
-                val owner = glowOwner[k]
+            var k = 0
+            for (r in 0 until glowRuns.size step 3) {
+                val owner = glowRuns[r + 2]
                 val on = now[owner]
-                // (as bright as the glow picture is there: its frames and bars stay darker than its panes)
-                val oc = own?.get(k) ?: -1
-                if (oc >= 0) {
-                    if (on) buf.put(o, (oc shr 16).toByte()).put(o + 1, (oc shr 8).toByte()).put(o + 2, oc.toByte()).put(o + 3, 128.toByte())
-                    else buf.put(o, 0).put(o + 1, 0).put(o + 2, 0).put(o + 3, 255.toByte())
-                    continue
+                for (i in glowRuns[r] until glowRuns[r] + glowRuns[r + 1]) {
+                    val o = StreetTextures.offset(i, w, h)
+                    // (as bright as the glow picture is there: its frames and bars stay darker than its panes)
+                    val oc = own?.get(k) ?: -1
+                    if (oc >= 0) {
+                        if (on) buf.put(o, (oc shr 16).toByte()).put(o + 1, (oc shr 8).toByte()).put(o + 2, oc.toByte()).put(o + 3, 128.toByte())
+                        else buf.put(o, 0).put(o + 1, 0).put(o + 2, 0).put(o + 3, 255.toByte())
+                    } else {
+                        if (on) buf.put(o, glowRed[k])
+                        if (on && owner == signs) buf.put(o + 2, 255.toByte())
+                    }
+                    k++
                 }
-                if (on) buf.put(o, glowRed[k])
-                if (on && owner == signs) buf.put(o + 2, 255.toByte())
             }
             textures.update(m, buf)
         }
@@ -1083,9 +1113,9 @@ internal object FilamentModels {
         val groups = g.groups.values.filter { it.ni > 0 }
         val nv = groups.sumOf { it.nv }
         val ni = groups.sumOf { it.ni }
-        val vb = ByteBuffer.allocateDirect(max(1, nv) * TownVertex.STRIDE).order(ByteOrder.nativeOrder())
+        val vb = TownMemory.direct(max(1, nv) * TownVertex.STRIDE).order(ByteOrder.nativeOrder())
         val short = TownVertex.short(nv)
-        val ib = ByteBuffer.allocateDirect(max(1, ni) * (if (short) 2 else 4)).order(ByteOrder.nativeOrder())
+        val ib = TownMemory.direct(max(1, ni) * (if (short) 2 else 4)).order(ByteOrder.nativeOrder())
         val q = FloatArray(4)
         val k = pl.k
         val bounds = floatArrayOf(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE)

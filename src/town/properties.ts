@@ -100,6 +100,12 @@ export function advanceSettlement(w: World): void {
       || Number(a.vacantSince === undefined) - Number(b.vacantSince === undefined)
       || rank.get(a.slot)! - rank.get(b.slot)!);
     let lot = available[0];
+    // (the planned town: a household moves into a home of its own kind standing empty by then, one of the town's other
+    // homes, before crowding into another kind's room)
+    if (lot && plan.v2 && lot.tier !== preferred.tier && preferred.tier !== 'apartment' && lot.tier === 'apartment') {
+      const c = plan.candidates.find((q) => q.kind === preferred.tier && !bySlot.has(q.id) && (q.from ?? 9999) <= w.year);
+      if (c) lot = construct(c, preferred);
+    }
     if (!lot) {
       const candidates = plan.candidates.filter((c) => c.kind !== 'shop' && !bySlot.has(c.id));
       const c = candidates.find((c) => c.kind === preferred.tier) ?? candidates[0];

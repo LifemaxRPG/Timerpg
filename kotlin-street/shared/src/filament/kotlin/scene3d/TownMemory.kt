@@ -51,7 +51,7 @@ object TownMemory {
         if (l > peakLive) peakLive = l
         val d = direct?.invoke() ?: 0L
         if (d > peakDirect) peakDirect = d
-        if (l + d > peakHeld) peakHeld = l + d
+        if (l + d > peakHeld) { peakHeld = l + d; if (tally) ownersAtPeak = owners() }
     }
 
     /** Notes the heap at stage [what] (e.g. "ground in"): its used and peak so far. */
@@ -68,6 +68,46 @@ object TownMemory {
     }
 
     fun mb(b: Long): Long = b / (1L shl 20)
+
+    /**
+     * A direct buffer of [bytes] for Filament (every one the town makes comes from here). With [tally] on (the desktop's
+     * -DmemOwners), each is counted to the town's code that asked for it (the first scene3d class on the stack past the
+     * helpers) while it is held, and [peakHeld]'s moment keeps a copy of the count: what holds the direct buffers at the peak.
+     */
+    fun direct(bytes: Int): java.nio.ByteBuffer {
+        val b = java.nio.ByteBuffer.allocateDirect(bytes)
+        if (tally) track(b, bytes)
+        return b
+    }
+
+    @Volatile var tally = false
+    private val queue = java.lang.ref.ReferenceQueue<java.nio.ByteBuffer>()
+    private class Held(b: java.nio.ByteBuffer, q: java.lang.ref.ReferenceQueue<java.nio.ByteBuffer>, val owner: String, val bytes: Long) : java.lang.ref.PhantomReference<java.nio.ByteBuffer>(b, q)
+    private val holding = java.util.concurrent.ConcurrentHashMap.newKeySet<Held>()
+    private val byOwner = java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicLong>()
+    /** The direct buffers held by owner at the moment of the peak (MB, rounded), with -DmemOwners. */
+    @Volatile var ownersAtPeak: Map<String, Long> = emptyMap(); private set
+
+    private fun track(b: java.nio.ByteBuffer, bytes: Int) {
+        drain()
+        val st = Thread.currentThread().stackTrace
+        val skip = setOf("TownMemory", "StreetTextures", "TownVertex")
+        val owner = st.asSequence().filter { it.className.contains(".scene3d.") || it.className.contains(".scene.") }
+            .map { it.className.substringAfterLast('.').substringBefore('$') to it.methodName.substringBefore('$') }
+            .filter { it.first !in skip }.take(2).joinToString("<") { "${it.first}.${it.second}" }.ifEmpty { "other" }
+        holding += Held(b, queue, owner, bytes.toLong())
+        byOwner.getOrPut(owner) { java.util.concurrent.atomic.AtomicLong() }.addAndGet(bytes.toLong())
+    }
+
+    private fun drain() {
+        while (true) {
+            val r = queue.poll() as? Held ?: break
+            holding.remove(r); byOwner[r.owner]?.addAndGet(-r.bytes)
+        }
+    }
+
+    /** The direct buffers held now, by owner (bytes). */
+    fun owners(): Map<String, Long> { drain(); return byOwner.mapValues { it.value.get() }.filterValues { it > 0 } }
 
     const val PERIOD_MS = 20L
 }

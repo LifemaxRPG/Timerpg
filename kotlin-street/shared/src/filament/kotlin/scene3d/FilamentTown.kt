@@ -553,6 +553,8 @@ class FilamentTown(
     // ------------------------------------------------------------------ the hand-made landmark models (TownLandmark)
     private val landmarkAssets = landmarks
     /** The models standing in the rows' slots (built by code: the slots have no art). */
+    /** The game's time of day (hours, 0-24) a landmark's working clock (the courthouse's) is set to as it is built; null: as modelled. */
+    var clockHours: Float? = null
     private val landmarkDraws: List<TownLandmark> = landmarks?.let { a -> a.placed.mapNotNull { p ->
         val spec = a.catalogue.firstOrNull { it.kind == p.kind } ?: return@mapNotNull null
         val s = slots.firstOrNull { it.b.sprite == p.sprite } ?: return@mapNotNull null
@@ -560,7 +562,8 @@ class FilamentTown(
         val c = s.place.world(0f, s.b.setback + s.b.depth / 2f)
         TownLandmark(engine, scene, lit, proxyMat, textures, spec, { a.file(spec.fileOf(p.variant)) ?: ByteArray(0) }, { spec.info?.let { a.file(it)?.decodeToString() } },
             p.sprite, s.row.id, TownLandmark.rowFrame(s.place, s.b.setback), floatArrayOf(c.x, c.z, hypot(s.b.width, s.b.depth) / 2f + 60f),
-            town.year, town.seed.hashCode(), collision, closed = p.state == "closed", hide = p.hide)
+            town.year, town.seed.hashCode(), collision, closed = p.state == "closed", hide = p.hide,
+            farBytes = spec.far?.let { f -> { a.file(f) } }, clockHours = { clockHours })
     } } ?: emptyList()
     /** The railroad's hand-made depot, in a town that has it ([RailDepot.premier]), as the railroad stands in its year. */
     private val depotSpec: LandmarkSpec? get() = landmarkAssets?.catalogue?.firstOrNull { it.kind == DEPOT_KIND }?.takeIf { railNet?.rail?.depot?.premier != null }
@@ -670,7 +673,7 @@ class FilamentTown(
 
     private fun load(name: String, bytes: (String) -> ByteArray): Material {
         val b = bytes(name)
-        val buf = ByteBuffer.allocateDirect(b.size).put(b).flip()
+        val buf = TownMemory.direct(b.size).put(b).flip()
         return Material.Builder().payload(buf, b.size).build(engine)
     }
 

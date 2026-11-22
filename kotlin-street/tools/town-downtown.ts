@@ -31,6 +31,9 @@ export const TOWER_SETBACK = 230;
 export const FRONT_LOT = 210;
 /** A tower's (and its parking's) depth in art pixels. */
 export const TOWER_DEPTH = 320;
+/** A street-wall shop's width in art pixels: its 7-tile plot at the position scale (7 x 1.693 tiles, a hair under: the
+ * facade kit builds 12 tiles, its last few pixels hidden in the neighbour's wall). */
+export const WALL_W = 379;
 /** Street units per art pixel (as town-graph's PX). */
 const PX = 184 / 224;
 
@@ -56,13 +59,16 @@ export function packOf(e: PackEntry, lot: Lot, plan: TownPlan, seed: string): { 
   if (!e.home) {
     const block = streetBlock(plan, lot.slot);
     if (!block) return undefined;
-    const corner = block.cornerBlock && PLAIN.test(e.parts[0]?.key ?? '');
+    // (the planned town's core: one continuous street wall, each block as wide as its plot at the town's position scale,
+    // WALL_W, so the shops of a face stand shoulder to shoulder from corner to corner; no corner block there)
+    const wall = !block.standalone && !!plan.v2;
+    const corner = !wall && block.cornerBlock && PLAIN.test(e.parts[0]?.key ?? '');
     // (a post-war stand-alone shop stands behind its own car park: extraBuildings lays the car park before it)
-    const foot: Foot = corner ? { setback: 8, depth: 172, width: 192 } : { setback: block.standalone ? FRONT_LOT / PX : 8, depth: 120, width: 224 };
+    const foot: Foot = corner ? { setback: 8, depth: 172, width: 192 } : { setback: block.standalone ? FRONT_LOT / PX : 8, depth: 120, width: wall ? WALL_W : 224 };
     return { foot, apply: () => {
       const key = e.parts[0]?.key ?? '';
       e.spec = corner && PLAIN.test(key) ? { id, kit: 'c4_40', widthTiles: 6, seed: block.built }
-        : { id, kit: KIT[e.colour] ?? 'brick', widthTiles: 7, ground: { picture: key }, floors: block.middles, roof: { style: 'flat' }, era: [block.built, 2100], seed: block.built };
+        : { id, kit: KIT[e.colour] ?? 'brick', widthTiles: wall ? 12 : 7, ground: { picture: key }, floors: block.middles, roof: { style: 'flat' }, era: [block.built, 2100], seed: block.built };
       e.foot = foot;
       e.parts = [{ key: id, w: foot.width, h: 96 + 128 * block.middles, y: 0 }];
       e.yard = { front: 0, style: 'compact' };
@@ -166,10 +172,31 @@ export function extraBuildings(b: Buildings, plan: TownPlan, layout: TownLayout,
       built: block.built, storeys: 0 },
     { id: `pk_${seed}_${id.replace(/[^a-z0-9]+/gi, '_')}`, kit: 'parking', widthTiles: 7, depth: Math.floor((FRONT_LOT - 14) / PX), seed: block.built }, 4);
   }
+  // the planned town's core plots reserved for a building not standing this year (the cinema before it opens, the market
+  // before the 1950s, the Gazette's before 1905-40, a model pulled down): a gravel or asphalt vacant lot, not a lawn, so
+  // the street wall reads as a downtown's
+  const BEFORE = new Set(['field', 'woods', 'reserved', 'square', 'shops', 'house', 'plaza']);
+  for (const q of plan.v2?.reserved ?? []) {
+    if (q.district !== 'core' || (q.face !== 'N' && q.face !== 'S')) continue;
+    const standing = q.id.startsWith('landmark:')
+      ? plan.landmarks.some((l) => `landmark:${l.id}` === q.id && l.openYear <= year)
+      : q.chain.some((u) => !BEFORE.has(u.use) && u.from <= year && (u.to === undefined || year < u.to));
+    if (standing) continue;
+    const id = `vacant:${q.id.replace(/^[a-z]+:/, '')}`;
+    const depth = Math.min(Math.floor(q.h * 44.5 / PX) - 8, 400);
+    // (as wide as its plot at the position scale, as the street wall's shops: a gap in the wall, not a lawn)
+    // (the pack's parking picture is at most 15 tiles: a wider plot's lot is that, in the plot's middle)
+    const wT = Math.min(15, Math.floor(q.w * WALL_W / 7 / 32));
+    add({ id, name: 'Vacant lot', kind: 'parking', rect: { x: q.x, y: q.y, w: q.w, h: q.h }, foot: { setback: 0, depth, width: wT === 15 ? 480 : Math.floor(q.w * WALL_W / 7) }, built: 1880, storeys: 0 },
+      { id: `pk_${seed}_${id.replace(/[^a-z0-9]+/gi, '_')}`, kit: 'parking', widthTiles: wT, depth, seed: Math.floor(rand(seed, 'vacant', q.id) * 1000) }, 4);
+  }
   const hall = townHall(plan);
   // (the hall is wider than the plaza at the art's scale: only where nothing stands within two tiles of the plaza's sides)
-  const pz = plan.plaza;
-  const crowded = [...plan.candidates, ...plan.landmarks].some((q) => q.x < pz.x + pz.w + 2 && pz.x - 2 < q.x + q.w && q.y < pz.y + pz.h && pz.y < q.y + q.h);
+  const pz = plan.v2?.townHall ?? plan.plaza;
+  // (the planned town's square: the hall's own band across its back, the post office and clock tower on its front corners)
+  const band = plan.v2 && !plan.v2.townHall
+    ? { x: pz.x + pz.w / 2 - 9, w: 18, y: plan.mainY >= pz.y + pz.h / 2 ? pz.y : pz.y + pz.h - 10, h: 10 } : pz;
+  const crowded = [...plan.candidates, ...plan.landmarks].some((q) => q.x < band.x + band.w + 2 && band.x - 2 < q.x + q.w && q.y < band.y + band.h && band.y < q.y + q.h);
   if (hall && hall.built <= year && !crowded) {
     // at the back of the plaza: its front ~1 tile behind the fountain's ring, its back a tile short of the plaza's
     const deep = hall.rect.h * 44.5;                               // world units (position scale)

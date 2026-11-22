@@ -1,8 +1,9 @@
 # The town plan: a designed American town (phase 1: design)
 
-Status: design and a rough prototype only (branch wf-plan, 2026-11-19). Nothing in src/ is changed yet. The prototype is
-`kotlin-street/tools/plan-sketch.ts` (plan data for one town and year) and `kotlin-street/tools/plan-map.py` (top-down
-map pictures); see "The prototype" at the end. All pictures are desktop renders of plan data, not game screenshots.
+Status: phases A-D built (branch wf-town-plan, 2026-11-20; see "Implementation" at the end): src/town/plat.ts and
+src/town/districts.ts plan every town; gamma's assets are re-exported from it. Phase E (the S25 measurement) is the owner's.
+The design below is kept as written, with the owner's decisions of 2026-11-19 recorded under "Decisions for the owner"
+(where they differ from the recommendations: the river runs through downtown, the grid varies by seed now).
 
 ## Why
 
@@ -351,3 +352,81 @@ gamma (Mapleridge, commuter suburb, 2,844 inhabitants in 1950, 8,316 in 2025) th
   landmarks, the town hall, chapel, model sites, rail and farms: the probe used for the sheet).
 - The sheet (2026-11-19): today's gamma 2025, the plan's gamma in 1950 and 2025, orbit (Springford, a small farm town,
   2025) and pi (Riverburg, a mill town planned as a county seat, 2025).
+
+## Implementation (phases A-D, 2026-11-20)
+
+The owner's decisions: the river **through downtown** (Main Street and a parallel street or two on bridges, the banks a
+park, a mill town's works where it meets the rail side); **filler homes** fill the blocks (about three homes a simulated
+household at the peak: gamma 2025 has 217 home lots built, 166 of them filler homes, no family or dialogue yet, marked
+`filler`); **varied grids now**; the start spot on Main Street in front of the civic block, an old save's spot through
+the nearest free ground; the other recommendations as written (county seat by seed roll, successor uses as ledger data,
+a cemetery and the chapel's corner, the Flats).
+
+- **Platting** (src/town/plat.ts): size class from the peak (S < 5,000 < M < 9,000 < L); county seat roll (35% L, 15% M,
+  5% S); plan form (the parallel rail band one block south of Main Street, or the T-plan: a rail column at the core's west
+  end, Main Street running up from the depot: 45% of farm towns, 20% of others); the plan mirrored by seed (the strip east
+  or west, the rail side north or south); block widths and depths jittered; the core 1-3 blocks each side (the seat +1, L
+  towns longer east), 1-3 west columns, 2-3 strip columns, the edge column (the bypass, the gas station, the superstore's
+  merged block) sized for the stores the town will have. The river takes a column of its own through the core (at the
+  core's edge in mill and mining towns), and in about half the seeds jogs a block sideways north of Main Street through
+  the back lots of the core's north row (the shops there back onto it); only Main Street, the street past the track and
+  one street north of the core bridge it. The band is crossed only at the core's ends, the town's west column and the
+  bypass; the later subdivisions get cul-de-sac stubs. Streets are axis-aligned rects split at junctions as before.
+- **Districts and the ledger** (src/town/districts.ts): every civic building, store and model the town earns has its
+  reserved plot with a chain of uses (`plan.v2.reserved`: the courthouse's square; plaza, post office and clock tower on
+  the civic block, school, fire and police behind it; the cinema opposite; the general store, the market at the core's
+  strip end; the Gazette mid-block (in the river-backed block when the river jogs); the service station on the core's last
+  corner; the diner, motel, coin laundry, strip centre (never beside the laundry), lanes, the club plot and the drive-in on
+  the strip in that order; the supermarket on the drive-in's ground when the drive-in has gone by its year, else a field
+  beside; the 2000s gas station at the bypass, the superstore beyond it; the feed mill and the works on the band beside the
+  depot's ground (the works by the river in a mill town); the funeral home on West Main (an old-town block in a T-plan); the
+  water tower by the elevator (farm towns), on the heights or behind the civic block; the radio station on open ground at
+  the post-war edge; the hospital at the later subdivisions; the chapel and the cemetery). Then the lots (the existing
+  kinds and sizes) along each block's faces: shop walls on Main Street, old houses and a few apartment blocks behind, old
+  town with an alley, worker houses, post-war, heights, later. Plan order: district by district, nearest first.
+- **plan.ts** builds the plan from them (`setPlanVersion(1)` keeps the old grown plan for comparison): landmarks and stores
+  from their plots, the river down its course (water.ts riverWater), a lake kept off the plan, each lot's build-out year
+  (`Candidate.from`), neighbourhoods by district (a sixth: the Flats). The simulation's people, businesses and events are
+  unchanged (plat.test.ts runs 8 seeds under both plans).
+- **Consumers**: glbSites returns the ledger's plots; downtown's frontage by district; the town hall's own plot facing a
+  county seat's square; layout's households take built-out lots first and `layout.fillers` stands the rest; the railroad
+  keeps to the band (rail.ts: the town's other blocks are costly ground it never crosses, the depot on the band's track
+  line near the foot of Depot Street); farms farm the later districts until they are built, never the band.
+- **The world** cells are 1200 x 440 tiles (the planned towns reach ~550 tiles each way from the civic block).
+- **Gamma** (Mapleridge, commuter suburb, M, not a seat): a T-plan, mirrored (the strip west, the civic side south), the
+  river at the core's strip end, 50 shop plots and 323 home plots in the plan; 1950: 75 homes, 2025: 217 (with 47 homes of
+  simulated households). Its models: the Gazette (core, 1926), the motel (1962-2002), drive-in (1964-80, the supermarket
+  on its ground 1984), Starling Lanes (1968-97), the strip centre (1972-), coin laundry (1975), the 2000s gas station at
+  the bypass (2016), the feed mill and the works / The Foundry on the rail column (1945, 1909/2022), the funeral home in the
+  old town (1940), the water tower on the heights (1926), the radio station (1946). Every model it earns has its plot.
+- **Export** (street.json v2, 290 buildings): filler homes and shops named after the simulated lots and dressed as their
+  kind, the plan's alleys as lanes, the spawn before the civic block. Memory: townMemoryCheck held 236-249 MB of 256 over two runs
+  (live 125-136, direct 131-155; was 197-201): under the budget, with little room left. Draws as drawn 295-657 a view in the desktop renders (llvmpipe; not the S25).
+
+Open: road bridges draw as road over water (no deck or rail); the river's banks are bare grass (a riverwalk's trees, path
+and benches to come); a T-plan town whose world line runs east-west meets its rail column from an end and loops (gamma's
+depot stands two blocks south of Main Street on the column); a town whose through line runs across its band has its depot
+on that line (the second band is to come); successor uses after a model goes (garden apartments, offices) are ledger data
+only; the cemetery is reserved ground (no headstones yet); one chapel (no more church models); the NPCs to talk to fell
+from 146 to 101 in gamma (more households share apartment blocks near the core).
+
+### Final round (2026-11-22)
+
+- **Downtown straddles the river** (src/town/plat.ts): in a river town the core is laid round the river's column, the
+  civic block one core block from it on one bank, about as many core blocks on the other (`far` beyond the civic block,
+  `other` on the far bank: they differ by at most one), the river on the strip's side of the civic block or the other by
+  the seed. Main Street's bridge is in the middle of the core. The jog through the north row's back lots is gone (it put
+  a core column on one bank only). plat.test.ts checks the bank counts, the bridge inside the core's span and the block
+  between the civic block and the river for every test seed; gamma 3 | 3, pi 3 | 2, orbit 2 | 2, rho 4 | 3 (a seat).
+  A mill town's works stay on the rail band by the river.
+- **Downtown reads as one**: every core block's shops turn its corners and run down the side streets (the street wall on
+  the cross streets too); the civic block is the **town square**: paved from Main Street to a strip short of the back
+  street, the post office and the clock tower on its front corners, the town hall across its back (always, in the planned
+  town), a fountain (a wide basin) in the middle, benches, two rows of trees in iron grates down the middle and one down
+  each side, planters, lamps. The core's blocks are paved to their streets (street.json `graph.paved`: the back lots
+  asphalt, the square's block in its stone); greenery keeps out of them.
+- **The start**: the player stands on Main Street a block down from the square, facing it (street.json `spawn.dir`), so
+  the start view looks along Main Street between its street walls to the square (`OpenWalk.spawn`; the camera starts
+  behind the player as before).
+- **Memory** (townMemoryCheck, the shipped gamma, three runs): held peak 144-164 MB of 256 (was 249-303 measured the same
+  way before this round). See TOWN.md "Memory, the final round".

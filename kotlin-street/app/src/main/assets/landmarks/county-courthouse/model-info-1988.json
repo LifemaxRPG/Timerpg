@@ -1,0 +1,2690 @@
+{
+ "name": "Harlan County Courthouse and Square",
+ "state": "neglect_1988",
+ "origin": "midpoint of +Z front curb edge (0, 0, 0); +Z main entrance under clock tower; Y up",
+ "year": 1988,
+ "era_years": [
+  1976,
+  1999
+ ],
+ "clock_active": false,
+ "clock_time": "04:17",
+ "clock_hands": {
+  "clock_hour": {
+   "position_m": [
+    0.0,
+    25.996,
+    -36.2004
+   ],
+   "time": "04:17"
+  },
+  "clock_minute": {
+   "position_m": [
+    0.0,
+    25.996,
+    -36.1604
+   ],
+   "time": "04:17"
+  },
+  "clock_hour_north": {
+   "position_m": [
+    0.0,
+    25.996,
+    -43.262
+   ],
+   "time": "04:17"
+  },
+  "clock_minute_north": {
+   "position_m": [
+    0.0,
+    25.996,
+    -43.302
+   ],
+   "time": "04:17"
+  },
+  "clock_hour_east": {
+   "position_m": [
+    3.5308,
+    25.996,
+    -39.7312
+   ],
+   "time": "04:17"
+  },
+  "clock_minute_east": {
+   "position_m": [
+    3.5708,
+    25.996,
+    -39.7312
+   ],
+   "time": "04:17"
+  },
+  "clock_hour_west": {
+   "position_m": [
+    -3.5308,
+    25.996,
+    -39.7312
+   ],
+   "time": "04:17"
+  },
+  "clock_minute_west": {
+   "position_m": [
+    -3.5708,
+    25.996,
+    -39.7312
+   ],
+   "time": "04:17"
+  }
+ },
+ "doors": [
+  {
+   "node": "door_main",
+   "position": [
+    0.0,
+    1.0864,
+    -24.832
+   ],
+   "facing": "+Z",
+   "external": true
+  },
+  {
+   "node": "door_north",
+   "position": [
+    0.0,
+    1.0864,
+    -54.6304
+   ],
+   "facing": "-Z",
+   "external": true
+  },
+  {
+   "node": "door_east",
+   "position": [
+    14.8992,
+    1.0864,
+    -39.7312
+   ],
+   "facing": "+X",
+   "external": true
+  },
+  {
+   "node": "door_west",
+   "position": [
+    -14.8992,
+    1.0864,
+    -39.7312
+   ],
+   "facing": "-X",
+   "external": true
+  },
+  {
+   "node": "door_room_clerk",
+   "position": [
+    -4.5784,
+    1.0864,
+    -32.7472
+   ],
+   "facing": null,
+   "external": false
+  },
+  {
+   "node": "door_room_assessor",
+   "position": [
+    4.5784,
+    1.0864,
+    -32.7472
+   ],
+   "facing": null,
+   "external": false
+  },
+  {
+   "node": "door_room_treasurer",
+   "position": [
+    -4.5784,
+    1.0864,
+    -46.7152
+   ],
+   "facing": null,
+   "external": false
+  },
+  {
+   "node": "door_room_recorder",
+   "position": [
+    4.5784,
+    1.0864,
+    -46.7152
+   ],
+   "facing": null,
+   "external": false
+  },
+  {
+   "node": "door_room_courtroom",
+   "position": [
+    0.0,
+    5.5872,
+    -35.4632
+   ],
+   "facing": null,
+   "external": false
+  },
+  {
+   "node": "door_room_chambers",
+   "position": [
+    -4.8888,
+    5.5872,
+    -39.7312
+   ],
+   "facing": null,
+   "external": false
+  },
+  {
+   "node": "door_room_jury",
+   "position": [
+    4.8888,
+    5.5872,
+    -39.7312
+   ],
+   "facing": null,
+   "external": false
+  },
+  {
+   "node": "door_room_law_library",
+   "position": [
+    0.0,
+    5.5872,
+    -44.1544
+   ],
+   "facing": null,
+   "external": false
+  },
+  {
+   "node": "door_room_records",
+   "position": [
+    -4.8888,
+    10.088,
+    -39.7312
+   ],
+   "facing": null,
+   "external": false
+  },
+  {
+   "node": "door_room_archives",
+   "position": [
+    4.8888,
+    10.088,
+    -39.7312
+   ],
+   "facing": null,
+   "external": false
+  },
+  {
+   "node": "door_room_commission",
+   "position": [
+    0.0,
+    10.088,
+    -44.1544
+   ],
+   "facing": null,
+   "external": false
+  }
+ ],
+ "rooms": [
+  "floor_archives",
+  "floor_chambers",
+  "floor_commission",
+  "floor_courtroom",
+  "floor_entry_east",
+  "floor_entry_north",
+  "floor_entry_south",
+  "floor_entry_west",
+  "floor_gallery_2",
+  "floor_gallery_3",
+  "floor_jury",
+  "floor_law_library",
+  "floor_office_assessor",
+  "floor_office_clerk",
+  "floor_office_recorder",
+  "floor_office_treasurer",
+  "floor_records",
+  "floor_rotunda"
+ ],
+ "collision": {
+  "count": 162,
+  "boxes_blender_z_up": [
+   {
+    "source": "perimeter_granite_wall_south_-416",
+    "category": "square",
+    "center": [
+     -17.2272,
+     3.3368,
+     0.4268
+    ],
+    "size": [
+     30.1088,
+     0.4656,
+     0.8536
+    ],
+    "height_top_m": 0.8536
+   },
+   {
+    "source": "perimeter_granite_wall_north_-416",
+    "category": "square",
+    "center": [
+     -17.2272,
+     76.1256,
+     0.4268
+    ],
+    "size": [
+     30.1088,
+     0.4656,
+     0.8536
+    ],
+    "height_top_m": 0.8536
+   },
+   {
+    "source": "perimeter_granite_wall_west_-416",
+    "category": "square",
+    "center": [
+     -36.3944,
+     56.9584,
+     0.4268
+    ],
+    "size": [
+     0.4656,
+     30.1088,
+     0.8536
+    ],
+    "height_top_m": 0.8536
+   },
+   {
+    "source": "perimeter_granite_wall_east_-416",
+    "category": "square",
+    "center": [
+     36.3944,
+     56.9584,
+     0.4268
+    ],
+    "size": [
+     0.4656,
+     30.1088,
+     0.8536
+    ],
+    "height_top_m": 0.8536
+   },
+   {
+    "source": "perimeter_granite_wall_south_28",
+    "category": "square",
+    "center": [
+     17.2272,
+     3.3368,
+     0.4268
+    ],
+    "size": [
+     30.1088,
+     0.4656,
+     0.8536
+    ],
+    "height_top_m": 0.8536
+   },
+   {
+    "source": "perimeter_granite_wall_north_28",
+    "category": "square",
+    "center": [
+     17.2272,
+     76.1256,
+     0.4268
+    ],
+    "size": [
+     30.1088,
+     0.4656,
+     0.8536
+    ],
+    "height_top_m": 0.8536
+   },
+   {
+    "source": "perimeter_granite_wall_west_28",
+    "category": "square",
+    "center": [
+     -36.3944,
+     22.504,
+     0.4268
+    ],
+    "size": [
+     0.4656,
+     30.1088,
+     0.8536
+    ],
+    "height_top_m": 0.8536
+   },
+   {
+    "source": "perimeter_granite_wall_east_28",
+    "category": "square",
+    "center": [
+     36.3944,
+     22.504,
+     0.4268
+    ],
+    "size": [
+     0.4656,
+     30.1088,
+     0.8536
+    ],
+    "height_top_m": 0.8536
+   },
+   {
+    "source": "wall_pavilion_south_left",
+    "category": "exterior",
+    "center": [
+     -3.0264,
+     25.0648,
+     7.2944
+    ],
+    "size": [
+     3.5696,
+     0.4656,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_pavilion_south_right",
+    "category": "exterior",
+    "center": [
+     3.0264,
+     25.0648,
+     7.2944
+    ],
+    "size": [
+     3.5696,
+     0.4656,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_pavilion_north_left",
+    "category": "exterior",
+    "center": [
+     -2.9488,
+     54.3976,
+     7.2944
+    ],
+    "size": [
+     3.7248,
+     0.4656,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_pavilion_north_right",
+    "category": "exterior",
+    "center": [
+     2.9488,
+     54.3976,
+     7.2944
+    ],
+    "size": [
+     3.7248,
+     0.4656,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_pavilion_east_north",
+    "category": "exterior",
+    "center": [
+     14.6664,
+     42.68,
+     7.2944
+    ],
+    "size": [
+     0.4656,
+     3.7248,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_pavilion_east_south",
+    "category": "exterior",
+    "center": [
+     14.6664,
+     36.7824,
+     7.2944
+    ],
+    "size": [
+     0.4656,
+     3.7248,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_pavilion_west_north",
+    "category": "exterior",
+    "center": [
+     -14.6664,
+     42.68,
+     7.2944
+    ],
+    "size": [
+     0.4656,
+     3.7248,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_pavilion_west_south",
+    "category": "exterior",
+    "center": [
+     -14.6664,
+     36.7824,
+     7.2944
+    ],
+    "size": [
+     0.4656,
+     3.7248,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_pav_s_west",
+    "category": "exterior",
+    "center": [
+     -4.5784,
+     28.0136,
+     7.2944
+    ],
+    "size": [
+     0.4656,
+     5.432,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_pav_s_east",
+    "category": "exterior",
+    "center": [
+     4.5784,
+     28.0136,
+     7.2944
+    ],
+    "size": [
+     0.4656,
+     5.432,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_pav_n_west",
+    "category": "exterior",
+    "center": [
+     -4.5784,
+     51.4488,
+     7.2944
+    ],
+    "size": [
+     0.4656,
+     5.432,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_pav_n_east",
+    "category": "exterior",
+    "center": [
+     4.5784,
+     51.4488,
+     7.2944
+    ],
+    "size": [
+     0.4656,
+     5.432,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_pav_e_south",
+    "category": "exterior",
+    "center": [
+     11.7176,
+     35.1528,
+     7.2944
+    ],
+    "size": [
+     5.432,
+     0.4656,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_pav_e_north",
+    "category": "exterior",
+    "center": [
+     11.7176,
+     44.3096,
+     7.2944
+    ],
+    "size": [
+     5.432,
+     0.4656,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_pav_w_south",
+    "category": "exterior",
+    "center": [
+     -11.7176,
+     35.1528,
+     7.2944
+    ],
+    "size": [
+     5.432,
+     0.4656,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_pav_w_north",
+    "category": "exterior",
+    "center": [
+     -11.7176,
+     44.3096,
+     7.2944
+    ],
+    "size": [
+     5.432,
+     0.4656,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_corner_z_-1_-1",
+    "category": "exterior",
+    "center": [
+     -6.9064,
+     48.5,
+     7.2944
+    ],
+    "size": [
+     4.1904,
+     0.4656,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_corner_x_-1_-1",
+    "category": "exterior",
+    "center": [
+     -8.7688,
+     46.4048,
+     7.2944
+    ],
+    "size": [
+     0.4656,
+     3.7248,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_corner_z_-1_1",
+    "category": "exterior",
+    "center": [
+     -6.9064,
+     30.9624,
+     7.2944
+    ],
+    "size": [
+     4.1904,
+     0.4656,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_corner_x_-1_1",
+    "category": "exterior",
+    "center": [
+     -8.7688,
+     33.0576,
+     7.2944
+    ],
+    "size": [
+     0.4656,
+     3.7248,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_corner_z_1_-1",
+    "category": "exterior",
+    "center": [
+     6.9064,
+     48.5,
+     7.2944
+    ],
+    "size": [
+     4.1904,
+     0.4656,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_corner_x_1_-1",
+    "category": "exterior",
+    "center": [
+     8.7688,
+     46.4048,
+     7.2944
+    ],
+    "size": [
+     0.4656,
+     3.7248,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_corner_z_1_1",
+    "category": "exterior",
+    "center": [
+     6.9064,
+     30.9624,
+     7.2944
+    ],
+    "size": [
+     4.1904,
+     0.4656,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "wall_corner_x_1_1",
+    "category": "exterior",
+    "center": [
+     8.7688,
+     33.0576,
+     7.2944
+    ],
+    "size": [
+     0.4656,
+     3.7248,
+     14.5888
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "main_porch_landing",
+    "category": "exterior",
+    "center": [
+     0.0,
+     23.28,
+     0.5432
+    ],
+    "size": [
+     8.6912,
+     3.104,
+     1.0864
+    ],
+    "height_top_m": 1.0864
+   },
+   {
+    "source": "main_steps_cheek_-56",
+    "category": "exterior",
+    "center": [
+     -4.1128,
+     20.3312,
+     0.6984
+    ],
+    "size": [
+     0.4656,
+     2.7936,
+     1.3968
+    ],
+    "height_top_m": 1.3968
+   },
+   {
+    "source": "main_steps_cheek_50",
+    "category": "exterior",
+    "center": [
+     4.1128,
+     20.3312,
+     0.6984
+    ],
+    "size": [
+     0.4656,
+     2.7936,
+     1.3968
+    ],
+    "height_top_m": 1.3968
+   },
+   {
+    "source": "main_step_1",
+    "category": "steps",
+    "center": [
+     0.0,
+     19.1672,
+     0.1552
+    ],
+    "size": [
+     7.76,
+     0.4656,
+     0.3104
+    ],
+    "height_top_m": 0.3104
+   },
+   {
+    "source": "main_step_2",
+    "category": "steps",
+    "center": [
+     0.0,
+     19.6328,
+     0.2328
+    ],
+    "size": [
+     7.76,
+     0.4656,
+     0.4656
+    ],
+    "height_top_m": 0.4656
+   },
+   {
+    "source": "main_step_3",
+    "category": "steps",
+    "center": [
+     0.0,
+     20.0984,
+     0.3104
+    ],
+    "size": [
+     7.76,
+     0.4656,
+     0.6208
+    ],
+    "height_top_m": 0.6208
+   },
+   {
+    "source": "main_step_4",
+    "category": "steps",
+    "center": [
+     0.0,
+     20.564,
+     0.388
+    ],
+    "size": [
+     7.76,
+     0.4656,
+     0.776
+    ],
+    "height_top_m": 0.776
+   },
+   {
+    "source": "main_step_5",
+    "category": "steps",
+    "center": [
+     0.0,
+     21.0296,
+     0.4656
+    ],
+    "size": [
+     7.76,
+     0.4656,
+     0.9312
+    ],
+    "height_top_m": 0.9312
+   },
+   {
+    "source": "main_step_6",
+    "category": "steps",
+    "center": [
+     0.0,
+     21.4952,
+     0.5432
+    ],
+    "size": [
+     7.76,
+     0.4656,
+     1.0864
+    ],
+    "height_top_m": 1.0864
+   },
+   {
+    "source": "main_porch_column_-46",
+    "category": "exterior",
+    "center": [
+     -3.5696,
+     22.1936,
+     3.2592
+    ],
+    "size": [
+     0.9312,
+     0.9312,
+     6.5184
+    ],
+    "height_top_m": 6.5184
+   },
+   {
+    "source": "main_porch_column_46",
+    "category": "exterior",
+    "center": [
+     3.5696,
+     22.1936,
+     3.2592
+    ],
+    "size": [
+     0.9312,
+     0.9312,
+     6.5184
+    ],
+    "height_top_m": 6.5184
+   },
+   {
+    "source": "east_landing",
+    "category": "steps",
+    "center": [
+     15.5976,
+     39.7312,
+     0.5432
+    ],
+    "size": [
+     1.3968,
+     4.656,
+     1.0864
+    ],
+    "height_top_m": 1.0864
+   },
+   {
+    "source": "east_step_1",
+    "category": "steps",
+    "center": [
+     17.654,
+     39.7312,
+     0.194
+    ],
+    "size": [
+     0.388,
+     4.656,
+     0.388
+    ],
+    "height_top_m": 0.388
+   },
+   {
+    "source": "east_step_2",
+    "category": "steps",
+    "center": [
+     17.266,
+     39.7312,
+     0.3104
+    ],
+    "size": [
+     0.388,
+     4.656,
+     0.6208
+    ],
+    "height_top_m": 0.6208
+   },
+   {
+    "source": "east_step_3",
+    "category": "steps",
+    "center": [
+     16.878,
+     39.7312,
+     0.4268
+    ],
+    "size": [
+     0.388,
+     4.656,
+     0.8536
+    ],
+    "height_top_m": 0.8536
+   },
+   {
+    "source": "east_step_4",
+    "category": "steps",
+    "center": [
+     16.49,
+     39.7312,
+     0.5432
+    ],
+    "size": [
+     0.388,
+     4.656,
+     1.0864
+    ],
+    "height_top_m": 1.0864
+   },
+   {
+    "source": "west_landing",
+    "category": "steps",
+    "center": [
+     -15.5976,
+     39.7312,
+     0.5432
+    ],
+    "size": [
+     1.3968,
+     4.656,
+     1.0864
+    ],
+    "height_top_m": 1.0864
+   },
+   {
+    "source": "west_step_1",
+    "category": "steps",
+    "center": [
+     -17.654,
+     39.7312,
+     0.194
+    ],
+    "size": [
+     0.388,
+     4.656,
+     0.388
+    ],
+    "height_top_m": 0.388
+   },
+   {
+    "source": "west_step_2",
+    "category": "steps",
+    "center": [
+     -17.266,
+     39.7312,
+     0.3104
+    ],
+    "size": [
+     0.388,
+     4.656,
+     0.6208
+    ],
+    "height_top_m": 0.6208
+   },
+   {
+    "source": "west_step_3",
+    "category": "steps",
+    "center": [
+     -16.878,
+     39.7312,
+     0.4268
+    ],
+    "size": [
+     0.388,
+     4.656,
+     0.8536
+    ],
+    "height_top_m": 0.8536
+   },
+   {
+    "source": "west_step_4",
+    "category": "steps",
+    "center": [
+     -16.49,
+     39.7312,
+     0.5432
+    ],
+    "size": [
+     0.388,
+     4.656,
+     1.0864
+    ],
+    "height_top_m": 1.0864
+   },
+   {
+    "source": "clock_tower_full_height",
+    "category": "exterior",
+    "center": [
+     0.0,
+     39.7312,
+     26.3064
+    ],
+    "size": [
+     8.3808,
+     8.3808,
+     23.4352
+    ],
+    "height_top_m": 38.024
+   },
+   {
+    "source": "int_wall_fl1_sw_a",
+    "category": "interior",
+    "center": [
+     -4.5784,
+     34.338,
+     3.3368
+    ],
+    "size": [
+     0.1552,
+     1.7848,
+     4.5008
+    ],
+    "height_top_m": 5.5872
+   },
+   {
+    "source": "int_wall_fl1_sw_b",
+    "category": "interior",
+    "center": [
+     -4.5784,
+     31.622,
+     3.3368
+    ],
+    "size": [
+     0.1552,
+     0.8536,
+     4.5008
+    ],
+    "height_top_m": 5.5872
+   },
+   {
+    "source": "int_wall_fl1_cross_sw",
+    "category": "interior",
+    "center": [
+     -6.596,
+     35.1528,
+     3.3368
+    ],
+    "size": [
+     3.88,
+     0.1552,
+     4.5008
+    ],
+    "height_top_m": 5.5872
+   },
+   {
+    "source": "int_wall_fl1_nw_a",
+    "category": "interior",
+    "center": [
+     -4.5784,
+     47.8404,
+     3.3368
+    ],
+    "size": [
+     0.1552,
+     0.8536,
+     4.5008
+    ],
+    "height_top_m": 5.5872
+   },
+   {
+    "source": "int_wall_fl1_nw_b",
+    "category": "interior",
+    "center": [
+     -4.5784,
+     45.1244,
+     3.3368
+    ],
+    "size": [
+     0.1552,
+     1.7848,
+     4.5008
+    ],
+    "height_top_m": 5.5872
+   },
+   {
+    "source": "int_wall_fl1_cross_nw",
+    "category": "interior",
+    "center": [
+     -6.596,
+     44.3096,
+     3.3368
+    ],
+    "size": [
+     3.88,
+     0.1552,
+     4.5008
+    ],
+    "height_top_m": 5.5872
+   },
+   {
+    "source": "int_wall_fl1_se_a",
+    "category": "interior",
+    "center": [
+     4.5784,
+     34.338,
+     3.3368
+    ],
+    "size": [
+     0.1552,
+     1.7848,
+     4.5008
+    ],
+    "height_top_m": 5.5872
+   },
+   {
+    "source": "int_wall_fl1_se_b",
+    "category": "interior",
+    "center": [
+     4.5784,
+     31.622,
+     3.3368
+    ],
+    "size": [
+     0.1552,
+     0.8536,
+     4.5008
+    ],
+    "height_top_m": 5.5872
+   },
+   {
+    "source": "int_wall_fl1_cross_se",
+    "category": "interior",
+    "center": [
+     6.596,
+     35.1528,
+     3.3368
+    ],
+    "size": [
+     3.88,
+     0.1552,
+     4.5008
+    ],
+    "height_top_m": 5.5872
+   },
+   {
+    "source": "int_wall_fl1_ne_a",
+    "category": "interior",
+    "center": [
+     4.5784,
+     47.8404,
+     3.3368
+    ],
+    "size": [
+     0.1552,
+     0.8536,
+     4.5008
+    ],
+    "height_top_m": 5.5872
+   },
+   {
+    "source": "int_wall_fl1_ne_b",
+    "category": "interior",
+    "center": [
+     4.5784,
+     45.1244,
+     3.3368
+    ],
+    "size": [
+     0.1552,
+     1.7848,
+     4.5008
+    ],
+    "height_top_m": 5.5872
+   },
+   {
+    "source": "int_wall_fl1_cross_ne",
+    "category": "interior",
+    "center": [
+     6.596,
+     44.3096,
+     3.3368
+    ],
+    "size": [
+     3.88,
+     0.1552,
+     4.5008
+    ],
+    "height_top_m": 5.5872
+   },
+   {
+    "source": "grand_stair_lower_step_1",
+    "category": "interior_stairs",
+    "center": [
+     0.0,
+     40.9262,
+     1.1989
+    ],
+    "size": [
+     2.1728,
+     0.2173,
+     0.225
+    ],
+    "height_top_m": 1.3114
+   },
+   {
+    "source": "grand_stair_lower_step_2",
+    "category": "interior_stairs",
+    "center": [
+     0.0,
+     41.1435,
+     1.3114
+    ],
+    "size": [
+     2.1728,
+     0.2173,
+     0.4501
+    ],
+    "height_top_m": 1.5365
+   },
+   {
+    "source": "grand_stair_lower_step_3",
+    "category": "interior_stairs",
+    "center": [
+     0.0,
+     41.3608,
+     1.424
+    ],
+    "size": [
+     2.1728,
+     0.2173,
+     0.6751
+    ],
+    "height_top_m": 1.7615
+   },
+   {
+    "source": "grand_stair_lower_step_4",
+    "category": "interior_stairs",
+    "center": [
+     0.0,
+     41.5781,
+     1.5365
+    ],
+    "size": [
+     2.1728,
+     0.2173,
+     0.9002
+    ],
+    "height_top_m": 1.9866
+   },
+   {
+    "source": "grand_stair_lower_step_5",
+    "category": "interior_stairs",
+    "center": [
+     0.0,
+     41.7954,
+     1.649
+    ],
+    "size": [
+     2.1728,
+     0.2173,
+     1.1252
+    ],
+    "height_top_m": 2.2116
+   },
+   {
+    "source": "grand_stair_lower_step_6",
+    "category": "interior_stairs",
+    "center": [
+     0.0,
+     42.0126,
+     1.7615
+    ],
+    "size": [
+     2.1728,
+     0.2173,
+     1.3502
+    ],
+    "height_top_m": 2.4366
+   },
+   {
+    "source": "grand_stair_lower_step_7",
+    "category": "interior_stairs",
+    "center": [
+     0.0,
+     42.2299,
+     1.874
+    ],
+    "size": [
+     2.1728,
+     0.2173,
+     1.5753
+    ],
+    "height_top_m": 2.6617
+   },
+   {
+    "source": "grand_stair_lower_step_8",
+    "category": "interior_stairs",
+    "center": [
+     0.0,
+     42.4472,
+     1.9866
+    ],
+    "size": [
+     2.1728,
+     0.2173,
+     1.8003
+    ],
+    "height_top_m": 2.8867
+   },
+   {
+    "source": "grand_stair_lower_step_9",
+    "category": "interior_stairs",
+    "center": [
+     0.0,
+     42.6645,
+     2.0991
+    ],
+    "size": [
+     2.1728,
+     0.2173,
+     2.0254
+    ],
+    "height_top_m": 3.1118
+   },
+   {
+    "source": "grand_stair_lower_step_10",
+    "category": "interior_stairs",
+    "center": [
+     0.0,
+     42.8818,
+     2.2116
+    ],
+    "size": [
+     2.1728,
+     0.2173,
+     2.2504
+    ],
+    "height_top_m": 3.3368
+   },
+   {
+    "source": "grand_stair_mid_landing",
+    "category": "interior_stairs",
+    "center": [
+     0.0,
+     43.4948,
+     3.2204
+    ],
+    "size": [
+     6.5184,
+     1.0088,
+     0.2328
+    ],
+    "height_top_m": 3.3368
+   },
+   {
+    "source": "grand_stair_upper_west_step_1",
+    "category": "interior_stairs",
+    "center": [
+     -2.4832,
+     42.8818,
+     3.3329
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     0.4578
+    ],
+    "height_top_m": 3.5618
+   },
+   {
+    "source": "grand_stair_upper_west_step_2",
+    "category": "interior_stairs",
+    "center": [
+     -2.4832,
+     42.6645,
+     3.4454
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     0.6829
+    ],
+    "height_top_m": 3.7869
+   },
+   {
+    "source": "grand_stair_upper_west_step_3",
+    "category": "interior_stairs",
+    "center": [
+     -2.4832,
+     42.4472,
+     3.558
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     0.9079
+    ],
+    "height_top_m": 4.0119
+   },
+   {
+    "source": "grand_stair_upper_west_step_4",
+    "category": "interior_stairs",
+    "center": [
+     -2.4832,
+     42.2299,
+     3.6705
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     1.133
+    ],
+    "height_top_m": 4.237
+   },
+   {
+    "source": "grand_stair_upper_west_step_5",
+    "category": "interior_stairs",
+    "center": [
+     -2.4832,
+     42.0126,
+     3.783
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     1.358
+    ],
+    "height_top_m": 4.462
+   },
+   {
+    "source": "grand_stair_upper_west_step_6",
+    "category": "interior_stairs",
+    "center": [
+     -2.4832,
+     41.7954,
+     3.8955
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     1.583
+    ],
+    "height_top_m": 4.687
+   },
+   {
+    "source": "grand_stair_upper_west_step_7",
+    "category": "interior_stairs",
+    "center": [
+     -2.4832,
+     41.5781,
+     4.008
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     1.8081
+    ],
+    "height_top_m": 4.9121
+   },
+   {
+    "source": "grand_stair_upper_west_step_8",
+    "category": "interior_stairs",
+    "center": [
+     -2.4832,
+     41.3608,
+     4.1206
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     2.0331
+    ],
+    "height_top_m": 5.1371
+   },
+   {
+    "source": "grand_stair_upper_west_step_9",
+    "category": "interior_stairs",
+    "center": [
+     -2.4832,
+     41.1435,
+     4.2331
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     2.2582
+    ],
+    "height_top_m": 5.3622
+   },
+   {
+    "source": "grand_stair_upper_west_step_10",
+    "category": "interior_stairs",
+    "center": [
+     -2.4832,
+     40.9262,
+     4.3456
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     2.4832
+    ],
+    "height_top_m": 5.5872
+   },
+   {
+    "source": "grand_stair_upper_east_step_1",
+    "category": "interior_stairs",
+    "center": [
+     2.4832,
+     42.8818,
+     3.3329
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     0.4578
+    ],
+    "height_top_m": 3.5618
+   },
+   {
+    "source": "grand_stair_upper_east_step_2",
+    "category": "interior_stairs",
+    "center": [
+     2.4832,
+     42.6645,
+     3.4454
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     0.6829
+    ],
+    "height_top_m": 3.7869
+   },
+   {
+    "source": "grand_stair_upper_east_step_3",
+    "category": "interior_stairs",
+    "center": [
+     2.4832,
+     42.4472,
+     3.558
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     0.9079
+    ],
+    "height_top_m": 4.0119
+   },
+   {
+    "source": "grand_stair_upper_east_step_4",
+    "category": "interior_stairs",
+    "center": [
+     2.4832,
+     42.2299,
+     3.6705
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     1.133
+    ],
+    "height_top_m": 4.237
+   },
+   {
+    "source": "grand_stair_upper_east_step_5",
+    "category": "interior_stairs",
+    "center": [
+     2.4832,
+     42.0126,
+     3.783
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     1.358
+    ],
+    "height_top_m": 4.462
+   },
+   {
+    "source": "grand_stair_upper_east_step_6",
+    "category": "interior_stairs",
+    "center": [
+     2.4832,
+     41.7954,
+     3.8955
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     1.583
+    ],
+    "height_top_m": 4.687
+   },
+   {
+    "source": "grand_stair_upper_east_step_7",
+    "category": "interior_stairs",
+    "center": [
+     2.4832,
+     41.5781,
+     4.008
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     1.8081
+    ],
+    "height_top_m": 4.9121
+   },
+   {
+    "source": "grand_stair_upper_east_step_8",
+    "category": "interior_stairs",
+    "center": [
+     2.4832,
+     41.3608,
+     4.1206
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     2.0331
+    ],
+    "height_top_m": 5.1371
+   },
+   {
+    "source": "grand_stair_upper_east_step_9",
+    "category": "interior_stairs",
+    "center": [
+     2.4832,
+     41.1435,
+     4.2331
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     2.2582
+    ],
+    "height_top_m": 5.3622
+   },
+   {
+    "source": "grand_stair_upper_east_step_10",
+    "category": "interior_stairs",
+    "center": [
+     2.4832,
+     40.9262,
+     4.3456
+    ],
+    "size": [
+     1.552,
+     0.2173,
+     2.4832
+    ],
+    "height_top_m": 5.5872
+   },
+   {
+    "source": "fl2_to_fl3_stair_step_1",
+    "category": "interior_stairs",
+    "center": [
+     -2.716,
+     44.5424,
+     5.7279
+    ],
+    "size": [
+     1.7072,
+     0.3104,
+     0.2813
+    ],
+    "height_top_m": 5.8685
+   },
+   {
+    "source": "fl2_to_fl3_stair_step_2",
+    "category": "interior_stairs",
+    "center": [
+     -2.716,
+     44.8528,
+     5.8685
+    ],
+    "size": [
+     1.7072,
+     0.3104,
+     0.5626
+    ],
+    "height_top_m": 6.1498
+   },
+   {
+    "source": "fl2_to_fl3_stair_step_3",
+    "category": "interior_stairs",
+    "center": [
+     -2.716,
+     45.1632,
+     6.0091
+    ],
+    "size": [
+     1.7072,
+     0.3104,
+     0.8439
+    ],
+    "height_top_m": 6.4311
+   },
+   {
+    "source": "fl2_to_fl3_stair_step_4",
+    "category": "interior_stairs",
+    "center": [
+     -2.716,
+     45.4736,
+     6.1498
+    ],
+    "size": [
+     1.7072,
+     0.3104,
+     1.1252
+    ],
+    "height_top_m": 6.7124
+   },
+   {
+    "source": "fl2_to_fl3_stair_step_5",
+    "category": "interior_stairs",
+    "center": [
+     -2.716,
+     45.784,
+     6.2904
+    ],
+    "size": [
+     1.7072,
+     0.3104,
+     1.4065
+    ],
+    "height_top_m": 6.9937
+   },
+   {
+    "source": "fl2_to_fl3_stair_step_6",
+    "category": "interior_stairs",
+    "center": [
+     -2.716,
+     46.0944,
+     6.4311
+    ],
+    "size": [
+     1.7072,
+     0.3104,
+     1.6878
+    ],
+    "height_top_m": 7.275
+   },
+   {
+    "source": "fl2_to_fl3_stair_step_7",
+    "category": "interior_stairs",
+    "center": [
+     -2.716,
+     46.4048,
+     6.5717
+    ],
+    "size": [
+     1.7072,
+     0.3104,
+     1.9691
+    ],
+    "height_top_m": 7.5563
+   },
+   {
+    "source": "fl2_to_fl3_stair_step_8",
+    "category": "interior_stairs",
+    "center": [
+     -2.716,
+     46.7152,
+     6.7124
+    ],
+    "size": [
+     1.7072,
+     0.3104,
+     2.2504
+    ],
+    "height_top_m": 7.8376
+   },
+   {
+    "source": "fl2_to_fl3_stair_step_9",
+    "category": "interior_stairs",
+    "center": [
+     -2.716,
+     47.0256,
+     6.8531
+    ],
+    "size": [
+     1.7072,
+     0.3104,
+     2.5317
+    ],
+    "height_top_m": 8.1189
+   },
+   {
+    "source": "fl2_to_fl3_stair_step_10",
+    "category": "interior_stairs",
+    "center": [
+     -2.716,
+     47.336,
+     6.9937
+    ],
+    "size": [
+     1.7072,
+     0.3104,
+     2.813
+    ],
+    "height_top_m": 8.4002
+   },
+   {
+    "source": "fl2_to_fl3_stair_step_11",
+    "category": "interior_stairs",
+    "center": [
+     -2.716,
+     47.6464,
+     7.1344
+    ],
+    "size": [
+     1.7072,
+     0.3104,
+     3.0943
+    ],
+    "height_top_m": 8.6815
+   },
+   {
+    "source": "fl2_to_fl3_stair_step_12",
+    "category": "interior_stairs",
+    "center": [
+     -2.716,
+     47.9568,
+     7.275
+    ],
+    "size": [
+     1.7072,
+     0.3104,
+     3.3756
+    ],
+    "height_top_m": 8.9628
+   },
+   {
+    "source": "fl2_to_fl3_stair_step_13",
+    "category": "interior_stairs",
+    "center": [
+     -2.716,
+     48.2672,
+     7.4157
+    ],
+    "size": [
+     1.7072,
+     0.3104,
+     3.6569
+    ],
+    "height_top_m": 9.2441
+   },
+   {
+    "source": "fl2_to_fl3_stair_step_14",
+    "category": "interior_stairs",
+    "center": [
+     -2.716,
+     48.5776,
+     7.5563
+    ],
+    "size": [
+     1.7072,
+     0.3104,
+     3.9382
+    ],
+    "height_top_m": 9.5254
+   },
+   {
+    "source": "fl2_to_fl3_stair_step_15",
+    "category": "interior_stairs",
+    "center": [
+     -2.716,
+     48.888,
+     7.697
+    ],
+    "size": [
+     1.7072,
+     0.3104,
+     4.2195
+    ],
+    "height_top_m": 9.8067
+   },
+   {
+    "source": "fl2_to_fl3_stair_step_16",
+    "category": "interior_stairs",
+    "center": [
+     -2.716,
+     49.1984,
+     7.8376
+    ],
+    "size": [
+     1.7072,
+     0.3104,
+     4.5008
+    ],
+    "height_top_m": 10.088
+   },
+   {
+    "source": "fl2_gallery_rail_south",
+    "category": "interior",
+    "center": [
+     0.0,
+     36.5496,
+     6.0528
+    ],
+    "size": [
+     6.5184,
+     0.1552,
+     0.9312
+    ],
+    "height_top_m": 6.5184
+   },
+   {
+    "source": "fl2_gallery_rail_west",
+    "category": "interior",
+    "center": [
+     -3.3368,
+     38.7224,
+     6.0528
+    ],
+    "size": [
+     0.1552,
+     4.1904,
+     0.9312
+    ],
+    "height_top_m": 6.5184
+   },
+   {
+    "source": "fl2_gallery_rail_east",
+    "category": "interior",
+    "center": [
+     3.3368,
+     38.7224,
+     6.0528
+    ],
+    "size": [
+     0.1552,
+     4.1904,
+     0.9312
+    ],
+    "height_top_m": 6.5184
+   },
+   {
+    "source": "courtroom_north_wall_west",
+    "category": "interior",
+    "center": [
+     -2.8712,
+     35.4632,
+     10.088
+    ],
+    "size": [
+     3.88,
+     0.1552,
+     9.0016
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "courtroom_north_wall_east",
+    "category": "interior",
+    "center": [
+     2.8712,
+     35.4632,
+     10.088
+    ],
+    "size": [
+     3.88,
+     0.1552,
+     9.0016
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "courtroom_bar_rail_west",
+    "category": "interior",
+    "center": [
+     -2.4056,
+     30.846,
+     6.0916
+    ],
+    "size": [
+     3.5696,
+     0.2328,
+     1.0088
+    ],
+    "height_top_m": 6.596
+   },
+   {
+    "source": "courtroom_bar_rail_east",
+    "category": "interior",
+    "center": [
+     2.4056,
+     30.846,
+     6.0916
+    ],
+    "size": [
+     3.5696,
+     0.2328,
+     1.0088
+    ],
+    "height_top_m": 6.596
+   },
+   {
+    "source": "courtroom_judges_bench",
+    "category": "interior",
+    "center": [
+     0.0,
+     26.8496,
+     6.5184
+    ],
+    "size": [
+     4.656,
+     2.7936,
+     1.8624
+    ],
+    "height_top_m": 7.4496
+   },
+   {
+    "source": "int_wall_fl2_chambers_n",
+    "category": "interior",
+    "center": [
+     -4.8888,
+     42.3308,
+     7.8376
+    ],
+    "size": [
+     0.1552,
+     3.8024,
+     4.5008
+    ],
+    "height_top_m": 10.088
+   },
+   {
+    "source": "int_wall_fl2_chambers_s",
+    "category": "interior",
+    "center": [
+     -4.8888,
+     37.1316,
+     7.8376
+    ],
+    "size": [
+     0.1552,
+     3.8024,
+     4.5008
+    ],
+    "height_top_m": 10.088
+   },
+   {
+    "source": "int_wall_fl2_jury_n",
+    "category": "interior",
+    "center": [
+     4.8888,
+     42.3308,
+     7.8376
+    ],
+    "size": [
+     0.1552,
+     3.8024,
+     4.5008
+    ],
+    "height_top_m": 10.088
+   },
+   {
+    "source": "int_wall_fl2_jury_s",
+    "category": "interior",
+    "center": [
+     4.8888,
+     37.1316,
+     7.8376
+    ],
+    "size": [
+     0.1552,
+     3.8024,
+     4.5008
+    ],
+    "height_top_m": 10.088
+   },
+   {
+    "source": "int_wall_fl2_lib_farw",
+    "category": "interior",
+    "center": [
+     -4.1904,
+     44.1544,
+     7.8376
+    ],
+    "size": [
+     1.2416,
+     0.1552,
+     4.5008
+    ],
+    "height_top_m": 10.088
+   },
+   {
+    "source": "int_wall_fl2_lib_w",
+    "category": "interior",
+    "center": [
+     -1.2028,
+     44.1544,
+     7.8376
+    ],
+    "size": [
+     1.0088,
+     0.1552,
+     4.5008
+    ],
+    "height_top_m": 10.088
+   },
+   {
+    "source": "int_wall_fl2_lib_e",
+    "category": "interior",
+    "center": [
+     2.7548,
+     44.1544,
+     7.8376
+    ],
+    "size": [
+     4.1128,
+     0.1552,
+     4.5008
+    ],
+    "height_top_m": 10.088
+   },
+   {
+    "source": "fl3_gallery_rail_south",
+    "category": "interior",
+    "center": [
+     0.0,
+     36.5496,
+     10.5536
+    ],
+    "size": [
+     6.5184,
+     0.1552,
+     0.9312
+    ],
+    "height_top_m": 11.0192
+   },
+   {
+    "source": "fl3_gallery_rail_west",
+    "category": "interior",
+    "center": [
+     -3.3368,
+     39.7312,
+     10.5536
+    ],
+    "size": [
+     0.1552,
+     6.208,
+     0.9312
+    ],
+    "height_top_m": 11.0192
+   },
+   {
+    "source": "fl3_gallery_rail_east",
+    "category": "interior",
+    "center": [
+     3.3368,
+     39.7312,
+     10.5536
+    ],
+    "size": [
+     0.1552,
+     6.208,
+     0.9312
+    ],
+    "height_top_m": 11.0192
+   },
+   {
+    "source": "fl3_gallery_rail_north",
+    "category": "interior",
+    "center": [
+     0.0,
+     42.9128,
+     10.5536
+    ],
+    "size": [
+     6.5184,
+     0.1552,
+     0.9312
+    ],
+    "height_top_m": 11.0192
+   },
+   {
+    "source": "int_wall_fl3_records_n",
+    "category": "interior",
+    "center": [
+     -4.8888,
+     42.3308,
+     12.3384
+    ],
+    "size": [
+     0.1552,
+     3.8024,
+     4.5008
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "int_wall_fl3_records_s",
+    "category": "interior",
+    "center": [
+     -4.8888,
+     37.1316,
+     12.3384
+    ],
+    "size": [
+     0.1552,
+     3.8024,
+     4.5008
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "int_wall_fl3_archives_n",
+    "category": "interior",
+    "center": [
+     4.8888,
+     42.3308,
+     12.3384
+    ],
+    "size": [
+     0.1552,
+     3.8024,
+     4.5008
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "int_wall_fl3_archives_s",
+    "category": "interior",
+    "center": [
+     4.8888,
+     37.1316,
+     12.3384
+    ],
+    "size": [
+     0.1552,
+     3.8024,
+     4.5008
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "int_wall_fl3_comm_w",
+    "category": "interior",
+    "center": [
+     -2.7548,
+     44.1544,
+     12.3384
+    ],
+    "size": [
+     4.1128,
+     0.1552,
+     4.5008
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "int_wall_fl3_comm_e",
+    "category": "interior",
+    "center": [
+     2.7548,
+     44.1544,
+     12.3384
+    ],
+    "size": [
+     4.1128,
+     0.1552,
+     4.5008
+    ],
+    "height_top_m": 14.5888
+   },
+   {
+    "source": "civil_war_memorial",
+    "category": "square",
+    "center": [
+     18.0032,
+     19.5552,
+     2.9178
+    ],
+    "size": [
+     3.4144,
+     3.4144,
+     5.8355
+    ],
+    "height_top_m": 5.8355
+   },
+   {
+    "source": "bandstand_concrete_pad",
+    "category": "square",
+    "center": [
+     -18.624,
+     19.5552,
+     0.194
+    ],
+    "size": [
+     6.5184,
+     6.5184,
+     0.388
+    ],
+    "height_top_m": 0.388
+   },
+   {
+    "source": "square_flagpole",
+    "category": "square",
+    "center": [
+     -5.5872,
+     10.864,
+     6.5184
+    ],
+    "size": [
+     1.552,
+     1.552,
+     13.0368
+    ],
+    "height_top_m": 13.0368
+   },
+   {
+    "source": "concrete_annex_1951_1999",
+    "category": "exterior",
+    "center": [
+     0.0,
+     64.5632,
+     4.8888
+    ],
+    "size": [
+     15.52,
+     19.8656,
+     9.7776
+    ],
+    "height_top_m": 9.7776
+   },
+   {
+    "source": "park_bench_01",
+    "category": "square",
+    "center": [
+     -3.104,
+     13.3472,
+     0.582
+    ],
+    "size": [
+     1.552,
+     1.552,
+     1.164
+    ],
+    "height_top_m": 1.164
+   },
+   {
+    "source": "park_bench_02",
+    "category": "square",
+    "center": [
+     3.104,
+     13.3472,
+     0.582
+    ],
+    "size": [
+     1.552,
+     1.552,
+     1.164
+    ],
+    "height_top_m": 1.164
+   },
+   {
+    "source": "park_bench_03",
+    "category": "square",
+    "center": [
+     -3.104,
+     7.9152,
+     0.582
+    ],
+    "size": [
+     1.552,
+     1.552,
+     1.164
+    ],
+    "height_top_m": 1.164
+   },
+   {
+    "source": "park_bench_04",
+    "category": "square",
+    "center": [
+     3.104,
+     7.9152,
+     0.582
+    ],
+    "size": [
+     1.552,
+     1.552,
+     1.164
+    ],
+    "height_top_m": 1.164
+   },
+   {
+    "source": "park_bench_05",
+    "category": "square",
+    "center": [
+     -26.384,
+     42.8352,
+     0.582
+    ],
+    "size": [
+     1.552,
+     1.552,
+     1.164
+    ],
+    "height_top_m": 1.164
+   },
+   {
+    "source": "park_bench_06",
+    "category": "square",
+    "center": [
+     26.384,
+     42.8352,
+     0.582
+    ],
+    "size": [
+     1.552,
+     1.552,
+     1.164
+    ],
+    "height_top_m": 1.164
+   },
+   {
+    "source": "park_bench_07",
+    "category": "square",
+    "center": [
+     -26.384,
+     36.6272,
+     0.582
+    ],
+    "size": [
+     1.552,
+     1.552,
+     1.164
+    ],
+    "height_top_m": 1.164
+   },
+   {
+    "source": "park_bench_08",
+    "category": "square",
+    "center": [
+     26.384,
+     36.6272,
+     0.582
+    ],
+    "size": [
+     1.552,
+     1.552,
+     1.164
+    ],
+    "height_top_m": 1.164
+   },
+   {
+    "source": "lamp_post_01",
+    "category": "square",
+    "center": [
+     -2.7936,
+     5.2768,
+     2.0176
+    ],
+    "size": [
+     0.6208,
+     0.6208,
+     4.0352
+    ],
+    "height_top_m": 4.0352
+   },
+   {
+    "source": "lamp_post_02",
+    "category": "square",
+    "center": [
+     2.7936,
+     5.2768,
+     2.0176
+    ],
+    "size": [
+     0.6208,
+     0.6208,
+     4.0352
+    ],
+    "height_top_m": 4.0352
+   },
+   {
+    "source": "lamp_post_03",
+    "category": "square",
+    "center": [
+     -5.5872,
+     18.1584,
+     2.0176
+    ],
+    "size": [
+     0.6208,
+     0.6208,
+     4.0352
+    ],
+    "height_top_m": 4.0352
+   },
+   {
+    "source": "lamp_post_04",
+    "category": "square",
+    "center": [
+     5.5872,
+     18.1584,
+     2.0176
+    ],
+    "size": [
+     0.6208,
+     0.6208,
+     4.0352
+    ],
+    "height_top_m": 4.0352
+   },
+   {
+    "source": "lamp_post_05",
+    "category": "square",
+    "center": [
+     -34.144,
+     42.5248,
+     2.0176
+    ],
+    "size": [
+     0.6208,
+     0.6208,
+     4.0352
+    ],
+    "height_top_m": 4.0352
+   },
+   {
+    "source": "lamp_post_06",
+    "category": "square",
+    "center": [
+     -34.144,
+     36.9376,
+     2.0176
+    ],
+    "size": [
+     0.6208,
+     0.6208,
+     4.0352
+    ],
+    "height_top_m": 4.0352
+   },
+   {
+    "source": "lamp_post_07",
+    "category": "square",
+    "center": [
+     34.144,
+     42.5248,
+     2.0176
+    ],
+    "size": [
+     0.6208,
+     0.6208,
+     4.0352
+    ],
+    "height_top_m": 4.0352
+   },
+   {
+    "source": "lamp_post_08",
+    "category": "square",
+    "center": [
+     34.144,
+     36.9376,
+     2.0176
+    ],
+    "size": [
+     0.6208,
+     0.6208,
+     4.0352
+    ],
+    "height_top_m": 4.0352
+   },
+   {
+    "source": "lamp_post_09",
+    "category": "square",
+    "center": [
+     -27.936,
+     11.7952,
+     2.0176
+    ],
+    "size": [
+     0.6208,
+     0.6208,
+     4.0352
+    ],
+    "height_top_m": 4.0352
+   },
+   {
+    "source": "lamp_post_10",
+    "category": "square",
+    "center": [
+     27.936,
+     11.7952,
+     2.0176
+    ],
+    "size": [
+     0.6208,
+     0.6208,
+     4.0352
+    ],
+    "height_top_m": 4.0352
+   },
+   {
+    "source": "lamp_post_11",
+    "category": "square",
+    "center": [
+     -27.936,
+     67.6672,
+     2.0176
+    ],
+    "size": [
+     0.6208,
+     0.6208,
+     4.0352
+    ],
+    "height_top_m": 4.0352
+   },
+   {
+    "source": "lamp_post_12",
+    "category": "square",
+    "center": [
+     27.936,
+     67.6672,
+     2.0176
+    ],
+    "size": [
+     0.6208,
+     0.6208,
+     4.0352
+    ],
+    "height_top_m": 4.0352
+   }
+  ]
+ },
+ "far_lod": {
+  "file": "courthouse-far.glb",
+  "visible_triangles": 142,
+  "height_peak_m": 38.024
+ }
+}

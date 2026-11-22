@@ -79,6 +79,14 @@ export const FIELD_CUT = 3;
 
 /** The railroad in the town of [site] (plan given or planned here). */
 export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown(site.seed), extra: readonly Rect[] = []): TownRail {
+  const r = layRail(w, site, plan, extra, FARM_CLEAR);
+  // (a line hemmed in by the farmsteads' clearance at the town's edge: laid again keeping 4 tiles off their yards)
+  if (!r.conflicts.length) return r;
+  const tight = layRail(w, site, plan, extra, 4);
+  return tight.conflicts.length < r.conflicts.length ? tight : r;
+}
+
+function layRail(w: RailWorld, site: TownSite, plan: TownPlan, extra: readonly Rect[], farmClear: number): TownRail {
   const links = linksAt(w, site.cx, site.cy);
   // the farmland round the town: the track is laid out to its edge (the search's grid starts PAD tiles before the plan's 0)
   const fp = planFarms(plan);
@@ -107,7 +115,18 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
   };
   // ([extra]: more ground to keep off, as the plan's plots: the 3D town's yards, which reach past their plots)
   for (const r of [...lots, ...marks, plaza, ...extra.map(shI)]) { markRect(r, RAIL_CLEAR); markHard(r); }
-  for (const f of fp.farms) { const r = shI(f.rect); markRect(r, FARM_CLEAR); markHard(r); }
+  // the planned town (src/town/plat.ts): the track keeps to its rail band. Every block of the town but the band's (and the
+  // river's) is closed to it, the band's reserved plots (the feed mill, the works) kept clear as lots; the line comes in
+  // round the town to the band's ends, runs down it on its track line and stops at the depot at the foot of Depot Street
+  const v2 = plan.v2;
+  /** The planned town's blocks off the band: the line pays dearly to cross one (it keeps to the band and the town's edge). */
+  const townGround = new Uint8Array(W * H);
+  const band = v2?.railBand ? { ...v2.railBand, rect: sh(v2.railBand.rect), track: v2.railBand.track + PAD, depot: { x: v2.railBand.depot.x + PAD, y: v2.railBand.depot.y + PAD } } : null;
+  if (v2) {
+    for (const b of v2.blocks) if (b.district !== 'rail' && b.district !== 'river') { const r = sh(b); for (let y = Math.max(0, r.y - 1); y < Math.min(H, r.y + r.h + 1); y++) for (let x = Math.max(0, r.x - 1); x < Math.min(W, r.x + r.w + 1); x++) townGround[y * W + x] = 1; }
+    for (const q of v2.reserved) if (q.district === 'rail' && q.id !== 'civic:depot') { const r = sh(q); markRect(r, RAIL_CLEAR); markHard(r); }
+  }
+  for (const f of fp.farms) { const r = shI(f.rect); markRect(r, farmClear); markHard(r); }
   // the fields (a tile round each for the fence): crossed only where it must be, straight
   const fieldAt = new Int16Array(W * H).fill(-1);
   const fields = fp.fields.map(shI);
@@ -140,6 +159,12 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
     const q = toPlan(pts[i]!);
     const at = { x: Math.min(W - 2, Math.max(1, q.x)), y: Math.min(H - 2, Math.max(1, q.y)) };
     if (l.dir === 'ew') at.x = l.a === site.id ? W - 2 : 1; else at.y = l.a === site.id ? H - 2 : 1;
+    // (not on a country road running out along the same edge: the line comes in a few tiles beside it, to cross it square)
+    const onRoad = (p: Pt): boolean => { for (let k = -10; k <= 10; k++) { const x = Math.floor(p.x + (l.dir === 'ew' ? 0 : k)), y = Math.floor(p.y + (l.dir === 'ew' ? k : 0)); if (x >= 0 && y >= 0 && x < W && y < H && roadAt[y * W + x]! >= 0) return true; } return false; };
+    for (let k = 1; k <= 24 && onRoad(at); k++) for (const sgn of [1, -1]) {
+      const q = l.dir === 'ew' ? { x: at.x, y: Math.min(H - 2, Math.max(1, at.y + sgn * k)) } : { x: Math.min(W - 2, Math.max(1, at.x + sgn * k)), y: at.y };
+      if (!onRoad(q)) { at.x = q.x; at.y = q.y; break; }
+    }
     const beyond = pts.slice(i + 1);
     return { at, beyond: [{ x: at.x + o.x, y: at.y + o.y }, ...beyond] };
   };
@@ -148,10 +173,12 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
 
   // ---- the path search: 8 directions on a 2-tile grid, turns cost, roads crossed square, drawn towards downtown
   const GW = Math.ceil(W / CELL), GH = Math.ceil(H / CELL);
+  const cellTown = new Uint8Array(GW * GH);
   const cellBlocked = new Uint8Array(GW * GH), cellRoad = new Int16Array(GW * GH).fill(-1), cellWet = new Uint8Array(GW * GH), cellField = new Uint8Array(GW * GH);
   for (let gy = 0; gy < GH; gy++) for (let gx = 0; gx < GW; gx++) {
     for (let y = gy * CELL; y < Math.min(H, gy * CELL + CELL); y++) for (let x = gx * CELL; x < Math.min(W, gx * CELL + CELL); x++) {
       if (blocked[y * W + x]) cellBlocked[gy * GW + gx] = 1;
+      if (townGround[y * W + x]) cellTown[gy * GW + gx] = 1;
       if (roadAt[y * W + x]! >= 0) cellRoad[gy * GW + gx] = roadAt[y * W + x]!;
       if (wet(x, y)) cellWet[gy * GW + gx] = 1;
       if (fieldAt[y * W + x]! >= 0) cellField[gy * GW + gx] = 1;
@@ -173,7 +200,15 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
   const nearFieldCell = new Uint8Array(GW * GH);
   for (let gy = 0; gy < GH; gy++) for (let gx = 0; gx < GW; gx++) if (cellField[gy * GW + gx])
     for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) { const x = gx + dx, y = gy + dy; if (x >= 0 && y >= 0 && x < GW && y < GH) nearFieldCell[y * GW + x] = 1; }
-  const cx0 = plaza.x + plaza.w / 2, cy0 = plaza.y + plaza.h / 2;
+  // (drawn towards downtown: the planned town's depot spot, else the plaza)
+  const cx0 = band ? band.depot.x : plaza.x + plaza.w / 2, cy0 = band ? band.depot.y : plaza.y + plaza.h / 2;
+  /** Off the band's track line, inside the band (the line runs on its track line, the siding beside it). */
+  const offTrack = (gx: number, gy: number): boolean => {
+    if (!band) return false;
+    const x = gx * CELL + CELL / 2, y = gy * CELL + CELL / 2, r = band.rect;
+    if (x < r.x || y < r.y || x > r.x + r.w || y > r.y + r.h) return false;
+    return Math.abs((band.horizontal ? y : x) - band.track) > 2;
+  };
   const DX = [1, 1, 0, -1, -1, -1, 0, 1], DY = [0, 1, 1, 1, 0, -1, -1, -1];
   const search = (from: Pt, goal: (gx: number, gy: number) => boolean, goalPt: Pt | null): Pt[] | null => {
     const sx = Math.min(GW - 1, Math.floor(from.x / CELL)), sy = Math.min(GH - 1, Math.floor(from.y / CELL));
@@ -241,6 +276,8 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
           cost += along ? 400 : diag ? 30 : 4;
         }
         if (taken[nc]) cost += (nd === d ? 3 : 200);
+        if (offTrack(nx, ny)) cost += 6;
+        if (cellTown[nc]) cost += 25;
         if (t !== 0) cost += here || there ? 14 : 2.5;
         const ns = nc * 8 + nd;
         const ng = g[s]! + cost;
@@ -372,6 +409,8 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
       const a = { x: x + 0.5 - dx * LEAD, y: y + 0.5 - dy * LEAD }, b = { x: x + 0.5 + dx * (STRIP + LEAD), y: y + 0.5 + dy * (STRIP + LEAD) };
       if (b.x > W - 2 || b.y > H - 2 || a.x < 1 || a.y < 1) continue;
       if (!clearSeg(a, b) || roadsOn(a, b) > 0) continue;
+      // (the planned town's band: the stretch's leads a couple of tiles clear of a street crossing it, so its legs meet it straight)
+      if (band && roadsOn({ x: a.x - dx * 2, y: a.y - dy * 2 }, { x: b.x + dx * 2, y: b.y + dy * 2 }) > 0) continue;
       let dry = true; for (let t = 0; t <= STRIP + 2 * LEAD; t++) if (wet(Math.floor(a.x + dx * t), Math.floor(a.y + dy * t)) || square(a.x + dx * t, a.y + dy * t)) dry = false;
       if (!dry) continue;
       const mid = { x: x + 0.5 + dx * STRIP / 2, y: y + 0.5 + dy * STRIP / 2 };
@@ -380,12 +419,18 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
         const c = { x: mid.x + nx * (DEPOT.off + DEPOT.deep / 2), y: mid.y + ny * (DEPOT.off + DEPOT.deep / 2) };
         const rw = horiz ? DEPOT.len : DEPOT.deep, rh = horiz ? DEPOT.deep : DEPOT.len;
         const rect = { x: Math.round(c.x - rw / 2), y: Math.round(c.y - rh / 2), w: rw, h: rh };
-        if (!freeRect(rect) || !nearRoad(rect, 8)) continue;
+        if (!freeRect(rect) || !nearRoad(rect, band ? 26 : 8)) continue;
         if (premier && !freeBig(bigOf(mid, dx, dy, side))) continue;
         all.push({ s0: a, s1: b, dx, dy, rect, side, d: Math.hypot(c.x - cx0, c.y - cy0) });
       }
     }
     all.sort((p, q) => p.d - q.d);
+    // (the planned town: on the band's track line, the depot on its town side)
+    if (band) {
+      const onLine = all.filter((st) => (band.horizontal ? st.dy === 0 && Math.abs(st.s0.y - band.track) <= 1.5 : st.dx === 0 && Math.abs(st.s0.x - band.track) <= 1.5)
+        && Math.sign(band.horizontal ? st.rect.y + st.rect.h / 2 - band.track : st.rect.x + st.rect.w / 2 - band.track) === band.townSide);
+      if (onLine.length) all.splice(0, all.length, ...onLine);
+    }
     const picked: Strip[] = [];
     for (const s of all) { if (picked.length >= 10) break; if (picked.every((q) => Math.hypot(q.rect.x - s.rect.x, q.rect.y - s.rect.y) > 12)) picked.push(s); }
     return picked;
@@ -427,6 +472,35 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
     const a = ports.get(l0.id)!.at, b = ports.get(l1.id)!.at;
     const direct = lay(a, cellGoal(b), b, b, false);
     let p: Pt[] | null = null;
+    // the planned town: the line runs straight down its rail band from end to end, past the depot at the foot of Depot
+    // Street (Main Street's in a T-plan), its legs joining the band's ends round the town
+    if (band && !out.depot && direct) {
+      const r = band.rect, hz = band.horizontal;
+      const lo = hz ? Math.max(r.x, bx0 - 8) : Math.max(r.y, by0 - 8), hi = hz ? Math.min(r.x + r.w, bx1 + 8) : Math.min(r.y + r.h, by1 + 8);
+      const E0: Pt = hz ? { x: lo, y: band.track } : { x: band.track, y: lo }, E1: Pt = hz ? { x: hi, y: band.track } : { x: band.track, y: hi };
+      const st = strips().find((q) => (hz ? q.dy === 0 && Math.abs(q.s0.y - band.track) <= 1.5 : q.dx === 0 && Math.abs(q.s0.x - band.track) <= 1.5));
+      let best: { leg0: Pt[]; leg1: Pt[]; c0: Pt[]; c1: Pt[]; s0: Pt; s1: Pt; L: number } | null = null;
+      if (st) for (const flip of [false, true]) {
+        const s0 = flip ? E1 : E0, s1 = flip ? E0 : E1;
+        const c0 = search(a, cellGoal(s0), s0); if (!c0) continue;
+        const c1 = search(s1, cellGoal(b), b); if (!c1) continue;
+        const leg0 = tighten([a, ...c0.slice(1, -1), s0]), leg1 = tighten([s1, ...c1.slice(1, -1), b]);
+        const L = len(leg0) + len(leg1);
+        if (!best || L < best.L) best = { leg0, leg1, c0, c1, s0, s1, L };
+      }
+      if (st && best) {
+        const { leg0, leg1, c0, c1, s0, s1 } = best;
+        mark(c0); mark(c1);
+        const dx = Math.sign(s1.x - s0.x), dy = Math.sign(s1.y - s0.y);
+        for (let t = 0, n = Math.hypot(s1.x - s0.x, s1.y - s0.y); t <= n; t += 1) taken[Math.min(GH - 1, Math.floor((s0.y + dy * t) / CELL)) * GW + Math.min(GW - 1, Math.floor((s0.x + dx * t) / CELL))] = 1;
+        const mid = { x: (st.s0.x + st.s1.x) / 2, y: (st.s0.y + st.s1.y) / 2 };
+        const rc = { x: st.rect.x + st.rect.w / 2 - mid.x, y: st.rect.y + st.rect.h / 2 - mid.y };
+        const side: 1 | -1 = rc.x * dy - rc.y * dx > 0 ? 1 : -1;
+        out.depot = { rect: st.rect, at: mid, dx, dy, side, built: builtYear };
+        const r0 = leg0.slice(0, -1), r1 = leg1.slice(1);
+        p = round([...r0, s0, mid, s1, ...r1]);
+      }
+    }
     if (!out.depot && direct) {
       for (const st of strips()) {
         // (the stretch is run the way that needs no doubling back: each leg meets it along its own way, and of the two
@@ -490,7 +564,17 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
     } else {
       // a terminus: a depot site near the plaza and a street first, then the track to it
       let best: { d: number; r: Rect; at: Pt; dx: number; dy: number } | null = null;
-      for (let y = 4; y + 20 < H; y += 2) for (let x = 4; x + 20 < W; x += 2) {
+      // (the planned town: the line ends on its band's track line at the depot's spot)
+      if (band) for (let k = 0; k <= 30 && !best; k++) for (const sgn of [1, -1]) {
+        const t = k * sgn;
+        const at = band.horizontal ? { x: band.depot.x + t, y: band.track } : { x: band.track, y: band.depot.y + t };
+        const r = band.horizontal ? { x: Math.round(at.x - DEPOT.len / 2), y: band.townSide < 0 ? at.y - DEPOT.off - DEPOT.deep : at.y + DEPOT.off, w: DEPOT.len, h: DEPOT.deep }
+          : { x: band.townSide < 0 ? at.x - DEPOT.off - DEPOT.deep : at.x + DEPOT.off, y: Math.round(at.y - DEPOT.len / 2), w: DEPOT.deep, h: DEPOT.len };
+        if (!freeRect(r) || !okTile(at.x, at.y)) continue;
+        best = { d: 0, r, at, dx: band.horizontal ? 1 : 0, dy: band.horizontal ? 0 : 1 };
+        break;
+      }
+      if (!best) for (let y = 4; y + 20 < H; y += 2) for (let x = 4; x + 20 < W; x += 2) {
         for (const horiz of [true, false]) {
           const r = horiz ? { x, y, w: DEPOT.len, h: DEPOT.deep } : { x, y, w: DEPOT.deep, h: DEPOT.len };
           if (!freeRect(r) || !nearRoad(r, 10)) continue;
@@ -531,7 +615,15 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
   // (the half cell), and the track would step out and back
   const outside = (q: Pt, e: Pt): boolean =>
     (e.x <= 1.01 && q.x < e.x - 0.01) || (e.x >= W - 2.01 && q.x > e.x + 0.01) || (e.y <= 1.01 && q.y < e.y - 0.01) || (e.y >= H - 2.01 && q.y > e.y + 0.01);
+  // (a run along the edge, past the portal, is pulled in onto the edge: the line keeps its square crossings there)
   for (const p of paths) {
+    const pull = (q: Pt, e: Pt): void => {
+      if (e.x <= 1.01 && q.x < e.x) q.x = e.x; if (e.x >= W - 2.01 && q.x > e.x) q.x = e.x;
+      if (e.y <= 1.01 && q.y < e.y) q.y = e.y; if (e.y >= H - 2.01 && q.y > e.y) q.y = e.y;
+    };
+    const a = p.pts[0]!, b = p.pts[p.pts.length - 1]!;
+    for (const q of p.pts) { pull(q, a); pull(q, b); }
+    p.pts = p.pts.filter((q, i) => i === 0 || Math.hypot(q.x - p.pts[i - 1]!.x, q.y - p.pts[i - 1]!.y) > 1e-6);
     while (p.pts.length > 2 && outside(p.pts[1]!, p.pts[0]!)) p.pts.splice(1, 1);
     while (p.pts.length > 2 && outside(p.pts[p.pts.length - 2]!, p.pts[p.pts.length - 1]!)) p.pts.splice(p.pts.length - 2, 1);
   }
@@ -550,8 +642,9 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
   if (out.depot) {
     const d = out.depot;
     const nx = -d.dy * d.side, ny = d.dx * d.side; // away from the depot
-    const OFF = 4, LEN = 30;
-    for (const shift of [6, -6 - LEN, 14, -14 - LEN]) {
+    const OFF = 4;
+    // (further along the line, and shorter, where the depot's block is short: the planned town's band between its streets)
+    for (const [shift, LEN] of [[6, 30], [-36, 30], [14, 30], [-44, 30], [6, 20], [-26, 20], [24, 20], [-44, 20], [40, 20], [-60, 20]] as [number, number][]) {
       const a = { x: d.at.x + d.dx * shift + nx * OFF, y: d.at.y + d.dy * shift + ny * OFF };
       const b = { x: a.x + d.dx * LEN, y: a.y + d.dy * LEN };
       if (!clearSeg(a, b) || roadsOn(a, b) > 0) continue;

@@ -201,9 +201,18 @@ def _compose(spec, shop, rng):
         # the business's own storefront (the game's sprite, as the shops wear it): its bottom 96 rows the ground floor, any
         # sign over them a card standing proud of the floor above (as the box shops hang it)
         g = np.array(mb.load(pic_key))
-        assert g.shape[1] == PX, f'{spec["id"]}: storefront {pic_key} is {g.shape[1]} px wide, not {PX}'
-        ground = np.ascontiguousarray(g[-96:].copy()); door = (PX // 2 - 20, PX // 2 + 20)
-        if g.shape[0] > 96 and (g[:-96, :, 3] > 200).any(): sign = np.ascontiguousarray(g[:-96].copy())
+        assert g.shape[1] <= PX, f'{spec["id"]}: storefront {pic_key} is {g.shape[1]} px wide, more than {PX}'
+        # (a wider block, the planned town's street wall: the storefront in the middle of the kit's own ground-floor wall)
+        x0 = (PX - g.shape[1]) // 2
+        if x0:
+            wallrow = np.array(ground)[-96:].copy()
+            wallrow[:, x0:x0 + g.shape[1]] = np.where(g[-96:, :, 3:4] > 0, g[-96:], wallrow[:, x0:x0 + g.shape[1]])
+            ground = np.ascontiguousarray(wallrow)
+        else: ground = np.ascontiguousarray(g[-96:].copy())
+        door = (PX // 2 - 20, PX // 2 + 20)
+        if g.shape[0] > 96 and (g[:-96, :, 3] > 200).any():
+            top = np.zeros((g.shape[0] - 96, PX, 4), dtype=g.dtype); top[:, x0:x0 + g.shape[1]] = g[:-96]
+            sign = np.ascontiguousarray(top)
     mids = [compose_row(kit, 'mid', f)[0] for f in floors]
     # top to bottom: the top floor first, the ground last
     rows = mids[::-1] + [ground]

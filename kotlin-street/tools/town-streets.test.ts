@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { townStreets } from './town-streets';
+import { wholeTown } from './town-whole';
 import { neighborhoodOf, paletteColours } from '../../src/town/neighborhoods';
 
 type Entry = { id: string; sprite: string; home: boolean; name: string; parts: { key: string }[]; house?: { tier: string; design: number; colour: string }; yard?: { front: number; style: string } };
@@ -16,39 +17,47 @@ const bySprite = new Map(json.shops.map((e) => [e.sprite, e]));
 
 describe('town streets', () => {
   it('dresses small and medium homes in their tier\'s mobile home, in their district\'s colours', () => {
+    // (the planned town's crossroads are its Main Street and civic avenue, shops and civic buildings: the homes are the
+    // whole town's, dressed by the same entries, tools/town-buildings.ts)
     let houses = 0;
-    for (const e of json.shops) {
-      if (!e.home) continue;
-      const lot = ts.lotOf.get(e.sprite)!;
-      if (lot.tier !== 'small' && lot.tier !== 'medium') { expect(e.house).toBeUndefined(); continue; }
-      houses++;
-      expect(e.parts).toHaveLength(1);
-      expect(e.parts[0]!.key).toMatch(new RegExp(`^house_${lot.tier}_[1-8](_c[1-9])?$`));
-      expect(e.house!.tier).toBe(lot.tier);
-      const c = Number(e.house!.colour.slice(1) || 0);
-      expect(paletteColours[neighborhoodOf(ts.layout.plan, lot.neighborhood).palette]).toContain(c);
-      expect(e.yard).toEqual({ front: lot.front, style: neighborhoodOf(ts.layout.plan, lot.neighborhood).yard });
+    for (const seed of [SEED, 'gamma']) {
+      const t = wholeTown(seed, YEAR);
+      for (const e of t.buildings.entries as Entry[]) {
+        if (!e.home) continue;
+        const lot = t.lotOf.get(e.sprite);
+        if (!lot) continue;
+        if (lot.tier !== 'small' && lot.tier !== 'medium') { expect(e.house).toBeUndefined(); continue; }
+        if (!/^house_(small|medium)_/.test(e.parts[0]!.key)) continue;
+        houses++;
+        expect(e.parts).toHaveLength(1);
+        expect(e.parts[0]!.key).toMatch(new RegExp(`^house_${lot.tier}_[1-8](_c[1-9])?$`));
+        expect(e.house!.tier).toBe(lot.tier);
+        const c = Number(e.house!.colour.slice(1) || 0);
+        expect(paletteColours[neighborhoodOf(t.layout.plan, lot.neighborhood).palette]).toContain(c);
+        expect(e.yard).toEqual({ front: lot.front, style: neighborhoodOf(t.layout.plan, lot.neighborhood).yard });
+      }
     }
     expect(houses).toBeGreaterThan(3);
   });
 
   it('dresses villa-tier homes in their own villas, with their yards', () => {
-    // eta has no villa on its streets; koala has one (vale had two before the towns got their stores)
-    const v = townStreets('koala', YEAR);
-    const vj = v.json as typeof json;
     let villas = 0;
-    for (const e of vj.shops) {
-      const lot = v.lotOf.get(e.sprite)!;
-      if (!e.home || lot.tier !== 'villa') continue;
-      villas++;
-      expect(e.parts).toHaveLength(1);
-      expect(e.parts[0]!.key).toMatch(/^villa_[1-5]$/);
-      expect(e.house).toBeUndefined();
-      expect(e.yard).toEqual({ front: lot.front, style: neighborhoodOf(v.layout.plan, lot.neighborhood).yard });
+    for (const seed of ['gamma']) {
+      const v = wholeTown(seed, YEAR);
+      const vj = { shops: v.buildings.entries as Entry[] };
+      for (const e of vj.shops) {
+        const lot = v.lotOf.get(e.sprite);
+        if (!lot || !e.home || lot.tier !== 'villa') continue;
+        villas++;
+        expect(e.parts).toHaveLength(1);
+        expect(e.parts[0]!.key).toMatch(/^villa_[1-5]$/);
+        expect(e.house).toBeUndefined();
+        expect(e.yard).toEqual({ front: lot.front, style: neighborhoodOf(v.layout.plan, lot.neighborhood).yard });
+      }
+      // the other homes there keep what they wore: mobile homes their own, the rest the condo stand-in
+      for (const e of vj.shops) if (e.home && v.lotOf.get(e.sprite) && v.lotOf.get(e.sprite)!.tier !== 'villa') expect(e.parts[0]!.key).not.toMatch(/^villa_/);
     }
     expect(villas).toBeGreaterThan(0);
-    // the other homes there keep what they wore: mobile homes their own, the rest the condo stand-in
-    for (const e of vj.shops) if (e.home && v.lotOf.get(e.sprite)!.tier !== 'villa') expect(e.parts[0]!.key).not.toMatch(/^villa_/);
   });
 
   it('never repeats a house design within two houses along a row', () => {

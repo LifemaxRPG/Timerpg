@@ -210,6 +210,63 @@ fun renderFilamentOpen(out: String) {
         view("main_through_13h", p.x, p.z, a.x, a.z, fronts + 180f, 20f, 600f, 13f, "Main Street, the camera behind the block (the block cut away)")
         view("main_dusk_west", p.x, p.z, a.x, a.z, 270f, 16f, 500f, 19.3f, "Main Street, looking west at dusk")
     }
+    // --- the planned town (docs/TOWN_PLAN.md): -Dshots=plan renders these. The start spot on Main Street before the civic
+    // block, the river crossing downtown, the depot and the rail side, the highway strip, a street of the town's other
+    // homes from the front and from a backyard, the whole downtown from above, the radio station; a county seat's
+    // courthouse where the town has one (-Dtown=a county seat's folder)
+    run {
+        val g = root.getJSONObject("graph")
+        fun mid4(a: org.json.JSONArray) = floatArrayOf(((a.getDouble(0) + a.getDouble(2)) / 2).toFloat(), ((a.getDouble(1) + a.getDouble(3)) / 2).toFloat())
+        /** A view from the pavement nearest world point ([cx], [cz]), the camera turned [turn] from square at the fronts. */
+        fun at(name: String, cx: Float, cz: Float, turn: Float, pitch: Float, dist: Float, hour: Float, where: String) {
+            val (r, x) = town.nearestRow(cx, cz) ?: return
+            val p = r.pointAt(x, 7f); val a = r.alongAt(x); val n = r.normalAt(x)
+            view(name, p.x, p.z, a.x, a.z, heading(n.x, n.z) + turn, pitch, dist, hour, where)
+        }
+        val sp = g.getJSONObject("spawn")
+        val sr = town.rows.first { it.id == sp.get("row").toString() }
+        val sx = sp.getDouble("x").toFloat()
+        val s0 = sr.pointAt(sx, 7f); val sa0 = sr.alongAt(sx); val sn = sr.normalAt(sx)
+        // (the way the player faces at the start: along Main Street to the plaza)
+        val sd = sp.optDouble("dir", 1.0).toFloat().let { if (it < 0f) -1f else 1f }
+        val sa = com.lifemax.rpg.feature.habits.domain.TownPoint(sa0.x * sd, sa0.z * sd)
+        view("plan_start", s0.x, s0.z, sa.x, sa.z, heading(sa.x, sa.z), OrbitCamera.PITCH0, OrbitCamera.DIST0, 13f, "the start view as the app opens it: behind the player, along Main Street to the plaza")
+        // Main Street at a person's height: low behind the player, a little to the side, the street walls receding
+        view("plan_main", s0.x, s0.z, sa.x, sa.z, heading(sa.x, sa.z) + 12f, OrbitCamera.PITCH_MIN, 160f, 13f, "Main Street at a person's height")
+        // (downtown from above: over the civic block's plaza, looking along Main Street)
+        val pzc = g.optJSONObject("plaza")?.getJSONArray("rect")?.let { mid4(it) } ?: floatArrayOf(s0.x, s0.z)
+        view("plan_above", (pzc[0] + s0.x) / 2f, (pzc[1] + s0.z) / 2f, sa.x, sa.z, heading(sa.x, sa.z) + 35f, 48f, OrbitCamera.DIST_MAX, 13f, "the downtown from above, by the square")
+        // the river: the bridge nearest the start spot
+        g.optJSONArray("bridges")?.let { b -> (0 until b.length()).map { mid4(b.getJSONObject(it).getJSONArray("rect")) }.minByOrNull { hypot(it[0] - s0.x, it[1] - s0.z) } }
+            ?.let { at("plan_river", it[0], it[1], 70f, 24f, 700f, 13f, "the river crossing downtown") }
+        // the riverwalk along the river's banks through the core
+        g.optJSONArray("lanes")?.let { a -> (0 until a.length()).map { a.getJSONObject(it) }.firstOrNull { it.getString("id").startsWith("riverwalk:") } }?.let { l ->
+            val c = mid4(l.getJSONArray("rect"))
+            view("plan_riverwalk", c[0], c[1], 0f, 1f, 150f, 18f, 520f, 13f, "the riverwalk through the core")
+        }
+        // the models: the depot's neighbours (the feed mill, the works), the strip (the motel, the lanes), the radio station
+        val glb = g.optJSONArray("glbLandmarks")?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } } ?: emptyList()
+        fun model(k: String) = glb.firstOrNull { it.getString("kind").contains(k) }?.let { mid4(it.getJSONArray("rect")) }
+        (model("feed_mill") ?: model("foundry"))?.let { at("plan_rail", it[0], it[1], 35f, 22f, 760f, 13f, "the rail side: depot street's foot, the feed mill and works") }
+        (model("roadside_motel") ?: model("starling_lanes") ?: model("junction_diner") ?: model("reel_time_video") ?: model("coin_laundromat"))?.let { at("plan_strip", it[0], it[1], 40f, 20f, 760f, 13f, "the highway strip") }
+        model("radio_station")?.let { at("plan_radio", it[0], it[1], 20f, 14f, 420f, 13f, "the radio station") }
+        model("county_courthouse")?.let { at("plan_court", it[0], it[1], 15f, 18f, 760f, 13f, "the county courthouse on its square") }
+        // a street of the town's other homes: the row with most of them; from the street, then from a backyard
+        val fillers = root.optJSONArray("shops")?.let { a -> (0 until a.length()).map { a.getJSONObject(it) }.filter { it.optBoolean("filler") && it.optBoolean("home") }.map { it.getString("sprite") }.toSet() } ?: emptySet()
+        town.rows.maxByOrNull { r -> r.buildings.count { it.sprite in fillers } }?.let { r ->
+            val b = r.buildings.filter { it.sprite in fillers }.sortedBy { it.mid }.let { it[it.size / 2] }
+            val p = r.pointAt(b.mid, 7f); val a = r.alongAt(b.mid); val n = r.normalAt(b.mid)
+            view("plan_homes_front", p.x, p.z, a.x, a.z, heading(n.x, n.z) + 30f, 18f, 560f, 13f, "a street of the town's other homes")
+            val lots = g.getJSONArray("lots").let { l -> (0 until l.length()).map { l.getJSONObject(it) } }
+            lots.firstOrNull { it.getString("sprite") == b.sprite }?.let { l ->
+                val c = mid4(l.getJSONArray("rect"))
+                // (the backyard: beyond the house, out from the street)
+                val bx = c[0] + n.x * 260f; val bz = c[1] + n.z * 260f
+                view("plan_homes_back", bx, bz, -n.x, -n.z, heading(-n.x, -n.z) + 20f, 22f, 520f, 13f, "the same homes from their backyards")
+            }
+        }
+    }
+
     // --- downtown: the tallest building with nobody in it (a tower behind the main street, else the town hall), from the
     // pavement in front of its block, at the camera's usual height, zoomed out, at night, and from across town (its far box
     // on the skyline); -Dshots=downtown renders only these

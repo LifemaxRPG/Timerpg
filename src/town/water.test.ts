@@ -29,16 +29,19 @@ describe('water (river / lake)', () => {
       const p = planTown(s);
       const w = p.water!;
       if (w.kind === 'river') {
-        let minW = 99, maxW = 0;
+        let minW = 99, maxW = 0, jog = 0;
         for (let y = 0; y < w.height; y++) {
           let n = 0;
           for (let x = 0; x < w.width; x++) n += w.raw[y * w.width + x]!;
           expect(n, `${s} river missing at row ${y}`).toBeGreaterThan(0);
           minW = Math.min(minW, n);
+          // (the planned river may jog a block sideways through the core's back lots: a few rows run along it)
+          if (n > 14) { jog++; continue; }
           maxW = Math.max(maxW, n);
         }
         expect(minW, s).toBeGreaterThanOrEqual(3);
-        expect(maxW, s).toBeLessThanOrEqual(12); // meanders widen a few rows (a sideways bend spans a diagonal)
+        expect(maxW, s).toBeLessThanOrEqual(14); // meanders widen a few rows (a sideways bend spans a diagonal)
+        expect(jog, s).toBeLessThanOrEqual(16);
       } else {
         expect(w.mask.reduce((a, b) => a + b, 0), s).toBeGreaterThan(80);
       }

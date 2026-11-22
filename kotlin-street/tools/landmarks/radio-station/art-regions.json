@@ -1,0 +1,122 @@
+{
+  "front_window": {
+    "rect_art": [
+      0,
+      0,
+      12,
+      26
+    ]
+  },
+  "side_window": {
+    "rect_art": [
+      16,
+      0,
+      20,
+      26
+    ]
+  },
+  "high_window": {
+    "rect_art": [
+      40,
+      0,
+      24,
+      12
+    ]
+  },
+  "control_window": {
+    "rect_art": [
+      68,
+      0,
+      32,
+      22
+    ]
+  },
+  "studio_window": {
+    "rect_art": [
+      104,
+      0,
+      16,
+      28
+    ]
+  },
+  "angled_glass": {
+    "rect_art": [
+      128,
+      0,
+      64,
+      64
+    ]
+  },
+  "main_door": {
+    "rect_art": [
+      0,
+      0,
+      16,
+      32
+    ]
+  },
+  "service_door": {
+    "rect_art": [
+      20,
+      0,
+      16,
+      32
+    ]
+  },
+  "room_door": {
+    "rect_art": [
+      40,
+      0,
+      16,
+      32
+    ]
+  },
+  "louver": {
+    "rect_art": [
+      60,
+      0,
+      24,
+      16
+    ]
+  },
+  "tower_red": {
+    "rect_art": [
+      128,
+      0,
+      64,
+      64
+    ]
+  },
+  "nameplate": {
+    "rect_art": [
+      0,
+      0,
+      94,
+      18
+    ]
+  },
+  "blade": {
+    "rect_art": [
+      0,
+      24,
+      20,
+      48
+    ]
+  },
+  "on_air": {
+    "rect_art": [
+      104,
+      0,
+      40,
+      12
+    ]
+  },
+  "emblem": {
+    "rect_art": [
+      24,
+      24,
+      24,
+      24
+    ]
+  }
+}

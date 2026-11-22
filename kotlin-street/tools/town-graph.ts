@@ -40,7 +40,7 @@ import { neighborhoodOf } from '../../src/town/neighborhoods';
 import { hash, makeBuildings, townLots, type Buildings } from './town-buildings';
 import { townStreets } from './town-streets';
 import { glbStanding, townGlb, type GlbJson } from './town-glb';
-import { extraBuildings, oldSchool, packEntries, packOf, type ExtraBuilding, type PackEntry } from './town-downtown';
+import { extraBuildings, oldSchool, packEntries, packOf, WALL_W, type ExtraBuilding, type PackEntry } from './town-downtown';
 
 /** Street units per tile at the art's size (BuildingSpec.W 184 per 224 px; 32 px a tile). */
 export const UNIT_PER_TILE = 32 * 184 / 224;
@@ -128,7 +128,7 @@ export interface RowJson {
 export interface LotJson { id: string; sprite: string; row: string; rect: [number, number, number, number]; kind: string; neighbourhood: string; yard: string }
 export interface TownMapJson {
   seed: string; year: number; k: number; unitPerTile: number; scale: number; frontTiles: number;
-  spawn: { row: string; x: number; lane: number };
+  spawn: { row: string; x: number; lane: number; dir?: number };
   civic: { road: number; name: string };
   neighbourhoods: { id: string; name: string; palette: string; yard: string; shopColour: string }[];
   nodes: NodeJson[]; roads: RoadJson[]; rows: RowJson[];
@@ -148,6 +148,7 @@ export interface TownMapJson {
   glbLandmarks?: GlbJson[];
   storePeople?: [number, number][];
   plaza: { rect: [number, number, number, number]; props: { kind: string; x: number; z: number; look: number }[] };
+  paved: { rect: [number, number, number, number]; kind: string }[];
   water: { kind: string; polys: P[][] } | null;
   bridges: { rect: [number, number, number, number]; horizontal: boolean }[];
   props: { kind: string; x: number; z: number; look: number }[];
@@ -421,7 +422,9 @@ export function townGraph(seed: string, year: number): TownGraph {
       const pr = project(row.centre, cumOf(row.centre), [cx, cy]);
       return pr.off > 0;
     }) ?? pair.L;
-    const pf = project(pick.front, pick.cum, [cx, cy]);
+    // (placed by the middle of its front edge, on its road's side: by a bend, a deep plot's centre may lie nearer the other leg)
+    const fp: P = f.dir === 'S' ? [cx, r.y + r.h] : f.dir === 'N' ? [cx, r.y] : f.dir === 'E' ? [r.x + r.w, cy] : [r.x, cy];
+    const pf = project(pick.front, pick.cum, fp);
     const half = (f.dir === 'S' || f.dir === 'N') ? r.w / 2 : r.h / 2;
     const depthT = (f.dir === 'S' || f.dir === 'N') ? r.h : r.w;
     // the plot's front edge: its distance from the road's centre, less the 2 tiles of road and pavement
@@ -491,9 +494,12 @@ export function townGraph(seed: string, year: number): TownGraph {
     const L = row.length * SCALE;
     const items = row.items.sort((a, b) => a.s0 - b.s0 || a.sprite.localeCompare(b.sprite, 'en', { numeric: true }));
     const groups: Item[][] = [];
+    // (a street-wall shop stands on its own at the position scale, its width its plot's: the wall runs on unbroken)
+    const wall = (q: Item): boolean => (q.kind === 'shop' && q.foot.width >= WALL_W) || (q.lotId.startsWith('extra:vacant:') && q.foot.width !== 480);
     for (const it of items) {
       const g = groups[groups.length - 1];
-      if (g && it.s0 - Math.max(...g.map((q) => q.s1)) <= GROUP_GAP + 1e-9) g.push(it); else groups.push([it]);
+      // (a street-wall shop stands on its own at the position scale, its width its plot's: the wall runs on unbroken)
+      if (g && !wall(it) && !g.some(wall) && it.s0 - Math.max(...g.map((q) => q.s1)) <= GROUP_GAP + 1e-9) g.push(it); else groups.push([it]);
     }
     const placed = groups.map((g, gi) => {
       const lo = Math.min(...g.map((q) => q.s0)), hi = Math.max(...g.map((q) => q.s1));
@@ -508,13 +514,20 @@ export function townGraph(seed: string, year: number): TownGraph {
       conflicts.push(`row ${row.id}: group ${p.g.map((q) => q.sprite).join('+')} nudged ${r3(dx)} units (${why})`);
     };
     // clear of the mouths, then of each other (forward and back), keeping at least a tile between groups
-    for (const p of placed) { if (p.lo < minX) shift(p, minX - p.lo, 'start mouth'); if (p.hi > maxX) shift(p, maxX - p.hi, 'end mouth'); }
-    for (let i = 1; i < placed.length; i++) { const a = placed[i - 1]!, b = placed[i]!; if (b.lo < a.hi + UNIT_PER_TILE - 1e-6) shift(b, a.hi + UNIT_PER_TILE - b.lo, 'neighbour'); }
-    for (let i = placed.length - 1; i >= 0; i--) {
-      const p = placed[i]!;
+    // (a building standing back behind the shops on its own, a tower or a renewal car park beside a street wall's shops,
+    // keeps its place at the position scale: it is clear of the front row in depth)
+    const behind = (p: typeof placed[number]): boolean => p.g.every((q) => q.kind === 'extra' && q.foot.setback * PX > 100);
+    const all = placed;
+    const front = placed.filter((p) => !behind(p));
+    for (const p of all) { if (p.lo < minX) shift(p, minX - p.lo, 'start mouth'); if (p.hi > maxX) shift(p, maxX - p.hi, 'end mouth'); }
+    // (two shops of a street wall stand shoulder to shoulder: no tile between them)
+    const gapOf = (a: typeof placed[number], b: typeof placed[number]): number => (a.g.some(wall) && b.g.some(wall) ? 0 : UNIT_PER_TILE);
+    for (let i = 1; i < front.length; i++) { const a = front[i - 1]!, b = front[i]!, gp = gapOf(a, b); if (b.lo < a.hi + gp - 1e-6) shift(b, a.hi + gp - b.lo, 'neighbour'); }
+    for (let i = front.length - 1; i >= 0; i--) {
+      const p = front[i]!;
       if (p.hi > maxX + 1e-6) shift(p, maxX - p.hi, 'end mouth');
-      const a = placed[i - 1];
-      if (a && a.hi > p.lo - UNIT_PER_TILE + 1e-6) shift(a, p.lo - UNIT_PER_TILE - a.hi, 'neighbour');
+      const a = front[i - 1];
+      if (a && a.hi > p.lo - gapOf(a, p) + 1e-6) shift(a, p.lo - gapOf(a, p) - a.hi, 'neighbour');
     }
     for (const p of placed) {
       if (p.lo < minX - 1e-6 || p.hi > maxX + 1e-6) conflicts.push(`row ${row.id}: group ${p.g.map((q) => q.sprite).join('+')} does not fit between its mouths (${r3(p.lo)}..${r3(p.hi)} of ${r3(L)})`);
@@ -540,6 +553,7 @@ export function townGraph(seed: string, year: number): TownGraph {
   };
   const footprints: TownGraph['footprints'] = [];
   const lotsJson: LotJson[] = [];
+  const glbLaid = new Map<string, [number, number, number, number]>();
   const rowJson = new Map<Row, RowJson>();
   for (const row of rows) {
     const out: BuildingJson[] = [];
@@ -562,10 +576,12 @@ export function townGraph(seed: string, year: number): TownGraph {
       // the service alley between)
       let lotBack = plotBack;
       // (every shop of a run with one behind it ends there, so the alley runs the run's whole back, out at its ends)
-      if (it.kind === 'shop') for (const x of row.items) if (x.kind === 'extra' && x.group === it.group && x.foot.setback * PX > 100) lotBack = Math.min(lotBack, Math.max(setback + depth + 8, x.e * SCALE + x.foot.setback * PX - ALLEY));
+      if (it.kind === 'shop') for (const x of row.items) if (x.kind === 'extra' && (x.group === it.group || (x.x1 > it.x0 && x.x0 < it.x1)) && x.foot.setback * PX > 100) lotBack = Math.min(lotBack, Math.max(setback + depth + 8, x.e * SCALE + x.foot.setback * PX - ALLEY));
       // (a lot with its car park in front begins behind it)
       let lotFront = plotFront;
       if (it.kind === 'shop') for (const x of row.items) if (x.kind === 'extra' && x.tier === 'parking' && x.foot.setback === 0 && x.x1 > it.x0 && x.x0 < it.x1) lotFront = Math.max(lotFront, x.e * SCALE + x.foot.depth * PX + 2);
+      // (a hand-made model's plot as laid out on its row: at the art's scale along it, as its neighbours stand)
+      if (it.kind === 'landmark' && it.lotId.startsWith('landmark:glb:')) glbLaid.set(it.sprite, boxOf(row, it.lx0, it.lx1, plotFront, plotBack));
       if (it.kind !== 'landmark' && it.kind !== 'extra') lotsJson.push({ id: it.lotId, sprite: it.sprite, row: row.id, rect: boxOf(row, it.lx0, it.lx1, lotFront, lotBack), kind: it.tier, neighbourhood: it.neighbourhood, yard: it.yard });
     }
     const pts = frontW(row);
@@ -607,11 +623,38 @@ export function townGraph(seed: string, year: number): TownGraph {
     .map((c) => ({ c, n: [rowsOf.get(c)!.L, rowsOf.get(c)!.R].reduce((s, r) => s + r.items.filter((i) => i.kind === 'landmark' && !i.lotId.startsWith('landmark:glb:')).length, 0) }))
     .sort((a, b) => b.n - a.n || a.c.id - b.c.id)[0]?.c ?? chains[0]!;
   const civicNode = isMainNode(civicChain.a) ? civicChain.a : civicChain.b;
-  const spawnRow = rowsOf.get(civicChain)!.L.from === civicNode ? rowsOf.get(civicChain)!.L : rowsOf.get(civicChain)!.R;
+  let spawnRow = rowsOf.get(civicChain)!.L.from === civicNode ? rowsOf.get(civicChain)!.L : rowsOf.get(civicChain)!.R;
   // by the plaza if it is on this row, else by the first building
   const pz = plan.plaza;
   const pzS = project(spawnRow.front, spawnRow.cum, [pz.x + pz.w / 2, pz.y + pz.h / 2]);
-  const spawnX = pzS.off > 0 && pzS.off < pz.w + FRONT_TILES + 2 ? pzS.s * SCALE : (spawnRow.items[0]?.x0 ?? MARGIN + 40);
+  let spawnX = pzS.off > 0 && pzS.off < pz.w + FRONT_TILES + 2 ? pzS.s * SCALE : (spawnRow.items[0]?.x0 ?? MARGIN + 40);
+  // the planned town: on Main Street in front of the civic block (the plaza and town hall, or the courthouse square),
+  // on its side of the street, at the block's middle
+  // (the start view looks along Main Street to the plaza: the player stands a block down it, in the next core block's
+  // middle, facing the civic block, the street walls of both sides receding ahead; [spawnDir] +1: along the row)
+  let spawnDir = 1;
+  if (plan.v2) {
+    const civ = plan.v2.blocks.find((b) => b.col === 0 && b.row === -1)!;
+    const cAt: P = [civ.x + civ.w / 2, civ.y + civ.h / 2];
+    // the core block beside it on Main Street: away from the river when there is one there, else towards it
+    const beside = (dc: number) => plan.v2!.blocks.find((b) => b.col === dc && b.row === -1 && (b.district === 'core'));
+    const riverX = plan.v2.blocks.find((b) => b.district === 'river' && b.row === -1);
+    const away = riverX ? (riverX.x > civ.x ? -1 : 1) : -1;
+    const nb = beside(away) ?? beside(-away);
+    const at: P = nb ? [nb.x + nb.w / 2, nb.y + nb.h / 2] : cAt;
+    let best: { row: Row; s: number; d: number } | undefined;
+    for (const c of mains) for (const row of [rowsOf.get(c)!.L, rowsOf.get(c)!.R]) {
+      const q = project(row.front, row.cum, at);
+      // (its foot within the row's length, not past an end)
+      if (q.off <= 0 || q.s < 1 || q.s > row.length - 1) continue;
+      if (!best || q.off < best.d) best = { row, s: q.s, d: q.off };
+    }
+    if (best) {
+      spawnRow = best.row; spawnX = best.s * SCALE;
+      const qc = project(best.row.front, best.row.cum, cAt);
+      spawnDir = qc.s >= best.s ? 1 : -1;
+    }
+  }
 
   // ---------------------------------------------------------------------------------------------- names
   const lineName = new Map<number, string>();
@@ -708,7 +751,7 @@ export function townGraph(seed: string, year: number): TownGraph {
   const ids = new Map([...kept].map((n, i) => [n, i]));
   const graph: TownMapJson = {
     seed, year, k: Math.round(K * 1e4) / 1e4, unitPerTile: r3(UNIT_PER_TILE), scale: r3(SCALE), frontTiles: FRONT_TILES,
-    spawn: { row: spawnRow.id, x: r3(spawnX), lane: SPAWN_LANE },
+    spawn: { row: spawnRow.id, x: r3(spawnX), lane: SPAWN_LANE, dir: spawnDir },
     civic: { road: civicChain.id, name: lineName.get(find(civicChain.id))! },
     neighbourhoods: plan.neighborhoods.map((n) => ({ id: n.id, name: n.name, palette: n.palette, yard: n.yard, shopColour: n.shopColour })),
     nodes: [...kept].map((n) => ({
@@ -718,7 +761,7 @@ export function townGraph(seed: string, year: number): TownGraph {
     roads: chains.map((c) => ({ id: c.id, name: lineName.get(find(c.id))!, main: c.main, a: ids.get(c.a)!, b: ids.get(c.b)!, pts: c.pts.map(w3), width: MOUTH })),
     rows: rows.map((r) => ({ ...rowJson.get(r)!, from: ids.get(r.from)!, to: ids.get(r.to)! })),
     landmarks: [...layout.landmarks.map((l): TownMapJson['landmarks'][number] => ({ id: `landmark:${l.id}`, kind: l.id, name: l.name, sprite: landmarkSprite.get(l)!, art: landmarkArtKey(l), row: rowIdOfSprite.get(landmarkSprite.get(l)!) ?? '', rect: rectW(l), ...cinemaLandmark(l), ...storeLandmark(l) }))]
-      .concat(glbNow.filter((g) => rowIdOfSprite.has(g.sprite)).map((g) => ({ id: `landmark:${g.site.id}`, kind: g.tenure.kind, name: g.name, sprite: g.sprite, art: g.tenure.kind, row: rowIdOfSprite.get(g.sprite)!, rect: rectW(g.site.rect) }))),
+      .concat(glbNow.filter((g) => rowIdOfSprite.has(g.sprite)).map((g) => ({ id: `landmark:${g.site.id}`, kind: g.tenure.kind, name: g.name, sprite: g.sprite, art: g.tenure.kind, row: rowIdOfSprite.get(g.sprite)!, rect: glbLaid.get(g.sprite) ?? rectW(g.site.rect) }))),
     ...cinemaBlock(seed, year, layout),
     ...storesBlock(seed, year, layout),
     ...storeSitesBlock(seed, plan.landmarks, rectW),
@@ -726,11 +769,15 @@ export function townGraph(seed: string, year: number): TownGraph {
       id: g.site.id, landmark: `landmark:${g.site.id}`, kind: g.tenure.kind, name: g.name, state: g.state, ...(g.hide.length ? { hide: g.hide } : {}),
       opened: g.tenure.opened, ...(g.tenure.closed !== undefined ? { closed: g.tenure.closed } : {}), ...(g.tenure.gone !== undefined ? { gone: g.tenure.gone } : {}),
       ...(g.tenure.reuse ? { reuse: { from: g.tenure.reuse.from, as: g.tenure.reuse.as } } : {}), ...(g.tenure.variant !== undefined ? { variant: g.tenure.variant } : {}),
-      tiles: g.tiles, rect: rectW(g.site.rect), sprite: g.sprite, row: rowIdOfSprite.get(g.sprite)!, history: g.site.tenures,
+      tiles: g.tiles, rect: glbLaid.get(g.sprite) ?? rectW(g.site.rect), sprite: g.sprite, row: rowIdOfSprite.get(g.sprite)!, history: g.site.tenures,
     })) } : {}),
     extras: extras.filter((x) => rowIdOfSprite.has(x.sprite)).map((x) => ({ id: `extra:${x.id}`, sprite: x.sprite, kind: x.kind, name: x.name, row: rowIdOfSprite.get(x.sprite)!,
       storeys: x.storeys, built: x.built, ...(x.demolished !== undefined ? { demolished: x.demolished } : {}) })),
     plaza: { rect: rectW(pz), props: plazaProps },
+    // downtown's ground: its blocks paved to their streets (the core's back lots asphalt, the civic block round the plaza
+    // in the plaza's stone; a county seat's square keeps its lawn), under the buildings and their yards
+    paved: (plan.v2?.blocks ?? []).filter((b) => b.district === 'core' || (b.district === 'square' && !plan.v2!.countySeat))
+      .map((b) => ({ rect: rectW(b), kind: b.district === 'square' ? 'square' : 'lot' })),
     water,
     bridges: (plan.water?.bridges ?? []).map((b) => ({ rect: rectW(b), horizontal: b.horizontal })),
     props,

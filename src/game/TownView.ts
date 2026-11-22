@@ -238,7 +238,7 @@ export class TownView {
     for (const o of this.drawn) o.destroy();
     this.drawn = [];
     this.drawRoads(this.layout.roads);
-    for (const lot of [...this.layout.lots, ...this.layout.vacantLots]) this.drawLot(lot);
+    for (const lot of [...this.layout.lots, ...this.layout.vacantLots, ...this.layout.fillers]) this.drawLot(lot);
     for (const l of this.layout.landmarks) this.drawLandmark(l);
     for (const p of this.layout.props) this.drawProp(p, true);
     this.doors = this.makeEntrances();

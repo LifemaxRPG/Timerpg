@@ -93,6 +93,8 @@ const places: Map<string, Place> = whole ? placesIn(flag('--street') ?? asset, s
 /** The people to talk to at one building: a shop's owner, or a home's head and one other adult. */
 function talkAt(sprite: string, place: Record<string, unknown>): void {
   const lot = t.lotOf.get(sprite) ?? whole!.lotOf.get(sprite)!;
+  // (the town's other homes and shops: nobody to talk to yet)
+  if (lot.filler) { people.set(sprite, 0); return; }
   const add = (p: Person, role: string, building: string, job: string): void => {
     npcs.push({ id: p.id, name: fullName(p), first: p.first, age: ageIn(p, w.year), sex: p.sex, warmth: Math.round(p.traits.charm * 100) / 100, building: sprite, buildingName: building, ...place, role, job, topics: topicsOf(ctxOf(p, job)) });
   };
@@ -113,6 +115,15 @@ function talkAt(sprite: string, place: Record<string, unknown>): void {
     const building = lot.residents.length > 2 ? `${surname} House`.trim() : `The ${surname} home`.trim();
     if (first) add(first, 'head', building, jobOf(first));
     if (others[0]) add(others[0], 'resident', building, jobOf(others[0]));
+    // (an apartment block: every other household in it has its head, and the head's spouse, to talk to as well)
+    const met = new Set([first?.id, others[0]?.id]);
+    for (const h of lot.heads) {
+      const hp = w.people[h];
+      if (!hp || !isAlive(hp) || met.has(hp.id) || ageIn(hp, w.year) < 18) continue;
+      add(hp, 'head', building, jobOf(hp)); met.add(hp.id);
+      const sp = hp.spouse ? w.people[hp.spouse] : undefined;
+      if (sp && isAlive(sp) && !met.has(sp.id) && lot.residents.includes(sp.id)) { add(sp, 'resident', building, jobOf(sp)); met.add(sp.id); }
+    }
     people.set(sprite, living.length);
   }
 }

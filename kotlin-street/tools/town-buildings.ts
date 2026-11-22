@@ -52,6 +52,8 @@ export interface Buildings {
 export const townLots = (layout: TownLayout): Lot[] => [
   ...layout.lots.filter((l) => l.kind === 'shop' && l.vacantSince === undefined),
   ...layout.lots.filter((l) => l.kind === 'house'),
+  // the planned town's other shops and homes (no business or family yet: `filler` in their street.json entries)
+  ...(layout.fillers ?? []),
 ];
 
 export function makeBuildings(w: World, layout: TownLayout, year: number): Buildings {
@@ -94,7 +96,14 @@ export function makeBuildings(w: World, layout: TownLayout, year: number): Build
     seen.set(l, sprite);
     lotOf.set(sprite, l);
     const colour = neighborhoodOf(layout.plan, l.neighborhood).shopColour;
-    if (l.kind === 'shop') {
+    if (l.kind === 'shop' && l.filler) {
+      // a shop front of an ordinary trade with no business behind it yet (the town built out: TOWN_PLAN.md)
+      const look = (hash(l.slot) % 1000000) / 1000000;
+      const art = shopFacade(l.label, look, year, colour);
+      const parts = art.layers.map((ly) => ({ key: ly.key, w: ly.w, h: ly.h, y: ly.y }));
+      made.set(sprite, { kind: l.label, look, colour, home: false, residents: 0, parts });
+      entries.push({ id: `shop:${l.slot}`, sprite, home: false, name: l.label, kind: l.label, owner: '', colour: art.colour, parts, filler: true });
+    } else if (l.kind === 'shop') {
       const b = w.businesses[l.refId]!;
       const owner = b.owner ? w.people[b.owner] : undefined;
       // the very building our game draws for this shop: its sprite parts, bottom to top
@@ -123,11 +132,13 @@ export function makeBuildings(w: World, layout: TownLayout, year: number): Build
       const art = built ? l.art : homeFacade(colour, l.look, l.residents.length);
       const parts = art.layers.map((ly) => ({ key: ly.key, w: ly.w, h: ly.h, y: ly.y }));
       const nb = neighborhoodOf(layout.plan, l.neighborhood);
-      const e: Record<string, unknown> & { house?: House } = { id: `home:${l.slot}`, sprite, home: true, name: l.residents.length > 2 ? `${surname} House`.trim() : `The ${surname} home`.trim(),
+      const e: Record<string, unknown> & { house?: House } = { id: `home:${l.slot}`, sprite, home: true, name: l.filler ? (l.tier === 'apartment' ? 'Apartments' : 'House') : l.residents.length > 2 ? `${surname} House`.trim() : `The ${surname} home`.trim(),
         kind: 'Home', owner: head ? fullName(head) : '', residents: l.residents.map((id) => (w.people[id] ? fullName(w.people[id]!) : id)), colour,
         parts };
       // the house the engine builds, and its yard (the game's: how deep its front yard is, and how it is fenced)
       if (mobile) e.house = mobile;
+      // (one of the town's other homes: no family in the simulation yet)
+      if (l.filler) e.filler = true;
       if (built) e.yard = { front: l.front, style: nb.yard };
       made.set(sprite, { kind: 'Home', look: l.look, colour, home: true, residents: l.residents.length, parts, house: mobile, palette: nb.palette, entry: e, villa, block });
       entries.push(e);

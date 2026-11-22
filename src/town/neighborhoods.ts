@@ -4,7 +4,7 @@ import type { LotKind, Rect } from './kinds';
 import { hitsWater, type WaterBody } from './water';
 
 export type Palette = 'cream' | 'blue' | 'sage' | 'stone';
-export type NeighborhoodId = 'old-town' | 'gardens' | 'heights' | 'woodside' | 'waterfront';
+export type NeighborhoodId = 'old-town' | 'gardens' | 'heights' | 'woodside' | 'waterfront' | 'the-flats';
 export interface Neighborhood {
   id: NeighborhoodId;
   name: string;

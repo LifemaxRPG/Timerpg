@@ -98,7 +98,8 @@ describe('town layout (who lives where)', () => {
   it('grows outward from the center: young town is compact, old town sprawls', () => {
     const spread = (year: number): number => {
       const l = layoutTown(worldAt(t, year));
-      const houses = l.lots.filter((x) => x.kind === 'house');
+      // (the whole town: the simulated households' homes and the town's other homes, as built out)
+      const houses = [...l.lots, ...l.fillers].filter((x) => x.kind === 'house');
       const d = houses.map((h) => Math.hypot(h.x + h.w / 2 - l.plan.center.x, h.y + h.h / 2 - l.plan.center.y));
       return d.reduce((s, v) => s + v, 0) / d.length;
     };

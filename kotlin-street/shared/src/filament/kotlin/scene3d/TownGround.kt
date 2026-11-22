@@ -92,19 +92,21 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
     fun isWater(i: Int, j: Int): Boolean = key(i, j) in water
 
     /** Every batch of the ground, greenery and furniture. */
-    fun pieces(): List<GroundPiece> {
-        val out = ArrayList<GroundPiece>()
-        out += grass()
-        out += roads()
-        out += patches()
-        out += zebras()
-        plaza()?.let { out += it }
-        landmarkGrounds()?.let { out += it }
-        out += waterPieces()
-        out += bridges()
-        out += greenery()
-        out += furniture()
-        return out
+    fun pieces(): Sequence<GroundPiece> = sequence {
+        // (made one kind at a time as the town packs them: each piece's pictures go once packed, not held, the grass's 16 MB
+        // among them, until every piece of the ground is made)
+        yield(grass())
+        yieldAll(roads())
+        yieldAll(patches())
+        yieldAll(zebras())
+        yieldAll(paved())
+        plaza()?.let { yield(it) }
+        grates()?.let { yield(it) }
+        landmarkGrounds()?.let { yield(it) }
+        yieldAll(waterPieces())
+        yieldAll(bridges())
+        yieldAll(greenery())
+        yieldAll(furniture())
     }
 
     // ------------------------------------------------------------------ a flat mesh in world coordinates
@@ -412,6 +414,23 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         return listOf(piece("zebras", f, tiled = false))
     }
 
+    /**
+     * Downtown's blocks paved to their streets, under their buildings and yards: the core's back lots asphalt, the civic
+     * block round its plaza in the plaza's stone. No lawn in a downtown.
+     */
+    private fun paved(): List<GroundPiece> {
+        if (town.paved.isEmpty()) return emptyList()
+        val n = 64
+        val lot = PixImg(n, n)
+        for (y in 0 until n) for (x in 0 until n) lot[x, y] = asphalt.at(x, y)
+        val sq = PixImg(n, n)
+        for (y in 0 until n) for (x in 0 until n) sq[x, y] = plazaTile.at(x, y)
+        val fl = Flat(lot); val fs = Flat(sq)
+        val s = n * UNIT
+        for ((r, kind) in town.paved) (if (kind == "square") fs else fl).level(r[0], r[1], r[2], r[3], LIFT_PAVED, r[0] / s, r[1] / s, r[2] / s, r[3] / s)
+        return listOfNotNull(if (fl.empty) null else piece("paved-lots", fl), if (fs.empty) null else piece("paved-square", fs))
+    }
+
     private fun plaza(): GroundPiece? {
         val r = town.plaza ?: return null
         val n = 64
@@ -421,6 +440,17 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         val s = n * UNIT
         f.level(r[0], r[1], r[2], r[3], LIFT_PLAZA, r[0] / s, r[1] / s, r[2] / s, r[3] / s)
         return piece("plaza", f)
+    }
+
+    /** The plaza's trees stand in iron grates: a dark square of bars round each trunk, a little over the paving. */
+    private fun grates(): GroundPiece? {
+        val g = PixImg(12, 12)
+        val iron = Paint.c(0x3A3632); val gap = Paint.c(0x221F1C); val rim = Paint.c(0x5A554E)
+        for (y in 0 until 12) for (x in 0 until 12) g[x, y] = if (x == 0 || y == 0 || x == 11 || y == 11) rim else if (x % 2 == 0 && y in 2..9) gap else iron
+        val gf = Flat(g)
+        val half = 6 * UNIT * 2.6f
+        for (p in town.plazaProps) if (p.kind == "tree") gf.level(p.x - half, p.z - half, p.x + half, p.z + half, LIFT_PLAZA + .05f, 0f, 0f, 1f, 1f)
+        return if (gf.empty) null else piece("plaza-grates", gf, tiled = false)
     }
 
     /**
@@ -533,25 +563,59 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         return listOf(piece("water", wf), piece("banks", bf))
     }
 
-    /** The bridges: the road runs over as their deck; its edges (stone, down towards the water) and a parapet each side. */
+    /**
+     * The bridges: the road runs over as their deck, on a concrete slab whose edge (fascia) shows over the water, a
+     * concrete parapet (a metre high, 30 cm thick, its cap a shade lighter) along each side, and a pier under the middle of
+     * a long one.
+     */
     private fun bridges(): List<GroundPiece> {
         if (town.bridges.isEmpty()) return emptyList()
         val m = MeshBuilder()
-        val stone = Ramp(Paint.c(0x4F4A40), Paint.c(0x6B6558), Paint.c(0x8A8474), Paint.c(0x9C9686), Paint.c(0xB4AE9E))
+        val concrete = Ramp(Paint.c(0x5E5E58), Paint.c(0x7A7A72), Paint.c(0x96958C), Paint.c(0xAAA99F), Paint.c(0xC2C1B6))
+        val cap = Ramp(Paint.c(0x7A7A72), Paint.c(0x96958C), Paint.c(0xAAA99F), Paint.c(0xC2C1B6), Paint.c(0xD6D5CA))
+        // (a metre: 21 units)
+        val slab = 26f; val wall = 21f; val t = 6f
+        // (each long box in lengths of about 3 m, a joint between them as poured concrete has, and every length of a size
+        // wears the same pictures: one bridge's faces as pictures as long as it is were a 1024 x 2341 atlas, 10 MB of heap
+        // and as much again to upload, for a few grey panels)
+        val pics = HashMap<String, PixImg>()
+        fun seg(x0: Float, y0: Float, z0: Float, x1: Float, y1: Float, z1: Float, r: Ramp) {
+            val alongX = x1 - x0 >= z1 - z0
+            val len = if (alongX) x1 - x0 else z1 - z0
+            val n = max(1, ceil(len / (64f * TEXEL)).toInt())
+            for (k in 0 until n) {
+                val a = k * len / n; val b = (k + 1) * len / n
+                val (ax0, ax1) = if (alongX) (x0 + a) to (x0 + b) else x0 to x1
+                val (az0, az1) = if (alongX) z0 to z1 else (z0 + a) to (z0 + b)
+                m.box(ax0, y0, az0, ax1, y1, az1) { sd, w, h ->
+                    when (sd) {
+                        MeshBuilder.Side.BOTTOM -> null
+                        MeshBuilder.Side.TOP -> pics.getOrPut("t$w,$h,${r.b}") { Paint.top(w, h, r) }
+                        else -> pics.getOrPut("p$w,$h,${r.b},${sd.ordinal}") { Paint.panel(w, h, r, 3 + sd.ordinal, true) }
+                    }
+                }
+            }
+        }
         for (b in town.bridges) {
             val r = b.rect
-            // the deck along x (horizontal) or z; its two long edges
-            val h = 7f; val t = 3f; val drop = 5f
+            // the slab under the deck, its edges the fascia over the water
+            seg(r[0], -slab, r[1], r[2], LIFT_ROAD - .3f, r[3], concrete)
             if (b.horizontal) {
                 for (z in listOf(r[1], r[3])) {
                     val inward = if (z == r[1]) 1f else -1f
-                    m.panelBox(r[0], -drop, min(z, z + inward * t), r[2], LIFT_ROAD + h, max(z, z + inward * t), stone, 3, edges = true)
+                    val z0 = min(z, z + inward * t); val z1 = max(z, z + inward * t)
+                    seg(r[0], LIFT_ROAD - .3f, z0, r[2], LIFT_ROAD + wall - 3f, z1, concrete)
+                    seg(r[0] - 1f, LIFT_ROAD + wall - 3f, z0 - 1f, r[2] + 1f, LIFT_ROAD + wall, z1 + 1f, cap)
                 }
+                if (r[2] - r[0] > 500f) { val cx = (r[0] + r[2]) / 2f; seg(cx - 14f, -60f, r[1] + 10f, cx + 14f, -slab, r[3] - 10f, concrete) }
             } else {
                 for (x in listOf(r[0], r[2])) {
                     val inward = if (x == r[0]) 1f else -1f
-                    m.panelBox(min(x, x + inward * t), -drop, r[1], max(x, x + inward * t), LIFT_ROAD + h, r[3], stone, 3, edges = true)
+                    val x0 = min(x, x + inward * t); val x1 = max(x, x + inward * t)
+                    seg(x0, LIFT_ROAD - .3f, r[1], x1, LIFT_ROAD + wall - 3f, r[3], concrete)
+                    seg(x0 - 1f, LIFT_ROAD + wall - 3f, r[1] - 1f, x1 + 1f, LIFT_ROAD + wall, r[3] + 1f, cap)
                 }
+                if (r[3] - r[1] > 500f) { val cz = (r[1] + r[3]) / 2f; seg(r[0] + 10f, -60f, cz - 14f, r[2] - 10f, -slab, cz + 14f, concrete) }
             }
         }
         return listOf(GroundPiece("bridges", m.build(), identity, casts = true))
@@ -697,7 +761,8 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         // the plaza's benches and its fountain
         val benches = town.plazaProps.filter { it.kind == "bench" }.map { floatArrayOf(it.x, it.z, 1f, 0f, 0f, 1f, 0f) }
         if (benches.isNotEmpty()) out += GroundPiece("plaza-benches", PropKit.mesh(PropKind.BENCH), benches, casts = true)
-        val fountains = town.plazaProps.filter { it.kind.startsWith("fountain") }.map { floatArrayOf(it.x, it.z, 1f, 0f, 0f, 1f, 0f) }
+        // (the square's fountain a wide basin, near twice the pack's across: it holds the middle of a square 80 m wide)
+        val fountains = town.plazaProps.filter { it.kind.startsWith("fountain") }.map { floatArrayOf(it.x, it.z, 1.8f, 0f, 0f, 1.8f, 0f) }
         if (fountains.isNotEmpty()) out += GroundPiece("fountain", fountain(), fountains, casts = true)
         return out
     }
@@ -776,6 +841,8 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         val treeAnchors = HashMap<String, MutableList<Anchor>>()
         val treeSpecs = HashMap<String, MutableList<Float>>()
         val seen = HashSet<Long>()
+        // the plaza's own lamps (its corners), standing free of any row
+        for (p in town.plazaProps) if (p.kind == "lamp") { lamps += floatArrayOf(p.x, p.z, 1f, 0f, 0f, 1f, 0f); lampAnchors += Anchor(null, 0f); lampSpots += floatArrayOf(p.x, p.z, 0f, 1f) }
         for (row in town.rows) for (f in row.furniture) {
             // (a row's ends are the crossing roads' middles: what stands there moves back onto the corner's pavement)
             val lo = if (row.start.mouth) HALF - 20f else 10f
@@ -870,6 +937,8 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         const val WATER_Y = -9f
         /** Each level of the ground a hair over the one under it (the depth buffer keeps them apart). */
         const val LIFT_PLAZA = .12f
+        /** Downtown's paved blocks: under the yards' ground (.04) and the plaza, over the grass. */
+        const val LIFT_PAVED = .02f
         const val LIFT_ROAD = .25f
         const val LIFT_MARK = .4f
         const val LIFT_DECAL = .3f

@@ -8,9 +8,9 @@ import { townFounded, townName } from './names';
 // Cells are spaced so that even the biggest town plans never touch (checked by tests).
 
 /** Cell size in tiles. Towns reach at most ~150 tiles west of their center, ~300 east (the stores at the edge of town,
- * src/town/storeSites.ts) and ~130 up/down. */
-export const CELL_W = 520;
-export const CELL_H = 320;
+ * src/town/storeSites.ts) and ~130 up/down; the planned town (src/town/plat.ts) reaches ~550 tiles each way from its civic block and ~190 up/down. */
+export const CELL_W = 1200;
+export const CELL_H = 440;
 const JITTER = 20;
 
 export interface TownSite {

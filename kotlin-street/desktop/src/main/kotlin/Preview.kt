@@ -198,7 +198,16 @@ fun renderImage(w: Int, h: Int, hour: Float, day: String, focus: String, city: B
 fun loadSheets(dir: String) {
     SpriteSheets.sheets = (1..8).mapNotNull { n ->
         val f = File(dir, "char_0$n.png")
-        if (f.exists()) SkiaImage.makeFromEncoded(f.readBytes()).toComposeImageBitmap() else null
+        if (!f.exists()) return@mapNotNull null
+        // as the app reads them (GameActivity): only the first 4 views x 6 frames (x < 768) of rows 0-2 and the seated row
+        // 4 (y < 320) are ever drawn, so only that is kept (8 MB of pictures instead of 72, as on the phone: the memory
+        // check measures what the phone holds)
+        val full = SkiaImage.makeFromEncoded(f.readBytes())
+        val w = minOf(768, full.width); val h = minOf(320, full.height)
+        val bm = Bitmap().apply { allocPixels(ImageInfo.makeN32(w, h, ColorAlphaType.UNPREMUL)) }
+        full.readPixels(bm, 0, 0)
+        full.close()
+        SkiaImage.makeFromBitmap(bm.apply { setImmutable() }).toComposeImageBitmap()
     }
     // the townspeople's own baked sheets (tools/make_townsfolk.py), unless -Dfolk=0
     // (the app's own folder when [dir] is the web game's)

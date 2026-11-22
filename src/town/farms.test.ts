@@ -63,8 +63,9 @@ describe('farms: where', () => {
       const plan = planTown(seed);
       const fp = planFarms(plan);
       for (const f of fp.fields) {
-        for (const r of plan.roads) expect(overlap(f, r), `${seed} ${f.id} on a street`).toBe(false);
-        for (const l of plan.landmarks) expect(overlap(f, l), `${seed} ${f.id} on ${l.id}`).toBe(false);
+        // (the planned town: a field may lie over a later district's streets and plots until they are built, never Main Street)
+        for (const r of plan.roads) if (r.main || !plan.v2) expect(overlap(f, r), `${seed} ${f.id} on a street`).toBe(false);
+        if (!plan.v2) for (const l of plan.landmarks) expect(overlap(f, l), `${seed} ${f.id} on ${l.id}`).toBe(false);
         expect(overlap(f, plan.plaza)).toBe(false);
         expect(wet(seed, f, 2), `${seed} ${f.id} in the river`).toBe(false);
         for (const r of fp.roads) expect(overlap(f, roadRect(r)), `${seed} ${f.id} on ${r.id}`).toBe(false);
@@ -93,7 +94,7 @@ describe('farms: where', () => {
 describe('farms: by year', () => {
   const seed = 'gamma';
   const tl = runTimeline({ seed, endYear: 2025 });
-  const dev = (y: number): Developed => { const L = layoutTown(worldAt(tl, y)); return { roads: L.roads, lots: [...L.lots, ...L.vacantLots], landmarks: L.landmarks }; };
+  const dev = (y: number): Developed => { const L = layoutTown(worldAt(tl, y)); return { roads: L.roads, lots: [...L.lots, ...L.vacantLots, ...L.fillers], landmarks: L.landmarks }; };
 
   it('farms a field only while nothing is built on it', () => {
     for (const y of [1955, 1975, 2000, 2025]) {

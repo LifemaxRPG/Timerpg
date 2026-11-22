@@ -47,6 +47,7 @@ import org.jetbrains.skia.Image as SkiaImage
  * and town.txt (build times, draw counts per view).
  */
 fun renderFilamentTown(out: String) {
+    TownMemory.tally = System.getProperty("memOwners") != null
     watchMemory()
     // the GPU quality settings to render with (-Djvm="-DshadowMap=2048 -Dcascades=4"; the app's defaults otherwise)
     System.getProperty("shadowMap")?.toIntOrNull()?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.shadowMap = it }
@@ -54,10 +55,10 @@ fun renderFilamentTown(out: String) {
     val dir = File(out, "filament-town").also { it.mkdirs() }
     val townDir = System.getProperty("town")?.let { File(it) } ?: File("../build-town/gamma")
     val assets = File(System.getProperty("assetsRoot") ?: "../../public/assets")
-    val json = File(townDir, "street.json").readText()
+    var json = File(townDir, "street.json").readText()
     val town = Town.parse(json) ?: error("$townDir/street.json has no graph (a v1 file): run tools/build-town.sh gamma")
     val yards = TownYards.parse(json)
-    val root = org.json.JSONObject(json)
+    var root = org.json.JSONObject(json)
     val bdir = File(townDir, "buildings")
     val windows = SpriteBuildingLoad.windows(File(bdir, "windows.json").takeIf { it.exists() }?.readText())
     val houses = SpriteBuildingLoad.houses(File(bdir, "houses.json").takeIf { it.exists() }?.readText())
@@ -82,27 +83,31 @@ fun renderFilamentTown(out: String) {
     val mats = File("../app/src/main/assets/filament")
     val cinema = com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(root)
     val storeSites = com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root)
+    val report = StringBuilder()
+    // a cold start as the app makes it (a fresh scene through TownRun from the spawn, behind the loading screen, then
+    // walking while the rest comes in): -Dshots=cold alone renders only this
+    val onlyShots = System.getProperty("shots")?.split(",")?.map { it.trim() }?.toSet()
+    val coldOnly = System.getProperty("coldOnly") != null
+    if (onlyShots == null || "cold" in onlyShots || onlyShots.any { it.startsWith("cold") }) {
+        val farmDir = File("../app/src/main/assets/farm")
+        val farmArt = com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt({ p -> open(File(farmDir, p)) }, { p -> File(farmDir, p).takeIf { it.exists() }?.readText() }, { p -> open(File(assets, p)) })
+        val farms = com.lifemax.rpg.feature.habits.domain.TownFarmsData.parse(root)
+        // (the memory check: as the app's load (TownSession) lets the parsed street.json go before the town builds, and
+        // builds one town, not this preview's second one for its other shots)
+        if (coldOnly) { json = ""; root = org.json.JSONObject() }
+        coldStart(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, report, dir, 2340, 1080, cinema, storeSites,
+            farms, farmArt,
+            File(townDir, "rail.json").takeIf { it.exists() }?.let { com.lifemax.rpg.feature.habits.domain.RailNet.parse(it.readText()) })
+    }
+    // (the memory check: the cold start alone)
+    if (coldOnly) { File(dir, "town.txt").writeText(report.toString()); return }
     val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, cinema = cinema, stores = storeSites)
     if (System.getProperty("townYards") == "placeholder") ft.yardBuilder = PlaceholderYards
     // (each shot is one frame: every building's windows lit for its hour in it, not a few a frame as the game does)
     ft.nightBudgetNs = Long.MAX_VALUE
     ft.sheetsOnWorker = false
-    val report = StringBuilder()
     report.appendLine("shadow map ${ft.shadowMap} x ${ft.shadowCascades} cascades")
     report.appendLine("town ${town.seed} ${town.year}: ${town.rows.size} rows, ${ft.slots.size} buildings, ${town.roads.size} roads, ${town.nodes.size} nodes, ${town.props.size} edge props, ${yards.yards.size} yards")
-
-    // a cold start as the app makes it (a fresh scene through TownRun from the spawn, behind the loading screen, then
-    // walking while the rest comes in): -Dshots=cold alone renders only this
-    val onlyShots = System.getProperty("shots")?.split(",")?.map { it.trim() }?.toSet()
-    if (onlyShots == null || "cold" in onlyShots || onlyShots.any { it.startsWith("cold") }) {
-        val farmDir = File("../app/src/main/assets/farm")
-        val farmArt = com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt({ p -> open(File(farmDir, p)) }, { p -> File(farmDir, p).takeIf { it.exists() }?.readText() }, { p -> open(File(assets, p)) })
-        coldStart(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, report, dir, 2340, 1080, cinema, storeSites,
-            com.lifemax.rpg.feature.habits.domain.TownFarmsData.parse(root), farmArt,
-            File(townDir, "rail.json").takeIf { it.exists() }?.let { com.lifemax.rpg.feature.habits.domain.RailNet.parse(it.readText()) })
-    }
-    // (the memory check: the cold start alone)
-    if (System.getProperty("coldOnly") != null) { File(dir, "town.txt").writeText(report.toString()); return }
 
     // the walk, standing at the spawn
     GameState.moveX = 0f; GameState.moveLane = 0f
@@ -559,7 +564,8 @@ private fun coldStart(
         loading += ms; worst = maxOf(worst, ms); frames++
         // (-Dmemtrace: the memory every 50 frames while it loads)
         if (System.getProperty("memtrace") != null && frames % 50 == 0) println("  memtrace frame %d: live %d MB, direct %d MB, ground queue %d MB, %d built".format(
-            frames, TownMemory.mb(TownMemory.live?.invoke() ?: 0L), TownMemory.mb(TownMemory.direct?.invoke() ?: 0L), TownMemory.mb(ft.queuedBytes), ft.slots.count { it.isBuilt }))
+            frames, TownMemory.mb(TownMemory.live?.invoke() ?: 0L), TownMemory.mb(TownMemory.direct?.invoke() ?: 0L), TownMemory.mb(ft.queuedBytes), ft.slots.count { it.isBuilt }) +
+            if (TownMemory.tally) "; " + TownMemory.owners().entries.sortedByDescending { it.value }.take(4).joinToString(", ") { "${it.key.substringBefore('<')} %.0f".format(it.value / 1048576.0) } else "")
         clock += 1f / 120f
         if (ready || (System.nanoTime() - t0) > 180_000_000_000L) break
         pace(f0)
@@ -605,10 +611,18 @@ private fun coldStart(
     report.appendLine("(cold start: main-thread work only, on the build server's CPU with software GL; the render itself and the S25 are not measured)")
     farmDraw?.let { report.appendLine("cold start, " + it.report) }
     TownMemory.stop()
+    // (-DmemDumpEnd: the heap once the whole town is in, to memdump-end.hprof: what it holds for good)
+    if (System.getProperty("memDumpEnd") != null) java.lang.management.ManagementFactory.getPlatformMXBean(com.sun.management.HotSpotDiagnosticMXBean::class.java).dumpHeap(File("memdump-end.hprof").absolutePath, true)
     // what the town holds on the GPU (as made; the shadow map, targets and surfaces from their sizes), at the phone's size
     report.appendLine("cold start, " + ft.gpuEstimate(sw, shh).line() + " (shadow map %d x %d cascades)".format(ft.shadowMap, ft.shadowCascades))
+    report.appendLine("cold start, the largest textures by size: " + ft.biggestTextures(12))
     report.appendLine("cold start, memory: " + TownMemory.summary() + "; the ground's queue peaked at ${TownMemory.mb(ft.queuedPeak)} MB")
     println("  memory: " + TownMemory.summary())
+    // (-DmemOwners: what held the direct buffers at the peak, by the town's code that made them)
+    if (TownMemory.tally) {
+        val o = TownMemory.ownersAtPeak.entries.sortedByDescending { it.value }.joinToString(", ") { "${it.key} %.1f".format(it.value / 1048576.0) }
+        report.appendLine("cold start, direct buffers at the peak by owner (MB): $o"); println("  direct at peak: $o")
+    }
     // the memory check (-DheapBudget=MB, gradle :desktop:townMemoryCheck): the live heap and the direct buffers held at
     // once (on the phone both are its Java heap) must stay under the budget, or the preview fails
     System.getProperty("heapBudget")?.toLongOrNull()?.let { budget ->
@@ -631,7 +645,20 @@ private fun watchMemory() {
     // otherwise what each collection left (G1's young collections leave the old generation's garbage: an over-count)
     val exact = System.getProperty("memlive") != null
     if (exact) Thread({
-        while (true) { System.gc(); after.set(TownMemory.used()); TownMemory.sample(); Thread.sleep(100) }
+        // (-DmemDump=MB: the heap's live objects written once to memdump.hprof when the heap and direct buffers first hold
+        // that much: for finding what holds the peak)
+        val dumpAt = System.getProperty("memDump")?.toLongOrNull()
+        var dumped = false
+        while (true) {
+            System.gc(); after.set(TownMemory.used()); TownMemory.sample()
+            if (dumpAt != null && !dumped && TownMemory.mb(after.get() + (TownMemory.direct?.invoke() ?: 0L)) >= dumpAt) {
+                dumped = true
+                println("  memdump at live ${TownMemory.mb(after.get())} MB, direct ${TownMemory.mb(TownMemory.direct?.invoke() ?: 0L)} MB; direct by owner: " +
+                    TownMemory.owners().entries.sortedByDescending { it.value }.take(8).joinToString(", ") { "${it.key} %.1f".format(it.value / 1048576.0) })
+                java.lang.management.ManagementFactory.getPlatformMXBean(com.sun.management.HotSpotDiagnosticMXBean::class.java).dumpHeap(File("memdump.hprof").absolutePath, true)
+            }
+            Thread.sleep(100)
+        }
     }, "memlive").apply { isDaemon = true }.start()
     for (gc in java.lang.management.ManagementFactory.getGarbageCollectorMXBeans()) {
         val em = gc as? javax.management.NotificationEmitter ?: continue

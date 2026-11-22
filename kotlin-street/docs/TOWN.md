@@ -861,3 +861,53 @@ Desktop renders and JVM tests only, NOT yet run on the S25. Details: docs/LANDMA
 - (branch wf-foundry) The Foundry is now one building through time: a works (four painted company names, a tall chimney,
   hardly any signs) opens 1900-45, shuts 1970-2005 and stands dark, then becomes the club 2010-29 on the same plot; gamma:
   Pelham Foundry & Machine Co. 1909-1980, The Foundry 2022 (LANDMARKS_GLB.md "The works before The Foundry").
+
+## The planned town (branch wf-town-plan, 2026-11-20)
+
+The town is platted (docs/TOWN_PLAN.md "Implementation"): src/town/plat.ts lays the block grid (varied by seed: plan form,
+mirror, block sizes, core and strip length, the river's column and jog, the rail band or column), src/town/districts.ts the
+reserved plots and the lots; network.ts and frontage.ts stay behind `setPlanVersion(1)` only. In the walkable town:
+
+- **Spawn**: Main Street in front of the civic block (the plaza and town hall, or a county seat's courthouse square) on
+  its side of the street (town-graph.ts); the civic avenue keeps its name for the v1 crossroads' junction. A saved spot is
+  the player's again on load unless it is off the town (more than 2000 units from any street): one a building now stands
+  on goes to the nearest free ground (TownSession.restore, OpenWalk.placeAt's nearestClear).
+- **Filler homes**: `layout.fillers` (Lot.filler): every lot built out by the year that no simulated household or business
+  has, as a house of its plot's kind or an ordinary shop front, nobody in it yet. They are named after the simulated lots
+  (townLots), marked `filler` in street.json, have rooms (interiors.json) and no NPCs (dialogue.json). Gamma 2025: 290
+  buildings, 213 homes (166 filler), 194 fillers in all.
+- **Alleys**: the plan's alleys (behind Main Street's shops, down the old town's blocks) are lanes in street.json where the
+  backyards and buildings leave them free (`lane` ids `alley:N`; gamma 15). Plots are placed on their row by the middle of
+  their front edge (by an L-bend a deep plot's centre may lie nearer the other leg).
+- **Assets** re-exported together from one commit: the eta crossroads (street.json, dialogue.json, interiors.json,
+  buildings/), gamma's rail.json, street.json (two exports identical), dialogue.json, interiors.json, buildings/, and the
+  fixtures town-gamma.json, rail-checks.json, stores-gamma-years.json. The pack's art for make_buildings comes from
+  PACK_ART (kotlin-street/packs: join, unzip the 32x32 theme sorter).
+- **Memory**: townMemoryCheck held 236-249 MB of the 256 MB budget over two runs (was 197-201); YardKitTest bakes the whole town's yards at
+  once in a 3 GB test heap. Desktop renders: draws as drawn 295-657 a view. S25 frame time and memory: phase E.
+- **Previews**: `gradle :desktop:preview -Dmode=filament-open -Dshots=plan [-Dtown=<folder>]`: the start spot, the river
+  crossing, the rail side, the strip, a street of filler homes front and back, downtown from above, the radio station,
+  the courthouse in a county seat (export one with tools/export-town.ts and make_buildings.py into build-town/<seed>).
+
+### Memory, the final round (2026-11-22)
+
+Measured with townMemoryCheck's new tools: `-DmemOwners` (every direct buffer of the town comes from
+`TownMemory.direct`; the ones held at the peak, by the code that made them), `-DmemDump=MB` / `-DmemDumpEnd` (a heap dump
+at that much held, or once the town is in; a small hprof reader attributed the live objects to the town's classes).
+
+- The character sheets: the preview decoded all of each 1792 x 1312 sheet (72 MB of pictures packed for the GPU); the app
+  decodes only the 768 x 320 it draws (GameActivity). The preview now crops them the same way (8 MB). A measuring fix.
+- The parsed street.json and a second, unbuilt FilamentTown were held through the check by the preview; the app's load
+  (TownSession) lets the JSON go and builds one town. The check now does the same. A measuring fix (about 30 MB).
+- The windows' night light (FilamentModels.Night) was two ints a glowing pixel and one a glass pixel, kept for the
+  building's life: 29 MB for gamma's models once built. Now runs along a row (a window's pixels, one light): 5 MB.
+- The bridges' boxes wore pictures as long as they are (one 1024 x 2341 atlas: 10 MB of heap and 10 MB to upload, and
+  13 MB of GPU memory with mipmaps): now 3 m lengths sharing their pictures.
+- The ground's pieces are made one kind at a time as they are packed (TownGround.pieces is a sequence): the grass's
+  2048 x 2048 picture (16 MB) is let go once packed, not held until the last piece.
+
+Held peak (live heap after a full collection + direct buffers), three runs each: before 249, 255, 264 MB (and 261-303 in
+earlier runs); after 144, 149, 164 MB (with this round's larger downtown). Open: the GPU estimate is 2.3 GB on the
+desktop (textures 1.8 GB with mipmaps: 445 prop and yard atlases of 512 x 512, and every model's atlas and its night
+mask the same size): on the phone's shared memory that is the next thing to cut (night masks as one channel, the yards'
+atlases shared), not measured on the S25.

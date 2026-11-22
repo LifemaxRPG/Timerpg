@@ -433,9 +433,9 @@ internal class BuildingMeshes(
 
     private fun pack(faces: List<Face>, windows: Windows?): Packed {
         val nv = faces.fold(0) { a, f -> a + f.p.size / 3 }
-        val vb = ByteBuffer.allocateDirect(nv * TownVertex.STRIDE).order(ByteOrder.nativeOrder())
+        val vb = TownMemory.direct(nv * TownVertex.STRIDE).order(ByteOrder.nativeOrder())
         val ni = faces.fold(0) { a, f -> a + if (f.p.size == 9) 3 else 6 }
-        val ib = ByteBuffer.allocateDirect(ni * 2).order(ByteOrder.nativeOrder())
+        val ib = TownMemory.direct(ni * 2).order(ByteOrder.nativeOrder())
         val q = FloatArray(4)
         val bmin = floatArrayOf(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE)
         val bmax = floatArrayOf(-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE)

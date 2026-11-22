@@ -52,7 +52,8 @@ class LandmarkGlbTest {
             assertTrue("${s.kind} width $w vs lot ${s.lotW}", w in s.lotW * .8f..s.lotW * 1.1f + 1f)
             assertTrue("${s.kind} depth $d vs lot ${s.lotD}", d in s.lotD * .8f..s.lotD * 1.1f + 1f)
             // a storey is 3-8 m (no model 21 times too big or small): a figure is 36 units
-            assertTrue("${s.kind} height ${m.height / U} m", m.height / U in 3f..(if (s.kind.endsWith("water_tower")) 30f else 22f))
+            // (the courthouse's clock tower and spire: 38 m)
+            assertTrue("${s.kind} height ${m.height / U} m", m.height / U in 3f..(if (s.kind.endsWith("water_tower")) 30f else if (s.role == "courthouse") 40f else 22f))
             // the collision mesh is never drawn (no part carries its boxes' name)
             assertTrue(lm.names.none { it == "collision" })
             // windows lit by role, signs glowing (a water tower has no glass, only its beacon, and no door)
@@ -69,7 +70,9 @@ class LandmarkGlbTest {
             // a main door at the front, facing out (+z), and boxes to walk round
             val main = lm.doors.first { it.name == "door_main" }
             assertTrue("${s.kind} main door faces the road", main.outZ > .9f)
-            assertTrue("${s.kind} main door on the front", main.z in -40f..40f)
+            // (the courthouse stands back on its square, its lawn and walks before it)
+            // (and the radio station's glazed entrance bay projects ~2.5 m before its brick front)
+            assertTrue("${s.kind} main door on the front", main.z in (if (s.role == "courthouse") -40f * U..0f else -40f..3f * U))
             assertTrue("${s.kind} collision", lm.solids.size / 4 >= 4)
             // the main door is not inside a box (a walker can stand just outside it)
             val fx = main.x + main.outX * 12f; val fz = main.z + main.outZ * 12f
@@ -81,7 +84,8 @@ class LandmarkGlbTest {
     @Test fun theNewLandmarksAreInTheCatalogue() {
         for (k in listOf("gazette_office", "feed_mill", "mirage_nightclub", "pulse_nightclub", "starlight_drive_in", "water_tower", "roadside_motel", "premier_railroad_depot",
             "coin_laundromat", "foundry_nightclub", "foundry_factory", "funeral_home",
-            "reel_time_video_1984", "reel_time_video_1996", "reel_time_video_2011", "reel_time_video_2020"))
+            "reel_time_video_1984", "reel_time_video_1996", "reel_time_video_2011", "reel_time_video_2020",
+            "county_courthouse_1894", "county_courthouse_1962", "county_courthouse_1988", "county_courthouse_2008", "radio_station"))
             assertTrue("$k listed", specs.any { it.kind == "landmark_glb_$k" })
         // a swatch re-skin replaces the picture at the same texel size
         val club = specs.first { it.kind.endsWith("mirage_nightclub") }
@@ -246,5 +250,50 @@ class LandmarkGlbTest {
         // every texel on the 2 x 2 art grid
         val w = s.price!!.artW * 2; val h = s.price!!.artH * 2
         for (y in 0 until h step 2) for (x in 0 until w step 2) { val c = a[y * w + x]; assertTrue(c == a[y * w + x + 1] && c == a[(y + 1) * w + x]) }
+    }
+
+    @Test fun theCourthouseStandsInFourStatesOnOneSquare() {
+        val states = listOf(1894, 1962, 1988, 2008).map { y -> specs.first { it.kind == "landmark_glb_county_courthouse_$y" } }
+        for (s in states) {
+            assertEquals("the whole square", 79.46f, s.lotW, .01f); assertEquals(79.46f, s.lotD, .01f)
+            assertEquals("its distant silhouette", "county-courthouse/courthouse-far.glb", s.far)
+            val lm = build(s)
+            // four entrances from outside; the rooms' inner doors are marked internal (no "Go inside" from the street)
+            assertEquals(setOf("door_main", "door_north", "door_east", "door_west"), lm.doors.map { it.name }.toSet())
+            assertTrue("door_main faces the road", lm.doors.first { it.name == "door_main" }.outZ > .99f)
+            assertTrue("${s.kind} collision", lm.solids.size / 4 >= 40)
+        }
+        // the far model: the same origin and lot, a few hundred triangles
+        val far = LandmarkKit.build(GlbFile.read(File(root, states[0].far!!).readBytes()), states[0], 1894, 7)
+        assertTrue("far is cheap: ${far.model.triangles}", far.model.triangles < 400)
+        val near = build(states[0]).model
+        assertEquals("far shares the lot", near.footprint[0], far.model.footprint[0], 3f * U)
+    }
+
+    @Test fun theCourthouseClockTellsTheGamesTime() {
+        val s = specs.first { it.kind == "landmark_glb_county_courthouse_2008" }
+        val info = File(root, s.info!!).readText()
+        val glb = GlbFile.read(File(root, s.file).readBytes())
+        fun hands(h: Float?): List<Float> = LandmarkKit.build(glb, s, 2008, 7, info = info, clockHours = h).model.parts.flatMap { it.mesh.pos.toList() }
+        fun moved(a: List<Float>, b: List<Float>): Float = a.zip(b).maxOf { (p, q) -> abs(p - q) }
+        // at its own 10:10 nothing moves; at 3:00 the hands have turned
+        assertTrue(moved(hands(null), hands(10f + 10f / 60f)) < .05f)
+        assertTrue(moved(hands(null), hands(3f)) > 5f)
+        // the stopped clock of the neglected years keeps its 4:17 whatever the time
+        val s88 = specs.first { it.kind == "landmark_glb_county_courthouse_1988" }
+        val g88 = GlbFile.read(File(root, s88.file).readBytes()); val i88 = File(root, s88.info!!).readText()
+        assertTrue(moved(LandmarkKit.build(g88, s88, 1988, 7, info = i88).model.parts.flatMap { it.mesh.pos.toList() },
+            LandmarkKit.build(g88, s88, 1988, 7, info = i88, clockHours = 3f).model.parts.flatMap { it.mesh.pos.toList() }) == 0f)
+    }
+
+    @Test fun theRadioStationHasSixNamesAndThreeInnerDoors() {
+        val s = specs.first { it.kind == "landmark_glb_radio_station" }
+        assertEquals(6, s.variants.size)
+        val lm = build(s)
+        // three entrances from outside (the control room's, the studio's and the booth's doors are inner ones)
+        assertEquals(3, lm.doors.size)
+        assertTrue(lm.doors.any { it.name == "door_main" })
+        val signs = s.variants.map { f -> LandmarkKit.build(GlbFile.read(File(root, f).readBytes()), s, 1955, 7, info = s.info?.let { File(root, it).readText() }).let { it.model.parts[it.names.indexOf("sign_name")].mesh.tex.toList() } }
+        assertEquals("each town's station its own nameplate", 6, signs.distinct().size)
     }
 }

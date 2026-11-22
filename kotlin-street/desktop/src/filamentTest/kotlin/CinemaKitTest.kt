@@ -77,7 +77,10 @@ class CinemaKitTest {
     @Test fun shippedTownCinemaSite() {
         val json = java.io.File("../app/src/main/assets/town/gamma/street.json").readText()
         val site = com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(json)!!
-        assertEquals("b100", site.sprite)
+        // (the cinema's sprite is the one the town's export gives its landmark)
+        val lms = org.json.JSONObject(json).getJSONObject("graph").getJSONArray("landmarks")
+        val sprite = (0 until lms.length()).map { lms.getJSONObject(it) }.first { it.getString("id") == "landmark:cinema" }.getString("sprite")
+        assertEquals(sprite, site.sprite)
         assertEquals(CinemaEra.MULTIPLEX, site.info.era)
         assertTrue(site.info.nowShowing.size >= 6)
         assertTrue(site.info.marquee.drop(1).all { m -> site.info.nowShowing.any { it.title.uppercase() == m } })
