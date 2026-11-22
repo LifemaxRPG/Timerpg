@@ -62,3 +62,11 @@ windows; the share spent after 14:30 is not reported separately.
   from the morning's parallel jobs on the same code.
 - Lean rules followed: one APK, small downscaled sheets, merges done in the main session, no parallel jobs on the same
   files. Not yet followed: Sonnet for routine work (all four jobs predated the rule).
+
+## Contributors (ChatGPT, Gemini) from the work queue
+
+From 2026-11-22 each queue delivery reports its usage in DELIVERY.md (docs/queue/README.md). Claude records one
+row per accepted or revised delivery here, so we can compare cost per finished item by worker and kind of work.
+
+| Task | Worker (model, setting) | Kind | Tokens or effort | Rounds to accept | Verdict |
+|---|---|---|---|---|---|

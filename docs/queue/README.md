@@ -49,6 +49,19 @@ Below that come the brief and the acceptance checks.
      revisions, what changed and which review you answered.
 6. If nothing is open for you, do nothing and stop.
 
+## Report your usage in every DELIVERY.md (must)
+
+Claude uses this to decide who should do which kind of work. Add a `## Usage` section with whatever you can actually
+see:
+- **Model and setting:** e.g. "GPT-6.2 Sol, Medium reasoning" or "Gemini 3 Pro".
+- **Tokens:** input and output tokens if your tools show them, or the run's total.
+- **Effort:** if you can't see tokens, give the number of turns and tool calls and the wall-clock time from start to
+  push.
+- **Plan usage:** if the owner's plan shows a percentage used, that too.
+- **Rework:** whether this is a revision, and how many rounds the task has taken so far.
+
+Don't guess numbers you can't see: write "not visible" for those.
+
 ## Hard rules
 
 - **Models:** work only in `prototypes/<name>/` on your task branch. **Never** edit the game's live folders
