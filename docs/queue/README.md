@@ -27,6 +27,10 @@ Below that come the brief and the acceptance checks.
 
 ## What to do each run (at most ONE task per run)
 
+0. **Check access first.** Run `git ls-remote origin ccr-52e43ebb-xnmj2e`. If it fails (an auth error, no
+   credentials), stop immediately and tell the owner: "I can't reach GitHub. Please log me in again." Don't start
+   work you can't deliver. Credentials belong in your environment (`gh auth login`, a git credential store or an
+   SSH key), never in the repo and never only in your chat.
 1. Fetch and read this README and the task list from `origin/ccr-52e43ebb-xnmj2e`.
 2. **Revisions first:** if one of your tasks has status `revise`, read its newest review file and do that revision
    on the same branch.
