@@ -129,9 +129,9 @@ internal class PropLayer(
         fun pack(mesh: PropMesh, at: List<FloatArray>, share: MutableMap<IntArray, StreetTextures.Prepared>? = null): Packed? {
         if (at.isEmpty()) return null
         val nv = mesh.vertexCount * at.size
-        val vb = ByteBuffer.allocateDirect(nv * TownVertex.STRIDE).order(ByteOrder.nativeOrder())
+        val vb = TownMemory.direct(nv * TownVertex.STRIDE).order(ByteOrder.nativeOrder())
         val short = TownVertex.short(nv)
-        val ib = ByteBuffer.allocateDirect(mesh.idx.size * at.size * (if (short) 2 else 4)).order(ByteOrder.nativeOrder())
+        val ib = TownMemory.direct(mesh.idx.size * at.size * (if (short) 2 else 4)).order(ByteOrder.nativeOrder())
         val q = FloatArray(4)
         var minX = Float.MAX_VALUE; var minY = Float.MAX_VALUE; var minZ = Float.MAX_VALUE
         var maxX = -Float.MAX_VALUE; var maxY = -Float.MAX_VALUE; var maxZ = -Float.MAX_VALUE

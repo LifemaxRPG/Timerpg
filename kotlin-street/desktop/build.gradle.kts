@@ -125,6 +125,8 @@ if (withFilament) tasks.register<JavaExec>("townMemoryCheck") {
     System.getProperty("townYards")?.let { jvmArgs("-DtownYards=$it") }
     // (-Dtown=<folder>: another town's export, for comparing what it holds)
     System.getProperty("town")?.let { jvmArgs("-Dtown=$it") }
+    // (-Dmemtrace: the memory every 50 frames; -DmemOwners: the direct buffers at the peak by owner)
+    for (k in listOf("memtrace", "memOwners", "memDump", "memDumpEnd")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     jvmArgs("-Djava.library.path=" + File(filamentDist, "lib").absolutePath)
     environment("EGL_PLATFORM", "surfaceless")
     args(layout.buildDirectory.dir("memcheck").get().asFile.absolutePath, file("../../public/assets/characters").absolutePath)

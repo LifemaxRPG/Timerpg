@@ -92,19 +92,19 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
     fun isWater(i: Int, j: Int): Boolean = key(i, j) in water
 
     /** Every batch of the ground, greenery and furniture. */
-    fun pieces(): List<GroundPiece> {
-        val out = ArrayList<GroundPiece>()
-        out += grass()
-        out += roads()
-        out += patches()
-        out += zebras()
-        plaza()?.let { out += it }
-        landmarkGrounds()?.let { out += it }
-        out += waterPieces()
-        out += bridges()
-        out += greenery()
-        out += furniture()
-        return out
+    fun pieces(): Sequence<GroundPiece> = sequence {
+        // (made one kind at a time as the town packs them: each piece's pictures go once packed, not held, the grass's 16 MB
+        // among them, until every piece of the ground is made)
+        yield(grass())
+        yieldAll(roads())
+        yieldAll(patches())
+        yieldAll(zebras())
+        plaza()?.let { yield(it) }
+        landmarkGrounds()?.let { yield(it) }
+        yieldAll(waterPieces())
+        yieldAll(bridges())
+        yieldAll(greenery())
+        yieldAll(furniture())
     }
 
     // ------------------------------------------------------------------ a flat mesh in world coordinates
@@ -545,26 +545,47 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         val cap = Ramp(Paint.c(0x7A7A72), Paint.c(0x96958C), Paint.c(0xAAA99F), Paint.c(0xC2C1B6), Paint.c(0xD6D5CA))
         // (a metre: 21 units)
         val slab = 26f; val wall = 21f; val t = 6f
+        // (each long box in lengths of about 3 m, a joint between them as poured concrete has, and every length of a size
+        // wears the same pictures: one bridge's faces as pictures as long as it is were a 1024 x 2341 atlas, 10 MB of heap
+        // and as much again to upload, for a few grey panels)
+        val pics = HashMap<String, PixImg>()
+        fun seg(x0: Float, y0: Float, z0: Float, x1: Float, y1: Float, z1: Float, r: Ramp) {
+            val alongX = x1 - x0 >= z1 - z0
+            val len = if (alongX) x1 - x0 else z1 - z0
+            val n = max(1, ceil(len / (64f * TEXEL)).toInt())
+            for (k in 0 until n) {
+                val a = k * len / n; val b = (k + 1) * len / n
+                val (ax0, ax1) = if (alongX) (x0 + a) to (x0 + b) else x0 to x1
+                val (az0, az1) = if (alongX) z0 to z1 else (z0 + a) to (z0 + b)
+                m.box(ax0, y0, az0, ax1, y1, az1) { sd, w, h ->
+                    when (sd) {
+                        MeshBuilder.Side.BOTTOM -> null
+                        MeshBuilder.Side.TOP -> pics.getOrPut("t$w,$h,${r.b}") { Paint.top(w, h, r) }
+                        else -> pics.getOrPut("p$w,$h,${r.b},${sd.ordinal}") { Paint.panel(w, h, r, 3 + sd.ordinal, true) }
+                    }
+                }
+            }
+        }
         for (b in town.bridges) {
             val r = b.rect
             // the slab under the deck, its edges the fascia over the water
-            m.panelBox(r[0], -slab, r[1], r[2], LIFT_ROAD - .3f, r[3], concrete, 3, edges = true)
+            seg(r[0], -slab, r[1], r[2], LIFT_ROAD - .3f, r[3], concrete)
             if (b.horizontal) {
                 for (z in listOf(r[1], r[3])) {
                     val inward = if (z == r[1]) 1f else -1f
                     val z0 = min(z, z + inward * t); val z1 = max(z, z + inward * t)
-                    m.panelBox(r[0], LIFT_ROAD - .3f, z0, r[2], LIFT_ROAD + wall - 3f, z1, concrete, 3, edges = true)
-                    m.panelBox(r[0] - 1f, LIFT_ROAD + wall - 3f, z0 - 1f, r[2] + 1f, LIFT_ROAD + wall, z1 + 1f, cap, 3, edges = true)
+                    seg(r[0], LIFT_ROAD - .3f, z0, r[2], LIFT_ROAD + wall - 3f, z1, concrete)
+                    seg(r[0] - 1f, LIFT_ROAD + wall - 3f, z0 - 1f, r[2] + 1f, LIFT_ROAD + wall, z1 + 1f, cap)
                 }
-                if (r[2] - r[0] > 500f) { val cx = (r[0] + r[2]) / 2f; m.panelBox(cx - 14f, -60f, r[1] + 10f, cx + 14f, -slab, r[3] - 10f, concrete, 3, edges = true) }
+                if (r[2] - r[0] > 500f) { val cx = (r[0] + r[2]) / 2f; seg(cx - 14f, -60f, r[1] + 10f, cx + 14f, -slab, r[3] - 10f, concrete) }
             } else {
                 for (x in listOf(r[0], r[2])) {
                     val inward = if (x == r[0]) 1f else -1f
                     val x0 = min(x, x + inward * t); val x1 = max(x, x + inward * t)
-                    m.panelBox(x0, LIFT_ROAD - .3f, r[1], x1, LIFT_ROAD + wall - 3f, r[3], concrete, 3, edges = true)
-                    m.panelBox(x0 - 1f, LIFT_ROAD + wall - 3f, r[1] - 1f, x1 + 1f, LIFT_ROAD + wall, r[3] + 1f, cap, 3, edges = true)
+                    seg(x0, LIFT_ROAD - .3f, r[1], x1, LIFT_ROAD + wall - 3f, r[3], concrete)
+                    seg(x0 - 1f, LIFT_ROAD + wall - 3f, r[1] - 1f, x1 + 1f, LIFT_ROAD + wall, r[3] + 1f, cap)
                 }
-                if (r[3] - r[1] > 500f) { val cz = (r[1] + r[3]) / 2f; m.panelBox(r[0] + 10f, -60f, cz - 14f, r[2] - 10f, -slab, cz + 14f, concrete, 3, edges = true) }
+                if (r[3] - r[1] > 500f) { val cz = (r[1] + r[3]) / 2f; seg(r[0] + 10f, -60f, cz - 14f, r[2] - 10f, -slab, cz + 14f, concrete) }
             }
         }
         return listOf(GroundPiece("bridges", m.build(), identity, casts = true))

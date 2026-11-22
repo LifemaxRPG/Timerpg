@@ -160,7 +160,7 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
          * are written in place ([offset]), with no int array of the pixels on the Java heap.
          */
         fun blank(w: Int, h: Int, linear: Boolean = false): Prepared =
-            Prepared(ByteBuffer.allocateDirect(w * h * 4).order(ByteOrder.nativeOrder()), w, h, linear, null)
+            Prepared(TownMemory.direct(w * h * 4).order(ByteOrder.nativeOrder()), w, h, linear, null)
 
         /** Where pixel [i] of a [w] x [h] picture (rows top first, as ARGB arrays run) starts in a buffer Filament takes. */
         fun offset(i: Int, w: Int, h: Int): Int { val y = i / w; return ((h - 1 - y) * w + (i - y * w)) * 4 }
@@ -188,7 +188,7 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
 
         /** RGBA bytes, the picture's bottom row first: Filament's textures (as GL's) start at the bottom, v = 0 there. */
         private fun pack(px: IntArray, w: Int, h: Int): ByteBuffer {
-            val buf = ByteBuffer.allocateDirect(w * h * 4).order(ByteOrder.nativeOrder())
+            val buf = TownMemory.direct(w * h * 4).order(ByteOrder.nativeOrder())
             for (y in h - 1 downTo 0) for (x in 0 until w) {
                 val c = px[y * w + x]
                 buf.put((c shr 16).toByte()).put((c shr 8).toByte()).put(c.toByte()).put((c ushr 24).toByte())

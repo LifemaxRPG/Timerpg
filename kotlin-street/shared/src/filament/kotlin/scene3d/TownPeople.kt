@@ -55,7 +55,7 @@ internal class TownPeople(
     private fun quad() {
         if (vb != null) return
         val stride = 36
-        val b = ByteBuffer.allocateDirect(4 * stride).order(ByteOrder.nativeOrder())
+        val b = TownMemory.direct(4 * stride).order(ByteOrder.nativeOrder())
         val q = FloatArray(4)
         MathUtils.packTangentFrame(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f, q)
         val pos = floatArrayOf(0f, 0f, 1f, 0f, 1f, 1f, 0f, 1f)
@@ -68,7 +68,7 @@ internal class TownPeople(
             .attribute(VertexBuffer.VertexAttribute.TANGENTS, 0, VertexBuffer.AttributeType.FLOAT4, 20, stride)
             .build(engine)
         v.setBufferAt(engine, 0, b)
-        val ix = ByteBuffer.allocateDirect(12).order(ByteOrder.nativeOrder())
+        val ix = TownMemory.direct(12).order(ByteOrder.nativeOrder())
         for (s in shortArrayOf(0, 1, 2, 0, 2, 3)) ix.putShort(s)
         ix.flip()
         val i = IndexBuffer.Builder().indexCount(6).bufferType(IndexBuffer.Builder.IndexType.USHORT).build(engine)

@@ -143,7 +143,7 @@ class FilamentStreet(
 
     private fun load(name: String, bytes: (String) -> ByteArray): Material {
         val b = bytes(name)
-        val buf = ByteBuffer.allocateDirect(b.size).put(b).flip()
+        val buf = TownMemory.direct(b.size).put(b).flip()
         return Material.Builder().payload(buf, b.size).build(engine)
     }
 
@@ -834,9 +834,9 @@ class FilamentStreet(
         level: Int, casts: Boolean, windows: Windows?, ref: FloatArray? = null,
     ) {
         val nv = faces.fold(0) { a, f -> a + f.p.size / 3 }
-        val vb = ByteBuffer.allocateDirect(nv * STRIDE).order(ByteOrder.nativeOrder())
+        val vb = TownMemory.direct(nv * STRIDE).order(ByteOrder.nativeOrder())
         val ni = faces.fold(0) { a, f -> a + if (f.p.size == 9) 3 else 6 }
-        val ib = ByteBuffer.allocateDirect(ni * 2).order(ByteOrder.nativeOrder())
+        val ib = TownMemory.direct(ni * 2).order(ByteOrder.nativeOrder())
         val q = FloatArray(4)
         var minX = Float.MAX_VALUE; var minY = Float.MAX_VALUE; var minZ = Float.MAX_VALUE
         var maxX = -Float.MAX_VALUE; var maxY = -Float.MAX_VALUE; var maxZ = -Float.MAX_VALUE
@@ -917,7 +917,7 @@ class FilamentStreet(
     // ------------------------------------------------------------------ cards: lamps, trees, benches, people
 
     private fun unitQuad(): Pair<VertexBuffer, IndexBuffer> {
-        val vb = ByteBuffer.allocateDirect(4 * STRIDE).order(ByteOrder.nativeOrder())
+        val vb = TownMemory.direct(4 * STRIDE).order(ByteOrder.nativeOrder())
         val q = FloatArray(4)
         MathUtils.packTangentFrame(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f, q)
         val pos = floatArrayOf(0f, 0f, 1f, 0f, 1f, 1f, 0f, 1f)
@@ -930,7 +930,7 @@ class FilamentStreet(
             .attribute(VertexBuffer.VertexAttribute.TANGENTS, 0, VertexBuffer.AttributeType.FLOAT4, 20, STRIDE)
             .build(engine)
         vertices.setBufferAt(engine, 0, vb)
-        val ib = ByteBuffer.allocateDirect(12).order(ByteOrder.nativeOrder())
+        val ib = TownMemory.direct(12).order(ByteOrder.nativeOrder())
         for (s in shortArrayOf(0, 1, 2, 0, 2, 3)) ib.putShort(s)
         ib.flip()
         val indices = IndexBuffer.Builder().indexCount(6).bufferType(IndexBuffer.Builder.IndexType.USHORT).build(engine)

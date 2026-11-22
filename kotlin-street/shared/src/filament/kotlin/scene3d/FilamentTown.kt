@@ -673,7 +673,7 @@ class FilamentTown(
 
     private fun load(name: String, bytes: (String) -> ByteArray): Material {
         val b = bytes(name)
-        val buf = ByteBuffer.allocateDirect(b.size).put(b).flip()
+        val buf = TownMemory.direct(b.size).put(b).flip()
         return Material.Builder().payload(buf, b.size).build(engine)
     }
 
