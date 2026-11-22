@@ -16,9 +16,31 @@ class ModelRolesTest {
 
     private fun pick(freeMb: Long, foreground: Boolean = true, built: Boolean = true, bankBytes: Long = bank, liveBytes: Long = live,
                      accelerated: Boolean = true, forceBank: Boolean = false, low: Boolean = false, writing: Boolean = false,
-                     liveWorkMb: Long = 300) =
+                     liveWorkMb: Long = 300, reclaimMb: Long = 0) =
         ModelRoles.pick(ModelRoles.Input(foreground, built, mb(freeMb), low, bankBytes, liveBytes, accelerated, forceBank, writing,
-            liveWorkBytes = mb(liveWorkMb)))
+            liveWorkBytes = mb(liveWorkMb), reclaimBytes = mb(reclaimMb)))
+
+    @Test fun withWhatAndroidFindsTheLightModelsCopyIsTriedBeforeTheCpu() {
+        // the phone's reports: 2.0 to 3.6 GB free beside the town, 3663 MB needed
+        assertEquals(Load(ModelRole.LIVE, copied = true, tried = true), pick(3000, reclaimMb = 1024))
+        assertEquals(Load(ModelRole.LIVE, copied = true, tried = true), pick(2700, reclaimMb = 1024))
+        // not enough even so: the CPU from the file, as before
+        assertEquals(Load(ModelRole.LIVE, copied = false), pick(2500, reclaimMb = 500))
+        // a copy that fits outright is no try
+        assertEquals(Load(ModelRole.LIVE, copied = true), pick(3700, reclaimMb = 1024))
+        // in play the main model's copy is never a try while the light one's fits
+        assertEquals(Load(ModelRole.LIVE, copied = true), pick(4000, reclaimMb = 4000))
+        assertEquals(Load(ModelRole.LIVE, copied = true, tried = true), pick(3000, reclaimMb = 4000))
+        // Android says memory is low: no try
+        assertTrue(pick(3000, reclaimMb = 1024, low = true) is ModelRoles.Wait)
+        // writing (Writer mode): the main model's copy may be a try
+        assertEquals(Load(ModelRole.BANK, copied = true, tried = true), pick(5200, writing = true, reclaimMb = 2000))
+        // without the light model in play, the main one's copy tried, else the light model is asked for
+        assertEquals(Load(ModelRole.BANK, copied = true, tried = true), pick(5200, liveBytes = 0, reclaimMb = 2000))
+        assertTrue(pick(3000, liveBytes = 0, reclaimMb = 1000) is ModelRoles.NeedLive)
+        // the game behind: no try (the first process Android ends)
+        assertEquals(Load(ModelRole.BANK, copied = false), pick(5200, foreground = false, reclaimMb = 2000))
+    }
 
     @Test fun theNeedsAsThePhoneSawThem() {
         // the main model's NPU copy: 6617 MB with the margin (the figure the phone reported); the light one's ~3.7 GB

@@ -18,6 +18,78 @@ simulation already decided (see `tools/export-dialogue.ts`, `src/llm/factsheet.t
   if its copy does not fit). Nothing loads while the town is built. The AI panel shows which is live, on which device and
   what each needs, with a switch to put the main model in play for comparison.
 
+## Getting the live model onto the NPU (2026-11-22)
+
+**The runtime.** The NPU path is llama.cpp's own Hexagon backend (`ggml-hexagon`, built from the Hexagon SDK 6.7 by
+`app/src/main/cpp/CMakeLists.txt`: `libggml-hexagon.so` on the ARM side, `libggml-htp-v79.so` on the S25 Ultra's DSP),
+not QNN, Genie or AI Hub context binaries. It takes a plain GGUF (Q4_0 is its best-supported format): no per-model
+compile step. It copies and retiles every weight into DMA buffers shared with the DSP (`rpcmem_alloc2` on the system heap,
+at most 1 GiB each), so the copy cannot be memory-mapped from the file (`buffer_from_host_ptr` is not implemented, and the
+retiled layout is not the file's): it is real memory, about the file's size. The GPU path (OpenCL, Adreno kernels) copies
+too. The CPU path maps the file (clean pages the system may drop).
+
+**Why it ran on the CPU.** `ModelRoles.pick` asked for the copy's whole need in Android's *available* count
+(`ActivityManager.MemoryInfo.availMem`, free plus page cache): the light model's 2.46 GB file, its own buffers (~150 MB
+measured on a computer) and a 900 MB margin, ~3.6 GB. Beside the town the phone showed 2.0-3.6 GB, so the copy never
+loaded and the CPU read the mapped file instead (`runsOn: "CPU"`). That count leaves out what Android hands a foreground
+app on demand: cached background apps' private memory (the low-memory killer ends those first) and what compressed swap
+(zram) can take. On a 12 GB phone that can be gigabytes, but no app can read it in advance: only a real load tells.
+
+**What changed.**
+1. *Device gate* (`llm/NpuGate`, unit tested): a copy may count what Android is expected to find beyond its free count.
+   The figure is the least that Android really found in the last measured loads (the fit test's, and tries in play:
+   `found` = the copy's memory less what the free count fell by); before any measurement, half the free swap, at most
+   1.5 GB. A try that failed (the load, the valve, a kill during it, memory critical within 5 minutes) with about as much
+   free memory stops further tries of copies that size for a week. `ModelRoles.pick` marks such a load `tried`: the light
+   model's copy is tried before the CPU; in play the main model's copy is never a try while the light one's is there.
+   Each try is marked on disk before the load (a kill is counted on the next start) and watched by `llm/LoadValve`
+   (cancelled if free memory falls to Android's threshold + 250 MB). The AI panel's switch turns the gate off.
+2. *Holding less at once*: what already existed stays (`llm/AiLane`: one heavy model at work at a time;
+   `llm/ModelRoom.dropFor`: speech, memory, judge and voices let go for the copy when it is short), and the fit test
+   measures each one. The context is already short (1024, 8-bit KV; the light model's KV is ~19 MB, being a hybrid with
+   few attention layers); the prompt batch is now a setting (`ai` prefs `batch`: 512, 256, 128; the native engine's bits
+   12-14) to shrink the compute buffers if the fit test shows they are big on the NPU.
+3. *NPU, then GPU, then CPU*: an NPU load that fails for another reason than memory tries the GPU (when the build has
+   OpenCL, which it does with `opencl.*` in local.properties) before the CPU; a memory failure goes straight to the CPU
+   (the GPU's copy is as big). The AI panel's switch can make it NPU then CPU.
+4. *The NPU fit test* (`llm/NpuFitTest`, `llm/FitReport`): AI panel and Writer mode. In the game it runs with the town,
+   then switches to the old crossroads (the town unloaded) and back; in Writer mode it runs there. For each condition:
+   memory by several measures (availMem, threshold, /proc/meminfo, swap, the game's RSS and PSS by part, memory pressure
+   when readable), each resident model's MB, what letting the dialogue model and the others go freed; then each copy:
+   light NPU (batch 512 and 256), the small model's NPU copy when its file is there, light GPU, light CPU (once), main
+   NPU (where the light one's numbers say it can fit; always in Writer mode). Per copy: loaded or the runtime's error,
+   load time, llama.cpp's buffers, the lowest free memory during the load, what Android found, prefill and generation
+   tok/s on a fixed prompt of its own (cold, then warm), heat before and after, which device really ran. The report
+   (npu/<date>/<time>.json, with `inPlainWords`) is on disk before every step, naming the step under way, so a kill is
+   still a report. Its measured `found` calibrates the gate.
+
+**A smaller live model, if the light one's copy still does not fit.** The same family's 2B (Qwen3.5-2B) in Q4_0 is
+about 1.24 GB: its copy needs ~2.3 GB with the margin, inside every reading the phone gave beside the town. Steps:
+- the file: a Q4_0 GGUF of the 2B (published ones exist; or `convert_hf_to_gguf.py` on the Hugging Face weights, then
+  `llama-quantize --pure ... Q4_0`, the token embedding left Q8_0 or Q4_0); no Qualcomm tooling, no context binaries;
+- put it at `filesDir/models/live-small-q4_0.gguf` (`ModelFiles.LIVE_SMALL`): the fit test tries it already;
+- then: a download entry with its exact size (`ModelDownloads`, as the light model's), and a third choice in
+  `ModelRoles.pick` in play (the light copy, tried or not, then the small copy, then the light file on the CPU), and its
+  lines marked like the light model's (rewritten by the main one when it writes). The 4B and 9B stay for the bank.
+- Check its replies with the host test (`tools/llm-host-test.sh`, `validate()`) before it goes in play: the 0.6B passed
+  89%, the 9B 97%; a 2B is expected in between, which is what the distillation below is for.
+
+**Distillation (design only).** Teach the small live model to talk like the main model, on our own prompts.
+- *Data*: the main model's lines for the exporter's prompts (`tools/export-dialogue.ts`: every person, topic and year,
+  plus free-question prompts made from the themes), several samples per prompt (temperature 0.7), each kept only if it
+  passes `validate()` (the same check the game runs). Tens of thousands of pairs. Where: a PC GPU (a 24 GB card writes
+  that in hours with llama.cpp's server); this server at ~3-5 tok/s would take weeks, so only a pilot of a few thousand.
+  The phone's own bank (written overnight) is a free source too, its lines already checked: never the lines steered by
+  the player's words, which stay on the phone.
+- *Format*: JSONL, one `{"messages": [system (rules + fact sheet), user (the question), assistant (the line)]}` per line,
+  the ChatML the game already sends, with the empty think block as in play.
+- *Training*: LoRA (rank 16-32, attention and MLP projections, 1-3 epochs, lr ~1e-4) on the 2B's full-precision weights
+  (PEFT/Unsloth on one GPU; a 2B fits a 16 GB card in bf16), merged into the weights, then GGUF and Q4_0 as above.
+  Q4_0 after merging, not a LoRA adapter at run time (the Hexagon path wants plain weights).
+- *Evaluation*: a held-out set of prompts (other people and years than the training ones): `validate()` pass rate (goal:
+  at the 4B's or better), fact recall (the named facts present), length, repetition across samples, and a blind side by
+  side against the 9B's lines on 100 prompts by the owner. Then the fit test on the phone for speed and memory.
+
 ## A spoken turn in play (the always-listening mic), and where its time goes
 
 The owner's first test on the S25 Ultra (always-listening mic): the words took very long to appear and the reply took

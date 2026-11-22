@@ -244,6 +244,9 @@ class DialogueEngine private constructor(private val app: Context) {
     private val thread = Thread({ loop() }, "dialogue-llm").apply { isDaemon = true }
 
     init {
+        // a try of a device copy that ended with the process (killed during the load) counts against trying it again
+        runCatching { com.timerpg.street.llm.NpuGate.checkKilled(app) }
+        com.timerpg.street.llm.MemProbe.Trims.watch(app)
         // the memory breakdown: the dialogue model's weights and its own buffers (never let go for the others)
         com.timerpg.street.llm.ModelRoom.register(com.timerpg.street.llm.ModelRoom.Resident("dialogue",
             mb = { if (backend?.loaded == true) (loadedBytes + loadedWork) shr 20 else 0L },
@@ -573,6 +576,20 @@ class DialogueEngine private constructor(private val app: Context) {
     }
 
     @Volatile private var loadedWork = 0L
+    /** What the device gate counted beyond the free memory at the last choice, and why (for the breadcrumbs and panel). */
+    @Volatile private var gateNote: String? = null
+    /** When the last tried copy loaded (elapsed ms; 0: none): memory critical soon after counts against it. */
+    @Volatile private var triedAt = 0L
+    @Volatile private var triedFree = 0L
+    @Volatile private var triedNeed = 0L
+
+    /** The NPU failing for another reason than memory: the GPU before the CPU (the AI panel's switch; on by default). */
+    val gpuFallbackWanted: Boolean get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getBoolean("gpuFallback", true)
+    fun setGpuFallback(on: Boolean) { app.getSharedPreferences("ai", Context.MODE_PRIVATE).edit().putBoolean("gpuFallback", on).apply() }
+    /** The prompt's batch from the next load (512 by default; 256 or 128 shrink the compute buffers), see [com.timerpg.street.llm.NativeLlm.batch]. */
+    val batchWanted: Int get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getInt("batch", 512)
+    /** What the device gate counted, for the AI panel. */
+    val gateText: String? get() = gateNote
 
     /** Which model is loaded ([ModelRole]); whether it was copied to its device (not mapped) and its file's size. */
     @Volatile private var loadedRole: ModelRole? = null
@@ -602,8 +619,12 @@ class DialogueEngine private constructor(private val app: Context) {
         val dev = listOf("CPU", "GPU", "NPU").getOrElse(fallbackDevice) { "?" }
         if (busy) roomSince = 0L
         else {
-            val free = memoryNow().first
             val need = copyNeed(role, ModelFiles.file(app))
+            // (with what Android is expected to find for it, NpuGate: a try that failed at this level is not tried again)
+            val free = memoryNow().first.let { f ->
+                val swap = runCatching { com.timerpg.street.llm.MemProbe.parseMeminfo(java.io.File("/proc/meminfo").readText())["SwapFree"] }.getOrNull() ?: 0L
+                f + (com.timerpg.street.llm.NpuGate.verdict(app, f shr 20, need shr 20, swap).reclaimMb shl 20)
+            }
             val now = android.os.SystemClock.elapsedRealtime()
             if (free >= need) {
                 if (roomSince == 0L) {
@@ -619,6 +640,33 @@ class DialogueEngine private constructor(private val app: Context) {
             } else roomSince = 0L
         }
         main.postDelayed(deviceRetry, DEVICE_RETRY_MS)
+    }
+
+    /**
+     * The NPU fit test ([com.timerpg.street.llm.NpuFitTest]) takes the memory: writing ahead paused, the model let go and
+     * its load held. Blocks until the model is closed (at most 60 s); false if it was not in time.
+     */
+    fun fitTestHold(): Boolean {
+        pause(FIT_TEST)
+        holdLoad(FIT_TEST)
+        lock.withLock { running?.let { cancelLocked(it) } }
+        val done = java.util.concurrent.CountDownLatch(1)
+        command { closeBackend(); main.removeCallbacks(deviceRetry); fallbackRole = null; setState(ModelState.WAITING, "The NPU fit test is using the memory."); done.countDown() }
+        return done.await(60, java.util.concurrent.TimeUnit.SECONDS)
+    }
+
+    /** After the fit test: the hold lifted and the model loaded again as usual. */
+    fun fitTestRelease() {
+        lock.withLock { loadHolds.remove(FIT_TEST) }
+        resume(FIT_TEST)
+        command { memoryWaits = 0; loadModel() }
+    }
+
+    /** The main model's file as a load on the NPU would take it (the Q4_0 copy when the tuner chose it), for the fit test. */
+    fun bankFileForNpu(): File {
+        val q40 = File(ModelFiles.dir(app), ModelFiles.NPU_Q4_0)
+        val wantsQ40 = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getString("model", null) == "q4_0"
+        return if (wantsQ40 && q40.length() == 5_379_417_312L) q40 else ModelFiles.file(app)
     }
 
     /** Loads the model again (after an error, or after it was unloaded). */
@@ -1140,11 +1188,19 @@ class DialogueEngine private constructor(private val app: Context) {
             val (avail, low) = memoryNow()
             // a model already loaded gives its copy back if it is let go: counted as free when deciding what goes in its place
             val held = if (b.loaded && loadedCopied) loadedBytes else 0L
+            // what Android is expected to find beyond its free count for a copy on the device (com.timerpg.street.llm.NpuGate)
+            val reclaim = if (!accelerated) null else {
+                val role = if (liveOk && !forceBankWanted && !night) ModelRole.LIVE else ModelRole.BANK
+                val swap = runCatching { com.timerpg.street.llm.MemProbe.parseMeminfo(java.io.File("/proc/meminfo").readText())["SwapFree"] }.getOrNull() ?: 0L
+                com.timerpg.street.llm.NpuGate.verdict(app, (avail + held) shr 20, copyNeed(role, bankFile) shr 20, swap)
+            }
+            gateNote = reclaim?.let { "${it.reclaimMb} MB counted beyond the free memory: ${it.why}" }
             return ModelRoles.pick(ModelRoles.Input(
                 foreground = foreground, sceneBuilt = holds.isEmpty(), freeBytes = avail + held, lowMemory = low && held == 0L,
                 bankBytes = if (bankOk) bankFile.length() else 0L, liveBytes = if (liveOk) liveFile.length() else 0L,
                 accelerated = accelerated, forceBank = forceBankWanted, writing = night,
                 bankWorkBytes = workWanted(ModelRole.BANK), liveWorkBytes = workWanted(ModelRole.LIVE),
+                reclaimBytes = (reclaim?.reclaimMb ?: 0L) shl 20,
             ))
         }
         _status.update { it.copy(hasLive = liveOk, forceBank = forceBankWanted, needLive = false,
@@ -1235,14 +1291,50 @@ class DialogueEngine private constructor(private val app: Context) {
         native?.mtp = if (role == ModelRole.BANK && useMtp && (mtpSet || native?.device == com.timerpg.street.llm.NativeLlm.NPU)) mtpWanted else 0
         // loading holds the AI lane: speech, memory and the voices do not load beside it (their memory added to a load's
         // is what took the phone down)
+        native?.batch = batchWanted
+        // a try: the copy fits only with what Android is expected to find (NpuGate). Marked first (a kill during it is
+        // known on the next start), watched (stopped if free memory falls to Android's threshold plus a valve), recorded
+        val tried = (choice as? ModelRoles.Load)?.tried == true && native != null && !cpuFallback
+        val freeBefore = memoryNow().first shr 20
+        val needMb = copyNeed(role, bankFile) shr 20
+        var valve: com.timerpg.street.llm.LoadValve? = null
+        if (tried) {
+            com.timerpg.street.llm.NpuGate.markRunning(app, freeBefore, needMb)
+            com.timerpg.street.shot.Crumbs.add("dialogue model: trying the ${role.name.lowercase()} model's ${listOf("CPU", "GPU", "NPU").getOrElse(wantDev) { "?" }} copy " +
+                "with $freeBefore MB free, $needMb MB needed: ${gateNote ?: ""}")
+            valve = com.timerpg.street.llm.LoadValve.start(app) { b.cancel() }
+        }
         var ok = com.timerpg.street.llm.AiLane.run("dialogue") {
             try { b.load(f.path, 0, contextFor(role)) } catch (t: Throwable) { thrown = t.message ?: t.javaClass.simpleName; false }
+        }
+        valve?.stop()
+        if (tried && native != null) {
+            val after = memoryNow().first shr 20
+            val copied = native.loadMem.let { (it[1] + it[2] + it[3] + it[4]).toLong() }
+            val why = when { valve?.hit != null -> "stopped by the safety valve: ${valve?.hit}"; !ok -> native.error ?: "load failed"; else -> "" }
+            com.timerpg.street.llm.NpuGate.record(app, com.timerpg.street.llm.NpuGate.Try(System.currentTimeMillis(), freeBefore, needMb, ok,
+                if (ok) com.timerpg.street.llm.NpuGate.found(freeBefore, after, copied) else -1, why))
+            if (ok) { triedAt = android.os.SystemClock.elapsedRealtime(); triedFree = freeBefore; triedNeed = needMb; main.postDelayed({ com.timerpg.street.llm.NpuGate.clearRunning(app) }, 20_000) }
+            else com.timerpg.street.llm.NpuGate.clearRunning(app)
+        }
+        // the NPU could not take it: the GPU (unless it was memory: its copy is as big), then the CPU (and say so)
+        val memoryFail = valve?.hit != null || (native?.error ?: "").let { e -> e.contains("alloc", true) || e.contains("memory", true) }
+        if (!ok && native != null && native.device == com.timerpg.street.llm.NativeLlm.NPU && !closed && !memoryFail &&
+            native.accelerators and 1 != 0 && gpuFallbackWanted) {
+            val npuError = native.error ?: "unknown"
+            native.device = com.timerpg.street.llm.NativeLlm.GPU
+            com.timerpg.street.shot.Crumbs.add("dialogue model: the NPU could not load it ($npuError): trying the GPU")
+            ok = com.timerpg.street.llm.AiLane.run("dialogue") {
+                try { b.load(f.path, 0, contextFor(role)) } catch (t: Throwable) { thrown = t.message ?: t.javaClass.simpleName; false }
+            }
+            if (ok) gpuNote = "The NPU could not load the model ($npuError); it runs on the GPU."
+            else gpuNote = "The NPU could not load the model ($npuError), nor the GPU (${native.error ?: "unknown"})."
         }
         if (!ok && native != null && native.device != com.timerpg.street.llm.NativeLlm.CPU && !closed) {
             // the GPU or NPU could not take it: the CPU then (and say so)
             val which = if (native.device == com.timerpg.street.llm.NativeLlm.NPU) "NPU" else "GPU"
             native.device = com.timerpg.street.llm.NativeLlm.CPU
-            gpuNote = "The $which could not load the model (${native.error ?: "unknown"}); it runs on the CPU."
+            gpuNote = (gpuNote?.let { "$it " } ?: "") + "The $which could not load the model (${native.error ?: "unknown"}); it runs on the CPU."
             ok = com.timerpg.street.llm.AiLane.run("dialogue") {
                 try { b.load(f.path, 0, contextFor(role)) } catch (t: Throwable) { thrown = t.message ?: t.javaClass.simpleName; false }
             }
@@ -1344,6 +1436,12 @@ class DialogueEngine private constructor(private val app: Context) {
         // the player came back before this ran: keep the model
         if (backend == null || (foreground && !force)) return
         if (force) {
+            val since = android.os.SystemClock.elapsedRealtime() - triedAt
+            if (triedAt > 0 && since < com.timerpg.street.llm.NpuGate.HOLD_MS) {
+                com.timerpg.street.llm.NpuGate.record(app, com.timerpg.street.llm.NpuGate.Try(System.currentTimeMillis(), triedFree, triedNeed, ok = false, why = "memory went critical ${since / 1000} s after the load"))
+                com.timerpg.street.llm.NpuGate.clearRunning(app)
+            }
+            triedAt = 0L
             memoryUnloads++
             lastMemoryUnload = android.os.SystemClock.elapsedRealtime()
             com.timerpg.street.shot.Crumbs.add("dialogue model: unloaded, memory critical (${com.timerpg.street.llm.Ram.freeMb(app)} MB free; time $memoryUnloads)")
@@ -1744,6 +1842,8 @@ class DialogueEngine private constructor(private val app: Context) {
         private const val NO_MODEL_TEXT = "No model yet: people use their built-in lines. Download it from the AI panel, or choose the model file (Qwen3.5-9B-Q4_K_M.gguf, about 5.7 GB) to give them their own words. It is copied into the game once."
         private const val READY_TEXT = "Ready. Lines near you are written ahead of time."
         private const val LIVE_READY_TEXT = "Ready: the light model answers in play. Lines ahead of time are written by the main model (overnight, or when it fits)."
+        /** The pause and load hold while the NPU fit test runs. */
+        const val FIT_TEST = "fit test"
         /** The pause reason while the light model is loaded (pre-generation is the main model's). */
         const val LIVE_PAUSE = "light model loaded"
 

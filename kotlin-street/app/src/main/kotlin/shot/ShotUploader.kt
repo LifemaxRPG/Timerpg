@@ -273,6 +273,16 @@ object ShotUploader {
                 }
                 if (ok(r.code)) f.delete() else break
             }
+            // the NPU fit test's reports (a test under way keeps its file: sent once it is done, or on the next start)
+            for (f in Reports.pendingNpu(app).reversed()) {
+                if (com.timerpg.street.llm.NpuFitTest.writing(f)) continue
+                val path = Reports.remotePath(f)
+                val bytes = runCatching { f.readBytes() }.getOrNull() ?: continue
+                val (r, _) = put(token, ShotRequests.REPORT_BRANCH, path, bytes, "NPU fit test: ${path.removePrefix("npu/")}") { k ->
+                    path.removeSuffix(".json") + "-${k + 1}.json"
+                }
+                if (ok(r.code)) f.delete() else break
+            }
         }
     }
 

@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -120,6 +121,19 @@ class WriterActivity : ComponentActivity() {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Chip("Keep screen on (dimmed): " + if (keepOn) "on" else "off", keepOn) { keepOn = !keepOn; NightWriter.setWriterScreenOn(ctx, keepOn); lastTouch = android.os.SystemClock.elapsedRealtime() }
                 Chip("Write on battery too: " + if (onBattery) "yes" else "only plugged in", onBattery) { onBattery = !onBattery; NightWriter.setWriterOnBattery(ctx, onBattery) }
+            }
+            // the NPU fit test here (no town, no game): does each copy load, and how fast; a report to Claude
+            run {
+                val ft by com.timerpg.street.llm.NpuFitTest.status.collectAsState()
+                Chip(if (ft.running) "NPU fit test: ${ft.progress ?: "…"}" else "NPU fit test (a few minutes; sends a report)", ft.running) {
+                    if (!ft.running) {
+                        var wasPaused = true
+                        com.timerpg.street.llm.NpuFitTest.start(ctx, listOf("writer"), com.timerpg.street.llm.NpuFitTest.Hooks(
+                            prepare = { NightWriter.session?.let { wasPaused = it.paused; it.setPaused(true) }; "Writer mode, its writing paused for the test" },
+                            finish = { NightWriter.session?.setPaused(wasPaused) }))
+                    }
+                }
+                ft.last?.let { T("Fit test: $it", 11.sp, color = DIM) }
             }
             if (!remember(tick / 10) { NightWriter.unrestricted(ctx) })
                 Chip("Let it run in the background (battery: Unrestricted)", false) { NightWriter.askUnrestricted(ctx) }

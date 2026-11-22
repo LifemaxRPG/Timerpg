@@ -24,6 +24,11 @@ object ModelFiles {
      *  llama.cpp's Hexagon code was first built around. */
     const val LIVE = "qwen3.5-4b-q4_0.gguf"
     const val LIVE_BYTES = 2_583_221_408L
+    /** A smaller model of the same family for live replies on the NPU, when the light one's copy does not fit beside the
+     *  town (docs/CONVERSATION.md, "A smaller live model"): any size, put in place by hand for now; the NPU fit test
+     *  tries it when it is there. Q4_0, as [LIVE]. */
+    const val LIVE_SMALL = "live-small-q4_0.gguf"
+    fun liveSmall(ctx: Context): File = File(dir(ctx), LIVE_SMALL)
     /** What [problem] says when there is no model file. */
     const val MISSING = "missing"
     private const val MIN_BYTES = 16L shl 20

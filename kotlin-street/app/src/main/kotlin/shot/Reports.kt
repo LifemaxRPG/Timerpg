@@ -138,6 +138,16 @@ object Reports {
     fun pendingNight(ctx: Context): List<File> = (dir(ctx).listFiles { f -> f.name.startsWith("night~") && f.name.endsWith(".json") } ?: emptyArray())
         .sortedByDescending { it.name }
 
+    /** The NPU fit test's reports waiting to be sent (npu/<date>/<time>.json), newest first. */
+    fun pendingNpu(ctx: Context): List<File> = (dir(ctx).listFiles { f -> f.name.startsWith("npu~") && f.name.endsWith(".json") } ?: emptyArray())
+        .sortedByDescending { it.name }
+
+    /** Writes (or rewrites: the test keeps its report on disk after every step) the NPU fit test's report at [path]. */
+    fun putNpu(ctx: Context, path: String, text: String) {
+        File(dir(ctx), path.replace('/', '~')).writeText(text)
+        pendingNpu(ctx).drop(KEEP_NIGHT).forEach { it.delete() }
+    }
+
     /** Keeps a night's summary to send ([path]: night/<date>/<time>.json). */
     fun writeNight(ctx: Context, path: String, text: String) = write(ctx, path, text)
     private const val KEEP_NIGHT = 30

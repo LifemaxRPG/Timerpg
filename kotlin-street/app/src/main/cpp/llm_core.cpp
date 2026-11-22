@@ -510,7 +510,7 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
 
         llama_context_params cp = llama_context_default_params();
         cp.n_ctx = (uint32_t) n_ctx;
-        cp.n_batch = (uint32_t) std::min(n_ctx, 512);
+        cp.n_batch = (uint32_t) std::min(n_ctx, batch_max_);
         cp.n_ubatch = cp.n_batch;
         cp.n_seq_max = 1;
         // We only ever ask for the last token's logits (decode_tokens sets one output per batch). Without this the
