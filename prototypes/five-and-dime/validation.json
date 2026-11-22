@@ -1,0 +1,110 @@
+[
+  {
+    "asset": "marlow-1925.glb",
+    "visible_triangles": 2710,
+    "materials": 12,
+    "doors_checked": 2,
+    "collision_boxes_checked": 26,
+    "pane_emission": true,
+    "max_uv_error_m": 1.82e-06
+  },
+  {
+    "asset": "marlow-1925-mid.glb",
+    "visible_triangles": 1690,
+    "materials": 11,
+    "doors_checked": 2,
+    "collision_boxes_checked": 23,
+    "pane_emission": true,
+    "max_uv_error_m": 1.78e-06
+  },
+  {
+    "asset": "marlow-1925-far.glb",
+    "visible_triangles": 956,
+    "materials": 11,
+    "doors_checked": 2,
+    "collision_boxes_checked": 20,
+    "pane_emission": true,
+    "max_uv_error_m": 1.78e-06
+  },
+  {
+    "asset": "marlow-1970.glb",
+    "visible_triangles": 2720,
+    "materials": 12,
+    "doors_checked": 2,
+    "collision_boxes_checked": 26,
+    "pane_emission": true,
+    "max_uv_error_m": 1.94e-06
+  },
+  {
+    "asset": "marlow-1970-mid.glb",
+    "visible_triangles": 1700,
+    "materials": 11,
+    "doors_checked": 2,
+    "collision_boxes_checked": 23,
+    "pane_emission": true,
+    "max_uv_error_m": 1.78e-06
+  },
+  {
+    "asset": "marlow-1970-far.glb",
+    "visible_triangles": 968,
+    "materials": 11,
+    "doors_checked": 2,
+    "collision_boxes_checked": 20,
+    "pane_emission": true,
+    "max_uv_error_m": 1.78e-06
+  },
+  {
+    "asset": "marlow-2000.glb",
+    "visible_triangles": 2724,
+    "materials": 12,
+    "doors_checked": 2,
+    "collision_boxes_checked": 26,
+    "pane_emission": true,
+    "max_uv_error_m": 1.94e-06
+  },
+  {
+    "asset": "marlow-2000-mid.glb",
+    "visible_triangles": 1704,
+    "materials": 11,
+    "doors_checked": 2,
+    "collision_boxes_checked": 23,
+    "pane_emission": true,
+    "max_uv_error_m": 1.78e-06
+  },
+  {
+    "asset": "marlow-2000-far.glb",
+    "visible_triangles": 972,
+    "materials": 11,
+    "doors_checked": 2,
+    "collision_boxes_checked": 20,
+    "pane_emission": true,
+    "max_uv_error_m": 1.78e-06
+  },
+  {
+    "asset": "marlow-closed.glb",
+    "visible_triangles": 1978,
+    "materials": 11,
+    "doors_checked": 2,
+    "collision_boxes_checked": 23,
+    "pane_emission": false,
+    "max_uv_error_m": 1.78e-06
+  },
+  {
+    "asset": "marlow-closed-mid.glb",
+    "visible_triangles": 1630,
+    "materials": 11,
+    "doors_checked": 2,
+    "collision_boxes_checked": 20,
+    "pane_emission": false,
+    "max_uv_error_m": 1.78e-06
+  },
+  {
+    "asset": "marlow-closed-far.glb",
+    "visible_triangles": 982,
+    "materials": 11,
+    "doors_checked": 2,
+    "collision_boxes_checked": 20,
+    "pane_emission": false,
+    "max_uv_error_m": 1.78e-06
+  }
+]

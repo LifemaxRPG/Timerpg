@@ -1,0 +1,4733 @@
+{
+  "task": "C001",
+  "name": "Marlow Five and Dime",
+  "footprint_m": [
+    10,
+    28
+  ],
+  "height_m": 9.06,
+  "axes": "glTF metres. +Y up, +Z to the street. The front centre is the shared grade origin.",
+  "swatches": [
+    "brick_red",
+    "plank_horizontal",
+    "roof_tar_brown",
+    "pavement",
+    "block_courses"
+  ],
+  "emission": "Glass UVs use their pane-mask textures. The closed condition has a black mask.",
+  "lod_preview_distances_m": {
+    "mid": 45,
+    "far": 120
+  },
+  "states": [
+    {
+      "id": "1925",
+      "name": "Marlow Dime",
+      "from": 1925,
+      "to": 1969,
+      "models": [
+        {
+          "file": "marlow-1925.glb",
+          "level": "near",
+          "triangles_visible": 2710,
+          "anchors": {
+            "door_main": [
+              0,
+              0.12,
+              -0.57
+            ],
+            "door_back": [
+              3.28,
+              0.12,
+              -28.22
+            ]
+          },
+          "sign_name": {
+            "node": "sign_name",
+            "texture": "signs.png",
+            "rect_texels": [
+              0,
+              0,
+              230,
+              38
+            ],
+            "atlas_size_texels": [
+              256,
+              512
+            ],
+            "bottom_left_gltf_m": [
+              -4.462,
+              3.26,
+              0.112
+            ],
+            "width_m": 8.924,
+            "height_m": 1.4744000000000002
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                -4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                -1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                -1.215,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                7.57,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                4.495,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                1.0099999999999998,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West sales counter",
+              "center_gltf_m": [
+                -2.8,
+                0.55,
+                -10.649999999999999
+              ],
+              "size_gltf_m": [
+                1.1999999999999997,
+                0.86,
+                12.499999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East sales counter",
+              "center_gltf_m": [
+                1.09,
+                0.55,
+                -11.7
+              ],
+              "size_gltf_m": [
+                1.04,
+                0.86,
+                13.200000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed soda counter",
+              "center_gltf_m": [
+                -4.02,
+                0.55,
+                -22.259999999999998
+              ],
+              "size_gltf_m": [
+                0.9999999999999996,
+                0.86,
+                7.080000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Loading bollard",
+              "center_gltf_m": [
+                2.26,
+                0.55,
+                -28.73
+              ],
+              "size_gltf_m": [
+                0.1900000000000004,
+                0.86,
+                0.17999999999999972
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Loading bollard",
+              "center_gltf_m": [
+                4.38,
+                0.55,
+                -28.73
+              ],
+              "size_gltf_m": [
+                0.1899999999999995,
+                0.86,
+                0.17999999999999972
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Rear refuse box",
+              "center_gltf_m": [
+                -3.3150000000000004,
+                0.65,
+                -28.52
+              ],
+              "size_gltf_m": [
+                1.35,
+                1.24,
+                0.8200000000000003
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            }
+          ],
+          "materials": [
+            "detail_frames",
+            "detail_oxblood",
+            "floor_shop",
+            "glass_storefront",
+            "glow_fixtures",
+            "ground_pavement",
+            "roof_built_up",
+            "sign_name",
+            "wall_brick",
+            "wall_limestone",
+            "wall_receiving_block"
+          ]
+        },
+        {
+          "file": "marlow-1925-mid.glb",
+          "level": "mid",
+          "triangles_visible": 1690,
+          "anchors": {
+            "door_main": [
+              0,
+              0.12,
+              -0.57
+            ],
+            "door_back": [
+              3.28,
+              0.12,
+              -28.22
+            ]
+          },
+          "sign_name": {
+            "node": "sign_name",
+            "texture": "signs.png",
+            "rect_texels": [
+              0,
+              0,
+              230,
+              38
+            ],
+            "atlas_size_texels": [
+              256,
+              512
+            ],
+            "bottom_left_gltf_m": [
+              -4.462,
+              3.26,
+              0.112
+            ],
+            "width_m": 8.924,
+            "height_m": 1.4744000000000002
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                -4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                -1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                -1.215,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                7.57,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                4.495,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                1.0099999999999998,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West sales counter",
+              "center_gltf_m": [
+                -2.8,
+                0.55,
+                -10.649999999999999
+              ],
+              "size_gltf_m": [
+                1.1999999999999997,
+                0.86,
+                12.499999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East sales counter",
+              "center_gltf_m": [
+                1.09,
+                0.55,
+                -11.7
+              ],
+              "size_gltf_m": [
+                1.04,
+                0.86,
+                13.200000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed soda counter",
+              "center_gltf_m": [
+                -4.02,
+                0.55,
+                -22.259999999999998
+              ],
+              "size_gltf_m": [
+                0.9999999999999996,
+                0.86,
+                7.080000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "materials": [
+            "detail_frames",
+            "detail_oxblood",
+            "floor_shop",
+            "glass_storefront",
+            "ground_pavement",
+            "roof_built_up",
+            "sign_name",
+            "wall_brick",
+            "wall_limestone",
+            "wall_receiving_block"
+          ]
+        },
+        {
+          "file": "marlow-1925-far.glb",
+          "level": "far",
+          "triangles_visible": 956,
+          "anchors": {
+            "door_main": [
+              0,
+              0.12,
+              -0.57
+            ],
+            "door_back": [
+              3.28,
+              0.12,
+              -28.22
+            ]
+          },
+          "sign_name": {
+            "node": "sign_name",
+            "texture": "signs.png",
+            "rect_texels": [
+              0,
+              0,
+              230,
+              38
+            ],
+            "atlas_size_texels": [
+              256,
+              512
+            ],
+            "bottom_left_gltf_m": [
+              -4.462,
+              3.26,
+              0.112
+            ],
+            "width_m": 8.924,
+            "height_m": 1.4744000000000002
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                -4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                -1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                -1.215,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                7.57,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                4.495,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                1.0099999999999998,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "materials": [
+            "detail_frames",
+            "detail_oxblood",
+            "floor_shop",
+            "glass_storefront",
+            "ground_pavement",
+            "roof_built_up",
+            "sign_name",
+            "wall_brick",
+            "wall_limestone",
+            "wall_receiving_block"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1970",
+      "name": "Marlow Variety",
+      "from": 1970,
+      "to": 1999,
+      "models": [
+        {
+          "file": "marlow-1970.glb",
+          "level": "near",
+          "triangles_visible": 2720,
+          "anchors": {
+            "door_main": [
+              0,
+              0.12,
+              -0.57
+            ],
+            "door_back": [
+              3.28,
+              0.12,
+              -28.22
+            ]
+          },
+          "sign_name": {
+            "node": "sign_name",
+            "texture": "signs.png",
+            "rect_texels": [
+              0,
+              40,
+              226,
+              30
+            ],
+            "atlas_size_texels": [
+              256,
+              512
+            ],
+            "bottom_left_gltf_m": [
+              -4.3844,
+              3.41,
+              0.205
+            ],
+            "width_m": 8.7688,
+            "height_m": 1.1640000000000001
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                -4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                -1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                -1.215,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                7.57,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                4.495,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                1.0099999999999998,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West sales counter",
+              "center_gltf_m": [
+                -2.8,
+                0.55,
+                -10.649999999999999
+              ],
+              "size_gltf_m": [
+                1.1999999999999997,
+                0.86,
+                12.499999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East sales counter",
+              "center_gltf_m": [
+                1.09,
+                0.55,
+                -11.7
+              ],
+              "size_gltf_m": [
+                1.04,
+                0.86,
+                13.200000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear service counter",
+              "center_gltf_m": [
+                -4.02,
+                0.55,
+                -22.259999999999998
+              ],
+              "size_gltf_m": [
+                0.9999999999999996,
+                0.86,
+                7.080000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Loading bollard",
+              "center_gltf_m": [
+                2.26,
+                0.55,
+                -28.73
+              ],
+              "size_gltf_m": [
+                0.1900000000000004,
+                0.86,
+                0.17999999999999972
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Loading bollard",
+              "center_gltf_m": [
+                4.38,
+                0.55,
+                -28.73
+              ],
+              "size_gltf_m": [
+                0.1899999999999995,
+                0.86,
+                0.17999999999999972
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Rear refuse box",
+              "center_gltf_m": [
+                -3.3150000000000004,
+                0.65,
+                -28.52
+              ],
+              "size_gltf_m": [
+                1.35,
+                1.24,
+                0.8200000000000003
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            }
+          ],
+          "materials": [
+            "detail_frames",
+            "detail_oxblood",
+            "floor_shop",
+            "glass_storefront",
+            "glow_fixtures",
+            "ground_pavement",
+            "roof_built_up",
+            "sign_name",
+            "wall_brick",
+            "wall_limestone",
+            "wall_receiving_block"
+          ]
+        },
+        {
+          "file": "marlow-1970-mid.glb",
+          "level": "mid",
+          "triangles_visible": 1700,
+          "anchors": {
+            "door_main": [
+              0,
+              0.12,
+              -0.57
+            ],
+            "door_back": [
+              3.28,
+              0.12,
+              -28.22
+            ]
+          },
+          "sign_name": {
+            "node": "sign_name",
+            "texture": "signs.png",
+            "rect_texels": [
+              0,
+              40,
+              226,
+              30
+            ],
+            "atlas_size_texels": [
+              256,
+              512
+            ],
+            "bottom_left_gltf_m": [
+              -4.3844,
+              3.41,
+              0.205
+            ],
+            "width_m": 8.7688,
+            "height_m": 1.1640000000000001
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                -4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                -1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                -1.215,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                7.57,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                4.495,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                1.0099999999999998,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West sales counter",
+              "center_gltf_m": [
+                -2.8,
+                0.55,
+                -10.649999999999999
+              ],
+              "size_gltf_m": [
+                1.1999999999999997,
+                0.86,
+                12.499999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East sales counter",
+              "center_gltf_m": [
+                1.09,
+                0.55,
+                -11.7
+              ],
+              "size_gltf_m": [
+                1.04,
+                0.86,
+                13.200000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear service counter",
+              "center_gltf_m": [
+                -4.02,
+                0.55,
+                -22.259999999999998
+              ],
+              "size_gltf_m": [
+                0.9999999999999996,
+                0.86,
+                7.080000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "materials": [
+            "detail_frames",
+            "detail_oxblood",
+            "floor_shop",
+            "glass_storefront",
+            "ground_pavement",
+            "roof_built_up",
+            "sign_name",
+            "wall_brick",
+            "wall_limestone",
+            "wall_receiving_block"
+          ]
+        },
+        {
+          "file": "marlow-1970-far.glb",
+          "level": "far",
+          "triangles_visible": 968,
+          "anchors": {
+            "door_main": [
+              0,
+              0.12,
+              -0.57
+            ],
+            "door_back": [
+              3.28,
+              0.12,
+              -28.22
+            ]
+          },
+          "sign_name": {
+            "node": "sign_name",
+            "texture": "signs.png",
+            "rect_texels": [
+              0,
+              40,
+              226,
+              30
+            ],
+            "atlas_size_texels": [
+              256,
+              512
+            ],
+            "bottom_left_gltf_m": [
+              -4.3844,
+              3.41,
+              0.205
+            ],
+            "width_m": 8.7688,
+            "height_m": 1.1640000000000001
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                -4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                -1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                -1.215,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                7.57,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                4.495,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                1.0099999999999998,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "materials": [
+            "detail_frames",
+            "detail_oxblood",
+            "floor_shop",
+            "glass_storefront",
+            "ground_pavement",
+            "roof_built_up",
+            "sign_name",
+            "wall_brick",
+            "wall_limestone",
+            "wall_receiving_block"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2000",
+      "name": "Dollar Cove",
+      "from": 2000,
+      "to": null,
+      "models": [
+        {
+          "file": "marlow-2000.glb",
+          "level": "near",
+          "triangles_visible": 2724,
+          "anchors": {
+            "door_main": [
+              0,
+              0.12,
+              -0.57
+            ],
+            "door_back": [
+              3.28,
+              0.12,
+              -28.22
+            ]
+          },
+          "sign_name": {
+            "node": "sign_name",
+            "texture": "signs.png",
+            "rect_texels": [
+              0,
+              72,
+              232,
+              34
+            ],
+            "atlas_size_texels": [
+              256,
+              512
+            ],
+            "bottom_left_gltf_m": [
+              -4.5008,
+              3.41,
+              0.205
+            ],
+            "width_m": 9.0016,
+            "height_m": 1.3192
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                -4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                -1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                -1.215,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                7.57,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                4.495,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                1.0099999999999998,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West sales counter",
+              "center_gltf_m": [
+                -2.8,
+                0.55,
+                -10.649999999999999
+              ],
+              "size_gltf_m": [
+                1.1999999999999997,
+                0.86,
+                12.499999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East sales counter",
+              "center_gltf_m": [
+                1.09,
+                0.55,
+                -11.7
+              ],
+              "size_gltf_m": [
+                1.04,
+                0.86,
+                13.200000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear service counter",
+              "center_gltf_m": [
+                -4.02,
+                0.55,
+                -22.259999999999998
+              ],
+              "size_gltf_m": [
+                0.9999999999999996,
+                0.86,
+                7.080000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Loading bollard",
+              "center_gltf_m": [
+                2.26,
+                0.55,
+                -28.73
+              ],
+              "size_gltf_m": [
+                0.1900000000000004,
+                0.86,
+                0.17999999999999972
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Loading bollard",
+              "center_gltf_m": [
+                4.38,
+                0.55,
+                -28.73
+              ],
+              "size_gltf_m": [
+                0.1899999999999995,
+                0.86,
+                0.17999999999999972
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Rear refuse box",
+              "center_gltf_m": [
+                -3.3150000000000004,
+                0.65,
+                -28.52
+              ],
+              "size_gltf_m": [
+                1.35,
+                1.24,
+                0.8200000000000003
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            }
+          ],
+          "materials": [
+            "detail_frames",
+            "detail_oxblood",
+            "floor_shop",
+            "glass_storefront",
+            "glow_fixtures",
+            "ground_pavement",
+            "roof_built_up",
+            "sign_name",
+            "wall_brick",
+            "wall_limestone",
+            "wall_receiving_block"
+          ]
+        },
+        {
+          "file": "marlow-2000-mid.glb",
+          "level": "mid",
+          "triangles_visible": 1704,
+          "anchors": {
+            "door_main": [
+              0,
+              0.12,
+              -0.57
+            ],
+            "door_back": [
+              3.28,
+              0.12,
+              -28.22
+            ]
+          },
+          "sign_name": {
+            "node": "sign_name",
+            "texture": "signs.png",
+            "rect_texels": [
+              0,
+              72,
+              232,
+              34
+            ],
+            "atlas_size_texels": [
+              256,
+              512
+            ],
+            "bottom_left_gltf_m": [
+              -4.5008,
+              3.41,
+              0.205
+            ],
+            "width_m": 9.0016,
+            "height_m": 1.3192
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                -4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                -1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                -1.215,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                7.57,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                4.495,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                1.0099999999999998,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West sales counter",
+              "center_gltf_m": [
+                -2.8,
+                0.55,
+                -10.649999999999999
+              ],
+              "size_gltf_m": [
+                1.1999999999999997,
+                0.86,
+                12.499999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East sales counter",
+              "center_gltf_m": [
+                1.09,
+                0.55,
+                -11.7
+              ],
+              "size_gltf_m": [
+                1.04,
+                0.86,
+                13.200000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear service counter",
+              "center_gltf_m": [
+                -4.02,
+                0.55,
+                -22.259999999999998
+              ],
+              "size_gltf_m": [
+                0.9999999999999996,
+                0.86,
+                7.080000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "materials": [
+            "detail_frames",
+            "detail_oxblood",
+            "floor_shop",
+            "glass_storefront",
+            "ground_pavement",
+            "roof_built_up",
+            "sign_name",
+            "wall_brick",
+            "wall_limestone",
+            "wall_receiving_block"
+          ]
+        },
+        {
+          "file": "marlow-2000-far.glb",
+          "level": "far",
+          "triangles_visible": 972,
+          "anchors": {
+            "door_main": [
+              0,
+              0.12,
+              -0.57
+            ],
+            "door_back": [
+              3.28,
+              0.12,
+              -28.22
+            ]
+          },
+          "sign_name": {
+            "node": "sign_name",
+            "texture": "signs.png",
+            "rect_texels": [
+              0,
+              72,
+              232,
+              34
+            ],
+            "atlas_size_texels": [
+              256,
+              512
+            ],
+            "bottom_left_gltf_m": [
+              -4.5008,
+              3.41,
+              0.205
+            ],
+            "width_m": 9.0016,
+            "height_m": 1.3192
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                -4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                -1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                -1.215,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                7.57,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                4.495,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                1.0099999999999998,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "materials": [
+            "detail_frames",
+            "detail_oxblood",
+            "floor_shop",
+            "glass_storefront",
+            "ground_pavement",
+            "roof_built_up",
+            "sign_name",
+            "wall_brick",
+            "wall_limestone",
+            "wall_receiving_block"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "closed",
+      "name": "For Lease",
+      "from": null,
+      "to": null,
+      "models": [
+        {
+          "file": "marlow-closed.glb",
+          "level": "near",
+          "triangles_visible": 1978,
+          "anchors": {
+            "door_main": [
+              0,
+              0.12,
+              -0.57
+            ],
+            "door_back": [
+              3.28,
+              0.12,
+              -28.22
+            ]
+          },
+          "sign_name": {
+            "node": "sign_name",
+            "texture": "signs.png",
+            "rect_texels": [
+              0,
+              108,
+              226,
+              32
+            ],
+            "atlas_size_texels": [
+              256,
+              512
+            ],
+            "bottom_left_gltf_m": [
+              -4.3844,
+              3.41,
+              0.205
+            ],
+            "width_m": 8.7688,
+            "height_m": 1.2416
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                -4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                -1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                -1.215,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                7.57,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                4.495,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                1.0099999999999998,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Loading bollard",
+              "center_gltf_m": [
+                2.26,
+                0.55,
+                -28.73
+              ],
+              "size_gltf_m": [
+                0.1900000000000004,
+                0.86,
+                0.17999999999999972
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Loading bollard",
+              "center_gltf_m": [
+                4.38,
+                0.55,
+                -28.73
+              ],
+              "size_gltf_m": [
+                0.1899999999999995,
+                0.86,
+                0.17999999999999972
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Rear refuse box",
+              "center_gltf_m": [
+                -3.3150000000000004,
+                0.65,
+                -28.52
+              ],
+              "size_gltf_m": [
+                1.35,
+                1.24,
+                0.8200000000000003
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            }
+          ],
+          "materials": [
+            "detail_frames",
+            "detail_oxblood",
+            "floor_shop",
+            "glass_storefront",
+            "ground_pavement",
+            "roof_built_up",
+            "sign_name",
+            "wall_brick",
+            "wall_limestone",
+            "wall_receiving_block"
+          ]
+        },
+        {
+          "file": "marlow-closed-mid.glb",
+          "level": "mid",
+          "triangles_visible": 1630,
+          "anchors": {
+            "door_main": [
+              0,
+              0.12,
+              -0.57
+            ],
+            "door_back": [
+              3.28,
+              0.12,
+              -28.22
+            ]
+          },
+          "sign_name": {
+            "node": "sign_name",
+            "texture": "signs.png",
+            "rect_texels": [
+              0,
+              108,
+              226,
+              32
+            ],
+            "atlas_size_texels": [
+              256,
+              512
+            ],
+            "bottom_left_gltf_m": [
+              -4.3844,
+              3.41,
+              0.205
+            ],
+            "width_m": 8.7688,
+            "height_m": 1.2416
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                -4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                -1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                -1.215,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                7.57,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                4.495,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                1.0099999999999998,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "materials": [
+            "detail_frames",
+            "detail_oxblood",
+            "floor_shop",
+            "glass_storefront",
+            "ground_pavement",
+            "roof_built_up",
+            "sign_name",
+            "wall_brick",
+            "wall_limestone",
+            "wall_receiving_block"
+          ]
+        },
+        {
+          "file": "marlow-closed-far.glb",
+          "level": "far",
+          "triangles_visible": 982,
+          "anchors": {
+            "door_main": [
+              0,
+              0.12,
+              -0.57
+            ],
+            "door_back": [
+              3.28,
+              0.12,
+              -28.22
+            ]
+          },
+          "sign_name": {
+            "node": "sign_name",
+            "texture": "signs.png",
+            "rect_texels": [
+              0,
+              108,
+              226,
+              32
+            ],
+            "atlas_size_texels": [
+              256,
+              512
+            ],
+            "bottom_left_gltf_m": [
+              -4.3844,
+              3.41,
+              0.205
+            ],
+            "width_m": 8.7688,
+            "height_m": 1.2416
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                -4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Solid brick party wall",
+              "center_gltf_m": [
+                4.859999999999999,
+                3.94,
+                -14.0
+              ],
+              "size_gltf_m": [
+                0.28000000000000025,
+                7.64,
+                28.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                -1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                1.1099999999999999,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street-level masonry pier",
+              "center_gltf_m": [
+                4.765000000000001,
+                1.845,
+                -0.16
+              ],
+              "size_gltf_m": [
+                0.46999999999999975,
+                3.4499999999999997,
+                0.32
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                -2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display base",
+              "center_gltf_m": [
+                2.8850000000000002,
+                0.345,
+                -0.135
+              ],
+              "size_gltf_m": [
+                3.29,
+                0.44999999999999996,
+                0.27
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Street display pane",
+              "center_gltf_m": [
+                2.8850000000000002,
+                1.9200000000000002,
+                -0.148
+              ],
+              "size_gltf_m": [
+                3.29,
+                2.56,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                -1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Recessed shop entry return",
+              "center_gltf_m": [
+                1.1,
+                1.6400000000000001,
+                -0.615
+              ],
+              "size_gltf_m": [
+                0.28,
+                3.04,
+                0.69
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -0.151
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09800000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                -3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                0.0,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.18,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Upper sash window",
+              "center_gltf_m": [
+                3.505,
+                5.925,
+                -27.86
+              ],
+              "size_gltf_m": [
+                1.0899999999999999,
+                1.7300000000000004,
+                0.09799999999999898
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                -1.215,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                7.57,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving brick wall",
+              "center_gltf_m": [
+                4.495,
+                1.95,
+                -27.85
+              ],
+              "size_gltf_m": [
+                1.0099999999999998,
+                3.6599999999999997,
+                0.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "materials": [
+            "detail_frames",
+            "detail_oxblood",
+            "floor_shop",
+            "glass_storefront",
+            "ground_pavement",
+            "roof_built_up",
+            "sign_name",
+            "wall_brick",
+            "wall_limestone",
+            "wall_receiving_block"
+          ]
+        }
+      ]
+    }
+  ]
+}
