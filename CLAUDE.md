@@ -49,6 +49,10 @@ Elite for Galaxy: 8 fast Oryon cores, no little cores; Adreno 830 GPU; Hexagon N
   The starting town is the **capital city** (name to come from the owner). It is also the test city: every new
   building and landmark goes into it as it is made, so it keeps growing. Its plan must stay adaptable (room
   reserved for more districts and landmarks, nothing that breaks when a new model is added).
+- **Approved real-world exception: the Beach Blvd Rex** (the owner's decision, 2026-11-22): a faithful model of the
+  1964 roadside dinosaur statue on Beach Boulevard, Jacksonville (an Easter egg to the owner's hometown; the
+  mini-golf course it came from is long gone). Keep it as made (`codex/beach-blvd-rex`). Every other model stays
+  original: this is the one exception, not a precedent.
 - **Build the world complete from every side**: nothing is built only for one view. Buildings have real backs and
   roofs, every lot has a front yard AND a backyard (fences, patios, sheds, gardens, play sets, pools for the rich
   homes, clotheslines, bins), blocks have alleys and back lanes, and the player's position is kept in world
