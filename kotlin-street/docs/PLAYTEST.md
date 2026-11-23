@@ -129,6 +129,18 @@ Every upload's last success, last failure (path, HTTP code, GitHub's words) and 
 Wi-Fi or charging) are kept (`shot/UploadLog`) and go in the screenshot JSON's `diagnostics.reports`, with the files
 waiting by kind. Writer mode gives the game's last part up to 10 s to go up before it closes the game's process.
 
+**Why no `play/` or `talk/` file arrived up to 0.1.638 (fixed 2026-11-23):** the manifest had no
+`ACCESS_NETWORK_STATE`. `ConnectivityManager.getActiveNetwork()` then throws a SecurityException; the Wi-Fi check
+(`Probes.wifi`) caught it as "not on Wi-Fi", so the timelines waited for a charger, every time. The crash reports and
+the writer's summaries went because their own check (`ShotUploader.online`) catches the same exception as "online"
+and has no Wi-Fi gate. Now the permission is asked for (a normal one: granted at install, no dialog); a network state
+that still cannot be read lets the small `play/` and `talk/` files go (not the traces); files over 40 MB are dropped
+with a note; each skip and send is a breadcrumb; a failure on the upload thread is no longer swallowed. The screenshot
+JSON's `diagnostics` now also has `recorder` (`PlayLog.status`: started, its thread alive, in front, session and part,
+seconds, the open file and its size, the switches), `uploadGate` (Wi-Fi, the network error if any, charging, whether
+`play/` and `trace/` may go, the token) and `reports.uploads.lastByKind` (the last send, failure or skip of each kind,
+with why).
+
 **Measured (desktop JVM, the unit tests; not the S25):** a synthetic hour of 120 Hz play is about 300 KB, 84 bytes a
 second compressed (the budget is 1 KB/s; real sessions add events, settings and account lines); the per-frame path
 allocates nothing and costs about 50 ns. On the phone the costliest read is `Debug.getMemoryInfo` every 5 s on the

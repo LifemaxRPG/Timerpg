@@ -208,6 +208,7 @@ class VehiclePhysicsTest {
         val first = cars.first()
         assertTrue(first.spec.key.startsWith("northcairn"))
         val sp = town.row(town.spawn.row).pointAt(town.spawn.x, town.spawn.lane)
+        for (c in cars) println("parked 2025: ${c.spec.key} at ${c.spot} (${c.x.toInt()}, ${c.z.toInt()}), ${"%.1f".format(hypot(c.x - sp.x, c.z - sp.z) / VehicleWorld.U)} m from the spawn (${sp.x.toInt()}, ${sp.z.toInt()}), facing (${"%.2f".format(c.fx)}, ${"%.2f".format(c.fz)})")
         assertTrue("the first car is near the spawn (${hypot(first.x - sp.x, first.z - sp.z) / VehicleWorld.U} m)", hypot(first.x - sp.x, first.z - sp.z) < 40f * VehicleWorld.U)
         assertTrue("driveways used", cars.any { it.spot.startsWith("drive:") })
         // the walker walks round a parked car: its middle is solid
@@ -319,6 +320,106 @@ class VehiclePhysicsTest {
         }
         println("drove into the town for 12 s: %d streamed statics, step %.3f ms (this server), %d bodies; streaming: first %.2f ms, last %.2f ms".format(vw.staticCount, vw.stepMs, vw.physics.bodies, vw.streamMaxMs, vw.streamMs))
         assertTrue("its middle never went into a building or fence (${maxIn} frames)", maxIn < 3)
+        vw.close()
+    }
+
+    /**
+     * Whether anything solid in [col] (the walk's whole map: buildings, fences, props, the parked cars) stands within the
+     * rectangle centred at ([x], [z]), [hl] along ([fx], [fz]) and [hw] across: sampled every 8 cm with a 6 cm circle,
+     * independently of [VehicleSpots.clear].
+     */
+    private fun overlapsSomething(col: TownCollision, x: Float, z: Float, fx: Float, fz: Float, hl: Float, hw: Float): Boolean {
+        val u = VehicleWorld.U
+        val step = .08f * u
+        val lx = fz; val lz = -fx
+        var a = -hl
+        while (a <= hl) {
+            var b = -hw
+            while (b <= hw) {
+                if (col.blocked(x + fx * a + lx * b, z + fz * a + lz * b, .06f * u)) return true
+                b += step
+            }
+            a += step
+        }
+        return false
+    }
+
+    @Test fun theTestButtonsSpawnedCarNeverOverlapsAnything() {
+        val col = collision()
+        val vw = VehicleWorld(world(), col, specs)
+        vw.park(town, yards)
+        val u = VehicleWorld.U
+        // where the player might stand: the spawn, and a spread of clear points along the town's streets, from the
+        // pavement to the yards behind (by seed)
+        val sp = town.row(town.spawn.row).pointAt(town.spawn.x, town.spawn.lane)
+        val places = arrayListOf(sp.x to sp.z)
+        val rnd = java.util.Random(7)
+        while (places.size < 60) {
+            val r = town.rows[rnd.nextInt(town.rows.size)]
+            val p = r.pointAt(rnd.nextFloat() * r.length, -40f + rnd.nextFloat() * 500f)
+            if (!col.blocked(p.x, p.z, .5f * u)) places += p.x to p.z
+        }
+        var spawned = 0
+        val names = HashSet<String>()
+        for ((k, p) in places.withIndex()) {
+            val (x, z) = p
+            // the spot it would use, checked against the town before the car is in it
+            val next = specs[k % specs.size]
+            val spot = vw.spawnSpot(town, next, x, z, yards)
+            val car = vw.spawnNear(x, z)
+            if (spot == null) { assertTrue("no car where no spot (${vw.spawnNote})", car == null); continue }
+            assertNotNull(car); car!!
+            spawned++; names += car.spec.key
+            assertEquals("the next of the five", next.key, car.spec.key)
+            assertEquals(vw.spawnNote, car.spec.name)
+            // facing along the street (the spot's way) and standing where the spot is
+            assertTrue("faces along the kerb", car.fx * spot.fx + car.fz * spot.fz > .99f)
+            val f = car.spec.footprint
+            val cx = car.x + car.fx * f[2] * u; val cz = car.z + car.fz * f[2] * u
+            assertTrue("stands on its spot", hypot(cx - spot.x, cz - spot.z) < .1f * u)
+            // beside the player, not on them
+            assertTrue("near the player (${hypot(cx - x, cz - z) / u} m)", hypot(cx - x, cz - z) < VehicleWorld.SPAWN_REACH_M * u)
+            assertTrue("not on the player", VehicleSpots.rectDistance(cx, cz, car.fx, car.fz, f[0] * u, f[1] * u, x, z) > .5f * u)
+            // the car's own footprint is in the map now: take it out to look under it, then put it back
+            col.setExtra(VehicleWorld.KEY + car.spot, null)
+            assertFalse("${car.spec.key} at ${car.spot} (player at ${x.toInt()}, ${z.toInt()}) overlaps something",
+                overlapsSomething(col, cx, cz, car.fx, car.fz, f[0] * u, f[1] * u))
+            col.setExtra(VehicleWorld.KEY + car.spot, floatArrayOf(cx, cz, car.fx, car.fz, f[0] * u, f[1] * u), com.lifemax.rpg.feature.habits.domain.SolidKind.PROP, VehicleWorld.KEY + car.spot)
+            // one spawned car at a time: the five parked ones and this
+            assertEquals(6, vw.cars.size)
+            // and it sits still on its springs
+            assertTrue("upright on the ground (y ${car.pose.y})", car.pose.y in -2f..8f)
+        }
+        assertTrue("spawned at most places ($spawned of ${places.size})", spawned > places.size * 2 / 3)
+        assertEquals("all five cycled", 5, names.size)
+        // at the spawn, on Main Street, the car is right beside the player
+        val walk = FakeWalk().also { it.wx = sp.x; it.wz = sp.z }
+        vw.requestSpawn()
+        vw.step(dt, walk, 0f, 0f)
+        val c = vw.spawned!!
+        println("spawned at the start: ${c.spec.name} at ${c.spot}, ${hypot(c.x - sp.x, c.z - sp.z) / u} m from the player")
+        assertTrue("beside the player at the start", hypot(c.x - sp.x, c.z - sp.z) < 12f * u)
+        vw.close()
+    }
+
+    @Test fun theFirstCarComesToAPlayerWhoStartsFarFromIt() {
+        val col = collision()
+        val vw = VehicleWorld(world(), col, specs)
+        vw.park(town, yards)
+        val u = VehicleWorld.U
+        val sp = town.row(town.spawn.row).pointAt(town.spawn.x, town.spawn.lane)
+        // at the spawn it stays where it is, on Main Street beside the player
+        assertTrue(vw.bringFirstNear(sp.x, sp.z) == null)
+        // a game restored on another street, far away: the sedan comes to the kerb beside the player, still first
+        val far = town.rows.map { it.pointAt(it.length / 2f, 60f) }.filter { hypot(it.x - sp.x, it.z - sp.z) > 400f * u && !col.blocked(it.x, it.z, .5f * u) }.first()
+        val moved = vw.bringFirstNear(far.x, far.z)
+        assertNotNull(moved); moved!!
+        assertTrue(moved.spec.key.startsWith("northcairn"))
+        assertTrue(vw.cars.first() === moved)
+        assertEquals(5, vw.cars.size)
+        val d = hypot(moved.x - far.x, moved.z - far.z) / u
+        println("the sedan brought to a player restored ${hypot(far.x - sp.x, far.z - sp.z) / u} m from the spawn: now $d m from them at ${moved.spot}")
+        assertTrue("beside the player ($d m)", d < 40f)
         vw.close()
     }
 

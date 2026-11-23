@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- once, to fetch the dialogue model and the voices from Hugging Face; the game itself is offline -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- whether the phone is on Wi-Fi (ConnectivityManager.getActiveNetwork needs it): the playtest recorder's uploads wait
+         for Wi-Fi or the charger; without it every check threw, read as "not on Wi-Fi", and the timelines never went -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- talking to the people in the street: held while the mic button is down, heard on the phone only -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- the overnight writer: a foreground service (special use: long on-device text generation) while charging, its

@@ -28,16 +28,19 @@ object UploadLog {
     /** The kind of a report path ("night/2026-11-23/…" is "night"). */
     fun kindOf(path: String): String = path.substringBefore('/').ifEmpty { "?" }
 
-    fun ok(ctx: Context, path: String, code: Int) = put(ctx, "lastOk", Entry(System.currentTimeMillis(), kindOf(path), path, code, "sent"))
+    fun ok(ctx: Context, path: String, code: Int) = Entry(System.currentTimeMillis(), kindOf(path), path, code, "sent").let { put(ctx, "lastOk", it); put(ctx, "last." + it.kind, it) }
 
     fun failed(ctx: Context, path: String, code: Int, body: String) {
         val what = ShotRequests.explain(code, body)
         Crumbs.add("upload of $path failed: $what ($code)")
-        put(ctx, "lastError", Entry(System.currentTimeMillis(), kindOf(path), path, code, what))
+        Entry(System.currentTimeMillis(), kindOf(path), path, code, what).let { put(ctx, "lastError", it); put(ctx, "last." + it.kind, it) }
     }
 
     /** Nothing was tried for [kind] ([why]: no token, offline, not allowed now). Kept apart from real failures. */
-    fun skipped(ctx: Context, kind: String, why: String) = put(ctx, "lastSkip", Entry(System.currentTimeMillis(), kind, "", 0, why))
+    fun skipped(ctx: Context, kind: String, why: String) = Entry(System.currentTimeMillis(), kind, "", 0, why).let { put(ctx, "lastSkip", it); put(ctx, "last." + kind, it) }
+
+    /** The kinds kept apart in [summary]'s lastByKind. */
+    val KINDS = listOf("play", "talk", "trace", "crashes", "night", "npu")
 
     private fun put(ctx: Context, key: String, e: Entry) { runCatching { prefs(ctx).edit().putString(key, e.json()).apply() } }
 
@@ -47,6 +50,8 @@ object UploadLog {
     fun summary(ctx: Context): Map<String, Any?> {
         val now = System.currentTimeMillis()
         return linkedMapOf("lastError" to entry(ctx, "lastError")?.map(now), "lastOk" to entry(ctx, "lastOk")?.map(now),
-            "lastSkip" to entry(ctx, "lastSkip")?.map(now))
+            "lastSkip" to entry(ctx, "lastSkip")?.map(now),
+            // the last attempt of each kind (sent, failed or skipped, with why): the playtest recorder's above all
+            "lastByKind" to linkedMapOf(*KINDS.map { k -> k to entry(ctx, "last.$k")?.map(now) }.toTypedArray()))
     }
 }

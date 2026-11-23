@@ -290,7 +290,10 @@ object ShotUploader {
     }
 
     /** Runs [block] on the upload thread (the playtest recorder's uploads: play.PlayUploads). */
-    fun onWorker(block: () -> Unit) = worker.execute { runCatching(block) }
+    fun onWorker(block: () -> Unit) = worker.execute {
+        // (a failure here used to vanish: it goes into the breadcrumbs, which the screenshot JSON and crash reports carry)
+        runCatching(block).onFailure { Crumbs.add("upload thread: ${it.javaClass.simpleName}: ${it.message}") }
+    }
 
     /** Puts one file at [path] on the reports branch (call on the upload thread). True once it is in the repository. */
     fun putReport(ctx: Context, path: String, bytes: ByteArray, message: String): Boolean {

@@ -61,6 +61,18 @@ and Jolt brings that into the native layer we already have for llama.cpp.
     metres from the player. The others alternate between driveways and kerbs nearest the spawn, at least 18 m apart.
     Each car's colour comes from its delivery's palette, picked by the town's seed. While parked, a car's footprint is
     in the walk's collision, so the player walks round it.
+    - Where they land in the capital in 2025 (measured by the test): the sedan at the Main Street kerb 2.3 m from the
+      spawn (`street:60:0:4:-1`), the 1972 pickup 19.6 m and the 1928 car 20.0 m along Main Street, the 1970 coupe and
+      the 1938 coupe on parking pads 26 and 37 m away.
+    - The owner could not find them because the game starts where the player last stood (`TownSession.restore`), on
+      the owner's phone about 1.3 km from the spawn. Now, once the town is loaded, the first car (the sedan) is moved to
+      the clear kerb beside a player who starts more than 60 m from it (`requestFirstNearPlayer`); at the spawn it stays
+      on Main Street.
+  - **The test button 🚗** (behind the 📷/🔖 switch, right of the bike button): each tap spawns the next of the five
+    cars, whatever the year, at the nearest kerb within 80 m whose whole footprint plus 0.3 m is clear of every solid
+    shape and the other cars (`VehicleSpots.clear`, an exact box and circle test) and not on the player, facing along
+    the kerb, replacing the one spawned last; the car's name shows for a moment. The spawn runs on the game loop's next
+    step (`requestSpawn`); the car list is copy-on-write, as the renderer reads it on its own thread.
   - **Getting in and out:** within 1.7 m of `exit_left` or `exit_right` the HUD shows **Enter**. The driver's door
     swings open, the player is hidden in the seat and the door shuts. **Exit** works below 1.2 m/s: the handbrake goes
     on, the door opens, the player stands at `exit_left` (the walk finds the nearest clear spot) and the door shuts.
