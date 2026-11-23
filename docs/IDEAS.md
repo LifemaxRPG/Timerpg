@@ -94,3 +94,35 @@ The player can build real structures, in a grounded way:
   - it can burn, be robbed, or be inherited.
 - **Fits:** the money system (land and materials cost real money), the crime system (permits, theft, hideouts), the
   town plan (free plots are part of the capital's adaptable layout), and the 3D building kit we already have.
+
+## Founding a settlement that grows into a city (the owner's idea, 2026-11-23)
+
+Building your own structures scales up: the player can found a settlement and see it grow, by **work** or by **time**.
+- **By work:**
+  - claim or buy land;
+  - build the first houses;
+  - recruit settlers: drifters, families looking for land, workers you hire, people who owe you;
+  - give them reasons to stay: jobs, a well, a store, safety, a church, a school;
+  - bring in a road, then a rail siding;
+  - get it chartered as a town, then elect a mayor (maybe you).
+  Recruiting is real dialogue and real deals with NPCs, who have their own traits and needs.
+- **By time:** found a hamlet in 1880, travel to 1980, and history has run on it. The simulation grows it (or doesn't)
+  by its site:
+  - water and land;
+  - the roads and rail that came;
+  - its industries;
+  - booms, busts, fires and floods;
+  - the choices of the people the player left in charge.
+  A good site and a good start become a city; a bad one becomes a ghost town. The player can steer it by visiting at
+  points in between.
+- **The same engine as the world's own towns.** `src/sim` already simulates towns, people and history over decades,
+  and the town generator already drafts layouts. A player settlement is a town the simulation grows from the player's
+  seed buildings, with the generator adding streets and districts as it grows:
+  - grid or organic, by era and terrain;
+  - Main Street first, then neighbourhoods, then industry and a downtown.
+- **Legacy:**
+  - the founder is in the town's history;
+  - a statue or a street name, if they're remembered well;
+  - descendants of the first settlers;
+  - the player's original buildings, weathered or preserved, at its old heart.
+  It also fits the crime system: a settlement founded on crime grows a different kind of town.
