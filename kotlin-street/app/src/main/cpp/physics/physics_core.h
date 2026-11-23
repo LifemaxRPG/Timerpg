@@ -88,7 +88,37 @@ void setVehicleInput(World *w, int vehicle, float forward, float right, float br
 void setVehiclePose(World *w, int vehicle, float x, float y, float z, float yaw);
 void vehicleState(World *w, int vehicle, float *out);
 
-// One fixed step of dt seconds.
-void step(World *w, float dt, int collisionSteps);
+// One fixed step of dt seconds. Returns how many breaks (see below) wait to be taken.
+int step(World *w, float dt, int collisionSteps);
+
+// ---- destruction (docs/VEHICLES.md, "Destruction")
+// A static body's give: `impulse` (N s, > 0) breaks it: a dynamic body hitting it with its mass times its approach speed
+// along the contact's normal at least this much goes through it (the contact made a sensor, no response) and a break is
+// recorded for the caller to replace the static with debris; `soft` (> 0) lets every dynamic body through it, slowed by
+// this drag (1/s, on its horizontal velocity) while inside (a bush). Both 0: solid (the default).
+void setGive(World *w, int handle, float impulse, float soft);
+// What a break records: BR_COUNT floats.
+enum BreakIndex {
+    BR_HANDLE = 0,          // the static's handle
+    BR_X, BR_Y, BR_Z,       // the contact point (m)
+    BR_VX, BR_VY, BR_VZ,    // the hitting body's velocity (m/s)
+    BR_SPEED,               // its approach speed along the normal (m/s)
+    BR_MASS,                // its mass (kg)
+    BR_VEHICLE,             // the vehicle's handle, or -1 (debris, something else)
+    BR_COUNT
+};
+constexpr int MAX_BREAKS = 64;
+// The breaks since the last call into out (at most max of BR_COUNT floats each); returns how many.
+int takeBreaks(World *w, float *out, int max);
+// A loose piece (debris): a dynamic box, half extents (hx, hy, hz), at (cx, cy, cz) turned by the quaternion q (x, y, z,
+// w), of `mass` kg, moving at v (m/s) and spinning at a (rad/s, world). It collides with the statics, the cars and other
+// debris, not with the cars' wheels' ground casts (they roll through it, the chassis pushes it). Returns a handle or -1.
+int addDebris(World *w, float cx, float cy, float cz, float hx, float hy, float hz, float qx, float qy, float qz, float qw,
+              float mass, float vx, float vy, float vz, float ax, float ay, float az, float friction);
+// Bodies' poses: for each of the n handles, POSE_COUNT floats (x, y, z, qx, qy, qz, qw, 1 awake or 0 asleep).
+constexpr int POSE_COUNT = 8;
+void bodyPoses(World *w, const int *handles, int n, float *out);
+// Adds (dvx, dvy, dvz) m/s to a vehicle's velocity (the momentum it gave the debris).
+void addVehicleVelocity(World *w, int vehicle, float dvx, float dvy, float dvz);
 
 }  // namespace timerpg

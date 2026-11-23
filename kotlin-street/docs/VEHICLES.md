@@ -167,6 +167,13 @@ All five cars reach their top speed with the throttle held:
 | 1956 | 148 km/h | 153 km/h | 6.0 s | 12.6 m | 5.6 m |
 | 1970 coupe | 189 km/h | 192 km/h | 4.5 s | 11.9 m | 8.0 m |
 | 1972 pickup | 147 km/h | 153 km/h | 6.6 s | 12.8 m | 6.2 m |
+| Torrel 1968 | 175 km/h | 188 km/h | 5.9 s | | 4.7 m |
+| Torrel 1988 | 216 km/h | 224 km/h | 4.8 s | | 5.0 m |
+
+The Torrels (976 and 1,088 kg two-seaters) once had the 1970 coupe's 560 Nm drivetrain: on a quarter throttle the
+one-tonne car spun up to 46 km/h and slid wide at full lock, a 23 m circle. They now have their own: a small
+high-revving engine (200 and 260 Nm, 6,800-7,000 rpm, four and five gears), a 31° lock and a low centre of mass. Their
+driver's door is `door_l` (a two-door's), found by `VehicleSpec.driverDoor`.
 
 The turning radii were measured at 19-27 km/h.
 
@@ -245,6 +252,86 @@ past it the car free-fell forever (Jolt has no drag), which read as runaway acce
   rescued. Not measured on the S25; the heights were checked in desktop physics tests against the same function, not
   against a render.
 
+## Destruction (2026-11-23)
+
+The owner: "when you hit a fence with your car, it shouldn't stop the car if it's like a wooden fence... we need to be
+able to do some destruction with our cars because it's annoying getting stuck on every little thing we run into."
+
+**What gives, and how** (`vehicle/Wreckage.kt`, `WreckMaterial.of`, by the shape's `SolidKind` and its
+`TownCollision.detail`: a yard item's `kind/variant/zone`, `lamp`, `streetBench`, `plazaBench`, a `PropKind` name):
+
+| Give | What | Breaks at (car mass x speed into it) |
+| --- | --- | --- |
+| **Break** into panels | picket (front) fences, board and lap fences, chain-link, post-and-rail, garden gates; hedges (a gap torn through them) | 2,600-4,400 N s: a 1,700 kg sedan goes through a picket fence from 2 m/s, the 1,000 kg Torrel from 3.4 m/s |
+| **Break** whole | mailboxes, bins, chairs, tables, benches, grills, birdbaths, planters, doghouses, pallets, compost bins, trampolines; street benches, wheelie and litter bins, news boxes, the mail collection box, utility cabinets, cones | 150 N s (a cone) to 7,000 N s (a utility cabinet) |
+| **Bend** (snap at the foot, fall over) | street lamps, sign posts, parking meters, fire alarm posts, bike racks, young trees in guards, fruit trees, washing-line posts, hydrants | 2,600 N s (a sign) to 14,000 N s (a hydrant: about 8 m/s) |
+| **Soft** (drive through, slowed, it springs back) | bushes (the yards' and the woods') | always: a drag of 1.6/s while inside |
+| **Solid** | buildings, low brick and stone walls, bollards, big trees (yard, street and forest), the river's banks, bridge parapets, the world's edge, planters on the plaza, the fountain, store sites' and the cinema's fences (not drawable broken yet) | never |
+
+Below its impulse a breakable or bendable thing is as solid as a wall: a slow nudge stops the car, as in real life.
+
+**Physics** (`app/src/main/cpp/physics`):
+
+- A contact listener (`Breaker` in `physics_core.cpp`) sees every contact of a dynamic body with a static that has a
+  *give* (`setGive(handle, impulse, soft)`; the handle is in the body's user data). Above the impulse (the dynamic
+  body's mass times its approach speed along the contact normal) the contact is made a **sensor** (no response, also
+  for the cars' linear-cast CCD), the static is marked broken (every later contact with it is a sensor too) and a break
+  is recorded in a fixed buffer of 64 (handle, contact point, the body's velocity, speed, mass, vehicle). A soft static
+  is always a sensor and the body is slowed after the step. Nothing allocates per step.
+- New layers: `DEBRIS` (loose pieces: they meet the statics, the cars' chassis and each other) and `WHEEL` (the wheels'
+  ground casts: the statics and the cars, not the debris, so a wheel never climbs a fallen board and launches the car;
+  the chassis pushes pieces, and a board lying flat passes under it).
+- New calls (JNI kept small): `step` returns how many breaks wait; `setGive`, `takeBreaks` (one array), `addDebris` (one
+  array of 18 floats: a dynamic box, its mass, velocity and spin; linear-cast, damped so it settles), `bodyPoses` (all
+  live pieces in one call a step) and `addVehicleVelocity`.
+
+**What happens at a break** (`Wreckage.onBreaks`, after the step that saw it):
+
+- The static is taken out of the physics, and loose pieces are put in its place with real masses: a fence's stretch
+  within the car's width (wider for a glancing hit, at most 9 m) becomes its panels, snapped to the fence's own bays
+  (1.9-2.4 m, 9-17 kg a metre); a hedge's gap becomes clumps; a bin or a bench is one piece; a lamp post is one tall
+  piece with its foot pushed on and its top tipping away from the car.
+- **Momentum exchange:** pieces in the car's path get the car's velocity (x1.06-1.18, a little lift and a tumble), those
+  at the edge of the gap less; the car loses the momentum they took (`addVehicleVelocity`) plus what breaking cost (4-18%
+  of its speed into the thing; never more than half its speed). The pieces then go on colliding with the car normally.
+- **The walk's map:** the shape is taken out of `TownCollision` (`remove(i)`, queries skip it; or a remnant's extra
+  dropped) and what is left of a fence either side goes back in as shorter fences (`setExtra("broken:N")`, still
+  breakable). A piece that settles standing up (taller than 0.5 m) blocks the walker (`debris:N`); one lying flat does
+  not. Broken stays broken for the session.
+- **Cap:** at most 200 pieces live in the physics (the oldest is frozen: out of the physics, drawn where it lies);
+  asleep pieces farther than the streaming range from the car are frozen too (the terrain under them may go); at most
+  600 are kept drawn.
+- **Events:** each break is a `DamageEvent` (what, kind, detail, owner: the yard's building or the row, where, when,
+  which car, how fast) in `Wreckage.events`, and a line "damage: a picket fence (b163) at (x, z) by northcairn-1956 at
+  8.4 m/s, t 12.0 s" through `VehicleWorld.onEvent` (the app's crumbs and play log), ready for the crime system.
+
+**Drawing** (`scene3d/TownWreck.kt`, attached with `TownCars`):
+
+- The yard is baked again without what broke (`FilamentTown.replaceYard` on the workers, then `pollYards` swaps the
+  lot's patches: near, far and its tall things', their water's shimmer with them), the fence's remnants as shorter
+  fences of the same kind.
+- A street lamp, bench or prop is taken out of its chunk's batch (`FilamentTown.hideProp`: the batch is packed again
+  without it; the batches keep what they were packed from), and a lamp's lantern light goes out.
+- Each piece is drawn with its original's own pixel-art mesh, the yard kit's fence of one panel's length, its bin, its
+  bench, the town's lamp, at the physics' pose each frame: M = T(p) R(q q0⁻¹) T(0, -hy, 0), the mesh made as it stood.
+  A piece whose original cannot be found is a plain wooden box of its size.
+
+**Tests** (`DestructionTest`, the same JNI library): the materials; at 15 m/s through a picket fence it breaks (2
+panels), the car keeps 91% of its speed, one damage event, the gap is open to the walker and the ends still block, the
+yard's fence is two shorter ones, the pieces sleep within 1.8 s and lie on the ground near the gap; at 1.5 m/s the fence
+stops the car (no break); a building stops it at 16 m/s; a lamp post at 12 m/s snaps and lies flat, the walker is free
+there, the renderer is told; with the cap lowered to 3, five bins leave 3 live and 5 drawn, the oldest frozen.
+Measured on the build server, not the S25.
+
+**Preview:** `gradle :desktop:preview -Dmode=filament-open -Dcars=smash [-Dw=1200]` drives the sedan through a picket
+fence and into a street lamp in the capital (before, during, after each), written to
+`desktop/build/preview/filament-smash/` with `smash.txt`. Desktop renders (Mesa software GL), not S25 captures.
+
+**Not yet:** leaning without breaking (below the impulse a lamp is simply solid); the hedges' clumps are short hedge
+blocks, not torn foliage; store and cinema fences stay solid; a break's sound and a camera thump; pieces are not saved
+between sessions (a new game has the town whole again); the parked cars are not pushed by debris differently from any
+body; walls and buildings take no damage.
+
 ## Open problems
 
 - **The near terrain in the game:** the physics and the streaming handle heightfield ground (tested on a slope), but the
@@ -255,8 +342,6 @@ past it the car free-fell forever (Jolt has no drag), which read as runaway acce
   - the terrain's heights read from `WorldNear`'s `WorldTerrain` in the town's frame.
 - **Kerbs:** the town's kerbs are only painted on its flat ground, so there is nothing to climb yet. The cylinder-cast
   wheels will climb real kerb geometry once the ground has it.
-- **Props are immovable:** a car stops dead against a hydrant or a mailbox. Knock-over props, as dynamic Jolt bodies,
-  are the next physics step.
 - **Glass is opaque** (dark tinted). Real transparency, with the cabin seen through the windows, needs a blended
   variant of our material.
 - **Getting in has no animation:** the player vanishes as the door opens. A seated pose for the sheet (or a 3D driver)
@@ -284,5 +369,5 @@ past it the car free-fell forever (Jolt has no drag), which read as runaway acce
   - witnesses remembering a car and its colour;
   - speeding and reckless driving seen by police;
   - hiding a car, changing its plates or paint.
-- **Physics beyond cars:** knock-over props, doors, loose objects; later, walking on Jolt's character controller.
+- **Physics beyond cars:** doors, loose objects the player can push; later, walking on Jolt's character controller.
 - **Measurements on the S25:** step time, the cost of the streaming hitch, and the heat of a long drive.

@@ -42,6 +42,8 @@ class VehicleSpec(
 
     fun node(n: String): Node? = nodes[n]
     val doors: List<String> get() = nodes.keys.filter { it.startsWith("door_") }.sorted()
+    /** The driver's door (left-hand drive): a four-door's `door_front_l`, a two-seater's `door_l` (the Torrels). */
+    val driverDoor: String? get() = listOf("door_front_l", "door_l").firstOrNull { it in nodes } ?: doors.firstOrNull()
 
     /** The front axle's z (+), the rear's (-), the axle height and half the track, from the wheel nodes (else the measurements). */
     val frontZ: Float get() = nodes["steer_fl"]?.z ?: nodes["wheel_fl"]?.z ?: (wheelbase / 2f)
@@ -225,6 +227,15 @@ class Drivetrain(
             s.key.startsWith("tallmere") -> Drivetrain(torqueNm = 480f, minRpm = 600f, maxRpm = 4400f, gears = floatArrayOf(2.5f, 1.5f, 1f), reverse = -2.1f,
                 brakeNm = 2000f, handbrakeNm = 2600f, lockDeg = 35f, travelMin = .06f, travelMax = .32f, springHz = 1.4f, damping = .45f,
                 grip = .95f, drag = .025f, comY = .66f)
+            // the Torrels: light two-seat sports cars (976 and 1,088 kg) with a small high-revving engine, not the big
+            // coupe's 560 Nm V8 (that let a one-tonne car spin up to 46 km/h on a quarter throttle and slide wide at full
+            // lock: a 23 m circle); quick steering, a low centre of mass
+            s.key.startsWith("torrel") && s.from < 1980 -> Drivetrain(torqueNm = 200f, minRpm = 800f, maxRpm = 6800f, gears = floatArrayOf(3.2f, 2.0f, 1.4f, 1f), reverse = -3.3f,
+                brakeNm = 1500f, handbrakeNm = 2000f, lockDeg = 31f, travelMin = .05f, travelMax = .22f, springHz = 1.9f, damping = .5f,
+                grip = 1f, drag = .02f, comY = .42f)
+            s.key.startsWith("torrel") -> Drivetrain(torqueNm = 260f, minRpm = 800f, maxRpm = 7000f, gears = floatArrayOf(3.3f, 2.1f, 1.5f, 1.2f, 1f), reverse = -3.3f,
+                brakeNm = 1700f, handbrakeNm = 2200f, lockDeg = 31f, travelMin = .05f, travelMax = .22f, springHz = 2f, damping = .52f,
+                grip = 1.05f, drag = .018f, comY = .42f)
             else -> Drivetrain(torqueNm = 560f, minRpm = 700f, maxRpm = 5600f, gears = floatArrayOf(2.52f, 1.88f, 1.46f, 1f), reverse = -2.3f,
                 brakeNm = 2100f, handbrakeNm = 2800f, lockDeg = 36f, travelMin = .05f, travelMax = .26f, springHz = 1.6f, damping = .5f,
                 grip = 1f, drag = .02f, comY = .5f)

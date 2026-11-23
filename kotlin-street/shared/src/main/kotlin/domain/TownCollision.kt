@@ -52,6 +52,8 @@ class TownCollision private constructor(
     private val data: FloatArray,
     private val kinds: Array<SolidKind>,
     private val owners: Array<String?>,
+    /** Per shape, what it is within its kind (a yard item's kind, "lamp", a street prop's [PropKind] name...), if known. */
+    private val details: Array<String?>,
     val minX: Float, val minZ: Float,
     private val cell: Float,
     val cols: Int, val rows: Int,
@@ -65,7 +67,8 @@ class TownCollision private constructor(
     @Volatile private var extra: TownCollision? = null
     /** The overlay this query reads (taken once at its start, so a swap by another thread does not mix two). */
     private var q: TownCollision? = null
-    private val extraSets = LinkedHashMap<String, Triple<FloatArray, SolidKind, String?>>()
+    private val extraSets = LinkedHashMap<String, Extra>()
+    private class Extra(val boxes: FloatArray, val kind: SolidKind, val owner: String?, val detail: String?)
     /** How many shapes were added since the map was built ([setExtra]); their indices follow [size]. */
     val extraSize: Int get() = extra?.size ?: 0
 
@@ -75,13 +78,14 @@ class TownCollision private constructor(
      * by [owner]. For what is built after the map: a store's site once its model is up, its parked cars each hour. Safe
      * to call from another thread than the queries' (the overlay is rebuilt and swapped in whole).
      */
-    fun setExtra(key: String, boxes: FloatArray?, kind: SolidKind = SolidKind.BUILDING, owner: String? = null) {
+    fun setExtra(key: String, boxes: FloatArray?, kind: SolidKind = SolidKind.BUILDING, owner: String? = null, detail: String? = null) {
         synchronized(extraSets) {
-            if (boxes == null || boxes.isEmpty()) { if (extraSets.remove(key) == null) return } else extraSets[key] = Triple(boxes, kind, owner)
+            if (boxes == null || boxes.isEmpty()) { if (extraSets.remove(key) == null) return } else extraSets[key] = Extra(boxes, kind, owner, detail)
             val b = Builder()
-            for ((bx, k, o) in extraSets.values) {
+            for (e in extraSets.values) {
+                val bx = e.boxes
                 var i = 0
-                while (i + 5 < bx.size) { b.box(bx[i], bx[i + 1], bx[i + 2], bx[i + 3], bx[i + 4], bx[i + 5], k, o); i += 6 }
+                while (i + 5 < bx.size) { b.box(bx[i], bx[i + 1], bx[i + 2], bx[i + 3], bx[i + 4], bx[i + 5], e.kind, e.owner, e.detail); i += 6 }
             }
             extra = if (extraSets.isEmpty()) null else b.finishGrid(minX, minZ, cols, rows)
             extraVersion++
@@ -119,6 +123,21 @@ class TownCollision private constructor(
     val maxZ: Float get() = minZ + rows * cell
 
     fun kind(i: Int): SolidKind = if (i >= size) extra!!.kinds[i - size] else kinds[i]
+    /** What shape [i] is within its kind (a yard item's kind, "lamp", a [PropKind]'s name...), if known. */
+    fun detail(i: Int): String? = if (i >= size) extra!!.details[i - size] else details[i]
+
+    /**
+     * The map's own shapes taken out since ([remove]: a fence a car broke through): queries skip them. Kept apart from
+     * the shapes themselves so the map stays as built (a new session's map has them all again).
+     */
+    private val removed = java.util.BitSet(type.size)
+    /** Takes shape [i] (one the map was built with) out of the queries; counts as a change to [extraVersion]. */
+    fun remove(i: Int) {
+        if (i < 0 || i >= size) return
+        synchronized(extraSets) { if (removed[i]) return; removed.set(i); extraVersion++ }
+    }
+    /** Whether shape [i] was taken out ([remove]). */
+    fun isRemoved(i: Int): Boolean = i in 0 until size && removed[i]
     /** What the shape belongs to (a building's or a yard's sprite, a row, "river"...), if anything. */
     fun owner(i: Int): String? = if (i >= size) extra!!.owners[i - size] else owners[i]
     fun isCircle(i: Int): Boolean = if (i >= size) extra!!.type[i - size].toInt() == 1 else type[i].toInt() == 1
@@ -145,6 +164,7 @@ class TownCollision private constructor(
                 val i = cellItems[j]
                 if (seen[i] == stamp) continue
                 seen[i] = stamp
+                if (removed[i]) continue
                 if (f(i)) return
             }
         }
@@ -171,15 +191,19 @@ class TownCollision private constructor(
      * stands only until the next [setExtra]), kind, owner, whether it is a circle, and its six numbers in [tmp] (as
      * [shape]). For the physics' streamed colliders (docs/VEHICLES.md); one thread at a time, as the other queries.
      */
-    fun forEachNear(x0: Float, z0: Float, x1: Float, z1: Float, tmp: FloatArray, f: (index: Int, kind: SolidKind, owner: String?, circle: Boolean, data: FloatArray) -> Unit) {
+    fun forEachNear(x0: Float, z0: Float, x1: Float, z1: Float, tmp: FloatArray, f: (index: Int, kind: SolidKind, owner: String?, circle: Boolean, data: FloatArray) -> Unit) =
+        forEachNearDetail(x0, z0, x1, z1, tmp) { i, k, o, _, c, d -> f(i, k, o, c, d) }
+
+    /** As [forEachNear], with each shape's [detail] too. */
+    fun forEachNearDetail(x0: Float, z0: Float, x1: Float, z1: Float, tmp: FloatArray, f: (index: Int, kind: SolidKind, owner: String?, detail: String?, circle: Boolean, data: FloatArray) -> Unit) {
         forNear(x0, z0, x1, z1) { i ->
             if (i >= size) {
                 val ex = q!!; val k = i - size
                 System.arraycopy(ex.data, k * 6, tmp, 0, 6)
-                f(i, ex.kinds[k], ex.owners[k], ex.type[k].toInt() == 1, tmp)
+                f(i, ex.kinds[k], ex.owners[k], ex.details[k], ex.type[k].toInt() == 1, tmp)
             } else {
                 System.arraycopy(data, i * 6, tmp, 0, 6)
-                f(i, kinds[i], owners[i], type[i].toInt() == 1, tmp)
+                f(i, kinds[i], owners[i], details[i], type[i].toInt() == 1, tmp)
             }
             false
         }
@@ -410,6 +434,18 @@ class TownCollision private constructor(
             return b.finish(town).also { it.cinema = cinema; it.stores = stores }
         }
 
+        /**
+         * A map of only [yards]' things and what [more] adds (a building, a lamp...), its grid over ([x0], [z0]) to ([x1],
+         * [z1]): for tests and previews of one scene (docs/VEHICLES.md, "Destruction").
+         */
+        internal fun of(yards: TownYards, x0: Float, z0: Float, x1: Float, z1: Float, more: (Builder) -> Unit = {}): TownCollision {
+            val b = Builder()
+            for (y in yards.yards) yardItems(b, y.items, y.sprite)
+            for (l in yards.lanes) yardItems(b, l.items, l.id)
+            more(b)
+            return b.finishGrid(x0, z0, max(1, ceil((x1 - x0) / CELL).toInt()), max(1, ceil((z1 - z0) / CELL).toInt()))
+        }
+
         // ------------------------------------------------------------------ buildings
 
         private fun buildings(b: Builder, town: Town, models: Map<String, ModelShape>, cinema: CinemaSiteShape?, stores: Set<String>) {
@@ -467,18 +503,18 @@ class TownCollision private constructor(
                 val w = r[2] - r[0]; val d = r[3] - r[1]
                 val cx = (r[0] + r[2]) / 2f; val cz = (r[1] + r[3]) / 2f
                 when (it.kind) {
-                    "backFence", "frontFence", "sideFence", "postRail" -> b.rect(r, SolidKind.FENCE, owner)
-                    "hedge" -> b.rect(r, SolidKind.HEDGE, owner)
+                    "backFence", "frontFence", "sideFence", "postRail" -> b.rect(r, SolidKind.FENCE, owner, it.kind + "/" + it.variant + "/" + it.zone)
+                    "hedge" -> b.rect(r, SolidKind.HEDGE, owner, it.kind + "/" + it.variant + "/" + it.zone)
                     "gate", "sideGate" -> gate(b, it, owner)
-                    "lowWall" -> b.rect(r, SolidKind.WALL, owner)
-                    "tree", "fruitTree" -> b.circle(cx, cz, TRUNK, SolidKind.TREE, owner)
-                    "bush" -> b.circle(cx, cz, min(w, d) * .35f, SolidKind.YARD_OBJECT, owner)
-                    "birdbath", "firePit" -> b.circle(cx, cz, min(w, d) / 2f, SolidKind.YARD_OBJECT, owner)
-                    "chair" -> b.circle(cx, cz, min(6f, min(w, d) / 2f), SolidKind.YARD_OBJECT, owner)
-                    "mailbox" -> b.circle(cx, cz, 4f, SolidKind.YARD_OBJECT, owner)
+                    "lowWall" -> b.rect(r, SolidKind.WALL, owner, it.kind)
+                    "tree", "fruitTree" -> b.circle(cx, cz, TRUNK, SolidKind.TREE, owner, it.kind)
+                    "bush" -> b.circle(cx, cz, min(w, d) * .35f, SolidKind.YARD_OBJECT, owner, it.kind)
+                    "birdbath", "firePit" -> b.circle(cx, cz, min(w, d) / 2f, SolidKind.YARD_OBJECT, owner, it.kind)
+                    "chair" -> b.circle(cx, cz, min(6f, min(w, d) / 2f), SolidKind.YARD_OBJECT, owner, it.kind)
+                    "mailbox" -> b.circle(cx, cz, 4f, SolidKind.YARD_OBJECT, owner, it.kind + "/" + it.variant)
                     "carport", "gazebo" -> {
                         val i = 4f
-                        for (px in floatArrayOf(r[0] + i, r[2] - i)) for (pz in floatArrayOf(r[1] + i, r[3] - i)) b.circle(px, pz, POST, SolidKind.YARD_OBJECT, owner)
+                        for (px in floatArrayOf(r[0] + i, r[2] - i)) for (pz in floatArrayOf(r[1] + i, r[3] - i)) b.circle(px, pz, POST, SolidKind.YARD_OBJECT, owner, it.kind)
                     }
                     "washingLine" -> {
                         if (abs(w - d) < 8f) b.circle(cx, cz, POST, SolidKind.YARD_OBJECT, owner)
@@ -487,7 +523,7 @@ class TownCollision private constructor(
                     }
                     "bench", "bikeShed", "bins", "compost", "doghouse", "garage", "greenhouse", "grill", "hammock", "logPile",
                     "pallets", "planter", "playSet", "pond", "pool", "shed", "swing", "table", "trampoline", "vegBed" ->
-                        b.rect(r, SolidKind.YARD_OBJECT, owner)
+                        b.rect(r, SolidKind.YARD_OBJECT, owner, it.kind + "/" + it.variant)
                     // walkable: lawn, meadow, gravel, paths, drives, kerb cuts, patios, decks, pads, the pool's deck,
                     // flower beds (low), sandpits, gates and side gates (the gaps in the fences)
                     else -> {}
@@ -515,7 +551,7 @@ class TownCollision private constructor(
             fun wz(lx: Float, lz: Float) = cz + az * lx + fz * lz
             val inner = w - 2f * (GATE_POST_OUT + GATE_POST)
             if (inner < GATE_ROOM) return
-            for (sx in floatArrayOf(-1f, 1f)) b.circle(wx(sx * (hw - GATE_POST_OUT), 0f), wz(sx * (hw - GATE_POST_OUT), 0f), GATE_POST, SolidKind.FENCE, owner)
+            for (sx in floatArrayOf(-1f, 1f)) b.circle(wx(sx * (hw - GATE_POST_OUT), 0f), wz(sx * (hw - GATE_POST_OUT), 0f), GATE_POST, SolidKind.FENCE, owner, it.kind + "/" + it.variant + "/" + it.zone)
             // (the open leaves lie back along the gap's edges, flat to the fence or the house: not solid, so they make no
             // wedge to get caught in)
         }
@@ -544,9 +580,9 @@ class TownCollision private constructor(
                 if (!seen.add(k * 4 + f.kind.ordinal)) continue
                 val n = row.normalAt(x)
                 when (f.kind) {
-                    FurnitureKind.LAMP -> b.circle(p.x, p.z, 3.5f, SolidKind.PROP, row.id)
-                    FurnitureKind.TREE -> b.circle(p.x, p.z, TRUNK, SolidKind.TREE, row.id)
-                    FurnitureKind.BENCH -> b.box(p.x, p.z, -n.z, n.x, PropKind.BENCH.w / 2f, PropKind.BENCH.d / 2f, SolidKind.PROP, row.id)
+                    FurnitureKind.LAMP -> b.circle(p.x, p.z, 3.5f, SolidKind.PROP, row.id, "lamp")
+                    FurnitureKind.TREE -> b.circle(p.x, p.z, TRUNK, SolidKind.TREE, row.id, "streetTree")
+                    FurnitureKind.BENCH -> b.box(p.x, p.z, -n.z, n.x, PropKind.BENCH.w / 2f, PropKind.BENCH.d / 2f, SolidKind.PROP, row.id, "streetBench")
                 }
             }
         }
@@ -566,8 +602,8 @@ class TownCollision private constructor(
                     val hw = (fp[1] - fp[0]) / 2f; val hd = (fp[3] - fp[2]) / 2f
                     val c = row.pointAt((fp[0] + fp[1]) / 2f, (fp[2] + fp[3]) / 2f / Crossroads.LANE)
                     val a = row.alongAt(sp.x)
-                    if (max(hw, hd) < 4.5f) b.circle(c.x, c.z, max(hw, hd), SolidKind.PROP, row.id)
-                    else b.box(c.x, c.z, a.x, a.z, hw, hd, SolidKind.PROP, row.id)
+                    if (max(hw, hd) < 4.5f) b.circle(c.x, c.z, max(hw, hd), SolidKind.PROP, row.id, sp.kind.name)
+                    else b.box(c.x, c.z, a.x, a.z, hw, hd, SolidKind.PROP, row.id, sp.kind.name)
                 }
             }
         }
@@ -586,16 +622,16 @@ class TownCollision private constructor(
             when {
                 p.kind == "tree" -> {
                     val scale = if (edge) (if (((p.look * 7919f).toInt() and 1) == 0) 1.25f else 1.6f) else 1f
-                    b.circle(p.x + jx, p.z + jz, TRUNK * scale, SolidKind.TREE, "forest")
+                    b.circle(p.x + jx, p.z + jz, TRUNK * scale, SolidKind.TREE, "forest", "tree")
                 }
-                p.kind == "bush" -> b.circle(p.x + jx, p.z + jz, 8f, SolidKind.PROP, "forest")
+                p.kind == "bush" -> b.circle(p.x + jx, p.z + jz, 8f, SolidKind.PROP, "forest", "bush")
                 p.kind == "flowerBush" -> {
                     val q = ((p.look * 7919f).toInt() and 1) != 0
                     val hw = PropKind.PLANTER.w / 2f; val hd = PropKind.PLANTER.d / 2f
-                    if (q) b.box(p.x, p.z, 0f, 1f, hw, hd, SolidKind.PROP, "plaza") else b.box(p.x, p.z, 1f, 0f, hw, hd, SolidKind.PROP, "plaza")
+                    if (q) b.box(p.x, p.z, 0f, 1f, hw, hd, SolidKind.PROP, "plaza", "plazaPlanter") else b.box(p.x, p.z, 1f, 0f, hw, hd, SolidKind.PROP, "plaza", "plazaPlanter")
                 }
-                p.kind == "bench" -> b.box(p.x, p.z, 1f, 0f, PropKind.BENCH.w / 2f, PropKind.BENCH.d / 2f, SolidKind.PROP, "plaza")
-                p.kind.startsWith("fountain") -> b.circle(p.x, p.z, 30f, SolidKind.PROP, "plaza")
+                p.kind == "bench" -> b.box(p.x, p.z, 1f, 0f, PropKind.BENCH.w / 2f, PropKind.BENCH.d / 2f, SolidKind.PROP, "plaza", "plazaBench")
+                p.kind.startsWith("fountain") -> b.circle(p.x, p.z, 30f, SolidKind.PROP, "plaza", "fountain")
                 // flowers are flat
                 else -> {}
             }
@@ -642,24 +678,25 @@ class TownCollision private constructor(
         private val data = ArrayList<Float>()
         private val kinds = ArrayList<SolidKind>()
         private val owners = ArrayList<String?>()
+        private val details = ArrayList<String?>()
 
         /** An oriented box: centre ([cx], [cz]), its axis ([ux], [uz]) (normalised here), half extents along it and across. */
-        fun box(cx: Float, cz: Float, ux: Float, uz: Float, hu: Float, hv: Float, kind: SolidKind, owner: String?) {
+        fun box(cx: Float, cz: Float, ux: Float, uz: Float, hu: Float, hv: Float, kind: SolidKind, owner: String?, detail: String? = null) {
             val l = hypot(ux, uz).takeIf { it > 1e-6f } ?: return
             if (hu <= 0f || hv <= 0f) return
             type += 0; data += cx; data += cz; data += ux / l; data += uz / l; data += hu; data += hv
-            kinds += kind; owners += owner
+            kinds += kind; owners += owner; details += detail
         }
 
-        fun circle(cx: Float, cz: Float, r: Float, kind: SolidKind, owner: String?) {
+        fun circle(cx: Float, cz: Float, r: Float, kind: SolidKind, owner: String?, detail: String? = null) {
             if (r <= 0f) return
             type += 1; data += cx; data += cz; data += r; data += 0f; data += 0f; data += 0f
-            kinds += kind; owners += owner
+            kinds += kind; owners += owner; details += detail
         }
 
         /** A world rectangle (x0, z0, x1, z1). */
-        fun rect(r: FloatArray, kind: SolidKind, owner: String?) =
-            box((r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f, 1f, 0f, (r[2] - r[0]) / 2f, (r[3] - r[1]) / 2f, kind, owner)
+        fun rect(r: FloatArray, kind: SolidKind, owner: String?, detail: String? = null) =
+            box((r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f, 1f, 0f, (r[2] - r[0]) / 2f, (r[3] - r[1]) / 2f, kind, owner, detail)
 
         /** A thin box [thick] wide from one point to another. */
         fun segment(ax: Float, az: Float, bx: Float, bz: Float, thick: Float, kind: SolidKind, owner: String?) {
@@ -707,7 +744,7 @@ class TownCollision private constructor(
             val items = IntArray(counts[cols * rows])
             val fill = counts.copyOf()
             for (i in 0 until n) cellsOf(i) { items[fill[it]++] = i }
-            return TownCollision(t, d, kinds.toTypedArray(), owners.toTypedArray(), x0, z0, CELL, cols, rows, counts, items)
+            return TownCollision(t, d, kinds.toTypedArray(), owners.toTypedArray(), details.toTypedArray(), x0, z0, CELL, cols, rows, counts, items)
         }
 
         private fun aabb(t: ByteArray, d: FloatArray, i: Int, out: FloatArray) {

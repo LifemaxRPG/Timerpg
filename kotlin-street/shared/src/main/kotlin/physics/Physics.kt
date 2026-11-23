@@ -29,10 +29,31 @@ interface Physics : AutoCloseable {
     /** Its state into [out] ([VehicleState.COUNT] floats). */
     fun state(v: Int, out: FloatArray)
 
-    /** One fixed step. */
-    fun step(dt: Float, collisionSteps: Int = 1)
+    /** One fixed step; returns how many breaks wait in [takeBreaks]. */
+    fun step(dt: Float, collisionSteps: Int = 1): Int
+
+    // ---- destruction (docs/VEHICLES.md, "Destruction")
+    /**
+     * Static [handle]'s give: [impulse] (N s, > 0): something dynamic hitting it with mass times approach speed at least
+     * this goes through it and a break is recorded ([takeBreaks]); [soft] (1/s, > 0): everything passes through it, slowed
+     * by this drag while inside (a bush). Both 0: solid.
+     */
+    fun setGive(handle: Int, impulse: Float, soft: Float = 0f)
+    /** The breaks since the last call into [out] ([Breaks.COUNT] floats each); returns how many. */
+    fun takeBreaks(out: FloatArray): Int
+    /**
+     * A loose piece from [d] (18 floats: centre x, y, z; half extents x, y, z; rotation qx, qy, qz, qw; mass kg; velocity
+     * x, y, z; spin x, y, z rad/s; friction), dynamic. Returns a handle, or -1.
+     */
+    fun addDebris(d: FloatArray): Int
+    /** Bodies' poses: for each of the first [n] [handles], [POSE] floats (x, y, z, qx, qy, qz, qw, 1 awake) into [out]. */
+    fun poses(handles: IntArray, n: Int, out: FloatArray)
+    /** Adds a velocity (m/s) to vehicle [v] (the momentum it gave away). */
+    fun push(v: Int, dvx: Float, dvy: Float, dvz: Float)
 
     companion object {
+        /** Floats a pose ([poses]) takes. */
+        const val POSE = 8
         /** A physics world, or null where the native library cannot load (a unit test on a JVM without it). */
         fun create(maxBodies: Int = 4096): Physics? = if (JoltNative.load()) JoltPhysics(maxBodies) else null
     }
@@ -87,6 +108,19 @@ object VehicleState {
     const val COUNT = WHEELS + 4 * W_COUNT
 }
 
+/** Indices into a break ([Physics.takeBreaks]; physics_core.h BreakIndex). */
+object Breaks {
+    const val HANDLE = 0
+    const val X = 1; const val Y = 2; const val Z = 3
+    const val VX = 4; const val VY = 5; const val VZ = 6
+    const val SPEED = 7
+    const val MASS = 8
+    const val VEHICLE = 9
+    const val COUNT = 10
+    /** At most this many a step (MAX_BREAKS). */
+    const val MAX = 64
+}
+
 /** The JNI entry points (physics_jni.cpp). */
 object JoltNative {
     @Volatile private var loaded: Boolean? = null
@@ -102,7 +136,7 @@ object JoltNative {
             val ok = runCatching {
                 val file = System.getProperty("timerpg.physics.lib")
                 if (file != null && java.io.File(file).isFile) System.load(java.io.File(file).absolutePath) else System.loadLibrary("timerpg_physics")
-                check(descCount() == VehicleDesc.COUNT && stateCount() == VehicleState.COUNT) { "physics library's layout differs from Physics.kt" }
+                check(descCount() == VehicleDesc.COUNT && stateCount() == VehicleState.COUNT && breakCount() == Breaks.COUNT) { "physics library's layout differs from Physics.kt" }
             }.isSuccess
             loaded = ok
             return ok
@@ -121,7 +155,13 @@ object JoltNative {
     @JvmStatic external fun setVehicleInput(w: Long, v: Int, forward: Float, right: Float, brake: Float, handbrake: Float)
     @JvmStatic external fun setVehiclePose(w: Long, v: Int, x: Float, y: Float, z: Float, yaw: Float)
     @JvmStatic external fun vehicleState(w: Long, v: Int, out: FloatArray)
-    @JvmStatic external fun step(w: Long, dt: Float, collisionSteps: Int)
+    @JvmStatic external fun step(w: Long, dt: Float, collisionSteps: Int): Int
+    @JvmStatic external fun setGive(w: Long, h: Int, impulse: Float, soft: Float)
+    @JvmStatic external fun takeBreaks(w: Long, out: FloatArray): Int
+    @JvmStatic external fun addDebris(w: Long, d: FloatArray): Int
+    @JvmStatic external fun bodyPoses(w: Long, handles: IntArray, n: Int, out: FloatArray)
+    @JvmStatic external fun addVehicleVelocity(w: Long, v: Int, dx: Float, dy: Float, dz: Float)
+    @JvmStatic external fun breakCount(): Int
     @JvmStatic external fun descCount(): Int
     @JvmStatic external fun stateCount(): Int
 }
@@ -142,5 +182,10 @@ class JoltPhysics(maxBodies: Int = 4096) : Physics {
     override fun place(v: Int, x: Float, y: Float, z: Float, yaw: Float) = JoltNative.setVehiclePose(h(), v, x, y, z, yaw)
     override fun state(v: Int, out: FloatArray) = JoltNative.vehicleState(h(), v, out)
     override fun step(dt: Float, collisionSteps: Int) = JoltNative.step(h(), dt, collisionSteps)
+    override fun setGive(handle: Int, impulse: Float, soft: Float) { if (handle >= 0) JoltNative.setGive(h(), handle, impulse, soft) }
+    override fun takeBreaks(out: FloatArray) = JoltNative.takeBreaks(h(), out)
+    override fun addDebris(d: FloatArray) = JoltNative.addDebris(h(), d)
+    override fun poses(handles: IntArray, n: Int, out: FloatArray) { if (n > 0) JoltNative.bodyPoses(h(), handles, n, out) }
+    override fun push(v: Int, dvx: Float, dvy: Float, dvz: Float) { if (v >= 0) JoltNative.addVehicleVelocity(h(), v, dvx, dvy, dvz) }
     override fun close() { if (w != 0L) { JoltNative.destroy(w); w = 0L } }
 }

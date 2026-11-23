@@ -701,7 +701,99 @@ class FilamentTown(
         val near: PropMesh? = null, val nearAt: List<FloatArray>? = null,
         /** With a chunk's cards: the trees and bushes they stand for near by ([TreeCells]), each with its place. */
         val trees: List<Pair<TreeKit.Spec, FloatArray>>? = null,
+        /** Street things in it the cars can take away one at a time ([hideProp]): what it was packed from. */
+        val hide: HideSrc? = null,
     )
+
+    // ------------------------------------------------------------------ what the cars broke (docs/VEHICLES.md, "Destruction")
+
+    /** A batch's street things that can be taken away one at a time: [tag] (lamp, streetBench, plazaBench, prop), the mesh and its places, or the props. */
+    private class HideSrc(val tag: String, val mesh: PropMesh, val at: List<FloatArray>, val props: List<WorldProp>?)
+    private class Hideable(val layer: PropLayer, var batch: Int, val casts: Boolean, var src: HideSrc)
+    private val hideables = ArrayList<Hideable>()
+
+    /** A street thing as it was drawn: its mesh and place (x, z, along x, z, out x, z, turn). */
+    internal class Drawn(val mesh: PropMesh, val at: FloatArray)
+
+    /**
+     * Takes the street thing [detail] ("lamp", "streetBench", "plazaBench", or a [com.lifemax.rpg.feature.habits.domain.PropKind]'s
+     * name) nearest ([x], [z]) out of the drawing (its batch packed again without it; a lamp's lantern goes dark too), on
+     * the engine's thread. Returns how it was drawn (for its pieces), or null if none stands there.
+     */
+    internal fun hideProp(x: Float, z: Float, detail: String): Drawn? {
+        val tag = when (detail) { "lamp", "streetBench", "plazaBench" -> detail; else -> "prop" }
+        var best: Hideable? = null; var bi = -1; var bd = HIDE_REACH
+        for (h in hideables) {
+            if (h.src.tag != tag) continue
+            for ((i, a) in h.src.at.withIndex()) {
+                if (tag == "prop" && h.src.props!![i].spot.kind.name != detail) continue
+                val d = hypot(a[0] - x, a[1] - z)
+                if (d < bd) { bd = d; best = h; bi = i }
+            }
+        }
+        val h = best ?: return null
+        val src = h.src
+        val at = src.at[bi]
+        h.layer.setBatchVisible(h.batch, false)
+        val rest = src.at.filterIndexed { i, _ -> i != bi }
+        h.src = HideSrc(src.tag, src.mesh, rest, src.props?.filterIndexed { i, _ -> i != bi })
+        if (rest.isNotEmpty()) PropLayer.Packing.pack(src.mesh, rest)?.let { h.layer.upload(it, h.casts); h.batch = h.layer.batchCount - 1 }
+        if (tag == "lamp") {
+            // (its lantern's light goes out: the nearest lantern to the post)
+            var li = -1; var ld = 60f
+            for (i in 0 until lanterns.size / 3) { val d = hypot(lanterns[i * 3] - at[0], lanterns[i * 3 + 2] - at[1]); if (d < ld) { ld = d; li = i } }
+            if (li >= 0) lanterns[li * 3 + 1] = -1e5f
+        }
+        return Drawn(src.mesh, at)
+    }
+
+    private class YardSwap(val f: java.util.concurrent.Future<Pair<String?, List<Job>>>)
+    private val yardSwaps = ArrayList<YardSwap>()
+    /** Yards being baked again ([replaceYard]) not swapped in yet. */
+    internal val yardsPending: Boolean get() = yardSwaps.isNotEmpty()
+    /** The water shimmers of each yard patch (a patch swapped out takes its own with it). */
+    private val patchTicks = HashMap<String, MutableList<(Double) -> Unit>>()
+
+    /**
+     * Bakes the yard of [owner] (a lot's building, or a lane) again with [items] on the workers (what the cars left of
+     * it); [pollYards] swaps its patches in once ready. Only the yard kit's yards ([YardKitBuilder]) can be.
+     */
+    internal fun replaceYard(owner: String, items: List<com.lifemax.rpg.feature.habits.domain.TownYardItem>) {
+        val kit = yardBuilder as? YardKitBuilder ?: return
+        yardSwaps += YardSwap(pool.submit(java.util.concurrent.Callable {
+            val out = ArrayList<Job>()
+            val sink = object : YardSink {
+                override fun mesh(name: String, mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean, patch: YardPatch?, water: Boolean): MaterialInstance? {
+                    PropLayer.Packing.pack(mesh, at)?.let { out += Job(it, casts, tiled, patch = patch, yard = true, water = if (water) intArrayOf(mesh.texW, mesh.texH) else null) }
+                    return null
+                }
+                override fun props(list: List<WorldProp>) {}
+            }
+            kit.rebuild(owner, yards, items, sink) to out
+        }))
+    }
+
+    /** Swaps in the yards [replaceYard] has baked (the engine's thread): the lot's old patches (near, far, its tall things') go. Returns how many. */
+    internal fun pollYards(): Int {
+        var n = 0
+        val it = yardSwaps.iterator()
+        while (it.hasNext()) {
+            val sw = it.next()
+            if (!sw.f.isDone) continue
+            it.remove()
+            val (id, jobs) = runCatching { sw.f.get() }.getOrNull() ?: continue
+            if (id == null) continue
+            val gone = patches.keys.filter { k -> k == id || k.startsWith("$id#") }
+            for (k in gone) {
+                patches.remove(k)?.layer?.destroy()
+                patchTicks.remove(k)?.let { t -> synchronized(ticks) { ticks.removeAll(t.toSet()) } }
+            }
+            for (j in jobs) upload(j)
+            n++
+        }
+        if (n > 0) engine.flush()
+        return n
+    }
 
     private val jobs = java.util.concurrent.ConcurrentLinkedQueue<Job>()
     /**
@@ -774,7 +866,9 @@ class FilamentTown(
             // own, so it is let go with the piece's batches, not held to the end of the whole ground)
             val share = java.util.IdentityHashMap<IntArray, StreetTextures.Prepared>()
             val an = p.anchors
-            if (an == null) { PropLayer.Packing.pack(p.mesh, p.at, share)?.let { offer(Job(it, p.casts, p.tiled)) }; continue }
+            // (the street lamps and benches can be broken by the cars: their batches keep what they were packed from)
+            val tag = when (p.name) { "lamps" -> "lamp"; "benches" -> "streetBench"; "plaza-benches" -> "plazaBench"; else -> null }
+            if (an == null) { PropLayer.Packing.pack(p.mesh, p.at, share)?.let { offer(Job(it, p.casts, p.tiled, hide = tag?.let { t -> HideSrc(t, p.mesh, p.at, null) })) }; continue }
             val by = LinkedHashMap<String, Pair<ChunkSpec, MutableList<Int>>>()
             for ((i, a) in p.at.withIndex()) { val sp = specOf(an[i], a[0], a[1]); by.getOrPut(sp.key) { sp to ArrayList() }.second += i }
             for ((sp, ids) in by.values) {
@@ -783,7 +877,8 @@ class FilamentTown(
                 // (the 3D trees go with their cards, to be packed only as the chunk comes near: Chunk.startNear)
                 val trees = p.trees?.let { t -> ids.map { t[it] to p.at[it] } }
                 val cards = p.near != null || trees != null
-                PropLayer.Packing.pack(p.mesh, at, share)?.let { offer(Job(it, p.casts, p.tiled, sp, part = if (cards) 1 else 0, extent = ext, near = p.near, nearAt = at, trees = trees)) }
+                PropLayer.Packing.pack(p.mesh, at, share)?.let { offer(Job(it, p.casts, p.tiled, sp, part = if (cards) 1 else 0, extent = ext, near = p.near, nearAt = at, trees = trees,
+                    hide = if (cards) null else tag?.let { t -> HideSrc(t, p.mesh, at, null) })) }
             }
         }
         // (the street props' meshes repeat along every row: one packed picture each for them all; small pictures)
@@ -794,7 +889,13 @@ class FilamentTown(
             var x0 = Float.MAX_VALUE; var z0 = Float.MAX_VALUE; var x1 = -Float.MAX_VALUE; var z1 = -Float.MAX_VALUE
             for (wp in list) { x0 = min(x0, wp.x); z0 = min(z0, wp.z); x1 = max(x1, wp.x); z1 = max(z1, wp.z) }
             val ext = floatArrayOf(x0, z0, x1, z1, 40f, 70f)
-            for ((packed, casts, _) in PropLayer.Packing.packProps(list, share)) offer(Job(packed, casts, false, sp, part = 0, extent = ext))
+            // (by look, as PropLayer.Packing.packProps packs them, each batch keeping its props: the cars can break them)
+            val looks = LinkedHashMap<PropMesh, MutableList<WorldProp>>()
+            for (wp in list) looks.getOrPut(PropKit.mesh(wp.spot.kind, wp.spot.variant, wp.spot.text, wp.spot.seed)) { ArrayList() } += wp
+            for ((mesh, g) in looks) {
+                val at = g.map { wp -> floatArrayOf(wp.x, wp.z, wp.ax, wp.az, wp.ox, wp.oz, wp.spot.turn) }
+                PropLayer.Packing.pack(mesh, at, share)?.let { offer(Job(it, g.first().spot.kind.shadow, false, sp, part = 0, extent = ext, hide = HideSrc("prop", mesh, at, g))) }
+            }
         }
         lampSpots = tg.lampSpots.toList()
     }
@@ -872,7 +973,7 @@ class FilamentTown(
             val c = chunks.getOrPut(sp.key) { Chunk(sp.refX, sp.refZ, sp.byRow) }
             j.extent?.let { c.take(it) }
             when (j.part) {
-                0 -> c.base.upload(j.packed, j.casts, j.tiled)
+                0 -> { c.base.upload(j.packed, j.casts, j.tiled); j.hide?.let { hideables += Hideable(c.base, c.base.batchCount - 1, j.casts, it) } }
                 else -> c.cards.upload(j.packed, j.casts, j.tiled)
             }
             if (j.near != null && j.nearAt != null) c.addNear(j.near, j.nearAt, j.casts)
@@ -885,7 +986,12 @@ class FilamentTown(
             else -> ground
         }
         val mi = layer.upload(j.packed, j.casts, j.tiled)
-        j.water?.let { (w, h) -> synchronized(ticks) { ticks += { s -> YardLayer.shimmer(mi, w, h, s) } } }
+        j.hide?.let { hideables += Hideable(layer, layer.batchCount - 1, j.casts, it) }
+        j.water?.let { (w, h) ->
+            val tick: (Double) -> Unit = { s -> YardLayer.shimmer(mi, w, h, s) }
+            synchronized(ticks) { ticks += tick }
+            j.patch?.let { patchTicks.getOrPut(it.id) { ArrayList() } += tick }
+        }
     }
 
     /**
@@ -1881,6 +1987,8 @@ class FilamentTown(
         const val CELL = 2000f
         /** How many lanterns light at night (the nearest), how far their light reaches and how strong (lumens). */
         const val LAMP_LIGHTS = 12
+        /** How near (street units) a broken street thing's drawn place must be to the shape the cars broke ([hideProp]). */
+        const val HIDE_REACH = 40f
         /**
          * How many bytes of made-ready ground the workers may queue ahead of the engine's thread's uploads ([offer]): a
          * few frames' uploads (the 14 ms loading budget takes some 10-20 MB a frame on the desktop, the 4 ms playing budget less), and a small part of

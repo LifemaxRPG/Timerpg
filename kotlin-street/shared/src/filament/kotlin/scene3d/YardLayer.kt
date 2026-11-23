@@ -74,7 +74,6 @@ object YardKitBuilder : YardBuilder {
     override fun build(town: com.lifemax.rpg.feature.habits.domain.Town, yards: com.lifemax.rpg.feature.habits.domain.TownYards, sink: YardSink) {
         fun item(i: com.lifemax.rpg.feature.habits.domain.TownYardItem) =
             YardItem(i.kind, i.rect[0], i.rect[1], i.rect[2], i.rect[3], i.faceX, i.faceZ, i.variant, i.layer, i.on, i.zone)
-        val at = listOf(floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f))
         // a lot at a time (culled with the view, cut with its house), then each lane's and verge's items. A lot's tall
         // things (sheds, trees, play sets, back hedges: FilamentTown.tallHeight) are each a patch of their own beside it,
         // so the open world's camera cuts away only the one truly in the way; the lot's far version keeps them all
@@ -91,18 +90,60 @@ object YardKitBuilder : YardBuilder {
         }
         for (y in yards.yards) {
             if (y.items.isEmpty()) continue
-            val p = y.parcel
-            var x0 = p[0]; var z0 = p[1]; var x1 = p[2]; var z1 = p[3]
-            for (i in y.items) { x0 = minOf(x0, i.rect[0]); z0 = minOf(z0, i.rect[1]); x1 = maxOf(x1, i.rect[2]); z1 = maxOf(z1, i.rect[3]) }
-            // (a gate is drawn open, its leaves swung through 90 degrees on their hinges: a back gate's can reach past the lot)
-            val swing = if (y.items.any { it.kind == "gate" || it.kind == "sideGate" || it.kind == "backGate" }) GATE_SWING else 0f
-            add(y.lot, y.items, YardPatch(y.lot, (x0 + x1) / 2f, (z0 + z1) / 2f, kotlin.math.hypot(x1 - x0, z1 - z0) / 2f + swing, y.sprite))
+            add(y.lot, y.items, patchOf(y, y.items))
         }
         for (l in yards.lanes) {
             if (l.items.isEmpty()) continue
-            val r = l.rect
-            add(l.id, l.items, YardPatch(l.id, (r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f, kotlin.math.hypot(r[2] - r[0], r[3] - r[1]) / 2f))
+            add(l.id, l.items, patchOf(l))
         }
+        bakeAll(work.map { Triple(it.near, it.far, it.patch) }, sink)
+        YardKit.trim()
+    }
+
+    /** Lot [y]'s patch for [items] (its parcel widened to them, and to its gates' swing). */
+    private fun patchOf(y: com.lifemax.rpg.feature.habits.domain.TownYard, items: List<com.lifemax.rpg.feature.habits.domain.TownYardItem>): YardPatch {
+        val p = y.parcel
+        var x0 = p[0]; var z0 = p[1]; var x1 = p[2]; var z1 = p[3]
+        for (i in items) { x0 = minOf(x0, i.rect[0]); z0 = minOf(z0, i.rect[1]); x1 = maxOf(x1, i.rect[2]); z1 = maxOf(z1, i.rect[3]) }
+        // (a gate is drawn open, its leaves swung through 90 degrees on their hinges: a back gate's can reach past the lot)
+        val swing = if (items.any { it.kind == "gate" || it.kind == "sideGate" || it.kind == "backGate" }) GATE_SWING else 0f
+        return YardPatch(y.lot, (x0 + x1) / 2f, (z0 + z1) / 2f, kotlin.math.hypot(x1 - x0, z1 - z0) / 2f + swing, y.sprite)
+    }
+
+    private fun patchOf(l: com.lifemax.rpg.feature.habits.domain.TownLane): YardPatch {
+        val r = l.rect
+        return YardPatch(l.id, (r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f, kotlin.math.hypot(r[2] - r[0], r[3] - r[1]) / 2f)
+    }
+
+    /**
+     * One lot's (or lane's) yard again with [items] (what the cars left of it: docs/VEHICLES.md, "Destruction"), baked
+     * here and handed to [sink] as [build] does it: the lot's patch, its tall things' own patches, its far version. The
+     * town swaps them in for the lot's old patches ([FilamentTown.replaceYard]).
+     */
+    fun rebuild(owner: String, yards: com.lifemax.rpg.feature.habits.domain.TownYards, items: List<com.lifemax.rpg.feature.habits.domain.TownYardItem>, sink: YardSink): String? {
+        val y = yards.of(owner)
+        val l = if (y == null) yards.lanes.firstOrNull { it.id == owner } else null
+        val id = y?.lot ?: l?.id ?: return null
+        val patch = if (y != null) patchOf(y, items) else patchOf(l!!)
+        fun item(i: com.lifemax.rpg.feature.habits.domain.TownYardItem) =
+            YardItem(i.kind, i.rect[0], i.rect[1], i.rect[2], i.rect[3], i.faceX, i.faceZ, i.variant, i.layer, i.on, i.zone)
+        val work = ArrayList<Triple<List<YardItem>, List<YardItem>?, YardPatch>>()
+        val tall = items.indices.filter { FilamentTown.tallHeight(items[it].kind, items[it].zone) > 0f }.toSet()
+        work += Triple(items.filterIndexed { k, _ -> k !in tall }.map(::item), items.map(::item), patch)
+        for (k in tall) {
+            val r = items[k].rect
+            work += Triple(listOf(item(items[k])), null, YardPatch(YardPatch.tallId(id, k), (r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f,
+                kotlin.math.hypot(r[2] - r[0], r[3] - r[1]) / 2f + 40f, patch.sprite, follows = id))
+        }
+        bakeAll(work, sink)
+        return id
+    }
+
+    /** Bakes each (near items, far items or null, patch) and hands the batches to [sink]. */
+    private fun bakeAll(jobs: List<Triple<List<YardItem>, List<YardItem>?, YardPatch>>, sink: YardSink) {
+        class Work(val near: List<YardItem>, val far: List<YardItem>?, val patch: YardPatch)
+        val work = jobs.map { Work(it.first, it.second, it.third) }
+        val at = listOf(floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f))
         // baked a few lots at a time on the common pool (the kit's caches are shared under locks), handed to the sink in
         // order, so only those few lots' meshes are held at once (each lot's atlases and vertices: up to some 5 MB); the
         // sink packs them for the GPU and waits while the engine's thread is behind (FilamentTown.offer). The whole
@@ -125,6 +166,5 @@ object YardKitBuilder : YardBuilder {
                 baked[k] = null
             }
         }
-        YardKit.trim()
     }
 }

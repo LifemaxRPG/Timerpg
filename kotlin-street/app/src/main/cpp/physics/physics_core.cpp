@@ -34,7 +34,11 @@ namespace {
 namespace Layers {
 constexpr ObjectLayer STATIC = 0;
 constexpr ObjectLayer MOVING = 1;
-constexpr ObjectLayer COUNT = 2;
+// loose pieces (a fence's panels, a fallen lamp post): they meet everything but the wheels' ground casts
+constexpr ObjectLayer DEBRIS = 2;
+// the wheels' ground casts (a query layer: no body is in it): the ground, the statics and the other cars
+constexpr ObjectLayer WHEEL = 3;
+constexpr ObjectLayer COUNT = 4;
 }
 
 namespace BPLayers {
@@ -45,7 +49,11 @@ constexpr uint COUNT = 2;
 
 class ObjectPairs final : public ObjectLayerPairFilter {
 public:
-    bool ShouldCollide(ObjectLayer a, ObjectLayer b) const override { return a == Layers::MOVING || b == Layers::MOVING; }
+    bool ShouldCollide(ObjectLayer a, ObjectLayer b) const override {
+        if (a == Layers::STATIC && b == Layers::STATIC) return false;
+        if (a == Layers::WHEEL || b == Layers::WHEEL) { ObjectLayer o = a == Layers::WHEEL ? b : a; return o == Layers::STATIC || o == Layers::MOVING; }
+        return true;
+    }
 };
 
 class BroadPhases final : public BroadPhaseLayerInterface {
@@ -59,7 +67,7 @@ public:
 
 class ObjectVsBroadPhase final : public ObjectVsBroadPhaseLayerFilter {
 public:
-    bool ShouldCollide(ObjectLayer a, BroadPhaseLayer b) const override { return a == Layers::MOVING || b == BPLayers::MOVING; }
+    bool ShouldCollide(ObjectLayer a, BroadPhaseLayer b) const override { return a != Layers::STATIC || b == BPLayers::MOVING; }
 };
 
 std::once_flag joltOnce;
@@ -81,7 +89,28 @@ struct Vehicle {
     bool live = false;
 };
 
+/** A static body's give (setGive), by handle. */
+struct Give {
+    float impulse = 0.f;    // N s to break it (0: never)
+    float soft = 0.f;       // drag (1/s) on what passes through it (0: solid)
+    bool broken = false;    // broken this step or since: every contact with it is a sensor until it is removed
+};
+
+struct Break { float f[BR_COUNT]; };
+
 }  // namespace
+
+class World;
+
+/** The contacts with breakable and soft statics (one thread: JobSystemSingleThreaded). */
+class Breaker final : public ContactListener {
+public:
+    explicit Breaker(World *w) : w(w) {}
+    void OnContactAdded(const Body &a, const Body &b, const ContactManifold &m, ContactSettings &s) override { check(a, b, m, s); }
+    void OnContactPersisted(const Body &a, const Body &b, const ContactManifold &m, ContactSettings &s) override { check(a, b, m, s); }
+    void check(const Body &a, const Body &b, const ContactManifold &m, ContactSettings &s);
+    World *w;
+};
 
 class World {
 public:
@@ -90,6 +119,7 @@ public:
         const uint n = (uint) std::max(64, maxBodies);
         system.Init(n, 0, n, n, broadPhases, objectVsBroadPhase, objectPairs);
         system.SetGravity(Vec3(0.f, -9.81f, 0.f));
+        system.SetContactListener(&breaker);
     }
 
     ~World() {
@@ -98,10 +128,15 @@ public:
         for (auto &b : bodies) if (!b.IsInvalid()) { bi.RemoveBody(b); bi.DestroyBody(b); }
     }
 
-    int keep(BodyID id) {
-        for (size_t i = 0; i < bodies.size(); ++i) if (bodies[i].IsInvalid()) { bodies[i] = id; return (int) i; }
-        bodies.push_back(id);
-        return (int) bodies.size() - 1;
+    int keep(BodyID id, bool isStatic) {
+        int h = -1;
+        for (size_t i = 0; i < bodies.size(); ++i) if (bodies[i].IsInvalid()) { bodies[i] = id; h = (int) i; break; }
+        if (h < 0) { bodies.push_back(id); gives.emplace_back(); staticFlags.push_back(0); h = (int) bodies.size() - 1; }
+        gives[h] = Give();
+        staticFlags[h] = isStatic ? 1 : 0;
+        // (the handle + 1 in its user data: the contact listener finds its give by it)
+        system.GetBodyInterface().SetUserData(id, (uint64) h + 1);
+        return h;
     }
 
     int addStatic(const Shape *shape, RVec3 at, Quat rot, float friction) {
@@ -112,7 +147,7 @@ public:
         if (b == nullptr) return -1;
         bi.AddBody(b->GetID(), EActivation::DontActivate);
         statics++;
-        return keep(b->GetID());
+        return keep(b->GetID(), true);
     }
 
     void remove(int h) {
@@ -121,7 +156,8 @@ public:
         bi.RemoveBody(bodies[h]);
         bi.DestroyBody(bodies[h]);
         bodies[h] = BodyID();
-        statics--;
+        if (staticFlags[h]) statics--;
+        gives[h] = Give();
     }
 
     void dropVehicle(Vehicle &v) {
@@ -142,10 +178,59 @@ public:
     ObjectVsBroadPhase objectVsBroadPhase;
     ObjectPairs objectPairs;
     std::vector<BodyID> bodies;
+    std::vector<Give> gives;
+    std::vector<uint8_t> staticFlags;
     std::vector<Vehicle> vehicles;
     int statics = 0;
+    Breaker breaker{this};
+    // this step's breaks (taken by takeBreaks) and the bodies slowed by soft statics (applied after the step)
+    Break breaks[MAX_BREAKS];
+    int breakCount = 0;
+    static constexpr int MAX_DRAGS = 32;
+    BodyID dragBody[MAX_DRAGS];
+    float dragK[MAX_DRAGS];
+    int dragCount = 0;
     // a heightfield's samples are copied by Jolt: no need to keep them
 };
+
+void Breaker::check(const Body &a, const Body &b, const ContactManifold &m, ContactSettings &s) {
+    const Body *st = a.IsStatic() ? &a : (b.IsStatic() ? &b : nullptr);
+    if (st == nullptr) return;
+    const Body *dy = st == &a ? &b : &a;
+    if (!dy->IsDynamic()) return;
+    uint64 ud = st->GetUserData();
+    if (ud == 0 || ud > w->gives.size()) return;
+    const int h = (int) ud - 1;
+    Give &g = w->gives[h];
+    if (g.soft > 0.f) {
+        s.mIsSensor = true;
+        int k = 0;
+        while (k < w->dragCount && w->dragBody[k] != dy->GetID()) k++;
+        if (k == w->dragCount && k < World::MAX_DRAGS) { w->dragBody[k] = dy->GetID(); w->dragK[k] = 0.f; w->dragCount++; }
+        if (k < World::MAX_DRAGS) w->dragK[k] = std::max(w->dragK[k], g.soft);
+        return;
+    }
+    if (g.impulse <= 0.f) return;
+    if (g.broken) { s.mIsSensor = true; return; }
+    const RVec3 p = m.GetWorldSpaceContactPointOn1(0);
+    const Vec3 v = dy->GetPointVelocity(p);
+    const float vn = std::abs(v.Dot(m.mWorldSpaceNormal));
+    const float inv = dy->GetMotionProperties()->GetInverseMass();
+    const float mass = inv > 0.f ? 1.f / inv : 0.f;
+    if (mass * vn < g.impulse) return;
+    g.broken = true;
+    s.mIsSensor = true;
+    if (w->breakCount >= MAX_BREAKS) return;
+    float *o = w->breaks[w->breakCount++].f;
+    const Vec3 lv = dy->GetLinearVelocity();
+    o[BR_HANDLE] = (float) h;
+    o[BR_X] = (float) p.GetX(); o[BR_Y] = (float) p.GetY(); o[BR_Z] = (float) p.GetZ();
+    o[BR_VX] = lv.GetX(); o[BR_VY] = lv.GetY(); o[BR_VZ] = lv.GetZ();
+    o[BR_SPEED] = vn;
+    o[BR_MASS] = mass;
+    o[BR_VEHICLE] = -1.f;
+    for (size_t i = 0; i < w->vehicles.size(); ++i) if (w->vehicles[i].live && w->vehicles[i].body == dy->GetID()) o[BR_VEHICLE] = (float) i;
+}
 
 World *worldCreate(int maxBodies) {
     initJolt();
@@ -302,7 +387,8 @@ int addVehicle(World *w, const float *d, const float *boxes, int boxCount, float
     v.body = body->GetID();
     v.constraint = new VehicleConstraint(*body, vs);
     // a cylinder cast: the tyre rolls up a kerb's edge instead of a ray snagging on it
-    v.tester = new VehicleCollisionTesterCastCylinder(Layers::MOVING);
+    // (in the wheels' own query layer: the ground, the statics and the other cars, not the debris the chassis pushes)
+    v.tester = new VehicleCollisionTesterCastCylinder(Layers::WHEEL);
     v.constraint->SetVehicleCollisionTester(v.tester);
     v.wheelY = d[VD_WHEEL_Y];
     v.live = true;
@@ -371,8 +457,82 @@ void vehicleState(World *w, int vehicle, float *o) {
     }
 }
 
-void step(World *w, float dt, int collisionSteps) {
+int step(World *w, float dt, int collisionSteps) {
+    w->dragCount = 0;
     w->system.Update(dt, std::max(1, collisionSteps), &w->temp, &w->jobs);
+    // what passed through something soft this step is slowed (horizontally: a bush does not hold a car up)
+    if (w->dragCount > 0) {
+        BodyInterface &bi = w->system.GetBodyInterfaceNoLock();
+        for (int k = 0; k < w->dragCount; ++k) {
+            Vec3 v = bi.GetLinearVelocity(w->dragBody[k]);
+            const float f = std::max(0.f, 1.f - w->dragK[k] * dt);
+            bi.SetLinearVelocity(w->dragBody[k], Vec3(v.GetX() * f, v.GetY(), v.GetZ() * f));
+        }
+    }
+    return w->breakCount;
+}
+
+void setGive(World *w, int h, float impulse, float soft) {
+    if (h < 0 || h >= (int) w->bodies.size() || w->bodies[h].IsInvalid()) return;
+    Give &g = w->gives[h];
+    g.impulse = std::max(0.f, impulse);
+    g.soft = std::max(0.f, soft);
+    g.broken = false;
+}
+
+int takeBreaks(World *w, float *out, int max) {
+    const int n = std::min(max, w->breakCount);
+    for (int i = 0; i < n; ++i) for (int k = 0; k < BR_COUNT; ++k) out[i * BR_COUNT + k] = w->breaks[i].f[k];
+    w->breakCount = 0;
+    return n;
+}
+
+int addDebris(World *w, float cx, float cy, float cz, float hx, float hy, float hz, float qx, float qy, float qz, float qw,
+              float mass, float vx, float vy, float vz, float ax, float ay, float az, float friction) {
+    hx = std::max(hx, .01f); hy = std::max(hy, .01f); hz = std::max(hz, .01f);
+    float r = std::min(cDefaultConvexRadius, std::min(hx, std::min(hy, hz)) * .3f);
+    BoxShapeSettings bs(Vec3(hx, hy, hz), r);
+    auto res = bs.Create();
+    if (res.HasError()) return -1;
+    Quat q(qx, qy, qz, qw);
+    q = q.LengthSq() > 1e-8f ? q.Normalized() : Quat::sIdentity();
+    BodyCreationSettings s(res.Get(), RVec3(cx, cy, cz), q, EMotionType::Dynamic, Layers::DEBRIS);
+    s.mOverrideMassProperties = EOverrideMassProperties::CalculateInertia;
+    s.mMassPropertiesOverride.mMass = std::max(.5f, mass);
+    s.mFriction = friction;
+    s.mRestitution = .1f;
+    s.mLinearDamping = .08f;
+    s.mAngularDamping = .4f;
+    // (thin boards flung fast: no passing through the ground)
+    s.mMotionQuality = EMotionQuality::LinearCast;
+    s.mLinearVelocity = Vec3(vx, vy, vz);
+    s.mAngularVelocity = Vec3(ax, ay, az);
+    BodyInterface &bi = w->system.GetBodyInterface();
+    Body *b = bi.CreateBody(s);
+    if (b == nullptr) return -1;
+    bi.AddBody(b->GetID(), EActivation::Activate);
+    return w->keep(b->GetID(), false);
+}
+
+void bodyPoses(World *w, const int *handles, int n, float *out) {
+    BodyInterface &bi = w->system.GetBodyInterfaceNoLock();
+    for (int i = 0; i < n; ++i) {
+        float *o = out + i * POSE_COUNT;
+        const int h = handles[i];
+        if (h < 0 || h >= (int) w->bodies.size() || w->bodies[h].IsInvalid()) { for (int k = 0; k < POSE_COUNT; ++k) o[k] = 0.f; o[6] = 1.f; continue; }
+        RVec3 p; Quat q;
+        bi.GetPositionAndRotation(w->bodies[h], p, q);
+        o[0] = (float) p.GetX(); o[1] = (float) p.GetY(); o[2] = (float) p.GetZ();
+        o[3] = q.GetX(); o[4] = q.GetY(); o[5] = q.GetZ(); o[6] = q.GetW();
+        o[7] = bi.IsActive(w->bodies[h]) ? 1.f : 0.f;
+    }
+}
+
+void addVehicleVelocity(World *w, int vehicle, float dvx, float dvy, float dvz) {
+    Vehicle *v = vehicleOf(w, vehicle);
+    if (v == nullptr) return;
+    BodyInterface &bi = w->system.GetBodyInterface();
+    bi.SetLinearVelocity(v->body, bi.GetLinearVelocity(v->body) + Vec3(dvx, dvy, dvz));
 }
 
 }  // namespace timerpg

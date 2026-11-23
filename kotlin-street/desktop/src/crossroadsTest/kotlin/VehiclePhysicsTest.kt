@@ -26,7 +26,7 @@ import kotlin.math.min
 
 /**
  * The cars on Jolt (docs/VEHICLES.md V1), through the same JNI library the phone loads (built for this computer by
- * :desktop:physicsHost): each of the five cars runs up to its era's top speed on flat ground and no further, stops under
+ * :desktop:physicsHost): each of the catalogue's cars runs up to its era's top speed on flat ground and no further, stops under
  * braking, turns at a sensible radius, stops against a wall, climbs a slope of heightfield ground, spins its wheels by the
  * distance it rolls; getting in and out works; on the shipped town the cars park where they should, block the walker
  * while parked and stop against the town's buildings when driven into them. Times are this build server's, not the S25's.
@@ -55,10 +55,13 @@ class VehiclePhysicsTest {
     private val Rig.v: Float get() = s[VehicleState.FORWARD_SPEED]
 
     @Test fun theFiveCarsParse() {
-        assertEquals(5, specs.size)
+        // (the catalogue's cars: VehicleSpec.V1, every one parsed)
+        assertEquals(VehicleSpec.V1.size, specs.size)
+        assertEquals(7, specs.size)
         for (s in specs) {
             assertTrue("${s.key}: wheels", listOf("wheel_fl", "wheel_fr", "wheel_rl", "wheel_rr", "steer_fl", "steer_fr").all { s.node(it) != null })
-            assertTrue("${s.key}: a driver's door, seat and exit", s.node("door_front_l") != null && s.node("seat_driver") != null && s.node("exit_left") != null)
+            // (a four-door's driver's door is door_front_l, a two-seater's door_l: VehicleSpec.driverDoor)
+            assertTrue("${s.key}: a driver's door, seat and exit", s.driverDoor?.endsWith("_l") == true && s.node(s.driverDoor!!) != null && s.node("seat_driver") != null && s.node("exit_left") != null)
             assertTrue("${s.key}: chassis boxes", s.boxes.size >= 12)
             assertTrue("${s.key}: head and brake lamps", s.lamps["head"]?.isNotEmpty() == true && s.lamps["brake"]?.isNotEmpty() == true)
             assertTrue("${s.key}: paint colours", s.colours.isNotEmpty())
@@ -201,9 +204,9 @@ class VehiclePhysicsTest {
     @Test fun theCarsParkInTheCapitalByTheYear() {
         val col = collision()
         val vw = VehicleWorld(world(), col, specs)
-        // 2025 (the capital's year): all five, as classics; the 1956 sedan first, on Main Street by the spawn
+        // 2025 (the capital's year): every car of the catalogue, as classics; the 1956 sedan first, on Main Street by the spawn
         val cars = vw.park(town, yards)
-        assertEquals(5, cars.size)
+        assertEquals(specs.size, cars.size)
         assertTrue(cars.all { it.classic })
         val first = cars.first()
         assertTrue(first.spec.key.startsWith("northcairn"))
@@ -370,7 +373,7 @@ class VehiclePhysicsTest {
             if (spot == null) { assertTrue("no car where no spot (${vw.spawnNote})", car == null); continue }
             assertNotNull(car); car!!
             spawned++; names += car.spec.key
-            assertEquals("the next of the five", next.key, car.spec.key)
+            assertEquals("the next of the catalogue", next.key, car.spec.key)
             assertEquals(vw.spawnNote, car.spec.name)
             // facing along the street (the spot's way) and standing where the spot is
             assertTrue("faces along the kerb", car.fx * spot.fx + car.fz * spot.fz > .99f)
@@ -385,13 +388,13 @@ class VehiclePhysicsTest {
             assertFalse("${car.spec.key} at ${car.spot} (player at ${x.toInt()}, ${z.toInt()}) overlaps something",
                 overlapsSomething(col, cx, cz, car.fx, car.fz, f[0] * u, f[1] * u))
             col.setExtra(VehicleWorld.KEY + car.spot, floatArrayOf(cx, cz, car.fx, car.fz, f[0] * u, f[1] * u), com.lifemax.rpg.feature.habits.domain.SolidKind.PROP, VehicleWorld.KEY + car.spot)
-            // one spawned car at a time: the five parked ones and this
-            assertEquals(6, vw.cars.size)
+            // one spawned car at a time: the parked ones (the whole catalogue) and this
+            assertEquals(specs.size + 1, vw.cars.size)
             // and it sits still on its springs
             assertTrue("upright on the ground (y ${car.pose.y})", car.pose.y in -2f..8f)
         }
         assertTrue("spawned at most places ($spawned of ${places.size})", spawned > places.size * 2 / 3)
-        assertEquals("all five cycled", 5, names.size)
+        assertEquals("every car of the catalogue cycled", specs.size, names.size)
         // at the spawn, on Main Street, the car is right beside the player
         val walk = FakeWalk().also { it.wx = sp.x; it.wz = sp.z }
         vw.requestSpawn()
@@ -416,7 +419,7 @@ class VehiclePhysicsTest {
         assertNotNull(moved); moved!!
         assertTrue(moved.spec.key.startsWith("northcairn"))
         assertTrue(vw.cars.first() === moved)
-        assertEquals(5, vw.cars.size)
+        assertEquals(specs.size, vw.cars.size)
         val d = hypot(moved.x - far.x, moved.z - far.z) / u
         println("the sedan brought to a player restored ${hypot(far.x - sp.x, far.z - sp.z) / u} m from the spawn: now $d m from them at ${moved.spot}")
         assertTrue("beside the player ($d m)", d < 40f)

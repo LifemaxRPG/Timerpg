@@ -91,6 +91,13 @@ class VehicleWorld(
     /** The town the cars were parked in ([park]): where the test button's spawn looks for a kerb. */
     var town: Town? = null; private set
     private var parkedYards: TownYards? = null
+    /** The yards the cars were parked among ([park]): what the destruction looks broken yard things up in. */
+    val yards: TownYards? get() = parkedYards
+    /** Sets the yards without parking (a test's or a preview's scene of its own). */
+    internal fun useYards(y: TownYards) { parkedYards = y }
+
+    /** What the cars broke and its pieces (docs/VEHICLES.md, "Destruction"). */
+    val wreck = Wreckage(this)
 
     /** The car being driven (null on foot) and the one being got into or out of. */
     var driven: Car? = null; private set
@@ -148,6 +155,7 @@ class VehicleWorld(
     fun park(town: Town, yards: TownYards, year: Int = town.year): List<Car> {
         for (c in cars) { physics.removeVehicle(c.handle); collision?.setExtra(KEY + c.spot, null) }
         cars.clear(); driven = null; phase = Phase.ON_FOOT; spawned = null
+        if (this.town != null && this.town !== town) wreck.clear()
         this.town = town; parkedYards = yards
         val fits = specs.filter { it.era(year) != VehicleEra.NONE }
         if (fits.isEmpty()) return cars
@@ -314,7 +322,7 @@ class VehicleWorld(
         walk.carry(c.x, c.z, c.fx, c.fz, 0f)
         driven = c; active = c
         phase = Phase.ENTERING; phaseT = 0f
-        doorIndex = c.spec.doors.indexOf(if (c.spec.node("door_front_l") != null) "door_front_l" else c.spec.doors.firstOrNull() ?: "")
+        doorIndex = c.spec.doors.indexOf(c.spec.driverDoor ?: "")
         footprint(c)
         stream(c, force = true)
         return true
@@ -378,7 +386,9 @@ class VehicleWorld(
         val t0 = System.nanoTime()
         while (acc >= STEP && n < MAX_STEPS) {
             for (i in cars.indices) cars[i].now.copyInto(cars[i].before)
-            physics.step(STEP)
+            val broke = physics.step(STEP)
+            if (broke > 0) wreck.onBreaks(simT + (n + 1) * STEP)
+            wreck.afterStep(simT + (n + 1) * STEP)
             for (i in cars.indices) physics.state(cars[i].handle, cars[i].now)
             acc -= STEP; n++
         }
@@ -388,6 +398,7 @@ class VehicleWorld(
         if (changedFrames > 0) changedFrames--
         val alpha = (acc / STEP).coerceIn(0f, 1f)
         for (i in cars.indices) cars[i].pose.set(cars[i], alpha)
+        (driven ?: cars.firstOrNull())?.let { wreck.publish(alpha, simT, it.x, it.z) }
         val c = driven
         if (c != null && phase != Phase.EXITING) {
             walk.carry(c.pose.x, c.pose.z, c.pose.fx, c.pose.fz, abs(c.forwardSpeed) * U)
@@ -396,7 +407,7 @@ class VehicleWorld(
     }
 
     /** Whether anything about the cars still moves (frames should keep coming). */
-    val moving: Boolean get() = phase != Phase.ON_FOOT || changedFrames > 0 || cars.any { it.now[VehicleState.ACTIVE] > .5f } || cars.any { c -> c.doorOpen.any { it > 0f && it < 1f } }
+    val moving: Boolean get() = phase != Phase.ON_FOOT || changedFrames > 0 || wreck.live > 0 && wreck.awake || cars.any { it.now[VehicleState.ACTIVE] > .5f } || cars.any { c -> c.doorOpen.any { it > 0f && it < 1f } }
     /** Frames still to draw after a car was added or taken away (the scene shows it). */
     private var changedFrames = 0
 
@@ -436,6 +447,18 @@ class VehicleWorld(
 
     /** The town's shapes in the physics by key (a base shape's index, or an added one's numbers), and where streamed last. */
     private val streamed = HashMap<Long, Int>()
+    /** A streamed shape as the destruction needs it: its key, index (past the map's size: an added one), kind, owner, detail, form. */
+    internal class Streamed(val handle: Int, val key: Long, val index: Int, val kind: SolidKind, val owner: String?, val detail: String?, val circle: Boolean, val data: FloatArray)
+    private val streamedBy = HashMap<Int, Streamed>()
+    /** The streamed shape whose static is [handle], if any. */
+    internal fun streamedShape(handle: Int): Streamed? = streamedBy[handle]
+    /** Takes the static [handle] out of the physics and the streamed set (the destruction put pieces in its place). */
+    internal fun dropStreamed(handle: Int) {
+        val s = streamedBy.remove(handle) ?: return
+        streamed.remove(s.key)
+        physics.remove(handle)
+        staticCount = streamed.size
+    }
     private val keepNow = HashSet<Long>()
     private var streamX = Float.NaN
     private var streamZ = Float.NaN
@@ -457,15 +480,20 @@ class VehicleWorld(
         keepNow.clear()
         // (the town's edge is a wall only where the terrain does not run on past it)
         val edgeOpen = ground?.invoke(x / U, z / U) != null
-        col.forEachNear(x - r, z - r, x + r, z + r, tmp) { i, kind, owner, circle, s ->
-            if (owner != null && owner.startsWith(KEY)) return@forEachNear
-            if (kind == SolidKind.EDGE && edgeOpen) return@forEachNear
+        col.forEachNearDetail(x - r, z - r, x + r, z + r, tmp) { i, kind, owner, detail, circle, s ->
+            // (the parked cars are vehicles, the settled debris pieces bodies of their own)
+            if (owner != null && (owner.startsWith(KEY) || owner.startsWith(DEBRIS))) return@forEachNearDetail
+            if (kind == SolidKind.EDGE && edgeOpen) return@forEachNearDetail
             val key = if (i < col.size) i.toLong() else keyOf(s, kind)
             keepNow += key
-            if (key !in streamed) streamed[key] = addShape(s, circle, kind)
+            if (key !in streamed) {
+                val h = addShape(s, circle, kind)
+                streamed[key] = h
+                if (h >= 0) { streamedBy[h] = Streamed(h, key, i, kind, owner, detail, circle, s.copyOf()); wreck.give(h, kind, detail) }
+            }
         }
         val it = streamed.entries.iterator()
-        while (it.hasNext()) { val e = it.next(); if (e.key !in keepNow) { physics.remove(e.value); it.remove() } }
+        while (it.hasNext()) { val e = it.next(); if (e.key !in keepNow) { physics.remove(e.value); streamedBy.remove(e.value); it.remove() } }
         staticCount = streamed.size
         streamGround(c)
         val ms = (System.nanoTime() - t0) / 1e6f
@@ -479,11 +507,6 @@ class VehicleWorld(
         else physics.addBox(s[0] / U, h / 2f, s[1] / U, s[4] / U, h / 2f, s[5] / U, atan2(-s[3], s[2]), FRICTION_OF_WALLS)
     }
 
-    private fun keyOf(s: FloatArray, kind: SolidKind): Long {
-        var h = 1469598103934665603L
-        for (k in 0..5) { h = (h xor (s[k] * 64f).toLong()) * 1099511628211L }
-        return (h xor kind.ordinal.toLong()) or Long.MIN_VALUE
-    }
 
     // the ground outside the town: heightfield chunks round the car
     private val chunks = HashMap<Long, Int>()
@@ -526,6 +549,7 @@ class VehicleWorld(
     private fun dropStreamed() {
         for (h in streamed.values) physics.remove(h)
         streamed.clear()
+        streamedBy.clear()
         for (h in chunks.values) physics.remove(h)
         chunks.clear()
         streamX = Float.NaN
@@ -664,6 +688,15 @@ class VehicleWorld(
         const val FRICTION_OF_WALLS = .5f
         /** The keys of the parked cars' shapes in the walk's collision. */
         const val KEY = "vehicle:"
+        /** The keys (and owners) of settled debris in the walk's collision ([Wreckage]). */
+        const val DEBRIS = "debris:"
+
+        /** A streamed added shape's key (its numbers and kind): the same shape, the same key. */
+        internal fun keyOf(s: FloatArray, kind: SolidKind): Long {
+            var h = 1469598103934665603L
+            for (k in 0..5) { h = (h xor (s[k] * 64f).toLong()) * 1099511628211L }
+            return (h xor kind.ordinal.toLong()) or Long.MIN_VALUE
+        }
 
         /** How tall a town shape stands in the physics (m), by kind. */
         fun heightOf(k: SolidKind): Float = when (k) {

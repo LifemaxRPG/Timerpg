@@ -67,7 +67,42 @@ JNIEXPORT void JNICALL FN(vehicleState)(JNIEnv *env, jclass, jlong w, jint v, jf
     env->SetFloatArrayRegion(out, 0, n < VS_COUNT ? n : VS_COUNT, o);
 }
 
-JNIEXPORT void JNICALL FN(step)(JNIEnv *, jclass, jlong w, jfloat dt, jint collisionSteps) { step(W(w), dt, collisionSteps); }
+JNIEXPORT jint JNICALL FN(step)(JNIEnv *, jclass, jlong w, jfloat dt, jint collisionSteps) { return step(W(w), dt, collisionSteps); }
+
+// ---- destruction
+JNIEXPORT void JNICALL FN(setGive)(JNIEnv *, jclass, jlong w, jint h, jfloat impulse, jfloat soft) { setGive(W(w), h, impulse, soft); }
+
+JNIEXPORT jint JNICALL FN(takeBreaks)(JNIEnv *env, jclass, jlong w, jfloatArray out) {
+    float o[MAX_BREAKS * BR_COUNT];
+    const int max = env->GetArrayLength(out) / BR_COUNT;
+    const int n = takeBreaks(W(w), o, max < MAX_BREAKS ? max : MAX_BREAKS);
+    if (n > 0) env->SetFloatArrayRegion(out, 0, n * BR_COUNT, o);
+    return n;
+}
+
+// (the piece's 18 numbers in one array: centre, half extents, rotation, mass, velocity, spin, friction)
+JNIEXPORT jint JNICALL FN(addDebris)(JNIEnv *env, jclass, jlong w, jfloatArray a) {
+    if (env->GetArrayLength(a) < 18) return -1;
+    float d[18];
+    env->GetFloatArrayRegion(a, 0, 18, d);
+    return addDebris(W(w), d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8], d[9], d[10], d[11], d[12], d[13], d[14], d[15], d[16], d[17]);
+}
+
+JNIEXPORT void JNICALL FN(bodyPoses)(JNIEnv *env, jclass, jlong w, jintArray handles, jint n, jfloatArray out) {
+    if (n <= 0) return;
+    const int cap = 256;
+    int h[cap];
+    float o[cap * POSE_COUNT];
+    for (int from = 0; from < n; from += cap) {
+        const int k = n - from < cap ? n - from : cap;
+        env->GetIntArrayRegion(handles, from, k, h);
+        bodyPoses(W(w), h, k, o);
+        env->SetFloatArrayRegion(out, from * POSE_COUNT, k * POSE_COUNT, o);
+    }
+}
+
+JNIEXPORT void JNICALL FN(addVehicleVelocity)(JNIEnv *, jclass, jlong w, jint v, jfloat dx, jfloat dy, jfloat dz) { addVehicleVelocity(W(w), v, dx, dy, dz); }
+JNIEXPORT jint JNICALL FN(breakCount)(JNIEnv *, jclass) { return BR_COUNT; }
 
 JNIEXPORT jint JNICALL FN(descCount)(JNIEnv *, jclass) { return VD_COUNT; }
 JNIEXPORT jint JNICALL FN(stateCount)(JNIEnv *, jclass) { return VS_COUNT; }

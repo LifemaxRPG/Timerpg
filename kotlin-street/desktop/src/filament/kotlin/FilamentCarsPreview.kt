@@ -29,6 +29,8 @@ internal fun renderCarShots(out: File, ft: FilamentTown, town: Town, yards: Town
     TownPlay.cars = cars
     TownCars.attach(ft, { TownPlay.cars }) { p -> File(assets, p).takeIf { it.exists() }?.readBytes() }
     while (ft.pending > 0) { if (ft.buildNearest(walk.wx, walk.wz, 8f) == 0) Thread.sleep(2) }
+    // (-Dcars=smash: driving through a picket fence and into a street lamp instead: FilamentSmashPreview.kt)
+    if (System.getProperty("cars") == "smash") { renderSmashShots(out, ft, town, yards, collision, walk, run, shooter, w, h, cars); return }
     val report = StringBuilder()
     report.appendLine("cars for $year: " + cars.cars.joinToString("; ") { c -> "${c.spec.name} (${c.spec.key}) at ${c.spot} (%.0f, %.0f)%s".format(c.x, c.z, if (c.classic) ", classic" else "") })
     val sheets = SpriteSheets.sheets
