@@ -216,3 +216,10 @@ phone. `--resume` skips towns already baked, so it can be stopped and restarted.
 - The hubs other than the capital are baked from the generator like any town, at L size; they are meant to become
   hand-made cities (one line each in towns-handmade.json).
 - Pictures dominate size (above).
+- **Setting barely shows**: a mining village at 2,362 m and an alpine village read like a farm village on the plain
+  (no headframe, mine or terraces; the ground is levelled). The archetype changes shops and growth, not yet the
+  landmarks; a mining place needs its headframe and tipple at the works, an alpine one its chapel on the rise.
+- The town preview does not draw a generated town's railroad (no `rail.json` is baked yet: the exporter `export-rail.ts`
+  is the capital's); the plan's rail band and depot are there.
+- Renders: `fit_top`, `fit_oblique` and `street_main_13h` of a hamlet, a village, an alpine village, a mining village, a
+  river town and a bypassed major town (desktop Filament renders on the build server, not S25 captures).
