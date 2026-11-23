@@ -257,3 +257,25 @@ What the player says steers what is written ahead.
   word) get that person's ready line; otherwise the model answers live as before. The thresholds are guesses, chosen
   so that a wrong-topic answer is rarer than a needless live one.
 - **Measure**: the AI panel and the night report show the top themes and the questions answered ready vs live per day.
+
+## The conversation log (the owner's decision, 2026-11-23)
+
+The owner opts in: their conversations with NPCs are recorded and uploaded with the playtest reports, to tune
+the game. This turns on the existing "with my words" switch by default in the owner's builds. The switch stays, off by
+default for any other player.
+- **What's logged per turn:**
+  - the player's words (the speech recognizer's transcript, plus whether it was typed or spoken);
+  - the NPC, place, year and hour;
+  - the fact-sheet ids used;
+  - the reply, and where it came from (pre-written bank hit, template, or the live model);
+  - the model, latency, tokens and tok/s;
+  - the `validate()` result and any retry;
+  - whether the player walked away mid-reply.
+  Raw audio is not uploaded: the transcript only.
+- **Where it goes:** the `reports` branch, under `talk/<date>/<session>.jsonl`, in the private repo only.
+- **What it's for:**
+  - The most-asked questions: cluster the player's lines by theme per NPC kind. Those prompts go first in the
+    overnight writer's queue, so common questions get pre-written answers.
+  - Training data for the small live model (Distillation above): the player's real questions, answered by the main
+    model offline, and kept only if they pass `validate()`.
+  - Finding failures: slow replies, rejected lines, lines that ignored the question.

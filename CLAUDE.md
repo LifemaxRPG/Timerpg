@@ -84,6 +84,9 @@ one major feature rather than the whole premise:
   validate() (0.6B: 89%), ~44 tok/s prefill, ~2.5-5 tok/s generation (server numbers, not the S25).
 - Art the LimeZu sprites draw flat but that should stand out (the gym's balcony) is rebuilt as engine geometry (boxes lit
   and shadowed like the buildings), not faked from the 2D picture.
+- **Conversation log** (the owner's decision, 2026-11-23): the owner's NPC conversations are recorded (transcripts, not
+  audio) and uploaded to the private reports branch, to find the most-asked questions for pre-written answers and to
+  train the small live model (kotlin-street/docs/CONVERSATION.md, "The conversation log"). Off by default for anyone else.
 - NPC voices: **Kokoro-82M and Supertonic**, both on device (ONNX Runtime), voices blended per NPC from their seed and traits.
 
 - **Claude leads the project** (the owner's decision, 2026-11-22): Claude runs the project day to day and directs
