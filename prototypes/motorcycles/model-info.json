@@ -1,0 +1,2471 @@
+{
+  "task": "C013",
+  "format": "glTF metres, +Y up, +Z forward, +X vehicle left",
+  "origin": "Ground below the axle midpoint",
+  "texel_m": 0.0388,
+  "vehicles": [
+    {
+      "name": "Brackenton Quarry Twin",
+      "key": "brackenton-1947",
+      "years": [
+        1941,
+        1949
+      ],
+      "wheelbase_m": 1.575,
+      "wheel_radius_m": {
+        "front": 0.345,
+        "rear": 0.352
+      },
+      "tyre_width_m": {
+        "front": 0.119,
+        "rear": 0.138
+      },
+      "track_m": 0,
+      "estimated_mass_kg": 253,
+      "estimated_top_speed_kmh": 130,
+      "suggested_lod_m": {
+        "mid": 34,
+        "far": 85
+      },
+      "collision_boxes": [
+        {
+          "center_gltf_m": [
+            0,
+            0.55,
+            0.035
+          ],
+          "size_gltf_m": [
+            0.434,
+            0.56,
+            0.88
+          ]
+        },
+        {
+          "center_gltf_m": [
+            0,
+            0.724,
+            -0.448
+          ],
+          "size_gltf_m": [
+            0.344,
+            0.26,
+            0.6
+          ]
+        }
+      ],
+      "paint": {
+        "preset_body_colours": [
+          "#713f43",
+          "#353b38",
+          "#3f5161",
+          "#60664a",
+          "#685343"
+        ],
+        "stock_secondary": "#c5ad81",
+        "masks": {
+          "primary": "textures/brackenton-1947-primary-mask.png",
+          "secondary": "textures/brackenton-1947-secondary-mask.png"
+        },
+        "badge": {
+          "node": "badge_plate",
+          "material": "hardware_and_trim",
+          "atlas_texels": 256,
+          "center_texels": [
+            103,
+            216
+          ]
+        }
+      },
+      "lods": [
+        {
+          "file": "brackenton-1947.glb",
+          "lod": "near",
+          "triangles": 1606,
+          "bounds_gltf_m": [
+            [
+              -0.456536,
+              0.456536
+            ],
+            [
+              0.0,
+              1.166651
+            ],
+            [
+              -1.17616,
+              1.169636
+            ]
+          ],
+          "materials": [
+            "glow_lamps",
+            "hardware_and_trim",
+            "paint_primary",
+            "paint_secondary",
+            "saddle_and_rubber"
+          ],
+          "nodes": {
+            "handlebar": {
+              "center_gltf_m": [
+                0.0,
+                0.938,
+                0.455
+              ],
+              "parent": "brackenton-1947",
+              "axis_local_gltf": [
+                0.0,
+                0.87224257,
+                -0.48907357
+              ]
+            },
+            "wheel_f": {
+              "center_gltf_m": [
+                0.0,
+                0.345,
+                0.7875
+              ],
+              "parent": "handlebar",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "wheel_r": {
+              "center_gltf_m": [
+                0.0,
+                0.352,
+                -0.7875
+              ],
+              "parent": "brackenton-1947",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "seat_rider": {
+              "center_gltf_m": [
+                0.0,
+                0.756,
+                -0.309
+              ],
+              "parent": "brackenton-1947"
+            },
+            "seat_pillion": {
+              "center_gltf_m": [
+                0.0,
+                0.788,
+                -0.694
+              ],
+              "parent": "brackenton-1947"
+            },
+            "grip_left": {
+              "center_gltf_m": [
+                0.453,
+                1.145,
+                0.44
+              ],
+              "parent": "handlebar"
+            },
+            "peg_left": {
+              "center_gltf_m": [
+                0.245,
+                0.32,
+                0.2
+              ],
+              "parent": "brackenton-1947"
+            },
+            "exit_left": {
+              "center_gltf_m": [
+                0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "brackenton-1947"
+            },
+            "grip_right": {
+              "center_gltf_m": [
+                -0.453,
+                1.145,
+                0.44
+              ],
+              "parent": "handlebar"
+            },
+            "peg_right": {
+              "center_gltf_m": [
+                -0.245,
+                0.32,
+                0.2
+              ],
+              "parent": "brackenton-1947"
+            },
+            "exit_right": {
+              "center_gltf_m": [
+                -0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "brackenton-1947"
+            },
+            "kickstand": {
+              "center_gltf_m": [
+                0.164,
+                0.337,
+                -0.071
+              ],
+              "parent": "brackenton-1947",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "light_head_main": {
+              "center_gltf_m": [
+                0.0,
+                1.017,
+                0.714
+              ],
+              "parent": "handlebar"
+            },
+            "light_tail_main": {
+              "center_gltf_m": [
+                0.0,
+                0.604,
+                -0.9705
+              ],
+              "parent": "brackenton-1947"
+            },
+            "light_brake_main": {
+              "center_gltf_m": [
+                0.0,
+                0.53,
+                -0.9755
+              ],
+              "parent": "brackenton-1947"
+            }
+          },
+          "lamps": {
+            "light_head_main": {
+              "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_tail_main": {
+              "role": "tail",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_brake_main": {
+              "role": "brake",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            }
+          },
+          "kickstand_deploy_degrees": -72.0
+        },
+        {
+          "file": "brackenton-1947-mid.glb",
+          "lod": "mid",
+          "triangles": 626,
+          "bounds_gltf_m": [
+            [
+              -0.369342,
+              0.369342
+            ],
+            [
+              0.0,
+              1.164571
+            ],
+            [
+              -1.17616,
+              1.169636
+            ]
+          ],
+          "materials": [
+            "glow_lamps",
+            "hardware_and_trim",
+            "paint_primary",
+            "paint_secondary",
+            "saddle_and_rubber"
+          ],
+          "nodes": {
+            "handlebar": {
+              "center_gltf_m": [
+                0.0,
+                0.938,
+                0.455
+              ],
+              "parent": "brackenton-1947",
+              "axis_local_gltf": [
+                0.0,
+                0.87224257,
+                -0.48907357
+              ]
+            },
+            "wheel_f": {
+              "center_gltf_m": [
+                0.0,
+                0.345,
+                0.7875
+              ],
+              "parent": "handlebar",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "wheel_r": {
+              "center_gltf_m": [
+                0.0,
+                0.352,
+                -0.7875
+              ],
+              "parent": "brackenton-1947",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "seat_rider": {
+              "center_gltf_m": [
+                0.0,
+                0.756,
+                -0.309
+              ],
+              "parent": "brackenton-1947"
+            },
+            "seat_pillion": {
+              "center_gltf_m": [
+                0.0,
+                0.788,
+                -0.694
+              ],
+              "parent": "brackenton-1947"
+            },
+            "grip_left": {
+              "center_gltf_m": [
+                0.453,
+                1.145,
+                0.44
+              ],
+              "parent": "handlebar"
+            },
+            "peg_left": {
+              "center_gltf_m": [
+                0.245,
+                0.32,
+                0.2
+              ],
+              "parent": "brackenton-1947"
+            },
+            "exit_left": {
+              "center_gltf_m": [
+                0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "brackenton-1947"
+            },
+            "grip_right": {
+              "center_gltf_m": [
+                -0.453,
+                1.145,
+                0.44
+              ],
+              "parent": "handlebar"
+            },
+            "peg_right": {
+              "center_gltf_m": [
+                -0.245,
+                0.32,
+                0.2
+              ],
+              "parent": "brackenton-1947"
+            },
+            "exit_right": {
+              "center_gltf_m": [
+                -0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "brackenton-1947"
+            },
+            "kickstand": {
+              "center_gltf_m": [
+                0.164,
+                0.337,
+                -0.071
+              ],
+              "parent": "brackenton-1947",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "light_head_main": {
+              "center_gltf_m": [
+                0.0,
+                1.017,
+                0.714
+              ],
+              "parent": "handlebar"
+            },
+            "light_tail_main": {
+              "center_gltf_m": [
+                0.0,
+                0.604,
+                -0.9705
+              ],
+              "parent": "brackenton-1947"
+            },
+            "light_brake_main": {
+              "center_gltf_m": [
+                0.0,
+                0.53,
+                -0.9755
+              ],
+              "parent": "brackenton-1947"
+            }
+          },
+          "lamps": {
+            "light_head_main": {
+              "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_tail_main": {
+              "role": "tail",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_brake_main": {
+              "role": "brake",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            }
+          },
+          "kickstand_deploy_degrees": -72.0
+        },
+        {
+          "file": "brackenton-1947-far.glb",
+          "lod": "far",
+          "triangles": 108,
+          "bounds_gltf_m": [
+            [
+              -0.176,
+              0.176
+            ],
+            [
+              0.0,
+              0.960986
+            ],
+            [
+              -1.092341,
+              1.086279
+            ]
+          ],
+          "materials": [
+            "hardware_and_trim",
+            "paint_primary",
+            "saddle_and_rubber"
+          ],
+          "nodes": {
+            "handlebar": {
+              "center_gltf_m": [
+                0.0,
+                0.938,
+                0.455
+              ],
+              "parent": "brackenton-1947",
+              "axis_local_gltf": [
+                0.0,
+                0.87224257,
+                -0.48907357
+              ]
+            },
+            "wheel_f": {
+              "center_gltf_m": [
+                0.0,
+                0.345,
+                0.7875
+              ],
+              "parent": "handlebar",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "wheel_r": {
+              "center_gltf_m": [
+                0.0,
+                0.352,
+                -0.7875
+              ],
+              "parent": "brackenton-1947",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "seat_rider": {
+              "center_gltf_m": [
+                0.0,
+                0.756,
+                -0.309
+              ],
+              "parent": "brackenton-1947"
+            },
+            "seat_pillion": {
+              "center_gltf_m": [
+                0.0,
+                0.788,
+                -0.694
+              ],
+              "parent": "brackenton-1947"
+            },
+            "grip_left": {
+              "center_gltf_m": [
+                0.453,
+                1.145,
+                0.44
+              ],
+              "parent": "handlebar"
+            },
+            "peg_left": {
+              "center_gltf_m": [
+                0.245,
+                0.32,
+                0.2
+              ],
+              "parent": "brackenton-1947"
+            },
+            "exit_left": {
+              "center_gltf_m": [
+                0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "brackenton-1947"
+            },
+            "grip_right": {
+              "center_gltf_m": [
+                -0.453,
+                1.145,
+                0.44
+              ],
+              "parent": "handlebar"
+            },
+            "peg_right": {
+              "center_gltf_m": [
+                -0.245,
+                0.32,
+                0.2
+              ],
+              "parent": "brackenton-1947"
+            },
+            "exit_right": {
+              "center_gltf_m": [
+                -0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "brackenton-1947"
+            },
+            "kickstand": {
+              "center_gltf_m": [
+                0.164,
+                0.337,
+                -0.071
+              ],
+              "parent": "brackenton-1947",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "light_head_main": {
+              "center_gltf_m": [
+                0.0,
+                1.017,
+                0.714
+              ],
+              "parent": "handlebar"
+            },
+            "light_tail_main": {
+              "center_gltf_m": [
+                0.0,
+                0.604,
+                -0.9705
+              ],
+              "parent": "brackenton-1947"
+            },
+            "light_brake_main": {
+              "center_gltf_m": [
+                0.0,
+                0.53,
+                -0.9755
+              ],
+              "parent": "brackenton-1947"
+            }
+          },
+          "lamps": {
+            "light_head_main": {
+              "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_tail_main": {
+              "role": "tail",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_brake_main": {
+              "role": "brake",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            }
+          },
+          "kickstand_deploy_degrees": -72.0
+        }
+      ]
+    },
+    {
+      "name": "Marrowfield Standard 550",
+      "key": "marrowfield-1974",
+      "years": [
+        1971,
+        1978
+      ],
+      "wheelbase_m": 1.414,
+      "wheel_radius_m": {
+        "front": 0.323,
+        "rear": 0.332
+      },
+      "tyre_width_m": {
+        "front": 0.104,
+        "rear": 0.126
+      },
+      "track_m": 0,
+      "estimated_mass_kg": 193,
+      "estimated_top_speed_kmh": 158,
+      "suggested_lod_m": {
+        "mid": 34,
+        "far": 85
+      },
+      "collision_boxes": [
+        {
+          "center_gltf_m": [
+            0,
+            0.55,
+            0.035
+          ],
+          "size_gltf_m": [
+            0.434,
+            0.56,
+            0.88
+          ]
+        },
+        {
+          "center_gltf_m": [
+            0,
+            0.724,
+            -0.448
+          ],
+          "size_gltf_m": [
+            0.344,
+            0.26,
+            0.6
+          ]
+        }
+      ],
+      "paint": {
+        "preset_body_colours": [
+          "#a27440",
+          "#496d63",
+          "#805142",
+          "#4c5871",
+          "#565744"
+        ],
+        "stock_secondary": "#e0c48a",
+        "masks": {
+          "primary": "textures/marrowfield-1974-primary-mask.png",
+          "secondary": "textures/marrowfield-1974-secondary-mask.png"
+        },
+        "badge": {
+          "node": "badge_plate",
+          "material": "hardware_and_trim",
+          "atlas_texels": 256,
+          "center_texels": [
+            103,
+            216
+          ]
+        }
+      },
+      "lods": [
+        {
+          "file": "marrowfield-1974.glb",
+          "lod": "near",
+          "triangles": 1710,
+          "bounds_gltf_m": [
+            [
+              -0.384536,
+              0.384536
+            ],
+            [
+              0.0,
+              1.138651
+            ],
+            [
+              -1.039,
+              1.03
+            ]
+          ],
+          "materials": [
+            "glow_lamps",
+            "hardware_and_trim",
+            "paint_primary",
+            "paint_secondary",
+            "saddle_and_rubber"
+          ],
+          "nodes": {
+            "handlebar": {
+              "center_gltf_m": [
+                0.0,
+                0.912,
+                0.463
+              ],
+              "parent": "marrowfield-1974",
+              "axis_local_gltf": [
+                0.0,
+                0.92386383,
+                -0.38272122
+              ]
+            },
+            "wheel_f": {
+              "center_gltf_m": [
+                0.0,
+                0.323,
+                0.707
+              ],
+              "parent": "handlebar",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "wheel_r": {
+              "center_gltf_m": [
+                0.0,
+                0.332,
+                -0.707
+              ],
+              "parent": "marrowfield-1974",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "seat_rider": {
+              "center_gltf_m": [
+                0.0,
+                0.813,
+                -0.301
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "seat_pillion": {
+              "center_gltf_m": [
+                0.0,
+                0.829,
+                -0.601
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "grip_left": {
+              "center_gltf_m": [
+                0.381,
+                1.117,
+                0.409
+              ],
+              "parent": "handlebar"
+            },
+            "peg_left": {
+              "center_gltf_m": [
+                0.232,
+                0.38,
+                -0.24
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "exit_left": {
+              "center_gltf_m": [
+                0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "grip_right": {
+              "center_gltf_m": [
+                -0.381,
+                1.117,
+                0.409
+              ],
+              "parent": "handlebar"
+            },
+            "peg_right": {
+              "center_gltf_m": [
+                -0.232,
+                0.38,
+                -0.24
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "exit_right": {
+              "center_gltf_m": [
+                -0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "kickstand": {
+              "center_gltf_m": [
+                0.164,
+                0.337,
+                -0.071
+              ],
+              "parent": "marrowfield-1974",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "light_head_main": {
+              "center_gltf_m": [
+                0.0,
+                0.977,
+                0.69
+              ],
+              "parent": "handlebar"
+            },
+            "light_tail_main": {
+              "center_gltf_m": [
+                0.0,
+                0.584,
+                -0.89
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "light_brake_main": {
+              "center_gltf_m": [
+                0.0,
+                0.51,
+                -0.895
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "light_turn_rear_l": {
+              "center_gltf_m": [
+                0.206,
+                0.566,
+                -0.885
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "light_turn_front_l": {
+              "center_gltf_m": [
+                0.184,
+                0.898,
+                0.667
+              ],
+              "parent": "handlebar"
+            },
+            "light_turn_rear_r": {
+              "center_gltf_m": [
+                -0.206,
+                0.566,
+                -0.885
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "light_turn_front_r": {
+              "center_gltf_m": [
+                -0.184,
+                0.898,
+                0.667
+              ],
+              "parent": "handlebar"
+            }
+          },
+          "lamps": {
+            "light_head_main": {
+              "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_tail_main": {
+              "role": "tail",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_brake_main": {
+              "role": "brake",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_rear_l": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_front_l": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_turn_rear_r": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_front_r": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          "kickstand_deploy_degrees": -72.0
+        },
+        {
+          "file": "marrowfield-1974-mid.glb",
+          "lod": "mid",
+          "triangles": 598,
+          "bounds_gltf_m": [
+            [
+              -0.297471,
+              0.3505
+            ],
+            [
+              0.0,
+              1.136513
+            ],
+            [
+              -1.031077,
+              1.02373
+            ]
+          ],
+          "materials": [
+            "glow_lamps",
+            "hardware_and_trim",
+            "paint_primary",
+            "paint_secondary",
+            "saddle_and_rubber"
+          ],
+          "nodes": {
+            "handlebar": {
+              "center_gltf_m": [
+                0.0,
+                0.912,
+                0.463
+              ],
+              "parent": "marrowfield-1974",
+              "axis_local_gltf": [
+                0.0,
+                0.92386383,
+                -0.38272122
+              ]
+            },
+            "wheel_f": {
+              "center_gltf_m": [
+                0.0,
+                0.323,
+                0.707
+              ],
+              "parent": "handlebar",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "wheel_r": {
+              "center_gltf_m": [
+                0.0,
+                0.332,
+                -0.707
+              ],
+              "parent": "marrowfield-1974",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "seat_rider": {
+              "center_gltf_m": [
+                0.0,
+                0.813,
+                -0.301
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "seat_pillion": {
+              "center_gltf_m": [
+                0.0,
+                0.829,
+                -0.601
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "grip_left": {
+              "center_gltf_m": [
+                0.381,
+                1.117,
+                0.409
+              ],
+              "parent": "handlebar"
+            },
+            "peg_left": {
+              "center_gltf_m": [
+                0.232,
+                0.38,
+                -0.24
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "exit_left": {
+              "center_gltf_m": [
+                0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "grip_right": {
+              "center_gltf_m": [
+                -0.381,
+                1.117,
+                0.409
+              ],
+              "parent": "handlebar"
+            },
+            "peg_right": {
+              "center_gltf_m": [
+                -0.232,
+                0.38,
+                -0.24
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "exit_right": {
+              "center_gltf_m": [
+                -0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "kickstand": {
+              "center_gltf_m": [
+                0.164,
+                0.337,
+                -0.071
+              ],
+              "parent": "marrowfield-1974",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "light_head_main": {
+              "center_gltf_m": [
+                0.0,
+                0.977,
+                0.69
+              ],
+              "parent": "handlebar"
+            },
+            "light_tail_main": {
+              "center_gltf_m": [
+                0.0,
+                0.584,
+                -0.89
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "light_brake_main": {
+              "center_gltf_m": [
+                0.0,
+                0.51,
+                -0.895
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "light_turn_rear_l": {
+              "center_gltf_m": [
+                0.206,
+                0.566,
+                -0.885
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "light_turn_front_l": {
+              "center_gltf_m": [
+                0.184,
+                0.898,
+                0.667
+              ],
+              "parent": "handlebar"
+            },
+            "light_turn_rear_r": {
+              "center_gltf_m": [
+                -0.206,
+                0.566,
+                -0.885
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "light_turn_front_r": {
+              "center_gltf_m": [
+                -0.184,
+                0.898,
+                0.667
+              ],
+              "parent": "handlebar"
+            }
+          },
+          "lamps": {
+            "light_head_main": {
+              "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_tail_main": {
+              "role": "tail",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_brake_main": {
+              "role": "brake",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_rear_l": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_front_l": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_turn_rear_r": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_front_r": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          "kickstand_deploy_degrees": -72.0
+        },
+        {
+          "file": "marrowfield-1974-far.glb",
+          "lod": "far",
+          "triangles": 108,
+          "bounds_gltf_m": [
+            [
+              -0.177,
+              0.177
+            ],
+            [
+              0.0,
+              1.078
+            ],
+            [
+              -0.99452,
+              0.986726
+            ]
+          ],
+          "materials": [
+            "hardware_and_trim",
+            "paint_primary",
+            "saddle_and_rubber"
+          ],
+          "nodes": {
+            "handlebar": {
+              "center_gltf_m": [
+                0.0,
+                0.912,
+                0.463
+              ],
+              "parent": "marrowfield-1974",
+              "axis_local_gltf": [
+                0.0,
+                0.92386383,
+                -0.38272122
+              ]
+            },
+            "wheel_f": {
+              "center_gltf_m": [
+                0.0,
+                0.323,
+                0.707
+              ],
+              "parent": "handlebar",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "wheel_r": {
+              "center_gltf_m": [
+                0.0,
+                0.332,
+                -0.707
+              ],
+              "parent": "marrowfield-1974",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "seat_rider": {
+              "center_gltf_m": [
+                0.0,
+                0.813,
+                -0.301
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "seat_pillion": {
+              "center_gltf_m": [
+                0.0,
+                0.829,
+                -0.601
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "grip_left": {
+              "center_gltf_m": [
+                0.381,
+                1.117,
+                0.409
+              ],
+              "parent": "handlebar"
+            },
+            "peg_left": {
+              "center_gltf_m": [
+                0.232,
+                0.38,
+                -0.24
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "exit_left": {
+              "center_gltf_m": [
+                0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "grip_right": {
+              "center_gltf_m": [
+                -0.381,
+                1.117,
+                0.409
+              ],
+              "parent": "handlebar"
+            },
+            "peg_right": {
+              "center_gltf_m": [
+                -0.232,
+                0.38,
+                -0.24
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "exit_right": {
+              "center_gltf_m": [
+                -0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "kickstand": {
+              "center_gltf_m": [
+                0.164,
+                0.337,
+                -0.071
+              ],
+              "parent": "marrowfield-1974",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "light_head_main": {
+              "center_gltf_m": [
+                0.0,
+                0.977,
+                0.69
+              ],
+              "parent": "handlebar"
+            },
+            "light_tail_main": {
+              "center_gltf_m": [
+                0.0,
+                0.584,
+                -0.89
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "light_brake_main": {
+              "center_gltf_m": [
+                0.0,
+                0.51,
+                -0.895
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "light_turn_rear_l": {
+              "center_gltf_m": [
+                0.206,
+                0.566,
+                -0.885
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "light_turn_front_l": {
+              "center_gltf_m": [
+                0.184,
+                0.898,
+                0.667
+              ],
+              "parent": "handlebar"
+            },
+            "light_turn_rear_r": {
+              "center_gltf_m": [
+                -0.206,
+                0.566,
+                -0.885
+              ],
+              "parent": "marrowfield-1974"
+            },
+            "light_turn_front_r": {
+              "center_gltf_m": [
+                -0.184,
+                0.898,
+                0.667
+              ],
+              "parent": "handlebar"
+            }
+          },
+          "lamps": {
+            "light_head_main": {
+              "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_tail_main": {
+              "role": "tail",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_brake_main": {
+              "role": "brake",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_rear_l": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_front_l": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_turn_rear_r": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_front_r": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          "kickstand_deploy_degrees": -72.0
+        }
+      ]
+    },
+    {
+      "name": "Kelveran Slipstream",
+      "key": "kelveran-2005",
+      "years": [
+        2002,
+        2008
+      ],
+      "wheelbase_m": 1.41,
+      "wheel_radius_m": {
+        "front": 0.302,
+        "rear": 0.308
+      },
+      "tyre_width_m": {
+        "front": 0.127,
+        "rear": 0.185
+      },
+      "track_m": 0,
+      "estimated_mass_kg": 198,
+      "estimated_top_speed_kmh": 241,
+      "suggested_lod_m": {
+        "mid": 34,
+        "far": 85
+      },
+      "collision_boxes": [
+        {
+          "center_gltf_m": [
+            0,
+            0.55,
+            0.035
+          ],
+          "size_gltf_m": [
+            0.434,
+            0.56,
+            0.88
+          ]
+        },
+        {
+          "center_gltf_m": [
+            0,
+            0.724,
+            -0.448
+          ],
+          "size_gltf_m": [
+            0.344,
+            0.26,
+            0.6
+          ]
+        }
+      ],
+      "paint": {
+        "preset_body_colours": [
+          "#3c647b",
+          "#9d603a",
+          "#6b444a",
+          "#4e5656",
+          "#797b68",
+          "#536452"
+        ],
+        "stock_secondary": "#e6b475",
+        "masks": {
+          "primary": "textures/kelveran-2005-primary-mask.png",
+          "secondary": "textures/kelveran-2005-secondary-mask.png"
+        },
+        "badge": {
+          "node": "badge_plate",
+          "material": "hardware_and_trim",
+          "atlas_texels": 256,
+          "center_texels": [
+            103,
+            216
+          ]
+        }
+      },
+      "lods": [
+        {
+          "file": "kelveran-2005.glb",
+          "lod": "near",
+          "triangles": 1414,
+          "bounds_gltf_m": [
+            [
+              -0.362536,
+              0.362536
+            ],
+            [
+              0.0,
+              1.1835
+            ],
+            [
+              -1.013,
+              1.007
+            ]
+          ],
+          "materials": [
+            "glass_windscreen",
+            "glow_lamps",
+            "hardware_and_trim",
+            "paint_primary",
+            "paint_secondary",
+            "saddle_and_rubber"
+          ],
+          "nodes": {
+            "handlebar": {
+              "center_gltf_m": [
+                0.0,
+                0.931,
+                0.518
+              ],
+              "parent": "kelveran-2005",
+              "axis_local_gltf": [
+                0.0,
+                0.95853639,
+                -0.28497022
+              ]
+            },
+            "wheel_f": {
+              "center_gltf_m": [
+                0.0,
+                0.302,
+                0.705
+              ],
+              "parent": "handlebar",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "wheel_r": {
+              "center_gltf_m": [
+                0.0,
+                0.308,
+                -0.705
+              ],
+              "parent": "kelveran-2005",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "seat_rider": {
+              "center_gltf_m": [
+                0.0,
+                0.838,
+                -0.269
+              ],
+              "parent": "kelveran-2005"
+            },
+            "seat_pillion": {
+              "center_gltf_m": [
+                0.0,
+                0.944,
+                -0.579
+              ],
+              "parent": "kelveran-2005"
+            },
+            "grip_left": {
+              "center_gltf_m": [
+                0.359,
+                0.97,
+                0.535
+              ],
+              "parent": "handlebar"
+            },
+            "peg_left": {
+              "center_gltf_m": [
+                0.232,
+                0.38,
+                -0.24
+              ],
+              "parent": "kelveran-2005"
+            },
+            "exit_left": {
+              "center_gltf_m": [
+                0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "kelveran-2005"
+            },
+            "grip_right": {
+              "center_gltf_m": [
+                -0.359,
+                0.97,
+                0.535
+              ],
+              "parent": "handlebar"
+            },
+            "peg_right": {
+              "center_gltf_m": [
+                -0.232,
+                0.38,
+                -0.24
+              ],
+              "parent": "kelveran-2005"
+            },
+            "exit_right": {
+              "center_gltf_m": [
+                -0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "kelveran-2005"
+            },
+            "kickstand": {
+              "center_gltf_m": [
+                0.164,
+                0.337,
+                -0.071
+              ],
+              "parent": "kelveran-2005",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "light_head_l": {
+              "center_gltf_m": [
+                0.108,
+                0.92,
+                0.784
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_head_r": {
+              "center_gltf_m": [
+                -0.108,
+                0.92,
+                0.784
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_tail_main": {
+              "center_gltf_m": [
+                0.0,
+                0.816,
+                -0.983
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_brake_main": {
+              "center_gltf_m": [
+                0.0,
+                0.742,
+                -0.988
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_turn_rear_l": {
+              "center_gltf_m": [
+                0.206,
+                0.798,
+                -0.978
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_turn_front_l": {
+              "center_gltf_m": [
+                0.202,
+                0.841,
+                0.737
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_turn_rear_r": {
+              "center_gltf_m": [
+                -0.206,
+                0.798,
+                -0.978
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_turn_front_r": {
+              "center_gltf_m": [
+                -0.202,
+                0.841,
+                0.737
+              ],
+              "parent": "kelveran-2005"
+            }
+          },
+          "lamps": {
+            "light_head_l": {
+              "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_head_r": {
+              "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_tail_main": {
+              "role": "tail",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_brake_main": {
+              "role": "brake",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_rear_l": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_front_l": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_turn_rear_r": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_front_r": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          "kickstand_deploy_degrees": -72.0
+        },
+        {
+          "file": "kelveran-2005-mid.glb",
+          "lod": "mid",
+          "triangles": 528,
+          "bounds_gltf_m": [
+            [
+              -0.284,
+              0.352
+            ],
+            [
+              0.0,
+              1.175
+            ],
+            [
+              -0.988,
+              1.004587
+            ]
+          ],
+          "materials": [
+            "glass_windscreen",
+            "glow_lamps",
+            "hardware_and_trim",
+            "paint_primary",
+            "paint_secondary",
+            "saddle_and_rubber"
+          ],
+          "nodes": {
+            "handlebar": {
+              "center_gltf_m": [
+                0.0,
+                0.931,
+                0.518
+              ],
+              "parent": "kelveran-2005",
+              "axis_local_gltf": [
+                0.0,
+                0.95853639,
+                -0.28497022
+              ]
+            },
+            "wheel_f": {
+              "center_gltf_m": [
+                0.0,
+                0.302,
+                0.705
+              ],
+              "parent": "handlebar",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "wheel_r": {
+              "center_gltf_m": [
+                0.0,
+                0.308,
+                -0.705
+              ],
+              "parent": "kelveran-2005",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "seat_rider": {
+              "center_gltf_m": [
+                0.0,
+                0.838,
+                -0.269
+              ],
+              "parent": "kelveran-2005"
+            },
+            "seat_pillion": {
+              "center_gltf_m": [
+                0.0,
+                0.944,
+                -0.579
+              ],
+              "parent": "kelveran-2005"
+            },
+            "grip_left": {
+              "center_gltf_m": [
+                0.359,
+                0.97,
+                0.535
+              ],
+              "parent": "handlebar"
+            },
+            "peg_left": {
+              "center_gltf_m": [
+                0.232,
+                0.38,
+                -0.24
+              ],
+              "parent": "kelveran-2005"
+            },
+            "exit_left": {
+              "center_gltf_m": [
+                0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "kelveran-2005"
+            },
+            "grip_right": {
+              "center_gltf_m": [
+                -0.359,
+                0.97,
+                0.535
+              ],
+              "parent": "handlebar"
+            },
+            "peg_right": {
+              "center_gltf_m": [
+                -0.232,
+                0.38,
+                -0.24
+              ],
+              "parent": "kelveran-2005"
+            },
+            "exit_right": {
+              "center_gltf_m": [
+                -0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "kelveran-2005"
+            },
+            "kickstand": {
+              "center_gltf_m": [
+                0.164,
+                0.337,
+                -0.071
+              ],
+              "parent": "kelveran-2005",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "light_head_l": {
+              "center_gltf_m": [
+                0.108,
+                0.92,
+                0.784
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_head_r": {
+              "center_gltf_m": [
+                -0.108,
+                0.92,
+                0.784
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_tail_main": {
+              "center_gltf_m": [
+                0.0,
+                0.816,
+                -0.983
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_brake_main": {
+              "center_gltf_m": [
+                0.0,
+                0.742,
+                -0.988
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_turn_rear_l": {
+              "center_gltf_m": [
+                0.206,
+                0.798,
+                -0.978
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_turn_front_l": {
+              "center_gltf_m": [
+                0.202,
+                0.841,
+                0.737
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_turn_rear_r": {
+              "center_gltf_m": [
+                -0.206,
+                0.798,
+                -0.978
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_turn_front_r": {
+              "center_gltf_m": [
+                -0.202,
+                0.841,
+                0.737
+              ],
+              "parent": "kelveran-2005"
+            }
+          },
+          "lamps": {
+            "light_head_l": {
+              "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_head_r": {
+              "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_tail_main": {
+              "role": "tail",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_brake_main": {
+              "role": "brake",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_rear_l": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_front_l": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_turn_rear_r": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_front_r": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          "kickstand_deploy_degrees": -72.0
+        },
+        {
+          "file": "kelveran-2005-far.glb",
+          "lod": "far",
+          "triangles": 96,
+          "bounds_gltf_m": [
+            [
+              -0.245,
+              0.245
+            ],
+            [
+              0.0,
+              1.063
+            ],
+            [
+              -0.971736,
+              0.96654
+            ]
+          ],
+          "materials": [
+            "hardware_and_trim",
+            "paint_primary",
+            "saddle_and_rubber"
+          ],
+          "nodes": {
+            "handlebar": {
+              "center_gltf_m": [
+                0.0,
+                0.931,
+                0.518
+              ],
+              "parent": "kelveran-2005",
+              "axis_local_gltf": [
+                0.0,
+                0.95853639,
+                -0.28497022
+              ]
+            },
+            "wheel_f": {
+              "center_gltf_m": [
+                0.0,
+                0.302,
+                0.705
+              ],
+              "parent": "handlebar",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "wheel_r": {
+              "center_gltf_m": [
+                0.0,
+                0.308,
+                -0.705
+              ],
+              "parent": "kelveran-2005",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "seat_rider": {
+              "center_gltf_m": [
+                0.0,
+                0.838,
+                -0.269
+              ],
+              "parent": "kelveran-2005"
+            },
+            "seat_pillion": {
+              "center_gltf_m": [
+                0.0,
+                0.944,
+                -0.579
+              ],
+              "parent": "kelveran-2005"
+            },
+            "grip_left": {
+              "center_gltf_m": [
+                0.359,
+                0.97,
+                0.535
+              ],
+              "parent": "handlebar"
+            },
+            "peg_left": {
+              "center_gltf_m": [
+                0.232,
+                0.38,
+                -0.24
+              ],
+              "parent": "kelveran-2005"
+            },
+            "exit_left": {
+              "center_gltf_m": [
+                0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "kelveran-2005"
+            },
+            "grip_right": {
+              "center_gltf_m": [
+                -0.359,
+                0.97,
+                0.535
+              ],
+              "parent": "handlebar"
+            },
+            "peg_right": {
+              "center_gltf_m": [
+                -0.232,
+                0.38,
+                -0.24
+              ],
+              "parent": "kelveran-2005"
+            },
+            "exit_right": {
+              "center_gltf_m": [
+                -0.73,
+                0.0,
+                -0.279
+              ],
+              "parent": "kelveran-2005"
+            },
+            "kickstand": {
+              "center_gltf_m": [
+                0.164,
+                0.337,
+                -0.071
+              ],
+              "parent": "kelveran-2005",
+              "axis_local_gltf": [
+                1,
+                0,
+                0
+              ]
+            },
+            "light_head_l": {
+              "center_gltf_m": [
+                0.108,
+                0.92,
+                0.784
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_head_r": {
+              "center_gltf_m": [
+                -0.108,
+                0.92,
+                0.784
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_tail_main": {
+              "center_gltf_m": [
+                0.0,
+                0.816,
+                -0.983
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_brake_main": {
+              "center_gltf_m": [
+                0.0,
+                0.742,
+                -0.988
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_turn_rear_l": {
+              "center_gltf_m": [
+                0.206,
+                0.798,
+                -0.978
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_turn_front_l": {
+              "center_gltf_m": [
+                0.202,
+                0.841,
+                0.737
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_turn_rear_r": {
+              "center_gltf_m": [
+                -0.206,
+                0.798,
+                -0.978
+              ],
+              "parent": "kelveran-2005"
+            },
+            "light_turn_front_r": {
+              "center_gltf_m": [
+                -0.202,
+                0.841,
+                0.737
+              ],
+              "parent": "kelveran-2005"
+            }
+          },
+          "lamps": {
+            "light_head_l": {
+              "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_head_r": {
+              "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_tail_main": {
+              "role": "tail",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_brake_main": {
+              "role": "brake",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_rear_l": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_front_l": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_turn_rear_r": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
+            "light_turn_front_r": {
+              "role": "turn",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          "kickstand_deploy_degrees": -72.0
+        }
+      ]
+    }
+  ]
+}

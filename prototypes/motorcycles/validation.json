@@ -1,0 +1,65 @@
+[
+  {
+    "file": "brackenton-1947.glb",
+    "triangles": 1606,
+    "materials": 5,
+    "max_uv_edge_error_m": 8.706393506141552e-07,
+    "nodes_checked": 15
+  },
+  {
+    "file": "brackenton-1947-mid.glb",
+    "triangles": 626,
+    "materials": 5,
+    "max_uv_edge_error_m": 7.240278405012956e-07,
+    "nodes_checked": 15
+  },
+  {
+    "file": "brackenton-1947-far.glb",
+    "triangles": 108,
+    "materials": 3,
+    "max_uv_edge_error_m": 6.865838720337969e-07,
+    "nodes_checked": 15
+  },
+  {
+    "file": "marrowfield-1974.glb",
+    "triangles": 1710,
+    "materials": 5,
+    "max_uv_edge_error_m": 9.200379970653039e-07,
+    "nodes_checked": 19
+  },
+  {
+    "file": "marrowfield-1974-mid.glb",
+    "triangles": 598,
+    "materials": 5,
+    "max_uv_edge_error_m": 6.89736409764663e-07,
+    "nodes_checked": 19
+  },
+  {
+    "file": "marrowfield-1974-far.glb",
+    "triangles": 108,
+    "materials": 3,
+    "max_uv_edge_error_m": 6.865838720337969e-07,
+    "nodes_checked": 19
+  },
+  {
+    "file": "kelveran-2005.glb",
+    "triangles": 1414,
+    "materials": 6,
+    "max_uv_edge_error_m": 8.913310096669846e-07,
+    "nodes_checked": 20
+  },
+  {
+    "file": "kelveran-2005-mid.glb",
+    "triangles": 528,
+    "materials": 6,
+    "max_uv_edge_error_m": 6.962476290783837e-07,
+    "nodes_checked": 20
+  },
+  {
+    "file": "kelveran-2005-far.glb",
+    "triangles": 96,
+    "materials": 3,
+    "max_uv_edge_error_m": 5.716794233556755e-07,
+    "nodes_checked": 20
+  }
+]
