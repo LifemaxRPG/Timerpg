@@ -29,6 +29,8 @@ internal class TreeCells(
         var simplePacked: PropLayer.Packed? = null
         var detail: PropLayer? = null
         var detailJob: java.util.concurrent.Future<PropLayer.Packed?>? = null
+        /** It showed its detail last frame (it keeps it until [HYSTERESIS] past the switch: no flicker on the line). */
+        var detailed = false
         fun add(s: TreeKit.Spec, at: FloatArray) {
             trees += s to at
             val reach = s.height * .45f
@@ -98,7 +100,10 @@ internal class TreeCells(
                 c.detailJob = null
             }
             if (c.detail != null && (!near || d > TownFrame.LOD_DETAIL + LET_GO)) { c.detail?.destroy(); c.detail = null }
-            val showDetail = on && c.detail != null && d < TownFrame.LOD_DETAIL
+            // (the detail is shown only once it is whole on the GPU: never half a cell; and kept a little past the line it
+            // came in at, so a walk or a turn along that line does not swap the cell back and forth)
+            val showDetail = on && c.detail != null && (d < TownFrame.LOD_DETAIL + (if (c.detailed) HYSTERESIS else 0f) || FORCE == 1) && FORCE != 2
+            c.detailed = showDetail
             val showSimple = on && !showDetail
             c.detail?.update(look, dark, showDetail, fade, shadows && showDetail)
             c.simple?.update(look, dark, showSimple, fade, shadows && showSimple)
@@ -133,7 +138,7 @@ internal class TreeCells(
     /** Makes the detail [pose] would show at once (a preview's or a teleport's; unbudgeted). */
     fun prepare(pose: TownPose) {
         for (c in cells.values) {
-            if (c.detail != null || pose.distance(c.cx, c.top / 2f, c.cz) - c.r >= TownFrame.LOD_DETAIL) continue
+            if (c.detail != null || (pose.distance(c.cx, c.top / 2f, c.cz) - c.r >= TownFrame.LOD_DETAIL && FORCE != 1)) continue
             val p = c.detailJob?.let { try { it.get() } catch (e: Exception) { null } } ?: c.packLevel(true)
             c.detailJob = null
             c.detail = p?.let { c.layer(it) }
@@ -151,6 +156,10 @@ internal class TreeCells(
         /** The detail is packed this far ahead of [TownFrame.LOD_DETAIL], and let go this far past it. */
         const val REACH_AHEAD = 300f
         const val LET_GO = 700f
+        /** A cell in detail keeps it until this far past [TownFrame.LOD_DETAIL] (street units). */
+        const val HYSTERESIS = 120f
+        /** (Previews: -DtreeLevel=1 every cell in detail, 2 every cell simple, to compare the two levels.) */
+        private val FORCE = System.getProperty("treeLevel")?.toIntOrNull() ?: 0
         /** Trees and bushes lower than this hide no one standing (street units: the player's chest is 30 up). */
         const val CROWN_MIN = 34f
         /** A crown's half width (a share of the tree's height) and where it begins (a share of the height up). */

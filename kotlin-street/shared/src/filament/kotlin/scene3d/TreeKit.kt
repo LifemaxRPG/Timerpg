@@ -23,8 +23,11 @@ import kotlin.math.sqrt
  *
  * Every tree has its trunk's flare and roots, its limbs reaching into the crown and twigs to the outer lobes. Each comes
  * in two levels of detail ([build] `detail`): the full one near by (about 500-1200 triangles a tree) and a simple one
- * (a few big lobes, a plain trunk: about 80-170) further off, the far cards beyond that (TownGround). All pictures of all
- * species live in one shared atlas ([atlas]), so any number of trees merge into one mesh, one draw ([merge]).
+ * further off: the same tree, every lobe, limb and the trunk where they are near by (one sequence of seeded choices
+ * for both, so the two are one silhouette and the switch between them is no pop, never a crown floating off its
+ * trunk), only cut coarser (fewer facets) and without the roots, twigs and fruit (about 160-400 triangles; until
+ * 2026-11-23 it was a different, sparser tree of 80-170, whose crowns floated off their trunks: the owner's "trees render
+ * halfway"), the far cards beyond that (TownGround). All pictures of all species live in one shared atlas ([atlas]), so any number of trees merge into one mesh, one draw ([merge]).
  *
  * The leaves keep their summer colours (the Filament town has no seasons yet).
  */
@@ -217,21 +220,22 @@ internal object TreeKit {
         // --- the wood
         /** The trunk: a tapered prism to [top], its flare at the foot and (near by) roots running out into the ground. */
         fun trunk(top: FloatArray, r0: Float, r1: Float, roots: Int = 4) {
-            limb(floatArrayOf(0f, 0f, 0f), top, r0, r1, if (detail) 7 else 5)
+            limb(floatArrayOf(0f, 0f, 0f), top, r0, r1, 7)
             if (r0 < .8f) return
             // the flare: a short wide frustum
             m.upright(0f, 0f, 0f, r0 * 1.4f, r0 * 1.55f, r0 * .98f, if (detail) 7 else 5, bark)
-            if (!detail) return
+            // (the roots' choices are made at both levels, so what grows after them is the same tree)
             val a0 = r(0f, 6.28f)
             for (k in 0 until roots) {
                 val a = a0 + k * 6.28f / roots + r(-.3f, .3f)
                 val out = r0 * r(2.1f, 2.8f)
-                limb(floatArrayOf(cos(a) * r0 * .3f, r0 * 1.1f, sin(a) * r0 * .3f), floatArrayOf(cos(a) * out, 0f, sin(a) * out), r0 * .5f, r0 * .12f, 4)
+                if (detail) limb(floatArrayOf(cos(a) * r0 * .3f, r0 * 1.1f, sin(a) * r0 * .3f), floatArrayOf(cos(a) * out, 0f, sin(a) * out), r0 * .5f, r0 * .12f, 4)
             }
         }
 
         /** A tapered limb from [a] to [b]. */
-        fun limb(a: FloatArray, b: FloatArray, r0: Float, r1: Float, sides: Int = 5) {
+        fun limb(a: FloatArray, b: FloatArray, r0: Float, r1: Float, sides0: Int = 5) {
+            val sides = if (detail) sides0 else max(3, sides0 - 2)
             val d = floatArrayOf(b[0] - a[0], b[1] - a[1], b[2] - a[2])
             val l = sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2])
             if (l < 1e-3f) return
@@ -283,15 +287,17 @@ internal object TreeKit {
          * [droop], the notches between [notch] of that) up to the trunk [h] higher, with a shaded underside.
          */
         fun skirt(y0: Float, h: Float, rOut: Float, droop: Float, notch: Float = .68f) {
-            val n = if (detail) 11 else 6
+            val n = if (detail) 11 else 5
             val tw = r(0f, 6.28f)
+            // (its points' lengths from a seed of its own: the same draws from the tree's sequence at both levels)
+            val sd = rnd.int(100000)
             val top = floatArrayOf(r(-.04f, .04f) * rOut, y0 + h, r(-.04f, .04f) * rOut)
             val under = floatArrayOf(0f, y0 + h * .22f, 0f)
             val rim = ArrayList<FloatArray>()
             for (k in 0 until n * 2) {
                 val a = tw + k * PI.toFloat() / n
                 val point = k % 2 == 0
-                val rr = rOut * (if (point) r(.9f, 1.08f) else notch)
+                val rr = rOut * (if (point) .9f + .18f * hash(sd, k, 0) else notch)
                 rim += floatArrayOf(cos(a) * rr, y0 - (if (point) droop else droop * .35f), sin(a) * rr)
             }
             val c = floatArrayOf(0f, y0 + h * .3f, 0f)
@@ -309,26 +315,24 @@ internal object TreeKit {
             val tr = H * .05f
             trunk(floatArrayOf(r(-.02f, .02f) * H, th, r(-.02f, .02f) * H), tr, tr * .72f, 5)
             val cy = H * .6f
-            val limbs = if (detail) 5 else 3
+            val limbs = 5
             val a0 = r(0f, 6.28f)
             for (k in 0 until limbs) {
                 val a = a0 + k * 6.28f / limbs + r(-.35f, .35f)
                 val out = H * r(.2f, .3f)
                 val end = floatArrayOf(cos(a) * out, cy + H * r(-.1f, .04f), sin(a) * out)
-                if (detail) {
-                    limb(floatArrayOf(0f, th * r(.8f, .98f), 0f), end, tr * .62f, tr * .26f)
-                    // twigs on to the crown's outer lobes
-                    for (t in 0 until 2) {
-                        val b = a + r(-.6f, .6f)
-                        val tip = floatArrayOf(end[0] + cos(b) * H * .1f, end[1] + H * r(.02f, .12f), end[2] + sin(b) * H * .1f)
-                        limb(end, tip, tr * .24f, tr * .1f, 4)
-                    }
+                limb(floatArrayOf(0f, th * r(.8f, .98f), 0f), end, tr * .62f, tr * .26f)
+                // twigs on to the crown's outer lobes (near by only)
+                for (t in 0 until 2) {
+                    val b = a + r(-.6f, .6f)
+                    val tip = floatArrayOf(end[0] + cos(b) * H * .1f, end[1] + H * r(.02f, .12f), end[2] + sin(b) * H * .1f)
+                    if (detail) limb(end, tip, tr * .24f, tr * .1f, 4)
                 }
                 lobe(end[0], end[1] + H * .04f, end[2], H * r(.19f, .24f), H * r(.17f, .21f), H * r(.19f, .24f), 9, 6)
             }
             // the crown's heart and top
             lobe(0f, cy + H * .08f, 0f, H * .28f, H * .26f, H * .28f, 10, 6, .1f)
-            if (detail) {
+            run {
                 for (k in 0 until 3) {
                     val a = r(0f, 6.28f); val rr = H * r(.05f, .16f)
                     lobe(cos(a) * rr, H * r(.8f, .9f), sin(a) * rr, H * r(.13f, .17f), H * r(.1f, .13f), H * r(.13f, .17f))
@@ -346,18 +350,18 @@ internal object TreeKit {
             val tr = H * .042f
             trunk(floatArrayOf(0f, th, 0f), tr, tr * .75f)
             val cy = H * .6f; val R = H * .3f
-            if (detail) for (k in 0 until 4) {
+            for (k in 0 until 4) {
                 val a = k * 1.57f + r(-.3f, .3f)
                 limb(floatArrayOf(0f, th * .9f, 0f), floatArrayOf(cos(a) * R * .55f, cy, sin(a) * R * .55f), tr * .55f, tr * .25f)
             }
             lobe(0f, cy, 0f, R * .82f, R * .78f, R * .82f, 10, 6, .08f)
-            val n = if (detail) 12 else 4
+            val n = 12
             for (k in 0 until n) {
                 // lobes over the crown's surface: a ring round its middle, a ring above, one on top
                 val ring = if (k < n * 7 / 12) 0 else if (k < n - 1) 1 else 2
                 val a = r(0f, 6.28f)
                 val (rr, y) = when (ring) { 0 -> R * .72f to cy + r(-.12f, .06f) * R; 1 -> R * .45f to cy + R * .55f; else -> 0f to cy + R * .8f }
-                val s = R * r(.36f, .48f) * (if (detail) 1f else 1.3f)
+                val s = R * r(.36f, .48f)
                 lobe(cos(a) * rr, y, sin(a) * rr, s, s * .85f, s)
             }
         }
@@ -367,17 +371,17 @@ internal object TreeKit {
             val tr = H * .04f
             trunk(floatArrayOf(0f, th, 0f), tr, tr * .75f)
             val cy = H * .64f; val rx = H * .25f; val ry = H * .34f
-            if (detail) for (k in 0 until 3) {
+            for (k in 0 until 3) {
                 val a = k * 2.09f + r(-.3f, .3f)
                 limb(floatArrayOf(0f, th * .85f, 0f), floatArrayOf(cos(a) * rx * .5f, cy - ry * .2f, sin(a) * rx * .5f), tr * .55f, tr * .22f)
             }
             lobe(0f, cy, 0f, rx * .85f, ry * .9f, rx * .85f, 10, 7, .08f)
-            val n = if (detail) 10 else 3
+            val n = 10
             for (k in 0 until n) {
                 val t = r(-.75f, .8f)
                 val a = r(0f, 6.28f)
                 val w = sqrt((1f - t * t).coerceAtLeast(.05f))
-                val s = H * r(.1f, .14f) * (if (detail) 1f else 1.5f)
+                val s = H * r(.1f, .14f)
                 lobe(cos(a) * rx * w * .8f, cy + ry * t * .85f, sin(a) * rx * w * .8f, s, s, s)
             }
         }
@@ -386,7 +390,7 @@ internal object TreeKit {
             val lean = floatArrayOf(r(-.08f, .08f) * H, H * .62f, r(-.08f, .08f) * H)
             val tr = H * .026f
             trunk(lean, tr, tr * .55f, 3)
-            val n = if (detail) 4 else 2
+            val n = 4
             for (k in 0 until n) {
                 val t = r(.45f, .85f)
                 val from = floatArrayOf(lean[0] * t, lean[1] * t, lean[2] * t)
@@ -396,11 +400,11 @@ internal object TreeKit {
                 lobe(to[0], to[1] + H * .03f, to[2], H * .11f, H * .12f, H * .11f, 7, 5, .22f)
             }
             // the crown: small airy lobes up a narrow column
-            val m2 = if (detail) 7 else 3
+            val m2 = 7
             for (k in 0 until m2) {
                 val t = .5f + .5f * k / m2.toFloat()
                 val a = r(0f, 6.28f); val rr = H * r(.03f, .1f) * (1.2f - t)
-                val s = H * r(.09f, .12f) * (if (detail) 1f else 1.4f)
+                val s = H * r(.09f, .12f)
                 lobe(lean[0] * t + cos(a) * rr, H * (.48f + .45f * k / m2.toFloat()), lean[2] * t + sin(a) * rr, s, s * 1.2f, s, 7, 5, .22f)
             }
         }
@@ -410,16 +414,16 @@ internal object TreeKit {
             val tr = H * .05f
             trunk(floatArrayOf(H * r(-.04f, .04f), th, H * r(-.04f, .04f)), tr, tr * .7f, 3)
             val cy = H * .62f
-            val n = if (detail) 5 else 2
+            val n = 5
             val a0 = r(0f, 6.28f)
             for (k in 0 until n) {
                 val a = a0 + k * 6.28f / n + r(-.3f, .3f)
                 val end = floatArrayOf(cos(a) * H * .32f, cy + H * r(-.05f, .05f), sin(a) * H * .32f)
-                if (detail) limb(floatArrayOf(0f, th * .95f, 0f), end, tr * .55f, tr * .2f)
+                limb(floatArrayOf(0f, th * .95f, 0f), end, tr * .55f, tr * .2f)
                 lobe(end[0], end[1], end[2], H * .22f, H * .14f, H * .22f, 8, 5)
             }
             lobe(0f, cy + H * .1f, 0f, H * .3f, H * .18f, H * .3f, 10, 5, .1f)
-            if (detail) {
+            run {
                 // the crown's top, lumpy
                 for (k in 0 until 3) {
                     val a = r(0f, 6.28f); val rr = H * r(.08f, .2f)
@@ -429,7 +433,7 @@ internal object TreeKit {
                 val sw = YardPics.swatch(f)
                 if (spec.variant % 8 < 6) for (k in 0..2) {
                     val a = r(0f, 6.28f); val rr = H * r(.15f, .35f); val s = H * .025f
-                    m.solidBox(cos(a) * rr - s, 0f, sin(a) * rr - s, cos(a) * rr + s, s * 2f, sin(a) * rr + s, sw)
+                    if (detail) m.solidBox(cos(a) * rr - s, 0f, sin(a) * rr - s, cos(a) * rr + s, s * 2f, sin(a) * rr + s, sw)
                 }
             }
         }
@@ -439,12 +443,12 @@ internal object TreeKit {
             val top = floatArrayOf(H * r(-.04f, .04f), H * .8f, H * r(-.04f, .04f))
             val tr = H * .035f
             trunk(top, tr, tr * .5f, 3)
-            if (detail) for (k in 0 until 3) {
+            for (k in 0 until 3) {
                 val t = r(.35f, .6f); val a = r(0f, 6.28f)
                 val from = floatArrayOf(top[0] * t, top[1] * t, top[2] * t)
-                limb(from, floatArrayOf(from[0] + cos(a) * H * .06f, from[1] + H * .02f, from[2] + sin(a) * H * .06f), tr * .25f, tr * .1f, 3)
+                if (detail) limb(from, floatArrayOf(from[0] + cos(a) * H * .06f, from[1] + H * .02f, from[2] + sin(a) * H * .06f), tr * .25f, tr * .1f, 3)
             }
-            val n = if (detail) 8 else 3
+            val n = 8
             val a0 = r(0f, 6.28f)
             for (k in 0 until n) {
                 val t = k / n.toFloat()
@@ -453,8 +457,8 @@ internal object TreeKit {
                 val out = H * (.17f - .11f * t) * r(.8f, 1.1f)
                 val from = floatArrayOf(top[0] * y / top[1], y - H * .06f, top[2] * y / top[1])
                 val end = floatArrayOf(cos(a) * out, y, sin(a) * out)
-                if (detail) limb(from, end, tr * .35f, tr * .15f, 4)
-                val s = H * (.13f - .04f * t) * (if (detail) 1f else 1.3f)
+                limb(from, end, tr * .35f, tr * .15f, 4)
+                val s = H * (.13f - .04f * t)
                 lobe(end[0], end[1], end[2], s, s * .75f, s, 8, 5, .24f)
             }
         }
@@ -462,15 +466,15 @@ internal object TreeKit {
         fun spruce() {
             val tr = H * .03f
             trunk(floatArrayOf(0f, H * .3f, 0f), tr, tr * .6f, 4)
-            val tiers = if (detail) 10 else 4
+            val tiers = 10
             val base = H * r(.1f, .14f)
             val span = H - base
             for (k in 0 until tiers) {
                 val t = k / tiers.toFloat()
                 val y0 = base + span * t * .92f
                 val rOut = H * .25f * (1f - t * .88f) * r(.92f, 1.06f)
-                val h = span * (if (detail) .2f else .34f) * (1f - t * .3f)
-                skirt(y0, h, rOut, droop = rOut * .25f, notch = if (detail) .66f else .8f)
+                val h = span * .2f * (1f - t * .3f)
+                skirt(y0, h, rOut, droop = rOut * .25f, notch = .66f)
             }
             // the leader at the top
             m.prism(floatArrayOf(0f, H * .92f, 0f), floatArrayOf(0f, 1f, 0f), floatArrayOf(0f, 0f, 1f), H * .018f, 0f, H * .1f, 4, pics[0])
@@ -479,18 +483,18 @@ internal object TreeKit {
         fun poplar() {
             val tr = H * .03f
             trunk(floatArrayOf(0f, H * .3f, 0f), tr, tr * .7f, 3)
-            val n = if (detail) 7 else 3
+            val n = 7
             for (k in 0 until n) {
                 val t = k / (n - 1f)
                 val y = H * (.25f + .62f * t)
-                val w = H * .12f * (1.1f - .5f * abs(t - .4f)) * (if (detail) 1f else 1.15f)
-                lobe(r(-.02f, .02f) * H, y, r(-.02f, .02f) * H, w, H * (if (detail) .13f else .2f), w, 8, 5, .14f)
+                val w = H * .12f * (1.1f - .5f * abs(t - .4f))
+                lobe(r(-.02f, .02f) * H, y, r(-.02f, .02f) * H, w, H * .13f, w, 8, 5, .14f)
             }
         }
 
         fun bushRound() {
             val w = H * 1.2f
-            val n = if (detail) 5 else 2
+            val n = 5
             lobe(0f, H * .45f, 0f, w * .45f, H * .5f, w * .45f, 9, 5, .12f)
             for (k in 0 until n) {
                 val a = k * 6.28f / n + r(-.4f, .4f)
@@ -502,10 +506,10 @@ internal object TreeKit {
 
         fun bushTall() {
             val w = H * .5f
-            val n = if (detail) 5 else 2
+            val n = 5
             for (k in 0 until n) {
                 val t = k / (n - 1f).coerceAtLeast(1f)
-                lobe(r(-.04f, .04f) * w, H * (.2f + .62f * t), r(-.04f, .04f) * w, w * r(.48f, .56f), H * (if (detail) .2f else .34f), w * r(.48f, .56f), 9, 5, .12f)
+                lobe(r(-.04f, .04f) * w, H * (.2f + .62f * t), r(-.04f, .04f) * w, w * r(.48f, .56f), H * .2f, w * r(.48f, .56f), 9, 5, .12f)
             }
         }
 
