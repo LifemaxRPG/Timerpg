@@ -30,6 +30,7 @@ C001, C002 and C003 went in on 2026-11-23 (see "Done" below). Waiting:
 |---|---|---|---|
 | C004 | codex/C004-elementary-school | Mill Branch one-room school (in use, abandoned) + Westmeadow Elementary 1955 and 1990+ | Westmeadow in a residential district of the capital; Mill Branch for farm towns (one abandoned at the capital's rural edge) |
 | C005 | codex/C005-barbershop | Mercer Barber and Lilac Beauty, narrow Main Street shops, 3 eras each; `barber_pole` node spins | Main Street street walls (fill the empty lot beside the five-and-dime) |
+| C006 | codex/C006-truck-stop | Cedar Relay truck stop 1960-1989 and Relay Travel Center 1990+: diesel and car canopies, diner, 30 truck bays, scale, lube bay / truck wash | the highway outside the capital (east approach), not in town |
 
 Coastal and port set: these wait for the coastal hub and the ocean, so they aren't placed in the capital yet:
 - codex/copperwake (the ships);
