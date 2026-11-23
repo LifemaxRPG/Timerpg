@@ -238,3 +238,23 @@ Simulate everyone, at the detail that matters:
     reports (the G005 rules), at the pace the era allows.
 - **Cost:** the language model runs only for people near the player. The town and world tiers are cheap CPU work,
   spread over idle frames, with bigger catch-ups done in the background or while charging.
+
+## Mini games in the world's own places (the owner's idea, 2026-11-23)
+
+Places in the world can be played, not just walked through. Each mini game lives in a building we already have, so it
+fits the world rather than a menu:
+- **Mini golf at Thimble Trails** (C007):
+  - The course is built for it: 18 real cups, the pipe hole's anchors, the banked turn, the windmill rotor timing.
+  - The ball runs on Jolt physics. Aim, power, and the windmill blades to time.
+  - Par and scores; play with NPCs, who talk while you play; bets for money.
+- **More of the same kind:**
+  - batting practice and pickup games at the Alder Bend Ballpark (C003);
+  - skating at the roller rink (C008);
+  - pool and darts in bars;
+  - fishing at the pier and on lakes;
+  - card games in saloons and back rooms (gambling ties into money and crime);
+  - races on the cars and motorcycles;
+  - the arcade cabinets of each era.
+- **Rules:**
+  - short, era-correct, and optional;
+  - each one connects to the rest: money, NPC relationships, reputation, crime (rigged games, illegal betting).
