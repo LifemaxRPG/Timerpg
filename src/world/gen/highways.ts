@@ -602,7 +602,7 @@ export const weightOf = (p: Place): number => (p.kind === 'hub' ? (p.type === 'c
 
 interface Edge { a: number; b: number; d: number; road: number; line?: Pt[]; year?: number; corridor?: number; relaxed?: boolean; segIds?: string[]; lanes?: Step<number>[]; divided?: number }
 interface Corridor { id: number; mass: number; nodes: number[]; edges: number[]; busy: number; start: number; dir: 'NS' | 'EW'; route?: RouteNo; tolled: boolean }
-interface Ring { place: Place; rx: number; rz: number; anchors: (Pt | null)[]; radials: Map<number, { j: Pt; road: number; line?: Pt[]; year?: number }>; year?: number }
+interface Ring { place: Place; rx: number; rz: number; anchors: (Pt | null)[]; /** each anchor's distance as a share of rx, rz */ fac: number[]; radials: Map<number, { j: Pt; road: number; line?: Pt[]; year?: number }>; year?: number }
 interface XLine { id: number; kind: 'expressway' | 'beltway' | 'radial'; line: Pt[]; cum: Float64Array; year: number; lanes: Step<number>[]; divided?: number; mass: number; edge?: number; ring?: Ring; route?: string; number?: string; graphRoad?: Road }
 interface Junction { id: string; kind: InterchangeKind; line: number; s: number; at: Pt; prio: number; road?: number; place?: string; cell: number; other?: number; year: number; /** two lines running on into each other: a seam, no interchange */ pass?: boolean }
 
@@ -724,9 +724,32 @@ export function makeHighways(t: Terrain, h: Hydro, places: readonly Place[], roa
   nodes.forEach((p, n) => {
     if (!degree.get(n) || (!p.hub && degree.get(n)! < 3)) return;
     const rx = p.hub ? (p.hub.padM.w / 2 + p.hub.growthM + 1000) / CELL_M : 3 / CELL_KM, rz = p.hub ? (p.hub.padM.h / 2 + p.hub.growthM + 1000) / CELL_M : 3 / CELL_KM;
-    const anchors: (Pt | null)[] = [];
-    for (let k = 0; k < 16; k++) { const a = (k * Math.PI) / 8; const q: Pt = [p.x + Math.cos(a) * rx, p.z + Math.sin(a) * rz]; anchors.push(G.open(q[0], q[1], 300) && G.townCost(q[0], q[1]) < 6 ? q : null); }
-    rings.set(n, { place: p, rx, rz, anchors, radials: new Map() });
+    // (each anchor at its own distance: a beltway planned on the land, not drawn with a compass. The preferred distance
+    // swells and narrows round the ring (a smooth roll per place), and each anchor takes the candidate distance nearest
+    // it that stands on open, gentle ground clear of the rivers and the towns' cores: the loop bends out round hills,
+    // rivers and the old town on one side and runs close in on another)
+    const ph = [hr('belt-ph', p.id, 1), hr('belt-ph', p.id, 2), hr('belt-ph', p.id, 3)].map((v) => v * 2 * Math.PI);
+    const amp = 0.12 + 0.1 * hr('belt-amp', p.id);
+    const fs: number[] = [];
+    for (let f = p.hub ? 0.96 : 0.78; f <= 1.6 + 1e-9; f += 0.04) fs.push(f);
+    const anchors: (Pt | null)[] = [], fac: number[] = [];
+    const aM = 350 / CELL_M;
+    for (let k = 0; k < 16; k++) {
+      const a = (k * Math.PI) / 8;
+      const pref = 1.12 + amp * Math.sin(a + ph[0]!) + amp * 0.6 * Math.sin(2 * a + ph[1]!) + amp * 0.35 * Math.sin(3 * a + ph[2]!);
+      let best: Pt | null = null, bf = 1, bc = Infinity;
+      for (const f of fs) {
+        const q: Pt = [p.x + Math.cos(a) * rx * f, p.z + Math.sin(a) * rz * f];
+        if (!G.open(q[0], q[1], 300) || G.townCost(q[0], q[1]) >= 3) continue;
+        const h0 = G.height(q[0], q[1]);
+        const grade = Math.max(Math.abs(G.height(q[0] + aM, q[1]) - h0), Math.abs(G.height(q[0] - aM, q[1]) - h0), Math.abs(G.height(q[0], q[1] + aM) - h0), Math.abs(G.height(q[0], q[1] - aM) - h0)) / 350;
+        const wet = G.crossings([q[0] - aM, q[1]], [q[0] + aM, q[1]]).length + G.crossings([q[0], q[1] - aM], [q[0], q[1] + aM]).length;
+        const c = Math.abs(f - pref) * 5 + grade * 40 + wet * 1.5 + G.townCost(q[0], q[1]);
+        if (c < bc) { bc = c; best = q; bf = f; }
+      }
+      anchors.push(best); fac.push(bf);
+    }
+    rings.set(n, { place: p, rx, rz, anchors, fac, radials: new Map() });
   });
   /** The ring anchor for highway road [k] leaving ring [R]: its radial (made on first use). */
   const radialFor = (R: Ring, k: number): number | null => {
@@ -802,7 +825,7 @@ export function makeHighways(t: Terrain, h: Hydro, places: readonly Place[], roa
       rad.year = Math.min(...users.map(({ e }) => e.year!));
       const road = lineFrom(rad.road, R.place.id), cum = cumOf(road);
       const near = nearestOn(road, cum, rad.j);
-      const outS = Math.min(cum[cum.length - 1]!, near.s + (Math.hypot(R.rx, R.rz) * 0.9));
+      const outS = Math.min(cum[cum.length - 1]!, near.s + (Math.hypot(R.rx, R.rz) * 0.9 * R.fac[a]!));
       const guide = sub(road, cum, near.s, outS);
       const r = routeLine(rad.j, R.anchors[a]!, guide, [[1.5, XGRADE], [3, XGRADE], [3, XGRADE * 1.4], [4, XGRADE * 2]], 900);
       rad.line = r.line;
@@ -837,14 +860,46 @@ export function makeHighways(t: Terrain, h: Hydro, places: readonly Place[], roa
     R.year = Math.min(1979, Math.max(Math.min(...ys) + 3, cap ? 1961 + Math.floor(hr('belt', R.place.id) * 5) : R.place.hub ? 1963 + Math.floor(hr('belt', R.place.id) * 14) : 1967 + Math.floor(hr('belt', R.place.id) * 11)));
     const lanes: Step<number>[] = [[R.year, 4]];
     if (cap || (R.place.hub && hr('belt6', R.place.id) < 0.4)) lanes.push([1984 + Math.floor(hr('belt6y', R.place.id) * 14), 6]);
-    for (let k = 1; k < run.length; k++) {
-      const a = run[k - 1]!, b = run[k]!;
-      const A = R.anchors[a]!, Bq = R.anchors[b]!;
-      const guide: Pt[] = [];
-      const t0a = (a * Math.PI) / 8, t1a = b === 0 && a === 15 ? 2 * Math.PI : (b * Math.PI) / 8;
-      for (let q = 1; q < 4; q++) { const ang = t0a + ((t1a - t0a) * q) / 4; guide.push([R.place.x + Math.cos(ang) * R.rx, R.place.z + Math.sin(ang) * R.rz]); }
-      const r = routeLine(A, Bq, guide, [[1.2, XGRADE], [2.5, XGRADE], [2.5, XGRADE * 1.4], [3.5, XGRADE * 2]], 900);
-      xlines.push({ id: xlines.length, kind: 'beltway', line: r.line, cum: cumOf(r.line), year: R.year, lanes, divided: R.year, mass: R.place.mass, ring: R });
+    // the loop is laid between its key anchors (where a radial joins it, and about every fourth anchor between), the
+    // anchors between them only guiding it: long sweeping curves (1.8 km fillets, as the trunks') round the land, not a
+    // sixteen-sided polygon
+    const keys: number[] = [];
+    for (let k = 0; k < run.length; k++) {
+      const last = keys.length ? keys[keys.length - 1]! : -1;
+      if (k === 0 || k === run.length - 1 || R.radials.get(run[k]!)?.year !== undefined || k - last >= 4) keys.push(k);
+    }
+    // a Catmull-Rom spline through the anchors (each already sited on the land): one smooth loop, its curvature varying
+    // with the anchors' distances; where a stretch of it is not open land, that stretch is routed on the land instead
+    const closed = run.length > 2 && run[0] === run[run.length - 1];
+    const P = (k: number): Pt => {
+      if (closed) { const n = run.length - 1; return R.anchors[run[((k % n) + n) % n]!]!; }
+      return R.anchors[run[Math.max(0, Math.min(run.length - 1, k))]!]!;
+    };
+    const spline = (k: number): Pt[] => {
+      const p0 = P(k - 1), p1 = P(k), p2 = P(k + 1), p3 = P(k + 2);
+      const q0 = shiftTo(p0, p1[0]), q2 = shiftTo(p2, p1[0]), q3 = shiftTo(p3, p1[0]);
+      const out: Pt[] = [];
+      for (let i = 0; i <= 8; i++) {
+        const t = i / 8, t2 = t * t, t3 = t2 * t;
+        const f = (a: number, b: number, c: number, d: number): number => 0.5 * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3);
+        out.push([f(q0[0], p1[0], q2[0], q3[0]), f(q0[1], p1[1], q2[1], q3[1])]);
+      }
+      return out;
+    };
+    for (let q = 1; q < keys.length; q++) {
+      const ka = keys[q - 1]!, kb = keys[q]!;
+      let line: Pt[] = [];
+      for (let k = ka; k < kb; k++) { const sp = spline(k); line.push(...(line.length ? sp.slice(1) : sp)); }
+      const fine = line.every((p) => G.open(p[0], p[1], 300)) && line.every((p, i) => i === 0 || G.crossings(line[i - 1]!, p).length <= 1);
+      if (!fine) {
+        line = [];
+        for (let k = ka; k < kb; k++) {
+          const sp = spline(k);
+          const r = routeLine(P(k), P(k + 1), sp.slice(1, -1), [[1.2, XGRADE], [2.5, XGRADE], [2.5, XGRADE * 1.4], [3.5, XGRADE * 2]], 900);
+          line.push(...(line.length ? r.line.slice(1) : r.line));
+        }
+      }
+      xlines.push({ id: xlines.length, kind: 'beltway', line, cum: cumOf(line), year: R.year, lanes, divided: R.year, mass: R.place.mass, ring: R });
     }
     stats.beltways++;
   }
@@ -1156,11 +1211,15 @@ export function makeHighways(t: Terrain, h: Hydro, places: readonly Place[], roa
     const at: Pt = j.at, to: Pt = shiftTo([p.x, p.z], at[0]);
     const d = dist(at, to) * CELL_KM;
     if (d < 0.3) continue;
-    const path: Pt[] = [at, to];
-    const s: Seg = { id: `xc:${segs.length}`, kind: 'connector', mass: p.mass, path, km: Math.round(d * 100) / 100, built: ic.year, cls: [[ic.year, 'highway']], surface: [[ic.year, 'paved']], lanes: [[ic.year, 2]], number: [[ic.year, null]], crossings: [], structures: [], maxGrade: Math.round((Math.abs(G.height(to[0], to[1]) - G.height(at[0], at[1])) / (d * 1000)) * 10000) / 10000 };
+    // (routed on the land like any road, under 7%, bending round hills and rivers on its way in, then pulled straight
+    // and rounded: not a ruler line from the exit to the town's middle; straight only where nothing fits)
+    const rt = routeLine(at, to, [], [[1.2, XGRADE * 1.4], [2, XGRADE * 2]], 350);
+    const path: Pt[] = rt.ok ? rt.line : [at, to];
+    const km = lineLen(path) * CELL_KM;
+    const s: Seg = { id: `xc:${segs.length}`, kind: 'connector', mass: p.mass, path, km: Math.round(km * 100) / 100, built: ic.year, cls: [[ic.year, 'highway']], surface: [[ic.year, 'paved']], lanes: [[ic.year, 2]], number: [[ic.year, null]], crossings: [], structures: [], maxGrade: Math.round((Math.abs(G.height(to[0], to[1]) - G.height(at[0], at[1])) / (d * 1000)) * 10000) / 10000 };
     segs.push(s); connectorFor.set(pid, s);
     const cells = [j.cell, p.cell];
-    links.push({ id: s.id, cls: 'county', a: pid, b: null, cells, km: Math.max(0.1, Math.round(d * 10) / 10), cellKm: Math.max(0.01, Math.hypot(wrapDx((p.cell % W) - (j.cell % W)), Math.floor(p.cell / W) - Math.floor(j.cell / W)) * CELL_KM), built: ic.year, paved: ic.year, opened: ic.year });
+    links.push({ id: s.id, cls: 'county', a: pid, b: null, cells, km: Math.max(0.1, Math.round(km * 10) / 10), cellKm: Math.max(0.01, Math.hypot(wrapDx((p.cell % W) - (j.cell % W)), Math.floor(p.cell / W) - Math.floor(j.cell / W)) * CELL_KM), built: ic.year, paved: ic.year, opened: ic.year });
   }
 
   // ---- 10. the old roads' lives: realignments in the 1930s, bypasses round towns, widening, numbers, decommissioning
@@ -1476,6 +1535,25 @@ export function makeHighways(t: Terrain, h: Hydro, places: readonly Place[], roa
   // interchanges, toll plazas on the toll corridors
   const sites: Site[] = [];
   const site = (s: Omit<Site, 'id'>): void => { sites.push({ ...s, id: `s:${sites.length}` }); };
+  /** The point [m] metres to one side ([side] +1 right of the way, -1 left) of the line at [s] (cell units): a site's lot
+   * stands beside its road, not on it. Falls back to the other side, then the line, where the land is not open. */
+  const beside = (l: readonly Pt[], cum: Float64Array, s: number, side: number, m: number): Pt => {
+    const L = cum[cum.length - 1]!;
+    const a = pointAt(l, cum, Math.max(0, s - 0.1)).p, b = pointAt(l, cum, Math.min(L, s + 0.1)).p, at = pointAt(l, cum, s).p;
+    const [ux, uz] = unit(b[0] - a[0], b[1] - a[1]);
+    for (const sd of [side, -side]) { const q: Pt = [at[0] - uz * sd * (m / CELL_M), at[1] + ux * sd * (m / CELL_M)]; if (G.open(q[0], q[1], 300)) return q; }
+    return at;
+  };
+  /** A site at an interchange: in one of the quadrants beside the expressway, [m] metres out, along its way and off it
+   * (the strip of motels and truck stops round an exit). */
+  const atExit = (ic: Interchange, quad: number, m: number): Pt => {
+    const near = xNearKm(ic.x, ic.z, 0.6);
+    if (!near) return [ic.x, ic.z];
+    const q = nearestOn(near.line.line, near.line.cum, [ic.x, ic.z]);
+    const along = (quad & 1 ? 1 : -1) * (m * 0.7) / CELL_M;
+    const s = Math.max(0, Math.min(near.line.cum[near.line.cum.length - 1]!, q.s + along));
+    return beside(near.line.line, near.line.cum, s, quad & 2 ? 1 : -1, m * 0.7);
+  };
   for (const c of corridors) {
     if (!c.route) continue;
     let run = 0, nextRest = 30 + hr('rest0', c.id) * 40, nextWeigh = 60 + hr('weigh0', c.id) * 80;
@@ -1485,14 +1563,19 @@ export function makeHighways(t: Terrain, h: Hydro, places: readonly Place[], roa
       const L = x.cum[x.cum.length - 1]! * CELL_KM;
       for (let s = 0; s < L; s += 1) {
         run += 1;
-        const at = pointAt(x.line, x.cum, s / CELL_KM).p;
-        if (run >= nextRest && G.open(at[0], at[1], 600)) {
+        const on = pointAt(x.line, x.cum, s / CELL_KM).p;
+        // (the site's lot beside the carriageway, the side by the corridor and the km: a rest area 110 m off, a weigh
+        // station 80 m)
+        const sd = hr('side', c.id, run) < 0.5 ? 1 : -1;
+        if (run >= nextRest && G.open(on[0], on[1], 600)) {
+          const at = beside(x.line, x.cum, s / CELL_KM, sd, 110);
           const y = x.year + 1 + Math.floor(hr('resty', c.id, run) * 4);
           const to = hr('restc', c.id, run) < 0.2 ? 2003 + Math.floor(hr('restcy', c.id, run) * 13) : undefined;
           site({ kind: 'rest area', x: wrapX(at[0]), z: at[1], mass: c.mass, from: y, ...(to ? { to } : {}), seg: segOfLine.get(x.id)![0]!.id, models: !to || to > 1975 ? [{ from: Math.max(y, 1975), ...(to ? { to } : {}), id: 'landmark_glb_highway_rest_area' }] : [] });
           nextRest = run + 60 + hr('rest', c.id, run) * 35;
         }
-        if (run >= nextWeigh && G.open(at[0], at[1], 600)) {
+        if (run >= nextWeigh && G.open(on[0], on[1], 600)) {
+          const at = beside(x.line, x.cum, s / CELL_KM, sd, 80);
           site({ kind: 'weigh station', x: wrapX(at[0]), z: at[1], mass: c.mass, from: Math.max(x.year, 1962) + Math.floor(hr('weighy', c.id, run) * 7), seg: segOfLine.get(x.id)![0]!.id, models: [] });
           nextWeigh = run + 150 + hr('weigh', c.id, run) * 70;
         }
@@ -1502,6 +1585,7 @@ export function makeHighways(t: Terrain, h: Hydro, places: readonly Place[], roa
       const x = xlines.find((q) => q.edge === ei);
       if (!x) continue;
       const at = pointAt(x.line, x.cum, Math.min(x.cum[x.cum.length - 1]! / 2, 3 / CELL_KM)).p;
+      // (a toll plaza stands across its carriageway: on the line)
       const to = hr('tollc', c.id, ei) < 0.4 ? 1985 + Math.floor(hr('tolly', c.id, ei) * 26) : undefined;
       if (!sites.some((q) => q.kind === 'toll plaza' && distKm(q.x, q.z, at[0], at[1]) < 1)) site({ kind: 'toll plaza', x: wrapX(at[0]), z: at[1], mass: c.mass, from: x.year, ...(to ? { to } : {}), seg: segOfLine.get(x.id)![0]!.id, models: [] });
     }
@@ -1515,10 +1599,11 @@ export function makeHighways(t: Terrain, h: Hydro, places: readonly Place[], roa
     if (r1 < (highway ? 0.45 : 0.2)) {
       const y = ic.year + 1 + Math.floor(hr('trucky', ic.id) * 5);
       const models = [{ from: Math.max(y, 1960), to: 1989, id: 'landmark_glb_truck_stop_1960' }, { from: Math.max(y, 1990), id: 'landmark_glb_truck_stop_1990' }].filter((m) => m.to === undefined || m.from <= m.to);
-      site({ kind: 'truck stop', x: ic.x, z: ic.z, mass: ic.mass, from: y, interchange: ic.id, models });
+      const q = atExit(ic, 0, 380);
+      site({ kind: 'truck stop', x: wrapX(q[0]), z: q[1], mass: ic.mass, from: y, interchange: ic.id, models });
     }
-    if (r2 < 0.45) { const y = ic.year + 1 + Math.floor(hr('motely', ic.id) * 4); const to = hr('motelc', ic.id) < 0.3 ? 1985 + Math.floor(hr('motelcy', ic.id) * 28) : undefined; site({ kind: 'motel', x: ic.x, z: ic.z, mass: ic.mass, from: y, ...(to ? { to } : {}), interchange: ic.id, models: [] }); }
-    if (r3 < 0.3) { const y = ic.year + Math.floor(hr('dinery', ic.id) * 6); site({ kind: 'diner', x: ic.x, z: ic.z, mass: ic.mass, from: y, interchange: ic.id, models: [] }); }
+    if (r2 < 0.45) { const y = ic.year + 1 + Math.floor(hr('motely', ic.id) * 4); const to = hr('motelc', ic.id) < 0.3 ? 1985 + Math.floor(hr('motelcy', ic.id) * 28) : undefined; const q = atExit(ic, 3, 260); site({ kind: 'motel', x: wrapX(q[0]), z: q[1], mass: ic.mass, from: y, ...(to ? { to } : {}), interchange: ic.id, models: [] }); }
+    if (r3 < 0.3) { const y = ic.year + Math.floor(hr('dinery', ic.id) * 6); const q = atExit(ic, 1, 220); site({ kind: 'diner', x: wrapX(q[0]), z: q[1], mass: ic.mass, from: y, interchange: ic.id, models: [] }); }
   }
 
   for (const ic of interchanges) stats.interchanges[ic.kind] = (stats.interchanges[ic.kind] ?? 0) + 1;

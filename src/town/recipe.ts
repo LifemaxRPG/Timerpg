@@ -25,7 +25,12 @@ export type Side = 'N' | 'S' | 'E' | 'W';
 
 /** A road or railroad coming in: the side of the town's ground (plan frame) it crosses and where along it (plan tiles: x
  * on N and S, y on E and W, in the plan's own coordinates; the ground's edge is RING tiles past the plan). */
-export interface RecipeEntry { kind: 'highway' | 'county' | 'rail'; side: Side; at: number; road: string }
+export interface RecipeEntry {
+  /** An expressway is limited access: it crosses the town's ground (its fields) but no town road joins it there. */
+  kind: 'expressway' | 'highway' | 'county' | 'local' | 'rail'; side: Side; at: number; road: string;
+  /** The year the road was built (Highways v2: a track before), and its route number in the bake year. */
+  year?: number; number?: string;
+}
 
 export interface TownRecipe {
   seed: string;

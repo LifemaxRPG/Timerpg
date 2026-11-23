@@ -17,6 +17,7 @@ import type { Paths } from '../../src/world/gen/paths';
 import type { Place } from '../../src/world/gen/places';
 import type { ArchetypeId } from '../../src/sim/archetype';
 import { hashStr, hashU } from '../../src/world/gen/noise';
+import { segAt } from '../../src/world/gen/highways';
 import { PEOPLE, SIZE, type RecipeEntry, type Side, type TownRank, type TownRecipe } from '../../src/town/recipe';
 import { RING } from '../../src/town/farms';
 import type { TownPlan } from '../../src/town/plan';
@@ -28,7 +29,22 @@ const KEEP_M = 9000;
 /** The height grid's half width round a place (cells). */
 const GRID_R = 4;
 
-export interface Poly { kind: 'highway' | 'county' | 'rail' | 'river'; id: string; /** river order, road built year */ n: number; pts: [number, number][] }
+/** A line near the place (m from its point). Roads are Highways v2 segments (src/world/gen/highways.ts): [kind] their class
+ * in the bake year (an expressway, beltway or radial is 'expressway'; a connector a 'highway'), [n] the year built,
+ * [gone] abandoned from, [seg] the segment's kind, [number] its route number then. */
+export interface Poly {
+  kind: 'expressway' | 'highway' | 'county' | 'local' | 'rail' | 'river'; id: string; /** river order, road built year */ n: number; pts: [number, number][];
+  gone?: number; seg?: string; number?: string | null; /** a road's class by year ([year, class] steps) */ cls?: [number, string][];
+}
+/** The year the town is baked at (its roads as they are then; the town's own layout runs by year inside it). */
+export const BAKE_YEAR = 2025;
+/** The highways' facts for a town (highways.ts TownRoads) and the interchanges and roadside sites on its ground. */
+export interface SiteRoads {
+  mainStreet?: string;
+  bypassed?: { year: number; by: string; seg: string };
+  interchange?: { id: string; year: number; km: number; type: string; at: [number, number] };
+  sites: { id: string; kind: string; from: number; to?: number; at: [number, number]; models: { from: number; to?: number; id: string }[] }[];
+}
 
 export interface Site {
   world: string;
@@ -43,6 +59,8 @@ export interface Site {
   /** The nearest bigger place (a hub or major town) within 40 km, for the county seat. */
   seatRival: boolean;
   polys: Poly[];
+  /** Highways v2 at the place: its bypass, its interchange, the roadside sites near it. */
+  roads?: SiteRoads;
   /** Cells round the place (2 GRID_R + 1 square, the place's cell in the middle): height (m), land (1/0), lake (1/0). */
   grid: { r: number; elev: number[]; land: number[]; lake: number[] };
 }
@@ -79,9 +97,21 @@ export function sitesOf(w: World, paths: Paths): Site[] {
     raws.push({ kind, id, n, pts, bx0, bx1, bz0, bz1 });
   };
   paths.rivers.forEach((pts, k) => add('river', `river:${w.hydro.rivers[k]!.id}`, w.hydro.rivers[k]!.order, pts));
-  paths.roads.forEach((pts, k) => add(w.roads[k]!.cls, w.roads[k]!.id, w.roads[k]!.built, pts));
+  // the roads: Highways v2's segments as they stand in the bake year (abandoned ones left out; the old network's roads
+  // are pieces of these)
+  void paths.roads;
+  const segRaw = new Map<Raw, Poly>();
+  for (const sg of w.highways.segs) {
+    const st = segAt(sg, BAKE_YEAR);
+    if (!st || st.cls === 'abandoned' || st.cls === 'track') continue;
+    const kind: Poly['kind'] = st.cls === 'expressway' ? 'expressway' : st.cls === 'highway' ? 'highway' : st.cls === 'county' ? 'county' : 'local';
+    add(kind, sg.id, sg.built, sg.path.map(([x, z]) => [x, z] as [number, number]));
+    const r = raws[raws.length - 1]!;
+    segRaw.set(r, { kind, id: sg.id, n: sg.built, pts: [], ...(sg.gone ? { gone: sg.gone } : {}), seg: sg.kind, number: st.number, cls: sg.cls.map(([y, c]) => [y, c]) });
+  }
   paths.rail.forEach((pts, k) => add('rail', w.rail.lines[k]!.id, 0, pts));
   const keepC = KEEP_M / CELL_M;
+  const icById = new Map(w.highways.interchanges.map((q) => [q.id, q]));
   const big = w.places.filter((q) => q.kind === 'hub' || q.rank === 'major');
   const out: Site[] = [];
   for (const p of w.places) {
@@ -101,7 +131,8 @@ export function sitesOf(w: World, paths: Paths): Site[] {
         if (bd > KEEP_M) continue;
         a = best - 1; b = best;
       }
-      polys.push({ kind: r.kind, id: r.id, n: r.n, pts: pts.slice(Math.max(0, a - 1), Math.min(pts.length, b + 2)) });
+      const extra = segRaw.get(r);
+      polys.push({ ...(extra ?? {}), kind: r.kind, id: r.id, n: r.n, pts: pts.slice(Math.max(0, a - 1), Math.min(pts.length, b + 2)) });
     }
     const i0 = p.cell % GRID_W, j0 = Math.floor(p.cell / GRID_W);
     const elev: number[] = [], land: number[] = [], lake: number[] = [];
@@ -109,12 +140,23 @@ export function sitesOf(w: World, paths: Paths): Site[] {
       const c = Math.max(0, Math.min(w.terrain.elev.length / GRID_W - 1, j)) * GRID_W + (((i % GRID_W) + GRID_W) % GRID_W);
       elev.push(Math.round(w.terrain.elev[c]!)); land.push(w.terrain.land[c]!); lake.push(w.hydro.lake[c]! > 0 ? 1 : 0);
     }
+    // the highways' facts for it, its interchange and the roadside sites within 4 km
+    const tr = w.highways.towns.get(p.id);
+    const rel = (x: number, z: number): [number, number] => [Math.round(wrapDx(x - p.x) * CELL_M), Math.round((z - p.z) * CELL_M)];
+    const ic = tr?.interchange ? icById.get(tr.interchange) : undefined;
+    const roadsAt: SiteRoads = {
+      ...(tr?.mainStreet ? { mainStreet: tr.mainStreet } : {}),
+      ...(tr?.bypassed ? { bypassed: { year: tr.bypassed.year, by: tr.bypassed.by, seg: tr.bypassed.seg } } : {}),
+      ...(ic ? { interchange: { id: ic.id, year: tr!.interchangeYear ?? ic.year, km: tr!.interchangeKm ?? 0, type: ic.type, at: rel(ic.x, ic.z) } } : {}),
+      sites: w.highways.sites.filter((q) => Math.hypot(wrapDx(q.x - p.x), q.z - p.z) * CELL_M < 4000)
+        .map((q) => ({ id: q.id, kind: q.kind, from: q.from, ...(q.to ? { to: q.to } : {}), at: rel(q.x, q.z), models: q.models })),
+    };
     const seatRival = big.some((q) => q !== p && Math.hypot(wrapDx(q.x - p.x), q.z - p.z) * CELL_M < 40000 && (q.kind === 'hub' || p.rank !== 'major'));
     out.push({
       world: w.seed,
       place: { id: p.id, kind: p.kind, type: p.type, rank: p.rank, ...(p.setting ? { setting: p.setting } : {}), ...(p.ore ? { ore: p.ore } : {}), name: p.name, seed: p.seed, founded: p.founded, coastal: p.coastal, mass: p.mass, x: p.x, z: p.z, cell: p.cell },
       region: { mass: p.mass, biome: BIOMES[w.biome[p.cell]!] ?? '?', koppen: KOPPEN[w.climate.koppen[p.cell]!] ?? '?', tags: w.tags.get(p.id) ?? [] },
-      station: stations.has(p.id), seatRival, polys, grid: { r: GRID_R, elev, land, lake },
+      station: stations.has(p.id), seatRival, polys, roads: roadsAt, grid: { r: GRID_R, elev, land, lake },
     });
   }
   return out;
@@ -351,6 +393,7 @@ export function segHitsRect(a: [number, number], b: [number, number], x0: number
 }
 
 /** Where the world's roads and rail lines cross the town's ground's edge (plan tiles along that side), one entry per crossing. */
+const RANK: Record<string, number> = { local: 0, county: 1, highway: 2, expressway: 3, rail: -1 };
 export function entriesOf(s: Site, plan: TownPlan, f: Frame): RecipeEntry[] {
   const g = groundOf(plan);
   const out: RecipeEntry[] = [];
@@ -365,7 +408,10 @@ export function entriesOf(s: Site, plan: TownPlan, f: Frame): RecipeEntry[] {
       if (ia && ib) continue;
       for (const h of hits) {
         if (out.some((e) => e.road === r.id && e.side === h.side && Math.abs(e.at - h.at) < 15)) continue;
-        out.push({ kind: r.kind === 'rail' ? 'rail' : r.kind, side: h.side, at: Math.round(h.at * 10) / 10, road: r.id });
+        // (two pieces of one road meeting at the edge, or a road and its business route, are one way in: the higher class kept)
+        const twin = r.kind !== 'rail' ? out.find((e) => e.kind !== 'rail' && e.side === h.side && Math.abs(e.at - h.at) < 20) : undefined;
+        if (twin) { if (RANK[r.kind]! > RANK[twin.kind]!) Object.assign(twin, { kind: r.kind, road: r.id, year: r.n, ...(r.number ? { number: r.number } : {}) }); continue; }
+        out.push({ kind: r.kind, side: h.side, at: Math.round(h.at * 10) / 10, road: r.id, year: r.n, ...(r.number ? { number: r.number } : {}) });
       }
     }
   }

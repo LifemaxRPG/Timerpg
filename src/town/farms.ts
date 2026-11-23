@@ -224,7 +224,7 @@ export function planFarms(plan: TownPlan): FarmPlan {
   // a world place's roads in: each meets a country road at the farmland's edge (its own, or one laid from the section road)
   const entries: FarmPlan['entries'] = [];
   for (const [k, e] of (recipeOf(seed)?.entries ?? []).entries()) {
-    if (e.kind === 'rail') continue;
+    if (e.kind === 'rail' || e.kind === 'expressway') continue;
     const horiz = e.side === 'N' || e.side === 'S';
     const near = roads.filter((r) => r.kind === 'spoke' && r.side === e.side).map((r) => ({ r, at: horiz ? r.b[0] : r.b[1] }))
       .sort((a, b) => Math.abs(a.at - e.at) - Math.abs(b.at - e.at))[0];
