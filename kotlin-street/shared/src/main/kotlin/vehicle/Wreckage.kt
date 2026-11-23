@@ -1,5 +1,6 @@
 package com.lifemax.rpg.feature.habits.vehicle
 
+import com.lifemax.rpg.feature.habits.domain.FarmSolids
 import com.lifemax.rpg.feature.habits.domain.PropKind
 import com.lifemax.rpg.feature.habits.domain.SolidKind
 import com.lifemax.rpg.feature.habits.domain.TownCollision
@@ -44,8 +45,8 @@ class WreckMaterial(
 
         /**
          * The material of a town shape by its kind and [TownCollision.detail] (a yard item's "kind/variant/zone", "lamp",
-         * a [PropKind]'s name...). Unknown things are solid: only what the renderer can take away breaks (a store's
-         * fences and the cinema's rails stay solid until their sites can be drawn broken).
+         * a [PropKind]'s name, the farms' fences' [FarmSolids.DETAIL]...). Unknown things are solid: only what the renderer
+         * can take away breaks (a store's fences and the cinema's rails stay solid until their sites can be drawn broken).
          */
         fun of(kind: SolidKind, detail: String?): WreckMaterial {
             val d = detail ?: return SOLID
@@ -54,17 +55,21 @@ class WreckMaterial(
             val zone = d.substringAfterLast('/', "")
             return when (kind) {
                 SolidKind.FENCE -> when (k) {
-                    // (the impulses: a 1,700 kg car breaks a picket fence from 2 m/s, a 1,000 kg sports car from 3.4 m/s)
-                    "frontFence" -> WreckMaterial(Give.BREAK, 3400f, 11f, .85f, .05f, panel = 40f / U, name = "picket fence")
-                    "sideFence" -> WreckMaterial(Give.BREAK, 3800f, 16f, 1.17f, .06f, panel = 48f / U, name = "board fence")
+                    // (the impulses: wooden fences give from 2,700-3,000 N s: the 976 kg Torrel goes through a picket or a
+                    // board fence from 2.9-3.1 m/s (6.5-7 mph), the 1,685 kg sedan from 1.7-1.8 m/s; the heaviest car,
+                    // 1,780 kg, nudging at 1.4 m/s is still stopped)
+                    "frontFence" -> WreckMaterial(Give.BREAK, 2800f, 11f, .85f, .05f, panel = 40f / U, name = "picket fence")
+                    "sideFence" -> WreckMaterial(Give.BREAK, 3000f, 16f, 1.17f, .06f, panel = 48f / U, name = "board fence")
                     "backFence" -> when (v % 3) {
-                        0 -> WreckMaterial(Give.BREAK, 3800f, 15f, 1.3f, .06f, panel = 48f / U, name = "lap fence")
-                        1 -> WreckMaterial(Give.BREAK, 3800f, 17f, 1.36f, .06f, panel = 48f / U, name = "board fence")
+                        0 -> WreckMaterial(Give.BREAK, 3000f, 15f, 1.3f, .06f, panel = 48f / U, name = "lap fence")
+                        1 -> WreckMaterial(Give.BREAK, 3000f, 17f, 1.36f, .06f, panel = 48f / U, name = "board fence")
                         // (a chain-link fence's posts bend and its wire tears: heavier going)
-                        else -> WreckMaterial(Give.BREAK, 4400f, 9f, 1.18f, .1f, panel = 50f / U, name = "chain-link fence")
+                        else -> WreckMaterial(Give.BREAK, 3800f, 9f, 1.18f, .1f, panel = 50f / U, name = "chain-link fence")
                     }
-                    "postRail" -> WreckMaterial(Give.BREAK, 3200f, 9f, .8f, .04f, panel = 40f / U, name = "post-and-rail fence")
-                    "gate", "sideGate" -> WreckMaterial(Give.BREAK, 3400f, 22f, 1.1f, .05f, name = "garden gate")
+                    "postRail" -> WreckMaterial(Give.BREAK, 2700f, 9f, .8f, .04f, panel = 40f / U, name = "post-and-rail fence")
+                    "gate", "sideGate" -> WreckMaterial(Give.BREAK, 2700f, 22f, 1.1f, .05f, name = "garden gate")
+                    // a farm field's post-and-rail fence (posts every 92 units, two rails: it breaks between posts and halfway)
+                    FarmSolids.DETAIL -> WreckMaterial(Give.BREAK, 2700f, 8f, 1.32f, .04f, panel = 46f / U, name = "farm fence")
                     else -> SOLID
                 }
                 // a hedge gives way with a gap torn through it, slowing the car more than boards
@@ -79,6 +84,8 @@ class WreckMaterial(
                     "grill" -> WreckMaterial(Give.BREAK, 1600f, 25f, 1f, .01f, name = "grill")
                     "birdbath" -> WreckMaterial(Give.BREAK, 2600f, 35f, .9f, .02f, name = "birdbath")
                     "planter" -> WreckMaterial(Give.BREAK, 2400f, 40f, .6f, .02f, name = "planter")
+                    // a raised vegetable bed: its boards burst and the car ploughs through the soil, a stretch at a time
+                    "vegBed" -> WreckMaterial(Give.BREAK, 2200f, 30f, .35f, .12f, panel = 26f / U, name = "raised bed")
                     "doghouse" -> WreckMaterial(Give.BREAK, 2200f, 30f, .9f, .03f, name = "doghouse")
                     "pallets" -> WreckMaterial(Give.BREAK, 1800f, 25f, .5f, .02f, name = "pallets")
                     "compost" -> WreckMaterial(Give.BREAK, 2000f, 25f, .9f, .03f, name = "compost bin")
@@ -180,6 +187,9 @@ class Wreckage internal constructor(private val vw: VehicleWorld) {
         /** The layer the yard item was in (an edge, an object). */
         val layer: String = "object",
     ) {
+        /** The same look put down ([dx], [dz]) street units further on. */
+        fun movedBy(dx: Float, dz: Float) = Look(source, kind, variant, zone, faceX, faceZ, rect, srcX, srcZ, spawnX + dx, spawnZ + dz, q0, hy, layer)
+
         /** A key for meshes that look the same (one built for all the panels of a fence). */
         val key: String = if (source == "yard") "$kind/$variant/$zone/${rect!![2] - rect[0]}/${rect[3] - rect[1]}/$faceX/$faceZ" else "$source/$kind/$srcX/$srcZ"
     }
@@ -196,6 +206,13 @@ class Wreckage internal constructor(private val vw: VehicleWorld) {
     /** Street things taken away (lamps, benches, the props by PropRules): where (street units) and what (the shape's detail). */
     class Hidden(val x: Float, val z: Float, val detail: String)
     val hidden = java.util.concurrent.CopyOnWriteArrayList<Hidden>()
+
+    /**
+     * Stretches of fences drawn by others than the yards (the farms' fields) broken out: x0, z0, x1, z1 (street units, along
+     * the fence's line), for their renderer to leave out; [cutsVersion] counts them.
+     */
+    val cuts = java.util.concurrent.CopyOnWriteArrayList<FloatArray>()
+    @Volatile var cutsVersion = 0; private set
 
     /** Everything broken this session. */
     val events = java.util.concurrent.CopyOnWriteArrayList<DamageEvent>()
@@ -288,10 +305,14 @@ class Wreckage internal constructor(private val vw: VehicleWorld) {
         val speed = hypot(vx, vz)
         val cx = b[o + Breaks.X] * U; val cz = b[o + Breaks.Z] * U
         val made = ArrayList<Piece>()
-        val ok = when {
-            s.owner != null && isYard(s.owner) -> breakYard(s, m, b, o, made, simT)
-            else -> breakProp(s, m, b, o, made, simT)
-        }
+        breaker = car
+        val ok = try {
+            when {
+                s.owner != null && isYard(s.owner) -> breakYard(s, m, b, o, made, simT)
+                s.kind == SolidKind.FENCE && s.detail == FarmSolids.DETAIL -> breakRun(s, m, b, o, made, simT)
+                else -> breakProp(s, m, b, o, made, simT)
+            }
+        } finally { breaker = null }
         if (!ok) return false
         vw.dropStreamed(s.handle)
         // the car loses the momentum the pieces took, and what breaking them cost
@@ -311,6 +332,9 @@ class Wreckage internal constructor(private val vw: VehicleWorld) {
         vw.onEvent?.invoke(e.toString())
         return true
     }
+
+    /** The car whose break is being handled: no piece is put down inside it ([clearOfCar]). */
+    private var breaker: VehicleWorld.Car? = null
 
     /** The spawn velocities of the pieces made by the break being handled (x, z), for the car's momentum. */
     private val pendingV = HashMap<Int, FloatArray>()
@@ -380,6 +404,37 @@ class Wreckage internal constructor(private val vw: VehicleWorld) {
         return true
     }
 
+    /**
+     * A fence run drawn by others than the yards (a farm field's post-and-rail fence, [FarmSolids.DETAIL]): split like a
+     * yard's fence ([splitEdge]) as a post-and-rail; the walk's map loses the run (out of the farms' set of shapes, or a
+     * remnant's) and gets what is left either side back, still breakable; the broken stretch goes into [cuts] for the
+     * farms' drawing to leave out. Runs are along x or z.
+     */
+    private fun breakRun(s: VehicleWorld.Streamed, m: WreckMaterial, b: FloatArray, o: Int, made: MutableList<Piece>, simT: Float): Boolean {
+        if (s.circle) return false
+        val c = col ?: return false
+        val d = s.data
+        val alongX = abs(d[2]) > .999f
+        if (!alongX && abs(d[3]) <= .999f) return false
+        val hx = if (alongX) d[4] else d[5]; val hz = if (alongX) d[5] else d[4]
+        val rect = floatArrayOf(d[0] - hx, d[1] - hz, d[0] + hx, d[1] + hz)
+        val run = TownYardItem("postRail", rect, if (alongX) 0f else 1f, if (alongX) 1f else 0f, 1, "edge", "back", null)
+        val stretch = FloatArray(2)
+        val rem = splitEdge(run, m, b, o, made, simT, stretch) ?: return false
+        if (!c.removeExtraBox(d)) remnants.remove(s.key)?.let { c.setExtra(it, null) }
+        for (r in rem) {
+            val key = "broken:" + nextRemnant++
+            val rr = r.rect
+            val box = floatArrayOf((rr[0] + rr[2]) / 2f, (rr[1] + rr[3]) / 2f, if (alongX) 1f else 0f, if (alongX) 0f else 1f,
+                (if (alongX) rr[2] - rr[0] else rr[3] - rr[1]) / 2f, (if (alongX) rr[3] - rr[1] else rr[2] - rr[0]) / 2f)
+            c.setExtra(key, box, s.kind, s.owner, s.detail)
+            remnants[VehicleWorld.keyOf(box, s.kind)] = key
+        }
+        cuts += if (alongX) floatArrayOf(stretch[0], d[1], stretch[1], d[1]) else floatArrayOf(d[0], stretch[0], d[0], stretch[1])
+        cutsVersion++
+        return true
+    }
+
     /** Takes the shape out of the walk's map (a shape of the map's own, or a remnant added since). */
     private fun takeOut(s: VehicleWorld.Streamed) {
         val c = col ?: return
@@ -392,7 +447,8 @@ class Wreckage internal constructor(private val vw: VehicleWorld) {
      * the car's width of the contact (wider for a glancing hit) become loose pieces; returns what is left standing either
      * side as items of the same kind (none, one or two), or null if it cannot be split.
      */
-    private fun splitEdge(it: TownYardItem, m: WreckMaterial, b: FloatArray, o: Int, made: MutableList<Piece>, simT: Float): List<TownYardItem>? {
+    private fun splitEdge(it: TownYardItem, m: WreckMaterial, b: FloatArray, o: Int, made: MutableList<Piece>, simT: Float,
+                          stretch: FloatArray? = null): List<TownYardItem>? {
         val r = it.rect
         val alongX = r[2] - r[0] >= r[3] - r[1]
         val a0 = if (alongX) r[0] else r[1]; val a1 = if (alongX) r[2] else r[3]
@@ -400,7 +456,6 @@ class Wreckage internal constructor(private val vw: VehicleWorld) {
         val len = a1 - a0
         if (len <= 0f) return null
         val px = b[o + Breaks.X] * U; val pz = b[o + Breaks.Z] * U
-        val t = (if (alongX) px else pz).coerceIn(a0, a1)
         val vx = b[o + Breaks.VX]; val vz = b[o + Breaks.VZ]
         val sp = hypot(vx, vz).coerceAtLeast(1e-3f)
         // the car's half width over the sine of the angle it meets the fence at (a glancing hit tears a longer stretch)
@@ -408,6 +463,15 @@ class Wreckage internal constructor(private val vw: VehicleWorld) {
         val car = carOf(o)
         val halfW = (car?.spec?.footprint?.get(1) ?: .9f) + .45f
         val hs = min(halfW / max(cross, .4f), 4.5f) * U
+        // where the car's middle crosses the fence's line (the contact may be its corner: the gap is torn round the car,
+        // not round the corner, and nothing is left standing across its way), no further from the contact than that
+        val c = (c0 + c1) / 2f
+        val tc = if (car == null) Float.NaN else {
+            val mx = car.x + car.fx * car.spec.footprint[2] * U; val mz = car.z + car.fz * car.spec.footprint[2] * U
+            if (alongX) (if (abs(vz) > .3f) mx + vx / vz * (c - mz) else mx) else (if (abs(vx) > .3f) mz + vz / vx * (c - mx) else mz)
+        }
+        val tp = if (alongX) px else pz
+        val t = (if (tc.isNaN()) tp else tc.coerceIn(tp - hs, tp + hs)).coerceIn(a0, a1)
         val pan = m.panel * U
         var k0 = floor((t - hs - a0) / pan); var k1 = ceil((t + hs - a0) / pan)
         k0 = max(0f, k0); k1 = min(ceil(len / pan), k1)
@@ -416,6 +480,7 @@ class Wreckage internal constructor(private val vw: VehicleWorld) {
         if (s0 - a0 < pan * .4f) s0 = a0
         if (a1 - s1 < pan * .4f) s1 = a1
         if (s1 <= s0) return null
+        stretch?.let { it[0] = s0; it[1] = s1 }
         val n = max(1, Math.round((s1 - s0) / pan))
         val each = (s1 - s0) / n
         val rnd = java.util.Random(((t * 31f).toLong() xor simT.toBits().toLong()) * 1103515245L)
@@ -430,7 +495,9 @@ class Wreckage internal constructor(private val vw: VehicleWorld) {
             val f = if (inPath) 1.06f + rnd.nextFloat() * .12f else .35f + rnd.nextFloat() * .25f
             val look = Look("yard", it.kind, it.variant, it.zone, it.faceX, it.faceZ,
                 floatArrayOf(rect[0] - cxm, rect[1] - czm, rect[2] - cxm, rect[3] - czm), 0f, 0f, cxm, czm, quatYaw(yaw), m.height / 2f * U, it.layer)
-            val thick = max(.03f, (c1 - c0) / 2f / U)
+            // (a fence's panel is its boards' thickness, not its posts': lying flat it is a few centimetres, under any
+            // car's sills; a hedge's clump or a raised bed's stretch is as deep as it stood)
+            val thick = if (it.kind in BOARDS) PANEL_HALF else max(.03f, (c1 - c0) / 2f / U)
             spawn(look, cxm / U, czm / U, each / 2f / U, m.height / 2f, thick, yaw, m.mass * each / U, vx * f, vz * f, if (inPath) 1.4f else .5f, rnd, made, simT)
         }
         val out = ArrayList<TownYardItem>(2)
@@ -454,7 +521,10 @@ class Wreckage internal constructor(private val vw: VehicleWorld) {
         val vx = b[o + Breaks.VX]; val vz = b[o + Breaks.VZ]
         if (m.give == Give.BEND) { bend(look, cx / U, cz / U, max(.08f, min(hx, hz) * .5f), m, vx, vz, rnd, made, simT); return }
         val f = 1.05f + rnd.nextFloat() * .15f
-        spawn(look, cx / U, cz / U, max(.05f, hx), m.height / 2f, max(.05f, hz), 0f, m.mass, vx * f, vz * f, if (asPanel) .8f else 1.2f, rnd, made, simT)
+        // (a gate's leaf is its boards' or rails' thickness across its short side)
+        val thin = if (asPanel) PANEL_HALF else .05f
+        spawn(look, cx / U, cz / U, if (asPanel && hx < hz) thin else max(.05f, hx), m.height / 2f, if (asPanel && hz <= hx) thin else max(.05f, hz),
+            0f, m.mass, vx * f, vz * f, if (asPanel) .8f else 1.2f, rnd, made, simT)
     }
 
     /** A street thing (a lamp, a bench, a sign, a bin...) broken or snapped off. */
@@ -498,19 +568,22 @@ class Wreckage internal constructor(private val vw: VehicleWorld) {
                          vx: Float, vy: Float, vz: Float, ax: Float, ay: Float, az: Float, made: MutableList<Piece>, simT: Float) {
         if (slotCount >= liveCap.coerceIn(1, LIVE)) freezeOldest()
         val d = dd
-        d[0] = x; d[1] = y; d[2] = z; d[3] = hx; d[4] = hy; d[5] = hz
+        // (never inside the car that broke it: moved out of its body the shortest way, if that is short)
+        val yaw = 2f * atan2(q[1], q[3])
+        val out = clearOfCar(x, z, hx, hz, yaw)
+        d[0] = x + out[0]; d[1] = y; d[2] = z + out[1]; d[3] = hx; d[4] = hy; d[5] = hz
         d[6] = q[0]; d[7] = q[1]; d[8] = q[2]; d[9] = q[3]
         d[10] = mass; d[11] = vx; d[12] = vy; d[13] = vz; d[14] = ax; d[15] = ay; d[16] = az; d[17] = .7f
         val h = physics.addDebris(d)
         if (h < 0) return
-        val p = Piece(nextId++, look, hx, hy, hz, mass, simT)
+        val p = Piece(nextId++, if (out[0] == 0f && out[1] == 0f) look else look.movedBy(out[0] * U, out[1] * U), hx, hy, hz, mass, simT)
         p.handle = h
         p.slot = slotCount
         slots[slotCount] = p; handles[slotCount] = h
         val o = slotCount * Physics.POSE
-        now[o] = x; now[o + 1] = y; now[o + 2] = z; now[o + 3] = q[0]; now[o + 4] = q[1]; now[o + 5] = q[2]; now[o + 6] = q[3]; now[o + 7] = 1f
+        now[o] = d[0]; now[o + 1] = y; now[o + 2] = d[2]; now[o + 3] = q[0]; now[o + 4] = q[1]; now[o + 5] = q[2]; now[o + 6] = q[3]; now[o + 7] = 1f
         System.arraycopy(now, o, before, o, Physics.POSE)
-        synchronized(p) { p.drawn[0] = x * U; p.drawn[1] = y * U; p.drawn[2] = z * U; for (k in 0..3) p.drawn[3 + k] = q[k] }
+        synchronized(p) { p.drawn[0] = d[0] * U; p.drawn[1] = y * U; p.drawn[2] = d[2] * U; for (k in 0..3) p.drawn[3 + k] = q[k] }
         slotCount++
         liveCount++
         pendingV[p.id] = floatArrayOf(vx, vz)
@@ -519,6 +592,43 @@ class Wreckage internal constructor(private val vw: VehicleWorld) {
         // (past what is kept drawn, the oldest frozen ones go)
         if (pieces.size > KEPT) pieces.firstOrNull { it.frozen }?.let { gone -> gone.settledKey?.let { col?.setExtra(it, null) }; pieces.remove(gone) }
         piecesVersion++
+    }
+
+    private val clear = FloatArray(2)
+
+    /**
+     * How far (m: x, z) to move a piece of half extents [hx], [hz] (m) turned [yaw] at ([x], [z]) (m) on the ground so it
+     * is clear of the breaking car's body (where it will be after this step, with a margin): the shortest way out (the
+     * separating axis's), or nothing when it does not overlap or the way out is longer than [MAX_SHIFT_M] (a piece across
+     * the whole car: the physics lets it through, it never wedges).
+     */
+    private fun clearOfCar(x: Float, z: Float, hx: Float, hz: Float, yaw: Float): FloatArray {
+        clear[0] = 0f; clear[1] = 0f
+        val car = breaker ?: return clear
+        val fp = car.spec.footprint
+        val fx = car.fx; val fz = car.fz
+        val l = hypot(fx, fz).takeIf { it > 1e-4f } ?: return clear
+        val ax = fx / l; val az = fz / l
+        val st = car.now
+        val cx = car.x / U + ax * fp[2] + st[com.lifemax.rpg.feature.habits.physics.VehicleState.VX] * VehicleWorld.STEP
+        val cz = car.z / U + az * fp[2] + st[com.lifemax.rpg.feature.habits.physics.VehicleState.VZ] * VehicleWorld.STEP
+        val cl = fp[0] + CAR_MARGIN_M; val cw = fp[1] + CAR_MARGIN_M
+        // the piece's axes on the ground (its yaw about +y: its x is (cos, -sin))
+        val px = cos(yaw); val pz = -sin(yaw)
+        val dx = x - cx; val dz = z - cz
+        var best = Float.MAX_VALUE; var bx = 0f; var bz = 0f
+        for ((ux, uz) in arrayOf(ax to az, -az to ax, px to pz, -pz to px)) {
+            // the two boxes' half widths along (ux, uz) and the gap between their middles
+            val rc = cl * abs(ax * ux + az * uz) + cw * abs(-az * ux + ax * uz)
+            val rp = hx * abs(px * ux + pz * uz) + hz * abs(-pz * ux + px * uz)
+            val dist = dx * ux + dz * uz
+            val over = rc + rp - abs(dist)
+            if (over <= 0f) return clear
+            if (over < best) { best = over; val sg = if (dist >= 0f) 1f else -1f; bx = ux * sg * over; bz = uz * sg * over }
+        }
+        if (best > MAX_SHIFT_M) return clear
+        clear[0] = bx; clear[1] = bz
+        return clear
     }
 
     private fun freezeOldest() {
@@ -580,6 +690,13 @@ class Wreckage internal constructor(private val vw: VehicleWorld) {
         const val LIVE = 200
         /** At most this many drawn (frozen ones past it go, oldest first). */
         const val KEPT = 600
+        /** Half a fence panel's or a gate leaf's thickness (m): its boards'. */
+        const val PANEL_HALF = .035f
+        /** The edges whose broken stretches are thin panels. */
+        private val BOARDS = setOf("frontFence", "sideFence", "backFence", "postRail", "gate", "sideGate")
+        /** A piece is put down at least this clear of the breaking car's body (m), moved at most [MAX_SHIFT_M] to be. */
+        const val CAR_MARGIN_M = .06f
+        const val MAX_SHIFT_M = 1.2f
         /** A piece asleep this long (s) settles: it may stand in the walk's way. */
         const val SETTLE_S = .5f
 

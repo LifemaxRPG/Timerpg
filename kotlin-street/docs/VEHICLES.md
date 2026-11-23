@@ -262,13 +262,22 @@ able to do some destruction with our cars because it's annoying getting stuck on
 
 | Give | What | Breaks at (car mass x speed into it) |
 | --- | --- | --- |
-| **Break** into panels | picket (front) fences, board and lap fences, chain-link, post-and-rail, garden gates; hedges (a gap torn through them) | 2,600-4,400 N s: a 1,700 kg sedan goes through a picket fence from 2 m/s, the 1,000 kg Torrel from 3.4 m/s |
+| **Break** into panels | picket (front) fences, board and lap fences, chain-link, post-and-rail, garden gates, the farms' field fences; hedges (a gap torn through them); raised vegetable beds (a stretch at a time) | 2,200-3,800 N s (wooden fences 2,700-3,000): the 976 kg Torrel goes through a picket or board fence from about 3 m/s (7 mph), the 1,685 kg sedan from 1.7-1.8 m/s; the heaviest car (1,780 kg) nudging at 1.4 m/s is stopped |
 | **Break** whole | mailboxes, bins, chairs, tables, benches, grills, birdbaths, planters, doghouses, pallets, compost bins, trampolines; street benches, wheelie and litter bins, news boxes, the mail collection box, utility cabinets, cones | 150 N s (a cone) to 7,000 N s (a utility cabinet) |
 | **Bend** (snap at the foot, fall over) | street lamps, sign posts, parking meters, fire alarm posts, bike racks, young trees in guards, fruit trees, washing-line posts, hydrants | 2,600 N s (a sign) to 14,000 N s (a hydrant: about 8 m/s) |
 | **Soft** (drive through, slowed, it springs back) | bushes (the yards' and the woods') | always: a drag of 1.6/s while inside |
 | **Solid** | buildings, low brick and stone walls, bollards, big trees (yard, street and forest), the river's banks, bridge parapets, the world's edge, planters on the plaza, the fountain, store sites' and the cinema's fences (not drawable broken yet) | never |
 
-Below its impulse a breakable or bendable thing is as solid as a wall: a slow nudge stops the car, as in real life.
+Below its impulse a breakable or bendable thing is as solid as a wall: a slow nudge stops the car, as in real life. A car's
+approach speed counts at least half its speed over the ground, whichever way it meets the thing: a car catching a fence's
+end with its corner, or scraping along it, tears it rather than stopping dead.
+
+Every fence and hedge in the capital, by `DestructionTest.everyFenceInTheCapitalIsClassed` (gamma's yards and lanes, the
+farms' 490 field fence runs, the store lots, the cinema): picket fences (frontFence v0-2) 2,800 N s; board fences
+(sideFence v0-2, backFence v1) and lap fences (backFence v0) 3,000; chain-link (backFence v2) 3,800; post-and-rail
+(postRail v0-2) 2,700; garden gates and driveway gates (gate v0-2, sideGate v0-2 and v5-7) 2,700; the farms' fields'
+post-and-rail fences (`FarmSolids.DETAIL`, "farm fence") 2,700; hedges 2,600; raised beds 2,200. Only the cinema's three
+rails stay solid. (Up to 0.1.715 the farms' fences had no detail and stopped a car at any speed: the S25 report 163153.)
 
 **Physics** (`app/src/main/cpp/physics`):
 
@@ -281,6 +290,12 @@ Below its impulse a breakable or bendable thing is as solid as a wall: a slow nu
 - New layers: `DEBRIS` (loose pieces: they meet the statics, the cars' chassis and each other) and `WHEEL` (the wheels'
   ground casts: the statics and the cars, not the debris, so a wheel never climbs a fallen board and launches the car;
   the chassis pushes pieces, and a board lying flat passes under it).
+- **Debris never rides along with a car** (`Breaker::debrisOnCar`; the S25 report 163021: a driveway's pair of white
+  gates, spawned across the low Torrel's body, rode with it for a kilometre): a piece meeting a car is a sensor (the car
+  passes through it) when it lies lower than 0.3 m over the car's ground (the car rides over it), when the two overlap
+  deeper than 0.1 m (a piece inside the body, which pushing out would wedge), or once they have touched for 40 steps on
+  end (0.67 s: it is being pushed along or dragged), until they have been apart 3 steps; their friction is a car's paint
+  (0.15), so nothing is dragged along by it.
 - New calls (JNI kept small): `step` returns how many breaks wait; `setGive`, `takeBreaks` (one array), `addDebris` (one
   array of 18 floats: a dynamic box, its mass, velocity and spin; linear-cast, damped so it settles), `bodyPoses` (all
   live pieces in one call a step) and `addVehicleVelocity`.
@@ -288,9 +303,17 @@ Below its impulse a breakable or bendable thing is as solid as a wall: a slow nu
 **What happens at a break** (`Wreckage.onBreaks`, after the step that saw it):
 
 - The static is taken out of the physics, and loose pieces are put in its place with real masses: a fence's stretch
-  within the car's width (wider for a glancing hit, at most 9 m) becomes its panels, snapped to the fence's own bays
-  (1.9-2.4 m, 9-17 kg a metre); a hedge's gap becomes clumps; a bin or a bench is one piece; a lamp post is one tall
-  piece with its foot pushed on and its top tipping away from the car.
+  within the car's width (wider for a glancing hit, at most 9 m) round where the car's middle crosses the fence's line
+  (not round the contact, which may be its corner) becomes its panels, snapped to the fence's own bays (1.9-2.4 m, 9-17
+  kg a metre), each as thin as its boards (7 cm: lying flat it is under any car's sills); a hedge's gap becomes clumps; a
+  bin or a bench is one piece; a gate its leaf, as thin; a lamp post is one tall piece with its foot pushed on and its
+  top tipping away from the car. No piece is put down inside the car that broke it: it is moved out of the car's body
+  (where it will be after the step, 6 cm clear) the shortest way, up to 1.2 m; one across the whole car is left to the
+  physics, which lets it through.
+- **The farms' fences** (`Wreckage.breakRun`): a field's run is split like a yard's post-and-rail (bays of 46 units, half
+  the posts' spacing), the run taken out of the farms' set of shapes in the walk's map (`TownCollision.removeExtraBox`)
+  and what is left either side put back, still breakable; the broken stretch goes into `Wreckage.cuts`, and `TownFarms`
+  builds that farm's fences again (their own batch) without it, a post at each broken end.
 - **Momentum exchange:** pieces in the car's path get the car's velocity (x1.06-1.18, a little lift and a tumble), those
   at the edge of the gap less; the car loses the momentum they took (`addVehicleVelocity`) plus what breaking cost (4-18%
   of its speed into the thing; never more than half its speed). The pieces then go on colliding with the car normally.
@@ -323,9 +346,20 @@ stops the car (no break); a building stops it at 16 m/s; a lamp post at 12 m/s s
 there, the renderer is told; with the cap lowered to 3, five bins leave 3 live and 5 drawn, the oldest frozen.
 Measured on the build server, not the S25.
 
+The S25 reports of 0.1.715 (`DestructionTest`): `debrisNeverRidesAlongWithTheCar` (the Torrel through a driveway's pair
+of gates, a garden gate, board and picket fences, square and at 30-55 degrees at 10.4 m/s, stopped, then on at 5 mph over
+where the pieces lie for 16 s: none moves with it), `aLooseBoardIsNeverCarriedAlong` (a board standing at the nose,
+leaning on the bumper, lying half under the sills, beside it, and a 3.6 m gate pair put across the body: the Torrel and
+the sedan drive 22 m on at 5 mph; a gate across the cabin was carried the whole way before the fix), `aBoardFencesPanels
+FallWhenHit` (at 10.6 m/s every panel ends lying), `aFarmFenceBreaksAt11Mph` (4.9 m/s: through, the gap open to the
+walker, the rest standing, one cut for the farms), `woodenFencesGiveFrom8Mph` (picket, board and post-and-rail at 3.6
+m/s with the Torrel; the 1,780 kg Tallmere nudging a board fence at 1.4 m/s is stopped), `everyFenceInTheCapitalIsClassed`.
+
 **Preview:** `gradle :desktop:preview -Dmode=filament-open -Dcars=smash [-Dw=1200]` drives the sedan through a picket
-fence and into a street lamp in the capital (before, during, after each), written to
-`desktop/build/preview/filament-smash/` with `smash.txt`. Desktop renders (Mesa software GL), not S25 captures.
+fence and into a street lamp in the capital (before, during, after each), then the Torrel through a farm field's fence at
+11 mph and through a driveway's pair of gates (lined up on a post) at 10 m/s and on at 5 mph (`-Dcars=smash-fixes`: those
+only), written to `desktop/build/preview/filament-smash/` with `smash.txt`. Desktop renders (Mesa software GL), not S25
+captures.
 
 **Not yet:** leaning without breaking (below the impulse a lamp is simply solid); the hedges' clumps are short hedge
 blocks, not torn foliage; store and cinema fences stay solid; a break's sound and a camera thump; pieces are not saved

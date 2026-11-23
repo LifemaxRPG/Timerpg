@@ -93,6 +93,32 @@ class TownCollision private constructor(
     }
 
     /**
+     * Takes one box (its six numbers as a query gives them: centre, unit axis, half extents) out of the shapes added since,
+     * under whichever key holds it (a car broke through one of the farms' fences); whether one was found.
+     */
+    fun removeExtraBox(box: FloatArray): Boolean {
+        synchronized(extraSets) {
+            for ((key, e) in extraSets) {
+                val bx = e.boxes
+                var i = 0
+                while (i + 5 < bx.size) {
+                    val l = hypot(bx[i + 2], bx[i + 3]).coerceAtLeast(1e-6f)
+                    if (abs(bx[i] - box[0]) < .01f && abs(bx[i + 1] - box[1]) < .01f && abs(bx[i + 2] / l - box[2]) < 1e-3f &&
+                        abs(bx[i + 3] / l - box[3]) < 1e-3f && abs(bx[i + 4] - box[4]) < .01f && abs(bx[i + 5] - box[5]) < .01f) {
+                        val rest = FloatArray(bx.size - 6)
+                        System.arraycopy(bx, 0, rest, 0, i)
+                        System.arraycopy(bx, i + 6, rest, i, bx.size - i - 6)
+                        setExtra(key, rest, e.kind, e.owner, e.detail)
+                        return true
+                    }
+                    i += 6
+                }
+            }
+        }
+        return false
+    }
+
+    /**
      * Counts the changes to the shapes added since ([setExtra]): a walk that placed its player before a landmark, a store
      * or the farms were up looks again when it changes ([com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk]).
      */

@@ -20,8 +20,10 @@ import kotlin.math.sin
  * The cars' destruction in the capital (-Dmode=filament-open -Dcars=smash; docs/VEHICLES.md "Destruction"): the 1956 sedan
  * set on the road square to a front yard's picket fence and driven through it at full throttle (before, at the break with
  * the panels flying, after with them lying in the yard), then along the pavement into a street lamp (as it snaps and
- * falls, and lying after). Writes build/preview/filament-smash/ and smash.txt (the breaks, speeds, pieces). Desktop
- * renders (Mesa's software GL), not S25 captures.
+ * falls, and lying after); then the owner's S25 reports of 0.1.715 (docs/VEHICLES.md "Destruction"): the Torrel through a
+ * farm field's fence at 11 mph, and through a driveway's pair of gates beside it at 10 m/s and on at 5 mph (the leaves
+ * left lying, none carried along). -Dcars=smash-fixes: those only. Writes build/preview/filament-smash/ and smash.txt
+ * (the breaks, speeds, pieces). Desktop renders (Mesa's software GL), not S25 captures.
  */
 internal fun renderSmashShots(out: File, ft: FilamentTown, town: Town, yards: TownYards, collision: TownCollision, walk: OpenWalk, run: TownRun, shooter: Shooter,
                               w: Int, h: Int, cars: VehicleWorld) {
@@ -70,11 +72,13 @@ internal fun renderSmashShots(out: File, ft: FilamentTown, town: Town, yards: To
     val sedan = cars.cars.firstOrNull { it.spec.key.startsWith("northcairn") } ?: cars.cars.first()
     val spec = sedan.spec
     val tmp = FloatArray(6)
+    val sp = town.row(town.spawn.row).pointAt(town.spawn.x, town.spawn.lane)
+    fun turned(dx: Float, dz: Float, deg: Float): Float { val a = Math.toRadians(deg.toDouble()).toFloat(); return OrbitCamera.headingOf(dx * cos(a) - dz * sin(a), dx * sin(a) + dz * cos(a)) }
+    if (System.getProperty("cars") != "smash-fixes") run {
 
     // ---- the picket fence: a front yard's, square across the road from a kerbside spot, a clear run to it and a clear yard behind
     data class Run(val x: Float, val z: Float, val fx: Float, val fz: Float, val tx: Float, val tz: Float)
     var fenceRun: Run? = null
-    val sp = town.row(town.spawn.row).pointAt(town.spawn.x, town.spawn.lane)
     val spots = VehicleSpots.street(town, sp.x, sp.z, collision)
     // (from each front fence out either way: the first point on the road (within 3 m of a kerbside spot), then on across
     // the road for a longer run; nothing at all in the way, and 7 m of yard behind clear of anything solid)
@@ -113,7 +117,6 @@ internal fun renderSmashShots(out: File, ft: FilamentTown, town: Town, yards: To
     repeat(80) { TownPlay.step(1f / 60f) }
     check(cars.driving)
     // the camera behind the car and to its side, looking past it at the fence
-    fun turned(dx: Float, dz: Float, deg: Float): Float { val a = Math.toRadians(deg.toDouble()).toFloat(); return OrbitCamera.headingOf(dx * cos(a) - dz * sin(a), dx * sin(a) + dz * cos(a)) }
     val side = turned(fr.fx, fr.fz, 35f)
     shoot("smash_1_before", "the ${spec.name} on the road, square to a picket fence %.0f m on".format(hypot(car.x - fr.tx, car.z - fr.tz) / u), (car.x + fr.tx) / 2f, (car.z + fr.tz) / 2f, side, 22f, 300f)
     GameState.moveLane = -1f
@@ -179,6 +182,104 @@ internal fun renderSmashShots(out: File, ft: FilamentTown, town: Town, yards: To
     val lay = newest()
     report.appendLine("pieces: " + describePieces())
     shoot("lamp_3_after", "after: the lamp post lying where it fell", lay[0], lay[2], turned(lr.fx, lr.fz, 130f), 34f, 200f)
+    }
+
+    // ---- the S25 reports of 0.1.715: the Torrel through a farm field's fence at 11 mph (163153: it was solid), through a
+    // driveway's pair of white gates beside it and on at 5 mph (163021: the leaves rode along with the car)
+    data class Way(val x: Float, val z: Float, val fx: Float, val fz: Float, val tx: Float, val tz: Float)
+    fun leave() {
+        if (!cars.driving) return
+        stop(); var g = 0
+        while (!cars.canExit && g++ < 600) TownPlay.step(1f / 60f)
+        cars.exit(); repeat(90) { TownPlay.step(1f / 60f) }
+    }
+    /** The gas eased to hold [v] m/s (the stick's up), the brake above it, for [seconds] or [until]. */
+    fun hold(v: Float, seconds: Float, until: () -> Boolean = { false }) {
+        var tt = 0f
+        while (tt < seconds && !until()) {
+            val s = cars.driven?.forwardSpeed ?: 0f
+            GameState.moveLane = if (s < v) -((v - s) * .6f).coerceIn(.15f, 1f) else if (s > v + .4f) .3f else 0f
+            TownPlay.step(1f / 60f); tt += 1f / 60f
+        }
+        GameState.moveLane = 0f
+    }
+    val torrel = cars.cars.firstOrNull { it.spec.key == "torrel-1968" }?.spec ?: spec
+    fun drive(w: Way, colour: Int, name: String): VehicleWorld.Car {
+        leave()
+        val c = cars.add(torrel, colour, true, VehicleSpots.Spot(name, w.x, w.z, w.fx, w.fz, 8f * u))
+        walk.placeAt(c.x, c.z, c.fx, c.fz)
+        check(cars.enter(c, walk))
+        repeat(80) { TownPlay.step(1f / 60f) }
+        return c
+    }
+    fun ahead(c: VehicleWorld.Car, w: Way) = (c.x - w.tx) * w.fx + (c.z - w.tz) * w.fz
+
+    // the farm fence: a field's run, square on from 25 m out, nothing solid on the way or 10 m past it
+    val runs = ArrayList<FloatArray>()
+    collision.forEachNearDetail(collision.minX, collision.minZ, collision.maxX, collision.maxZ, tmp) { _, _, _, d, c, s -> if (d == com.lifemax.rpg.feature.habits.domain.FarmSolids.DETAIL && !c && s[4] > 15f * u) runs += s.copyOf() }
+    runs.sortBy { hypot(it[0] - sp.x, it[1] - sp.z) }
+    var farmWay: Way? = null
+    farm@ for (r in runs) for (side in floatArrayOf(1f, -1f)) {
+        val nx = -r[3] * side; val nz = r[2] * side
+        val sx = r[0] + nx * 25f * u; val sz = r[1] + nz * 25f * u
+        if (clear(sx, sz, r[0] + nx * 1.5f * u, r[1] + nz * 1.5f * u, -1) && clear(r[0] - nx * 1.5f * u, r[1] - nz * 1.5f * u, r[0] - nx * 10f * u, r[1] - nz * 10f * u, -1)) {
+            farmWay = Way(sx, sz, -nx, -nz, r[0], r[1]); break@farm
+        }
+    }
+    farmWay?.let { fw ->
+        report.appendLine("the farm fence at (%.0f, %.0f), the Torrel from (%.0f, %.0f) heading (%.2f, %.2f)".format(fw.tx, fw.tz, fw.x, fw.z, fw.fx, fw.fz))
+        val c = drive(fw, torrel.colours.first(), "farm")
+        shoot("farm_1_before", "the Torrel 25 m from a farm field's fence", (c.x + fw.tx) / 2f, (c.z + fw.tz) / 2f, turned(fw.fx, fw.fz, 40f), 24f, 330f)
+        val n0 = events.size
+        hold(4.9f, 12f) { events.size > n0 }
+        val v = c.forwardSpeed
+        hold(4.9f, .35f)
+        shoot("farm_2_through", "through the farm fence at %.1f m/s (%.0f mph)".format(v, v * 2.237f), fw.tx, fw.tz, turned(fw.fx, fw.fz, 60f), 22f, 230f)
+        hold(4.9f, 3f) { ahead(c, fw) > 9f * u }
+        stop(); repeat(120) { TownPlay.step(1f / 60f) }
+        report.appendLine("through the farm fence at %.1f m/s, the car %.1f m past it; pieces: %s".format(v, ahead(c, fw) / u, describePieces()))
+        shoot("farm_3_after", "after: the gap in the field's fence, the rails lying in the field", fw.tx, fw.tz, turned(fw.fx, fw.fz, -150f), 30f, 260f)
+    } ?: report.appendLine("no farm fence with a clear run to it")
+
+    // the driveway's gates: a pair (variant 5-7), the car's side on a post (the car's middle that far in from it)
+    var gateWay: Way? = null
+    gate@ for (y in yards.yards.sortedBy { hypot((it.parcel[0] + it.parcel[2]) / 2f - sp.x, (it.parcel[1] + it.parcel[3]) / 2f - sp.z) }) for (it in y.items) {
+        if (it.kind != "sideGate" || it.variant < 5) continue
+        val r = it.rect
+        val alongX = r[2] - r[0] >= r[3] - r[1]
+        val ax = if (alongX) 1f else 0f; val az = if (alongX) 0f else 1f
+        val hw = maxOf(r[2] - r[0], r[3] - r[1]) / 2f
+        val cx = (r[0] + r[2]) / 2f; val cz = (r[1] + r[3]) / 2f
+        for (side in floatArrayOf(1f, -1f)) for (lat in floatArrayOf(1f, -1f)) {
+            val nx = az * side; val nz = -ax * side
+            val ox = ax * lat * (hw - .45f * u); val oz = az * lat * (hw - .45f * u)
+            val sx = cx + ox + nx * 22f * u; val sz = cz + oz + nz * 22f * u
+            if (clear(sx, sz, cx + ox + nx * 1.5f * u, cz + oz + nz * 1.5f * u, -1) && clear(cx + ox - nx * 1.5f * u, cz + oz - nz * 1.5f * u, cx + ox - nx * 22f * u, cz + oz - nz * 22f * u, -1)) {
+                gateWay = Way(sx, sz, -nx, -nz, cx + ox, cz + oz); break@gate
+            }
+        }
+    }
+    gateWay?.let { gw ->
+        report.appendLine("the driveway's gates at (%.0f, %.0f), the Torrel from (%.0f, %.0f) heading (%.2f, %.2f)".format(gw.tx, gw.tz, gw.x, gw.z, gw.fx, gw.fz))
+        val c = drive(gw, torrel.colours.last(), "gate")
+        val p0 = cars.wreck.pieces.size
+        shoot("gate_1_before", "the Torrel 22 m from a driveway's pair of gates, lined up on a post", (c.x + gw.tx) / 2f, (c.z + gw.tz) / 2f, turned(gw.fx, gw.fz, 35f), 24f, 300f)
+        val n0 = events.size
+        hold(10.4f, 12f) { events.size > n0 }
+        val v = c.forwardSpeed
+        hold(10.4f, .25f)
+        shoot("gate_2_through", "through the gate's post at %.1f m/s".format(v), gw.tx, gw.tz, turned(gw.fx, gw.fz, 65f), 20f, 250f)
+        hold(10.4f, 1f)
+        stop(); repeat(60) { TownPlay.step(1f / 60f) }
+        hold(2.2f, 7f)
+        stop(); repeat(60) { TownPlay.step(1f / 60f) }
+        val mine = cars.wreck.pieces.drop(p0)
+        val q = FloatArray(7)
+        val near = mine.minOfOrNull { p -> p.read(q); hypot(q[0] - c.x, q[2] - c.z) / u } ?: Float.NaN
+        report.appendLine("through the gate at %.1f m/s, on at 5 mph to %.1f m past it; its pieces' nearest to the car %.1f m: %s".format(v, ahead(c, gw) / u, near,
+            mine.joinToString("; ") { p -> p.read(q); "%s at %.1f m from the car".format(p.look.kind, hypot(q[0] - c.x, q[2] - c.z) / u) }))
+        shoot("gate_3_on", "on at 5 mph: the gate's leaves and boards left lying, none with the car", (c.x + gw.tx) / 2f, (c.z + gw.tz) / 2f, turned(gw.fx, gw.fz, 90f), 42f, 560f)
+    } ?: report.appendLine("no driveway gates with a clear run to them")
     report.appendLine("events:\n  " + events.joinToString("\n  "))
     File(dir, "smash.txt").writeText(report.toString() + ft.extraReport.joinToString("\n") + "\n(desktop renders, Mesa software GL; not S25 captures)\n")
     print(report)

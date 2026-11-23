@@ -181,6 +181,8 @@ object FarmSolids {
     const val GATE = 130f
     /** The fence's posts' half thickness. */
     const val HALF = 3f
+    /** The fences' detail in the walk's map ([TownCollision.detail]): what the cars' destruction knows them by. */
+    const val DETAIL = "farmFence"
 
     /** The fences of every field farmed in [year]. */
     fun fences(data: TownFarmsData, year: Int): FloatArray {

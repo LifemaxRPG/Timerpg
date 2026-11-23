@@ -98,6 +98,9 @@ class TownFarms internal constructor(
     private inner class Group(val farm: Farm, val fields: List<FarmFieldData>) {
         val models = ArrayList<Model>()
         var stat: PropLayer? = null
+        /** Its fields' fences (built again without what the cars broke: [cuts]). */
+        var fence: PropLayer? = null
+        var fenceJob: java.util.concurrent.Future<Batch?>? = null
         var soil: PropLayer? = null
         var plants: PropLayer? = null
         var job: java.util.concurrent.Future<Built>? = null
@@ -106,6 +109,8 @@ class TownFarms internal constructor(
         /** Its upload is queued ([uploads]). */
         var queued = false
         var dirty = false
+        /** Its fences changed (a car broke through one): built again. */
+        var fenceDirty = false
         var cx = 0f; var cz = 0f; var r = 0f
         /** What its fields showed when last built (by field). */
         var keys: List<String> = emptyList()
@@ -138,16 +143,16 @@ class TownFarms internal constructor(
 
     /** What was built (for reports): triangles of ground, soil, plants, models; draws last frame. */
     var triangles = 0; private set
-    override val pending: Boolean get() = !roadsDone || uploads.isNotEmpty() || groups.any { !it.built || it.dirty || it.fieldJob != null }
+    override val pending: Boolean get() = !roadsDone || uploads.isNotEmpty() || groups.any { !it.built || it.dirty || it.fieldJob != null || it.fenceDirty || it.fenceJob != null }
     override val report: String get() =
         "farms: ${groups.size} farms, ${groups.sumOf { it.fields.size }} fields farmed in $year (day $day), ${groups.count { it.built }} built, " +
             "${groups.sumOf { g -> g.models.count { it.mesh != null } }} models, ${data.roads.size} roads; " +
-            "triangles: ground ${groups.sumOf { it.stat?.triangles ?: 0 } + (roads?.triangles ?: 0)}, soil ${groups.sumOf { it.soil?.triangles ?: 0 }}, " +
+            "triangles: ground ${groups.sumOf { (it.stat?.triangles ?: 0) + (it.fence?.triangles ?: 0) } + (roads?.triangles ?: 0)}, soil ${groups.sumOf { it.soil?.triangles ?: 0 }}, " +
             "plants ${groups.sumOf { it.plants?.triangles ?: 0 }}, models ${groups.sumOf { g -> g.models.sumOf { m -> m.mesh?.ib?.indexCount?.div(3) ?: 0 } }}"
 
     init {
         collision?.let { col ->
-            col.setExtra("farms:fences", FarmSolids.fences(data, year), SolidKind.FENCE, "farms")
+            col.setExtra("farms:fences", FarmSolids.fences(data, year), SolidKind.FENCE, "farms", FarmSolids.DETAIL)
             col.setExtra("farms:buildings", solids(), SolidKind.BUILDING, "farms")
             col.setExtraDoors("farms", doors(col))
         }
@@ -175,6 +180,12 @@ class TownFarms internal constructor(
                 val l = layer(); for (b in j.get()) l.upload(b.packed, b.casts, b.tiled)
                 roads = l; roadJob = null; roadsDone = true; engine.flush()
             }
+        }
+        watchCuts()
+        for (g in groups) {
+            val fj = g.fenceJob
+            if (fj != null && fj.isDone) { val b = runCatching { fj.get() }.getOrNull(); g.fenceJob = null; uploads.addLast { swapFence(g, b) } }
+            else if (fj == null && g.fenceDirty && g.built) { g.fenceDirty = false; g.fenceJob = kit.pool.submit(java.util.concurrent.Callable { fenceBatch(g) }) }
         }
         // the nearest farms first: at most three jobs on the workers at a time
         val order = groups.sortedBy { hypot(it.cx - lastX, it.cz - lastZ) - it.r }
@@ -205,9 +216,9 @@ class TownFarms internal constructor(
     private fun queue(g: Group, b: Built) {
         g.queued = true
         uploads.addLast {
-            val st = layer(); val so = layer(); val pl = layer()
-            for (x in b.batches) (when (x.layer) { 0 -> st; 1 -> so; else -> pl }).upload(x.packed, x.casts, x.tiled)
-            g.stat = st; g.soil = so; g.plants = pl; g.keys = b.keys
+            val st = layer(); val so = layer(); val pl = layer(); val fe = layer()
+            for (x in b.batches) (when (x.layer) { 0 -> st; 1 -> so; 3 -> fe; else -> pl }).upload(x.packed, x.casts, x.tiled)
+            g.stat = st; g.soil = so; g.plants = pl; g.fence = fe; g.keys = b.keys
         }
         for ((m, r) in b.models) {
             if (r == null) continue
@@ -223,6 +234,13 @@ class TownFarms internal constructor(
             }
         }
         uploads.addLast { g.built = true }
+    }
+
+    private fun swapFence(g: Group, b: Batch?) {
+        val fe = layer()
+        b?.let { fe.upload(it.packed, it.casts, it.tiled) }
+        g.fence?.destroy()
+        g.fence = fe
     }
 
     private fun swapFields(g: Group, bs: List<Batch>) {
@@ -247,10 +265,8 @@ class TownFarms internal constructor(
         f.ground?.let { r -> dirt.level(r[0], r[1], r[2], r[3], .35f, TILE_UNITS) }
         val gravel = FarmMesh(pics.gravel)
         strip(gravel, f.laneA[0], f.laneA[1], f.laneB[0], f.laneB[1], f.laneW, .5f, TILE_UNITS)
-        val fence = FarmMesh(pics.wood)
-        for (fd in g.fields) fences(fence, fd)
         for ((m, casts) in listOf(dirt to false, gravel to false)) m.pack()?.let { out += Batch(it, casts, true, 0) }
-        fence.pack()?.let { out += Batch(it, true, true, 0) }
+        fenceBatch(g)?.let { out += it }
         out += fieldBatches(g)
         val ready = g.models.map { m -> m to prepareModel(m) }
         return Built(out, ready, fieldKeys(g))
@@ -495,20 +511,67 @@ class TownFarms internal constructor(
         }
     }
 
-    /** A field's post-and-rail fence (posts every [POST] units, two rails), its gate's leaf standing open into the field. */
-    private fun fences(m: FarmMesh, f: FarmFieldData) {
+    /** A farm's fields' fences as one batch (layer 3), without the stretches the cars broke ([cuts]). */
+    private fun fenceBatch(g: Group): Batch? {
+        val fence = FarmMesh(pics.wood)
+        val broken = cuts
+        for (fd in g.fields) fences(fence, fd, broken)
+        return fence.pack()?.let { Batch(it, true, true, 3) }
+    }
+
+    /** The fences' stretches the cars broke ([com.lifemax.rpg.feature.habits.vehicle.Wreckage.cuts]), as last seen. */
+    @Volatile private var cuts: List<FloatArray> = emptyList()
+    private var cutsSeen = 0
+
+    /** New breaks in the fences: the farms they are in build their fences again without them. */
+    private fun watchCuts() {
+        val w = com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.cars?.wreck ?: return
+        if (w.cutsVersion == cutsSeen) return
+        cutsSeen = w.cutsVersion
+        val before = cuts.size
+        cuts = w.cuts.toList()
+        for (c in cuts.drop(before)) for (g in groups) {
+            val mx = (c[0] + c[2]) / 2f; val mz = (c[1] + c[3]) / 2f
+            if (hypot(mx - g.cx, mz - g.cz) < g.r && g.built) g.fenceDirty = true
+        }
+    }
+
+    /**
+     * A field's post-and-rail fence (posts every [POST] units, two rails), its gate's leaf standing open into the field;
+     * the stretches in [broken] (x0, z0, x1, z1 along a run's line) left out, a post standing at each broken end.
+     */
+    private fun fences(m: FarmMesh, f: FarmFieldData, broken: List<FloatArray> = emptyList()) {
         for (run in FarmSolids.fenceRuns(f)) {
             val (ax, az, bx, bz) = run.toList()
             val l = hypot(bx - ax, bz - az)
             if (l < 4f) continue
             val n = max(1, (l / POST).toInt())
             val ux = (bx - ax) / l; val uz = (bz - az) / l
-            for (i in 0..n) {
-                val t = l * i / n
-                val px = ax + ux * t; val pz = az + uz * t
-                box(m, px - 3f, 0f, pz - 3f, px + 3f, 28f, pz + 3f)
+            // the broken stretches on this run, as distances along it
+            val gaps = ArrayList<FloatArray>()
+            for (c in broken) {
+                val t0 = (c[0] - ax) * ux + (c[1] - az) * uz; val t1 = (c[2] - ax) * ux + (c[3] - az) * uz
+                val off0 = abs((c[0] - ax) * -uz + (c[1] - az) * ux); val off1 = abs((c[2] - ax) * -uz + (c[3] - az) * ux)
+                if (off0 > 8f || off1 > 8f) continue
+                val g0 = min(t0, t1).coerceAtLeast(0f); val g1 = max(t0, t1).coerceAtMost(l)
+                if (g1 > g0) gaps += floatArrayOf(g0, g1)
             }
-            for (y in floatArrayOf(10f, 21f)) beam(m, ax, az, bx, bz, y, y + 4f, 1.6f)
+            fun open(t: Float) = gaps.any { t > it[0] + .5f && t < it[1] - .5f }
+            fun post(t: Float) { val px = ax + ux * t; val pz = az + uz * t; box(m, px - 3f, 0f, pz - 3f, px + 3f, 28f, pz + 3f) }
+            val posts = (0..n).map { l * it / n }
+            for (t in posts) if (!open(t)) post(t)
+            // the rails over what stands, a post at each end of a gap
+            val stands = ArrayList<FloatArray>()
+            var from = 0f
+            for (gp in gaps.sortedBy { it[0] }) { if (gp[0] > from) stands += floatArrayOf(from, gp[0]); from = max(from, gp[1]) }
+            if (from < l) stands += floatArrayOf(from, l)
+            for (st in stands) {
+                if (st[1] - st[0] < 2f) continue
+                // (a broken end's post: unless one of the run's own stands there)
+                if (st[0] > 0f && posts.none { abs(it - st[0] - 3f) < 12f }) post(st[0] + 3f)
+                if (st[1] < l && posts.none { abs(it - st[1] + 3f) < 12f }) post(st[1] - 3f)
+                for (y in floatArrayOf(10f, 21f)) beam(m, ax + ux * st[0], az + uz * st[0], ax + ux * st[1], az + uz * st[1], y, y + 4f, 1.6f)
+            }
         }
         // the gate: a five-bar leaf on its hinge post, swung 90 degrees into the field
         val gate = FarmSolids.gate(f)
@@ -596,6 +659,7 @@ class TownFarms internal constructor(
             val plantFade = min(fade, ((PLANT_RANGE - plantD) / PLANT_FADE).coerceIn(0f, 1f))
             val plantsOn = on && plantFade > .02f
             g.stat?.let { it.update(f.look, f.dark, on, fade, near); if (on) { out[0] += it.draws; out[1] += it.triangles }; if (near) out[2] += it.casters }
+            g.fence?.let { it.update(f.look, f.dark, on, fade, near); if (on) { out[0] += it.draws; out[1] += it.triangles }; if (near) out[2] += it.casters }
             g.soil?.let { it.update(f.look, f.dark, on, fade, false); if (on) { out[0] += it.draws; out[1] += it.triangles } }
             val plantShadows = plantsOn && plantD < PLANT_SHADOWS
             g.plants?.let { it.update(f.look, f.dark, plantsOn, plantFade, plantShadows); if (plantsOn) { out[0] += it.draws; out[1] += it.triangles }; if (plantShadows) out[2] += it.casters }
@@ -677,8 +741,8 @@ class TownFarms internal constructor(
         roads?.destroy()
         val em = EntityManager.get()
         for (g in groups) {
-            g.job?.cancel(true); g.fieldJob?.cancel(true)
-            g.stat?.destroy(); g.soil?.destroy(); g.plants?.destroy()
+            g.job?.cancel(true); g.fieldJob?.cancel(true); g.fenceJob?.cancel(true)
+            g.stat?.destroy(); g.fence?.destroy(); g.soil?.destroy(); g.plants?.destroy()
             for (m in g.models) {
                 val mm = m.mesh ?: continue
                 for (e in listOf(mm.entity, mm.proxy)) if (e != 0) { kit.scene.remove(e); engine.destroyEntity(e); em.destroy(e) }

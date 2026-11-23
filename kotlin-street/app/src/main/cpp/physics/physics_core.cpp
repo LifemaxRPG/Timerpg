@@ -98,6 +98,26 @@ struct Give {
 
 struct Break { float f[BR_COUNT]; };
 
+/**
+ * A loose piece's touch with a car (by the piece's handle): the steps it began and was last seen at, and whether it now
+ * passes through the car (no response) until they part.
+ */
+struct Touch {
+    uint32 first = 0;
+    uint32 last = 0;
+    bool pass = false;
+};
+
+// A piece meeting a car: passes through it (a sensor) when it lies lower than this over the car's ground (m: the car
+// rides over a board, as a real one's tyres and bumper would), when the two overlap deeper than DEBRIS_DEEP (m: a piece
+// put down inside the body, which pushing out would wedge), or once they have touched for DEBRIS_LONG steps on end (it
+// is being pushed along or dragged); until they have been apart DEBRIS_APART steps. Their friction: a car's paint.
+constexpr float DEBRIS_LOW = .3f;
+constexpr float DEBRIS_DEEP = .1f;
+constexpr uint32 DEBRIS_LONG = 40;
+constexpr uint32 DEBRIS_APART = 3;
+constexpr float DEBRIS_ON_CAR_FRICTION = .15f;
+
 }  // namespace
 
 class World;
@@ -109,6 +129,7 @@ public:
     void OnContactAdded(const Body &a, const Body &b, const ContactManifold &m, ContactSettings &s) override { check(a, b, m, s); }
     void OnContactPersisted(const Body &a, const Body &b, const ContactManifold &m, ContactSettings &s) override { check(a, b, m, s); }
     void check(const Body &a, const Body &b, const ContactManifold &m, ContactSettings &s);
+    void debrisOnCar(const Body &d, const Body &car, const ContactManifold &m, ContactSettings &s);
     World *w;
 };
 
@@ -131,8 +152,9 @@ public:
     int keep(BodyID id, bool isStatic) {
         int h = -1;
         for (size_t i = 0; i < bodies.size(); ++i) if (bodies[i].IsInvalid()) { bodies[i] = id; h = (int) i; break; }
-        if (h < 0) { bodies.push_back(id); gives.emplace_back(); staticFlags.push_back(0); h = (int) bodies.size() - 1; }
+        if (h < 0) { bodies.push_back(id); gives.emplace_back(); staticFlags.push_back(0); touches.emplace_back(); h = (int) bodies.size() - 1; }
         gives[h] = Give();
+        touches[h] = Touch();
         staticFlags[h] = isStatic ? 1 : 0;
         // (the handle + 1 in its user data: the contact listener finds its give by it)
         system.GetBodyInterface().SetUserData(id, (uint64) h + 1);
@@ -158,6 +180,7 @@ public:
         bodies[h] = BodyID();
         if (staticFlags[h]) statics--;
         gives[h] = Give();
+        touches[h] = Touch();
     }
 
     void dropVehicle(Vehicle &v) {
@@ -180,7 +203,10 @@ public:
     std::vector<BodyID> bodies;
     std::vector<Give> gives;
     std::vector<uint8_t> staticFlags;
+    std::vector<Touch> touches;
     std::vector<Vehicle> vehicles;
+    // the steps taken (a piece's touch with a car is timed by them)
+    uint32 stepNo = 1;
     int statics = 0;
     Breaker breaker{this};
     // this step's breaks (taken by takeBreaks) and the bodies slowed by soft statics (applied after the step)
@@ -195,7 +221,12 @@ public:
 
 void Breaker::check(const Body &a, const Body &b, const ContactManifold &m, ContactSettings &s) {
     const Body *st = a.IsStatic() ? &a : (b.IsStatic() ? &b : nullptr);
-    if (st == nullptr) return;
+    if (st == nullptr) {
+        // a loose piece and a car (the cars are the only bodies in MOVING)
+        if (a.GetObjectLayer() == Layers::DEBRIS && b.GetObjectLayer() == Layers::MOVING) debrisOnCar(a, b, m, s);
+        else if (b.GetObjectLayer() == Layers::DEBRIS && a.GetObjectLayer() == Layers::MOVING) debrisOnCar(b, a, m, s);
+        return;
+    }
     const Body *dy = st == &a ? &b : &a;
     if (!dy->IsDynamic()) return;
     uint64 ud = st->GetUserData();
@@ -214,7 +245,9 @@ void Breaker::check(const Body &a, const Body &b, const ContactManifold &m, Cont
     if (g.broken) { s.mIsSensor = true; return; }
     const RVec3 p = m.GetWorldSpaceContactPointOn1(0);
     const Vec3 v = dy->GetPointVelocity(p);
-    const float vn = std::abs(v.Dot(m.mWorldSpaceNormal));
+    float vn = std::abs(v.Dot(m.mWorldSpaceNormal));
+    // (a car catching a fence's end or scraping along it tears it too: half its speed on the ground counts, whichever way)
+    if (dy->GetObjectLayer() == Layers::MOVING) vn = std::max(vn, .5f * std::sqrt(v.GetX() * v.GetX() + v.GetZ() * v.GetZ()));
     const float inv = dy->GetMotionProperties()->GetInverseMass();
     const float mass = inv > 0.f ? 1.f / inv : 0.f;
     if (mass * vn < g.impulse) return;
@@ -230,6 +263,24 @@ void Breaker::check(const Body &a, const Body &b, const ContactManifold &m, Cont
     o[BR_MASS] = mass;
     o[BR_VEHICLE] = -1.f;
     for (size_t i = 0; i < w->vehicles.size(); ++i) if (w->vehicles[i].live && w->vehicles[i].body == dy->GetID()) o[BR_VEHICLE] = (float) i;
+}
+
+void Breaker::debrisOnCar(const Body &d, const Body &car, const ContactManifold &m, ContactSettings &s) {
+    s.mCombinedFriction = std::min(s.mCombinedFriction, DEBRIS_ON_CAR_FRICTION);
+    const uint64 ud = d.GetUserData();
+    if (ud == 0 || ud > w->touches.size()) return;
+    Touch &t = w->touches[(size_t) ud - 1];
+    const uint32 now = w->stepNo;
+    // (a new touch: they were apart a few steps; contacts of one step all count as one)
+    if (t.last + DEBRIS_APART < now) { t.first = now; t.pass = false; }
+    t.last = now;
+    if (!t.pass) {
+        // the car's ground: its origin is on the ground between the axles
+        const float ground = (float) car.GetPosition().GetY();
+        const float top = d.GetWorldSpaceBounds().mMax.GetY();
+        if (top < ground + DEBRIS_LOW || m.mPenetrationDepth > DEBRIS_DEEP || now - t.first > DEBRIS_LONG) t.pass = true;
+    }
+    if (t.pass) s.mIsSensor = true;
 }
 
 World *worldCreate(int maxBodies) {
@@ -459,6 +510,7 @@ void vehicleState(World *w, int vehicle, float *o) {
 
 int step(World *w, float dt, int collisionSteps) {
     w->dragCount = 0;
+    w->stepNo++;
     w->system.Update(dt, std::max(1, collisionSteps), &w->temp, &w->jobs);
     // what passed through something soft this step is slowed (horizontally: a bush does not hold a car up)
     if (w->dragCount > 0) {
