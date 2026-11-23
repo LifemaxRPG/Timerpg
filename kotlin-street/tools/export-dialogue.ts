@@ -18,7 +18,7 @@
 //  - prompt: for intents the model may voice (VOICED in src/llm/factsheet.ts), the full ChatML prompt
 //    (toPrompt(brief(...))); null otherwise;
 //  - must / self: what validate() needs to check the model's reply (words it must contain; the speaker's name).
-// rumors/secret are added (asked as a friend, familiarity 3, the way the game asks them) for people who have any.
+// rumors/secret are added for everyone (asked as a friend, familiarity 3, the way the game asks them): who knows none says so.
 import { readFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,7 +27,6 @@ import { wholeTown, placesIn, type Place } from './town-whole';
 import { ask, narrate, optionsFor, type TalkCtx } from '../../src/game/dialogue';
 import { RULES, VOICED, brief, toPrompt } from '../../src/llm/factsheet';
 import { buildResidents } from '../../src/town/schedule';
-import { heardBy, secretsOf } from '../../src/sim/knowledge';
 import { ageIn, fullName, isAlive, type Person } from '../../src/sim/types';
 import { townName } from '../../src/world/names';
 
@@ -72,9 +71,8 @@ function topicsOf(c: TalkCtx): Topic[] {
   }
   // what they have heard about others, and their own secret: asked as a friend, as WorldScene.talkChoose asks them
   const friend: TalkCtx = { ...c, familiarity: 3 };
+  // (everyone has both: someone who knows nothing says so truthfully, rather than the question going to small talk)
   for (const intent of ['rumors', 'secret'] as const) {
-    const pool = intent === 'secret' ? secretsOf(w, c.person) : heardBy(w, c.person, 0);
-    if (!pool.length) continue;
     const got = ask(friend, intent);
     const facts = got.entry ? [`You are quietly telling the player this secret: ${intent === 'secret' ? 'you yourself' : got.entry.aboutName} ${got.entry.text}. Say it in your own words and ask them to keep it quiet.`] : [];
     const must = got.entry && intent === 'rumors' ? [got.entry.aboutName.split(' ')[0]!] : [];

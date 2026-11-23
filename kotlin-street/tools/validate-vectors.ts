@@ -6,7 +6,8 @@ import { validate, type Brief } from '../../src/llm/factsheet';
 const SELF = 'Lois Fairchild';
 /** The prompt's text, for the check on names it never mentions. */
 const KNOWN = 'You are Lois Fairchild, 81. Married to Bob Lee. Children: Ann, Carl. Keep this quiet, but Walter Vance is in debt.';
-type Case = [raw: string, must: string[]];
+/** The reply, the words it must name, and optionally the player's own words (the user turn), their last replies and other facts. */
+type Case = [raw: string, must: string[], user?: string, recent?: string[], known?: string];
 const cases: Case[] = [
   // the TypeScript tests' own cases
   ['"I\'m married to Bob." <|im_end|>', []],
@@ -115,6 +116,48 @@ const cases: Case[] = [
   ['Heard from Bobby lately?', []],
   ['Café is open. "Vernon" said so.', []],
   ['It is a nice day, Vernon.', []],
+  // places and events: only those the facts name; the player's own words only when doubted or denied
+  ['I heard whispers about the old mill.', []],
+  ['The new library is lovely.', [], 'What about the new library?'],
+  ['A new library? I haven\'t heard of one.', [], 'What about the new library?'],
+  ['The library is not open yet.', [], 'Is the library open?'],
+  ['THE OLD MILL burned down.', []],
+  ['We met at the church.', []],
+  ['We met at church on Sunday.', []],
+  ['The fires were bad that year.', []],
+  ['The fireman came.', []],
+  ['An innocent man.', []],
+  ['There was a scandal, I hear.', []],
+  ['Our gym is busy.', [], '', [], 'You are Lois Fairchild, 81. Your job: works at Thorne\'s Gym.'],
+  ['The supermarket is cheap.', [], '', [], 'You buy groceries at Pine Market downtown.'],
+  ['The market is cheap.', [], '', [], 'You buy groceries at Pine Supermarket downtown.'],
+  // names in the player's words only
+  ['Yes, I know Tom well.', [], 'Do you know Tom?'],
+  ['No, I don\'t know Tom.', [], 'Do you know Tom?'],
+  ['Who, Tom? Never met him.', [], 'Do you know Tom?'],
+  // where they are from
+  ['I have lived in Maple Hollow all my life.', [], '', [], 'You are Lois Fairchild, 81, a woman who moved to Maple Hollow from Cedar Falls in 2021.'],
+  ['Yes, I am from Maple Hollow.', [], '', [], 'You are Lois Fairchild, 81, a woman who moved to Maple Hollow from Cedar Falls in 2021.'],
+  ['No, I moved here from Cedar Falls in 2021.', [], '', [], 'You are Lois Fairchild, 81, a woman who moved to Maple Hollow from Cedar Falls in 2021.'],
+  ['I was born and raised in Cedar Falls.', [], '', [], 'You are Lois Fairchild, 81, a woman who moved to Maple Hollow from Cedar Falls in 2021.'],
+  ['Not born here, no. I came in 2021.', [], '', [], 'You are Lois Fairchild, 81, a woman who moved to Maple Hollow from Cedar Falls in 2021.'],
+  ['Born here? No, I came in 2021.', [], '', [], 'You are Lois Fairchild, 81, a woman who moved to Maple Hollow from Cedar Falls in 2021.'],
+  ['I moved here in 1990.', [], '', [], 'You are Lois Fairchild, 81, a woman born and raised in Maple Hollow.'],
+  ['I grew up here.', [], '', [], 'You are Lois Fairchild, 81, a woman born and raised in Maple Hollow.'],
+  ['I\'m not from around here.', [], '', [], 'You are Lois Fairchild, 81, a woman born and raised in Maple Hollow.'],
+  // changing the subject: only where the facts say they would rather not talk about it
+  ['Perhaps we can talk about something else instead.', []],
+  ['Let\'s talk about the weather instead.', []],
+  ['Let\'s talk about something else.', [], '', [], 'You are Lois Fairchild. You have a private matter of your own. You would rather not talk about it.'],
+  ['PERHAPS WE COULD CHAT ABOUT it.', []],
+  ['Talk about luck, eh?', []],
+  // their last replies said again
+  ['It is a lovely day for it, isn\'t it?', [], '', ['Yes, I can hear you. It is a lovely day for it, isn\'t it?']],
+  ['Lovely day for it, isn\'t it?', [], '', ['Lovely day for it, is it not?']],
+  ['Yes, it is a fine day.', [], '', ['Yes, I can hear you quite clearly.']],
+  ['I am fine, thank you.', [], '', ['I am fine, thanks.']],
+  ['Fine.', [], '', ['Fine.']],
+  ['The cinema is showing a film.', [], '', ['They say the cinema is showing a film tonight.'], 'The cinema, Avalon 8, is showing "Jax" this week.'],
 ];
 
 const brief = (must: string[]): Brief => ({ system: KNOWN, user: '', must, self: SELF });
@@ -129,9 +172,12 @@ const kt = (s: string): string => '"' + [...s].map((ch) => {
   return out.join('');
 }).join('') + '"';
 
-const rows = cases.map(([raw, must]) => {
-  const out = validate(raw, brief(must));
-  return `        V(${kt(raw)}, listOf(${must.map(kt).join(', ')}), ${out === null ? 'null' : kt(out)}),`;
+const list = (a: string[]): string => `listOf(${a.map(kt).join(', ')})`;
+const rows = cases.map(([raw, must, user = '', recent = [], known = KNOWN]) => {
+  const out = validate(raw, { ...brief(must), system: known, user, recent });
+  // the app's check reads the facts and the player's words from the ChatML prompt (the user turn is the player's)
+  const prompt = known + (user ? `\n<|im_start|>user\n${user}<|im_end|>` : '');
+  return `        V(${kt(raw)}, ${list(must)}, ${out === null ? 'null' : kt(out)}${prompt !== KNOWN || recent.length ? `, ${kt(prompt)}, ${list(recent)}` : ''}),`;
 });
 console.log(`// Generated by tools/validate-vectors.ts from validate() in src/llm/factsheet.ts. Do not edit.
 package com.timerpg.street.llm
@@ -140,7 +186,7 @@ object ValidateVectors {
     const val SELF = ${kt(SELF)}
     const val KNOWN = ${kt(KNOWN)}
 
-    class V(val raw: String, val must: List<String>, val expected: String?)
+    class V(val raw: String, val must: List<String>, val expected: String?, val known: String = KNOWN, val recent: List<String> = emptyList())
 
     val all = listOf(
 ${rows.join('\n')}
