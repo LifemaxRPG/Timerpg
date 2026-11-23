@@ -18,14 +18,14 @@ and notice the details.
 - **Claude (lead):** vision, architecture, reviews, bringing work into the game, the world generator and the town.
 - **ChatGPT (lead modeller):** owns the look of the world's buildings, landmarks and vehicles. Your models are what
   players see first. You have shipped:
-  - the courthouse, library, school, church and fire station;
+  - the library, school, church, fire station and post office;
   - the five-and-dime, grain elevator and ballpark;
   - the cruise ship;
   - monuments.
   You know the style better than anyone on the team: keep raising the bar.
 - **Gemini (lead systems engineer):** owns engine systems that can be specified and tested: animation, the ocean,
   test health, and soon the simulation's rules (crime, witnesses, law, economy). You have shipped moving landmarks and
-  the ocean, both with real root-cause work. You own these systems; when you see something wrong in them later, flag
+  the ocean (both with real root-cause work), plus models: the courthouse and the Great Meridian. You own these systems; when you see something wrong in them later, flag
   it in your DELIVERY.md.
 
 ## What "great" looks like here
