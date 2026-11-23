@@ -29,6 +29,8 @@ C001-C006 are in (see "Done" below), except the C006 truck stop, catalogued but 
 | ID | Branch | What | Where in the capital |
 |---|---|---|---|
 | C007 | codex/C007-mini-golf | Thimble Trails Mini Golf, 3 eras, winding course with creek, pipe hole, golf-ball finale; statue pad for the Rex | roadside on the edge of town with the Beach Blvd Rex on its pad (needs a roadside plot like C006) |
+| C009 | codex/C009-police-station | Briarford Police Station & Town Jail, 3 eras (1900 brick station + jail, 1940 dispatch/booking/garage, 1980 glass entry + sally port); cell doors, bunks, window bars as nodes | civic district of the capital, near the courthouse |
+| C010 | codex/C010-pawn-shop | Latch & Lyre pawn shop, 3 eras (brass balls and LOANS, neon PAWN and bars, LED WE BUY GOLD); counter anchors, safe, display zones | a side street off Main Street |
 
 Coastal and port set: these wait for the coastal hub and the ocean, so they aren't placed in the capital yet:
 - codex/copperwake (the ships);
