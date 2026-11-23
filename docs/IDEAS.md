@@ -333,7 +333,28 @@ want on you) can be **hidden in the past and collected in the future**, if it su
 
 ## Limits on the time machine (decided by the owner, 2026-11-23: limit 1 only)
 
-**Decision:** the only limit is limit 1, the machine stays in the capital. There's no cooldown or timer: how soon you
+**Decision, updated (the owner, 2026-11-23): the capital plus fuel.** The machine stays in the capital (limit 1), and
+it runs on **nuclear material** that the player must find. The player starts with enough for about **4 trips**, so each
+one has to count. More fuel comes from the world, by clever play, and a player who plays their cards right can build a
+big supply. There's still no cooldown or timer.
+- **Fuel by era, from the world's own history** (fictional places and programmes, game-level only, no real-world
+  detail):
+  - radium in the 1910s-20s (labs, clinics, the products of that age);
+  - uranium ore from mining towns (the world gen already places ore);
+  - research labs and a weapons programme in the 1940s-50s;
+  - military test sites;
+  - power plants from the 1950s-60s;
+  - a black market;
+  - an accident site.
+- **Every route is gameplay with consequences.** Buying it quietly, working your way inside, a favour from someone with
+  access, theft, or salvage. Taking nuclear material is among the most serious crimes in the game: national police and
+  the military, not the town sheriff. Witnesses, evidence and era policing apply.
+- **Time travel helps you get it:** knowing when a lab closes, when a shipment moves, or when a site is abandoned.
+- **Open design question:** a flat cost per trip (simple: "4 trips") or a cost that grows with the years jumped.
+  Claude's recommendation is flat, which is easy to read and plan around.
+
+The earlier decision is kept for the record: **Decision (earlier):** the only limit is limit 1, the machine stays in the
+capital. There's no cooldown or timer: how soon you
 can jump again depends on how fast you can get back to the capital. Limits 2-5 below are not used as gates. They can
 still appear as story flavour (the professor's opinions, a part that needs replacing in a quest), never as a cooldown.
 
