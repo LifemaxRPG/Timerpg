@@ -770,6 +770,12 @@ Airports and aircraft exist, but **flying is hard.** It must never cheapen cross
   - **Getting a forged one** is hard and shady. It takes connections (forgers, corrupt clerks), government access, or
     other routes the systems allow. A forgery can be caught, by era.
   - **An erased player** (the unanchored rules) has no identity, so only the shady routes are left.
-  - **Keep the sea open.** The opening needs a sea crossing to reach the capital. Suggested: passenger liners check
-    papers, but working passage as crew, cargo ships, ferries, fishing boats and your own boat don't (or check
-    loosely). That way sailing stays the early-game route and flying the late-game shortcut.
+  - **Without a passport, the only way across the sea is illegally** (the owner, 2026-11-23). Stow away, work your
+    passage on a cargo ship that asks no questions, pay a smuggler, or take your own boat to a quiet beach. Arriving
+    this way makes you an illegal entrant:
+    - no legal status, so legit jobs, a bank account and a lease are harder;
+    - police checks and border patrols can catch you, and the consequence is deportation (or worse, by era) through
+      the crime system's usual witnesses and records;
+    - getting legal later (papers, a sponsor, a forger) is its own goal.
+    For the opening journey to the capital, the player chooses: a slow, legal passport where it's obtainable, or an
+    illegal crossing. Liners and airlines check papers.
