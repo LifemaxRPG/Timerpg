@@ -28,6 +28,7 @@ them in the capital city. It runs after the town plan merges (`wf-town-plan`), b
 |---|---|---|---|
 | C001 | codex/C001-five-and-dime | Marlow Five and Dime, 4 states (1925 dime, 1970 variety, 2000 Dollar Cove, vacant) | downtown Main Street, mid-block in a street wall |
 | C002 | codex/C002-grain-elevator | Lark Bend grain elevator: 1925 timber, 1950 + concrete bins, 1990 co-op; rail siding reference in model-info | rail side, by the depot siding (also farm towns) |
+| C003 | codex/C003-baseball-park | Alder Bend Ballpark: 1935 wooden park, 1950 lights, 1960 steel bleachers, 2000 renovation (note: the gravel lot reads very white; re-skin it with our gravel swatch at intake) | edge of old town or the grounds district, with its gravel lot on a street |
 
 Coastal and port set: these wait for the coastal hub and the ocean, so they aren't placed in the capital yet:
 - codex/copperwake (the ships);
