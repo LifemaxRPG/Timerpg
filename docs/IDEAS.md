@@ -535,3 +535,17 @@ the game already has, not one scripted heist.
 - **Every route leaves traces** (witnesses, logs, cameras by era). The national response is far bigger than a town
   sheriff's. That makes fuel the game's highest-stakes resource, and the reason a player who gets a big supply has
   earned it.
+
+## Design principle: nothing is handed to the player (the owner, 2026-11-23)
+
+No quest markers, scripted solutions or "how to" lists. Goals are reached by **finding things out through people**, the
+way you would in life:
+- **Knowledge lives in the social graph.** The simulation knows who works where, who knows whom, and what each person
+  knows (jobs, relationships, `src/sim/knowledge.ts`). NPCs answer only from what they know: their fact sheets.
+- **So the player works it out.** You don't know who runs the power plant. You find someone who works there, or meet a
+  scientist and ask whether he knows anyone who'd know about "this and that". He points you to a colleague, the
+  colleague to the director's favourite bar. Each step is a real person with a reason to help, refuse or lie.
+- **Asking costs something.** Questions are remembered and can spread by gossip ("someone's been asking about the
+  plant"). Lies can mislead, and some people want favours first.
+- **The game never says it's possible.** Multiple paths exist because the systems allow them, not because they were
+  written in. Players discover them, and different players find different ones.
