@@ -1,9 +1,9 @@
 import { B, CR, koppenGroup, type Climate } from './climate';
-import { CELL_KM, CELL_M, H, N, W, blur, distKm, latOf, nb, wrapDx, wrapX } from './grid';
+import { CELL_KM, CELL_M, H, N, W, blur, distKm, distanceTo, latOf, nb, wrapDx, wrapX } from './grid';
 import { CAPITAL, GAMMA_PLAN_TILES, HUB_COUNT, LAUNCH, laterHub, type HubSpec, type HubType, type Pin } from './hubs';
 import { RIVER_FLOW, type Hydro } from './hydro';
 import { hashU, hashStr, stream } from './noise';
-import type { Terrain } from './terrain';
+import { RANGE_GREAT, type Terrain } from './terrain';
 import { archetypeOf, type ArchetypeId } from '../../sim/archetype';
 
 // PLACES (WORLD_GEN.md sections 3-4): the hubs by type with their site rules and scores (the capital first, honouring
@@ -47,6 +47,8 @@ export interface SiteFields {
   mainDonor: Int32Array;
   /** Flow at the top 5% of river cells (the planet's largest rivers). */
   bigFlow: number;
+  /** km to the nearest cell of a great range (its own term over 1,500 m). */
+  greatKm: Float32Array;
 }
 
 /** Crop belts good for a farm town (not ranching country). */
@@ -74,11 +76,15 @@ export function siteFields(t: Terrain, cl: Climate, h: Hydro, bio: Uint8Array, c
   const rf: number[] = [];
   for (let c = 0; c < N; c++) if (t.land[c] && !h.lake[c] && h.flow[c]! >= RIVER_FLOW) rf.push(h.flow[c]!);
   rf.sort((a, b) => a - b);
-  return { usable, fertile, flat, seaFrac, valley, mainDonor, bigFlow: rf[Math.floor(rf.length * 0.95)] ?? Infinity };
+  const greatKm = distanceTo((c) => t.land[c] === 1 && t.range[c]! >= 0 && t.rangeCls[t.range[c]!] === RANGE_GREAT && t.mount[c]! > 1500);
+  for (let c = 0; c < N; c++) greatKm[c] = greatKm[c]! * CELL_KM;
+  return { usable, fertile, flat, seaFrac, valley, mainDonor, bigFlow: rf[Math.floor(rf.length * 0.95)] ?? Infinity, greatKm };
 }
 
 /** The capital stands on lowland (WORLD_GEN.md 3): no higher than this, in metres. */
 export const CAPITAL_MAX_M = 450;
+/** No great range within this many km of the capital (WORLD_GEN.md "Grand mountains": its region stays gently rolling). */
+export const CAPITAL_GREAT_KM = 150;
 
 const temperate = (T: number): number => Math.exp(-((T - 13) / 6) * ((T - 13) / 6));
 
@@ -104,6 +110,7 @@ export function hubRule(type: HubType, t: Terrain, cl: Climate, h: Hydro, f: Sit
       if (f.flat[c]! > 30) return no('not flat');
       if (e > CAPITAL_MAX_M) return no('not lowland');
       if (t.distSea[c]! < 12) return no('too near the coast');
+      if (f.greatKm[c]! < CAPITAL_GREAT_KM) return no('a great range too near');
       const [dx, dz] = riverDir(h, f, c);
       if (Math.abs(dz) < 1.6 * Math.abs(dx) || Math.abs(dz) < 3) return no('river not north-south');
       // the plan's pad and its growth margin: land, no lake, not steep
