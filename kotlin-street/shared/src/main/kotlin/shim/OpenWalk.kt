@@ -133,6 +133,71 @@ class OpenWalk(
         door = doors.at(wx, wz, hx, hz)
         yard = yardAt(wx, wz)
         aim()
+        sincePlaced = 0f
+        extrasSeen = collision.extraVersion
+    }
+
+    // ------------------------------------------------------------------ safe ground
+
+    /** How far the player has walked (or ridden) since they were last placed ([placeAt]): see [SETTLE]. */
+    private var sincePlaced = 0f
+    /** The [TownCollision.extraVersion] the player's spot was last looked at against. */
+    private var extrasSeen = -1
+    /** What the last [rescue] did (for the breadcrumbs), or null if it never had to. */
+    var rescued: String? = null
+        private set
+
+    /**
+     * Whether a walker can stand at ([px], [pz]) and walk away from it: clear of everything and not shut in
+     * ([TownCollision.boxedIn]).
+     */
+    fun standable(px: Float, pz: Float): Boolean = !collision.boxedIn(px, pz, RADIUS)
+
+    /**
+     * Puts the player on safe ground if where they stand is not ([standable]: inside something, or shut in where no way
+     * leads out, as a saved position from before the town was replanned may be): the pavement of the nearest street
+     * (the clear spot nearest a point along it, near the player's own place first), else the town's spawn on the civic
+     * avenue. Returns what it did, or null if the player already stood well.
+     */
+    fun rescue(): String? {
+        if (standable(wx, wz)) return null
+        val fromX = wx; val fromZ = wz
+        if (riding) dismount()
+        val what = pavementNear(fromX, fromZ)?.let { (row, p) ->
+            placeAt(p[0], p[1]); "the pavement of ${row.id} (${town.road(row.road).name})"
+        } ?: run { spawn(); "the spawn" }
+        rescued = "stood shut in or in something at (${fromX.toInt()}, ${fromZ.toInt()}): moved to $what at (${wx.toInt()}, ${wz.toInt()})"
+        return rescued
+    }
+
+    /** A standable spot on the pavement of the street nearest ([px], [pz]), along it from the nearest point outwards. */
+    private fun pavementNear(px: Float, pz: Float): Pair<Row, FloatArray>? {
+        val (r, x) = town.nearestRow(px, pz) ?: return null
+        val p = FloatArray(2)
+        for (off in PAVEMENT_TRIES) {
+            val at = (x + off).coerceIn(0f, r.length)
+            val q = r.pointAt(at, PAVEMENT_LANE)
+            if (!collision.nearestClear(q.x, q.z, RADIUS, p, step = 4f, reach = 60f)) continue
+            if (standable(p[0], p[1])) return r to p
+        }
+        return null
+    }
+
+    /**
+     * Looks at the player's spot again when solids were added since (a landmark, a store or the farms built after the
+     * player was placed, as at a restored position while the town loads): out of anything that now stands there to the
+     * nearest clear spot; and soon after they were placed, off ground they are shut in on ([rescue]).
+     */
+    private fun recheck() {
+        val v = collision.extraVersion
+        if (v == extrasSeen) return
+        extrasSeen = v
+        if (sincePlaced < SETTLE) { if (rescue() != null) return }
+        if (collision.blocked(wx, wz, radius) && collision.nearestClear(wx, wz, radius, out, step = 2f, reach = 400f)) {
+            wx = out[0]; wz = out[1]
+            derive(force = true)
+            aim()
+        }
     }
 
     /** Takes over from the street view's walk (the AI panel's view switch): where it stands, the way it heads (on foot). */
@@ -191,7 +256,13 @@ class OpenWalk(
      * and the derived frame, door and yard kept. Allocates nothing.
      */
     fun step(dt: Float, mx: Float = GameState.moveX, my: Float = GameState.moveLane) {
-        if (riding) { stepRide(dt, mx, my); return }
+        recheck()
+        val x0 = wx; val z0 = wz
+        if (riding) stepRide(dt, mx, my) else stepFoot(dt, mx, my)
+        if (sincePlaced < SETTLE) sincePlaced += hypot(wx - x0, wz - z0)
+    }
+
+    private fun stepFoot(dt: Float, mx: Float, my: Float) {
         val m = GameState.motion
         val fx = sin(cameraYaw); val fz = -cos(cameraYaw)
         val rx = -fz; val rz = fx
@@ -562,5 +633,14 @@ class OpenWalk(
         /** The live rows: within this of the player, worked out again every [LIVE_STEP] walked. */
         const val LIVE = 1400f
         const val LIVE_STEP = 120f
+        /**
+         * Until the player has walked this far from where they were placed (street units), solids added since (the
+         * landmarks, stores and farms built as the town loads round a restored position) are checked for shutting them in.
+         */
+        const val SETTLE = 300f
+        /** The pavement's lane a rescued player stands in (the spawn's: the middle of the pavement). */
+        const val PAVEMENT_LANE = 7f
+        /** Where along the nearest street a rescue looks for a spot (street units from the player's own place). */
+        val PAVEMENT_TRIES = floatArrayOf(0f, 80f, -80f, 200f, -200f, 450f, -450f, 900f, -900f)
     }
 }

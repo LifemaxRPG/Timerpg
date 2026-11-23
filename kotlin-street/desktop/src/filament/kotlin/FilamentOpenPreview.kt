@@ -291,6 +291,13 @@ fun renderFilamentOpen(out: String) {
         }
     }
 
+    // --- -Dat=x,z,yaw,pitch,dist[,hour]: the player at a world spot with the camera as a phone's game state has it (its
+    // walkableTown wx, wz and orbit), e.g. to see a reported spot as the player saw it; -Dshots=at
+    System.getProperty("at")?.split(",")?.mapNotNull { it.trim().toFloatOrNull() }?.takeIf { it.size >= 5 }?.let { a ->
+        // (every landmark model up first: their solids and their cut are what such a spot is about)
+        while (!ft.landmarkReport.all { !it.contains(": building") }) { run.build(a[0], a[1], 8f); Thread.sleep(1) }
+        view("at_spot", a[0], a[1], 1f, 0f, a[2], a[3], a[4], a.getOrElse(5) { 17.6f }, "the spot asked for (-Dat)")
+    }
     // --- downtown: the tallest building with nobody in it (a tower behind the main street, else the town hall), from the
     // pavement in front of its block, at the camera's usual height, zoomed out, at night, and from across town (its far box
     // on the skyline); -Dshots=downtown renders only these
