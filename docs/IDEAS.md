@@ -213,3 +213,28 @@ realistically.
   - taking credit for being "right";
   - planting allies in the past, or building a family name over generations.
   Too-perfect foresight draws suspicion, and changing the past can change who your voters are.
+
+## Simulation level of detail (the owner's note, 2026-11-23)
+
+Simulate everyone, at the detail that matters:
+- **Near (the player's surroundings, about 200-500 m):** full detail.
+  - Minute-by-minute schedules, walking and pathfinding.
+  - Seeing and hearing (the witness system).
+  - Conversations on the language model, reactions.
+- **Town (the rest of the player's town):** hourly.
+  - Where each person is by schedule, not their exact steps.
+  - Events resolved by rules and dice: who meets whom, who gossips, who reports a crime.
+- **World (every other town):** daily to yearly, in aggregates.
+  - The growth model, elections, births and deaths, businesses.
+  - Named people keep their own ledgers (jobs, marriages, grudges, what they know).
+  - Computed lazily: because everything is a pure function of the seed (`rand(seed, ...keys)`), a far town is caught up
+    when the player arrives instead of ticking every second.
+- **Rules that keep it honest:**
+  - **One truth.** Moving a person between tiers never changes what is true. Someone seen in the town tier at the
+    bakery at 3 p.m. is at the bakery when the player walks in.
+  - **Facts are kept for everyone at every tier:** crimes, witness memories, debts, relationships. Only the
+    moment-to-moment motion is coarse far away.
+  - **News crosses tiers through people.** News reaches far towns through travellers, kin, newspapers and police
+    reports (the G005 rules), at the pace the era allows.
+- **Cost:** the language model runs only for people near the player. The town and world tiers are cheap CPU work,
+  spread over idle frames, with bigger catch-ups done in the background or while charging.
