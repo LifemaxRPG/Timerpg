@@ -1,0 +1,62 @@
+{
+  "1935": {
+    "near": {
+      "visible_triangles": 1772,
+      "visible_materials": 8,
+      "tested_thresholds": 9,
+      "collision_boxes": 41
+    },
+    "mid": {
+      "visible_triangles": 1466,
+      "visible_materials": 8,
+      "tested_thresholds": 0,
+      "collision_boxes": 0
+    },
+    "far": {
+      "visible_triangles": 1040,
+      "visible_materials": 8,
+      "tested_thresholds": 0,
+      "collision_boxes": 0
+    }
+  },
+  "1955": {
+    "near": {
+      "visible_triangles": 3298,
+      "visible_materials": 12,
+      "tested_thresholds": 9,
+      "collision_boxes": 49
+    },
+    "mid": {
+      "visible_triangles": 2366,
+      "visible_materials": 12,
+      "tested_thresholds": 0,
+      "collision_boxes": 0
+    },
+    "far": {
+      "visible_triangles": 1884,
+      "visible_materials": 12,
+      "tested_thresholds": 0,
+      "collision_boxes": 0
+    }
+  },
+  "1985": {
+    "near": {
+      "visible_triangles": 4096,
+      "visible_materials": 8,
+      "tested_thresholds": 16,
+      "collision_boxes": 55
+    },
+    "mid": {
+      "visible_triangles": 2896,
+      "visible_materials": 8,
+      "tested_thresholds": 0,
+      "collision_boxes": 0
+    },
+    "far": {
+      "visible_triangles": 1890,
+      "visible_materials": 8,
+      "tested_thresholds": 0,
+      "collision_boxes": 0
+    }
+  }
+}

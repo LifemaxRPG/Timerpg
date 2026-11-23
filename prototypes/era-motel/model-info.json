@@ -1,0 +1,3623 @@
+{
+  "task": "C014",
+  "name": "Birchbend Motor Lodge",
+  "naming": "owner",
+  "meters_per_texel": 0.0388,
+  "texels_per_art_pixel": 2,
+  "front_gltf": "+Z",
+  "origin": "Ground at the midpoint of the office street facade",
+  "shared_swatches": {
+    "asphalt": "asphalt_worn",
+    "gravel": "ballast",
+    "paving": "pavement",
+    "old_roof": "roof_slate",
+    "old_floor": "plank_horizontal"
+  },
+  "signs": [
+    {
+      "id": "sign_name_1935",
+      "nodes": [
+        "sign_name_street",
+        "sign_name_exit"
+      ],
+      "texture": "signs.png",
+      "rect": [
+        0,
+        0,
+        148,
+        30
+      ],
+      "lines": 1,
+      "maxChars": 11,
+      "face": "serif-block",
+      "ink": "#ebd09b",
+      "paper": "#403d30",
+      "glow": true,
+      "glowColor": "#d1a56c",
+      "state": "1935"
+    },
+    {
+      "id": "sign_name_1955",
+      "nodes": [
+        "sign_name_street",
+        "sign_name_exit"
+      ],
+      "texture": "signs.png",
+      "rect": [
+        0,
+        36,
+        148,
+        30
+      ],
+      "lines": 1,
+      "maxChars": 11,
+      "face": "rounded",
+      "ink": "#ffe2a0",
+      "paper": "#284849",
+      "glow": true,
+      "glowColor": "#ffab5d",
+      "state": "1955"
+    },
+    {
+      "id": "sign_name_1985",
+      "nodes": [
+        "sign_name_street",
+        "sign_name_exit"
+      ],
+      "texture": "signs.png",
+      "rect": [
+        0,
+        72,
+        148,
+        30
+      ],
+      "lines": 1,
+      "maxChars": 11,
+      "face": "sans",
+      "ink": "#e9e7ca",
+      "paper": "#304f61",
+      "glow": true,
+      "glowColor": "#dbebd7",
+      "state": "1985"
+    }
+  ],
+  "states": {
+    "1935": {
+      "era": [
+        1935,
+        1954
+      ],
+      "height_m": 5.826,
+      "lot_bounds_gltf_m": [
+        [
+          -16.8,
+          0,
+          -26.6
+        ],
+        [
+          19,
+          0.049,
+          4.8
+        ]
+      ],
+      "rooms": [
+        {
+          "node": "room_1",
+          "level": 1,
+          "door_anchor": "room_1_door",
+          "bed_anchor": "room_1_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_2",
+          "level": 1,
+          "door_anchor": "room_2_door",
+          "bed_anchor": "room_2_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_3",
+          "level": 1,
+          "door_anchor": "room_3_door",
+          "bed_anchor": "room_3_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_4",
+          "level": 1,
+          "door_anchor": "room_4_door",
+          "bed_anchor": "room_4_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_5",
+          "level": 1,
+          "door_anchor": "room_5_door",
+          "bed_anchor": "room_5_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_6",
+          "level": 1,
+          "door_anchor": "room_6_door",
+          "bed_anchor": "room_6_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_7",
+          "level": 1,
+          "door_anchor": "room_7_door",
+          "bed_anchor": "room_7_bed",
+          "entry_clear_width_m": 0.96
+        }
+      ],
+      "doors": {
+        "door_main": {
+          "position_gltf_m": [
+            0,
+            0,
+            0.15
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "door_back": {
+          "position_gltf_m": [
+            2.83,
+            0,
+            -6.13
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            -1.0
+          ],
+          "external": true
+        },
+        "room_1": {
+          "position_gltf_m": [
+            -10.69,
+            0.0,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_2": {
+          "position_gltf_m": [
+            -6.01,
+            0.0,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_3": {
+          "position_gltf_m": [
+            -1.33,
+            0.0,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_4": {
+          "position_gltf_m": [
+            3.35,
+            0.0,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_5": {
+          "position_gltf_m": [
+            8.03,
+            0.0,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_6": {
+          "position_gltf_m": [
+            11.583,
+            0.0,
+            -15.99
+          ],
+          "facing_gltf": [
+            -1.0,
+            0,
+            0.0
+          ],
+          "external": true
+        },
+        "room_7": {
+          "position_gltf_m": [
+            11.583,
+            0.0,
+            -11.19
+          ],
+          "facing_gltf": [
+            -1.0,
+            0,
+            0.0
+          ],
+          "external": true
+        }
+      },
+      "anchors": {
+        "counter_clerk": [
+          -0.75,
+          0.048,
+          -4.65
+        ],
+        "counter_guest": [
+          -0.74,
+          0.048,
+          -2.56
+        ],
+        "room_1_door": [
+          -10.69,
+          0.0,
+          -16.883
+        ],
+        "room_1_bed": [
+          -8.47,
+          0.048,
+          -20.77
+        ],
+        "room_2_door": [
+          -6.01,
+          0.0,
+          -16.883
+        ],
+        "room_2_bed": [
+          -3.79,
+          0.048,
+          -20.77
+        ],
+        "room_3_door": [
+          -1.33,
+          0.0,
+          -16.883
+        ],
+        "room_3_bed": [
+          0.89,
+          0.048,
+          -20.77
+        ],
+        "room_4_door": [
+          3.35,
+          0.0,
+          -16.883
+        ],
+        "room_4_bed": [
+          5.57,
+          0.048,
+          -20.77
+        ],
+        "room_5_door": [
+          8.03,
+          0.0,
+          -16.883
+        ],
+        "room_5_bed": [
+          10.25,
+          0.048,
+          -20.77
+        ],
+        "room_6_door": [
+          11.583,
+          0.0,
+          -15.99
+        ],
+        "room_6_bed": [
+          15.47,
+          0.048,
+          -13.77
+        ],
+        "room_7_door": [
+          11.583,
+          0.0,
+          -11.19
+        ],
+        "room_7_bed": [
+          15.47,
+          0.048,
+          -8.97
+        ]
+      },
+      "collision_boxes": [
+        {
+          "name": "Roadside office facade",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -2.535,
+            1.48,
+            -0.125
+          ],
+          "size_gltf_m": [
+            3.49,
+            2.96,
+            0.25
+          ]
+        },
+        {
+          "name": "Roadside office facade",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            2.535,
+            1.48,
+            -0.125
+          ],
+          "size_gltf_m": [
+            3.49,
+            2.96,
+            0.25
+          ]
+        },
+        {
+          "name": "Office back",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -1.02,
+            1.48,
+            -5.88
+          ],
+          "size_gltf_m": [
+            6.52,
+            2.96,
+            0.24
+          ]
+        },
+        {
+          "name": "Office back",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            3.85,
+            1.48,
+            -5.88
+          ],
+          "size_gltf_m": [
+            0.86,
+            2.96,
+            0.24
+          ]
+        },
+        {
+          "name": "Office return",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -4.16,
+            1.48,
+            -3.005
+          ],
+          "size_gltf_m": [
+            0.24,
+            2.96,
+            5.51
+          ]
+        },
+        {
+          "name": "Office return",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            4.16,
+            1.48,
+            -3.005
+          ],
+          "size_gltf_m": [
+            0.24,
+            2.96,
+            5.51
+          ]
+        },
+        {
+          "name": "Reception counter",
+          "group": "building",
+          "attachment": "counter",
+          "center_gltf_m": [
+            -0.61,
+            0.624,
+            -3.615
+          ],
+          "size_gltf_m": [
+            4.14,
+            1.152,
+            0.97
+          ]
+        },
+        {
+          "name": "Room-wing rear wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            0.0,
+            1.42,
+            -22.745
+          ],
+          "size_gltf_m": [
+            23.4,
+            2.84,
+            0.21
+          ]
+        },
+        {
+          "name": "End wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -11.595,
+            1.42,
+            -19.935
+          ],
+          "size_gltf_m": [
+            0.21,
+            2.84,
+            5.41
+          ]
+        },
+        {
+          "name": "End wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            11.595,
+            1.42,
+            -19.935
+          ],
+          "size_gltf_m": [
+            0.21,
+            2.84,
+            5.41
+          ]
+        },
+        {
+          "name": "Shared room partition",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -7.02,
+            1.409,
+            -19.94
+          ],
+          "size_gltf_m": [
+            0.156,
+            2.722,
+            5.4
+          ]
+        },
+        {
+          "name": "Shared room partition",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -2.34,
+            1.409,
+            -19.94
+          ],
+          "size_gltf_m": [
+            0.156,
+            2.722,
+            5.4
+          ]
+        },
+        {
+          "name": "Shared room partition",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            2.34,
+            1.409,
+            -19.94
+          ],
+          "size_gltf_m": [
+            0.156,
+            2.722,
+            5.4
+          ]
+        },
+        {
+          "name": "Shared room partition",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            7.02,
+            1.409,
+            -19.94
+          ],
+          "size_gltf_m": [
+            0.156,
+            2.722,
+            5.4
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -11.435,
+            1.42,
+            -17.115
+          ],
+          "size_gltf_m": [
+            0.53,
+            2.84,
+            0.23
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -8.35,
+            1.42,
+            -17.115
+          ],
+          "size_gltf_m": [
+            3.72,
+            2.84,
+            0.23
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -3.67,
+            1.42,
+            -17.115
+          ],
+          "size_gltf_m": [
+            3.72,
+            2.84,
+            0.23
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            1.01,
+            1.42,
+            -17.115
+          ],
+          "size_gltf_m": [
+            3.72,
+            2.84,
+            0.23
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            5.69,
+            1.42,
+            -17.115
+          ],
+          "size_gltf_m": [
+            3.72,
+            2.84,
+            0.23
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            10.105,
+            1.42,
+            -17.115
+          ],
+          "size_gltf_m": [
+            3.19,
+            2.84,
+            0.23
+          ]
+        },
+        {
+          "name": "Carport timber column",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -11.582,
+            1.2885,
+            -13.44
+          ],
+          "size_gltf_m": [
+            0.158,
+            2.523,
+            0.16
+          ]
+        },
+        {
+          "name": "Carport timber column",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -7.02,
+            1.2885,
+            -13.44
+          ],
+          "size_gltf_m": [
+            0.158,
+            2.523,
+            0.16
+          ]
+        },
+        {
+          "name": "Carport timber column",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -2.34,
+            1.2885,
+            -13.44
+          ],
+          "size_gltf_m": [
+            0.158,
+            2.523,
+            0.16
+          ]
+        },
+        {
+          "name": "Carport timber column",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            2.34,
+            1.2885,
+            -13.44
+          ],
+          "size_gltf_m": [
+            0.158,
+            2.523,
+            0.16
+          ]
+        },
+        {
+          "name": "Carport timber column",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            7.02,
+            1.2885,
+            -13.44
+          ],
+          "size_gltf_m": [
+            0.158,
+            2.523,
+            0.16
+          ]
+        },
+        {
+          "name": "Carport timber column",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            11.582,
+            1.2885,
+            -13.44
+          ],
+          "size_gltf_m": [
+            0.158,
+            2.523,
+            0.16
+          ]
+        },
+        {
+          "name": "Room-wing rear wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            17.445,
+            1.42,
+            -12.2
+          ],
+          "size_gltf_m": [
+            0.21,
+            2.84,
+            9.6
+          ]
+        },
+        {
+          "name": "End wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            14.635,
+            1.42,
+            -16.895
+          ],
+          "size_gltf_m": [
+            5.41,
+            2.84,
+            0.21
+          ]
+        },
+        {
+          "name": "End wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            14.635,
+            1.42,
+            -7.505
+          ],
+          "size_gltf_m": [
+            5.41,
+            2.84,
+            0.21
+          ]
+        },
+        {
+          "name": "Shared room partition",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            14.64,
+            1.409,
+            -12.2
+          ],
+          "size_gltf_m": [
+            5.4,
+            2.722,
+            0.156
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            11.815,
+            1.42,
+            -16.735
+          ],
+          "size_gltf_m": [
+            0.23,
+            2.84,
+            0.53
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            11.815,
+            1.42,
+            -13.59
+          ],
+          "size_gltf_m": [
+            0.23,
+            2.84,
+            3.84
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            11.815,
+            1.42,
+            -9.055
+          ],
+          "size_gltf_m": [
+            0.23,
+            2.84,
+            3.31
+          ]
+        },
+        {
+          "name": "Carport timber column",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            8.14,
+            1.2885,
+            -16.882
+          ],
+          "size_gltf_m": [
+            0.16,
+            2.523,
+            0.158
+          ]
+        },
+        {
+          "name": "Carport timber column",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            8.14,
+            1.2885,
+            -12.2
+          ],
+          "size_gltf_m": [
+            0.16,
+            2.523,
+            0.158
+          ]
+        },
+        {
+          "name": "Carport timber column",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            8.14,
+            1.2885,
+            -7.518
+          ],
+          "size_gltf_m": [
+            0.16,
+            2.523,
+            0.158
+          ]
+        },
+        {
+          "name": "Full sign support",
+          "group": "lot",
+          "attachment": "roadside_sign",
+          "center_gltf_m": [
+            -12.2,
+            2.8985,
+            1.1
+          ],
+          "size_gltf_m": [
+            0.22,
+            5.743,
+            0.36
+          ]
+        },
+        {
+          "name": "Full sign support",
+          "group": "lot",
+          "attachment": "roadside_sign",
+          "center_gltf_m": [
+            -8.74,
+            2.8985,
+            1.1
+          ],
+          "size_gltf_m": [
+            0.22,
+            5.743,
+            0.36
+          ]
+        },
+        {
+          "name": "Refuse bin",
+          "group": "lot",
+          "attachment": "lot",
+          "center_gltf_m": [
+            -4.01,
+            0.458,
+            -6.55
+          ],
+          "size_gltf_m": [
+            0.6,
+            0.864,
+            0.6
+          ]
+        },
+        {
+          "name": "Refuse bin",
+          "group": "lot",
+          "attachment": "lot",
+          "center_gltf_m": [
+            4.82,
+            0.458,
+            -7.2
+          ],
+          "size_gltf_m": [
+            0.6,
+            0.864,
+            0.6
+          ]
+        },
+        {
+          "name": "Refuse bin",
+          "group": "lot",
+          "attachment": "lot",
+          "center_gltf_m": [
+            17.9,
+            0.458,
+            -14.7
+          ],
+          "size_gltf_m": [
+            0.6,
+            0.864,
+            0.6
+          ]
+        }
+      ],
+      "features": {},
+      "built_footprints": [
+        [
+          -4.28,
+          4.28,
+          -6.0,
+          0
+        ],
+        [
+          -11.7,
+          11.7,
+          -22.85,
+          -17
+        ],
+        [
+          11.7,
+          17.55,
+          -17,
+          -7.4
+        ]
+      ],
+      "signs": [
+        {
+          "id": "sign_name",
+          "nodes": [
+            "sign_name_street",
+            "sign_name_exit"
+          ],
+          "texture": "signs.png",
+          "rect": [
+            0,
+            0,
+            148,
+            30
+          ],
+          "lines": 1,
+          "maxChars": 11,
+          "face": "serif-block",
+          "ink": "#ebd09b",
+          "paper": "#403d30",
+          "glow": true,
+          "glowColor": "#d1a56c"
+        }
+      ],
+      "models": {
+        "near": {
+          "file": "birchbend-1935.glb",
+          "triangles": 1772,
+          "materials": [
+            "detail_fittings",
+            "detail_trim",
+            "floor_concourse",
+            "glass_motel",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_motel",
+            "wall_siding"
+          ]
+        },
+        "mid": {
+          "file": "birchbend-1935-mid.glb",
+          "triangles": 1466,
+          "materials": [
+            "detail_fittings",
+            "detail_trim",
+            "floor_concourse",
+            "glass_motel",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_motel",
+            "wall_siding"
+          ]
+        },
+        "far": {
+          "file": "birchbend-1935-far.glb",
+          "triangles": 1040,
+          "materials": [
+            "detail_fittings",
+            "detail_trim",
+            "floor_concourse",
+            "glass_motel",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_motel",
+            "wall_siding"
+          ]
+        }
+      }
+    },
+    "1955": {
+      "era": [
+        1955,
+        1984
+      ],
+      "height_m": 7.686,
+      "lot_bounds_gltf_m": [
+        [
+          -16.8,
+          0,
+          -26.6
+        ],
+        [
+          19,
+          0.049,
+          4.8
+        ]
+      ],
+      "rooms": [
+        {
+          "node": "room_1",
+          "level": 1,
+          "door_anchor": "room_1_door",
+          "bed_anchor": "room_1_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_2",
+          "level": 1,
+          "door_anchor": "room_2_door",
+          "bed_anchor": "room_2_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_3",
+          "level": 1,
+          "door_anchor": "room_3_door",
+          "bed_anchor": "room_3_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_4",
+          "level": 1,
+          "door_anchor": "room_4_door",
+          "bed_anchor": "room_4_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_5",
+          "level": 1,
+          "door_anchor": "room_5_door",
+          "bed_anchor": "room_5_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_6",
+          "level": 1,
+          "door_anchor": "room_6_door",
+          "bed_anchor": "room_6_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_7",
+          "level": 1,
+          "door_anchor": "room_7_door",
+          "bed_anchor": "room_7_bed",
+          "entry_clear_width_m": 0.96
+        }
+      ],
+      "doors": {
+        "door_main": {
+          "position_gltf_m": [
+            0,
+            0,
+            0.15
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "door_back": {
+          "position_gltf_m": [
+            2.83,
+            0,
+            -6.13
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            -1.0
+          ],
+          "external": true
+        },
+        "room_1": {
+          "position_gltf_m": [
+            -10.69,
+            0.0,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_2": {
+          "position_gltf_m": [
+            -6.01,
+            0.0,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_3": {
+          "position_gltf_m": [
+            -1.33,
+            0.0,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_4": {
+          "position_gltf_m": [
+            3.35,
+            0.0,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_5": {
+          "position_gltf_m": [
+            8.03,
+            0.0,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_6": {
+          "position_gltf_m": [
+            11.583,
+            0.0,
+            -15.99
+          ],
+          "facing_gltf": [
+            -1.0,
+            0,
+            0.0
+          ],
+          "external": true
+        },
+        "room_7": {
+          "position_gltf_m": [
+            11.583,
+            0.0,
+            -11.19
+          ],
+          "facing_gltf": [
+            -1.0,
+            0,
+            0.0
+          ],
+          "external": true
+        }
+      },
+      "anchors": {
+        "counter_clerk": [
+          -0.75,
+          0.048,
+          -4.65
+        ],
+        "counter_guest": [
+          -0.74,
+          0.048,
+          -2.56
+        ],
+        "room_1_door": [
+          -10.69,
+          0.0,
+          -16.883
+        ],
+        "room_1_bed": [
+          -8.47,
+          0.048,
+          -20.77
+        ],
+        "room_2_door": [
+          -6.01,
+          0.0,
+          -16.883
+        ],
+        "room_2_bed": [
+          -3.79,
+          0.048,
+          -20.77
+        ],
+        "room_3_door": [
+          -1.33,
+          0.0,
+          -16.883
+        ],
+        "room_3_bed": [
+          0.89,
+          0.048,
+          -20.77
+        ],
+        "room_4_door": [
+          3.35,
+          0.0,
+          -16.883
+        ],
+        "room_4_bed": [
+          5.57,
+          0.048,
+          -20.77
+        ],
+        "room_5_door": [
+          8.03,
+          0.0,
+          -16.883
+        ],
+        "room_5_bed": [
+          10.25,
+          0.048,
+          -20.77
+        ],
+        "room_6_door": [
+          11.583,
+          0.0,
+          -15.99
+        ],
+        "room_6_bed": [
+          15.47,
+          0.048,
+          -13.77
+        ],
+        "room_7_door": [
+          11.583,
+          0.0,
+          -11.19
+        ],
+        "room_7_bed": [
+          15.47,
+          0.048,
+          -8.97
+        ],
+        "ice_machine_use": [
+          7.51,
+          0.048,
+          -7.23
+        ],
+        "pool_gate": [
+          -10.42,
+          0.058,
+          -7.44
+        ]
+      },
+      "collision_boxes": [
+        {
+          "name": "Roadside office facade",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -2.535,
+            1.48,
+            -0.125
+          ],
+          "size_gltf_m": [
+            3.49,
+            2.96,
+            0.25
+          ]
+        },
+        {
+          "name": "Roadside office facade",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            2.535,
+            1.48,
+            -0.125
+          ],
+          "size_gltf_m": [
+            3.49,
+            2.96,
+            0.25
+          ]
+        },
+        {
+          "name": "Office back",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -1.02,
+            1.48,
+            -5.88
+          ],
+          "size_gltf_m": [
+            6.52,
+            2.96,
+            0.24
+          ]
+        },
+        {
+          "name": "Office back",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            3.85,
+            1.48,
+            -5.88
+          ],
+          "size_gltf_m": [
+            0.86,
+            2.96,
+            0.24
+          ]
+        },
+        {
+          "name": "Office return",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -4.16,
+            1.48,
+            -3.005
+          ],
+          "size_gltf_m": [
+            0.24,
+            2.96,
+            5.51
+          ]
+        },
+        {
+          "name": "Office return",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            4.16,
+            1.48,
+            -3.005
+          ],
+          "size_gltf_m": [
+            0.24,
+            2.96,
+            5.51
+          ]
+        },
+        {
+          "name": "Reception counter",
+          "group": "building",
+          "attachment": "counter",
+          "center_gltf_m": [
+            -0.61,
+            0.624,
+            -3.615
+          ],
+          "size_gltf_m": [
+            4.14,
+            1.152,
+            0.97
+          ]
+        },
+        {
+          "name": "Room-wing rear wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            0.0,
+            1.42,
+            -22.745
+          ],
+          "size_gltf_m": [
+            23.4,
+            2.84,
+            0.21
+          ]
+        },
+        {
+          "name": "End wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -11.595,
+            1.42,
+            -19.935
+          ],
+          "size_gltf_m": [
+            0.21,
+            2.84,
+            5.41
+          ]
+        },
+        {
+          "name": "End wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            11.595,
+            1.42,
+            -19.935
+          ],
+          "size_gltf_m": [
+            0.21,
+            2.84,
+            5.41
+          ]
+        },
+        {
+          "name": "Shared room partition",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -7.02,
+            1.409,
+            -19.94
+          ],
+          "size_gltf_m": [
+            0.156,
+            2.722,
+            5.4
+          ]
+        },
+        {
+          "name": "Shared room partition",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -2.34,
+            1.409,
+            -19.94
+          ],
+          "size_gltf_m": [
+            0.156,
+            2.722,
+            5.4
+          ]
+        },
+        {
+          "name": "Shared room partition",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            2.34,
+            1.409,
+            -19.94
+          ],
+          "size_gltf_m": [
+            0.156,
+            2.722,
+            5.4
+          ]
+        },
+        {
+          "name": "Shared room partition",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            7.02,
+            1.409,
+            -19.94
+          ],
+          "size_gltf_m": [
+            0.156,
+            2.722,
+            5.4
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -11.435,
+            1.42,
+            -17.115
+          ],
+          "size_gltf_m": [
+            0.53,
+            2.84,
+            0.23
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -8.35,
+            1.42,
+            -17.115
+          ],
+          "size_gltf_m": [
+            3.72,
+            2.84,
+            0.23
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -3.67,
+            1.42,
+            -17.115
+          ],
+          "size_gltf_m": [
+            3.72,
+            2.84,
+            0.23
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            1.01,
+            1.42,
+            -17.115
+          ],
+          "size_gltf_m": [
+            3.72,
+            2.84,
+            0.23
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            5.69,
+            1.42,
+            -17.115
+          ],
+          "size_gltf_m": [
+            3.72,
+            2.84,
+            0.23
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            10.105,
+            1.42,
+            -17.115
+          ],
+          "size_gltf_m": [
+            3.19,
+            2.84,
+            0.23
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -11.582,
+            1.369,
+            -15.3845
+          ],
+          "size_gltf_m": [
+            0.102,
+            2.702,
+            0.097
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -7.02,
+            1.369,
+            -15.3845
+          ],
+          "size_gltf_m": [
+            0.102,
+            2.702,
+            0.097
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -2.34,
+            1.369,
+            -15.3845
+          ],
+          "size_gltf_m": [
+            0.102,
+            2.702,
+            0.097
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            2.34,
+            1.369,
+            -15.3845
+          ],
+          "size_gltf_m": [
+            0.102,
+            2.702,
+            0.097
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            7.02,
+            1.369,
+            -15.3845
+          ],
+          "size_gltf_m": [
+            0.102,
+            2.702,
+            0.097
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            11.582,
+            1.369,
+            -15.3845
+          ],
+          "size_gltf_m": [
+            0.102,
+            2.702,
+            0.097
+          ]
+        },
+        {
+          "name": "Room-wing rear wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            17.445,
+            1.42,
+            -12.2
+          ],
+          "size_gltf_m": [
+            0.21,
+            2.84,
+            9.6
+          ]
+        },
+        {
+          "name": "End wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            14.635,
+            1.42,
+            -16.895
+          ],
+          "size_gltf_m": [
+            5.41,
+            2.84,
+            0.21
+          ]
+        },
+        {
+          "name": "End wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            14.635,
+            1.42,
+            -7.505
+          ],
+          "size_gltf_m": [
+            5.41,
+            2.84,
+            0.21
+          ]
+        },
+        {
+          "name": "Shared room partition",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            14.64,
+            1.409,
+            -12.2
+          ],
+          "size_gltf_m": [
+            5.4,
+            2.722,
+            0.156
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            11.815,
+            1.42,
+            -16.735
+          ],
+          "size_gltf_m": [
+            0.23,
+            2.84,
+            0.53
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            11.815,
+            1.42,
+            -13.59
+          ],
+          "size_gltf_m": [
+            0.23,
+            2.84,
+            3.84
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            11.815,
+            1.42,
+            -9.055
+          ],
+          "size_gltf_m": [
+            0.23,
+            2.84,
+            3.31
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            10.0845,
+            1.369,
+            -16.882
+          ],
+          "size_gltf_m": [
+            0.097,
+            2.702,
+            0.102
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            10.0845,
+            1.369,
+            -12.2
+          ],
+          "size_gltf_m": [
+            0.097,
+            2.702,
+            0.102
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            10.0845,
+            1.369,
+            -7.518
+          ],
+          "size_gltf_m": [
+            0.097,
+            2.702,
+            0.102
+          ]
+        },
+        {
+          "name": "Alcove rear screen",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            8.31,
+            1.2795,
+            -9.085
+          ],
+          "size_gltf_m": [
+            3.46,
+            2.501,
+            0.21
+          ]
+        },
+        {
+          "name": "Alcove post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            6.62,
+            1.2545,
+            -6.775
+          ],
+          "size_gltf_m": [
+            0.098,
+            2.451,
+            0.09
+          ]
+        },
+        {
+          "name": "Alcove post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            10.02,
+            1.2545,
+            -6.775
+          ],
+          "size_gltf_m": [
+            0.098,
+            2.451,
+            0.09
+          ]
+        },
+        {
+          "name": "ice_machine",
+          "group": "building",
+          "attachment": "ice_machine",
+          "center_gltf_m": [
+            7.51,
+            0.709,
+            -7.996
+          ],
+          "size_gltf_m": [
+            1.09,
+            1.322,
+            0.672
+          ]
+        },
+        {
+          "name": "Pool fence",
+          "group": "lot",
+          "attachment": "pool",
+          "center_gltf_m": [
+            -12.56,
+            0.613,
+            -7.46
+          ],
+          "size_gltf_m": [
+            2.944,
+            1.174,
+            0.064
+          ]
+        },
+        {
+          "name": "Pool fence",
+          "group": "lot",
+          "attachment": "pool",
+          "center_gltf_m": [
+            -8.005,
+            0.613,
+            -7.46
+          ],
+          "size_gltf_m": [
+            3.494,
+            1.174,
+            0.064
+          ]
+        },
+        {
+          "name": "Pool fence",
+          "group": "lot",
+          "attachment": "pool",
+          "center_gltf_m": [
+            -6.29,
+            0.613,
+            -10.735
+          ],
+          "size_gltf_m": [
+            0.064,
+            1.174,
+            6.614
+          ]
+        },
+        {
+          "name": "Pool fence",
+          "group": "lot",
+          "attachment": "pool",
+          "center_gltf_m": [
+            -10.145,
+            0.613,
+            -14.01
+          ],
+          "size_gltf_m": [
+            7.774,
+            1.174,
+            0.064
+          ]
+        },
+        {
+          "name": "Pool fence",
+          "group": "lot",
+          "attachment": "pool",
+          "center_gltf_m": [
+            -14.0,
+            0.613,
+            -10.735
+          ],
+          "size_gltf_m": [
+            0.064,
+            1.174,
+            6.614
+          ]
+        },
+        {
+          "name": "Full sign support",
+          "group": "lot",
+          "attachment": "roadside_sign",
+          "center_gltf_m": [
+            -10.47,
+            3.8285,
+            1.1
+          ],
+          "size_gltf_m": [
+            0.22,
+            7.603,
+            0.36
+          ]
+        },
+        {
+          "name": "Refuse bin",
+          "group": "lot",
+          "attachment": "lot",
+          "center_gltf_m": [
+            -4.01,
+            0.458,
+            -6.55
+          ],
+          "size_gltf_m": [
+            0.6,
+            0.864,
+            0.6
+          ]
+        },
+        {
+          "name": "Refuse bin",
+          "group": "lot",
+          "attachment": "lot",
+          "center_gltf_m": [
+            4.82,
+            0.458,
+            -7.2
+          ],
+          "size_gltf_m": [
+            0.6,
+            0.864,
+            0.6
+          ]
+        },
+        {
+          "name": "Refuse bin",
+          "group": "lot",
+          "attachment": "lot",
+          "center_gltf_m": [
+            17.9,
+            0.458,
+            -14.7
+          ],
+          "size_gltf_m": [
+            0.6,
+            0.864,
+            0.6
+          ]
+        }
+      ],
+      "features": {
+        "pool": {
+          "node": "pool",
+          "entry_anchor": "pool_gate",
+          "waterline_gltf_y": 0.075
+        },
+        "vacancy": {
+          "word_node": "sign_vacancy",
+          "no_node": "sign_no",
+          "word_material": "glow_vacancy",
+          "no_material": "glow_no",
+          "vacant": {
+            "word": true,
+            "no": false
+          },
+          "full": {
+            "word": true,
+            "no": true
+          }
+        }
+      },
+      "built_footprints": [
+        [
+          -4.28,
+          4.28,
+          -6.0,
+          0
+        ],
+        [
+          -11.7,
+          11.7,
+          -22.85,
+          -17
+        ],
+        [
+          11.7,
+          17.55,
+          -17,
+          -7.4
+        ]
+      ],
+      "signs": [
+        {
+          "id": "sign_name",
+          "nodes": [
+            "sign_name_street",
+            "sign_name_exit"
+          ],
+          "texture": "signs.png",
+          "rect": [
+            0,
+            36,
+            148,
+            30
+          ],
+          "lines": 1,
+          "maxChars": 11,
+          "face": "rounded",
+          "ink": "#ffe2a0",
+          "paper": "#284849",
+          "glow": true,
+          "glowColor": "#ffab5d"
+        }
+      ],
+      "models": {
+        "near": {
+          "file": "birchbend-1955.glb",
+          "triangles": 3298,
+          "materials": [
+            "detail_fittings",
+            "detail_trim",
+            "detail_water",
+            "floor_concourse",
+            "glass_motel",
+            "glow_arrow",
+            "glow_no",
+            "glow_vacancy",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_motel",
+            "wall_siding"
+          ]
+        },
+        "mid": {
+          "file": "birchbend-1955-mid.glb",
+          "triangles": 2366,
+          "materials": [
+            "detail_fittings",
+            "detail_trim",
+            "detail_water",
+            "floor_concourse",
+            "glass_motel",
+            "glow_arrow",
+            "glow_no",
+            "glow_vacancy",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_motel",
+            "wall_siding"
+          ]
+        },
+        "far": {
+          "file": "birchbend-1955-far.glb",
+          "triangles": 1884,
+          "materials": [
+            "detail_fittings",
+            "detail_trim",
+            "detail_water",
+            "floor_concourse",
+            "glass_motel",
+            "glow_arrow",
+            "glow_no",
+            "glow_vacancy",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_motel",
+            "wall_siding"
+          ]
+        }
+      }
+    },
+    "1985": {
+      "era": [
+        1985,
+        null
+      ],
+      "height_m": 6.146,
+      "lot_bounds_gltf_m": [
+        [
+          -16.8,
+          0,
+          -26.6
+        ],
+        [
+          19,
+          0.049,
+          4.8
+        ]
+      ],
+      "rooms": [
+        {
+          "node": "room_1",
+          "level": 1,
+          "door_anchor": "room_1_door",
+          "bed_anchor": "room_1_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_2",
+          "level": 1,
+          "door_anchor": "room_2_door",
+          "bed_anchor": "room_2_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_3",
+          "level": 1,
+          "door_anchor": "room_3_door",
+          "bed_anchor": "room_3_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_4",
+          "level": 1,
+          "door_anchor": "room_4_door",
+          "bed_anchor": "room_4_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_5",
+          "level": 1,
+          "door_anchor": "room_5_door",
+          "bed_anchor": "room_5_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_6",
+          "level": 1,
+          "door_anchor": "room_6_door",
+          "bed_anchor": "room_6_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_7",
+          "level": 1,
+          "door_anchor": "room_7_door",
+          "bed_anchor": "room_7_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_8",
+          "level": 2,
+          "door_anchor": "room_8_door",
+          "bed_anchor": "room_8_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_9",
+          "level": 2,
+          "door_anchor": "room_9_door",
+          "bed_anchor": "room_9_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_10",
+          "level": 2,
+          "door_anchor": "room_10_door",
+          "bed_anchor": "room_10_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_11",
+          "level": 2,
+          "door_anchor": "room_11_door",
+          "bed_anchor": "room_11_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_12",
+          "level": 2,
+          "door_anchor": "room_12_door",
+          "bed_anchor": "room_12_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_13",
+          "level": 2,
+          "door_anchor": "room_13_door",
+          "bed_anchor": "room_13_bed",
+          "entry_clear_width_m": 0.96
+        },
+        {
+          "node": "room_14",
+          "level": 2,
+          "door_anchor": "room_14_door",
+          "bed_anchor": "room_14_bed",
+          "entry_clear_width_m": 0.96
+        }
+      ],
+      "doors": {
+        "door_main": {
+          "position_gltf_m": [
+            0,
+            0,
+            0.15
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "door_back": {
+          "position_gltf_m": [
+            2.83,
+            0,
+            -6.13
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            -1.0
+          ],
+          "external": true
+        },
+        "room_1": {
+          "position_gltf_m": [
+            -10.69,
+            0.0,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_2": {
+          "position_gltf_m": [
+            -6.01,
+            0.0,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_3": {
+          "position_gltf_m": [
+            -1.33,
+            0.0,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_4": {
+          "position_gltf_m": [
+            3.35,
+            0.0,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_5": {
+          "position_gltf_m": [
+            8.03,
+            0.0,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_8": {
+          "position_gltf_m": [
+            -10.69,
+            3.05,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_9": {
+          "position_gltf_m": [
+            -6.01,
+            3.05,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_10": {
+          "position_gltf_m": [
+            -1.33,
+            3.05,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_11": {
+          "position_gltf_m": [
+            3.35,
+            3.05,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_12": {
+          "position_gltf_m": [
+            8.03,
+            3.05,
+            -16.883
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "room_6": {
+          "position_gltf_m": [
+            11.583,
+            0.0,
+            -15.99
+          ],
+          "facing_gltf": [
+            -1.0,
+            0,
+            0.0
+          ],
+          "external": true
+        },
+        "room_7": {
+          "position_gltf_m": [
+            11.583,
+            0.0,
+            -11.19
+          ],
+          "facing_gltf": [
+            -1.0,
+            0,
+            0.0
+          ],
+          "external": true
+        },
+        "room_13": {
+          "position_gltf_m": [
+            11.583,
+            3.05,
+            -15.99
+          ],
+          "facing_gltf": [
+            -1.0,
+            0,
+            0.0
+          ],
+          "external": true
+        },
+        "room_14": {
+          "position_gltf_m": [
+            11.583,
+            3.05,
+            -11.19
+          ],
+          "facing_gltf": [
+            -1.0,
+            0,
+            0.0
+          ],
+          "external": true
+        }
+      },
+      "anchors": {
+        "counter_clerk": [
+          -0.75,
+          0.048,
+          -4.65
+        ],
+        "counter_guest": [
+          -0.74,
+          0.048,
+          -2.56
+        ],
+        "room_1_door": [
+          -10.69,
+          0.0,
+          -16.883
+        ],
+        "room_1_bed": [
+          -8.47,
+          0.048,
+          -20.77
+        ],
+        "room_2_door": [
+          -6.01,
+          0.0,
+          -16.883
+        ],
+        "room_2_bed": [
+          -3.79,
+          0.048,
+          -20.77
+        ],
+        "room_3_door": [
+          -1.33,
+          0.0,
+          -16.883
+        ],
+        "room_3_bed": [
+          0.89,
+          0.048,
+          -20.77
+        ],
+        "room_4_door": [
+          3.35,
+          0.0,
+          -16.883
+        ],
+        "room_4_bed": [
+          5.57,
+          0.048,
+          -20.77
+        ],
+        "room_5_door": [
+          8.03,
+          0.0,
+          -16.883
+        ],
+        "room_5_bed": [
+          10.25,
+          0.048,
+          -20.77
+        ],
+        "room_8_door": [
+          -10.69,
+          3.05,
+          -16.883
+        ],
+        "room_8_bed": [
+          -8.47,
+          3.098,
+          -20.77
+        ],
+        "room_9_door": [
+          -6.01,
+          3.05,
+          -16.883
+        ],
+        "room_9_bed": [
+          -3.79,
+          3.098,
+          -20.77
+        ],
+        "room_10_door": [
+          -1.33,
+          3.05,
+          -16.883
+        ],
+        "room_10_bed": [
+          0.89,
+          3.098,
+          -20.77
+        ],
+        "room_11_door": [
+          3.35,
+          3.05,
+          -16.883
+        ],
+        "room_11_bed": [
+          5.57,
+          3.098,
+          -20.77
+        ],
+        "room_12_door": [
+          8.03,
+          3.05,
+          -16.883
+        ],
+        "room_12_bed": [
+          10.25,
+          3.098,
+          -20.77
+        ],
+        "room_6_door": [
+          11.583,
+          0.0,
+          -15.99
+        ],
+        "room_6_bed": [
+          15.47,
+          0.048,
+          -13.77
+        ],
+        "room_7_door": [
+          11.583,
+          0.0,
+          -11.19
+        ],
+        "room_7_bed": [
+          15.47,
+          0.048,
+          -8.97
+        ],
+        "room_13_door": [
+          11.583,
+          3.05,
+          -15.99
+        ],
+        "room_13_bed": [
+          15.47,
+          3.098,
+          -13.77
+        ],
+        "room_14_door": [
+          11.583,
+          3.05,
+          -11.19
+        ],
+        "room_14_bed": [
+          15.47,
+          3.098,
+          -8.97
+        ],
+        "ice_machine_use": [
+          7.51,
+          0.048,
+          -7.23
+        ],
+        "vending_machine_use": [
+          9.04,
+          0.048,
+          -7.23
+        ]
+      },
+      "collision_boxes": [
+        {
+          "name": "Roadside office facade",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -2.535,
+            1.48,
+            -0.125
+          ],
+          "size_gltf_m": [
+            3.49,
+            2.96,
+            0.25
+          ]
+        },
+        {
+          "name": "Roadside office facade",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            2.535,
+            1.48,
+            -0.125
+          ],
+          "size_gltf_m": [
+            3.49,
+            2.96,
+            0.25
+          ]
+        },
+        {
+          "name": "Office back",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -1.02,
+            1.48,
+            -5.88
+          ],
+          "size_gltf_m": [
+            6.52,
+            2.96,
+            0.24
+          ]
+        },
+        {
+          "name": "Office back",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            3.85,
+            1.48,
+            -5.88
+          ],
+          "size_gltf_m": [
+            0.86,
+            2.96,
+            0.24
+          ]
+        },
+        {
+          "name": "Office return",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -4.16,
+            1.48,
+            -3.005
+          ],
+          "size_gltf_m": [
+            0.24,
+            2.96,
+            5.51
+          ]
+        },
+        {
+          "name": "Office return",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            4.16,
+            1.48,
+            -3.005
+          ],
+          "size_gltf_m": [
+            0.24,
+            2.96,
+            5.51
+          ]
+        },
+        {
+          "name": "Reception counter",
+          "group": "building",
+          "attachment": "counter",
+          "center_gltf_m": [
+            -0.61,
+            0.624,
+            -3.615
+          ],
+          "size_gltf_m": [
+            4.14,
+            1.152,
+            0.97
+          ]
+        },
+        {
+          "name": "Room-wing rear wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            0.0,
+            2.945,
+            -22.745
+          ],
+          "size_gltf_m": [
+            23.4,
+            5.89,
+            0.21
+          ]
+        },
+        {
+          "name": "End wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -11.595,
+            2.945,
+            -19.935
+          ],
+          "size_gltf_m": [
+            0.21,
+            5.89,
+            5.41
+          ]
+        },
+        {
+          "name": "End wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            11.595,
+            2.945,
+            -19.935
+          ],
+          "size_gltf_m": [
+            0.21,
+            5.89,
+            5.41
+          ]
+        },
+        {
+          "name": "Shared room partition",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -7.02,
+            2.934,
+            -19.94
+          ],
+          "size_gltf_m": [
+            0.156,
+            5.772,
+            5.4
+          ]
+        },
+        {
+          "name": "Shared room partition",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -2.34,
+            2.934,
+            -19.94
+          ],
+          "size_gltf_m": [
+            0.156,
+            5.772,
+            5.4
+          ]
+        },
+        {
+          "name": "Shared room partition",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            2.34,
+            2.934,
+            -19.94
+          ],
+          "size_gltf_m": [
+            0.156,
+            5.772,
+            5.4
+          ]
+        },
+        {
+          "name": "Shared room partition",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            7.02,
+            2.934,
+            -19.94
+          ],
+          "size_gltf_m": [
+            0.156,
+            5.772,
+            5.4
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -11.435,
+            2.945,
+            -17.115
+          ],
+          "size_gltf_m": [
+            0.53,
+            5.89,
+            0.23
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -8.35,
+            2.945,
+            -17.115
+          ],
+          "size_gltf_m": [
+            3.72,
+            5.89,
+            0.23
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -3.67,
+            2.945,
+            -17.115
+          ],
+          "size_gltf_m": [
+            3.72,
+            5.89,
+            0.23
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            1.01,
+            2.945,
+            -17.115
+          ],
+          "size_gltf_m": [
+            3.72,
+            5.89,
+            0.23
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            5.69,
+            2.945,
+            -17.115
+          ],
+          "size_gltf_m": [
+            3.72,
+            5.89,
+            0.23
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            10.105,
+            2.945,
+            -17.115
+          ],
+          "size_gltf_m": [
+            3.19,
+            5.89,
+            0.23
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -11.582,
+            2.894,
+            -15.3845
+          ],
+          "size_gltf_m": [
+            0.102,
+            5.752,
+            0.097
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -7.02,
+            2.894,
+            -15.3845
+          ],
+          "size_gltf_m": [
+            0.102,
+            5.752,
+            0.097
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -2.34,
+            2.894,
+            -15.3845
+          ],
+          "size_gltf_m": [
+            0.102,
+            5.752,
+            0.097
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            2.34,
+            2.894,
+            -15.3845
+          ],
+          "size_gltf_m": [
+            0.102,
+            5.752,
+            0.097
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            7.02,
+            2.894,
+            -15.3845
+          ],
+          "size_gltf_m": [
+            0.102,
+            5.752,
+            0.097
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            11.582,
+            2.894,
+            -15.3845
+          ],
+          "size_gltf_m": [
+            0.102,
+            5.752,
+            0.097
+          ]
+        },
+        {
+          "name": "Upper balcony guard",
+          "group": "building",
+          "attachment": "upper_corridor",
+          "center_gltf_m": [
+            -9.3595,
+            3.6095,
+            -15.335
+          ],
+          "size_gltf_m": [
+            4.651,
+            1.023,
+            0.08
+          ]
+        },
+        {
+          "name": "Upper balcony guard",
+          "group": "building",
+          "attachment": "upper_corridor",
+          "center_gltf_m": [
+            -4.6795,
+            3.6095,
+            -15.335
+          ],
+          "size_gltf_m": [
+            4.651,
+            1.023,
+            0.08
+          ]
+        },
+        {
+          "name": "Upper balcony guard",
+          "group": "building",
+          "attachment": "upper_corridor",
+          "center_gltf_m": [
+            0.0005,
+            3.6095,
+            -15.335
+          ],
+          "size_gltf_m": [
+            4.651,
+            1.023,
+            0.08
+          ]
+        },
+        {
+          "name": "Upper balcony guard",
+          "group": "building",
+          "attachment": "upper_corridor",
+          "center_gltf_m": [
+            4.6805,
+            3.6095,
+            -15.335
+          ],
+          "size_gltf_m": [
+            4.651,
+            1.023,
+            0.08
+          ]
+        },
+        {
+          "name": "Upper balcony guard",
+          "group": "building",
+          "attachment": "upper_corridor",
+          "center_gltf_m": [
+            9.3605,
+            3.6095,
+            -15.335
+          ],
+          "size_gltf_m": [
+            4.651,
+            1.023,
+            0.08
+          ]
+        },
+        {
+          "name": "Room-wing rear wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            17.445,
+            2.945,
+            -12.2
+          ],
+          "size_gltf_m": [
+            0.21,
+            5.89,
+            9.6
+          ]
+        },
+        {
+          "name": "End wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            14.635,
+            2.945,
+            -16.895
+          ],
+          "size_gltf_m": [
+            5.41,
+            5.89,
+            0.21
+          ]
+        },
+        {
+          "name": "End wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            14.635,
+            2.945,
+            -7.505
+          ],
+          "size_gltf_m": [
+            5.41,
+            5.89,
+            0.21
+          ]
+        },
+        {
+          "name": "Shared room partition",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            14.64,
+            2.934,
+            -12.2
+          ],
+          "size_gltf_m": [
+            5.4,
+            5.772,
+            0.156
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            11.815,
+            2.945,
+            -16.735
+          ],
+          "size_gltf_m": [
+            0.23,
+            5.89,
+            0.53
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            11.815,
+            2.945,
+            -13.59
+          ],
+          "size_gltf_m": [
+            0.23,
+            5.89,
+            3.84
+          ]
+        },
+        {
+          "name": "Parking-facing rooms",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            11.815,
+            2.945,
+            -9.055
+          ],
+          "size_gltf_m": [
+            0.23,
+            5.89,
+            3.31
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            10.0845,
+            2.894,
+            -16.882
+          ],
+          "size_gltf_m": [
+            0.097,
+            5.752,
+            0.102
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            10.0845,
+            2.894,
+            -12.2
+          ],
+          "size_gltf_m": [
+            0.097,
+            5.752,
+            0.102
+          ]
+        },
+        {
+          "name": "Slim exterior-corridor post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            10.0845,
+            2.894,
+            -7.518
+          ],
+          "size_gltf_m": [
+            0.097,
+            5.752,
+            0.102
+          ]
+        },
+        {
+          "name": "Upper balcony guard",
+          "group": "building",
+          "attachment": "upper_corridor",
+          "center_gltf_m": [
+            10.035,
+            3.6095,
+            -14.5995
+          ],
+          "size_gltf_m": [
+            0.08,
+            1.023,
+            4.771
+          ]
+        },
+        {
+          "name": "Upper balcony guard",
+          "group": "building",
+          "attachment": "upper_corridor",
+          "center_gltf_m": [
+            10.035,
+            3.6095,
+            -9.7995
+          ],
+          "size_gltf_m": [
+            0.08,
+            1.023,
+            4.771
+          ]
+        },
+        {
+          "name": "Landing guard",
+          "group": "building",
+          "attachment": "exterior_stair",
+          "center_gltf_m": [
+            -14.03,
+            3.589,
+            -16.207
+          ],
+          "size_gltf_m": [
+            0.06,
+            0.982,
+            1.626
+          ]
+        },
+        {
+          "name": "Landing guard",
+          "group": "building",
+          "attachment": "exterior_stair",
+          "center_gltf_m": [
+            -12.875,
+            3.589,
+            -16.99
+          ],
+          "size_gltf_m": [
+            2.37,
+            0.982,
+            0.06
+          ]
+        },
+        {
+          "name": "Landing roof support",
+          "group": "building",
+          "attachment": "exterior_stair",
+          "center_gltf_m": [
+            -13.84,
+            1.463,
+            -16.645
+          ],
+          "size_gltf_m": [
+            0.14,
+            2.874,
+            0.15
+          ]
+        },
+        {
+          "name": "Alcove rear screen",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            8.31,
+            1.2795,
+            -9.085
+          ],
+          "size_gltf_m": [
+            3.46,
+            2.501,
+            0.21
+          ]
+        },
+        {
+          "name": "Alcove post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            6.62,
+            1.2545,
+            -6.775
+          ],
+          "size_gltf_m": [
+            0.098,
+            2.451,
+            0.09
+          ]
+        },
+        {
+          "name": "Alcove post",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            10.02,
+            1.2545,
+            -6.775
+          ],
+          "size_gltf_m": [
+            0.098,
+            2.451,
+            0.09
+          ]
+        },
+        {
+          "name": "ice_machine",
+          "group": "building",
+          "attachment": "ice_machine",
+          "center_gltf_m": [
+            7.51,
+            0.709,
+            -7.996
+          ],
+          "size_gltf_m": [
+            1.09,
+            1.322,
+            0.672
+          ]
+        },
+        {
+          "name": "vending_machine",
+          "group": "building",
+          "attachment": "vending_machine",
+          "center_gltf_m": [
+            9.04,
+            0.999,
+            -7.996
+          ],
+          "size_gltf_m": [
+            1.09,
+            1.902,
+            0.672
+          ]
+        },
+        {
+          "name": "Full sign support",
+          "group": "lot",
+          "attachment": "roadside_sign",
+          "center_gltf_m": [
+            -10.47,
+            3.0585,
+            1.1
+          ],
+          "size_gltf_m": [
+            0.22,
+            6.063,
+            0.36
+          ]
+        },
+        {
+          "name": "Refuse bin",
+          "group": "lot",
+          "attachment": "lot",
+          "center_gltf_m": [
+            -4.01,
+            0.458,
+            -6.55
+          ],
+          "size_gltf_m": [
+            0.6,
+            0.864,
+            0.6
+          ]
+        },
+        {
+          "name": "Refuse bin",
+          "group": "lot",
+          "attachment": "lot",
+          "center_gltf_m": [
+            4.82,
+            0.458,
+            -7.2
+          ],
+          "size_gltf_m": [
+            0.6,
+            0.864,
+            0.6
+          ]
+        },
+        {
+          "name": "Refuse bin",
+          "group": "lot",
+          "attachment": "lot",
+          "center_gltf_m": [
+            17.9,
+            0.458,
+            -14.7
+          ],
+          "size_gltf_m": [
+            0.6,
+            0.864,
+            0.6
+          ]
+        }
+      ],
+      "features": {
+        "stair": {
+          "node": "exterior_stair",
+          "rise_m": 3.05,
+          "treads": 18,
+          "run_m": 5.724,
+          "base_anchor_gltf": [
+            -13.23,
+            0,
+            -9.59
+          ],
+          "landing_anchor_gltf": [
+            -11.82,
+            3.098,
+            -16.14
+          ]
+        }
+      },
+      "built_footprints": [
+        [
+          -4.28,
+          4.28,
+          -6.0,
+          0
+        ],
+        [
+          -11.7,
+          11.7,
+          -22.85,
+          -17
+        ],
+        [
+          11.7,
+          17.55,
+          -17,
+          -7.4
+        ]
+      ],
+      "signs": [
+        {
+          "id": "sign_name",
+          "nodes": [
+            "sign_name_street",
+            "sign_name_exit"
+          ],
+          "texture": "signs.png",
+          "rect": [
+            0,
+            72,
+            148,
+            30
+          ],
+          "lines": 1,
+          "maxChars": 11,
+          "face": "sans",
+          "ink": "#e9e7ca",
+          "paper": "#304f61",
+          "glow": true,
+          "glowColor": "#dbebd7"
+        }
+      ],
+      "models": {
+        "near": {
+          "file": "birchbend-1985.glb",
+          "triangles": 4096,
+          "materials": [
+            "detail_fittings",
+            "detail_trim",
+            "floor_concourse",
+            "glass_motel",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_motel",
+            "wall_siding"
+          ]
+        },
+        "mid": {
+          "file": "birchbend-1985-mid.glb",
+          "triangles": 2896,
+          "materials": [
+            "detail_fittings",
+            "detail_trim",
+            "floor_concourse",
+            "glass_motel",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_motel",
+            "wall_siding"
+          ]
+        },
+        "far": {
+          "file": "birchbend-1985-far.glb",
+          "triangles": 1890,
+          "materials": [
+            "detail_fittings",
+            "detail_trim",
+            "floor_concourse",
+            "glass_motel",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_motel",
+            "wall_siding"
+          ]
+        }
+      }
+    }
+  }
+}
