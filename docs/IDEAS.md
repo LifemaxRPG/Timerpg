@@ -271,8 +271,8 @@ matters to the people who see you.
   - **Worn:** a belt and holster, coat pockets (more pocket space in winter coats), a shoulder bag.
   - **Back:** a backpack or rucksack by era, about 15-25 kg and 20-40 L, partly hidden.
   - **Carried containers:** a suitcase, a toolbox, a duffel bag, a briefcase, a cart, a wheelbarrow, a bicycle basket.
-- **Load costs speed and stamina.** Up to about 15% of body weight is free; more slows walking, running and
-  climbing; overloaded means you can't run. The mountains and long walks make this matter.
+- **No encumbrance slowdown** (the owner's decision): carrying never slows you down. The limits are just what fits: when
+  pockets, hands and bag are full, you need a bigger bag, a vehicle or a trip home.
 - **Vehicles and places as storage:**
   - car trunks (the C011 cars already have `trunk` nodes) and the pickup's bed;
   - saddlebags on motorcycles and horses;
