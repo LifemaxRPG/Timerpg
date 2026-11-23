@@ -59,6 +59,7 @@ files (docs/queue/reviews/) say what worked as well as what to change: read the 
   - The five-and-dime, the grain elevator and the ballpark now stand in the capital.
   - Jeff's ocean was accepted after three rounds and merged into the game. The owner's "waves look flat" note became
     shaded, broken, living waves.
+  - ChatGPT's barbershop was accepted first try and the schools on their second round, both with the new self-review.
   - The capital now stands on the generated planet, with the world drawn out to the horizon.
 
 ## The team's next milestone

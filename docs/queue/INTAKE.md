@@ -24,7 +24,12 @@ them in the capital city. It runs after the town plan merges (`wf-town-plan`), b
 
 ## New from the queue (waiting for the next intake)
 
-Nothing waits at the moment. C001, C002 and C003 went in on 2026-11-23 (see "Done" below).
+C001, C002 and C003 went in on 2026-11-23 (see "Done" below). Waiting:
+
+| ID | Branch | What | Where in the capital |
+|---|---|---|---|
+| C004 | codex/C004-elementary-school | Mill Branch one-room school (in use, abandoned) + Westmeadow Elementary 1955 and 1990+ | Westmeadow in a residential district of the capital; Mill Branch for farm towns (one abandoned at the capital's rural edge) |
+| C005 | codex/C005-barbershop | Mercer Barber and Lilac Beauty, narrow Main Street shops, 3 eras each; `barber_pole` node spins | Main Street street walls (fill the empty lot beside the five-and-dime) |
 
 Coastal and port set: these wait for the coastal hub and the ocean, so they aren't placed in the capital yet:
 - codex/copperwake (the ships);

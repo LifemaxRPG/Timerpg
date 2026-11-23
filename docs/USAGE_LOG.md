@@ -82,3 +82,5 @@ Compare first-try acceptance and rounds per task before and after; small samples
 | G002 ocean r2 | Gemini (setting not visible) | engineering, revision | ~38 min push to push; tokens and tool calls not reported | 3 | accepted: waves with form, glint fixed; polish moves to the integration task |
 | C003 ballpark | ChatGPT (Codex, GPT-6 family) | model, 4 states + LODs | 1 turn, ~30 tool calls, ~10 min | 1 | accepted first try |
 | C004 schools | ChatGPT (Codex, GPT-6 family) | model, 4 states + LODs | 1 turn, ~30 tool calls, ~10 min | 1 | revise: abandoned state not abandoned enough, blank flat roofs, eras too alike |
+| C004 schools r1 | ChatGPT (Codex, GPT-6 family) | model revision | 1 turn, ~38 tool calls, ~10 min | 2 | accepted (first delivery with a self-review) |
+| C005 barbershop and beauty parlour | ChatGPT (Codex, GPT-6 family) | model, 6 states + LODs | 1 turn, ~25 tool calls, ~8 min | 1 | accepted first try (with self-review) |
