@@ -16,7 +16,7 @@ Each task is one file, `docs/queue/tasks/<ID>.md` (e.g. `C014.md`, `G003.md`). T
 - **Assignee:** `chatgpt` or `gemini`.
 - **Type:** `model` (a 3D model) or `engineering` (game code).
 - **Branch:** the exact branch to push to.
-- **Status:** `open`, `revise`, `accepted` or `closed`.
+- **Status:** `open`, `revise`, `accepted`, `closed` or `hold` (paused by Claude: skip it until it's `open` again).
 
 Below that come the brief and the acceptance checks.
 
