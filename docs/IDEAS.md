@@ -126,3 +126,48 @@ Building your own structures scales up: the player can found a settlement and se
   - descendants of the first settlers;
   - the player's original buildings, weathered or preserved, at its old heart.
   It also fits the crime system: a settlement founded on crime grows a different kind of town.
+
+### What makes a town thrive or fail (growth model draft)
+
+One model for every town, the player's and the world's alike, so the world stays consistent. Each year the simulation
+scores each town's pull (who moves in), hold (who stays), births and deaths, and new businesses from these factors.
+The player can read a "town ledger" saying why it's growing or shrinking.
+
+- **Site** (the ground itself):
+  - **Water:** fresh water (river, lake, wells); drought risk.
+  - **Land:** flat buildable land; flood risk.
+  - **Soil and climate:** soil fertility; growing season and climate (from the climate model).
+  - **Resources:** timber, stone, coal, ore, oil, fish.
+  - **Defensibility,** in early eras.
+- **Situation** (its place in the world):
+  - **Crossroads:** a crossroads or river confluence; a natural harbour or a mountain pass.
+  - **Transport:** distance to the nearest railway (a rail arrival is a boom); the highway (a bypass in the 1960s can
+    kill a Main Street).
+  - **Competition:** competing towns nearby that take trade.
+  - **Status:** county seat or capital status.
+- **Economy:**
+  - **Jobs:** jobs and wages.
+  - **Diversity:** a one-industry town booms and busts with its mine, mill or factory.
+  - **Costs:** land and rent, taxes, business formation.
+  - **Era events:** gold rushes, factory openings and closings, the Depression, the post-war boom.
+- **Services and infrastructure:**
+  - **Roads and links:** roads, the rail depot, the port.
+  - **Utilities:** electricity, water and sewer.
+  - **Public services:** schools, a doctor or hospital, a fire department, police.
+- **Safety and governance:**
+  - **Crime:** crime and policing, including the player's own crimes and gangs.
+  - **Government:** corruption, the mayor's competence (the player, or the person they left in charge).
+- **Disasters, by the real risks of the site:**
+  - **Fire:** fire (wooden towns without a fire department burn).
+  - **Water and health:** floods (river towns), epidemics (no clean water), droughts and crop failures.
+  - **Geology and weather:** earthquakes and volcanoes near plate boundaries; storms on coasts.
+- **People and culture:**
+  - **Population:** families and birth rates, the age of the population, education.
+  - **Life:** churches, saloons, parks, festivals.
+  - **Reputation:** reputation (a lawless town drives families away), the founder's legacy.
+- **Environment over time:**
+  - **Damage:** soil exhaustion, deforestation, pollution.
+  - **Recovery:** recovery and preservation.
+
+This drives the world's own history too: which towns grew into cities, which emptied out. It is what a player's
+settlement competes against.
