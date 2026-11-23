@@ -177,7 +177,7 @@ internal object WorldPreview {
         run {
             val x = g[2] + 100f * u; val z = g[3] + 100f * u
             shot("w5_4km", "120 m over the town's south-east corner looking south-east: the near terrain to about 4 km, the far view beyond", eyePose(x, ground(x, z) + 120f * u, z, 135f, 6f, 60f, w, h, reach, u, 600f), hour)
-            shot("w5_4km_far", "the same, the far view alone (W4, for comparison)", eyePose(x, ground(x, z) + 120f * u, z, 135f, 6f, 60f, w, h, reach, u, 600f).also { near.hidden = true }, hour)
+            shot("w5_4km_far", "the same with the near terrain hidden: the far view alone (W4 with W5a's materials)", eyePose(x, ground(x, z) + 120f * u, z, 135f, 6f, 60f, w, h, reach, u, 600f).also { near.hidden = true }, hour)
             near.hidden = false
         }
     }
