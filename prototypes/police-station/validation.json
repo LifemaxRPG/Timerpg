@@ -1,0 +1,59 @@
+{
+  "1900": {
+    "near": {
+      "visible_triangles": 4444,
+      "collision_triangles": 540,
+      "visible_materials": 12,
+      "fixed_collision_boxes": 45,
+      "separately_pivoted_cells": 4
+    },
+    "mid": {
+      "visible_triangles": 2376,
+      "collision_triangles": 0,
+      "visible_materials": 12
+    },
+    "far": {
+      "visible_triangles": 1572,
+      "collision_triangles": 0,
+      "visible_materials": 12
+    }
+  },
+  "1940": {
+    "near": {
+      "visible_triangles": 4744,
+      "collision_triangles": 600,
+      "visible_materials": 12,
+      "fixed_collision_boxes": 50,
+      "separately_pivoted_cells": 4
+    },
+    "mid": {
+      "visible_triangles": 2684,
+      "collision_triangles": 0,
+      "visible_materials": 11
+    },
+    "far": {
+      "visible_triangles": 1832,
+      "collision_triangles": 0,
+      "visible_materials": 11
+    }
+  },
+  "1980": {
+    "near": {
+      "visible_triangles": 6080,
+      "collision_triangles": 744,
+      "visible_materials": 12,
+      "fixed_collision_boxes": 62,
+      "separately_pivoted_cells": 4
+    },
+    "mid": {
+      "visible_triangles": 3506,
+      "collision_triangles": 0,
+      "visible_materials": 11
+    },
+    "far": {
+      "visible_triangles": 2520,
+      "collision_triangles": 0,
+      "visible_materials": 11
+    }
+  }
+}
