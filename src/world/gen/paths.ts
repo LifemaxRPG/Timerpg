@@ -81,7 +81,7 @@ export function worldPaths(w: World): Paths {
   const hubCell = new Map<number, Place>();
   for (const h of w.hubs) hubCell.set(h.cell, h);
   const hubAt = (c: number): Place | undefined => hubCell.get(c);
-  const roads = w.roads.map((r) => routePath(r.cells, 'highway', (c) => (c === r.cells[0] && r.a.startsWith('h:') ? hubAt(c) : c === r.cells[r.cells.length - 1] && r.b?.startsWith('h:') ? hubAt(c) : undefined)));
+  const roads = w.roads.map((r) => r.path ? unwrap(r.path.map(([x, z]) => [x, z] as Pt)) : routePath(r.cells, 'highway', (c) => (c === r.cells[0] && r.a.startsWith('h:') ? hubAt(c) : c === r.cells[r.cells.length - 1] && r.b?.startsWith('h:') ? hubAt(c) : undefined)));
   const rail = w.rail.lines.map((l) => routePath(l.cells, 'rail', hubAt));
   const rivers = w.hydro.rivers.map((r) => r.cells.map(centre));
   for (const hub of w.hubs) {
