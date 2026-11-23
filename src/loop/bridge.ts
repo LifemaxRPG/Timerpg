@@ -1,0 +1,155 @@
+import {
+  act,
+  advance,
+  arrest,
+  attitude,
+  create,
+  load,
+  policeView,
+  save,
+  spotted,
+} from './facade';
+import type {
+  AdvanceOptions,
+  ArrestInput,
+  LoopActionEvent,
+  LoopInit,
+  LoopSim,
+  OfficerSightingInput,
+} from './types';
+
+let activeSim: LoopSim | null = null;
+
+function requireActive(): LoopSim {
+  if (!activeSim) {
+    throw new Error('TimerpgSim is not initialized: call init(initJson) or load(savedJson) first');
+  }
+  return activeSim;
+}
+
+/** Pure stateless JSON-in / JSON-out entry points. */
+export function createJson(initJson: string): string {
+  const init = JSON.parse(initJson) as LoopInit;
+  return JSON.stringify(create(init));
+}
+
+export function actJson(simJson: string, eventJson: string): string {
+  const sim = load(simJson);
+  const event = JSON.parse(eventJson) as LoopActionEvent;
+  return JSON.stringify(act(sim, event));
+}
+
+export function advanceJson(simJson: string, hours: number, optionsJson?: string): string {
+  const sim = load(simJson);
+  const options = optionsJson ? (JSON.parse(optionsJson) as AdvanceOptions) : undefined;
+  return JSON.stringify(advance(sim, hours, options));
+}
+
+export function attitudeJson(simJson: string, personId: string): string {
+  const sim = load(simJson);
+  return JSON.stringify(attitude(sim, personId));
+}
+
+export function policeViewJson(simJson: string, jurisdictionId: string): string {
+  const sim = load(simJson);
+  return JSON.stringify(policeView(sim, jurisdictionId));
+}
+
+export function spottedJson(simJson: string, officerId: string, sightingJson: string): string {
+  const sim = load(simJson);
+  const sighting = JSON.parse(sightingJson) as OfficerSightingInput;
+  return JSON.stringify(spotted(sim, officerId, sighting));
+}
+
+export function arrestJson(simJson: string, inputJson: string): string {
+  const sim = load(simJson);
+  const input = JSON.parse(inputJson) as ArrestInput;
+  return JSON.stringify(arrest(sim, input));
+}
+
+/**
+ * Stateful QuickJS-ng bridge: keeps the active `LoopSim` inside the JS engine so the
+ * Android native layer only sends small JSON events and receives small JSON deltas
+ * instead of serializing the full world on every call.
+ */
+export const TimerpgSim = {
+  init(initJson: string): string {
+    const init = JSON.parse(initJson) as LoopInit;
+    activeSim = create(init);
+    return JSON.stringify({
+      ok: true,
+      day: activeSim.currentDay,
+      hour: activeSim.currentHour,
+      year: activeSim.year,
+      peopleCount: Object.keys(activeSim.peopleMeta).length,
+      officerCount: Object.keys(activeSim.officers).length,
+    });
+  },
+
+  act(eventJson: string): string {
+    const current = requireActive();
+    const event = JSON.parse(eventJson) as LoopActionEvent;
+    const res = act(current, event);
+    activeSim = res.sim;
+    const { sim: _omit, ...delta } = res;
+    return JSON.stringify(delta);
+  },
+
+  advance(hours: number, optionsJson?: string): string {
+    const current = requireActive();
+    const options = optionsJson ? (JSON.parse(optionsJson) as AdvanceOptions) : undefined;
+    const res = advance(current, hours, options);
+    activeSim = res.sim;
+    const { sim: _omit, ...delta } = res;
+    return JSON.stringify(delta);
+  },
+
+  attitude(personId: string): string {
+    return JSON.stringify(attitude(requireActive(), personId));
+  },
+
+  policeView(jurisdictionId: string): string {
+    return JSON.stringify(policeView(requireActive(), jurisdictionId));
+  },
+
+  spotted(officerId: string, sightingJson: string): string {
+    const sighting = JSON.parse(sightingJson) as OfficerSightingInput;
+    return JSON.stringify(spotted(requireActive(), officerId, sighting));
+  },
+
+  arrest(inputJson: string): string {
+    const current = requireActive();
+    const input = JSON.parse(inputJson) as ArrestInput;
+    const res = arrest(current, input);
+    activeSim = res.sim;
+    const { sim: _omit, ...delta } = res;
+    return JSON.stringify(delta);
+  },
+
+  save(): string {
+    return save(requireActive());
+  },
+
+  load(savedJson: string): string {
+    activeSim = load(savedJson);
+    return JSON.stringify({
+      ok: true,
+      day: activeSim.currentDay,
+      hour: activeSim.currentHour,
+      year: activeSim.year,
+      peopleCount: Object.keys(activeSim.peopleMeta).length,
+      officerCount: Object.keys(activeSim.officers).length,
+    });
+  },
+
+  createJson,
+  actJson,
+  advanceJson,
+  attitudeJson,
+  policeViewJson,
+  spottedJson,
+  arrestJson,
+};
+
+// Expose globally for QuickJS-ng (`esbuild --format=iife`)
+(globalThis as Record<string, unknown>).TimerpgSim = TimerpgSim;
