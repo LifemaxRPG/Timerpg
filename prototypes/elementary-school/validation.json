@@ -1,0 +1,86 @@
+[
+  {
+    "file": "mill-branch-active.glb",
+    "triangles": 1316,
+    "materials": 12,
+    "boxes": 10,
+    "max_uv_error_m": 2.9296874970441422e-06
+  },
+  {
+    "file": "mill-branch-active-mid.glb",
+    "triangles": 1252,
+    "materials": 12,
+    "boxes": 10,
+    "max_uv_error_m": 2.9296874970441422e-06
+  },
+  {
+    "file": "mill-branch-active-far.glb",
+    "triangles": 1064,
+    "materials": 12,
+    "boxes": 10,
+    "max_uv_error_m": 2.9296874970441422e-06
+  },
+  {
+    "file": "mill-branch-abandoned.glb",
+    "triangles": 1692,
+    "materials": 12,
+    "boxes": 10,
+    "max_uv_error_m": 2.9296874970441422e-06
+  },
+  {
+    "file": "mill-branch-abandoned-mid.glb",
+    "triangles": 1424,
+    "materials": 12,
+    "boxes": 10,
+    "max_uv_error_m": 2.9296874970441422e-06
+  },
+  {
+    "file": "mill-branch-abandoned-far.glb",
+    "triangles": 1128,
+    "materials": 12,
+    "boxes": 10,
+    "max_uv_error_m": 2.9296874970441422e-06
+  },
+  {
+    "file": "westmeadow-1955.glb",
+    "triangles": 3066,
+    "materials": 12,
+    "boxes": 30,
+    "max_uv_error_m": 3.677368162868788e-06
+  },
+  {
+    "file": "westmeadow-1955-mid.glb",
+    "triangles": 2780,
+    "materials": 12,
+    "boxes": 30,
+    "max_uv_error_m": 3.677368162868788e-06
+  },
+  {
+    "file": "westmeadow-1955-far.glb",
+    "triangles": 2356,
+    "materials": 12,
+    "boxes": 30,
+    "max_uv_error_m": 3.677368162868788e-06
+  },
+  {
+    "file": "westmeadow-1990.glb",
+    "triangles": 3878,
+    "materials": 12,
+    "boxes": 43,
+    "max_uv_error_m": 3.677368162868788e-06
+  },
+  {
+    "file": "westmeadow-1990-mid.glb",
+    "triangles": 3544,
+    "materials": 12,
+    "boxes": 43,
+    "max_uv_error_m": 3.677368162868788e-06
+  },
+  {
+    "file": "westmeadow-1990-far.glb",
+    "triangles": 2976,
+    "materials": 12,
+    "boxes": 43,
+    "max_uv_error_m": 3.677368162868788e-06
+  }
+]

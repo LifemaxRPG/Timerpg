@@ -1,0 +1,5228 @@
+{
+  "task": "C004",
+  "units": "glTF metres, +Y upwards, +Z street-facing, grade origin at front midpoint.",
+  "swatches": [
+    "brick_red",
+    "plank_horizontal",
+    "ballast",
+    "pavement",
+    "asphalt",
+    "roof_slate",
+    "roof_membrane_grey",
+    "roof_membrane_green",
+    "roof_membrane_tan"
+  ],
+  "lod_distances_suggested_m": {
+    "mid": 65,
+    "far": 140
+  },
+  "states": [
+    {
+      "id": "mill-branch-active",
+      "name": "Mill Branch School",
+      "era": "1890\u20131950 active",
+      "footprint_m": [
+        22,
+        30
+      ],
+      "height_m": 9.3,
+      "lot_bounds_gltf_m": {
+        "x": [
+          -11,
+          11
+        ],
+        "y": [
+          0,
+          9.3
+        ],
+        "z": [
+          -25,
+          5
+        ]
+      },
+      "models": [
+        {
+          "file": "mill-branch-active.glb",
+          "lod": "near",
+          "triangles_visible": 1316,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.17,
+              0.34
+            ],
+            "door_back": [
+              0,
+              0.17,
+              -14.68
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Gabled front",
+              "center_gltf_m": [
+                -2.92,
+                2.205,
+                -0.12
+              ],
+              "size_gltf_m": [
+                4.16,
+                4.07,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gabled front",
+              "center_gltf_m": [
+                2.92,
+                2.205,
+                -0.12
+              ],
+              "size_gltf_m": [
+                4.16,
+                4.07,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear clapboard",
+              "center_gltf_m": [
+                -2.87,
+                2.205,
+                -13.879999999999999
+              ],
+              "size_gltf_m": [
+                4.26,
+                4.07,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear clapboard",
+              "center_gltf_m": [
+                2.87,
+                2.205,
+                -13.879999999999999
+              ],
+              "size_gltf_m": [
+                4.26,
+                4.07,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West classroom wall",
+              "center_gltf_m": [
+                -4.88,
+                2.205,
+                -7.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.07,
+                14
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East classroom wall",
+              "center_gltf_m": [
+                4.88,
+                2.205,
+                -7.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.07,
+                14
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Woodstove",
+              "center_gltf_m": [
+                3.4699999999999998,
+                0.6749999999999999,
+                -11.18
+              ],
+              "size_gltf_m": [
+                1.1599999999999997,
+                1.01,
+                1.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Outhouse",
+              "center_gltf_m": [
+                -6.8,
+                1.287,
+                -18.47
+              ],
+              "size_gltf_m": [
+                1.4000000000000004,
+                2.526,
+                1.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Outhouse",
+              "center_gltf_m": [
+                -8.88,
+                1.287,
+                -18.47
+              ],
+              "size_gltf_m": [
+                1.3999999999999986,
+                2.526,
+                1.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Hand pump",
+              "center_gltf_m": [
+                7.085,
+                0.632,
+                -2.66
+              ],
+              "size_gltf_m": [
+                1.0500000000000007,
+                1.216,
+                0.7200000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            }
+          ],
+          "sign_panels": {
+            "sign_name": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                0,
+                232,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -4.5008,
+                2.97,
+                0.017
+              ],
+              "width_m": 9.0016,
+              "height_m": 1.0088
+            }
+          },
+          "materials": [
+            "detail_light_trim",
+            "detail_painted_timber",
+            "floor_school",
+            "glass_school",
+            "ground_drive",
+            "ground_turf",
+            "roof_finish",
+            "sign_paint",
+            "trim_and_slate",
+            "wall_brick",
+            "wall_clapboard"
+          ]
+        },
+        {
+          "file": "mill-branch-active-mid.glb",
+          "lod": "mid",
+          "triangles_visible": 1252,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.17,
+              0.34
+            ],
+            "door_back": [
+              0,
+              0.17,
+              -14.68
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Gabled front",
+              "center_gltf_m": [
+                -2.92,
+                2.205,
+                -0.12
+              ],
+              "size_gltf_m": [
+                4.16,
+                4.07,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gabled front",
+              "center_gltf_m": [
+                2.92,
+                2.205,
+                -0.12
+              ],
+              "size_gltf_m": [
+                4.16,
+                4.07,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear clapboard",
+              "center_gltf_m": [
+                -2.87,
+                2.205,
+                -13.879999999999999
+              ],
+              "size_gltf_m": [
+                4.26,
+                4.07,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear clapboard",
+              "center_gltf_m": [
+                2.87,
+                2.205,
+                -13.879999999999999
+              ],
+              "size_gltf_m": [
+                4.26,
+                4.07,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West classroom wall",
+              "center_gltf_m": [
+                -4.88,
+                2.205,
+                -7.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.07,
+                14
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East classroom wall",
+              "center_gltf_m": [
+                4.88,
+                2.205,
+                -7.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.07,
+                14
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Woodstove",
+              "center_gltf_m": [
+                3.4699999999999998,
+                0.6749999999999999,
+                -11.18
+              ],
+              "size_gltf_m": [
+                1.1599999999999997,
+                1.01,
+                1.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Outhouse",
+              "center_gltf_m": [
+                -6.8,
+                1.287,
+                -18.47
+              ],
+              "size_gltf_m": [
+                1.4000000000000004,
+                2.526,
+                1.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Outhouse",
+              "center_gltf_m": [
+                -8.88,
+                1.287,
+                -18.47
+              ],
+              "size_gltf_m": [
+                1.3999999999999986,
+                2.526,
+                1.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Hand pump",
+              "center_gltf_m": [
+                7.085,
+                0.632,
+                -2.66
+              ],
+              "size_gltf_m": [
+                1.0500000000000007,
+                1.216,
+                0.7200000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            }
+          ],
+          "sign_panels": {
+            "sign_name": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                0,
+                232,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -4.5008,
+                2.97,
+                0.017
+              ],
+              "width_m": 9.0016,
+              "height_m": 1.0088
+            }
+          },
+          "materials": [
+            "detail_light_trim",
+            "detail_painted_timber",
+            "floor_school",
+            "glass_school",
+            "ground_drive",
+            "ground_turf",
+            "roof_finish",
+            "sign_paint",
+            "trim_and_slate",
+            "wall_brick",
+            "wall_clapboard"
+          ]
+        },
+        {
+          "file": "mill-branch-active-far.glb",
+          "lod": "far",
+          "triangles_visible": 1064,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.17,
+              0.34
+            ],
+            "door_back": [
+              0,
+              0.17,
+              -14.68
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Gabled front",
+              "center_gltf_m": [
+                -2.92,
+                2.205,
+                -0.12
+              ],
+              "size_gltf_m": [
+                4.16,
+                4.07,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gabled front",
+              "center_gltf_m": [
+                2.92,
+                2.205,
+                -0.12
+              ],
+              "size_gltf_m": [
+                4.16,
+                4.07,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear clapboard",
+              "center_gltf_m": [
+                -2.87,
+                2.205,
+                -13.879999999999999
+              ],
+              "size_gltf_m": [
+                4.26,
+                4.07,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear clapboard",
+              "center_gltf_m": [
+                2.87,
+                2.205,
+                -13.879999999999999
+              ],
+              "size_gltf_m": [
+                4.26,
+                4.07,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West classroom wall",
+              "center_gltf_m": [
+                -4.88,
+                2.205,
+                -7.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.07,
+                14
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East classroom wall",
+              "center_gltf_m": [
+                4.88,
+                2.205,
+                -7.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.07,
+                14
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Woodstove",
+              "center_gltf_m": [
+                3.4699999999999998,
+                0.6749999999999999,
+                -11.18
+              ],
+              "size_gltf_m": [
+                1.1599999999999997,
+                1.01,
+                1.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Outhouse",
+              "center_gltf_m": [
+                -6.8,
+                1.287,
+                -18.47
+              ],
+              "size_gltf_m": [
+                1.4000000000000004,
+                2.526,
+                1.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Outhouse",
+              "center_gltf_m": [
+                -8.88,
+                1.287,
+                -18.47
+              ],
+              "size_gltf_m": [
+                1.3999999999999986,
+                2.526,
+                1.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Hand pump",
+              "center_gltf_m": [
+                7.085,
+                0.632,
+                -2.66
+              ],
+              "size_gltf_m": [
+                1.0500000000000007,
+                1.216,
+                0.7200000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            }
+          ],
+          "sign_panels": {
+            "sign_name": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                0,
+                232,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -4.5008,
+                2.97,
+                0.017
+              ],
+              "width_m": 9.0016,
+              "height_m": 1.0088
+            }
+          },
+          "materials": [
+            "detail_light_trim",
+            "detail_painted_timber",
+            "floor_school",
+            "glass_school",
+            "ground_drive",
+            "ground_turf",
+            "roof_finish",
+            "sign_paint",
+            "trim_and_slate",
+            "wall_brick",
+            "wall_clapboard"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mill-branch-abandoned",
+      "name": "Mill Branch School",
+      "era": "Abandoned, after closing",
+      "footprint_m": [
+        22,
+        30
+      ],
+      "height_m": 9.3,
+      "lot_bounds_gltf_m": {
+        "x": [
+          -11,
+          11
+        ],
+        "y": [
+          0,
+          9.3
+        ],
+        "z": [
+          -25,
+          5
+        ]
+      },
+      "models": [
+        {
+          "file": "mill-branch-abandoned.glb",
+          "lod": "near",
+          "triangles_visible": 1692,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.17,
+              0.34
+            ],
+            "door_back": [
+              0,
+              0.17,
+              -14.68
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Gabled front",
+              "center_gltf_m": [
+                -2.92,
+                2.205,
+                -0.12
+              ],
+              "size_gltf_m": [
+                4.16,
+                4.07,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gabled front",
+              "center_gltf_m": [
+                2.92,
+                2.205,
+                -0.12
+              ],
+              "size_gltf_m": [
+                4.16,
+                4.07,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear clapboard",
+              "center_gltf_m": [
+                -2.87,
+                2.205,
+                -13.879999999999999
+              ],
+              "size_gltf_m": [
+                4.26,
+                4.07,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear clapboard",
+              "center_gltf_m": [
+                2.87,
+                2.205,
+                -13.879999999999999
+              ],
+              "size_gltf_m": [
+                4.26,
+                4.07,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West classroom wall",
+              "center_gltf_m": [
+                -4.88,
+                2.205,
+                -7.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.07,
+                14
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East classroom wall",
+              "center_gltf_m": [
+                4.88,
+                2.205,
+                -7.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.07,
+                14
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Woodstove",
+              "center_gltf_m": [
+                3.4699999999999998,
+                0.6749999999999999,
+                -11.18
+              ],
+              "size_gltf_m": [
+                1.1599999999999997,
+                1.01,
+                1.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Outhouse",
+              "center_gltf_m": [
+                -6.8,
+                1.287,
+                -18.47
+              ],
+              "size_gltf_m": [
+                1.4000000000000004,
+                2.526,
+                1.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Outhouse",
+              "center_gltf_m": [
+                -8.88,
+                1.287,
+                -18.47
+              ],
+              "size_gltf_m": [
+                1.3999999999999986,
+                2.526,
+                1.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Hand pump",
+              "center_gltf_m": [
+                7.085,
+                0.632,
+                -2.66
+              ],
+              "size_gltf_m": [
+                1.0500000000000007,
+                1.216,
+                0.7200000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            }
+          ],
+          "sign_panels": {
+            "sign_name": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                0,
+                232,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -4.5008,
+                2.97,
+                0.017
+              ],
+              "width_m": 9.0016,
+              "height_m": 1.0088
+            }
+          },
+          "materials": [
+            "detail_light_trim",
+            "detail_painted_timber",
+            "floor_school",
+            "glass_school",
+            "ground_drive",
+            "ground_turf",
+            "roof_finish",
+            "sign_paint",
+            "trim_and_slate",
+            "wall_brick",
+            "wall_clapboard"
+          ]
+        },
+        {
+          "file": "mill-branch-abandoned-mid.glb",
+          "lod": "mid",
+          "triangles_visible": 1424,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.17,
+              0.34
+            ],
+            "door_back": [
+              0,
+              0.17,
+              -14.68
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Gabled front",
+              "center_gltf_m": [
+                -2.92,
+                2.205,
+                -0.12
+              ],
+              "size_gltf_m": [
+                4.16,
+                4.07,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gabled front",
+              "center_gltf_m": [
+                2.92,
+                2.205,
+                -0.12
+              ],
+              "size_gltf_m": [
+                4.16,
+                4.07,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear clapboard",
+              "center_gltf_m": [
+                -2.87,
+                2.205,
+                -13.879999999999999
+              ],
+              "size_gltf_m": [
+                4.26,
+                4.07,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear clapboard",
+              "center_gltf_m": [
+                2.87,
+                2.205,
+                -13.879999999999999
+              ],
+              "size_gltf_m": [
+                4.26,
+                4.07,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West classroom wall",
+              "center_gltf_m": [
+                -4.88,
+                2.205,
+                -7.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.07,
+                14
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East classroom wall",
+              "center_gltf_m": [
+                4.88,
+                2.205,
+                -7.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.07,
+                14
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Woodstove",
+              "center_gltf_m": [
+                3.4699999999999998,
+                0.6749999999999999,
+                -11.18
+              ],
+              "size_gltf_m": [
+                1.1599999999999997,
+                1.01,
+                1.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Outhouse",
+              "center_gltf_m": [
+                -6.8,
+                1.287,
+                -18.47
+              ],
+              "size_gltf_m": [
+                1.4000000000000004,
+                2.526,
+                1.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Outhouse",
+              "center_gltf_m": [
+                -8.88,
+                1.287,
+                -18.47
+              ],
+              "size_gltf_m": [
+                1.3999999999999986,
+                2.526,
+                1.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Hand pump",
+              "center_gltf_m": [
+                7.085,
+                0.632,
+                -2.66
+              ],
+              "size_gltf_m": [
+                1.0500000000000007,
+                1.216,
+                0.7200000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            }
+          ],
+          "sign_panels": {
+            "sign_name": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                0,
+                232,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -4.5008,
+                2.97,
+                0.017
+              ],
+              "width_m": 9.0016,
+              "height_m": 1.0088
+            }
+          },
+          "materials": [
+            "detail_light_trim",
+            "detail_painted_timber",
+            "floor_school",
+            "glass_school",
+            "ground_drive",
+            "ground_turf",
+            "roof_finish",
+            "sign_paint",
+            "trim_and_slate",
+            "wall_brick",
+            "wall_clapboard"
+          ]
+        },
+        {
+          "file": "mill-branch-abandoned-far.glb",
+          "lod": "far",
+          "triangles_visible": 1128,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.17,
+              0.34
+            ],
+            "door_back": [
+              0,
+              0.17,
+              -14.68
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Gabled front",
+              "center_gltf_m": [
+                -2.92,
+                2.205,
+                -0.12
+              ],
+              "size_gltf_m": [
+                4.16,
+                4.07,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gabled front",
+              "center_gltf_m": [
+                2.92,
+                2.205,
+                -0.12
+              ],
+              "size_gltf_m": [
+                4.16,
+                4.07,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear clapboard",
+              "center_gltf_m": [
+                -2.87,
+                2.205,
+                -13.879999999999999
+              ],
+              "size_gltf_m": [
+                4.26,
+                4.07,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear clapboard",
+              "center_gltf_m": [
+                2.87,
+                2.205,
+                -13.879999999999999
+              ],
+              "size_gltf_m": [
+                4.26,
+                4.07,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West classroom wall",
+              "center_gltf_m": [
+                -4.88,
+                2.205,
+                -7.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.07,
+                14
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East classroom wall",
+              "center_gltf_m": [
+                4.88,
+                2.205,
+                -7.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.07,
+                14
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Woodstove",
+              "center_gltf_m": [
+                3.4699999999999998,
+                0.6749999999999999,
+                -11.18
+              ],
+              "size_gltf_m": [
+                1.1599999999999997,
+                1.01,
+                1.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Outhouse",
+              "center_gltf_m": [
+                -6.8,
+                1.287,
+                -18.47
+              ],
+              "size_gltf_m": [
+                1.4000000000000004,
+                2.526,
+                1.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Outhouse",
+              "center_gltf_m": [
+                -8.88,
+                1.287,
+                -18.47
+              ],
+              "size_gltf_m": [
+                1.3999999999999986,
+                2.526,
+                1.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Hand pump",
+              "center_gltf_m": [
+                7.085,
+                0.632,
+                -2.66
+              ],
+              "size_gltf_m": [
+                1.0500000000000007,
+                1.216,
+                0.7200000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            }
+          ],
+          "sign_panels": {
+            "sign_name": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                0,
+                232,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -4.5008,
+                2.97,
+                0.017
+              ],
+              "width_m": 9.0016,
+              "height_m": 1.0088
+            }
+          },
+          "materials": [
+            "detail_light_trim",
+            "detail_painted_timber",
+            "floor_school",
+            "glass_school",
+            "ground_drive",
+            "ground_turf",
+            "roof_finish",
+            "sign_paint",
+            "trim_and_slate",
+            "wall_brick",
+            "wall_clapboard"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "westmeadow-1955",
+      "name": "Westmeadow Elementary",
+      "era": "1955\u20131989",
+      "footprint_m": [
+        85,
+        66
+      ],
+      "height_m": 7.13,
+      "lot_bounds_gltf_m": {
+        "x": [
+          -32,
+          53
+        ],
+        "y": [
+          0,
+          7.13
+        ],
+        "z": [
+          -43,
+          23
+        ]
+      },
+      "models": [
+        {
+          "file": "westmeadow-1955.glb",
+          "lod": "near",
+          "triangles_visible": 3066,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.13,
+              0.36
+            ],
+            "door_service": [
+              30.36,
+              0.13,
+              -37.72
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Classroom ribbon west",
+              "center_gltf_m": [
+                -17.965,
+                2.195,
+                -6.12
+              ],
+              "size_gltf_m": [
+                18.07,
+                4.13,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom ribbon east",
+              "center_gltf_m": [
+                17.965,
+                2.195,
+                -6.12
+              ],
+              "size_gltf_m": [
+                18.07,
+                4.13,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back classroom ribbon",
+              "center_gltf_m": [
+                -7.5,
+                2.195,
+                -23.880000000000003
+              ],
+              "size_gltf_m": [
+                39,
+                4.13,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West end wall",
+              "center_gltf_m": [
+                -26.880000000000003,
+                2.195,
+                -15.0
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                4.13,
+                18.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East end wall",
+              "center_gltf_m": [
+                26.880000000000003,
+                2.195,
+                -15.0
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                4.13,
+                18.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Canopied main entry",
+              "center_gltf_m": [
+                -4.995,
+                2.225,
+                -0.12
+              ],
+              "size_gltf_m": [
+                7.869999999999999,
+                4.19,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Canopied main entry",
+              "center_gltf_m": [
+                4.995,
+                2.225,
+                -0.12
+              ],
+              "size_gltf_m": [
+                7.869999999999999,
+                4.19,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Vestibule return",
+              "center_gltf_m": [
+                -8.809999999999999,
+                2.205,
+                -3.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.15,
+                6.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Vestibule return",
+              "center_gltf_m": [
+                8.809999999999999,
+                2.205,
+                -3.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.15,
+                6.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -24.98,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                3.5600000000000023,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -17.325,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.450000000000001,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -7.015,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.87,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                6.59,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.02,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                16.39,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.22,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                24.43,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                4.66,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                -18.21,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                -8.21,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.1800000000000015,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                8.17,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                18.24,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym west side",
+              "center_gltf_m": [
+                12.120000000000001,
+                3.38,
+                -32.05
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                6.5,
+                16.1
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym east side",
+              "center_gltf_m": [
+                29.880000000000003,
+                3.38,
+                -30.35
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                6.5,
+                12.739999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym east side",
+              "center_gltf_m": [
+                29.880000000000003,
+                3.38,
+                -39.41
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                6.5,
+                1.3800000000000026
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym south shoulder",
+              "center_gltf_m": [
+                28.5,
+                3.38,
+                -23.880000000000003
+              ],
+              "size_gltf_m": [
+                3,
+                6.5,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym back elevation",
+              "center_gltf_m": [
+                21.0,
+                3.38,
+                -39.980000000000004
+              ],
+              "size_gltf_m": [
+                18,
+                6.5,
+                0.240000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Lunch counter",
+              "center_gltf_m": [
+                16.83,
+                0.585,
+                -38.724999999999994
+              ],
+              "size_gltf_m": [
+                7.440000000000001,
+                0.91,
+                0.6300000000000026
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Flagpole",
+              "center_gltf_m": [
+                10.879999999999999,
+                3.5385,
+                1.995
+              ],
+              "size_gltf_m": [
+                0.9199999999999999,
+                7.023,
+                0.9100000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Bicycle rack",
+              "center_gltf_m": [
+                -12.2,
+                0.3885,
+                -3.0549999999999997
+              ],
+              "size_gltf_m": [
+                3.4000000000000004,
+                0.723,
+                0.6499999999999999
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Swing frame",
+              "center_gltf_m": [
+                41.3,
+                1.531,
+                -18.52
+              ],
+              "size_gltf_m": [
+                8.799999999999997,
+                2.938,
+                2.960000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Monkey bars",
+              "center_gltf_m": [
+                35.3,
+                1.331,
+                -28.04
+              ],
+              "size_gltf_m": [
+                2.3800000000000026,
+                2.5380000000000003,
+                3.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Slide",
+              "center_gltf_m": [
+                44.64,
+                1.4209999999999998,
+                -29.035
+              ],
+              "size_gltf_m": [
+                1.2800000000000011,
+                2.718,
+                5.490000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            }
+          ],
+          "sign_panels": {
+            "sign_name": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                30,
+                450,
+                48
+              ],
+              "bottom_left_gltf_m": [
+                -8.73,
+                3.34,
+                0.074
+              ],
+              "width_m": 17.46,
+              "height_m": 1.8624
+            },
+            "sign_gym": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                82,
+                228,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                25.4232,
+                3.0,
+                -40.117
+              ],
+              "width_m": 8.846400000000001,
+              "height_m": 1.0088
+            }
+          },
+          "materials": [
+            "detail_light_trim",
+            "detail_painted_timber",
+            "floor_school",
+            "glass_school",
+            "ground_drive",
+            "ground_turf",
+            "roof_finish",
+            "sign_paint",
+            "trim_and_slate",
+            "wall_brick",
+            "wall_clapboard"
+          ]
+        },
+        {
+          "file": "westmeadow-1955-mid.glb",
+          "lod": "mid",
+          "triangles_visible": 2780,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.13,
+              0.36
+            ],
+            "door_service": [
+              30.36,
+              0.13,
+              -37.72
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Classroom ribbon west",
+              "center_gltf_m": [
+                -17.965,
+                2.195,
+                -6.12
+              ],
+              "size_gltf_m": [
+                18.07,
+                4.13,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom ribbon east",
+              "center_gltf_m": [
+                17.965,
+                2.195,
+                -6.12
+              ],
+              "size_gltf_m": [
+                18.07,
+                4.13,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back classroom ribbon",
+              "center_gltf_m": [
+                -7.5,
+                2.195,
+                -23.880000000000003
+              ],
+              "size_gltf_m": [
+                39,
+                4.13,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West end wall",
+              "center_gltf_m": [
+                -26.880000000000003,
+                2.195,
+                -15.0
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                4.13,
+                18.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East end wall",
+              "center_gltf_m": [
+                26.880000000000003,
+                2.195,
+                -15.0
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                4.13,
+                18.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Canopied main entry",
+              "center_gltf_m": [
+                -4.995,
+                2.225,
+                -0.12
+              ],
+              "size_gltf_m": [
+                7.869999999999999,
+                4.19,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Canopied main entry",
+              "center_gltf_m": [
+                4.995,
+                2.225,
+                -0.12
+              ],
+              "size_gltf_m": [
+                7.869999999999999,
+                4.19,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Vestibule return",
+              "center_gltf_m": [
+                -8.809999999999999,
+                2.205,
+                -3.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.15,
+                6.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Vestibule return",
+              "center_gltf_m": [
+                8.809999999999999,
+                2.205,
+                -3.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.15,
+                6.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -24.98,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                3.5600000000000023,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -17.325,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.450000000000001,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -7.015,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.87,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                6.59,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.02,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                16.39,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.22,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                24.43,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                4.66,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                -18.21,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                -8.21,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.1800000000000015,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                8.17,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                18.24,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym west side",
+              "center_gltf_m": [
+                12.120000000000001,
+                3.38,
+                -32.05
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                6.5,
+                16.1
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym east side",
+              "center_gltf_m": [
+                29.880000000000003,
+                3.38,
+                -30.35
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                6.5,
+                12.739999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym east side",
+              "center_gltf_m": [
+                29.880000000000003,
+                3.38,
+                -39.41
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                6.5,
+                1.3800000000000026
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym south shoulder",
+              "center_gltf_m": [
+                28.5,
+                3.38,
+                -23.880000000000003
+              ],
+              "size_gltf_m": [
+                3,
+                6.5,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym back elevation",
+              "center_gltf_m": [
+                21.0,
+                3.38,
+                -39.980000000000004
+              ],
+              "size_gltf_m": [
+                18,
+                6.5,
+                0.240000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Lunch counter",
+              "center_gltf_m": [
+                16.83,
+                0.585,
+                -38.724999999999994
+              ],
+              "size_gltf_m": [
+                7.440000000000001,
+                0.91,
+                0.6300000000000026
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Flagpole",
+              "center_gltf_m": [
+                10.879999999999999,
+                3.5385,
+                1.995
+              ],
+              "size_gltf_m": [
+                0.9199999999999999,
+                7.023,
+                0.9100000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Bicycle rack",
+              "center_gltf_m": [
+                -12.2,
+                0.3885,
+                -3.0549999999999997
+              ],
+              "size_gltf_m": [
+                3.4000000000000004,
+                0.723,
+                0.6499999999999999
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Swing frame",
+              "center_gltf_m": [
+                41.3,
+                1.531,
+                -18.52
+              ],
+              "size_gltf_m": [
+                8.799999999999997,
+                2.938,
+                2.960000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Monkey bars",
+              "center_gltf_m": [
+                35.3,
+                1.331,
+                -28.04
+              ],
+              "size_gltf_m": [
+                2.3800000000000026,
+                2.5380000000000003,
+                3.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Slide",
+              "center_gltf_m": [
+                44.64,
+                1.4209999999999998,
+                -29.035
+              ],
+              "size_gltf_m": [
+                1.2800000000000011,
+                2.718,
+                5.490000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            }
+          ],
+          "sign_panels": {
+            "sign_name": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                30,
+                450,
+                48
+              ],
+              "bottom_left_gltf_m": [
+                -8.73,
+                3.34,
+                0.074
+              ],
+              "width_m": 17.46,
+              "height_m": 1.8624
+            },
+            "sign_gym": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                82,
+                228,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                25.4232,
+                3.0,
+                -40.117
+              ],
+              "width_m": 8.846400000000001,
+              "height_m": 1.0088
+            }
+          },
+          "materials": [
+            "detail_light_trim",
+            "detail_painted_timber",
+            "floor_school",
+            "glass_school",
+            "ground_drive",
+            "ground_turf",
+            "roof_finish",
+            "sign_paint",
+            "trim_and_slate",
+            "wall_brick",
+            "wall_clapboard"
+          ]
+        },
+        {
+          "file": "westmeadow-1955-far.glb",
+          "lod": "far",
+          "triangles_visible": 2356,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.13,
+              0.36
+            ],
+            "door_service": [
+              30.36,
+              0.13,
+              -37.72
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Classroom ribbon west",
+              "center_gltf_m": [
+                -17.965,
+                2.195,
+                -6.12
+              ],
+              "size_gltf_m": [
+                18.07,
+                4.13,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom ribbon east",
+              "center_gltf_m": [
+                17.965,
+                2.195,
+                -6.12
+              ],
+              "size_gltf_m": [
+                18.07,
+                4.13,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back classroom ribbon",
+              "center_gltf_m": [
+                -7.5,
+                2.195,
+                -23.880000000000003
+              ],
+              "size_gltf_m": [
+                39,
+                4.13,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West end wall",
+              "center_gltf_m": [
+                -26.880000000000003,
+                2.195,
+                -15.0
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                4.13,
+                18.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East end wall",
+              "center_gltf_m": [
+                26.880000000000003,
+                2.195,
+                -15.0
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                4.13,
+                18.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Canopied main entry",
+              "center_gltf_m": [
+                -4.995,
+                2.225,
+                -0.12
+              ],
+              "size_gltf_m": [
+                7.869999999999999,
+                4.19,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Canopied main entry",
+              "center_gltf_m": [
+                4.995,
+                2.225,
+                -0.12
+              ],
+              "size_gltf_m": [
+                7.869999999999999,
+                4.19,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Vestibule return",
+              "center_gltf_m": [
+                -8.809999999999999,
+                2.205,
+                -3.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.15,
+                6.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Vestibule return",
+              "center_gltf_m": [
+                8.809999999999999,
+                2.205,
+                -3.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.15,
+                6.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -24.98,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                3.5600000000000023,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -17.325,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.450000000000001,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -7.015,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.87,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                6.59,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.02,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                16.39,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.22,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                24.43,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                4.66,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                -18.21,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                -8.21,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.1800000000000015,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                8.17,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                18.24,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym west side",
+              "center_gltf_m": [
+                12.120000000000001,
+                3.38,
+                -32.05
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                6.5,
+                16.1
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym east side",
+              "center_gltf_m": [
+                29.880000000000003,
+                3.38,
+                -30.35
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                6.5,
+                12.739999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym east side",
+              "center_gltf_m": [
+                29.880000000000003,
+                3.38,
+                -39.41
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                6.5,
+                1.3800000000000026
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym south shoulder",
+              "center_gltf_m": [
+                28.5,
+                3.38,
+                -23.880000000000003
+              ],
+              "size_gltf_m": [
+                3,
+                6.5,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym back elevation",
+              "center_gltf_m": [
+                21.0,
+                3.38,
+                -39.980000000000004
+              ],
+              "size_gltf_m": [
+                18,
+                6.5,
+                0.240000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Lunch counter",
+              "center_gltf_m": [
+                16.83,
+                0.585,
+                -38.724999999999994
+              ],
+              "size_gltf_m": [
+                7.440000000000001,
+                0.91,
+                0.6300000000000026
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Flagpole",
+              "center_gltf_m": [
+                10.879999999999999,
+                3.5385,
+                1.995
+              ],
+              "size_gltf_m": [
+                0.9199999999999999,
+                7.023,
+                0.9100000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Bicycle rack",
+              "center_gltf_m": [
+                -12.2,
+                0.3885,
+                -3.0549999999999997
+              ],
+              "size_gltf_m": [
+                3.4000000000000004,
+                0.723,
+                0.6499999999999999
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Swing frame",
+              "center_gltf_m": [
+                41.3,
+                1.531,
+                -18.52
+              ],
+              "size_gltf_m": [
+                8.799999999999997,
+                2.938,
+                2.960000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Monkey bars",
+              "center_gltf_m": [
+                35.3,
+                1.331,
+                -28.04
+              ],
+              "size_gltf_m": [
+                2.3800000000000026,
+                2.5380000000000003,
+                3.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Slide",
+              "center_gltf_m": [
+                44.64,
+                1.4209999999999998,
+                -29.035
+              ],
+              "size_gltf_m": [
+                1.2800000000000011,
+                2.718,
+                5.490000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            }
+          ],
+          "sign_panels": {
+            "sign_name": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                30,
+                450,
+                48
+              ],
+              "bottom_left_gltf_m": [
+                -8.73,
+                3.34,
+                0.074
+              ],
+              "width_m": 17.46,
+              "height_m": 1.8624
+            },
+            "sign_gym": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                82,
+                228,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                25.4232,
+                3.0,
+                -40.117
+              ],
+              "width_m": 8.846400000000001,
+              "height_m": 1.0088
+            }
+          },
+          "materials": [
+            "detail_light_trim",
+            "detail_painted_timber",
+            "floor_school",
+            "glass_school",
+            "ground_drive",
+            "ground_turf",
+            "roof_finish",
+            "sign_paint",
+            "trim_and_slate",
+            "wall_brick",
+            "wall_clapboard"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "westmeadow-1990",
+      "name": "Westmeadow Elementary",
+      "era": "1990 onward",
+      "footprint_m": [
+        85,
+        66
+      ],
+      "height_m": 7.13,
+      "lot_bounds_gltf_m": {
+        "x": [
+          -32,
+          53
+        ],
+        "y": [
+          0,
+          7.13
+        ],
+        "z": [
+          -43,
+          23
+        ]
+      },
+      "models": [
+        {
+          "file": "westmeadow-1990.glb",
+          "lod": "near",
+          "triangles_visible": 3878,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.13,
+              0.36
+            ],
+            "door_service": [
+              30.36,
+              0.13,
+              -37.72
+            ],
+            "door_portable_a": [
+              -17.54,
+              0.43,
+              -29.54
+            ],
+            "door_portable_b": [
+              -3.4400000000000004,
+              0.43,
+              -29.54
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Classroom ribbon west",
+              "center_gltf_m": [
+                -17.965,
+                2.195,
+                -6.12
+              ],
+              "size_gltf_m": [
+                18.07,
+                4.13,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom ribbon east",
+              "center_gltf_m": [
+                17.965,
+                2.195,
+                -6.12
+              ],
+              "size_gltf_m": [
+                18.07,
+                4.13,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back classroom ribbon",
+              "center_gltf_m": [
+                -7.5,
+                2.195,
+                -23.880000000000003
+              ],
+              "size_gltf_m": [
+                39,
+                4.13,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West end wall",
+              "center_gltf_m": [
+                -26.880000000000003,
+                2.195,
+                -15.0
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                4.13,
+                18.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East end wall",
+              "center_gltf_m": [
+                26.880000000000003,
+                2.195,
+                -15.0
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                4.13,
+                18.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Canopied main entry",
+              "center_gltf_m": [
+                -4.995,
+                2.225,
+                -0.12
+              ],
+              "size_gltf_m": [
+                7.869999999999999,
+                4.19,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Canopied main entry",
+              "center_gltf_m": [
+                4.995,
+                2.225,
+                -0.12
+              ],
+              "size_gltf_m": [
+                7.869999999999999,
+                4.19,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Vestibule return",
+              "center_gltf_m": [
+                -8.809999999999999,
+                2.205,
+                -3.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.15,
+                6.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Vestibule return",
+              "center_gltf_m": [
+                8.809999999999999,
+                2.205,
+                -3.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.15,
+                6.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Secure inner control line",
+              "center_gltf_m": [
+                -4.875,
+                1.89,
+                -3.5
+              ],
+              "size_gltf_m": [
+                7.629999999999999,
+                3.52,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Secure inner control line",
+              "center_gltf_m": [
+                4.875,
+                1.89,
+                -3.5
+              ],
+              "size_gltf_m": [
+                7.629999999999999,
+                3.52,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Reception desk",
+              "center_gltf_m": [
+                -5.05,
+                0.605,
+                -4.705
+              ],
+              "size_gltf_m": [
+                3.0,
+                0.9500000000000001,
+                0.8300000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -24.98,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                3.5600000000000023,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -17.325,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.450000000000001,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -7.015,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.87,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                6.59,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.02,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                16.39,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.22,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                24.43,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                4.66,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                -18.21,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                -8.21,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.1800000000000015,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                8.17,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                18.24,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym west side",
+              "center_gltf_m": [
+                12.120000000000001,
+                3.38,
+                -32.05
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                6.5,
+                16.1
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym east side",
+              "center_gltf_m": [
+                29.880000000000003,
+                3.38,
+                -30.35
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                6.5,
+                12.739999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym east side",
+              "center_gltf_m": [
+                29.880000000000003,
+                3.38,
+                -39.41
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                6.5,
+                1.3800000000000026
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym south shoulder",
+              "center_gltf_m": [
+                28.5,
+                3.38,
+                -23.880000000000003
+              ],
+              "size_gltf_m": [
+                3,
+                6.5,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym back elevation",
+              "center_gltf_m": [
+                21.0,
+                3.38,
+                -39.980000000000004
+              ],
+              "size_gltf_m": [
+                18,
+                6.5,
+                0.240000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Lunch counter",
+              "center_gltf_m": [
+                16.83,
+                0.585,
+                -38.724999999999994
+              ],
+              "size_gltf_m": [
+                7.440000000000001,
+                0.91,
+                0.6300000000000026
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Flagpole",
+              "center_gltf_m": [
+                10.879999999999999,
+                3.5385,
+                1.995
+              ],
+              "size_gltf_m": [
+                0.9199999999999999,
+                7.023,
+                0.9100000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Bicycle rack",
+              "center_gltf_m": [
+                -12.2,
+                0.3885,
+                -3.0549999999999997
+              ],
+              "size_gltf_m": [
+                3.4000000000000004,
+                0.723,
+                0.6499999999999999
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Swing frame",
+              "center_gltf_m": [
+                41.3,
+                1.531,
+                -18.52
+              ],
+              "size_gltf_m": [
+                8.799999999999997,
+                2.938,
+                2.960000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Monkey bars",
+              "center_gltf_m": [
+                35.3,
+                1.331,
+                -28.04
+              ],
+              "size_gltf_m": [
+                2.3800000000000026,
+                2.5380000000000003,
+                3.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Slide",
+              "center_gltf_m": [
+                44.64,
+                1.4209999999999998,
+                -29.035
+              ],
+              "size_gltf_m": [
+                1.2800000000000011,
+                2.718,
+                5.490000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Portable front",
+              "center_gltf_m": [
+                -22.405,
+                2.065,
+                -30.240000000000002
+              ],
+              "size_gltf_m": [
+                8.349999999999998,
+                3.27,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable front",
+              "center_gltf_m": [
+                -16.13,
+                2.065,
+                -30.240000000000002
+              ],
+              "size_gltf_m": [
+                1.42,
+                3.27,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable back",
+              "center_gltf_m": [
+                -21.0,
+                2.065,
+                -37.3
+              ],
+              "size_gltf_m": [
+                11.159999999999998,
+                3.27,
+                0.240000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable end",
+              "center_gltf_m": [
+                -26.474999999999998,
+                2.065,
+                -33.760000000000005
+              ],
+              "size_gltf_m": [
+                0.21000000000000085,
+                3.27,
+                6.82
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable end",
+              "center_gltf_m": [
+                -15.525,
+                2.065,
+                -33.760000000000005
+              ],
+              "size_gltf_m": [
+                0.21000000000000085,
+                3.27,
+                6.82
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable front",
+              "center_gltf_m": [
+                -8.305,
+                2.065,
+                -30.240000000000002
+              ],
+              "size_gltf_m": [
+                8.35,
+                3.27,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable front",
+              "center_gltf_m": [
+                -2.0300000000000002,
+                2.065,
+                -30.240000000000002
+              ],
+              "size_gltf_m": [
+                1.42,
+                3.27,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable back",
+              "center_gltf_m": [
+                -6.9,
+                2.065,
+                -37.3
+              ],
+              "size_gltf_m": [
+                11.16,
+                3.27,
+                0.240000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable end",
+              "center_gltf_m": [
+                -12.375,
+                2.065,
+                -33.760000000000005
+              ],
+              "size_gltf_m": [
+                0.21000000000000085,
+                3.27,
+                6.82
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable end",
+              "center_gltf_m": [
+                -1.4250000000000003,
+                2.065,
+                -33.760000000000005
+              ],
+              "size_gltf_m": [
+                0.20999999999999996,
+                3.27,
+                6.82
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "sign_panels": {
+            "sign_name": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                30,
+                450,
+                48
+              ],
+              "bottom_left_gltf_m": [
+                -8.73,
+                3.34,
+                0.074
+              ],
+              "width_m": 17.46,
+              "height_m": 1.8624
+            },
+            "sign_gym": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                82,
+                228,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                25.4232,
+                3.0,
+                -40.117
+              ],
+              "width_m": 8.846400000000001,
+              "height_m": 1.0088
+            },
+            "sign_portable_a": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                114,
+                124,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                -23.6056,
+                2.67,
+                -30.097
+              ],
+              "width_m": 4.8112,
+              "height_m": 0.9312
+            },
+            "sign_portable_b": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                144,
+                124,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                -9.505600000000001,
+                2.67,
+                -30.097
+              ],
+              "width_m": 4.8112,
+              "height_m": 0.9312
+            }
+          },
+          "materials": [
+            "detail_light_trim",
+            "detail_painted_timber",
+            "floor_school",
+            "glass_school",
+            "ground_drive",
+            "ground_turf",
+            "roof_finish",
+            "sign_paint",
+            "trim_and_slate",
+            "wall_brick",
+            "wall_clapboard"
+          ]
+        },
+        {
+          "file": "westmeadow-1990-mid.glb",
+          "lod": "mid",
+          "triangles_visible": 3544,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.13,
+              0.36
+            ],
+            "door_service": [
+              30.36,
+              0.13,
+              -37.72
+            ],
+            "door_portable_a": [
+              -17.54,
+              0.43,
+              -29.54
+            ],
+            "door_portable_b": [
+              -3.4400000000000004,
+              0.43,
+              -29.54
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Classroom ribbon west",
+              "center_gltf_m": [
+                -17.965,
+                2.195,
+                -6.12
+              ],
+              "size_gltf_m": [
+                18.07,
+                4.13,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom ribbon east",
+              "center_gltf_m": [
+                17.965,
+                2.195,
+                -6.12
+              ],
+              "size_gltf_m": [
+                18.07,
+                4.13,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back classroom ribbon",
+              "center_gltf_m": [
+                -7.5,
+                2.195,
+                -23.880000000000003
+              ],
+              "size_gltf_m": [
+                39,
+                4.13,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West end wall",
+              "center_gltf_m": [
+                -26.880000000000003,
+                2.195,
+                -15.0
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                4.13,
+                18.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East end wall",
+              "center_gltf_m": [
+                26.880000000000003,
+                2.195,
+                -15.0
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                4.13,
+                18.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Canopied main entry",
+              "center_gltf_m": [
+                -4.995,
+                2.225,
+                -0.12
+              ],
+              "size_gltf_m": [
+                7.869999999999999,
+                4.19,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Canopied main entry",
+              "center_gltf_m": [
+                4.995,
+                2.225,
+                -0.12
+              ],
+              "size_gltf_m": [
+                7.869999999999999,
+                4.19,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Vestibule return",
+              "center_gltf_m": [
+                -8.809999999999999,
+                2.205,
+                -3.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.15,
+                6.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Vestibule return",
+              "center_gltf_m": [
+                8.809999999999999,
+                2.205,
+                -3.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.15,
+                6.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Secure inner control line",
+              "center_gltf_m": [
+                -4.875,
+                1.89,
+                -3.5
+              ],
+              "size_gltf_m": [
+                7.629999999999999,
+                3.52,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Secure inner control line",
+              "center_gltf_m": [
+                4.875,
+                1.89,
+                -3.5
+              ],
+              "size_gltf_m": [
+                7.629999999999999,
+                3.52,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Reception desk",
+              "center_gltf_m": [
+                -5.05,
+                0.605,
+                -4.705
+              ],
+              "size_gltf_m": [
+                3.0,
+                0.9500000000000001,
+                0.8300000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -24.98,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                3.5600000000000023,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -17.325,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.450000000000001,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -7.015,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.87,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                6.59,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.02,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                16.39,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.22,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                24.43,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                4.66,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                -18.21,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                -8.21,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.1800000000000015,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                8.17,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                18.24,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym west side",
+              "center_gltf_m": [
+                12.120000000000001,
+                3.38,
+                -32.05
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                6.5,
+                16.1
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym east side",
+              "center_gltf_m": [
+                29.880000000000003,
+                3.38,
+                -30.35
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                6.5,
+                12.739999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym east side",
+              "center_gltf_m": [
+                29.880000000000003,
+                3.38,
+                -39.41
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                6.5,
+                1.3800000000000026
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym south shoulder",
+              "center_gltf_m": [
+                28.5,
+                3.38,
+                -23.880000000000003
+              ],
+              "size_gltf_m": [
+                3,
+                6.5,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym back elevation",
+              "center_gltf_m": [
+                21.0,
+                3.38,
+                -39.980000000000004
+              ],
+              "size_gltf_m": [
+                18,
+                6.5,
+                0.240000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Lunch counter",
+              "center_gltf_m": [
+                16.83,
+                0.585,
+                -38.724999999999994
+              ],
+              "size_gltf_m": [
+                7.440000000000001,
+                0.91,
+                0.6300000000000026
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Flagpole",
+              "center_gltf_m": [
+                10.879999999999999,
+                3.5385,
+                1.995
+              ],
+              "size_gltf_m": [
+                0.9199999999999999,
+                7.023,
+                0.9100000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Bicycle rack",
+              "center_gltf_m": [
+                -12.2,
+                0.3885,
+                -3.0549999999999997
+              ],
+              "size_gltf_m": [
+                3.4000000000000004,
+                0.723,
+                0.6499999999999999
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Swing frame",
+              "center_gltf_m": [
+                41.3,
+                1.531,
+                -18.52
+              ],
+              "size_gltf_m": [
+                8.799999999999997,
+                2.938,
+                2.960000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Monkey bars",
+              "center_gltf_m": [
+                35.3,
+                1.331,
+                -28.04
+              ],
+              "size_gltf_m": [
+                2.3800000000000026,
+                2.5380000000000003,
+                3.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Slide",
+              "center_gltf_m": [
+                44.64,
+                1.4209999999999998,
+                -29.035
+              ],
+              "size_gltf_m": [
+                1.2800000000000011,
+                2.718,
+                5.490000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Portable front",
+              "center_gltf_m": [
+                -22.405,
+                2.065,
+                -30.240000000000002
+              ],
+              "size_gltf_m": [
+                8.349999999999998,
+                3.27,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable front",
+              "center_gltf_m": [
+                -16.13,
+                2.065,
+                -30.240000000000002
+              ],
+              "size_gltf_m": [
+                1.42,
+                3.27,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable back",
+              "center_gltf_m": [
+                -21.0,
+                2.065,
+                -37.3
+              ],
+              "size_gltf_m": [
+                11.159999999999998,
+                3.27,
+                0.240000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable end",
+              "center_gltf_m": [
+                -26.474999999999998,
+                2.065,
+                -33.760000000000005
+              ],
+              "size_gltf_m": [
+                0.21000000000000085,
+                3.27,
+                6.82
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable end",
+              "center_gltf_m": [
+                -15.525,
+                2.065,
+                -33.760000000000005
+              ],
+              "size_gltf_m": [
+                0.21000000000000085,
+                3.27,
+                6.82
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable front",
+              "center_gltf_m": [
+                -8.305,
+                2.065,
+                -30.240000000000002
+              ],
+              "size_gltf_m": [
+                8.35,
+                3.27,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable front",
+              "center_gltf_m": [
+                -2.0300000000000002,
+                2.065,
+                -30.240000000000002
+              ],
+              "size_gltf_m": [
+                1.42,
+                3.27,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable back",
+              "center_gltf_m": [
+                -6.9,
+                2.065,
+                -37.3
+              ],
+              "size_gltf_m": [
+                11.16,
+                3.27,
+                0.240000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable end",
+              "center_gltf_m": [
+                -12.375,
+                2.065,
+                -33.760000000000005
+              ],
+              "size_gltf_m": [
+                0.21000000000000085,
+                3.27,
+                6.82
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable end",
+              "center_gltf_m": [
+                -1.4250000000000003,
+                2.065,
+                -33.760000000000005
+              ],
+              "size_gltf_m": [
+                0.20999999999999996,
+                3.27,
+                6.82
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "sign_panels": {
+            "sign_name": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                30,
+                450,
+                48
+              ],
+              "bottom_left_gltf_m": [
+                -8.73,
+                3.34,
+                0.074
+              ],
+              "width_m": 17.46,
+              "height_m": 1.8624
+            },
+            "sign_gym": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                82,
+                228,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                25.4232,
+                3.0,
+                -40.117
+              ],
+              "width_m": 8.846400000000001,
+              "height_m": 1.0088
+            },
+            "sign_portable_a": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                114,
+                124,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                -23.6056,
+                2.67,
+                -30.097
+              ],
+              "width_m": 4.8112,
+              "height_m": 0.9312
+            },
+            "sign_portable_b": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                144,
+                124,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                -9.505600000000001,
+                2.67,
+                -30.097
+              ],
+              "width_m": 4.8112,
+              "height_m": 0.9312
+            }
+          },
+          "materials": [
+            "detail_light_trim",
+            "detail_painted_timber",
+            "floor_school",
+            "glass_school",
+            "ground_drive",
+            "ground_turf",
+            "roof_finish",
+            "sign_paint",
+            "trim_and_slate",
+            "wall_brick",
+            "wall_clapboard"
+          ]
+        },
+        {
+          "file": "westmeadow-1990-far.glb",
+          "lod": "far",
+          "triangles_visible": 2976,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.13,
+              0.36
+            ],
+            "door_service": [
+              30.36,
+              0.13,
+              -37.72
+            ],
+            "door_portable_a": [
+              -17.54,
+              0.43,
+              -29.54
+            ],
+            "door_portable_b": [
+              -3.4400000000000004,
+              0.43,
+              -29.54
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Classroom ribbon west",
+              "center_gltf_m": [
+                -17.965,
+                2.195,
+                -6.12
+              ],
+              "size_gltf_m": [
+                18.07,
+                4.13,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom ribbon east",
+              "center_gltf_m": [
+                17.965,
+                2.195,
+                -6.12
+              ],
+              "size_gltf_m": [
+                18.07,
+                4.13,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back classroom ribbon",
+              "center_gltf_m": [
+                -7.5,
+                2.195,
+                -23.880000000000003
+              ],
+              "size_gltf_m": [
+                39,
+                4.13,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West end wall",
+              "center_gltf_m": [
+                -26.880000000000003,
+                2.195,
+                -15.0
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                4.13,
+                18.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East end wall",
+              "center_gltf_m": [
+                26.880000000000003,
+                2.195,
+                -15.0
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                4.13,
+                18.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Canopied main entry",
+              "center_gltf_m": [
+                -4.995,
+                2.225,
+                -0.12
+              ],
+              "size_gltf_m": [
+                7.869999999999999,
+                4.19,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Canopied main entry",
+              "center_gltf_m": [
+                4.995,
+                2.225,
+                -0.12
+              ],
+              "size_gltf_m": [
+                7.869999999999999,
+                4.19,
+                0.24
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Vestibule return",
+              "center_gltf_m": [
+                -8.809999999999999,
+                2.205,
+                -3.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.15,
+                6.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Vestibule return",
+              "center_gltf_m": [
+                8.809999999999999,
+                2.205,
+                -3.0
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                4.15,
+                6.0
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Secure inner control line",
+              "center_gltf_m": [
+                -4.875,
+                1.89,
+                -3.5
+              ],
+              "size_gltf_m": [
+                7.629999999999999,
+                3.52,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Secure inner control line",
+              "center_gltf_m": [
+                4.875,
+                1.89,
+                -3.5
+              ],
+              "size_gltf_m": [
+                7.629999999999999,
+                3.52,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Reception desk",
+              "center_gltf_m": [
+                -5.05,
+                0.605,
+                -4.705
+              ],
+              "size_gltf_m": [
+                3.0,
+                0.9500000000000001,
+                0.8300000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -24.98,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                3.5600000000000023,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -17.325,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.450000000000001,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                -7.015,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.87,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                6.59,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.02,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                16.39,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                8.22,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom corridor wall",
+              "center_gltf_m": [
+                24.43,
+                1.7,
+                -15.274999999999999
+              ],
+              "size_gltf_m": [
+                4.66,
+                3.14,
+                0.1899999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                -18.21,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                -8.21,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.1800000000000015,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                8.17,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Classroom party wall",
+              "center_gltf_m": [
+                18.24,
+                1.7,
+                -10.71
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.14,
+                8.94
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym west side",
+              "center_gltf_m": [
+                12.120000000000001,
+                3.38,
+                -32.05
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                6.5,
+                16.1
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym east side",
+              "center_gltf_m": [
+                29.880000000000003,
+                3.38,
+                -30.35
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                6.5,
+                12.739999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym east side",
+              "center_gltf_m": [
+                29.880000000000003,
+                3.38,
+                -39.41
+              ],
+              "size_gltf_m": [
+                0.23999999999999844,
+                6.5,
+                1.3800000000000026
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym south shoulder",
+              "center_gltf_m": [
+                28.5,
+                3.38,
+                -23.880000000000003
+              ],
+              "size_gltf_m": [
+                3,
+                6.5,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Gym back elevation",
+              "center_gltf_m": [
+                21.0,
+                3.38,
+                -39.980000000000004
+              ],
+              "size_gltf_m": [
+                18,
+                6.5,
+                0.240000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Lunch counter",
+              "center_gltf_m": [
+                16.83,
+                0.585,
+                -38.724999999999994
+              ],
+              "size_gltf_m": [
+                7.440000000000001,
+                0.91,
+                0.6300000000000026
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Flagpole",
+              "center_gltf_m": [
+                10.879999999999999,
+                3.5385,
+                1.995
+              ],
+              "size_gltf_m": [
+                0.9199999999999999,
+                7.023,
+                0.9100000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Bicycle rack",
+              "center_gltf_m": [
+                -12.2,
+                0.3885,
+                -3.0549999999999997
+              ],
+              "size_gltf_m": [
+                3.4000000000000004,
+                0.723,
+                0.6499999999999999
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Swing frame",
+              "center_gltf_m": [
+                41.3,
+                1.531,
+                -18.52
+              ],
+              "size_gltf_m": [
+                8.799999999999997,
+                2.938,
+                2.960000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Monkey bars",
+              "center_gltf_m": [
+                35.3,
+                1.331,
+                -28.04
+              ],
+              "size_gltf_m": [
+                2.3800000000000026,
+                2.5380000000000003,
+                3.7399999999999984
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Slide",
+              "center_gltf_m": [
+                44.64,
+                1.4209999999999998,
+                -29.035
+              ],
+              "size_gltf_m": [
+                1.2800000000000011,
+                2.718,
+                5.490000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Portable front",
+              "center_gltf_m": [
+                -22.405,
+                2.065,
+                -30.240000000000002
+              ],
+              "size_gltf_m": [
+                8.349999999999998,
+                3.27,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable front",
+              "center_gltf_m": [
+                -16.13,
+                2.065,
+                -30.240000000000002
+              ],
+              "size_gltf_m": [
+                1.42,
+                3.27,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable back",
+              "center_gltf_m": [
+                -21.0,
+                2.065,
+                -37.3
+              ],
+              "size_gltf_m": [
+                11.159999999999998,
+                3.27,
+                0.240000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable end",
+              "center_gltf_m": [
+                -26.474999999999998,
+                2.065,
+                -33.760000000000005
+              ],
+              "size_gltf_m": [
+                0.21000000000000085,
+                3.27,
+                6.82
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable end",
+              "center_gltf_m": [
+                -15.525,
+                2.065,
+                -33.760000000000005
+              ],
+              "size_gltf_m": [
+                0.21000000000000085,
+                3.27,
+                6.82
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable front",
+              "center_gltf_m": [
+                -8.305,
+                2.065,
+                -30.240000000000002
+              ],
+              "size_gltf_m": [
+                8.35,
+                3.27,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable front",
+              "center_gltf_m": [
+                -2.0300000000000002,
+                2.065,
+                -30.240000000000002
+              ],
+              "size_gltf_m": [
+                1.42,
+                3.27,
+                0.23999999999999844
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable back",
+              "center_gltf_m": [
+                -6.9,
+                2.065,
+                -37.3
+              ],
+              "size_gltf_m": [
+                11.16,
+                3.27,
+                0.240000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable end",
+              "center_gltf_m": [
+                -12.375,
+                2.065,
+                -33.760000000000005
+              ],
+              "size_gltf_m": [
+                0.21000000000000085,
+                3.27,
+                6.82
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Portable end",
+              "center_gltf_m": [
+                -1.4250000000000003,
+                2.065,
+                -33.760000000000005
+              ],
+              "size_gltf_m": [
+                0.20999999999999996,
+                3.27,
+                6.82
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "sign_panels": {
+            "sign_name": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                30,
+                450,
+                48
+              ],
+              "bottom_left_gltf_m": [
+                -8.73,
+                3.34,
+                0.074
+              ],
+              "width_m": 17.46,
+              "height_m": 1.8624
+            },
+            "sign_gym": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                82,
+                228,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                25.4232,
+                3.0,
+                -40.117
+              ],
+              "width_m": 8.846400000000001,
+              "height_m": 1.0088
+            },
+            "sign_portable_a": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                114,
+                124,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                -23.6056,
+                2.67,
+                -30.097
+              ],
+              "width_m": 4.8112,
+              "height_m": 0.9312
+            },
+            "sign_portable_b": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                256
+              ],
+              "rect_texels": [
+                0,
+                144,
+                124,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                -9.505600000000001,
+                2.67,
+                -30.097
+              ],
+              "width_m": 4.8112,
+              "height_m": 0.9312
+            }
+          },
+          "materials": [
+            "detail_light_trim",
+            "detail_painted_timber",
+            "floor_school",
+            "glass_school",
+            "ground_drive",
+            "ground_turf",
+            "roof_finish",
+            "sign_paint",
+            "trim_and_slate",
+            "wall_brick",
+            "wall_clapboard"
+          ]
+        }
+      ]
+    }
+  ]
+}
