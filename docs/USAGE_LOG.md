@@ -73,3 +73,4 @@ row per accepted or revised delivery here, so we can compare cost per finished i
 | C001 five-and-dime | ChatGPT (setting not reported) | model, 4 states + LODs | not reported (delivered before the usage rule) | 1 | revise: lettering clipped, roof texture |
 | C001 five-and-dime r1 | ChatGPT (Codex, GPT-6 family; setting not visible) | model revision | 1 turn, ~40 tool calls, ~7 min | 2 | accepted |
 | G001 moving landmarks (finish) | Gemini (AI Studio Build) | engineering | ~16 turns, ~35 tool calls, ~15 min (plus an aborted Filament source build) | 1 | accepted pending merge tests (strong root-cause work) |
+| C002 grain elevator | ChatGPT (Codex, GPT-6 family) | model, 3 states + LODs | 1 turn, ~30 tool calls, ~9 min | 1 | accepted first try |

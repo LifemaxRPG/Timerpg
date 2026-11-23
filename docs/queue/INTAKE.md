@@ -27,6 +27,7 @@ them in the capital city. It runs after the town plan merges (`wf-town-plan`), b
 | ID | Branch | What | Where in the capital |
 |---|---|---|---|
 | C001 | codex/C001-five-and-dime | Marlow Five and Dime, 4 states (1925 dime, 1970 variety, 2000 Dollar Cove, vacant) | downtown Main Street, mid-block in a street wall |
+| C002 | codex/C002-grain-elevator | Lark Bend grain elevator: 1925 timber, 1950 + concrete bins, 1990 co-op; rail siding reference in model-info | rail side, by the depot siding (also farm towns) |
 
 Coastal and port set: these wait for the coastal hub and the ocean, so they aren't placed in the capital yet:
 - codex/copperwake (the ships);
