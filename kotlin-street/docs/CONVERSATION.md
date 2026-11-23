@@ -14,8 +14,11 @@ simulation already decided (see `tools/export-dialogue.ts`, `src/llm/factsheet.t
   pre-generation is paused while it is loaded (the overnight writer fills the bank with the main model). Its NPU load
   needs about 3.7 GB free with the same margin.
 - The choice is `ModelRoles.pick` (unit tested): in play, the main model on the NPU if its copy fits, else the light one on
-  the NPU, else the light one on the CPU from its mapped file; behind the game, the main model (on the CPU from its file
-  if its copy does not fit). Nothing loads while the town is built. The AI panel shows which is live, on which device and
+  the NPU (tried with what Android finds when asked), else **nothing: in play dialogue never runs on the CPU** (the
+  owner's rule, 2026-11-23, after 0.1.715's playtest on the CPU). It waits (`Wait(device = true)`; the HUD chip "AI:
+  waiting for NPU memory (X MB free, Y needed)"), people speak their lines written ahead and their built-in ones, and it
+  looks again every 30 s with no limit; an NPU load that fails in play falls back to neither the GPU nor the CPU. Behind
+  the game, the main model (on the CPU from its file if its copy does not fit); Writer mode and overnight as below. Nothing loads while the town is built. The AI panel shows which is live, on which device and
   what each needs, with a switch to put the main model in play for comparison.
 
 ## Getting the live model onto the NPU (2026-11-22)

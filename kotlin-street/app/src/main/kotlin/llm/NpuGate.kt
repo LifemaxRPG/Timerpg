@@ -14,7 +14,8 @@ import org.json.JSONObject
  *    in the last week (the load failed, the safety valve stopped it, the game was killed during it, or memory went
  *    critical soon after);
  * 2. what was measured: the least that Android found in the last loads that measured it (the NPU fit test, or a try in
- *    play), capped at [CAP_MB];
+ *    play) and needed it (less free than they needed: a load with room to spare finds about nothing, which says nothing
+ *    of what Android could find), capped at [CAP_MB];
  * 3. else a first guess, [SWAP_SHARE] of the free swap, at most [GUESS_CAP_MB], until a load measures it.
  * Every try is guarded: the load is watched and stopped if free memory falls to Android's threshold plus [VALVE_MB],
  * and a failure falls back NPU, then GPU, then the CPU reading the mapped file.
@@ -42,7 +43,10 @@ object NpuGate {
         if (!on) return Verdict(0, "counting what Android frees on demand is off (AI panel)")
         val failed = tries.filter { !it.ok && nowMs - it.atMs < WEEK_MS && it.freeMb + RETRY_MB >= freeMb && it.needMb in 1..(needMb + 100) }.maxByOrNull { it.atMs }
         if (failed != null) return Verdict(0, "a try with ${failed.freeMb} MB free failed (${failed.why.ifEmpty { "no reason" }}), so not again with $freeMb MB free this week")
-        val found = tries.filter { it.ok && it.foundMb >= 0 }.sortedByDescending { it.atMs }.take(3)
+        // (only loads that leaned on the margin measure what Android finds: a load with more free than it needed can come
+        // out of the free memory, its "found" about 0 however much Android could have found, and the least of the last
+        // three would then hold back the light model's copy in play)
+        val found = tries.filter { it.ok && it.foundMb >= 0 && it.freeMb < it.needMb }.sortedByDescending { it.atMs }.take(3)
         if (found.isNotEmpty()) {
             val f = found.minOf { it.foundMb }.coerceAtMost(CAP_MB)
             return Verdict(f, "Android found $f MB beyond its free count in the last ${found.size} measured load${if (found.size > 1) "s" else ""}")
@@ -94,6 +98,12 @@ object NpuGate {
         val p = prefs(ctx)
         val at = p.getLong("runAt", 0L)
         if (at == 0L) return
+        // (the writer's own process starting while the game's still runs: the game's try is not over, nor failed)
+        val me = android.os.Process.myPid()
+        val gameAlive = runCatching {
+            ctx.getSystemService(android.app.ActivityManager::class.java)?.runningAppProcesses?.any { it.processName == ctx.packageName && it.pid != me }
+        }.getOrNull() == true
+        if (gameAlive) return
         clearRunning(ctx)
         record(ctx, Try(at, p.getLong("runFree", -1), p.getLong("runNeed", -1), ok = false, why = "the game ended during the load or soon after"))
     }

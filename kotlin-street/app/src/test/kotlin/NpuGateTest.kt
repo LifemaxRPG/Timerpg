@@ -26,7 +26,18 @@ class NpuGateTest {
         val t = listOf(Try(now - 4 * day, 3000, 3630, true, 200), Try(now - 3 * day, 3000, 3630, true, 1800),
             Try(now - 2 * day, 3000, 3630, true, 1200, measure = true), Try(now - day, 3000, 3630, true, 2500))
         assertEquals(1200L, NpuGate.reclaim(2900, 3630, 0, t, now).reclaimMb)
-        assertEquals(NpuGate.CAP_MB, NpuGate.reclaim(2900, 3630, 0, listOf(Try(now, 1, 1, true, 9000)), now).reclaimMb)
+        assertEquals(NpuGate.CAP_MB, NpuGate.reclaim(2900, 3630, 0, listOf(Try(now, 1, 2, true, 9000)), now).reclaimMb)
+    }
+
+    @Test fun aLoadWithRoomToSpareMeasuresNothing() {
+        // the S25: the light model's copy beside the town found 1514 MB (2660 free, 3513 needed); later the writer's
+        // main-model copy with 6260 free of 6617 needed... and one with plenty free that found about 0. Only loads that
+        // needed Android's help count: the 0 from a load with room says nothing of what Android finds
+        val t = listOf(Try(now - 3 * day, 2660, 3513, true, 1514), Try(now - 2 * day, 6260, 6617, true, 1551),
+            Try(now - day, 7000, 6617, true, 0))
+        assertEquals(1514L, NpuGate.reclaim(2804, 3751, 0, t, now).reclaimMb)
+        // with only such loads: the first guess from the swap, as before any measure
+        assertEquals(1024L, NpuGate.reclaim(2804, 3751, 2048, listOf(Try(now - day, 7000, 6617, true, 0)), now).reclaimMb)
     }
 
     @Test fun aFailedTryWithAsMuchFreeStopsTheNextForAWeek() {

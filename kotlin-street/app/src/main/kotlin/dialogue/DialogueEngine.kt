@@ -63,6 +63,9 @@ data class AiStatus(
     val hasGpu: Boolean = false,
     val hasNpu: Boolean = false,
     val gpuNote: String? = null,
+    /** In play, waiting for room for the NPU copy (the model never runs on the CPU in play): "waiting for NPU memory
+     *  (2804 MB free, 3751 needed)", for the HUD's chip and the panel; null: not waiting for it. */
+    val npuWait: String? = null,
     /** Which model is loaded (null: none): the light one for live replies in play, or the main one ([ModelRole]). */
     val role: ModelRole? = null,
     /** The light model is on the phone; the free memory each model's load needs on the chosen device (MB). */
@@ -456,7 +459,8 @@ class DialogueEngine private constructor(private val app: Context) {
         resume("memory")
         if (unloadedForMemory && memoryUnloads < MEMORY_UNLOADS) { unloadedForMemory = false; command { loadModel() } }
         // (back in play with the main model loaded, e.g. after writing overnight: the light one if that one is wanted now)
-        else command { if (backend?.loaded == true && loadedRole != ModelRole.LIVE) loadModel() }
+        // (and a model on the CPU, loaded behind the game: in play it never runs there)
+        else command { if (backend?.loaded == true && (loadedRole != ModelRole.LIVE || loadedOnCpu)) loadModel() }
     }
 
     /** Memory pressure: pause pre-generation, and under real pressure let go of the model (it reloads on return). */
@@ -594,7 +598,8 @@ class DialogueEngine private constructor(private val app: Context) {
         if (acc != 0 && prefs.getInt("accelerators", 0) != acc) prefs.edit().putInt("accelerators", acc).apply()
         val npu = ((if (acc != 0) acc else prefs.getInt("accelerators", 0)) and 2 != 0) || _status.value.hasNpu
         // (writing the bank: the NPU whenever there is one, whatever device the panel was left on from a test)
-        val w = if (night && npu) com.timerpg.street.llm.NativeLlm.NPU else deviceWanted
+        // (in play: the NPU too, the owner's rule being that dialogue in play never runs on the CPU)
+        val w = if ((night || foreground) && npu) com.timerpg.street.llm.NativeLlm.NPU else deviceWanted
         val d = if (w >= 0) w else if (npu) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU
         return if (role == ModelRole.LIVE && d == com.timerpg.street.llm.NativeLlm.GPU && npu) com.timerpg.street.llm.NativeLlm.NPU else d
     }
@@ -618,6 +623,10 @@ class DialogueEngine private constructor(private val app: Context) {
     /** Which model is loaded ([ModelRole]); whether it was copied to its device (not mapped) and its file's size. */
     @Volatile private var loadedRole: ModelRole? = null
     @Volatile private var loadedCopied = false
+    /** The loaded model runs on the CPU (never kept in play: [loadModel] lets it go there). */
+    @Volatile private var loadedOnCpu = false
+    /** Looks in a row for room for the NPU copy in play ([ModelRoles.Wait.device]): no limit, for the breadcrumbs. */
+    @Volatile private var npuWaits = 0
     @Volatile private var loadedBytes = 0L
 
     /** The device chosen in the AI panel; -1 until one is: the NPU then when there is one (fastest on the S25 Ultra:
@@ -1191,7 +1200,8 @@ class DialogueEngine private constructor(private val app: Context) {
         val nl = b as? com.timerpg.street.llm.NativeLlm
         // the device chosen in the panel; -1: the NPU when there is one
         // (writing the bank: the NPU when there is one, whatever the panel says, see [deviceFor])
-        val dev = nl?.let { n -> (if (night && n.accelerators and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else deviceWanted)
+        // (in play too: the NPU whenever there is one, whatever the panel was left on: in play the model never runs on the CPU)
+        val dev = nl?.let { n -> (if ((night || foreground) && n.accelerators and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else deviceWanted)
             .let { if (it >= 0) it else if (n.accelerators and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU } }
             ?: com.timerpg.street.llm.NativeLlm.CPU
         val onNpu = nl != null && dev == com.timerpg.street.llm.NativeLlm.NPU
@@ -1225,20 +1235,24 @@ class DialogueEngine private constructor(private val app: Context) {
                 accelerated = accelerated, forceBank = forceBankWanted, writing = night,
                 bankWorkBytes = workWanted(ModelRole.BANK), liveWorkBytes = workWanted(ModelRole.LIVE),
                 reclaimBytes = (reclaim?.reclaimMb ?: 0L) shl 20,
+                npu = onNpu,
             ))
         }
         _status.update { it.copy(hasLive = liveOk, forceBank = forceBankWanted, needLive = false,
             liveNeedMb = ModelRoles.needBytes(ModelFiles.LIVE_BYTES, accelerated) shr 20, bankNeedMb = ModelRoles.needBytes(bankFile.length().takeIf { l -> l > 0 } ?: 5_680_522_464L, accelerated) shr 20) }
         var choice = choose()
+        // in play a model on the CPU (loaded behind the game, or by an older rule) goes: in play it never runs there
+        val playNow = foreground && !night && holds.isEmpty()
         if (b.loaded) {
             val want = (choice as? ModelRoles.Load)?.role
-            if (want == null || want == loadedRole) {
+            if (!(playNow && loadedOnCpu) && (want == null || want == loadedRole)) {
                 // (a model that waits for the town is kept: the load after the build looks again)
                 if (holds.isNotEmpty()) lock.withLock { loadWanted = true }
                 setState(ModelState.READY, readyText()); enqueueAll(); return
             }
             // the other model is wanted now: this one goes first (both do not fit)
-            com.timerpg.street.shot.Crumbs.add("dialogue model: ${loadedRole?.name?.lowercase()} model let go for the ${want.name.lowercase()} one (${com.timerpg.street.llm.Ram.freeMb(app)} MB free)")
+            com.timerpg.street.shot.Crumbs.add("dialogue model: ${loadedRole?.name?.lowercase()} model let go " +
+                (if (playNow && loadedOnCpu) "(it was on the CPU, never in play)" else "for the ${want?.name?.lowercase()} one") + " (${com.timerpg.street.llm.Ram.freeMb(app)} MB free)")
             closeBackend()
             b = createBackend() ?: return setState(ModelState.NO_ENGINE, noEngineText())
             choice = choose()
@@ -1284,6 +1298,24 @@ class DialogueEngine private constructor(private val app: Context) {
             com.timerpg.street.shot.Crumbs.add("dialogue model: the ${role.name.lowercase()} model on the CPU from its file: its $devName copy needs " +
                 "${copyNeed(role, bankFile) shr 20} MB, ${memoryNow().first shr 20} MB free (${com.timerpg.street.llm.ModelRoom.residents().joinToString { "${it.first} ${it.second} MB" }.ifEmpty { "no other model" }} resident; device setting ${deviceWanted})")
         }
+        (choice as? ModelRoles.Wait)?.takeIf { it.device }?.let { w ->
+            // in play, no room for the NPU copy (or no NPU): nothing on the CPU. People speak their lines written ahead and
+            // their built-in ones; the choice is made again every DEVICE_RETRY_MS with no limit (the other models that
+            // can go are let go first, above, and a try counts what Android finds when asked: NpuGate)
+            memoryWaits = 0
+            npuWaits++
+            val free = memoryNow().first shr 20
+            val short = if (w.needBytes > 0) "waiting for NPU memory ($free MB free, ${w.needBytes shr 20} needed)" else "no NPU: lines written ahead only"
+            if (npuWaits == 1 || npuWaits % 10 == 0)
+                com.timerpg.street.shot.Crumbs.add("dialogue model: in play, nothing on the CPU: ${w.why} (look ${npuWaits}, every ${DEVICE_RETRY_MS / 1000} s; ${gateNote ?: "no gate figure"})")
+            gpuNote = null
+            _status.update { it.copy(runsOn = 0, gpuNote = null) }
+            main.removeCallbacks(retryLoad)
+            if (w.needBytes > 0) main.postDelayed(retryLoad, DEVICE_RETRY_MS)
+            return setNpuWait(short, w.why + " People speak their lines written ahead and their built-in ones meanwhile" +
+                (if (w.needBytes > 0) "; looking again every ${DEVICE_RETRY_MS / 1000} s." else "."))
+        }
+        npuWaits = 0
         (choice as? ModelRoles.Wait)?.let { w ->
             val why = w.why
             // not now: again in a while (the town's last uploads, another app's memory being let go), then give up
@@ -1303,8 +1335,8 @@ class DialogueEngine private constructor(private val app: Context) {
         val native = b as? com.timerpg.street.llm.NativeLlm
         native?.device = if (cpuFallback) com.timerpg.street.llm.NativeLlm.CPU else wantDev
         if (!cpuFallback && wantDev != deviceWanted && deviceWanted == com.timerpg.street.llm.NativeLlm.GPU) {
-            gpuNote = "The light model answers on the NPU in play (about twice the GPU's speed on the S25 Ultra); the GPU setting applies to the main model."
-            com.timerpg.street.shot.Crumbs.add("dialogue model: the light model on the NPU, not the GPU of the device setting")
+            gpuNote = "In play and writing the model runs on the NPU (about twice the GPU's and the CPU's speed on the S25 Ultra); the device setting applies only behind the game."
+            com.timerpg.street.shot.Crumbs.add("dialogue model: the ${role.name.lowercase()} model on the NPU, not the GPU of the device setting")
         }
         // the attention cache in 8 bits (half its memory); a load that cannot have it keeps 16
         native?.kvQ8 = kvQ8Wanted
@@ -1343,6 +1375,23 @@ class DialogueEngine private constructor(private val app: Context) {
         }
         // the NPU could not take it: the GPU (unless it was memory: its copy is as big), then the CPU (and say so)
         val memoryFail = valve?.hit != null || (native?.error ?: "").let { e -> e.contains("alloc", true) || e.contains("memory", true) }
+        // in play: the NPU or nothing (never the CPU; the GPU is no faster than the CPU on the S25 either): wait and look again
+        if (!ok && native != null && playNow && !closed) {
+            val err = native.error ?: thrown ?: "unknown"
+            loadingNow = false
+            closeBackend()
+            com.timerpg.street.shot.Crumbs.add("dialogue model: the ${role.name.lowercase()} model's NPU copy did not load in play ($err): nothing on the CPU; " +
+                if (memoryFail) "looking again in ${DEVICE_RETRY_MS / 1000} s" else "Retry in the AI panel")
+            _status.update { it.copy(runsOn = 0, gpuNote = null) }
+            if (memoryFail) {
+                main.removeCallbacks(retryLoad); main.postDelayed(retryLoad, DEVICE_RETRY_MS)
+                return setNpuWait("waiting for NPU memory (${memoryNow().first shr 20} MB free, $needMb needed)",
+                    "The NPU copy ran short of memory while loading ($err). In play the model never runs on the CPU: people speak their " +
+                        "lines written ahead and their built-in ones; looking again every ${DEVICE_RETRY_MS / 1000} s.")
+            }
+            return setState(ModelState.ERROR, "The NPU could not load the model ($err). In play it never runs on the CPU: people speak " +
+                "their lines written ahead and their built-in ones. Tap Retry.")
+        }
         if (!ok && native != null && native.device == com.timerpg.street.llm.NativeLlm.NPU && !closed && !memoryFail &&
             native.accelerators and 1 != 0 && gpuFallbackWanted) {
             val npuError = native.error ?: "unknown"
@@ -1379,6 +1428,7 @@ class DialogueEngine private constructor(private val app: Context) {
         stats(b)
         loadedRole = role
         loadedCopied = native != null && (native.runsOn != com.timerpg.street.llm.NativeLlm.CPU || native.fastCpu)
+        loadedOnCpu = native != null && native.runsOn == com.timerpg.street.llm.NativeLlm.CPU
         loadedBytes = f.length()
         // what this model's cache and buffers really took: the next choice for it counts that, not a guess
         val m = native?.loadMem
@@ -1742,7 +1792,10 @@ class DialogueEngine private constructor(private val app: Context) {
         e.line?.let { Line(it, ai = true, final = true, note = "AI", info = ReplyInfo("ready")) }
             ?: template(topic, "built-in · the AI's reply did not pass the check")
 
-    private fun setState(s: ModelState, detail: String) = _status.update { it.copy(state = s, detail = detail) }
+    private fun setState(s: ModelState, detail: String) = _status.update { it.copy(state = s, detail = detail, npuWait = null) }
+
+    /** In play, waiting for the NPU copy's room ([ModelRoles.Wait.device]): [short] for the HUD's chip, [detail] for the panel. */
+    private fun setNpuWait(short: String, detail: String) = _status.update { it.copy(state = ModelState.WAITING, detail = detail, npuWait = short) }
 
     private var lastSave = 0L
 

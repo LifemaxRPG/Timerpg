@@ -125,6 +125,14 @@ fun renderFilamentOpen(out: String) {
     ft.textureStats.let { (n, t, sh) -> report.appendLine("textures after the build: %d, %.1fM texels, %d shared; biggest: %s".format(n, t / 1e6, sh, ft.biggestTextures(10))) }
     // the GPU memory account (TOWN.md "GPU memory"): every texture by owner and format, the shadow map and targets
     report.appendLine(com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.line())
+    // (the same by part, textures and buffers together, as the phone's screenshot reports it: "gpuNow", "gpuByPart")
+    report.appendLine(com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.categoryLine(ft.gpuEstimate(2340, 1080)))
+    if (System.getProperty("gpuOnly") != null) {
+        File(dir, "town.txt").writeText(report.toString()); println(report)
+        println(com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.table(ft.gpuEstimate(2340, 1080)))
+        println(com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.bufferTable())
+        return
+    }
     report.appendLine("ASTC encoding: %.1f s over all threads".format(com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.nanos.get() / 1e9))
     report.appendLine("ASTC level 0: " + com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.level0.line() + "; mip levels: " + com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.mips.line() +
         "; pictures by exact blocks: " + com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.histogram())

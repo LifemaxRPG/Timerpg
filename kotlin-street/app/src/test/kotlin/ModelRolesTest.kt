@@ -16,16 +16,19 @@ class ModelRolesTest {
 
     private fun pick(freeMb: Long, foreground: Boolean = true, built: Boolean = true, bankBytes: Long = bank, liveBytes: Long = live,
                      accelerated: Boolean = true, forceBank: Boolean = false, low: Boolean = false, writing: Boolean = false,
-                     liveWorkMb: Long = 300, reclaimMb: Long = 0) =
+                     liveWorkMb: Long = 300, reclaimMb: Long = 0, npu: Boolean = accelerated) =
         ModelRoles.pick(ModelRoles.Input(foreground, built, mb(freeMb), low, bankBytes, liveBytes, accelerated, forceBank, writing,
-            liveWorkBytes = mb(liveWorkMb), reclaimBytes = mb(reclaimMb)))
+            liveWorkBytes = mb(liveWorkMb), reclaimBytes = mb(reclaimMb), npu = npu))
+
+    /** In play nothing loads on the CPU: a [ModelRoles.Wait] for the NPU copy's room. */
+    private fun waitsForNpu(c: ModelRoles.Choice) = c is ModelRoles.Wait && c.device
 
     @Test fun withWhatAndroidFindsTheLightModelsCopyIsTriedBeforeTheCpu() {
         // the phone's reports: 2.0 to 3.6 GB free beside the town, 3663 MB needed
         assertEquals(Load(ModelRole.LIVE, copied = true, tried = true), pick(3000, reclaimMb = 1024))
         assertEquals(Load(ModelRole.LIVE, copied = true, tried = true), pick(2700, reclaimMb = 1024))
-        // not enough even so: the CPU from the file, as before
-        assertEquals(Load(ModelRole.LIVE, copied = false), pick(2500, reclaimMb = 500))
+        // not enough even so: in play nothing on the CPU (the owner's rule, 2026-11-23): wait for the NPU copy's room
+        assertTrue(waitsForNpu(pick(2500, reclaimMb = 500)))
         // a copy that fits outright is no try
         assertEquals(Load(ModelRole.LIVE, copied = true), pick(3700, reclaimMb = 1024))
         // in play the main model's copy is never a try while the light one's fits
@@ -59,10 +62,44 @@ class ModelRolesTest {
         assertEquals(Load(ModelRole.BANK, copied = true), pick(7000))
     }
 
-    @Test fun shortOfMemoryTheLightModelRunsOnTheCpuElseNothingLoads() {
-        assertEquals(Load(ModelRole.LIVE, copied = false), pick(3000))
-        assertTrue(pick(2000) is ModelRoles.Wait)
-        assertTrue(pick(8000, low = true) is ModelRoles.Wait)
+    @Test fun shortOfMemoryInPlayNothingLoadsAndItWaitsForTheNpu() {
+        // (before 2026-11-23 the light model ran on the CPU from its file here: the owner's playtest found it useless)
+        assertTrue(waitsForNpu(pick(3000)))
+        assertTrue(waitsForNpu(pick(2000)))
+        assertTrue(waitsForNpu(pick(8000, low = true)))
+    }
+
+    @Test fun inPlayTheModelNeverRunsOnTheCpu() {
+        // every free memory, with and without what Android finds, the panel's switch, the measured work: never the CPU
+        for (free in listOf(500L, 1500L, 2244L, 2804L, 3000L, 3500L, 3751L, 4067L, 5000L, 6617L, 8000L, 12000L))
+            for (reclaim in listOf(0L, 500L, 1514L))
+                for (force in listOf(false, true))
+                    for (low in listOf(false, true))
+                        for (liveBytes in listOf(live, 0L)) {
+                            val c = pick(free, reclaimMb = reclaim, forceBank = force, low = low, liveBytes = liveBytes)
+                            assertTrue("$free MB free, $reclaim found, force $force, low $low, light ${liveBytes > 0}: $c",
+                                c !is Load || c.copied)
+                        }
+    }
+
+    @Test fun theS25sPlaytestOf715WaitsForTheNpuInsteadOfTheCpu() {
+        // build 0.1.715 beside the capital: 2804 MB free, the light copy's own memory measured on the NPU at 387 MB
+        // (KV 19 + state 50 + compute 318): 3751 MB needed. Then it ran on the CPU; now it waits and says so
+        val w = pick(2804, liveWorkMb = 388)
+        assertTrue(waitsForNpu(w))
+        w as ModelRoles.Wait
+        assertEquals(3751L, w.needBytes shr 20)
+        assertTrue(w.why, w.why.contains("2804 MB free") && w.why.contains("3751 MB needed"))
+        // with what Android found for this copy beside the town on build 0.1.598 (1514 MB, measured): tried on the NPU
+        assertEquals(Load(ModelRole.LIVE, copied = true, tried = true), pick(2804, liveWorkMb = 388, reclaimMb = 1514))
+    }
+
+    @Test fun inPlayWithoutAnNpuNothingLoads() {
+        // the GPU (or the CPU's repacked kernels) but no NPU: in play nothing, people speak their lines written ahead
+        assertTrue(waitsForNpu(pick(9000, npu = false)))
+        assertTrue(waitsForNpu(pick(9000, accelerated = false)))
+        // behind the game the old rules: the CPU from the file
+        assertEquals(Load(ModelRole.BANK, copied = false), pick(9000, accelerated = false, foreground = false))
     }
 
     @Test fun nothingLoadsWhileTheTownIsBuilt() {
@@ -94,7 +131,9 @@ class ModelRolesTest {
     }
 
     @Test fun thePanelsSwitchPutsTheMainModelInPlay() {
-        assertEquals(Load(ModelRole.BANK, copied = false), pick(4067, forceBank = true))
+        // its copy does not fit: it waits for room (on the NPU only), not the CPU
+        assertTrue(waitsForNpu(pick(4067, forceBank = true)))
+        assertEquals(Load(ModelRole.BANK, copied = true, tried = true), pick(5200, forceBank = true, reclaimMb = 2000))
         assertEquals(Load(ModelRole.BANK, copied = true), pick(7000, forceBank = true))
     }
 
@@ -104,13 +143,13 @@ class ModelRolesTest {
         assertTrue(n is ModelRoles.NeedLive && n.needBytes shr 20 == 6617L)
         assertTrue(pick(7000, liveBytes = 0, accelerated = false) is ModelRoles.NeedLive)
         assertEquals(Load(ModelRole.BANK, copied = true), pick(7000, liveBytes = 0))
-        // the panel's comparison switch still puts it in play, on the CPU if it must
-        assertEquals(Load(ModelRole.BANK, copied = false), pick(4067, liveBytes = 0, forceBank = true))
+        // the panel's comparison switch puts it in play only where its copy fits: never on the CPU
+        assertTrue(waitsForNpu(pick(4067, liveBytes = 0, forceBank = true)))
     }
 
     @Test fun theMeasuredWorkingMemoryDecidesTheCopy() {
-        // the phone (build 321): 3621 MB free, the light copy 42 MB short with the flat 300 MB guess
-        assertEquals(Load(ModelRole.LIVE, copied = false), pick(3621))
+        // the phone (build 321): 3621 MB free, the light copy 42 MB short with the flat 300 MB guess: waits (no CPU)
+        assertTrue(waitsForNpu(pick(3621)))
         // with the cache and buffers the load measured (an 8-bit cache, a smaller context) it fits on the NPU
         assertEquals(Load(ModelRole.LIVE, copied = true), pick(3621, liveWorkMb = 150))
         assertEquals(3513L, ModelRoles.needBytes(live, true, mb(150)) shr 20)
@@ -122,8 +161,8 @@ class ModelRolesTest {
         assertEquals(ModelRoles.NoModel, pick(8000, bankBytes = 0, liveBytes = 0))
     }
 
-    @Test fun onTheCpuByChoiceTheLightModelAnswersInPlay() {
-        assertEquals(Load(ModelRole.LIVE, copied = false), pick(7000, accelerated = false))
+    @Test fun theCpuByChoiceAppliesOnlyBehindTheGame() {
+        assertTrue(waitsForNpu(pick(7000, accelerated = false)))
         assertEquals(Load(ModelRole.BANK, copied = false), pick(7000, accelerated = false, foreground = false))
     }
 }

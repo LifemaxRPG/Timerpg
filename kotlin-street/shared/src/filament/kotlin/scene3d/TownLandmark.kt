@@ -88,7 +88,10 @@ internal class TownLandmark(
         })
     }
 
-    fun step(): Boolean {
+    /** Uploads the model once its worker made it ([start]); true once done. (Its GPU memory counted as "GLB landmarks".) */
+    fun step(): Boolean = GpuAccount.scoped("landmarks") { stepNow() }
+
+    private fun stepNow(): Boolean {
         if (done) return true
         val f = job ?: return false
         if (!f.isDone) return false

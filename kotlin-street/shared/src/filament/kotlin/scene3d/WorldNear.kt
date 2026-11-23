@@ -274,9 +274,11 @@ internal class WorldNear(
             .attribute(VertexBuffer.VertexAttribute.TANGENTS, 0, VertexBuffer.AttributeType.SHORT4, 12, STRIDE)
             .normalized(VertexBuffer.VertexAttribute.TANGENTS).build(engine)
         vb.setBufferAt(engine, 0, vb0)
+        GpuAccount.addBuffer(vb, vb0.limit().toLong())
         val short = p.vertices <= 65536
         val ib = IndexBuffer.Builder().indexCount(p.indices).bufferType(if (short) IndexBuffer.Builder.IndexType.USHORT else IndexBuffer.Builder.IndexType.UINT).build(engine)
         ib.setBuffer(engine, ib0)
+        GpuAccount.addBuffer(ib, ib0.limit().toLong())
         val w = WorldTerrain.QUADS + 2
         val ids = Texture.Builder().width(w).height(w).levels(1).sampler(Texture.Sampler.SAMPLER_2D).format(Texture.InternalFormat.R8).build(engine)
         ids.setImage(engine, 0, Texture.PixelBufferDescriptor(p.ids!!, Texture.Format.R, Texture.Type.UBYTE, 1))

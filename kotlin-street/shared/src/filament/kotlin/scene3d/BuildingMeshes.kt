@@ -476,6 +476,7 @@ internal class BuildingMeshes(
         val vertices = TownVertex.buffer(engine, nv)
         vertices.setBufferAt(engine, 0, vb)
         val indices = IndexBuffer.Builder().indexCount(ni).bufferType(IndexBuffer.Builder.IndexType.USHORT).build(engine)
+        GpuAccount.addBuffer(indices, ni * 2L)
         indices.setBuffer(engine, ib)
         textures.gpu.buffers(vb.limit(), ib.limit())
         val box = Box((bmin[0] + bmax[0]) / 2f, (bmin[1] + bmax[1]) / 2f, (bmin[2] + bmax[2]) / 2f,

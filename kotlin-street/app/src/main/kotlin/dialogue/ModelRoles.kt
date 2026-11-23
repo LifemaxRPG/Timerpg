@@ -7,6 +7,11 @@ package com.timerpg.street.dialogue
  * - [LIVE]: a lighter model of the same family. Beside the built town (about 4 GB free on the S25 Ultra, measured)
  *   the main model's NPU copy (about 6.6 GB with the margin) does not fit and on the CPU it is much too slow, so the
  *   light one answers in play on the NPU: replies to what the player says and lines the bank does not have yet.
+ *
+ * The owner's rule (2026-11-23, after a playtest with the light model on the CPU: "useless, far too slow"): **in play,
+ * dialogue never runs on the CPU.** It runs on the NPU, or nothing loads ([Wait] with [Wait.device]) and people speak
+ * their lines written ahead and their built-in ones until the NPU copy fits. Writing the bank (Writer mode, overnight)
+ * and the game behind keep their own rules.
  */
 enum class ModelRole { LIVE, BANK }
 
@@ -42,14 +47,17 @@ object ModelRoles {
         /** What Android is expected to find beyond [freeBytes] for a copy on the device when asked (cached apps ended,
          *  swap): [com.timerpg.street.llm.NpuGate]'s figure. Only copies count it, and a load that needs it is a try. */
         val reclaimBytes: Long = 0,
+        /** The phone (and build) has the NPU for the model in play. Without it nothing loads in play (no CPU). */
+        val npu: Boolean = accelerated,
     )
 
     sealed interface Choice
     /** Load [role]'s model: [copied] on the chosen device, else on the CPU from the file's mapping. [tried]: the copy
      *  fits only with what Android is expected to find ([Input.reclaimBytes]): the load is watched, and falls back. */
     data class Load(val role: ModelRole, val copied: Boolean, val tried: Boolean = false) : Choice
-    /** Load nothing now ([why]); try again later. */
-    data class Wait(val why: String, val needBytes: Long = 0) : Choice
+    /** Load nothing now ([why]); try again later. [device]: in play, waiting for room for the NPU copy (never the CPU):
+     *  the engine keeps looking every 30 s with no limit, and the HUD says so. */
+    data class Wait(val why: String, val needBytes: Long = 0, val device: Boolean = false) : Choice
     object NoModel : Choice
     /**
      * In play without the light model on the phone, and the main model's copy does not fit beside the town: nothing
@@ -85,8 +93,8 @@ object ModelRoles {
             // the panel asks for the light model rather than the main one crawling on the CPU from its file
             play && !live && !i.forceBank -> {
                 val t = Load(ModelRole.BANK, copied = true)
-                if (i.accelerated && !i.lowMemory && i.freeBytes >= need(t)) return t
-                if (i.accelerated && !i.lowMemory && i.reclaimBytes > 0 && i.freeBytes + i.reclaimBytes >= need(t)) return t.copy(tried = true)
+                if (i.npu && !i.lowMemory && i.freeBytes >= need(t)) return t
+                if (i.npu && !i.lowMemory && i.reclaimBytes > 0 && i.freeBytes + i.reclaimBytes >= need(t)) return t.copy(tried = true)
                 return NeedLive("The light model for replies in play is not downloaded, and the main model does not fit beside the town " +
                     "(${i.freeBytes shr 20} MB free, ${need(t) shr 20} MB needed).", need(t))
             }
@@ -97,32 +105,39 @@ object ModelRoles {
                 if (bank) add(ModelRole.BANK, true)
                 if (live) add(ModelRole.LIVE, true)
             }
+            // in play: the NPU copy or nothing (the owner's rule: never the CPU). The main model's copy when there is room
+            // for it beside the town (the best replies; the panel's switch: only it), else the light one's, tried with what
+            // Android finds when asked; else wait for room, people speaking their lines written ahead meanwhile
+            play -> {
+                if (!i.npu) return Wait("No NPU for the model in play on this phone or build, and in play it never runs on the CPU: " +
+                    "people speak their lines written ahead and their built-in ones.", device = true)
+                if (bank) tries += Load(ModelRole.BANK, true)
+                if (live && !(i.forceBank && bank)) tries += Load(ModelRole.LIVE, true)
+            }
             // the game behind (or no accelerator): the main model, on the CPU from its file if its copy will not fit; the
             // light one only when it is all there is
             !play || !live || (i.forceBank && bank) -> {
                 val r = if (bank) ModelRole.BANK else ModelRole.LIVE
                 add(r, true); add(r, false)
             }
-            // in play: the main model on the NPU when there is room for it beside the town (the best replies), else the
-            // light one there, else the light one on the CPU (still about twice as fast there as the main one)
-            else -> {
-                if (bank) add(ModelRole.BANK, true)
-                add(ModelRole.LIVE, true)
-                add(ModelRole.LIVE, false)
-            }
+            else -> {}
         }
+        if (tries.isEmpty()) return Wait("Nothing can load here.", device = play)
         // each in order: fits in the free memory; else (a copy) fits with what Android finds when asked: tried (the light
         // model's NPU copy, tried, is far better than it on the CPU from the file; writing, the main model's copy tried
         // is better than the light one's). In play with the light model there, the main model's copy is never a try (the
         // riskiest load beside the town): the light one's goes first
         // (and only with the game in front or writing: a process behind is the first Android ends)
         fun tryable(t: Load) = t.copied && i.reclaimBytes > 0 && i.freeBytes + i.reclaimBytes >= need(t) &&
-            (i.foreground || i.writing) && !(play && live && t.role == ModelRole.BANK)
+            (i.foreground || i.writing) && !(play && live && t.role == ModelRole.BANK && !i.forceBank)
         if (!i.lowMemory) for (t in tries) {
             if (i.freeBytes >= need(t)) return t
             if (tryable(t)) return t.copy(tried = true)
         }
         val last = tries.last()
+        if (play) return Wait("Waiting for NPU memory (${i.freeBytes shr 20} MB free, ${need(last) shr 20} MB needed" +
+            (if (i.reclaimBytes > 0) " counting ${i.reclaimBytes shr 20} MB Android is expected to find" else "") +
+            (if (i.lowMemory) "; Android says memory is low" else "") + "): in play the model never runs on the CPU.", need(last), device = true)
         return Wait("Not enough free memory to load the model (${i.freeBytes shr 20} MB free, about ${need(last) shr 20} MB needed with room for the game).", need(last))
     }
 

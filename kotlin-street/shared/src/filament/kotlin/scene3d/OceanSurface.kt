@@ -189,6 +189,7 @@ class OceanSurface(
             .attribute(VertexBuffer.VertexAttribute.POSITION, 0, VertexBuffer.AttributeType.FLOAT3, 0, 12)
             .build(engine)
         vb.setBufferAt(engine, 0, posBytes)
+        GpuAccount.addBuffer(vb, vertexCount * 12L)
 
         val indexCount = mesh.indices.size
         val useShort = vertexCount <= 65536
@@ -206,6 +207,7 @@ class OceanSurface(
             .bufferType(if (useShort) IndexBuffer.Builder.IndexType.USHORT else IndexBuffer.Builder.IndexType.UINT)
             .build(engine)
         ib.setBuffer(engine, idxBytes)
+        GpuAccount.addBuffer(ib, idxBytes.limit().toLong())
 
         // Default hull foam ring off until setHullFoam() is called
         mi.setParameter("hullPose", 0f, 0f, 1f, 0f)

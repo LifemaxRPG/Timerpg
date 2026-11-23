@@ -978,7 +978,9 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 val w = townPlay.walk
                 linkedMapOf<String, Any?>("seed" to StreetRenderer.town, "loading" to TownSession.loading, "ready" to TownSession.ready,
                     "progress" to TownSession.progress, "error" to TownSession.error, "loadMs" to TownSession.loadMs,
-                    "firstViewMs" to TownSession.firstViewMs, "built" to FilamentStats.townBuilt, "memory" to FilamentStats.memory).also { m ->
+                    "firstViewMs" to TownSession.firstViewMs, "built" to FilamentStats.townBuilt, "memory" to FilamentStats.memory,
+                    // (the GPU by part as Filament holds it now: textures and buffers by what they are for, MB and counts)
+                    "gpuNow" to runCatching { com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.categories() }.getOrNull()).also { m ->
                     if (w != null) m.putAll(linkedMapOf("row" to w.row.id, "street" to townStreet, "neighbourhood" to townHood,
                         "x" to w.x, "lane" to w.lane, "wx" to w.wx, "wz" to w.wz, "heading" to w.heading, "front" to townFront,
                         "transit" to w.transit?.let { t -> "${t.kind} ${t.from.id}->${t.to.id} %.2f".format(java.util.Locale.US, t.progress) },
@@ -1005,7 +1007,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             "frames" to linkedMapOf("compose" to FrameStats.summary(), "filament" to if (StreetRenderer.filament) FilamentStats.summary() else null,
                 "spikes" to FrameSpikes.last),
             "ai" to linkedMapOf("state" to ai.state.name, "detail" to ai.detail, "runsOn" to listOf("CPU", "GPU", "NPU").getOrNull(ai.runsOn),
-                "modelMb" to ai.modelMb, "role" to ai.role?.name?.lowercase(), "forceBank" to ai.forceBank, "gpuNote" to ai.gpuNote, "lane" to com.timerpg.street.llm.AiLane.current,
+                "modelMb" to ai.modelMb, "role" to ai.role?.name?.lowercase(), "forceBank" to ai.forceBank, "gpuNote" to ai.gpuNote, "npuWait" to ai.npuWait, "lane" to com.timerpg.street.llm.AiLane.current,
                 "linesWritten" to ai.lines, "builtIn" to ai.builtIn, "queued" to ai.queued, "paused" to ai.paused, "working" to ai.working,
                 "pregenOff" to ai.pregenOff, "prefillTokPerSec" to st.prefillPerSec, "genTokPerSec" to st.genPerSec, "firstTokenMs" to st.firstTokenMs,
                 "loadInfo" to ai.loadInfo),
@@ -1810,7 +1812,8 @@ private fun aiChipLabel(s: AiStatus): String = when (s.state) {
     ModelState.NO_ENGINE -> "AI off"
     ModelState.NO_MODEL -> if (s.needLive) "AI: light model missing" else "AI: no model"
     ModelState.COPYING -> if (s.copyPercent >= 0) "AI: copying ${s.copyPercent}%" else "AI: copying ${s.copiedMb} MB"
-    ModelState.WAITING -> "AI: waiting"
+    // (in play, no room for the NPU copy: it never runs on the CPU there, and the chip says what it waits for)
+    ModelState.WAITING -> s.npuWait?.let { "AI: $it" } ?: "AI: waiting"
     ModelState.LOADING -> "AI: loading…"
     ModelState.READY -> (if (s.working != null) "AI ✓ writing" else "AI ✓") + (if (s.runsOn == 0 && s.hasNpu) " (CPU)" else "")
     ModelState.UNLOADED -> "AI: unloaded"

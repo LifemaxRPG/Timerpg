@@ -566,7 +566,8 @@ time with its drawing (it renders each frame twice in `-Dmode=move` to measure);
   buffers in the 300 MB allowance: about 2.8 GB. The load gate asks 3.66 GB free (file + 300 MB + the 900 MB margin),
   under the 4.07 GB the phone had.
 - Roles (`dialogue/ModelRoles.kt`, `ModelRolesTest`): in play the main model on the NPU if it fits, else the light one on
-  the NPU, else the light one on the CPU from its mapped file; behind the game (the overnight writer) the main model;
+  the NPU (tried with what Android finds when asked), else nothing: **in play the model never runs on the CPU** (the
+  owner's rule, 2026-11-23, see below); behind the game (the overnight writer) the main model;
   nothing loads while the town is built. The light model does not write ahead (pre-generation paused, reason "light
   model loaded"); the bank is the main model's. Coming back to the game with the main model loaded swaps to the light one
   when that is the choice. The AI panel shows which model is live, on which device, the memory each needs, and a switch
@@ -576,6 +577,54 @@ time with its drawing (it renders each frame twice in `-Dmode=move` to measure);
   of 14 (one says the speaker's own full name, one is assistant talk). Its speed there means little (the server was
   shared with other builds: 2.3 tok/s generation, 14 tok/s prefill on average, 5.6-6.3 tok/s when quiet). The NPU speed
   on the S25 is still to be measured (the panel's speed test).
+
+## In play, dialogue never runs on the CPU (the owner's rule, 2026-11-23; unit-tested on a computer, NOT yet run on the S25)
+
+- Why: build 0.1.715's playtest had the light model answering on the CPU beside the capital ("too slow, useless").
+  The phone's numbers (screenshot 162947): 2804 MB free, the light model's NPU copy needing 3751 MB, so it loaded from
+  its file on the CPU.
+- Now (`ModelRoles.pick`): in play the NPU copy or nothing. No room: `Wait(device = true)`, the HUD chip reads
+  "AI: waiting for NPU memory (X MB free, Y needed)", people speak their lines written ahead and their built-in ones,
+  and the engine looks again every 30 s with no limit (the other models that can go are let go first; a try counts
+  what Android finds when asked, `NpuGate`). No NPU: nothing loads in play. An NPU load that fails in play does not fall
+  back to the GPU or the CPU. A model loaded on the CPU behind the game is let go when play resumes. In play the device is
+  the NPU whatever the panel's device setting says (it applies only behind the game). Writer mode and overnight keep
+  their own rules.
+- The need, from measurements: the light model's NPU copy on the S25 (build 0.1.598, 2026-11-23 02:15, crash report
+  022117): weights 2501 MB copied + 497 mapped, KV 19 (8-bit), state 50, compute 318: 2888 MB on the device; the gate's
+  3751 MB = file 2463 + own memory 388 (measured) + `Ram.MARGIN_MB` 900. The margin is the critical line the game
+  watches (Android's threshold 216 + `MemoryWatch.CRITICAL_MB` 500) plus ~180 MB for the town's growth in play, so it
+  stays. Beside the town the copy fits only with what Android finds (zram, cached apps): measured 1514 MB on 0.1.598,
+  when it held, with 1199 to 1900 MB free after and the game fine.
+- Why the gate did not try it on 0.1.715 is not known for sure: the phone's stored tries were not in the report (now
+  the waiting breadcrumb carries the gate's figure and reason). Two things that could hold it back are fixed: `NpuGate`
+  took the least "found" of the last three measured loads, including loads with more free memory than they needed,
+  which find about nothing however much Android could find (now only loads that leaned on the margin count); and the
+  writer closing the game's process during a try recorded a failed try ("failed with 2251 MB free", 08:40), which
+  blocks tries at that free memory for a week (now the writer clears the mark first, and a writer process starting
+  beside the running game does not count it).
+- Load order: not changed. At the game's start Android showed 2937 MB free with the game at 214 MB; with the town built,
+  2.2 to 2.8 GB: the free count hardly moves however big the game gets (Android swaps to keep it), so loading first
+  makes no room; Android's reclaim does, and the try uses it.
+
+## The GPU memory by part (2026-11-23; desktop count, the phone's driver figure still to come)
+
+- Graphics did not triple: the play logs' `gfx` was 2136-2379 MB on 0.1.598, 638, 642 and 684, and 2151 MB on 715. The
+  ~670 MB measured before was the textures alone (647 MB on 715).
+- Filament's own count, the whole capital as the app builds it (desktop, `gradle :desktop:preview -Dmode=filament-open
+  -DgpuOnly=1`): yards 436 MB (textures 182, buffers 254 in 11,884),
+  buildings and stores 334 (textures 326), farms 192 (textures 94, buffers 98), GLB landmarks 41, trees 26 (buffers in
+  10,284), ground and terrain 21, street things and greenery 14, rail 6, shadow map 32, render targets and surfaces 87:
+  1,189 MB (the phone's own estimate at "town built" on 715: 1,177 MB; textures 645 MB here, 647 there).
+- So about 970 MB of the phone's 2151 MB "graphics" is the driver's beyond what Filament holds. A lead: 32,000 vertex
+  and index buffers, 28,500 of them under 16 KB (the trees' cells, the street things' and the yards' batches): if the
+  driver rounds each to 64 KB they come to ~3 GB, to 4 KB ~1.2 GB. The next screenshot says: `walkableTown.memory`
+  now carries `gpuByPart`, `graphicsBeyondFilamentMb` and `graphicsParts` (Gfx dev, GL mtrack, EGL mtrack, the
+  kgsl and dma-buf mappings' PSS), `walkableTown.gpuNow` the parts at the moment of the shot, and the play log's
+  accounts line `gpuParts`. If it is per-allocation overhead, packing a layer's batches into shared buffers is the fix.
+- Fixed: a street thing the cars knock down no longer keeps its old batch's buffers on the GPU (`PropLayer.release`);
+  the wreckage's pieces let go are freed, not hidden (`TownWreck`). Small (a batch of lamps is tens of KB), but they
+  grew with every crash for the whole session.
 
 ## The overnight writer and the player's conversation log (built and JVM-tested on a computer; NOT yet run on a phone)
 

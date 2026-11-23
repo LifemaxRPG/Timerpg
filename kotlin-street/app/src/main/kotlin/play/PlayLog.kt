@@ -257,6 +257,7 @@ object PlayLog {
     private fun accounts(t: Long) {
         val text = runCatching {
             "{\"gpu\":" + com.timerpg.street.shot.Json.quote(com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.line()) +
+                ",\"gpuParts\":" + com.timerpg.street.shot.Json.quote(com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.categoryLine()) +
                 ",\"town\":" + com.timerpg.street.shot.Json.quote(com.lifemax.rpg.feature.habits.presentation.scene3d.TownMemory.summary()) + "}"
         }.getOrNull() ?: return
         if (text == lastAccounts) return

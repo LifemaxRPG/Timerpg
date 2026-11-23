@@ -17,7 +17,114 @@ object GpuAccount {
     private val live = java.util.Collections.synchronizedMap(java.util.IdentityHashMap<Texture, Entry>())
 
     internal fun add(t: Texture, w: Int, h: Int, format: String, levels: Int, bytes: Long, exact: Double = -1.0) {
-        live[t] = Entry(owner(), w, h, format, levels, bytes, exact)
+        live[t] = Entry(withScope(owner()), w, h, format, levels, bytes, exact)
+    }
+
+    /**
+     * What the town's code on this thread is uploading now ("yards", "ground", "chunks", "trees"): set around an upload
+     * whose owner on the stack alone does not say (the town's own layers all upload through [PropLayer]), so the
+     * category breakdown ([categories]) can tell the yards from the street things and the ground.
+     */
+    private val scope = ThreadLocal<String?>()
+    internal inline fun <T> scoped(what: String, f: () -> T): T {
+        val was = scopeNow(); setScope(what)
+        try { return f() } finally { setScope(was) }
+    }
+    @PublishedApi internal fun scopeNow(): String? = scope.get()
+    @PublishedApi internal fun setScope(s: String?) = scope.set(s)
+    private fun withScope(owner: String): String = scope.get()?.let { "$owner[$it]" } ?: owner
+
+    /**
+     * The vertex and index buffers on the GPU, as [textures][add] are: each with its owner and bytes, from where it is
+     * made ([TownVertex] and the few places that build their own). A buffer [com.google.android.filament.Engine] has
+     * destroyed drops out by itself (its Java object's native handle is cleared), so no destroy site has to report it:
+     * what is listed is what is still held.
+     */
+    class Buf(val owner: String, val bytes: Long)
+    private val buffers = java.util.Collections.synchronizedMap(java.util.IdentityHashMap<Any, Buf>())
+
+    /** A vertex or index buffer of [bytes] just built (any of Filament's buffer objects). */
+    fun addBuffer(b: Any, bytes: Long) { buffers[b] = Buf(withScope(owner()), bytes) }
+
+    private fun alive(o: Any): Boolean = try {
+        when (o) {
+            is com.google.android.filament.VertexBuffer -> o.nativeObject != 0L
+            is com.google.android.filament.IndexBuffer -> o.nativeObject != 0L
+            is Texture -> o.nativeObject != 0L
+            else -> true
+        }
+    } catch (e: IllegalStateException) { false }
+
+    /** The buffers still held (those destroyed since are dropped from the list here). */
+    fun bufferEntries(): List<Buf> = synchronized(buffers) {
+        buffers.keys.retainAll { alive(it) }
+        buffers.values.toList()
+    }
+
+    /**
+     * The GPU memory by what it is for (MB, textures and buffers together), the town's parts the owner asked for in one
+     * line: the town's modelled buildings and stores, the GLB landmarks, the yards, the street things and greenery, the
+     * trees' cards, the ground and terrain, the cars' debris, people, vehicles; then the shadow map and render targets
+     * from [est]. Also how many textures and buffers each holds (many small allocations cost the driver more than
+     * their bytes).
+     */
+    fun categories(est: GpuEstimate? = null): Map<String, Any?> {
+        val tex = entries()
+        val bufs = bufferEntries()
+        class Sum { var tb = 0L; var tn = 0; var bb = 0L; var bn = 0 }
+        val sums = LinkedHashMap<String, Sum>()
+        for (e in tex) sums.getOrPut(category(e.owner)) { Sum() }.let { it.tb += e.bytes; it.tn++ }
+        for (b in bufs) sums.getOrPut(category(b.owner)) { Sum() }.let { it.bb += b.bytes; it.bn++ }
+        fun mb(b: Long) = Math.round(b / 104857.6) / 10.0
+        val out = LinkedHashMap<String, Any?>()
+        for ((k, s) in sums.entries.sortedByDescending { it.value.tb + it.value.bb })
+            out[k] = linkedMapOf("mb" to mb(s.tb + s.bb), "texturesMb" to mb(s.tb), "textures" to s.tn, "buffersMb" to mb(s.bb), "buffers" to s.bn)
+        if (est != null) {
+            out["shadow map"] = linkedMapOf("mb" to mb(est.shadows))
+            out["render targets + surfaces"] = linkedMapOf("mb" to mb(est.targets + est.surfaces))
+        }
+        val total = tex.sumOf { it.bytes } + bufs.sumOf { it.bytes } + (est?.let { it.shadows + it.targets + it.surfaces } ?: 0L)
+        // (what the allocations come to if the driver rounds each one up, to a 4 KB page or a 64 KB block: tens of
+        // thousands of small buffers cost the GPU driver more than their bytes, a lead for "graphics" beyond this count)
+        fun rounded(unit: Long) = bufs.sumOf { (it.bytes + unit - 1) / unit * unit } + tex.sumOf { (it.bytes + unit - 1) / unit * unit }
+        out["total"] = linkedMapOf("mb" to mb(total), "textures" to tex.size, "buffers" to bufs.size,
+            "buffersUnder16k" to bufs.count { it.bytes < 16384 }, "texturesUnder64k" to tex.count { it.bytes < 65536 },
+            "allocationsAt4kMb" to mb(rounded(4096)), "allocationsAt64kMb" to mb(rounded(65536)))
+        return out
+    }
+
+    /** [categories] in one line for the breadcrumbs: "GPU by part: buildings 412 MB (tex 380 in 1200, buf 32 in 300), ...". */
+    fun categoryLine(est: GpuEstimate? = null): String = "GPU by part (Filament's own count): " + categories(est).entries.joinToString(", ") { (k, v) ->
+        @Suppress("UNCHECKED_CAST") val m = v as Map<String, Any?>
+        if (m.containsKey("texturesMb")) "$k ${m["mb"]} MB (textures ${m["texturesMb"]} in ${m["textures"]}, buffers ${m["buffersMb"]} in ${m["buffers"]})"
+        else if (k == "total") "total ${m["mb"]} MB in ${m["textures"]} textures and ${m["buffers"]} buffers (${m["buffersUnder16k"]} buffers under 16 KB; " +
+            "textures and buffers rounded up to 4 KB each ${m["allocationsAt4kMb"]} MB, to 64 KB each ${m["allocationsAt64kMb"]} MB)" else "$k ${m["mb"]} MB"
+    }
+
+    /** The buffers by raw owner (MB, count), largest first: the desktop's gpu.txt. */
+    fun bufferTable(): String = bufferEntries().groupBy { it.owner }.entries.sortedByDescending { g -> g.value.sumOf { it.bytes } }
+        .joinToString("\n") { (o, l) -> "%-56s %6d buffers %9s MB  -> %s".format(o.take(56), l.size, mb(l.sumOf { it.bytes }), category(o)) }
+
+    /** What an owner (as [owner] and [withScope] wrote it) is for. */
+    internal fun category(owner: String): String {
+        val s = owner.substringAfter('[', "").substringBefore(']')
+        val o = owner.substringBefore('[')
+        fun has(vararg c: String) = c.any { n -> o.split('<').any { it == n } }
+        return when {
+            has("TownWreck") -> "debris"
+            s == "landmarks" || has("TownLandmark", "LandmarkKit", "LandmarkAnimation", "LandmarkAnimator", "GlbFile") -> "GLB landmarks"
+            has("TownFarms", "FarmPics") -> "farms"
+            has("TownCars", "VehicleKit", "TownBike", "RideLayer") -> "vehicles"
+            has("TownPeople") -> "people"
+            s == "yards" || has("YardLayer", "YardKit", "TownYardHook") -> "yards"
+            has("WorldNear", "WorldFar", "TerrainPics", "TownGround", "OceanSurface", "TownFar") || s == "ground" -> "ground and terrain"
+            s == "trees" || has("TreeCells", "TreeKit") -> "trees"
+            s == "chunks" -> "street things and greenery"
+            has("FilamentModels", "BuildingMeshes", "TownStores", "StoreKit", "StoreSolids", "StoreSigns", "TownCinema", "CinemaLayer", "RoomKit") -> "buildings and stores"
+            has("TownRailDraw", "RailKit") -> "rail"
+            has("FilamentTown") -> "town, other"
+            else -> o.substringBefore('<').ifEmpty { "other" }
+        }
     }
 
     /**
@@ -51,7 +158,7 @@ object GpuAccount {
         return names.joinToString("<").ifEmpty { "other" }
     }
 
-    fun entries(): List<Entry> = synchronized(live) { live.values.toList() }
+    fun entries(): List<Entry> = synchronized(live) { live.keys.retainAll { alive(it) }; live.values.toList() }
 
     private fun mb(b: Long) = "%.1f".format(java.util.Locale.US, b / 1048576.0)
 

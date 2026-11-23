@@ -69,10 +69,10 @@ internal class TownWreck(
             for ((pk, casts) in packed) layer.upload(pk, casts)
             d.count = layer.batchCount - d.first
         }
-        // (pieces the wreckage let go of: hidden)
+        // (pieces the wreckage let go of: freed, their buffers given back to the GPU, not only hidden)
         if (draws.size > w.pieces.size) {
             val ids = w.pieces.mapTo(HashSet()) { it.id }
-            for (d in draws.values) if (!d.gone && d.piece.id !in ids) { d.gone = true; for (k in 0 until d.count) layer.setBatchVisible(d.first + k, false) }
+            for (d in draws.values) if (!d.gone && d.piece.id !in ids) { d.gone = true; for (k in 0 until d.count) layer.release(d.first + k) }
         }
     }
 

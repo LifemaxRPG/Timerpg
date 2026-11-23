@@ -74,6 +74,8 @@ internal class PropLayer(
         val glows: Boolean, val vb: VertexBuffer, val ib: IndexBuffer, val casts: Boolean,
         var visible: Boolean = true, var layerShown: Boolean = true, var layerShadow: Boolean = true,
         var ti: Int = 0, var pti: Int = 0,
+        /** Its entities, material instances and buffers are gone ([release]): its slot stays so the other batches keep their index. */
+        var released: Boolean = false,
     )
     private val batches = ArrayList<Batch>()
 
@@ -82,8 +84,8 @@ internal class PropLayer(
     val draws: Int get() = batches.size
     val batchCount: Int get() = batches.size
     /** How many of the batches throw a shadow (have a shadow twin), and the triangles of all of them. */
-    val casters: Int get() = batches.count { it.proxy != 0 }
-    val triangles: Int get() = batches.sumOf { it.ib.indexCount / 3 }
+    val casters: Int get() = batches.count { it.proxy != 0 && !it.released }
+    val triangles: Int get() = batches.sumOf { if (it.released) 0 else it.ib.indexCount / 3 }
 
     /** Adds [props]: those of one look (the same mesh) go into one batch. */
     fun add(props: List<WorldProp>) {
@@ -278,6 +280,7 @@ internal class PropLayer(
         // (index loop, no boxing: zero allocations per frame)
         for (i in 0 until batches.size) {
             val b = batches[i]
+            if (b.released) continue
             // ([castFade]: the batches of things that throw shadows, the tall ones, cut away on their own)
             val f = if (b.casts && castFade < 1f) min(fade, castFade) else fade
             val layerVis = shown && f > .02f
@@ -301,7 +304,7 @@ internal class PropLayer(
     /** Shows or hides batch [index] (e.g. a night-only beacon beam); allocates nothing and takes effect immediately. */
     fun setBatchVisible(index: Int, visible: Boolean) {
         val b = batches[index]
-        if (b.visible == visible) return
+        if (b.released || b.visible == visible) return
         b.visible = visible
         val rm = engine.renderableManager
         val bi = rm.getInstance(b.entity)
@@ -320,6 +323,7 @@ internal class PropLayer(
     /** Stands batch [index] at [m] (column-major 4x4, local to world) via TransformManager; allocates nothing. */
     fun setBatchTransform(index: Int, m: FloatArray) {
         val b = batches[index]
+        if (b.released) return
         val tm = engine.transformManager
         var ti = b.ti
         if (ti == 0) {
@@ -347,14 +351,33 @@ internal class PropLayer(
         for (i in 0 until batches.size) setBatchTransform(i, m)
     }
 
+    /**
+     * Frees batch [index] for good: out of the scene, its material instances, vertices and indices given back to the GPU
+     * (its pictures stay: they are shared). Its slot stays, so the other batches keep their index. What replaces a batch
+     * packed again (a street thing the cars took away: [FilamentTown.hideProp]) frees the old one this way; hiding it
+     * only kept its buffers on the GPU until the town was let go, a whole batch more for every thing knocked down.
+     */
+    fun release(index: Int) {
+        val b = batches[index]
+        if (b.released) return
+        b.released = true
+        b.visible = false
+        val em = EntityManager.get()
+        scene.remove(b.entity); engine.destroyEntity(b.entity); em.destroy(b.entity)
+        if (b.proxy != 0) { scene.remove(b.proxy); engine.destroyEntity(b.proxy); em.destroy(b.proxy) }
+        engine.destroyMaterialInstance(b.mi); b.pmi?.let { engine.destroyMaterialInstance(it) }
+        engine.destroyVertexBuffer(b.vb); engine.destroyIndexBuffer(b.ib)
+    }
+
     fun destroy() {
         val em = EntityManager.get()
-        for (b in batches) {
+        val held = batches.filter { !it.released }
+        for (b in held) {
             scene.remove(b.entity); engine.destroyEntity(b.entity); em.destroy(b.entity)
             if (b.proxy != 0) { scene.remove(b.proxy); engine.destroyEntity(b.proxy); em.destroy(b.proxy) }
         }
-        for (b in batches) { engine.destroyMaterialInstance(b.mi); b.pmi?.let { engine.destroyMaterialInstance(it) } }
-        for (b in batches) { engine.destroyVertexBuffer(b.vb); engine.destroyIndexBuffer(b.ib) }
+        for (b in held) { engine.destroyMaterialInstance(b.mi); b.pmi?.let { engine.destroyMaterialInstance(it) } }
+        for (b in held) { engine.destroyVertexBuffer(b.vb); engine.destroyIndexBuffer(b.ib) }
         batches.clear()
         if (ownTextures) textures.destroy(all = true)
         count = 0

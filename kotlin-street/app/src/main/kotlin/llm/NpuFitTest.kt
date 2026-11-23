@@ -187,7 +187,9 @@ object NpuFitTest {
         s = s.copy(freeAfterUnloadMb = MemProbe.snap(app).availMb, thermalAfter = MemProbe.snap(app).thermal)
         // the gate learns what Android found for a copy on the device (and that it failed, with how much free)
         if (dev != NativeLlm.CPU && batch == 512)
-            NpuGate.record(app, NpuGate.Try(System.currentTimeMillis(), s.freeBeforeMb, (file.length() shr 20) + 150 + Ram.MARGIN_MB, ok,
+            NpuGate.record(app, NpuGate.Try(System.currentTimeMillis(), s.freeBeforeMb,
+                // (its own memory as this load measured it: the KV cache, state and compute, 387 MB for the light model on the NPU)
+                (file.length() shr 20) + (s.mem.drop(2).sum().toLong().takeIf { it > 0 } ?: 150L) + Ram.MARGIN_MB, ok,
                 s.foundMb, if (ok) "" else (s.valve?.let { "stopped by the safety valve" } ?: s.error ?: "load failed"), measure = true))
         return s
     }

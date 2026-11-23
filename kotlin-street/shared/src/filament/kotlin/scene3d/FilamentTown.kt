@@ -410,7 +410,8 @@ class FilamentTown(
             r = hypot(x1 - x0, z1 - z0) / 2f + pad + top / 2f
         }
         /** Makes its 3D trees: what [startNear] packed, and (unbudgeted: a preview's, or none started) the rest packed here. */
-        fun buildNear() {
+        fun buildNear() = GpuAccount.scoped("trees") { buildNearNow() }
+        private fun buildNearNow() {
             if (near != null) return
             val got = packing?.let { f ->
                 try { f.get() } catch (e: java.util.concurrent.ExecutionException) { throw BuildFailure("packing a chunk's 3D greenery on a worker", e.cause ?: e) }
@@ -734,7 +735,8 @@ class FilamentTown(
         val h = best ?: return null
         val src = h.src
         val at = src.at[bi]
-        h.layer.setBatchVisible(h.batch, false)
+        // (the old batch freed, not just hidden: its buffers were kept on the GPU until the town went)
+        h.layer.release(h.batch)
         val rest = src.at.filterIndexed { i, _ -> i != bi }
         h.src = HideSrc(src.tag, src.mesh, rest, src.props?.filterIndexed { i, _ -> i != bi })
         if (rest.isNotEmpty()) PropLayer.Packing.pack(src.mesh, rest)?.let { h.layer.upload(it, h.casts); h.batch = h.layer.batchCount - 1 }
@@ -968,6 +970,11 @@ class FilamentTown(
     }
 
     private fun upload(j: Job) {
+        // (what it is for, for the GPU's breakdown by part: GpuAccount.categories)
+        GpuAccount.scoped(when { j.chunk != null && j.part != 0 -> "trees"; j.chunk != null -> "chunks"; j.patch != null || j.yard -> "yards"; else -> "ground" }) { uploadJob(j) }
+    }
+
+    private fun uploadJob(j: Job) {
         val sp = j.chunk
         if (sp != null) {
             val c = chunks.getOrPut(sp.key) { Chunk(sp.refX, sp.refZ, sp.byRow) }

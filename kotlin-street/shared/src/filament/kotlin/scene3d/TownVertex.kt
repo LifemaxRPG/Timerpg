@@ -31,7 +31,7 @@ internal object TownVertex {
         .attribute(VertexBuffer.VertexAttribute.UV0, 0, VertexBuffer.AttributeType.FLOAT2, 12, STRIDE)
         .attribute(VertexBuffer.VertexAttribute.TANGENTS, 0, VertexBuffer.AttributeType.SHORT4, 20, STRIDE)
         .normalized(VertexBuffer.VertexAttribute.TANGENTS)
-        .build(engine)
+        .build(engine).also { GpuAccount.addBuffer(it, n.toLong() * STRIDE) }
 
     /** Whether a batch of [vertices] can be indexed with 16-bit indices (half the bytes of 32-bit ones). */
     fun short(vertices: Int): Boolean = vertices <= 65536
@@ -39,4 +39,5 @@ internal object TownVertex {
     /** An index buffer of [n] indices, 16-bit when [short]. */
     fun indices(engine: Engine, n: Int, short: Boolean): IndexBuffer = IndexBuffer.Builder().indexCount(n)
         .bufferType(if (short) IndexBuffer.Builder.IndexType.USHORT else IndexBuffer.Builder.IndexType.UINT).build(engine)
+        .also { GpuAccount.addBuffer(it, n.toLong() * if (short) 2 else 4) }
 }

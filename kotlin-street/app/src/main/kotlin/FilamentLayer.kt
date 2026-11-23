@@ -213,7 +213,7 @@ object FilamentStats {
      * Reads the process's memory (in the background: it takes a while) into [memory] and the breadcrumbs: graphics (the
      * GPU's textures and buffers as the driver reports them), native and Java heaps, the total; [why] says when.
      */
-    fun measureMemory(why: String) {
+    fun measureMemory(why: String, gpu: Map<String, Any?>? = null) {
         Thread({
             runCatching {
                 val mi = android.os.Debug.MemoryInfo()
@@ -221,10 +221,49 @@ object FilamentStats {
                 fun mb(k: String) = (mi.getMemoryStat(k)?.toIntOrNull() ?: -1024) / 1024
                 val m = linkedMapOf<String, Any?>("when" to why, "graphicsMb" to mb("summary.graphics"), "nativeMb" to mb("summary.native-heap"),
                     "javaMb" to mb("summary.java-heap"), "codeMb" to mb("summary.code"), "totalPssMb" to mb("summary.total-pss"))
+                // the graphics figure's parts as the driver reports them, and Filament's own count by part beside it: what
+                // the town's textures and buffers come to, and how much of "graphics" is the driver's beyond them
+                driverGraphics(mi).takeIf { it.isNotEmpty() }?.let { m["graphicsParts"] = it }
+                gpu?.let { g ->
+                    m["gpuByPart"] = g
+                    @Suppress("UNCHECKED_CAST") val counted = ((g["total"] as? Map<String, Any?>)?.get("mb") as? Number)?.toDouble()
+                    if (counted != null) m["graphicsBeyondFilamentMb"] = Math.round(mb("summary.graphics") - counted)
+                }
                 memory = m
-                com.timerpg.street.shot.Crumbs.add("memory ($why): " + m.entries.drop(1).joinToString { "${it.key} ${it.value}" })
+                com.timerpg.street.shot.Crumbs.add("memory ($why): " + m.entries.drop(1).filter { it.key != "gpuByPart" }.joinToString { "${it.key} ${it.value}" })
             }
         }, "memory").apply { isDaemon = true; priority = Thread.MIN_PRIORITY }.start()
+    }
+
+    /**
+     * Android's "graphics" in parts (MB): "Gfx dev" (the GPU driver's memory mapped into the game, /dev/kgsl-3d0 on the
+     * Adreno), "GL mtrack" (the driver's own count of textures and buffers), "EGL mtrack" (the window's and the
+     * TextureView's surfaces), read through Debug.MemoryInfo's own labels where the phone lets the game read them; and
+     * the PSS of the driver's and dma-buf mappings in /proc/self/smaps. Whatever cannot be read is left out.
+     */
+    private fun driverGraphics(mi: android.os.Debug.MemoryInfo): Map<String, Any?> {
+        val out = linkedMapOf<String, Any?>()
+        runCatching {
+            val n = android.os.Debug.MemoryInfo::class.java.getField("NUM_OTHER_STATS").getInt(null)
+            val label = android.os.Debug.MemoryInfo::class.java.getMethod("getOtherLabel", Int::class.javaPrimitiveType)
+            val pss = android.os.Debug.MemoryInfo::class.java.getMethod("getOtherPss", Int::class.javaPrimitiveType)
+            for (i in 0 until n) {
+                val l = label.invoke(null, i) as? String ?: continue
+                if (l == "Gfx dev" || l == "GL mtrack" || l == "EGL mtrack" || l == "Other mtrack") out[l] = (pss.invoke(mi, i) as Int) / 1024
+            }
+        }
+        runCatching {
+            var kgsl = 0L; var dmabuf = 0L; var name = ""
+            java.io.File("/proc/self/smaps").forEachLine { line ->
+                if (line.isNotEmpty() && (line[0].isDigit() || line[0] in 'a'..'f') && line.contains('-')) name = line.substringAfterLast(' ').trim()
+                else if (line.startsWith("Pss:")) {
+                    val kb = line.substringAfter(':').trim().substringBefore(' ').toLongOrNull() ?: 0L
+                    if (name.contains("kgsl")) kgsl += kb else if (name.contains("dmabuf") || name.contains("dma_buf")) dmabuf += kb
+                }
+            }
+            out["kgslMappedPssMb"] = kgsl / 1024; out["dmabufPssMb"] = dmabuf / 1024
+        }
+        return out
     }
 
     @Synchronized fun add(cpuMs: Float, gpuMs: Float) {
@@ -485,8 +524,9 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             com.timerpg.street.shot.Crumbs.add("town built, biggest textures: " + ft.biggestTextures(10))
             com.timerpg.street.shot.Crumbs.add("town built, ${w}x$h: " + ft.gpuEstimate(w, h).line())
             com.timerpg.street.shot.Crumbs.add("town built, " + com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.line())
+            com.timerpg.street.shot.Crumbs.add("town built, " + com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.categoryLine(ft.gpuEstimate(w, h)))
             com.timerpg.street.shot.Crumbs.add("town built, memory: " + com.lifemax.rpg.feature.habits.presentation.scene3d.TownMemory.summary() + "; ground queue peak ${ft.queuedPeak shr 20} MB")
-            FilamentStats.measureMemory("town built")
+            FilamentStats.measureMemory("town built", com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.categories(ft.gpuEstimate(w, h)))
         }
         return ft.view
     }

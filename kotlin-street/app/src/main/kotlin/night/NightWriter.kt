@@ -114,6 +114,9 @@ object NightWriter {
         val before = com.timerpg.street.llm.Ram.freeMb(ctx)
         runCatching { java.io.File(ctx.filesDir, CLOSED_MARK).writeText(System.currentTimeMillis().toString()) }
         Crumbs.add("writer: closing the game's process (pid ${p.pid}, out of sight) to free its memory; $before MB free")
+        // (a device copy's try the game had under way is not a failed try: the writer ended it. Counted as one, it kept the
+        // gate from trying the light model's NPU copy at that free memory for a week: "failed with 2251 MB free ...")
+        runCatching { com.timerpg.street.llm.NpuGate.clearRunning(ctx) }
         android.os.Process.killProcess(p.pid)
         try { Thread.sleep(2000) } catch (e: InterruptedException) { }
         val after = com.timerpg.street.llm.Ram.freeMb(ctx)
