@@ -1,0 +1,811 @@
+{
+ "name": "Milo's Diner",
+ "state": "landmark_glb_carhop_drive_in_restored",
+ "file": "carhop-restored.glb",
+ "doors": [
+  {
+   "node": "door_main",
+   "position": [
+    0.0,
+    0.0776,
+    0.0388
+   ],
+   "outward": [
+    0,
+    0,
+    1
+   ],
+   "width_m": 1.3968,
+   "height_m": 2.2504,
+   "floor_m": 0.0776,
+   "external": true,
+   "open": true
+  },
+  {
+   "node": "door_back",
+   "position": [
+    0.0,
+    0.0776,
+    -10.282
+   ],
+   "outward": [
+    0,
+    0,
+    -1
+   ],
+   "width_m": 1.3968,
+   "height_m": 2.2504,
+   "floor_m": 0.0776,
+   "external": true,
+   "open": true
+  },
+  {
+   "node": "door_prep_inside",
+   "external": false
+  }
+ ],
+ "collision": {
+  "node": "collision",
+  "render": false,
+  "coordinate_frame": "glTF metres/Y up/+Z front",
+  "boxes_gltf_y_up": [
+   {
+    "source": "Entry cheek",
+    "center": [
+     -1.0864,
+     1.3192,
+     0.2328
+    ],
+    "size": [
+     0.388,
+     2.6384,
+     0.4656
+    ],
+    "group": "structure",
+    "attachment": "stand",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Entry cheek",
+    "center": [
+     1.0864,
+     1.3192,
+     0.2328
+    ],
+    "size": [
+     0.388,
+     2.6384,
+     0.4656
+    ],
+    "group": "structure",
+    "attachment": "stand",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Downpipe",
+    "center": [
+     -6.3632,
+     1.7848000000000002,
+     -10.3984
+    ],
+    "size": [
+     0.2328,
+     3.5696000000000003,
+     0.4656
+    ],
+    "group": "structure",
+    "attachment": "stand",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Downpipe",
+    "center": [
+     6.3632,
+     1.7848000000000002,
+     -10.3984
+    ],
+    "size": [
+     0.2328,
+     3.5696000000000003,
+     0.4656
+    ],
+    "group": "structure",
+    "attachment": "stand",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Canopy column",
+    "center": [
+     -12.416,
+     1.4744000000000002,
+     7.6048
+    ],
+    "size": [
+     0.4656,
+     2.9488000000000003,
+     0.4656
+    ],
+    "group": "structure",
+    "attachment": "carhop_canopy",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Canopy rear column",
+    "center": [
+     -12.416,
+     1.4744000000000002,
+     0.776
+    ],
+    "size": [
+     0.4656,
+     2.9488000000000003,
+     0.4656
+    ],
+    "group": "structure",
+    "attachment": "carhop_canopy",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Canopy column",
+    "center": [
+     -6.208,
+     1.4744000000000002,
+     7.6048
+    ],
+    "size": [
+     0.4656,
+     2.9488000000000003,
+     0.4656
+    ],
+    "group": "structure",
+    "attachment": "carhop_canopy",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Canopy rear column",
+    "center": [
+     -6.208,
+     1.4744000000000002,
+     0.776
+    ],
+    "size": [
+     0.4656,
+     2.9488000000000003,
+     0.4656
+    ],
+    "group": "structure",
+    "attachment": "carhop_canopy",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Canopy column",
+    "center": [
+     6.208,
+     1.4744000000000002,
+     7.6048
+    ],
+    "size": [
+     0.4656,
+     2.9488000000000003,
+     0.4656
+    ],
+    "group": "structure",
+    "attachment": "carhop_canopy",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Canopy rear column",
+    "center": [
+     6.208,
+     1.4744000000000002,
+     0.776
+    ],
+    "size": [
+     0.4656,
+     2.9488000000000003,
+     0.4656
+    ],
+    "group": "structure",
+    "attachment": "carhop_canopy",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Canopy column",
+    "center": [
+     12.416,
+     1.4744000000000002,
+     7.6048
+    ],
+    "size": [
+     0.4656,
+     2.9488000000000003,
+     0.4656
+    ],
+    "group": "structure",
+    "attachment": "carhop_canopy",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Canopy rear column",
+    "center": [
+     12.416,
+     1.4744000000000002,
+     0.776
+    ],
+    "size": [
+     0.4656,
+     2.9488000000000003,
+     0.4656
+    ],
+    "group": "structure",
+    "attachment": "carhop_canopy",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Menu post and case",
+    "center": [
+     -12.416,
+     1.2416,
+     5.0440000000000005
+    ],
+    "size": [
+     1.0864,
+     2.4832,
+     0.3104
+    ],
+    "group": "lot",
+    "attachment": "menu_speaker_1",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Menu post and case",
+    "center": [
+     -9.312000000000001,
+     1.2416,
+     5.0440000000000005
+    ],
+    "size": [
+     1.0864,
+     2.4832,
+     0.3104
+    ],
+    "group": "lot",
+    "attachment": "menu_speaker_2",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Menu post and case",
+    "center": [
+     -6.208,
+     1.2416,
+     5.0440000000000005
+    ],
+    "size": [
+     1.0864,
+     2.4832,
+     0.3104
+    ],
+    "group": "lot",
+    "attachment": "menu_speaker_3",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Menu post and case",
+    "center": [
+     -3.104,
+     1.2416,
+     5.0440000000000005
+    ],
+    "size": [
+     1.0864,
+     2.4832,
+     0.3104
+    ],
+    "group": "lot",
+    "attachment": "menu_speaker_4",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Menu post and case",
+    "center": [
+     3.104,
+     1.2416,
+     5.0440000000000005
+    ],
+    "size": [
+     1.0864,
+     2.4832,
+     0.3104
+    ],
+    "group": "lot",
+    "attachment": "menu_speaker_5",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Menu post and case",
+    "center": [
+     6.208,
+     1.2416,
+     5.0440000000000005
+    ],
+    "size": [
+     1.0864,
+     2.4832,
+     0.3104
+    ],
+    "group": "lot",
+    "attachment": "menu_speaker_6",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Menu post and case",
+    "center": [
+     9.312000000000001,
+     1.2416,
+     5.0440000000000005
+    ],
+    "size": [
+     1.0864,
+     2.4832,
+     0.3104
+    ],
+    "group": "lot",
+    "attachment": "menu_speaker_7",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Menu post and case",
+    "center": [
+     12.416,
+     1.2416,
+     5.0440000000000005
+    ],
+    "size": [
+     1.0864,
+     2.4832,
+     0.3104
+    ],
+    "group": "lot",
+    "attachment": "menu_speaker_8",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Pylon posts and board",
+    "center": [
+     -17.5376,
+     4.1904,
+     10.7864
+    ],
+    "size": [
+     6.984,
+     8.3808,
+     0.6208
+    ],
+    "group": "structure",
+    "attachment": "roadside_pylon",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Wheel stop",
+    "center": [
+     -10.864,
+     0.0776,
+     1.4744000000000002
+    ],
+    "size": [
+     1.7072,
+     0.1552,
+     0.2328
+    ],
+    "group": "lot",
+    "attachment": "parking_lines",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Wheel stop",
+    "center": [
+     -7.76,
+     0.0776,
+     1.4744000000000002
+    ],
+    "size": [
+     1.7072,
+     0.1552,
+     0.2328
+    ],
+    "group": "lot",
+    "attachment": "parking_lines",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Wheel stop",
+    "center": [
+     -4.656000000000001,
+     0.0776,
+     1.4744000000000002
+    ],
+    "size": [
+     1.7072,
+     0.1552,
+     0.2328
+    ],
+    "group": "lot",
+    "attachment": "parking_lines",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Wheel stop",
+    "center": [
+     -1.552,
+     0.0776,
+     1.4744000000000002
+    ],
+    "size": [
+     1.7072,
+     0.1552,
+     0.2328
+    ],
+    "group": "lot",
+    "attachment": "parking_lines",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Wheel stop",
+    "center": [
+     1.552,
+     0.0776,
+     1.4744000000000002
+    ],
+    "size": [
+     1.7072,
+     0.1552,
+     0.2328
+    ],
+    "group": "lot",
+    "attachment": "parking_lines",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Wheel stop",
+    "center": [
+     4.656000000000001,
+     0.0776,
+     1.4744000000000002
+    ],
+    "size": [
+     1.7072,
+     0.1552,
+     0.2328
+    ],
+    "group": "lot",
+    "attachment": "parking_lines",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Wheel stop",
+    "center": [
+     7.76,
+     0.0776,
+     1.4744000000000002
+    ],
+    "size": [
+     1.7072,
+     0.1552,
+     0.2328
+    ],
+    "group": "lot",
+    "attachment": "parking_lines",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Wheel stop",
+    "center": [
+     10.864,
+     0.0776,
+     1.4744000000000002
+    ],
+    "size": [
+     1.7072,
+     0.1552,
+     0.2328
+    ],
+    "group": "lot",
+    "attachment": "parking_lines",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Bin",
+    "center": [
+     -3.88,
+     0.5044,
+     -11.795200000000001
+    ],
+    "size": [
+     1.0088,
+     1.0088,
+     0.8536
+    ],
+    "group": "lot",
+    "attachment": "service_bin_0",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Bin",
+    "center": [
+     -5.432,
+     0.5044,
+     -11.795200000000001
+    ],
+    "size": [
+     1.0088,
+     1.0088,
+     0.8536
+    ],
+    "group": "lot",
+    "attachment": "service_bin_1",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Rear fence",
+    "center": [
+     1.552,
+     0.9312,
+     -14.9768
+    ],
+    "size": [
+     21.883200000000002,
+     1.8624,
+     0.2328
+    ],
+    "group": "lot",
+    "attachment": "rear_fence",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Picnic table",
+    "center": [
+     11.8728,
+     0.4268,
+     -2.6384
+    ],
+    "size": [
+     2.6384,
+     0.8536,
+     2.4056
+    ],
+    "group": "lot",
+    "attachment": "picnic_table_0",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Picnic table",
+    "center": [
+     16.296,
+     0.4268,
+     -2.6384
+    ],
+    "size": [
+     2.6384,
+     0.8536,
+     2.4056
+    ],
+    "group": "lot",
+    "attachment": "picnic_table_1",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Picnic table",
+    "center": [
+     11.8728,
+     0.4268,
+     -6.9064000000000005
+    ],
+    "size": [
+     2.6384,
+     0.8536,
+     2.4056
+    ],
+    "group": "lot",
+    "attachment": "picnic_table_2",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Picnic table",
+    "center": [
+     16.296,
+     0.4268,
+     -6.9064000000000005
+    ],
+    "size": [
+     2.6384,
+     0.8536,
+     2.4056
+    ],
+    "group": "lot",
+    "attachment": "picnic_table_3",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Patio pergola column",
+    "center": [
+     9.7776,
+     1.3968,
+     -0.6208
+    ],
+    "size": [
+     0.2328,
+     2.7936,
+     0.2328
+    ],
+    "group": "lot",
+    "attachment": "patio_pergola",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Patio pergola column",
+    "center": [
+     9.7776,
+     1.3968,
+     -9.1568
+    ],
+    "size": [
+     0.2328,
+     2.7936,
+     0.2328
+    ],
+    "group": "lot",
+    "attachment": "patio_pergola",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Patio pergola column",
+    "center": [
+     14.1232,
+     1.3968,
+     -0.6208
+    ],
+    "size": [
+     0.2328,
+     2.7936,
+     0.2328
+    ],
+    "group": "lot",
+    "attachment": "patio_pergola",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Patio pergola column",
+    "center": [
+     14.1232,
+     1.3968,
+     -9.1568
+    ],
+    "size": [
+     0.2328,
+     2.7936,
+     0.2328
+    ],
+    "group": "lot",
+    "attachment": "patio_pergola",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Patio pergola column",
+    "center": [
+     18.4688,
+     1.3968,
+     -0.6208
+    ],
+    "size": [
+     0.2328,
+     2.7936,
+     0.2328
+    ],
+    "group": "lot",
+    "attachment": "patio_pergola",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Patio pergola column",
+    "center": [
+     18.4688,
+     1.3968,
+     -9.1568
+    ],
+    "size": [
+     0.2328,
+     2.7936,
+     0.2328
+    ],
+    "group": "lot",
+    "attachment": "patio_pergola",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Patio planter",
+    "center": [
+     11.252,
+     0.388,
+     -9.7776
+    ],
+    "size": [
+     1.7072,
+     0.776,
+     0.776
+    ],
+    "group": "lot",
+    "attachment": "patio_planter_0",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Patio planter",
+    "center": [
+     17.072,
+     0.388,
+     -9.7776
+    ],
+    "size": [
+     1.7072,
+     0.776,
+     0.776
+    ],
+    "group": "lot",
+    "attachment": "patio_planter_1",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Planting",
+    "center": [
+     -14.5888,
+     0.5432,
+     -8.0704
+    ],
+    "size": [
+     2.1728,
+     1.0864,
+     2.0176
+    ],
+    "group": "lot",
+    "attachment": "planting_0",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Planting",
+    "center": [
+     18.7792,
+     0.5432,
+     -12.1056
+    ],
+    "size": [
+     2.1728,
+     1.0864,
+     2.0176
+    ],
+    "group": "lot",
+    "attachment": "planting_1",
+    "support_floor_m": 0
+   },
+   {
+    "source": "Planting",
+    "center": [
+     -17.692800000000002,
+     0.5432,
+     -13.2696
+    ],
+    "size": [
+     2.1728,
+     1.0864,
+     2.0176
+    ],
+    "group": "lot",
+    "attachment": "planting_2",
+    "support_floor_m": 0
+   }
+  ],
+  "use_the_walls": true,
+  "notes": "Use actual walls/floors/counters plus full-height listed boxes. Read boxes directly without legacy Blender rotation. Closed windows are boarded; entry anchors remain geometrically open for the engine access policy."
+ },
+ "lot_node": "lot",
+ "triangles_visible": 3478,
+ "source": "codex/carhop-drive-in model-info-restored.json, flattened per state by tools/landmarks/intake.py"
+}

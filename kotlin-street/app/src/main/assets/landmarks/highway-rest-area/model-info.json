@@ -1,0 +1,1694 @@
+{
+  "name": "Pine Bend Rest Area",
+  "era": "Late 1970s public highway rest area, suitable onward",
+  "footprint_m": [
+    82,
+    66
+  ],
+  "height_m": 9.776,
+  "triangles_visible": 7228,
+  "materials": [
+    "detail_concrete",
+    "detail_teal",
+    "glass_clerestory",
+    "glow_lamps",
+    "ground_asphalt",
+    "ground_grass",
+    "ground_paving",
+    "roof_tin_blue",
+    "sign_name",
+    "wall_brick",
+    "wall_timber"
+  ],
+  "doors": [
+    {
+      "node": "door_main",
+      "position_gltf_m": [
+        -13.32,
+        0.251,
+        -35.0
+      ],
+      "heading_deg": 0
+    },
+    {
+      "node": "door_east",
+      "position_gltf_m": [
+        -0.88,
+        0.251,
+        -35.0
+      ],
+      "heading_deg": 0
+    }
+  ],
+  "anchors": [
+    {
+      "node": "car_entry",
+      "position_gltf_m": [
+        -36.5,
+        0.15,
+        -1.3000000000000007
+      ],
+      "heading_deg": 0
+    },
+    {
+      "node": "truck_entry",
+      "position_gltf_m": [
+        37.0,
+        0.15,
+        -1.3000000000000007
+      ],
+      "heading_deg": 0
+    },
+    {
+      "node": "truck_exit",
+      "position_gltf_m": [
+        32.5,
+        0.15,
+        -65.82
+      ],
+      "heading_deg": 180
+    },
+    {
+      "node": "driver_walk",
+      "position_gltf_m": [
+        12.62,
+        0.223,
+        -40.9
+      ],
+      "heading_deg": 0
+    },
+    {
+      "node": "vending_breezeway",
+      "position_gltf_m": [
+        -7.1,
+        0.223,
+        -43.4
+      ],
+      "heading_deg": 0
+    },
+    {
+      "node": "picnic_entrance",
+      "position_gltf_m": [
+        -25.7,
+        0.215,
+        -44.4
+      ],
+      "heading_deg": 0
+    }
+  ],
+  "site_plan": {
+    "passenger_rows": 2,
+    "truck_bays": 4,
+    "truck_bay_pitch_m": 4.25,
+    "truck_bay_length_m": 25
+  },
+  "collision": {
+    "boxes_blender_z_up": [
+      {
+        "name": "Side brick wall",
+        "group": "structure",
+        "attachment": "restroom_west",
+        "center": [
+          -17.895,
+          40.68,
+          1.849
+        ],
+        "size": [
+          0.27,
+          11.09,
+          3.25
+        ]
+      },
+      {
+        "name": "Side brick wall",
+        "group": "structure",
+        "attachment": "restroom_west",
+        "center": [
+          -10.104999999999999,
+          40.68,
+          1.849
+        ],
+        "size": [
+          0.27,
+          11.09,
+          3.25
+        ]
+      },
+      {
+        "name": "Rear brick wall",
+        "group": "structure",
+        "attachment": "restroom_west",
+        "center": [
+          -14.0,
+          46.09,
+          1.849
+        ],
+        "size": [
+          7.510000000000001,
+          0.275,
+          3.25
+        ]
+      },
+      {
+        "name": "Front brick jamb wall",
+        "group": "structure",
+        "attachment": "restroom_west",
+        "center": [
+          -15.93,
+          35.23,
+          1.849
+        ],
+        "size": [
+          3.660000000000002,
+          0.27,
+          3.25
+        ]
+      },
+      {
+        "name": "Front brick jamb wall",
+        "group": "structure",
+        "attachment": "restroom_west",
+        "center": [
+          -11.39,
+          35.23,
+          1.849
+        ],
+        "size": [
+          2.3000000000000025,
+          0.27,
+          3.25
+        ]
+      },
+      {
+        "name": "Entry lintel",
+        "group": "structure",
+        "attachment": "restroom_west",
+        "center": [
+          -13.32,
+          35.23,
+          3.017
+        ],
+        "size": [
+          1.56,
+          0.27,
+          0.914
+        ]
+      },
+      {
+        "name": "Privacy baffle",
+        "group": "structure",
+        "attachment": "restroom_west",
+        "center": [
+          -14.71,
+          37.0,
+          1.46
+        ],
+        "size": [
+          4.53,
+          0.15,
+          2.42
+        ]
+      },
+      {
+        "name": "Stall divider",
+        "group": "fixture",
+        "attachment": "fixtures_west",
+        "center": [
+          -15.0,
+          43.94,
+          1.21
+        ],
+        "size": [
+          0.075,
+          2.55,
+          1.92
+        ]
+      },
+      {
+        "name": "Toilet pedestal",
+        "group": "fixture",
+        "attachment": "fixtures_west",
+        "center": [
+          -15.73,
+          44.980000000000004,
+          0.475
+        ],
+        "size": [
+          0.39,
+          0.59,
+          0.45
+        ]
+      },
+      {
+        "name": "Stall divider",
+        "group": "fixture",
+        "attachment": "fixtures_west",
+        "center": [
+          -13.27,
+          43.94,
+          1.21
+        ],
+        "size": [
+          0.075,
+          2.55,
+          1.92
+        ]
+      },
+      {
+        "name": "Toilet pedestal",
+        "group": "fixture",
+        "attachment": "fixtures_west",
+        "center": [
+          -14.0,
+          44.980000000000004,
+          0.475
+        ],
+        "size": [
+          0.39,
+          0.59,
+          0.45
+        ]
+      },
+      {
+        "name": "Stall divider",
+        "group": "fixture",
+        "attachment": "fixtures_west",
+        "center": [
+          -11.54,
+          43.94,
+          1.21
+        ],
+        "size": [
+          0.075,
+          2.55,
+          1.92
+        ]
+      },
+      {
+        "name": "Toilet pedestal",
+        "group": "fixture",
+        "attachment": "fixtures_west",
+        "center": [
+          -12.27,
+          44.980000000000004,
+          0.475
+        ],
+        "size": [
+          0.39,
+          0.59,
+          0.45
+        ]
+      },
+      {
+        "name": "Vanity base",
+        "group": "fixture",
+        "attachment": "fixtures_west",
+        "center": [
+          -17.1,
+          40.24,
+          0.61
+        ],
+        "size": [
+          0.57,
+          3.1,
+          0.72
+        ]
+      },
+      {
+        "name": "Side brick wall",
+        "group": "structure",
+        "attachment": "restroom_east",
+        "center": [
+          -4.095000000000001,
+          40.68,
+          1.849
+        ],
+        "size": [
+          0.27,
+          11.09,
+          3.25
+        ]
+      },
+      {
+        "name": "Side brick wall",
+        "group": "structure",
+        "attachment": "restroom_east",
+        "center": [
+          3.6950000000000003,
+          40.68,
+          1.849
+        ],
+        "size": [
+          0.27,
+          11.09,
+          3.25
+        ]
+      },
+      {
+        "name": "Rear brick wall",
+        "group": "structure",
+        "attachment": "restroom_east",
+        "center": [
+          -0.2,
+          46.09,
+          1.849
+        ],
+        "size": [
+          7.510000000000001,
+          0.275,
+          3.25
+        ]
+      },
+      {
+        "name": "Front brick jamb wall",
+        "group": "structure",
+        "attachment": "restroom_east",
+        "center": [
+          -2.8100000000000005,
+          35.23,
+          1.849
+        ],
+        "size": [
+          2.3000000000000003,
+          0.27,
+          3.25
+        ]
+      },
+      {
+        "name": "Front brick jamb wall",
+        "group": "structure",
+        "attachment": "restroom_east",
+        "center": [
+          1.73,
+          35.23,
+          1.849
+        ],
+        "size": [
+          3.66,
+          0.27,
+          3.25
+        ]
+      },
+      {
+        "name": "Entry lintel",
+        "group": "structure",
+        "attachment": "restroom_east",
+        "center": [
+          -0.8800000000000001,
+          35.23,
+          3.017
+        ],
+        "size": [
+          1.56,
+          0.27,
+          0.914
+        ]
+      },
+      {
+        "name": "Privacy baffle",
+        "group": "structure",
+        "attachment": "restroom_east",
+        "center": [
+          0.51,
+          37.0,
+          1.46
+        ],
+        "size": [
+          4.53,
+          0.15,
+          2.42
+        ]
+      },
+      {
+        "name": "Stall divider",
+        "group": "fixture",
+        "attachment": "fixtures_east",
+        "center": [
+          -1.2,
+          43.94,
+          1.21
+        ],
+        "size": [
+          0.075,
+          2.55,
+          1.92
+        ]
+      },
+      {
+        "name": "Toilet pedestal",
+        "group": "fixture",
+        "attachment": "fixtures_east",
+        "center": [
+          -1.93,
+          44.980000000000004,
+          0.475
+        ],
+        "size": [
+          0.39,
+          0.59,
+          0.45
+        ]
+      },
+      {
+        "name": "Stall divider",
+        "group": "fixture",
+        "attachment": "fixtures_east",
+        "center": [
+          0.53,
+          43.94,
+          1.21
+        ],
+        "size": [
+          0.075,
+          2.55,
+          1.92
+        ]
+      },
+      {
+        "name": "Toilet pedestal",
+        "group": "fixture",
+        "attachment": "fixtures_east",
+        "center": [
+          -0.2,
+          44.980000000000004,
+          0.475
+        ],
+        "size": [
+          0.39,
+          0.59,
+          0.45
+        ]
+      },
+      {
+        "name": "Stall divider",
+        "group": "fixture",
+        "attachment": "fixtures_east",
+        "center": [
+          2.26,
+          43.94,
+          1.21
+        ],
+        "size": [
+          0.075,
+          2.55,
+          1.92
+        ]
+      },
+      {
+        "name": "Toilet pedestal",
+        "group": "fixture",
+        "attachment": "fixtures_east",
+        "center": [
+          1.53,
+          44.980000000000004,
+          0.475
+        ],
+        "size": [
+          0.39,
+          0.59,
+          0.45
+        ]
+      },
+      {
+        "name": "Vanity base",
+        "group": "fixture",
+        "attachment": "fixtures_east",
+        "center": [
+          2.9,
+          40.24,
+          0.61
+        ],
+        "size": [
+          0.57,
+          3.1,
+          0.72
+        ]
+      },
+      {
+        "name": "Breezeway rear wall",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -7.1,
+          46.15,
+          1.8499999999999999
+        ],
+        "size": [
+          5.78,
+          0.29,
+          3.26
+        ]
+      },
+      {
+        "name": "Entry canopy pier",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -10.35,
+          30.240000000000002,
+          1.712
+        ],
+        "size": [
+          0.54,
+          0.54,
+          2.98
+        ]
+      },
+      {
+        "name": "Entry canopy pier",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -10.35,
+          35.34,
+          1.712
+        ],
+        "size": [
+          0.54,
+          0.54,
+          2.98
+        ]
+      },
+      {
+        "name": "Entry canopy pier",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -3.85,
+          30.240000000000002,
+          1.712
+        ],
+        "size": [
+          0.54,
+          0.54,
+          2.98
+        ]
+      },
+      {
+        "name": "Entry canopy pier",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -3.85,
+          35.34,
+          1.712
+        ],
+        "size": [
+          0.54,
+          0.54,
+          2.98
+        ]
+      },
+      {
+        "name": "Vending cabinet",
+        "group": "fixture",
+        "attachment": "vending_1",
+        "center": [
+          -8.79,
+          44.980000000000004,
+          1.278
+        ],
+        "size": [
+          1.25,
+          0.82,
+          2.11
+        ]
+      },
+      {
+        "name": "Vending cabinet",
+        "group": "fixture",
+        "attachment": "vending_2",
+        "center": [
+          -7.35,
+          44.980000000000004,
+          1.278
+        ],
+        "size": [
+          1.25,
+          0.82,
+          2.11
+        ]
+      },
+      {
+        "name": "Vending cabinet",
+        "group": "fixture",
+        "attachment": "vending_3",
+        "center": [
+          -5.909999999999999,
+          44.980000000000004,
+          1.278
+        ],
+        "size": [
+          1.25,
+          0.82,
+          2.11
+        ]
+      },
+      {
+        "name": "Regional map cabinet",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -7.12,
+          39.7,
+          1.224
+        ],
+        "size": [
+          1.5,
+          0.28,
+          2.0
+        ]
+      },
+      {
+        "name": "Picnic table",
+        "group": "lot",
+        "attachment": "picnic_table_1",
+        "center": [
+          -30.2,
+          51.0,
+          0.627
+        ],
+        "size": [
+          1.45,
+          1.93,
+          0.828
+        ]
+      },
+      {
+        "name": "Picnic table",
+        "group": "lot",
+        "attachment": "picnic_table_2",
+        "center": [
+          -24.1,
+          51.0,
+          0.627
+        ],
+        "size": [
+          1.45,
+          1.93,
+          0.828
+        ]
+      },
+      {
+        "name": "Picnic table",
+        "group": "lot",
+        "attachment": "picnic_table_3",
+        "center": [
+          -15.4,
+          55.2,
+          0.627
+        ],
+        "size": [
+          1.45,
+          1.93,
+          0.828
+        ]
+      },
+      {
+        "name": "Picnic table",
+        "group": "lot",
+        "attachment": "picnic_table_4",
+        "center": [
+          -22.4,
+          45.2,
+          0.524
+        ],
+        "size": [
+          1.45,
+          1.93,
+          0.828
+        ]
+      },
+      {
+        "name": "Picnic table",
+        "group": "lot",
+        "attachment": "picnic_table_5",
+        "center": [
+          -34.1,
+          56.9,
+          0.524
+        ],
+        "size": [
+          1.45,
+          1.93,
+          0.828
+        ]
+      },
+      {
+        "name": "Picnic table",
+        "group": "lot",
+        "attachment": "picnic_table_6",
+        "center": [
+          -8.7,
+          56.3,
+          0.524
+        ],
+        "size": [
+          1.45,
+          1.93,
+          0.828
+        ]
+      },
+      {
+        "name": "Shelter masonry footing",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -31.66,
+          48.45,
+          0.31
+        ],
+        "size": [
+          0.38,
+          0.37,
+          0.4
+        ]
+      },
+      {
+        "name": "Shelter timber post",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -31.66,
+          48.45,
+          1.56
+        ],
+        "size": [
+          0.21,
+          0.2,
+          2.1
+        ]
+      },
+      {
+        "name": "Shelter masonry footing",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -31.66,
+          53.650000000000006,
+          0.31
+        ],
+        "size": [
+          0.38,
+          0.37,
+          0.4
+        ]
+      },
+      {
+        "name": "Shelter timber post",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -31.66,
+          53.650000000000006,
+          1.56
+        ],
+        "size": [
+          0.21,
+          0.2,
+          2.1
+        ]
+      },
+      {
+        "name": "Shelter masonry footing",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -22.74,
+          48.45,
+          0.31
+        ],
+        "size": [
+          0.38,
+          0.37,
+          0.4
+        ]
+      },
+      {
+        "name": "Shelter timber post",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -22.74,
+          48.45,
+          1.56
+        ],
+        "size": [
+          0.21,
+          0.2,
+          2.1
+        ]
+      },
+      {
+        "name": "Shelter masonry footing",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -22.74,
+          53.650000000000006,
+          0.31
+        ],
+        "size": [
+          0.38,
+          0.37,
+          0.4
+        ]
+      },
+      {
+        "name": "Shelter timber post",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -22.74,
+          53.650000000000006,
+          1.56
+        ],
+        "size": [
+          0.21,
+          0.2,
+          2.1
+        ]
+      },
+      {
+        "name": "Shelter masonry footing",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -16.7,
+          53.004999999999995,
+          0.31
+        ],
+        "size": [
+          0.38,
+          0.37,
+          0.4
+        ]
+      },
+      {
+        "name": "Shelter timber post",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -16.7,
+          53.004999999999995,
+          1.56
+        ],
+        "size": [
+          0.21,
+          0.2,
+          2.1
+        ]
+      },
+      {
+        "name": "Shelter masonry footing",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -16.7,
+          57.435,
+          0.31
+        ],
+        "size": [
+          0.38,
+          0.37,
+          0.4
+        ]
+      },
+      {
+        "name": "Shelter timber post",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -16.7,
+          57.435,
+          1.56
+        ],
+        "size": [
+          0.21,
+          0.2,
+          2.1
+        ]
+      },
+      {
+        "name": "Shelter masonry footing",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -11.9,
+          53.004999999999995,
+          0.31
+        ],
+        "size": [
+          0.38,
+          0.37,
+          0.4
+        ]
+      },
+      {
+        "name": "Shelter timber post",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -11.9,
+          53.004999999999995,
+          1.56
+        ],
+        "size": [
+          0.21,
+          0.2,
+          2.1
+        ]
+      },
+      {
+        "name": "Shelter masonry footing",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -11.9,
+          57.435,
+          0.31
+        ],
+        "size": [
+          0.38,
+          0.37,
+          0.4
+        ]
+      },
+      {
+        "name": "Shelter timber post",
+        "group": "structure",
+        "attachment": "pavilion",
+        "center": [
+          -11.9,
+          57.435,
+          1.56
+        ],
+        "size": [
+          0.21,
+          0.2,
+          2.1
+        ]
+      },
+      {
+        "name": "Waste bin",
+        "group": "lot",
+        "attachment": "waste_bin_1",
+        "center": [
+          -20.0,
+          27.25,
+          0.727
+        ],
+        "size": [
+          0.86,
+          0.86,
+          1.02
+        ]
+      },
+      {
+        "name": "Waste bin",
+        "group": "lot",
+        "attachment": "waste_bin_2",
+        "center": [
+          4.12,
+          27.25,
+          0.727
+        ],
+        "size": [
+          0.86,
+          0.86,
+          1.02
+        ]
+      },
+      {
+        "name": "Waste bin",
+        "group": "lot",
+        "attachment": "waste_bin_3",
+        "center": [
+          10.61,
+          38.85,
+          0.727
+        ],
+        "size": [
+          0.86,
+          0.86,
+          1.02
+        ]
+      },
+      {
+        "name": "Waste bin",
+        "group": "lot",
+        "attachment": "waste_bin_4",
+        "center": [
+          -34,
+          50.0,
+          0.727
+        ],
+        "size": [
+          0.86,
+          0.86,
+          1.02
+        ]
+      },
+      {
+        "name": "Bench",
+        "group": "lot",
+        "attachment": "bench_1",
+        "center": [
+          -19.9,
+          31.69,
+          0.69
+        ],
+        "size": [
+          1.98,
+          0.5,
+          0.94
+        ]
+      },
+      {
+        "name": "Bench",
+        "group": "lot",
+        "attachment": "bench_2",
+        "center": [
+          10.8,
+          41.97,
+          0.69
+        ],
+        "size": [
+          1.98,
+          0.5,
+          0.94
+        ]
+      },
+      {
+        "name": "Bench",
+        "group": "lot",
+        "attachment": "bench_3",
+        "center": [
+          10.82,
+          47.0,
+          0.69
+        ],
+        "size": [
+          1.98,
+          0.5,
+          0.94
+        ]
+      },
+      {
+        "name": "Wayfinding posts",
+        "group": "lot",
+        "attachment": "truck_directions",
+        "center": [
+          14.079999999999998,
+          11.829999999999998,
+          1.215
+        ],
+        "size": [
+          0.16,
+          0.16,
+          2.21
+        ]
+      },
+      {
+        "name": "Wayfinding posts",
+        "group": "lot",
+        "attachment": "truck_directions",
+        "center": [
+          17.32,
+          11.829999999999998,
+          1.215
+        ],
+        "size": [
+          0.16,
+          0.16,
+          2.21
+        ]
+      },
+      {
+        "name": "Wayfinding posts",
+        "group": "lot",
+        "attachment": "car_directions",
+        "center": [
+          -22.82,
+          9.7,
+          1.215
+        ],
+        "size": [
+          0.16,
+          0.16,
+          2.21
+        ]
+      },
+      {
+        "name": "Wayfinding posts",
+        "group": "lot",
+        "attachment": "car_directions",
+        "center": [
+          -19.58,
+          9.7,
+          1.215
+        ],
+        "size": [
+          0.16,
+          0.16,
+          2.21
+        ]
+      },
+      {
+        "name": "Wayfinding posts",
+        "group": "lot",
+        "attachment": "picnic_directions",
+        "center": [
+          -27.32,
+          43.1,
+          1.215
+        ],
+        "size": [
+          0.16,
+          0.16,
+          2.21
+        ]
+      },
+      {
+        "name": "Wayfinding posts",
+        "group": "lot",
+        "attachment": "picnic_directions",
+        "center": [
+          -24.08,
+          43.1,
+          1.215
+        ],
+        "size": [
+          0.16,
+          0.16,
+          2.21
+        ]
+      },
+      {
+        "name": "Tree trunk",
+        "group": "lot",
+        "attachment": "tree_01",
+        "center": [
+          -37,
+          25.0,
+          2.625
+        ],
+        "size": [
+          0.32,
+          0.31,
+          5.25
+        ]
+      },
+      {
+        "name": "Tree trunk",
+        "group": "lot",
+        "attachment": "tree_02",
+        "center": [
+          -38,
+          39.0,
+          3.375
+        ],
+        "size": [
+          0.32,
+          0.31,
+          6.75
+        ]
+      },
+      {
+        "name": "Tree trunk",
+        "group": "lot",
+        "attachment": "tree_03",
+        "center": [
+          -33,
+          41.0,
+          2.8125
+        ],
+        "size": [
+          0.32,
+          0.31,
+          5.625
+        ]
+      },
+      {
+        "name": "Tree trunk",
+        "group": "lot",
+        "attachment": "tree_04",
+        "center": [
+          -36,
+          61.0,
+          3.5250000000000004
+        ],
+        "size": [
+          0.32,
+          0.31,
+          7.050000000000001
+        ]
+      },
+      {
+        "name": "Tree trunk",
+        "group": "lot",
+        "attachment": "tree_05",
+        "center": [
+          -28,
+          61.0,
+          2.8499999999999996
+        ],
+        "size": [
+          0.32,
+          0.31,
+          5.699999999999999
+        ]
+      },
+      {
+        "name": "Tree trunk",
+        "group": "lot",
+        "attachment": "tree_06",
+        "center": [
+          -21,
+          61.0,
+          3.375
+        ],
+        "size": [
+          0.32,
+          0.31,
+          6.75
+        ]
+      },
+      {
+        "name": "Tree trunk",
+        "group": "lot",
+        "attachment": "tree_07",
+        "center": [
+          -12,
+          61.0,
+          3.0749999999999997
+        ],
+        "size": [
+          0.32,
+          0.31,
+          6.1499999999999995
+        ]
+      },
+      {
+        "name": "Tree trunk",
+        "group": "lot",
+        "attachment": "tree_08",
+        "center": [
+          1.6,
+          58.0,
+          3.1875
+        ],
+        "size": [
+          0.32,
+          0.31,
+          6.375
+        ]
+      },
+      {
+        "name": "Tree trunk",
+        "group": "lot",
+        "attachment": "tree_09",
+        "center": [
+          6.6,
+          60.0,
+          2.6624999999999996
+        ],
+        "size": [
+          0.32,
+          0.31,
+          5.324999999999999
+        ]
+      },
+      {
+        "name": "Tree trunk",
+        "group": "lot",
+        "attachment": "tree_10",
+        "center": [
+          15.5,
+          57.0,
+          3.0
+        ],
+        "size": [
+          0.32,
+          0.31,
+          6.0
+        ]
+      },
+      {
+        "name": "Tree trunk",
+        "group": "lot",
+        "attachment": "tree_11",
+        "center": [
+          15.5,
+          51.0,
+          2.925
+        ],
+        "size": [
+          0.32,
+          0.31,
+          5.85
+        ]
+      },
+      {
+        "name": "Tree trunk",
+        "group": "lot",
+        "attachment": "tree_12",
+        "center": [
+          39.0,
+          50.0,
+          3.0749999999999997
+        ],
+        "size": [
+          0.32,
+          0.31,
+          6.1499999999999995
+        ]
+      },
+      {
+        "name": "Tree trunk",
+        "group": "lot",
+        "attachment": "tree_13",
+        "center": [
+          -5.0,
+          2.0,
+          2.4749999999999996
+        ],
+        "size": [
+          0.32,
+          0.31,
+          4.949999999999999
+        ]
+      },
+      {
+        "name": "Tree trunk",
+        "group": "lot",
+        "attachment": "tree_14",
+        "center": [
+          -8.3,
+          2.0,
+          2.0625
+        ],
+        "size": [
+          0.32,
+          0.31,
+          4.125
+        ]
+      },
+      {
+        "name": "Lamp footing",
+        "group": "lot",
+        "attachment": "lot_light_01",
+        "center": [
+          -29,
+          17.8,
+          0.31
+        ],
+        "size": [
+          0.54,
+          0.54,
+          0.31
+        ]
+      },
+      {
+        "name": "Lamp pole",
+        "group": "lot",
+        "attachment": "lot_light_01",
+        "center": [
+          -29,
+          17.8,
+          3
+        ],
+        "size": [
+          0.2,
+          0.2,
+          5.6
+        ]
+      },
+      {
+        "name": "Lamp footing",
+        "group": "lot",
+        "attachment": "lot_light_02",
+        "center": [
+          -10,
+          17.9,
+          0.31
+        ],
+        "size": [
+          0.54,
+          0.54,
+          0.31
+        ]
+      },
+      {
+        "name": "Lamp pole",
+        "group": "lot",
+        "attachment": "lot_light_02",
+        "center": [
+          -10,
+          17.9,
+          3
+        ],
+        "size": [
+          0.2,
+          0.2,
+          5.6
+        ]
+      },
+      {
+        "name": "Lamp footing",
+        "group": "lot",
+        "attachment": "lot_light_03",
+        "center": [
+          6.7,
+          17.8,
+          0.31
+        ],
+        "size": [
+          0.54,
+          0.54,
+          0.31
+        ]
+      },
+      {
+        "name": "Lamp pole",
+        "group": "lot",
+        "attachment": "lot_light_03",
+        "center": [
+          6.7,
+          17.8,
+          3
+        ],
+        "size": [
+          0.2,
+          0.2,
+          5.6
+        ]
+      },
+      {
+        "name": "Lamp footing",
+        "group": "lot",
+        "attachment": "lot_light_04",
+        "center": [
+          15.0,
+          18.2,
+          0.31
+        ],
+        "size": [
+          0.54,
+          0.54,
+          0.31
+        ]
+      },
+      {
+        "name": "Lamp pole",
+        "group": "lot",
+        "attachment": "lot_light_04",
+        "center": [
+          15.0,
+          18.2,
+          3
+        ],
+        "size": [
+          0.2,
+          0.2,
+          5.6
+        ]
+      },
+      {
+        "name": "Lamp footing",
+        "group": "lot",
+        "attachment": "lot_light_05",
+        "center": [
+          15.4,
+          47.0,
+          0.31
+        ],
+        "size": [
+          0.54,
+          0.54,
+          0.31
+        ]
+      },
+      {
+        "name": "Lamp pole",
+        "group": "lot",
+        "attachment": "lot_light_05",
+        "center": [
+          15.4,
+          47.0,
+          3
+        ],
+        "size": [
+          0.2,
+          0.2,
+          5.6
+        ]
+      },
+      {
+        "name": "Lamp footing",
+        "group": "lot",
+        "attachment": "lot_light_06",
+        "center": [
+          38.5,
+          40.2,
+          0.31
+        ],
+        "size": [
+          0.54,
+          0.54,
+          0.31
+        ]
+      },
+      {
+        "name": "Lamp pole",
+        "group": "lot",
+        "attachment": "lot_light_06",
+        "center": [
+          38.5,
+          40.2,
+          3
+        ],
+        "size": [
+          0.2,
+          0.2,
+          5.6
+        ]
+      },
+      {
+        "name": "Lamp footing",
+        "group": "lot",
+        "attachment": "lot_light_07",
+        "center": [
+          -22.3,
+          57.9,
+          0.31
+        ],
+        "size": [
+          0.54,
+          0.54,
+          0.31
+        ]
+      },
+      {
+        "name": "Lamp pole",
+        "group": "lot",
+        "attachment": "lot_light_07",
+        "center": [
+          -22.3,
+          57.9,
+          3
+        ],
+        "size": [
+          0.2,
+          0.2,
+          5.6
+        ]
+      },
+      {
+        "name": "Bollard",
+        "group": "lot",
+        "attachment": "bollard_1",
+        "center": [
+          -17.8,
+          28.34,
+          0.725
+        ],
+        "size": [
+          0.22,
+          0.22,
+          1.01
+        ]
+      },
+      {
+        "name": "Bollard",
+        "group": "lot",
+        "attachment": "bollard_2",
+        "center": [
+          -10.6,
+          28.34,
+          0.725
+        ],
+        "size": [
+          0.22,
+          0.22,
+          1.01
+        ]
+      },
+      {
+        "name": "Bollard",
+        "group": "lot",
+        "attachment": "bollard_3",
+        "center": [
+          -3.6,
+          28.34,
+          0.725
+        ],
+        "size": [
+          0.22,
+          0.22,
+          1.01
+        ]
+      },
+      {
+        "name": "Bollard",
+        "group": "lot",
+        "attachment": "bollard_4",
+        "center": [
+          3.1,
+          28.34,
+          0.725
+        ],
+        "size": [
+          0.22,
+          0.22,
+          1.01
+        ]
+      },
+      {
+        "name": "Bollard",
+        "group": "lot",
+        "attachment": "bollard_5",
+        "center": [
+          10.9,
+          51.8,
+          0.725
+        ],
+        "size": [
+          0.22,
+          0.22,
+          1.01
+        ]
+      }
+    ]
+  },
+  "units": "Metres, glTF Y-up, entrance +Z, origin centered on south parcel edge",
+  "texel_size_m": 0.0388,
+  "texels_per_art_pixel": 2,
+  "swatches_used": [
+    "pavement",
+    "asphalt_worn",
+    "brick_courses",
+    "roof_tin_blue",
+    "plank_horizontal"
+  ]
+}

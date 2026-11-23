@@ -185,6 +185,14 @@ The hand-made models (src/town/glbLandmarks.ts; the courthouse to come):
 | premier depot (3,000+) | the rail band, at the foot of Depot Street, looking up it to the square | the depot faces downtown | |
 | funeral home | the corner of West Main and the first cross street west of downtown: a big house on a 22 x 11 corner lot | a converted big house on an old residential street near downtown | a house from its build year (1910-35), converted 1935-60 |
 | courthouse and square (four states, 1894-2000s) | the civic block of a county seat, 44 x 44, faces round it street walls | the county seat's centre | the square's lawn and memorials before 1894 |
+| library, 1912 and the 1970s wing | the old town behind the civic block, near the square | Carnegie libraries stood a block off the square | woods before 1906 |
+| corner drugstore (four states) | a core corner on Main Street's north side | a drugstore wants a corner | shops before it |
+| town state bank, then the drive-through | the core's south side, mid-block | | shops before it |
+| brick church, country church | an old-town corner; the country church at the edge | | woods, a field |
+| Lincoln High School campus (four states) | the grounds (needs 188 x 77 tiles) | | a field |
+| carhop drive-in (open, shut, restored) | the strip, north side | | a field |
+| fire station 1924 / 1988, post office 1938 / 1988 | the blocks behind the civic block, facing the square | replace the sprite landmarks (capital) | woods |
+| Great Meridian (four states), the Eyrie, Union Arch, Night Keeper, Rex, rest area, lodge | the capital's grounds, past the highway's far end | landmarks that make the capital worth travelling to | fields |
 
 A town only has the models it earns (glbTenures, unchanged); the plan reserves slots for every model it will ever have
 and leaves the others to its district's ordinary use (a strip shop, a house, a warehouse).
@@ -430,3 +438,34 @@ from 146 to 101 in gamma (more households share apartment blocks near the core).
   behind the player as before).
 - **Memory** (townMemoryCheck, the shipped gamma, three runs): held peak 144-164 MB of 256 (was 249-303 measured the same
   way before this round). See TOWN.md "Memory, the final round".
+
+### The intake models in the capital (2026-11-22, branch wf-intake)
+
+Fifteen hand-made models went into gamma, the capital and test city (LANDMARKS_GLB.md "The intake models"; docs/queue/INTAKE.md). Rules and ledger:
+
+- **Who gets what** (src/town/glbSites.ts `glbTenures`): the capital has every model (`isCapital`, `CAPITAL_SEED` = gamma). The ordinary ones have size rules for other towns
+  (library 3,000 inhabitants at the peak, bank 2,000, drugstore, brick church and carhop 1,500 / 2,500, a farm town's country church 70%) behind `INTAKE_FOR_OTHERS`, **off**:
+  turning them on moved other towns' lots (measured on eta: the shipped v1 crossroads `street.json` changes, a bait shop gives way) and would mean re-exporting and re-making the
+  buildings of every town with shipped assets. The school campus, the fire station and the post office replace the sprite landmarks of the same names (`REPLACED_LANDMARKS`: the
+  capital's plan has no sprite school, fire station or post office; the other towns keep theirs), and the roadside and monument models are the capital's alone until other hubs are authored.
+- **Years in gamma** (from the seed): country church 1887, library 1906 (the 1970s wing 1981), brick church 1908, fire station 1924 (the 1988 station 1986), drugstore 1927 (retail
+  1979, shut 2006, a cafe from 2014), Great Meridian 1928 (wartime 1944, worn 1980, restored 2001), school 1930 (1957, 1975, 2002), bank 1930 (drive-through 1977), lodge 1932, arch 1933,
+  Night Keeper 1936, post office 1938 (the 1988 branch 1984), Eyrie 1939, carhop 1956 (shut 1979, restored as a diner 2002), Rex 1968, rest area 1975. The plot's before-use is a field
+  (shops for the drugstore and bank, woods in the old town).
+- **The grounds** (src/town/plat.ts `GROUNDS`): the Eyrie is 160 x 77 tiles, the campus 188 x 77, the Great Meridian 97 x 58: none fits a 40 x 37 block, and the one big block of the plan
+  (the edge column, 148 x 123) holds the superstore. So the capital's plat has one more column, **grounds** (a new district, platted 1885), 200 tiles wide, past the highway's far end:
+  Main Street runs on through it, a street closes it on the town side, and four blocks lie on either side of Main Street (north of it in the abstract frame, 62 and 80 tiles deep; south of it
+  30 and 80): the Great Meridian, the rest area and the lodge along Main Street, the Eyrie behind them; the Night Keeper, the arch (at the highway's far end) and the Rex along Main Street's
+  other side, the campus behind them. Nothing else in the plat moved except that the plan is 200 tiles wider (the canvas 965 x 307; the civic block is at x 779 where it was at 579). Other
+  towns have no grounds column. A `future:landmark:3` plot (30 x 20) is reserved there as well: five reserved plots are free in the capital (`future:civic:1`, `:2`, `future:landmark:1`, `:2`,
+  `:3`). The brief's reserved plots (24 x 18, 20 x 16, 30 x 20, 40 x 24 tiles) were too small for the big models; the grounds are the reserved landmark ground now.
+- **Civic**: the post office (22 x 12) and the fire station (23 x 13) face the square from the blocks behind the civic block (one street back, the post office first: a front corner of the
+  square is 10 tiles wide, a post office 22), the library (19 x 18) in the old town behind them; the clock tower still flanks the plaza. The campus is not at the old town's edge as the table
+  says: it needs acres, so it is on the grounds, the far end of the highway.
+- **Downtown and old town**: the drugstore (13 x 14) at a corner of the core's north side, the bank (22 x 12) mid-block on its south side; the brick church (38 x 27) on an old-town corner;
+  the country church (26 x 16) at the north-west edge of the late subdivisions. **Strip**: the carhop (36 x 17) beside the others.
+- **The ledger**: `glb:<model>` plots with chains of uses (`glbPlotOf` strips the state suffix); the `landmark:post|fire|school` plots are not reserved when the model is (the plan's
+  landmarks lack them). The plan's tests (every tenure has its plot, nothing overlaps, every plot on a street) cover all of them; the start view along Main Street (the spawn test)
+  now has only the clock tower beside the plaza in the capital.
+- **Export**: gamma's `street.json` (321 shops, 25 hand-made models), buildings, dialogue, interiors, rail.json and the Kotlin fixtures (`town-gamma.json`, `rail-checks.json`,
+  `stores-gamma-years.json`) are re-exported; the plan's shift moved every lot, so the building files changed (2,197 files).

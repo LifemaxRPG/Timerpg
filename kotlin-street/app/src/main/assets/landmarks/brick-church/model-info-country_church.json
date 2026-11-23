@@ -1,0 +1,247 @@
+{
+ "name": "Country Church",
+ "state": "landmark_glb_country_church",
+ "file": "country-church.glb",
+ "doors": [
+  {
+   "node": "door_main",
+   "position": [
+    0.0,
+    0.4656,
+    0.18624
+   ],
+   "outward": [
+    0,
+    0,
+    1
+   ],
+   "width_m": 1.8624,
+   "height_m": 2.6384,
+   "floor_m": 0.4656,
+   "external": true,
+   "open": true
+  },
+  {
+   "node": "door_back",
+   "position": [
+    0.0,
+    0.4656,
+    -24.47504
+   ],
+   "outward": [
+    0,
+    0,
+    -1
+   ],
+   "width_m": 1.3968,
+   "height_m": 2.6384,
+   "floor_m": 0.4656,
+   "external": true,
+   "open": true
+  }
+ ],
+ "collision": {
+  "node": "collision",
+  "render": false,
+  "coordinate_frame": "glTF metres, Y up/+Z front",
+  "boxes_gltf_y_up": [
+   {
+    "source": "Raised chancel",
+    "center": [
+     0.0,
+     0.6208,
+     -17.692800000000002
+    ],
+    "size": [
+     4.9664,
+     0.3104,
+     3.4144
+    ],
+    "support_floor_m": 0.4656,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Downpipe",
+    "center": [
+     -4.22144,
+     1.8624,
+     -24.056
+    ],
+    "size": [
+     0.0776,
+     3.7248,
+     0.0776
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "vestry",
+    "group": "structure"
+   },
+   {
+    "source": "Downpipe",
+    "center": [
+     4.22144,
+     1.8624,
+     -24.056
+    ],
+    "size": [
+     0.0776,
+     3.7248,
+     0.0776
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "vestry",
+    "group": "structure"
+   },
+   {
+    "source": "Downpipe",
+    "center": [
+     -4.68704,
+     2.9488000000000003,
+     -19.7104
+    ],
+    "size": [
+     0.0776,
+     5.897600000000001,
+     0.0776
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Downpipe",
+    "center": [
+     4.68704,
+     2.9488000000000003,
+     -19.7104
+    ],
+    "size": [
+     0.0776,
+     5.897600000000001,
+     0.0776
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Sign board",
+    "center": [
+     9.7776,
+     1.6296,
+     2.1728
+    ],
+    "size": [
+     2.9488000000000003,
+     3.2592,
+     0.4656
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "church_sign",
+    "group": "lot"
+   },
+   {
+    "source": "Garden bed",
+    "center": [
+     -9.0016,
+     0.776,
+     -11.64
+    ],
+    "size": [
+     2.0176,
+     1.552,
+     1.7072
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "garden_bed_0",
+    "group": "lot"
+   },
+   {
+    "source": "Garden bed",
+    "center": [
+     -9.0016,
+     0.776,
+     -15.52
+    ],
+    "size": [
+     2.0176,
+     1.552,
+     1.7072
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "garden_bed_1",
+    "group": "lot"
+   },
+   {
+    "source": "Bench",
+    "center": [
+     -8.3032,
+     0.5432,
+     -17.848
+    ],
+    "size": [
+     1.7072,
+     1.0864,
+     0.6208
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "garden_bench",
+    "group": "lot"
+   },
+   {
+    "source": "Tree trunk column",
+    "center": [
+     -7.76,
+     3.2592,
+     -2.3280000000000003
+    ],
+    "size": [
+     0.32592000000000004,
+     6.5184,
+     0.32592000000000004
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "church_tree_0",
+    "group": "lot"
+   },
+   {
+    "source": "Tree trunk column",
+    "center": [
+     15.52,
+     2.9876,
+     -23.590400000000002
+    ],
+    "size": [
+     0.29876,
+     5.9752,
+     0.29876
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "church_tree_1",
+    "group": "lot"
+   },
+   {
+    "source": "Service bin",
+    "center": [
+     -2.3280000000000003,
+     0.5044,
+     -25.142400000000002
+    ],
+    "size": [
+     0.6984,
+     1.0088,
+     0.6984
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "service_bin_0",
+    "group": "lot"
+   }
+  ],
+  "use_the_walls": true,
+  "notes": "Walls, floors, real steps and architectural shells supply collision. Supplementary boxes cover buttresses, raised chancel/counter, sign, planters, bench, bins, downpipes and full-height tree-trunk columns. Do not apply the legacy Blender rotation."
+ },
+ "lot_node": "lot",
+ "triangles_visible": 4794,
+ "source": "codex/brick-church model-info-country.json, flattened per state by tools/landmarks/intake.py"
+}

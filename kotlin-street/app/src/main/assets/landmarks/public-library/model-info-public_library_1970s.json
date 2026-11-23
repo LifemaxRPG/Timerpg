@@ -1,0 +1,302 @@
+{
+ "name": "Public Library",
+ "state": "landmark_glb_public_library_1970s",
+ "file": "public-library-1970s.glb",
+ "doors": [
+  {
+   "node": "door_main",
+   "position": [
+    0.0,
+    1.8624000549316406,
+    0.24831999838352203
+   ],
+   "outward": [
+    0,
+    0,
+    1
+   ],
+   "floor_m": 1.8624,
+   "width_m": 1.8624,
+   "height_m": 2.9488000000000003,
+   "external": true,
+   "open": true
+  },
+  {
+   "node": "door_back",
+   "position": [
+    5.897600173950195,
+    1.8624000549316406,
+    -14.216320037841797
+   ],
+   "outward": [
+    0,
+    0,
+    -1
+   ],
+   "floor_m": 1.8624,
+   "width_m": 1.552,
+   "height_m": 2.7936,
+   "external": false,
+   "open": true
+  },
+  {
+   "node": "door_addition_back",
+   "position": [
+    0.0,
+    1.8624000549316406,
+    -23.5283203125
+   ],
+   "outward": [
+    0,
+    0,
+    -1
+   ],
+   "floor_m": 1.8624,
+   "width_m": 1.552,
+   "height_m": 2.7936,
+   "external": true,
+   "open": true
+  },
+  {
+   "node": "door_addition",
+   "position": [
+    -9.249919891357422,
+    1.8624000549316406,
+    -19.710399627685547
+   ],
+   "outward": [
+    -1,
+    0,
+    0
+   ],
+   "floor_m": 1.8624,
+   "width_m": 1.552,
+   "height_m": 2.7936,
+   "external": true,
+   "open": true
+  }
+ ],
+ "collision": {
+  "node": "collision",
+  "render": false,
+  "coordinate_frame": "glTF metres: Y up, +Z front",
+  "boxes_gltf_y_up": [
+   {
+    "source": "Circulation desk",
+    "group": "structure",
+    "attachment": "structure",
+    "support_floor_m": 1.8624,
+    "center": [
+     0,
+     2.5220000000000002,
+     -4.5008
+    ],
+    "size": [
+     3.4144,
+     1.3192,
+     1.3968
+    ]
+   },
+   {
+    "source": "Downpipe",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -9.1568,
+     3.4144,
+     -0.1552
+    ],
+    "size": [
+     0.0776,
+     6.8288,
+     0.0776
+    ]
+   },
+   {
+    "source": "Downpipe",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -9.1568,
+     3.4144,
+     -13.812800000000001
+    ],
+    "size": [
+     0.0776,
+     6.8288,
+     0.0776
+    ]
+   },
+   {
+    "source": "Downpipe",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     9.1568,
+     3.4144,
+     -0.1552
+    ],
+    "size": [
+     0.0776,
+     6.8288,
+     0.0776
+    ]
+   },
+   {
+    "source": "Downpipe",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     9.1568,
+     3.4144,
+     -13.812800000000001
+    ],
+    "size": [
+     0.0776,
+     6.8288,
+     0.0776
+    ]
+   },
+   {
+    "source": "Terrace guard",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -3.88,
+     1.5132,
+     1.3968
+    ],
+    "size": [
+     0.1552,
+     3.0264,
+     2.6384
+    ]
+   },
+   {
+    "source": "Terrace guard",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     3.88,
+     1.5132,
+     1.3968
+    ],
+    "size": [
+     0.1552,
+     3.0264,
+     2.6384
+    ]
+   },
+   {
+    "source": "Portico column",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -2.6384,
+     2.5608,
+     2.0952
+    ],
+    "size": [
+     0.9312,
+     5.1216,
+     0.9312
+    ]
+   },
+   {
+    "source": "Portico column",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     2.6384,
+     2.5608,
+     2.0952
+    ],
+    "size": [
+     0.9312,
+     5.1216,
+     0.9312
+    ]
+   },
+   {
+    "source": "Stair lamp",
+    "group": "lot",
+    "attachment": "stair_lamp",
+    "center": [
+     -3.5696000000000003,
+     1.0088,
+     5.7424
+    ],
+    "size": [
+     0.6208,
+     2.0176,
+     0.6208
+    ]
+   },
+   {
+    "source": "Stair lamp",
+    "group": "lot",
+    "attachment": "stair_lamp.001",
+    "center": [
+     3.5696000000000003,
+     1.0088,
+     5.7424
+    ],
+    "size": [
+     0.6208,
+     2.0176,
+     0.6208
+    ]
+   },
+   {
+    "source": "Bench",
+    "group": "lot",
+    "attachment": "stone_bench",
+    "center": [
+     -6.8288,
+     0.388,
+     1.0864
+    ],
+    "size": [
+     2.6384,
+     0.776,
+     0.6208
+    ]
+   },
+   {
+    "source": "Bench",
+    "group": "lot",
+    "attachment": "stone_bench.001",
+    "center": [
+     6.8288,
+     0.388,
+     1.0864
+    ],
+    "size": [
+     2.6384,
+     0.776,
+     0.6208
+    ]
+   },
+   {
+    "source": "Bicycle racks",
+    "group": "lot",
+    "attachment": "bicycle_racks",
+    "center": [
+     -6.984,
+     0.5820000000000001,
+     2.9488000000000003
+    ],
+    "size": [
+     2.4832,
+     1.1640000000000001,
+     0.1552
+    ]
+   }
+  ],
+  "use_the_walls": true,
+  "notes": "Exterior doorways are open and have no closed panels or gate boxes. Architectural walls, floors and stairs supply contact. The upstairs desk blocker starts at its supporting floor, preserving basement space below; runtime must use vertical collision/navigation."
+ },
+ "lot_node": "lot",
+ "triangles_visible": 6450,
+ "source": "codex/public-library model-info.json, flattened per state by tools/landmarks/intake.py"
+}

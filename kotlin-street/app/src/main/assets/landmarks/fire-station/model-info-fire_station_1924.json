@@ -1,0 +1,188 @@
+{
+ "name": "Fire Station",
+ "state": "landmark_glb_fire_station_1924",
+ "file": "fire-station-1924.glb",
+ "doors": [
+  {
+   "node": "door_main",
+   "external": true
+  },
+  {
+   "node": "door_back",
+   "external": true
+  }
+ ],
+ "collision": {
+  "coordinate_note": "Full-height glTF Y-up boxes in metres from ground y=0 to full structure/tower/mast top.",
+  "boxes_gltf_y_up": [
+   {
+    "source": "fire_hydrant",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -10.2432,
+     0.5432,
+     4.8111999999999995
+    ],
+    "size": [
+     0.6207999999999991,
+     1.0864,
+     0.6208
+    ]
+   },
+   {
+    "source": "flagpole",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     11.4848,
+     4.9276,
+     4.1904
+    ],
+    "size": [
+     0.6207999999999991,
+     9.8552,
+     0.6208
+    ]
+   },
+   {
+    "source": "rear_dumpster",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -10.864,
+     0.8536,
+     -16.9944
+    ],
+    "size": [
+     2.9488000000000003,
+     1.7072,
+     2.1728000000000005
+    ]
+   },
+   {
+    "source": "rear_fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     0.6208,
+     -19.0896
+    ],
+    "size": [
+     25.7632,
+     1.2416,
+     0.31040000000000134
+    ]
+   },
+   {
+    "source": "fire_alarm_callbox",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     9.9328,
+     1.0476,
+     4.8111999999999995
+    ],
+    "size": [
+     0.6207999999999991,
+     2.0952,
+     0.6208
+    ]
+   },
+   {
+    "source": "side_bench",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -11.1744,
+     0.5044,
+     -3.7248
+    ],
+    "size": [
+     1.862400000000001,
+     1.0088,
+     0.6207999999999996
+    ]
+   },
+   {
+    "source": "rear_hose_rack",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     6.1692,
+     0.5432,
+     -17.0332
+    ],
+    "size": [
+     3.9575999999999993,
+     1.0864,
+     1.3191999999999986
+    ]
+   },
+   {
+    "source": "firehouse_main_body",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     4.5008,
+     -6.208
+    ],
+    "size": [
+     17.3824,
+     9.0016,
+     12.416
+    ]
+   },
+   {
+    "source": "firehouse_pediment",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     10.0298,
+     -0.1746
+    ],
+    "size": [
+     11.1744,
+     2.0564,
+     0.5820000000000001
+    ]
+   },
+   {
+    "source": "hose_drying_tower",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -6.5184,
+     8.6136,
+     -10.2432
+    ],
+    "size": [
+     4.3456,
+     17.2272,
+     4.345600000000001
+    ]
+   },
+   {
+    "source": "chimney_flue",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     6.208,
+     9.331399999999999,
+     -10.398399999999999
+    ],
+    "size": [
+     1.3967999999999998,
+     2.5220000000000002,
+     1.3968000000000007
+    ]
+   }
+  ]
+ },
+ "lot_node": null,
+ "triangles_visible": 2174,
+ "source": "codex/fire-station model-info.json, flattened per state by tools/landmarks/intake.py"
+}

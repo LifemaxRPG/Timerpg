@@ -17,6 +17,9 @@ class LandmarkGlbTest {
     private val specs = LandmarkSpec.catalogue(File(root, "landmarks.json").readText())
     private val U = LandmarkKit.UNITS_PER_METRE
 
+    /** The roles of the intake models (docs/queue/INTAKE.md) whose doors may stand back from the lot's front. */
+    private val INTAKE_ROLES = setOf("monument", "roadside_attraction", "rest_area", "lodge", "church", "school", "library", "bank", "drugstore", "carhop", "fire_station", "post_office")
+
     private fun build(s: LandmarkSpec, year: Int = s.built, keepLot: Boolean = true) =
         LandmarkKit.build(GlbFile.read(File(root, s.file).readBytes()), s, year, 7, keepLot, info = s.info?.let { File(root, it).readText() })
 
@@ -43,42 +46,51 @@ class LandmarkGlbTest {
     }
 
     @Test fun everyModelBuildsToScale() {
+        val bad = ArrayList<String>()
+        fun chk(m: String, c: Boolean) { if (!c) bad += m }
         for (s in specs) {
             val lm = build(s)
             val m = lm.model
-            assertTrue("${s.kind} has parts", m.parts.isNotEmpty())
+            chk("${s.kind} has parts", m.parts.isNotEmpty())
             // its whole site within its lot (give or take a metre), and not tiny: metres became street units
             val w = (m.footprint[2] - m.footprint[0]) / U; val d = (m.footprint[3] - m.footprint[1]) / U
-            assertTrue("${s.kind} width $w vs lot ${s.lotW}", w in s.lotW * .8f..s.lotW * 1.1f + 1f)
-            assertTrue("${s.kind} depth $d vs lot ${s.lotD}", d in s.lotD * .8f..s.lotD * 1.1f + 1f)
+            chk("${s.kind} width $w vs lot ${s.lotW}", w in s.lotW * .8f..s.lotW * 1.1f + 1f)
+            chk("${s.kind} depth $d vs lot ${s.lotD}", d in s.lotD * .8f..s.lotD * 1.1f + 1f)
             // a storey is 3-8 m (no model 21 times too big or small): a figure is 36 units
             // (the courthouse's clock tower and spire: 38 m)
-            assertTrue("${s.kind} height ${m.height / U} m", m.height / U in 3f..(if (s.kind.endsWith("water_tower")) 30f else if (s.role == "courthouse") 40f else 22f))
+            // (the monuments: the Great Meridian's spire is 106 m, the Eyrie's wings 113 m; the school's tower 21 m, the Night Keeper 34 m)
+            chk("${s.kind} height ${m.height / U} m", m.height / U in 3f..(if (s.kind.endsWith("water_tower")) 30f else if (s.role == "courthouse") 40f else if (s.role == "monument") 120f else if (s.role == "roadside_attraction" || s.role == "church") 36f else 22f))
             // the collision mesh is never drawn (no part carries its boxes' name)
-            assertTrue(lm.names.none { it == "collision" })
+            chk("${s.kind} draws its collision mesh", lm.names.none { it == "collision" })
             // windows lit by role, signs glowing (a water tower has no glass, only its beacon, and no door)
             val tower = s.kind.endsWith("water_tower")
-            if (!tower) assertTrue("${s.kind} glass", m.parts.any { it.role == CinemaPart.Role.WINDOWS && it.mesh.mask != null })
-            assertTrue("${s.kind} signs", m.parts.any { it.role == CinemaPart.Role.SIGN && it.mesh.mask != null })
+            // (the Eyrie, the arch and the Rex have no glass: bronze wings, stone and a dinosaur; the closed carhop's windows are boarded)
+            val noGlass = tower || s.kind.endsWith("carhop_drive_in_closed") || s.kind.endsWith("the_eyrie") || s.kind.endsWith("union_arch") || s.kind.endsWith("beach_blvd_rex")
+            if (!noGlass) chk("${s.kind} glass", m.parts.any { it.role == CinemaPart.Role.WINDOWS && it.mesh.mask != null })
+            chk("${s.kind} signs", m.parts.any { it.role == CinemaPart.Role.SIGN && it.mesh.mask != null })
             // the lot's ground stands on the town's (nothing sunk below zero: the loader lifts it)
             // (the diner's kerb dips below, as it was made before the guide)
-            if (!s.kind.endsWith("junction_diner")) for ((n, p) in lm.names.zip(m.parts)) if (n.startsWith("ground_")) assertTrue("${s.kind} $n bottom ${p.mesh.bounds[1]}", p.mesh.bounds[1] >= 0f)
+            // (a thin slab laid at the town's ground, the Rex's asphalt 4 cm thick, has its underside below it: its top stands up)
+            if (!s.kind.endsWith("junction_diner")) for ((n, p) in lm.names.zip(m.parts)) if (n.startsWith("ground_")) chk("${s.kind} $n bottom ${p.mesh.bounds[1]}", p.mesh.bounds[1] >= 0f || p.mesh.bounds[4] >= LandmarkKit.GROUND - .05f)
             // every door faces out along its node's +z (door_back to the rear, door_side sideways)
-            for (d in lm.doors) assertTrue("${s.kind} ${d.name} unit", abs(d.outX * d.outX + d.outZ * d.outZ - 1f) < .01f)
-            lm.doors.firstOrNull { it.name == "door_back" }?.let { assertTrue("${s.kind} back door faces back", it.outZ < -.9f) }
-            if (tower) { assertTrue("${s.kind} collision", lm.solids.size / 4 >= 4); continue }
+            for (d in lm.doors) chk("${s.kind} ${d.name} unit", abs(d.outX * d.outX + d.outZ * d.outZ - 1f) < .01f)
+            lm.doors.firstOrNull { it.name == "door_back" }?.let { chk("${s.kind} back door faces back", it.outZ < -.9f) }
+            if (tower || lm.doors.isEmpty()) { chk("${s.kind} collision", lm.solids.size / 4 >= 4); continue }
             // a main door at the front, facing out (+z), and boxes to walk round
             val main = lm.doors.first { it.name == "door_main" }
-            assertTrue("${s.kind} main door faces the road", main.outZ > .9f)
+            // (the corner drugstore's door cuts its corner: it faces out at 45 degrees)
+            chk("${s.kind} main door faces the road", main.outZ > (if (s.role == "drugstore") .6f else .9f))
             // (the courthouse stands back on its square, its lawn and walks before it)
             // (and the radio station's glazed entrance bay projects ~2.5 m before its brick front)
-            assertTrue("${s.kind} main door on the front", main.z in (if (s.role == "courthouse") -40f * U..0f else -40f..3f * U))
-            assertTrue("${s.kind} collision", lm.solids.size / 4 >= 4)
+            // (the monuments and roadside models stand back in their lots: their door is at the building, up to the lot's depth)
+            chk("${s.kind} main door on the front", main.z in (if (s.role == "courthouse") -40f * U..0f else if (s.role in INTAKE_ROLES) -s.lotD * U..3f * U else -40f..3f * U))
+            chk("${s.kind} collision", lm.solids.size / 4 >= 4)
             // the main door is not inside a box (a walker can stand just outside it)
             val fx = main.x + main.outX * 12f; val fz = main.z + main.outZ * 12f
             var i = 0
-            while (i + 3 < lm.solids.size) { val a = lm.solids; assertTrue("${s.kind} door blocked", !(fx > a[i] && fx < a[i + 2] && fz > a[i + 1] && fz < a[i + 3])); i += 4 }
+            while (i + 3 < lm.solids.size) { val a = lm.solids; chk("${s.kind} door blocked", !(fx > a[i] && fx < a[i + 2] && fz > a[i + 1] && fz < a[i + 3])); i += 4 }
         }
+        assertTrue(bad.joinToString("\n"), bad.isEmpty())
     }
 
     @Test fun theNewLandmarksAreInTheCatalogue() {
@@ -295,5 +307,87 @@ class LandmarkGlbTest {
         assertTrue(lm.doors.any { it.name == "door_main" })
         val signs = s.variants.map { f -> LandmarkKit.build(GlbFile.read(File(root, f).readBytes()), s, 1955, 7, info = s.info?.let { File(root, it).readText() }).let { it.model.parts[it.names.indexOf("sign_name")].mesh.tex.toList() } }
         assertEquals("each town's station its own nameplate", 6, signs.distinct().size)
+    }
+    // ------------------------------------------------------------------------------------------------ the intake models (docs/queue/INTAKE.md)
+    private val INTAKE = listOf(
+        "public_library_1912", "public_library_1970s", "corner_drugstore_family", "corner_drugstore_retail", "corner_drugstore_closed", "corner_drugstore_cafe",
+        "small_town_bank_1920s", "small_town_bank_drive_through", "brick_church", "country_church",
+        "lincoln_high_school_1925", "lincoln_high_school_1955", "lincoln_high_school_1975", "lincoln_high_school_2000",
+        "carhop_drive_in_original", "carhop_drive_in_closed", "carhop_drive_in_restored", "fire_station_1924", "fire_station_1988", "post_office_1938", "post_office_1988",
+        "highway_rest_area", "lantern_pine_lodge", "the_eyrie", "union_arch", "night_keeper", "beach_blvd_rex",
+        "great_meridian_1926", "great_meridian_1941", "great_meridian_1976", "great_meridian_2000")
+
+    @Test fun theIntakeModelsAreInTheCatalogue() {
+        for (k in INTAKE) assertTrue("$k listed", specs.any { it.kind == "landmark_glb_$k" })
+        // a chain of states that differ in size keeps one building place (the slot's middle is the biggest state's)
+        for (chain in listOf(listOf("public_library_1912", "public_library_1970s"), listOf("small_town_bank_1920s", "small_town_bank_drive_through"))) {
+            val c = chain.map { k -> specs.first { it.kind == "landmark_glb_$k" } }
+            assertEquals(1, c.map { it.centre }.distinct().size)
+            assertTrue("${chain[0]} has a centre", c[0].centre != null)
+        }
+        // the school and the Great Meridian draw a distant silhouette past the town's range
+        for (k in listOf("lincoln_high_school_2000", "great_meridian_2000")) assertTrue(specs.first { it.kind == "landmark_glb_$k" }.far != null)
+    }
+
+    @Test fun theIntakeBoxesAreReadInTheirOwnAxes() {
+        // glTF Y-up lists (`boxes_gltf_y_up`: the fire station, the library, the Great Meridian) are read as they are; Blender Z-up lists (the Rex's
+        // `boxes_blender_z_up`, the rest area's and the lodge's) are turned: the Rex's info also lists the same boxes in glTF axes
+        val rexInfo = File(root, "beach-blvd-rex/model-info.json").readText()
+        val ref = org.json.JSONObject(rexInfo).getJSONArray("collision_boxes")
+        val tags = LandmarkKit.collisionTags(rexInfo)
+        assertTrue(tags.isNotEmpty())
+        for (i in 0 until ref.length()) {
+            val c = ref.getJSONObject(i).getJSONArray("center"); val t = tags[i]
+            assertEquals("rex box $i x", c.getDouble(0).toFloat(), t.x, .001f); assertEquals("rex box $i y", c.getDouble(1).toFloat(), t.y, .001f); assertEquals("rex box $i z", c.getDouble(2).toFloat(), t.z, .001f)
+        }
+        val fire = specs.first { it.kind.endsWith("fire_station_1924") }
+        val ft = LandmarkKit.collisionTags(File(root, fire.info!!).readText())
+        assertTrue("the fire station's boxes are read", ft.size >= 8)
+        // (the flagpole stands in front, +z, and its box is 9.9 m tall: read as glTF it is at z +4, not at -4)
+        assertTrue(ft.any { it.source == "flagpole" && it.z > 3f && it.sy > 9f })
+    }
+
+    @Test fun theIntakeDoorsWorkAndTheInnerOnesAreMarked() {
+        // the school's 2000 state marks door_main internal in its info (a security vestibule): the street still enters by it; its classrooms' doors are inner
+        val s2000 = specs.first { it.kind.endsWith("lincoln_high_school_2000") }
+        val lm = build(s2000)
+        assertTrue(lm.doors.any { it.name == "door_main" })
+        assertTrue(lm.doors.none { it.name.startsWith("door_room") })
+        // the carhop's prep door, the Great Meridian's stair, gallery and lift doors are inner; its main door stands clear of every box in all four states
+        assertTrue(build(specs.first { it.kind.endsWith("carhop_drive_in_original") }).doors.none { it.name == "door_prep_inside" })
+        for (y in listOf(1926, 1941, 1976, 2000)) {
+            val g = build(specs.first { it.kind.endsWith("great_meridian_$y") })
+            assertEquals(setOf("door_main") + (if (y == 2000) setOf("door_visitor_center") else emptySet()), g.doors.map { it.name }.toSet())
+        }
+        // every closed door panel stays closed (none of the intake models has one: their entrances are open)
+        for (k in INTAKE) assertTrue("$k has no door panel", build(specs.first { it.kind == "landmark_glb_$k" }).names.none { it.startsWith("door_panel") })
+    }
+
+    @Test fun theIntakeGlassGlowsOnlyItsPanes() {
+        // pane-only emission: a glass picture's lit texels (its mask, or the see-through ones) never light a frame or a door
+        val bad = ArrayList<String>()
+        for (k in INTAKE) {
+            val s = specs.first { it.kind == "landmark_glb_$k" }
+            val lm = build(s)
+            val glb = GlbFile.read(File(root, s.file).readBytes())
+            for ((n, part) in lm.names.zip(lm.model.parts)) {
+                if (!n.startsWith("glass_")) continue
+                val mask = part.mesh.mask ?: continue
+                val m = glb.materials.first { it.name == n }
+                if (m.baseImage < 0) continue
+                val base = glb.image(m.baseImage)
+                if (base.px.none { it ushr 24 < 250 }) continue   // an opaque pane picture: its frame rule is the loader's
+                var stray = 0; var lit = 0
+                for (i in mask.indices) if (mask[i] != 0) { lit++; if (base.px[i] ushr 24 >= 250) stray++ }
+                if (stray * 50 > lit) bad += "$k $n: $stray of $lit lit texels are not panes"
+            }
+        }
+        assertTrue(bad.joinToString("\n"), bad.isEmpty())
+    }
+
+    @Test fun aSunkenPatchOfGroundIsLifted() {
+        // the Rex's asphalt strip lies under its pavement: after the lift nothing of its ground is below the town's
+        val lm = build(specs.first { it.kind.endsWith("beach_blvd_rex") })
+        for ((n, p) in lm.names.zip(lm.model.parts)) if (n.startsWith("ground_")) assertTrue("$n ${p.mesh.bounds[4]}", p.mesh.bounds[4] >= LandmarkKit.GROUND - .05f)
     }
 }

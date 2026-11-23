@@ -59,8 +59,8 @@ class StreetPropRulesTest {
             assertTrue("${row.id} ${b.sprite} has no mailbox", mb.any { abs(it.x - b.mid) < 60f })
         }
         // the post office has its blue boxes; every row with three or more shops has a blue box
-        val post = town.landmarks.first { it.kind == "post" }
-        assertTrue(all.getValue(post.row).count { it.kind == PropKind.MAILBOX } >= 2)
+        // (the capital's post office is a hand-made model on a plot of its own, not a sprite landmark: its boxes are the interiors' job)
+        town.landmarks.firstOrNull { it.kind == "post" }?.let { post -> assertTrue(all.getValue(post.row).count { it.kind == PropKind.MAILBOX } >= 2) }
         for (row in town.rows.filter { r -> r.buildings.count { it.kind == PlacementKind.SHOP } >= 3 })
             assertTrue("${row.id}: no blue mailbox by its shops", all.getValue(row.id).any { it.kind == PropKind.MAILBOX })
         // civic buildings get bollards; homes' rows never

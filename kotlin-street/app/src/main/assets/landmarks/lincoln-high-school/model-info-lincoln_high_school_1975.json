@@ -1,0 +1,1109 @@
+{
+ "name": "Lincoln High School",
+ "state": "landmark_glb_lincoln_high_school_1975",
+ "file": "lincoln-high-school-1975.glb",
+ "doors": [
+  {
+   "node": "door_main",
+   "position": [
+    0.0,
+    0.6208,
+    -7.6048
+   ],
+   "outward": [
+    0,
+    0,
+    1
+   ],
+   "width_m": 2.7936,
+   "height_m": 3.4144,
+   "floor_m": 0.6208,
+   "external": true,
+   "open": true
+  },
+  {
+   "node": "door_back",
+   "position": [
+    0.0,
+    0.6208,
+    -25.608
+   ],
+   "outward": [
+    0,
+    0,
+    -1
+   ],
+   "width_m": 2.7936,
+   "height_m": 3.104,
+   "floor_m": 0.6208,
+   "external": true,
+   "open": true
+  },
+  {
+   "node": "door_room_front_-208",
+   "position": [
+    -16.1408,
+    0.6208,
+    -15.3648
+   ],
+   "outward": [
+    0,
+    0,
+    -1
+   ],
+   "width_m": 1.0864,
+   "height_m": 2.4832,
+   "floor_m": 0.6208,
+   "external": false,
+   "open": true
+  },
+  {
+   "node": "door_room_front_-132",
+   "position": [
+    -10.2432,
+    0.6208,
+    -15.3648
+   ],
+   "outward": [
+    0,
+    0,
+    -1
+   ],
+   "width_m": 1.0864,
+   "height_m": 2.4832,
+   "floor_m": 0.6208,
+   "external": false,
+   "open": true
+  },
+  {
+   "node": "door_room_front_132",
+   "position": [
+    10.2432,
+    0.6208,
+    -15.3648
+   ],
+   "outward": [
+    0,
+    0,
+    -1
+   ],
+   "width_m": 1.0864,
+   "height_m": 2.4832,
+   "floor_m": 0.6208,
+   "external": false,
+   "open": true
+  },
+  {
+   "node": "door_room_front_208",
+   "position": [
+    16.1408,
+    0.6208,
+    -15.3648
+   ],
+   "outward": [
+    0,
+    0,
+    -1
+   ],
+   "width_m": 1.0864,
+   "height_m": 2.4832,
+   "floor_m": 0.6208,
+   "external": false,
+   "open": true
+  },
+  {
+   "node": "door_room_rear_-208",
+   "position": [
+    -16.1408,
+    0.6208,
+    -18.7792
+   ],
+   "outward": [
+    0,
+    0,
+    1
+   ],
+   "width_m": 1.0864,
+   "height_m": 2.4832,
+   "floor_m": 0.6208,
+   "external": false,
+   "open": true
+  },
+  {
+   "node": "door_room_rear_-132",
+   "position": [
+    -10.2432,
+    0.6208,
+    -18.7792
+   ],
+   "outward": [
+    0,
+    0,
+    1
+   ],
+   "width_m": 1.0864,
+   "height_m": 2.4832,
+   "floor_m": 0.6208,
+   "external": false,
+   "open": true
+  },
+  {
+   "node": "door_room_rear_132",
+   "position": [
+    10.2432,
+    0.6208,
+    -18.7792
+   ],
+   "outward": [
+    0,
+    0,
+    1
+   ],
+   "width_m": 1.0864,
+   "height_m": 2.4832,
+   "floor_m": 0.6208,
+   "external": false,
+   "open": true
+  },
+  {
+   "node": "door_room_rear_208",
+   "position": [
+    16.1408,
+    0.6208,
+    -18.7792
+   ],
+   "outward": [
+    0,
+    0,
+    1
+   ],
+   "width_m": 1.0864,
+   "height_m": 2.4832,
+   "floor_m": 0.6208,
+   "external": false,
+   "open": true
+  },
+  {
+   "node": "door_wing",
+   "position": [
+    24.5216,
+    0.6208,
+    -11.4848
+   ],
+   "outward": [
+    0,
+    0,
+    1
+   ],
+   "width_m": 2.7936,
+   "height_m": 3.104,
+   "floor_m": 0.6208,
+   "external": true,
+   "open": true
+  },
+  {
+   "node": "door_gym",
+   "position": [
+    -38.800000000000004,
+    0.6208,
+    -11.4848
+   ],
+   "outward": [
+    0,
+    0,
+    1
+   ],
+   "width_m": 2.7936,
+   "height_m": 3.104,
+   "floor_m": 0.6208,
+   "external": true,
+   "open": true
+  },
+  {
+   "node": "door_gym_back",
+   "position": [
+    -38.800000000000004,
+    0.6208,
+    -35.8512
+   ],
+   "outward": [
+    0,
+    0,
+    -1
+   ],
+   "width_m": 2.7936,
+   "height_m": 3.104,
+   "floor_m": 0.6208,
+   "external": true,
+   "open": true
+  },
+  {
+   "node": "door_ticket",
+   "position": [
+    62.08,
+    0.3104,
+    -40.507200000000005
+   ],
+   "outward": [
+    0,
+    0,
+    -1
+   ],
+   "width_m": 1.0864,
+   "height_m": 2.3280000000000003,
+   "floor_m": 0.3104,
+   "external": true,
+   "open": true
+  },
+  {
+   "node": "door_portable_1",
+   "position": [
+    -13.192,
+    0.4656,
+    -31.2728
+   ],
+   "outward": [
+    0,
+    0,
+    1
+   ],
+   "width_m": 1.552,
+   "height_m": 2.4832,
+   "floor_m": 0.4656,
+   "external": true,
+   "open": true
+  },
+  {
+   "node": "door_portable_2",
+   "position": [
+    2.3280000000000003,
+    0.4656,
+    -31.2728
+   ],
+   "outward": [
+    0,
+    0,
+    1
+   ],
+   "width_m": 1.552,
+   "height_m": 2.4832,
+   "floor_m": 0.4656,
+   "external": true,
+   "open": true
+  },
+  {
+   "node": "door_portable_3",
+   "position": [
+    17.848,
+    0.4656,
+    -31.2728
+   ],
+   "outward": [
+    0,
+    0,
+    1
+   ],
+   "width_m": 1.552,
+   "height_m": 2.4832,
+   "floor_m": 0.4656,
+   "external": true,
+   "open": true
+  }
+ ],
+ "collision": {
+  "node": "collision",
+  "render": false,
+  "coordinate_frame": "glTF metres, Y up/+Z front",
+  "boxes_gltf_y_up": [
+   {
+    "source": "Upper floor closed access",
+    "center": [
+     1.0864,
+     5.9752,
+     -19.1672
+    ],
+    "size": [
+     2.1728,
+     1.3968,
+     0.1552
+    ],
+    "support_floor_m": 5.2768,
+    "attachment": "school_1925",
+    "group": "structure"
+   },
+   {
+    "source": "Fixed gym bleachers",
+    "center": [
+     -38.800000000000004,
+     1.1640000000000001,
+     -14.744
+    ],
+    "size": [
+     18.7792,
+     1.0864,
+     2.1728
+    ],
+    "support_floor_m": 0.6208,
+    "attachment": "gymnasium",
+    "group": "structure"
+   },
+   {
+    "source": "Stage",
+    "center": [
+     -38.800000000000004,
+     0.8536,
+     -34.4544
+    ],
+    "size": [
+     17.072,
+     0.4656,
+     2.1728
+    ],
+    "support_floor_m": 0.6208,
+    "attachment": "gymnasium",
+    "group": "structure"
+   },
+   {
+    "source": "Flagpole",
+    "center": [
+     -24.056,
+     3.7248,
+     -6.208
+    ],
+    "size": [
+     0.9312,
+     7.4496,
+     0.9312
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "flagpole",
+    "group": "lot"
+   },
+   {
+    "source": "Backstop",
+    "center": [
+     -89.24000000000001,
+     2.4832,
+     -46.948
+    ],
+    "size": [
+     18.624000000000002,
+     4.9664,
+     0.1552
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "wooden_backstop",
+    "group": "lot"
+   },
+   {
+    "source": "Baseball perimeter",
+    "center": [
+     -87.688,
+     1.1640000000000001,
+     -42.68
+    ],
+    "size": [
+     52.768,
+     2.3280000000000003,
+     0.1552
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "baseball_fence",
+    "group": "lot"
+   },
+   {
+    "source": "Baseball perimeter",
+    "center": [
+     -103.596,
+     1.1640000000000001,
+     -114.848
+    ],
+    "size": [
+     20.952,
+     2.3280000000000003,
+     0.1552
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "baseball_fence",
+    "group": "lot"
+   },
+   {
+    "source": "Baseball perimeter",
+    "center": [
+     -74.884,
+     1.1640000000000001,
+     -114.848
+    ],
+    "size": [
+     27.16,
+     2.3280000000000003,
+     0.1552
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "baseball_fence",
+    "group": "lot"
+   },
+   {
+    "source": "Baseball perimeter",
+    "center": [
+     -114.072,
+     1.1640000000000001,
+     -78.764
+    ],
+    "size": [
+     0.1552,
+     2.3280000000000003,
+     72.168
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "baseball_fence",
+    "group": "lot"
+   },
+   {
+    "source": "Baseball perimeter",
+    "center": [
+     -61.304,
+     1.1640000000000001,
+     -44.620000000000005
+    ],
+    "size": [
+     0.1552,
+     2.3280000000000003,
+     3.88
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "baseball_fence",
+    "group": "lot"
+   },
+   {
+    "source": "Baseball perimeter",
+    "center": [
+     -61.304,
+     1.1640000000000001,
+     -82.644
+    ],
+    "size": [
+     0.1552,
+     2.3280000000000003,
+     64.408
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "baseball_fence",
+    "group": "lot"
+   },
+   {
+    "source": "Goalpost",
+    "center": [
+     -25.2976,
+     3.492,
+     -86.524
+    ],
+    "size": [
+     0.3104,
+     6.984,
+     0.3104
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "goalpost",
+    "group": "lot"
+   },
+   {
+    "source": "Goalpost",
+    "center": [
+     85.36,
+     3.492,
+     -86.524
+    ],
+    "size": [
+     0.3104,
+     6.984,
+     0.3104
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "goalpost.001",
+    "group": "lot"
+   },
+   {
+    "source": "Grandstand",
+    "center": [
+     27.936,
+     1.94,
+     -136.3432
+    ],
+    "size": [
+     59.5968,
+     3.88,
+     6.984
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "steel_bleachers",
+    "group": "lot"
+   },
+   {
+    "source": "Press box",
+    "center": [
+     27.936,
+     3.3756,
+     -138.12800000000001
+    ],
+    "size": [
+     10.5536,
+     6.7512,
+     4.656000000000001
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "steel_bleachers",
+    "group": "lot"
+   },
+   {
+    "source": "Field light pole",
+    "center": [
+     -7.76,
+     7.76,
+     -41.904
+    ],
+    "size": [
+     3.104,
+     15.52,
+     0.6208
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "field_light",
+    "group": "lot"
+   },
+   {
+    "source": "Field light pole",
+    "center": [
+     -7.76,
+     7.76,
+     -131.532
+    ],
+    "size": [
+     3.104,
+     15.52,
+     0.6208
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "field_light.001",
+    "group": "lot"
+   },
+   {
+    "source": "Field light pole",
+    "center": [
+     65.96000000000001,
+     7.76,
+     -41.904
+    ],
+    "size": [
+     3.104,
+     15.52,
+     0.6208
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "field_light.002",
+    "group": "lot"
+   },
+   {
+    "source": "Field light pole",
+    "center": [
+     65.96000000000001,
+     7.76,
+     -131.532
+    ],
+    "size": [
+     3.104,
+     15.52,
+     0.6208
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "field_light.003",
+    "group": "lot"
+   },
+   {
+    "source": "Field fence",
+    "center": [
+     -29.876,
+     1.1640000000000001,
+     -41.128
+    ],
+    "size": [
+     56.648,
+     2.3280000000000003,
+     0.1552
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "field_fence",
+    "group": "lot"
+   },
+   {
+    "source": "Field fence",
+    "center": [
+     29.1,
+     1.1640000000000001,
+     -41.128
+    ],
+    "size": [
+     53.544000000000004,
+     2.3280000000000003,
+     0.1552
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "field_fence",
+    "group": "lot"
+   },
+   {
+    "source": "Field fence",
+    "center": [
+     88.07600000000001,
+     1.1640000000000001,
+     -41.128
+    ],
+    "size": [
+     55.096000000000004,
+     2.3280000000000003,
+     0.1552
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "field_fence",
+    "group": "lot"
+   },
+   {
+    "source": "Field fence",
+    "center": [
+     -17.46,
+     1.1640000000000001,
+     -141.232
+    ],
+    "size": [
+     81.48,
+     2.3280000000000003,
+     0.1552
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "field_fence",
+    "group": "lot"
+   },
+   {
+    "source": "Field fence",
+    "center": [
+     71.392,
+     1.1640000000000001,
+     -141.232
+    ],
+    "size": [
+     88.464,
+     2.3280000000000003,
+     0.1552
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "field_fence",
+    "group": "lot"
+   },
+   {
+    "source": "Field end fence",
+    "center": [
+     -58.2,
+     1.1640000000000001,
+     -61.304
+    ],
+    "size": [
+     0.1552,
+     2.3280000000000003,
+     40.352000000000004
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "field_fence",
+    "group": "lot"
+   },
+   {
+    "source": "Field end fence",
+    "center": [
+     -58.2,
+     1.1640000000000001,
+     -113.296
+    ],
+    "size": [
+     0.1552,
+     2.3280000000000003,
+     55.872
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "field_fence",
+    "group": "lot"
+   },
+   {
+    "source": "Field end fence",
+    "center": [
+     115.62400000000001,
+     1.1640000000000001,
+     -61.304
+    ],
+    "size": [
+     0.1552,
+     2.3280000000000003,
+     40.352000000000004
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "field_fence",
+    "group": "lot"
+   },
+   {
+    "source": "Field end fence",
+    "center": [
+     115.62400000000001,
+     1.1640000000000001,
+     -113.296
+    ],
+    "size": [
+     0.1552,
+     2.3280000000000003,
+     55.872
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "field_fence",
+    "group": "lot"
+   },
+   {
+    "source": "Stadium gate pier",
+    "center": [
+     -1.7072,
+     1.3192,
+     -41.128
+    ],
+    "size": [
+     0.6208,
+     2.6384,
+     0.6208
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "lot",
+    "group": "structure"
+   },
+   {
+    "source": "Stadium gate pier",
+    "center": [
+     2.4832,
+     1.3192,
+     -41.128
+    ],
+    "size": [
+     0.6208,
+     2.6384,
+     0.6208
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "lot",
+    "group": "structure"
+   },
+   {
+    "source": "Stadium gate pier",
+    "center": [
+     55.7168,
+     1.3192,
+     -41.128
+    ],
+    "size": [
+     0.6208,
+     2.6384,
+     0.6208
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "lot",
+    "group": "structure"
+   },
+   {
+    "source": "Stadium gate pier",
+    "center": [
+     60.6832,
+     1.3192,
+     -41.128
+    ],
+    "size": [
+     0.6208,
+     2.6384,
+     0.6208
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "lot",
+    "group": "structure"
+   },
+   {
+    "source": "Monument sign",
+    "center": [
+     17.848,
+     1.3192,
+     -1.94
+    ],
+    "size": [
+     12.7264,
+     2.6384,
+     1.3968
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "monument_sign",
+    "group": "lot"
+   },
+   {
+    "source": "Service bin",
+    "center": [
+     -18.236,
+     0.5820000000000001,
+     -26.849600000000002
+    ],
+    "size": [
+     0.9312,
+     1.1640000000000001,
+     0.9312
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "service_bin_0",
+    "group": "lot"
+   },
+   {
+    "source": "Service bin",
+    "center": [
+     -17.1496,
+     0.5820000000000001,
+     -26.849600000000002
+    ],
+    "size": [
+     0.9312,
+     1.1640000000000001,
+     0.9312
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "service_bin_1",
+    "group": "lot"
+   },
+   {
+    "source": "Tree trunk clearance",
+    "center": [
+     -99.328,
+     5.211616,
+     -9.312000000000001
+    ],
+    "size": [
+     0.499744,
+     10.423232,
+     0.499744
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "campus_tree_1",
+    "group": "lot"
+   },
+   {
+    "source": "Tree trunk clearance",
+    "center": [
+     -99.328,
+     5.438208000000001,
+     -31.816000000000003
+    ],
+    "size": [
+     0.521472,
+     10.876416000000003,
+     0.521472
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "campus_tree_2",
+    "group": "lot"
+   },
+   {
+    "source": "Tree trunk clearance",
+    "center": [
+     -48.112,
+     5.6648000000000005,
+     -7.76
+    ],
+    "size": [
+     0.5432,
+     11.329600000000001,
+     0.5432
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "campus_tree_3",
+    "group": "lot"
+   },
+   {
+    "source": "Tree trunk clearance",
+    "center": [
+     37.248000000000005,
+     5.891392000000001,
+     -7.76
+    ],
+    "size": [
+     0.564928,
+     11.782784000000001,
+     0.564928
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "campus_tree_4",
+    "group": "lot"
+   },
+   {
+    "source": "Tree trunk clearance",
+    "center": [
+     110.19200000000001,
+     5.211616,
+     -7.76
+    ],
+    "size": [
+     0.499744,
+     10.423232,
+     0.499744
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "campus_tree_5",
+    "group": "lot"
+   },
+   {
+    "source": "Tree trunk clearance",
+    "center": [
+     110.19200000000001,
+     5.438208000000001,
+     -35.696
+    ],
+    "size": [
+     0.521472,
+     10.876416000000003,
+     0.521472
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "campus_tree_6",
+    "group": "lot"
+   },
+   {
+    "source": "Tree trunk clearance",
+    "center": [
+     -48.112,
+     5.6648000000000005,
+     -38.800000000000004
+    ],
+    "size": [
+     0.5432,
+     11.329600000000001,
+     0.5432
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "campus_tree_7",
+    "group": "lot"
+   },
+   {
+    "source": "Tree trunk clearance",
+    "center": [
+     91.568,
+     5.891392000000001,
+     -37.248000000000005
+    ],
+    "size": [
+     0.564928,
+     11.782784000000001,
+     0.564928
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "campus_tree_8",
+    "group": "lot"
+   },
+   {
+    "source": "Tree trunk clearance",
+    "center": [
+     -102.432,
+     5.211616,
+     -131.92000000000002
+    ],
+    "size": [
+     0.499744,
+     10.423232,
+     0.499744
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "campus_tree_9",
+    "group": "lot"
+   },
+   {
+    "source": "Tree trunk clearance",
+    "center": [
+     -65.96000000000001,
+     5.438208000000001,
+     -154.424
+    ],
+    "size": [
+     0.521472,
+     10.876416000000003,
+     0.521472
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "campus_tree_10",
+    "group": "lot"
+   },
+   {
+    "source": "Tree trunk clearance",
+    "center": [
+     7.76,
+     5.6648000000000005,
+     -154.424
+    ],
+    "size": [
+     0.5432,
+     11.329600000000001,
+     0.5432
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "campus_tree_11",
+    "group": "lot"
+   },
+   {
+    "source": "Tree trunk clearance",
+    "center": [
+     86.912,
+     5.891392000000001,
+     -154.424
+    ],
+    "size": [
+     0.564928,
+     11.782784000000001,
+     0.564928
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "campus_tree_12",
+    "group": "lot"
+   },
+   {
+    "source": "Campus bench",
+    "center": [
+     -12.416,
+     0.5432,
+     -3.88
+    ],
+    "size": [
+     2.1728,
+     1.0864,
+     0.776
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "campus_bench",
+    "group": "lot"
+   },
+   {
+    "source": "Campus bench",
+    "center": [
+     12.416,
+     0.5432,
+     -3.88
+    ],
+    "size": [
+     2.1728,
+     1.0864,
+     0.776
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "campus_bench.001",
+    "group": "lot"
+   }
+  ],
+  "use_the_walls": true,
+  "notes": "Architectural meshes supply complete wall/floor/stair collision, including all open exterior portals. Listed boxes supplement props, backstop, fences, field poles, grandstand and closed upper landing. Keep fence gate gaps. Do not apply the old Blender rotation."
+ },
+ "lot_node": "lot",
+ "triangles_visible": 13741,
+ "source": "codex/lincoln-high-school model-info.json, flattened per state by tools/landmarks/intake.py"
+}

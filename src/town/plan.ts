@@ -296,7 +296,7 @@ export function planTown(seed: string): TownPlan {
  * the later subdivisions woodside, across the tracks "the Flats", the river's banks riverside. */
 const HOOD: Record<District, NeighborhoodId> = {
   core: 'old-town', square: 'old-town', civic: 'old-town', old: 'old-town', westmain: 'old-town', worker: 'the-flats', rail: 'the-flats',
-  strip: 'gardens', postwar: 'gardens', heights: 'heights', late: 'woodside', edge: 'woodside', river: 'waterfront',
+  strip: 'gardens', postwar: 'gardens', heights: 'heights', late: 'woodside', edge: 'woodside', river: 'waterfront', grounds: 'woodside',
 };
 
 /** Households the town has in [year] (a household is ~3.2 simulated people; before 1950 a little smaller each decade). */

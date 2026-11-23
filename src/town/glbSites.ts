@@ -1,7 +1,7 @@
 import { rand } from '../sim/rng';
 import { archetypeOf } from '../sim/archetype';
 import { townFounded } from '../world/names';
-import { isCountySeat } from './plat';
+import { isCapital, isCountySeat } from './plat';
 import { roadOnFace } from './districts';
 import { GLB_LANDMARKS, glbLandmarkTiles, type GlbLandmarkKind } from './glbLandmarks';
 import { POPULATION_BY, POPULATION_FROM, populationIn } from './population';
@@ -78,6 +78,17 @@ const LOT_TYPE: Record<GlbLandmarkKind, GlbLotType> = {
   landmark_glb_county_courthouse_1988: 'civic',
   landmark_glb_county_courthouse_2008: 'civic',
   landmark_glb_radio_station: 'edge',
+  // the intake models (INTAKE_STATES): civic near the square, downtown, the old town, the strip, and the capital's grounds
+  landmark_glb_public_library_1912: 'civic', landmark_glb_public_library_1970s: 'civic',
+  landmark_glb_corner_drugstore_family: 'corner', landmark_glb_corner_drugstore_retail: 'corner', landmark_glb_corner_drugstore_closed: 'corner', landmark_glb_corner_drugstore_cafe: 'corner',
+  landmark_glb_small_town_bank_1920s: 'downtown', landmark_glb_small_town_bank_drive_through: 'downtown',
+  landmark_glb_brick_church: 'civic', landmark_glb_country_church: 'edge',
+  landmark_glb_lincoln_high_school_1925: 'edge', landmark_glb_lincoln_high_school_1955: 'edge', landmark_glb_lincoln_high_school_1975: 'edge', landmark_glb_lincoln_high_school_2000: 'edge',
+  landmark_glb_carhop_drive_in_original: 'highway', landmark_glb_carhop_drive_in_closed: 'highway', landmark_glb_carhop_drive_in_restored: 'highway',
+  landmark_glb_fire_station_1924: 'civic', landmark_glb_fire_station_1988: 'civic', landmark_glb_post_office_1938: 'civic', landmark_glb_post_office_1988: 'civic',
+  landmark_glb_highway_rest_area: 'edge', landmark_glb_lantern_pine_lodge: 'edge', landmark_glb_the_eyrie: 'edge', landmark_glb_union_arch: 'edge',
+  landmark_glb_night_keeper: 'edge', landmark_glb_beach_blvd_rex: 'edge',
+  landmark_glb_great_meridian_1926: 'edge', landmark_glb_great_meridian_1941: 'edge', landmark_glb_great_meridian_1976: 'edge', landmark_glb_great_meridian_2000: 'edge',
 };
 /** Street-wall buildings: at the pavement in a block face of the old core, never beside a strip of car parks. */
 const WALL: ReadonlySet<GlbLandmarkKind> = new Set(['landmark_glb_gazette_office']);
@@ -86,6 +97,38 @@ const WALL: ReadonlySet<GlbLandmarkKind> = new Set(['landmark_glb_gazette_office
 export const VIDEO_STATES: readonly GlbLandmarkKind[] = [
   'landmark_glb_reel_time_video_1984', 'landmark_glb_reel_time_video_1996', 'landmark_glb_reel_time_video_2011', 'landmark_glb_reel_time_video_2020',
 ];
+/** The models of the intake job (docs/queue/INTAKE.md): the plan's ledger places them; the old (v1) search never does. */
+export const INTAKE_STATES: Record<string, readonly GlbLandmarkKind[]> = {
+  public_library: ['landmark_glb_public_library_1912', 'landmark_glb_public_library_1970s'],
+  corner_drugstore: ['landmark_glb_corner_drugstore_family', 'landmark_glb_corner_drugstore_retail', 'landmark_glb_corner_drugstore_closed', 'landmark_glb_corner_drugstore_cafe'],
+  small_town_bank: ['landmark_glb_small_town_bank_1920s', 'landmark_glb_small_town_bank_drive_through'],
+  brick_church: ['landmark_glb_brick_church'],
+  country_church: ['landmark_glb_country_church'],
+  lincoln_high_school: ['landmark_glb_lincoln_high_school_1925', 'landmark_glb_lincoln_high_school_1955', 'landmark_glb_lincoln_high_school_1975', 'landmark_glb_lincoln_high_school_2000'],
+  carhop_drive_in: ['landmark_glb_carhop_drive_in_original', 'landmark_glb_carhop_drive_in_closed', 'landmark_glb_carhop_drive_in_restored'],
+  fire_station: ['landmark_glb_fire_station_1924', 'landmark_glb_fire_station_1988'],
+  post_office: ['landmark_glb_post_office_1938', 'landmark_glb_post_office_1988'],
+  highway_rest_area: ['landmark_glb_highway_rest_area'],
+  lantern_pine_lodge: ['landmark_glb_lantern_pine_lodge'],
+  the_eyrie: ['landmark_glb_the_eyrie'],
+  union_arch: ['landmark_glb_union_arch'],
+  night_keeper: ['landmark_glb_night_keeper'],
+  beach_blvd_rex: ['landmark_glb_beach_blvd_rex'],
+  great_meridian: ['landmark_glb_great_meridian_1926', 'landmark_glb_great_meridian_1941', 'landmark_glb_great_meridian_1976', 'landmark_glb_great_meridian_2000'],
+};
+const INTAKE_KINDS: ReadonlySet<GlbLandmarkKind> = new Set(Object.values(INTAKE_STATES).flat());
+/** Towns of these sizes (inhabitants at the peak) earn the ordinary intake models; the capital has every one. */
+export const LIBRARY_PEOPLE = 3000, BANK_PEOPLE = 2000, DRUGSTORE_PEOPLE = 1500, CHURCH_PEOPLE = 1500, CARHOP_PEOPLE = 2500;
+/**
+ * Whether towns other than the capital earn the ordinary intake models by size (the rules above). OFF for now: every other town's plan
+ * would take plots for them and its lots move (measured on eta: the shipped v1 crossroads street.json changes, a bait shop gives way), which
+ * means re-exporting and re-making the buildings of every town that has shipped assets. The rules are the plan's for when a second hub
+ * town is authored (TOWN_PLAN.md "Hand-made hubs"); the capital has them all regardless.
+ */
+export const INTAKE_FOR_OTHERS = false;
+/** The civic landmarks (code-built sprites) the capital's models replace: their plots are the models'. */
+export const REPLACED_LANDMARKS: Record<string, 'post' | 'fire' | 'school'> = { post_office: 'post', fire_station: 'fire', lincoln_high_school: 'school' };
+
 /** Towns of this many inhabitants (at the peak) have the strip centre. */
 export const VIDEO_PEOPLE = 2500;
 const isVideo = (kind: GlbLandmarkKind): boolean => VIDEO_STATES.includes(kind);
@@ -318,6 +361,58 @@ export function glbTenures(seed: string): GlbTenure[] {
     const reuse = R('after', 'radio') < 0.5 ? { from: closed, as: `${RADIO_NAMES[variant]} (automated)` } : { from: closed, as: 'Radio Building Offices' };
     out.push({ kind: 'landmark_glb_radio_station', name: RADIO_NAMES[variant]!, opened, closed, reuse, variant });
   }
+  // ---- the intake models. Ordinary ones by town size (the capital has them all); the school, fire station and post office replace the
+  // sprite landmarks and the roadside and monument models are the capital's alone (hub towns, TOWN_PLAN.md), until other hubs are made.
+  const cap = isCapital(seed);
+  const founded = townFounded(seed);
+  const states = (kinds: readonly GlbLandmarkKind[], at: number[], extra: (i: number) => Partial<GlbTenure> = () => ({})): void =>
+    kinds.forEach((kind, i) => { if (at[i] === undefined) return; add(kind, { opened: at[i]!, ...(at[i + 1] !== undefined ? { gone: at[i + 1]! } : {}), ...extra(i) }); });
+  // the Carnegie library (built 1905-20), its 1970s wing from 1965-85
+  if (cap || (INTAKE_FOR_OTHERS && peak >= LIBRARY_PEOPLE && R('has', 'library') < 0.8)) {
+    const built = Math.max(yr(1905, 1920, 'open', 'library'), Math.min(1920, founded + 10));
+    states(INTAKE_STATES.public_library!, [built, yr(1965, 1985, 'wing', 'library')]);
+  }
+  // the corner drugstore (built 1920-35): the family store to the 1970s, the retail store from the late 1970s, shut from the 2000s, a cafe from the 2010s
+  if (cap || (INTAKE_FOR_OTHERS && peak >= DRUGSTORE_PEOPLE && R('has', 'drugstore') < 0.8)) {
+    const built = Math.max(yr(1920, 1935, 'open', 'drugstore'), Math.min(1935, founded + 8));
+    const k = INTAKE_STATES.corner_drugstore!;
+    const at = [built, yr(1974, 1980, 'retail', 'drugstore'), yr(2004, 2010, 'last', 'drugstore')];
+    // (shut from 2004-10; reused as a cafe from 2012-20 in half the towns, and in the capital: the model's conditional reuse)
+    const cafe = cap || R('after', 'drugstore') < 0.5 ? yr(2012, 2020, 'cafe', 'drugstore') : undefined;
+    add(k[0]!, { opened: at[0]!, gone: at[1]! }); add(k[1]!, { opened: at[1]!, gone: at[2]! });
+    add(k[2]!, { opened: at[2]!, ...(cafe ? { gone: cafe } : {}) });
+    if (cafe) add(k[3]!, { opened: cafe });
+  }
+  // the Town State Bank (1900-30), the drive-through from 1965-85
+  if (cap || (INTAKE_FOR_OTHERS && peak >= BANK_PEOPLE && R('has', 'bank') < 0.8)) {
+    const built = Math.max(yr(1900, 1930, 'open', 'bank'), Math.min(1930, founded + 6));
+    states(INTAKE_STATES.small_town_bank!, [built, yr(1965, 1985, 'drive', 'bank')]);
+  }
+  // the brick church (1880-1925) in a town of 1,500 and more; the white country church in a farm town (and the capital)
+  if (cap || (INTAKE_FOR_OTHERS && peak >= CHURCH_PEOPLE && R('has', 'church') < 0.85)) add('landmark_glb_brick_church', { opened: Math.max(yr(1880, 1925, 'open', 'church'), Math.min(1925, founded + 5)) });
+  if (cap || (INTAKE_FOR_OTHERS && type === 'farm' && R('has', 'country') < 0.7)) add('landmark_glb_country_church', { opened: Math.max(yr(1870, 1930, 'open', 'country'), Math.min(1930, founded + 4)) });
+  // the carhop (opens 1952-62), shut 1976-90, and 40% of the time restored as a diner from 2000-12
+  if (cap || (INTAKE_FOR_OTHERS && peak >= CARHOP_PEOPLE && R('has', 'carhop') < 0.6)) {
+    const k = INTAKE_STATES.carhop_drive_in!;
+    const opened = yr(1952, 1962, 'open', 'carhop'), closed = yr(1976, 1990, 'closed', 'carhop');
+    add(k[0]!, { opened, gone: closed });
+    if (R('restored', 'carhop') < 0.4) { const back = yr(2000, 2012, 'restored', 'carhop'); add(k[1]!, { opened: closed, gone: back }); add(k[2]!, { opened: back }); }
+    else add(k[1]!, { opened: closed });
+  }
+  if (cap) {
+    // the school campus (four states, 1925-), the fire station 1924 -> 1988, the post office 1938 -> 1988
+    states(INTAKE_STATES.lincoln_high_school!, [yr(1925, 1932, 'open', 'school'), yr(1952, 1958, 'new', 'school'), yr(1972, 1978, 'wing', 'school'), yr(1998, 2003, 'secure', 'school')]);
+    states(INTAKE_STATES.fire_station!, [1924, yr(1984, 1990, 'new', 'fire')]);
+    states(INTAKE_STATES.post_office!, [1938, yr(1976, 1990, 'new', 'post')]);
+    // the roadside and monument models
+    add('landmark_glb_highway_rest_area', { opened: yr(1975, 1982, 'open', 'rest') });
+    add('landmark_glb_lantern_pine_lodge', { opened: yr(1930, 1936, 'open', 'lodge') });
+    add('landmark_glb_the_eyrie', { opened: yr(1938, 1945, 'open', 'eyrie') });
+    add('landmark_glb_union_arch', { opened: yr(1929, 1935, 'open', 'arch') });
+    add('landmark_glb_night_keeper', { opened: yr(1930, 1938, 'open', 'keeper') });
+    add('landmark_glb_beach_blvd_rex', { opened: yr(1964, 1972, 'open', 'rex') });
+    states(INTAKE_STATES.great_meridian!, [yr(1926, 1930, 'open', 'meridian'), yr(1941, 1945, 'war', 'meridian'), yr(1976, 1980, 'worn', 'meridian'), yr(2000, 2004, 'restored', 'meridian')]);
+  }
   // the county seat's courthouse on its square: built 1885-1905, modernised in the 1950s (the annex), neglected from the
   // 1970s (the clock stopped), restored about 2000; four states on one plot (src/town/plat.ts isCountySeat)
   if (isCountySeat(seed)) {
@@ -483,7 +578,7 @@ export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
     if (!best) return;
     sites.push({ id: `glb:${t.kind.slice('landmark_glb_'.length)}`, rect: best.b, road: best.ri, face: best.face, lotType, tenures: [t] });
   };
-  const all = glbTenures(seed);
+  const all = glbTenures(seed).filter((t) => !INTAKE_KINDS.has(t.kind));
   const pulseLater = all.some((t) => t.kind === 'landmark_glb_pulse_nightclub');
   const clubFirst = (s: GlbSite): number => (s.tenures.some((t) => t.kind === 'landmark_glb_mirage_nightclub') ? 1 : 0);
   // The funeral home, then the strip centre, last: they take what ground is left and never move another model's plot. A town with no
@@ -519,7 +614,7 @@ export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
 
 /** Which reserved plot of the plan a model's tenure stands on (one plot for a chain: the clubs, the works and The Foundry, the
  * strip centre's and the courthouse's states). */
-export const glbPlotOf = (kind: GlbLandmarkKind): string => `glb:${kind.slice('landmark_glb_'.length).replace(/_\d{4}$/, '').replace(/^(mirage|pulse)_nightclub$/, 'club').replace(/^foundry_(factory|nightclub)$/, 'foundry')}`;
+export const glbPlotOf = (kind: GlbLandmarkKind): string => `glb:${kind.slice('landmark_glb_'.length).replace(/_(\d{4}s?|family|retail|closed|cafe|original|restored|drive_through)$/, '').replace(/^(mirage|pulse)_nightclub$/, 'club').replace(/^foundry_(factory|nightclub)$/, 'foundry')}`;
 
 function plannedSites(plan: TownPlan): GlbSite[] {
   const tenures = glbTenures(plan.seed);

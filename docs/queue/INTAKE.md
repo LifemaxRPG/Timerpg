@@ -33,3 +33,8 @@ Coastal and port set: these wait for the coastal hub and the ocean, so they aren
 - codex/palm-collection;
 - codex/beach-prop-pack;
 - codex/surf-shops.
+
+## Status (2026-11-22, branch wf-intake)
+
+Every table row except the courthouse (imported by the town plan) is in the game and placed in the capital: kotlin-street/docs/LANDMARKS_GLB.md "The intake models",
+kotlin-street/docs/TOWN_PLAN.md "The intake models in the capital". The coastal and port set still waits.

@@ -1,0 +1,160 @@
+{
+  "name": "Rex \u2014 Beach Blvd Dinosaur",
+  "kind": "landmark_glb_beach_blvd_rex",
+  "role": "monument",
+  "inspiration": "10150 Beach Blvd, Jacksonville, FL \u2014 1964 former Goony Golf mascot (2007 restoration: vermilion orange-red rough back / smooth face, teal belly, 10 ft white bone cane, black wrought-iron fence)",
+  "era": {
+    "from": 1964,
+    "to": 1972,
+    "built": 1964
+  },
+  "glb": "beach-blvd-rex.glb",
+  "file": "beach-blvd-rex.glb",
+  "texel_size_m": 0.0388,
+  "art_pixel_m": 0.0776,
+  "texel_m": 0.0388,
+  "art_px_m": 0.0776,
+  "statue_dimensions_m": {
+    "height_from_ground": 6.268,
+    "length_nose_to_tail": 7.521,
+    "width_x": 2.556,
+    "height_feet": 20.6,
+    "length_feet": 24.7
+  },
+  "footprint_m": {
+    "lot_width": 9.6,
+    "lot_depth": 11.4,
+    "building_width": 4.86,
+    "building_depth": 7.26,
+    "max_height": 6.268,
+    "width_x": 9.6,
+    "depth_z": 11.4,
+    "height_y": 6.268
+  },
+  "triangles": {
+    "visible": 2988,
+    "rex_statue": 2780,
+    "lot": 208,
+    "visible_total": 2988,
+    "collision": 36,
+    "by_node": {
+      "rex_statue": 2780,
+      "lot": 208,
+      "collision": 36
+    }
+  },
+  "materials": [
+    "skin_rex_rough",
+    "skin_rex_smooth",
+    "skin_rex_belly",
+    "bone_toes_teeth",
+    "glow_rex_eyes",
+    "lot_fence",
+    "lot_ground",
+    "ground_pavement",
+    "ground_asphalt"
+  ],
+  "swatches_used": [
+    "pavement",
+    "asphalt_worn"
+  ],
+  "doors": {
+    "door_main": {
+      "translation_gltf": [
+        0.0,
+        0.0,
+        -1.25
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    }
+  },
+  "collision_boxes": [
+    {
+      "source": "rex_legs_and_bone",
+      "center": [
+        0.0,
+        1.55,
+        -3.8
+      ],
+      "size": [
+        2.6,
+        3.1,
+        2.8
+      ]
+    },
+    {
+      "source": "rex_tail_ground",
+      "center": [
+        0.0,
+        0.6,
+        -6.95
+      ],
+      "size": [
+        1.24,
+        1.2,
+        3.5
+      ]
+    },
+    {
+      "source": "fence_enclosure",
+      "center": [
+        0.0,
+        0.93,
+        -5.6
+      ],
+      "size": [
+        4.86,
+        1.86,
+        7.26
+      ]
+    }
+  ],
+  "collision": {
+    "coordinate_note": "Blender Z-up convention (x, y_blender=-z_gltf, z_blender=y_gltf)",
+    "boxes_blender_z_up": [
+      {
+        "source": "rex_legs_and_bone",
+        "center": [
+          0.0,
+          3.8,
+          1.55
+        ],
+        "size": [
+          2.6,
+          2.8,
+          3.1
+        ]
+      },
+      {
+        "source": "rex_tail_ground",
+        "center": [
+          0.0,
+          6.95,
+          0.6
+        ],
+        "size": [
+          1.24,
+          3.5,
+          1.2
+        ]
+      },
+      {
+        "source": "fence_enclosure",
+        "center": [
+          0.0,
+          5.6,
+          0.93
+        ],
+        "size": [
+          4.86,
+          7.26,
+          1.86
+        ]
+      }
+    ]
+  }
+}

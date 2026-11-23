@@ -1,0 +1,784 @@
+{
+  "name": "Small-Town Fire Station (Engine Co. No. 2 / Station No. 2)",
+  "kind": "civic_glb_fire_station",
+  "role": "fire_station",
+  "room": "apparatus_bay",
+  "built_year": 1924,
+  "era": {
+    "from": 1924,
+    "to": 2026,
+    "built": 1924
+  },
+  "texel_size_m": 0.0388,
+  "art_pixel_m": 0.0776,
+  "footprint_m": {
+    "lot_width": 27.936,
+    "lot_depth": 25.4528,
+    "building_width": 17.3824,
+    "building_depth": 12.416,
+    "front_apron_depth": 6.208,
+    "height_1924_main": 9.0016,
+    "height_1924_pediment": 11.058,
+    "height_1924_hose_tower": 17.2272,
+    "height_1988_main": 5.9364,
+    "height_1988_crew_wing": 8.9628,
+    "height_1988_radio_mast": 15.6752
+  },
+  "doors": {
+    "door_main": {
+      "translation_gltf": [
+        0.0,
+        0.0,
+        0.1552
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    "door_back": {
+      "translation_gltf": [
+        0.0,
+        0.0,
+        -12.5712
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ]
+    }
+  },
+  "swatches_used": [
+    {
+      "id": "brick_red",
+      "file": "brick_red.png",
+      "size": [
+        60,
+        48
+      ],
+      "role": "1924 brick firehouse walls, parapet, and hose-drying tower"
+    },
+    {
+      "id": "block_courses",
+      "file": "block_courses.png",
+      "size": [
+        48,
+        48
+      ],
+      "role": "1988 modern split-face concrete block walls and upper crew wing"
+    },
+    {
+      "id": "roof_slate",
+      "file": "roof_slate.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "1924 pyramidal slate roof on the hose-drying tower"
+    },
+    {
+      "id": "ballast",
+      "file": "ballast.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Flat tar-and-gravel main roof decks on both 1924 and 1988 stations"
+    },
+    {
+      "id": "roof_membrane_grey",
+      "file": "roof_membrane_grey.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Parapet coping, metal flashing, and modern entrance canopy soffit"
+    },
+    {
+      "id": "asphalt_worn",
+      "file": "asphalt_worn.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "East employee parking lot and rear apparatus service lane"
+    },
+    {
+      "id": "pavement",
+      "file": "pavement.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Front concrete apparatus apron, sidewalks, curb, and clean interior bay floor"
+    }
+  ],
+  "states": [
+    {
+      "id": "1924",
+      "year": 1924,
+      "title": "Engine Co. No. 2 \u2014 1920s Brick Firehouse (1924)",
+      "file": "fire-station-1924.glb",
+      "era": {
+        "from": 1924,
+        "to": 1983,
+        "built": 1924
+      },
+      "summary": "Two-storey 1924 red-brick small-town firehouse with two double-timber carriage bays, carved Indiana limestone tablet ('ENGINE CO. NO. 2' / '1924'), tall NW brick hose-drying tower with louvered vents and pyramidal slate roof, clean apparatus hall shell with brass fire pole, glowing red entrance globes, fire hydrant, and street fire-alarm pull box.",
+      "triangles": {
+        "visible": 2174,
+        "collision": 132,
+        "by_node": {
+          "structure": 1426,
+          "lot": 36,
+          "parking_lot": 14,
+          "rear_service": 452,
+          "curb_props": 246,
+          "collision": 132
+        }
+      },
+      "materials": [
+        {
+          "name": "wall_brick",
+          "file": "brick_red.png",
+          "emissive_file": null,
+          "size": [
+            60,
+            48
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "wall_block",
+          "file": "block_courses.png",
+          "emissive_file": null,
+          "size": [
+            48,
+            48
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "wall_stone",
+          "file": "stone_trim.png",
+          "emissive_file": null,
+          "size": [
+            64,
+            64
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "roof_gravel",
+          "file": "ballast.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "roof_slate",
+          "file": "roof_slate.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "roof_cap",
+          "file": "roof_membrane_grey.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "ground_asphalt",
+          "file": "asphalt_worn.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "ground_pavement",
+          "file": "pavement.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "glass_windows",
+          "file": "glass_1924.png",
+          "emissive_file": null,
+          "size": [
+            64,
+            64
+          ],
+          "alpha": "BLEND",
+          "emissive": false
+        },
+        {
+          "name": "sign_civic",
+          "file": "signs_1924.png",
+          "emissive_file": null,
+          "size": [
+            256,
+            128
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "detail_firehouse",
+          "file": "details_1924.png",
+          "emissive_file": null,
+          "size": [
+            256,
+            256
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "glow_lamps",
+          "file": "glow_base_1924.png",
+          "emissive_file": "glow_mask_1924.png",
+          "size": [
+            256,
+            64
+          ],
+          "alpha": "OPAQUE",
+          "emissive": true
+        }
+      ],
+      "collision": {
+        "coordinate_note": "Full-height glTF Y-up boxes in metres from ground y=0 to full structure/tower/mast top.",
+        "boxes_gltf_y_up": [
+          {
+            "label": "fire_hydrant",
+            "min_gltf_m": [
+              -10.5536,
+              0.0,
+              4.5008
+            ],
+            "max_gltf_m": [
+              -9.9328,
+              1.0864,
+              5.1216
+            ]
+          },
+          {
+            "label": "flagpole",
+            "min_gltf_m": [
+              11.1744,
+              0.0,
+              3.88
+            ],
+            "max_gltf_m": [
+              11.7952,
+              9.8552,
+              4.5008
+            ]
+          },
+          {
+            "label": "rear_dumpster",
+            "min_gltf_m": [
+              -12.3384,
+              0.0,
+              -18.0808
+            ],
+            "max_gltf_m": [
+              -9.3896,
+              1.7072,
+              -15.908
+            ]
+          },
+          {
+            "label": "rear_fence",
+            "min_gltf_m": [
+              -12.8816,
+              0.0,
+              -19.2448
+            ],
+            "max_gltf_m": [
+              12.8816,
+              1.2416,
+              -18.9344
+            ]
+          },
+          {
+            "label": "fire_alarm_callbox",
+            "min_gltf_m": [
+              9.6224,
+              0.0,
+              4.5008
+            ],
+            "max_gltf_m": [
+              10.2432,
+              2.0952,
+              5.1216
+            ]
+          },
+          {
+            "label": "side_bench",
+            "min_gltf_m": [
+              -12.1056,
+              0.0,
+              -4.0352
+            ],
+            "max_gltf_m": [
+              -10.2432,
+              1.0088,
+              -3.4144
+            ]
+          },
+          {
+            "label": "rear_hose_rack",
+            "min_gltf_m": [
+              4.1904,
+              0.0,
+              -17.6928
+            ],
+            "max_gltf_m": [
+              8.148,
+              1.0864,
+              -16.3736
+            ]
+          },
+          {
+            "label": "firehouse_main_body",
+            "min_gltf_m": [
+              -8.6912,
+              0.0,
+              -12.416
+            ],
+            "max_gltf_m": [
+              8.6912,
+              9.0016,
+              0.0
+            ]
+          },
+          {
+            "label": "firehouse_pediment",
+            "min_gltf_m": [
+              -5.5872,
+              9.0016,
+              -0.4656
+            ],
+            "max_gltf_m": [
+              5.5872,
+              11.058,
+              0.1164
+            ]
+          },
+          {
+            "label": "hose_drying_tower",
+            "min_gltf_m": [
+              -8.6912,
+              0.0,
+              -12.416
+            ],
+            "max_gltf_m": [
+              -4.3456,
+              17.2272,
+              -8.0704
+            ]
+          },
+          {
+            "label": "chimney_flue",
+            "min_gltf_m": [
+              5.5096,
+              8.0704,
+              -11.0968
+            ],
+            "max_gltf_m": [
+              6.9064,
+              10.5924,
+              -9.7
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "1988",
+      "year": 1988,
+      "title": "Fire Station No. 2 \u2014 Modern Municipal Station (1988)",
+      "file": "fire-station-1988.glb",
+      "era": {
+        "from": 1984,
+        "to": 2026,
+        "built": 1985
+      },
+      "summary": "Rebuilt modern split-face concrete-block fire station sharing the same lot, apron, and door layout: wide aluminum-and-glass sectional roll-up doors, cantilevered lobby canopy with modest backlit 'STATION NO. 2' sign, setback second-storey crew wing, rooftop HVAC units, galvanized VHF radio mast, safety bollards, and rear backup generator.",
+      "triangles": {
+        "visible": 1594,
+        "collision": 180,
+        "by_node": {
+          "structure": 876,
+          "lot": 36,
+          "parking_lot": 14,
+          "rear_service": 422,
+          "curb_props": 246,
+          "collision": 180
+        }
+      },
+      "materials": [
+        {
+          "name": "wall_brick",
+          "file": "brick_red.png",
+          "emissive_file": null,
+          "size": [
+            60,
+            48
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "wall_block",
+          "file": "block_courses.png",
+          "emissive_file": null,
+          "size": [
+            48,
+            48
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "wall_stone",
+          "file": "stone_trim.png",
+          "emissive_file": null,
+          "size": [
+            64,
+            64
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "roof_gravel",
+          "file": "ballast.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "roof_slate",
+          "file": "roof_slate.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "roof_cap",
+          "file": "roof_membrane_grey.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "ground_asphalt",
+          "file": "asphalt_worn.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "ground_pavement",
+          "file": "pavement.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "glass_windows",
+          "file": "glass_1988.png",
+          "emissive_file": null,
+          "size": [
+            64,
+            64
+          ],
+          "alpha": "BLEND",
+          "emissive": false
+        },
+        {
+          "name": "sign_civic",
+          "file": "signs_1988.png",
+          "emissive_file": null,
+          "size": [
+            256,
+            128
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "detail_firehouse",
+          "file": "details_1988.png",
+          "emissive_file": null,
+          "size": [
+            256,
+            256
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "glow_lamps",
+          "file": "glow_base_1988.png",
+          "emissive_file": "glow_mask_1988.png",
+          "size": [
+            256,
+            64
+          ],
+          "alpha": "OPAQUE",
+          "emissive": true
+        }
+      ],
+      "collision": {
+        "coordinate_note": "Full-height glTF Y-up boxes in metres from ground y=0 to full structure/tower/mast top.",
+        "boxes_gltf_y_up": [
+          {
+            "label": "fire_hydrant",
+            "min_gltf_m": [
+              -10.5536,
+              0.0,
+              4.5008
+            ],
+            "max_gltf_m": [
+              -9.9328,
+              1.0864,
+              5.1216
+            ]
+          },
+          {
+            "label": "flagpole",
+            "min_gltf_m": [
+              11.1744,
+              0.0,
+              3.88
+            ],
+            "max_gltf_m": [
+              11.7952,
+              9.8552,
+              4.5008
+            ]
+          },
+          {
+            "label": "rear_dumpster",
+            "min_gltf_m": [
+              -12.3384,
+              0.0,
+              -18.0808
+            ],
+            "max_gltf_m": [
+              -9.3896,
+              1.7072,
+              -15.908
+            ]
+          },
+          {
+            "label": "rear_fence",
+            "min_gltf_m": [
+              -12.8816,
+              0.0,
+              -19.2448
+            ],
+            "max_gltf_m": [
+              12.8816,
+              1.2416,
+              -18.9344
+            ]
+          },
+          {
+            "label": "bollard_-104",
+            "min_gltf_m": [
+              -8.2256,
+              0.0,
+              0.3104
+            ],
+            "max_gltf_m": [
+              -7.9152,
+              1.0864,
+              0.6208
+            ]
+          },
+          {
+            "label": "bollard_-28",
+            "min_gltf_m": [
+              -2.328,
+              0.0,
+              0.3104
+            ],
+            "max_gltf_m": [
+              -2.0176,
+              1.0864,
+              0.6208
+            ]
+          },
+          {
+            "label": "bollard_28",
+            "min_gltf_m": [
+              2.0176,
+              0.0,
+              0.3104
+            ],
+            "max_gltf_m": [
+              2.328,
+              1.0864,
+              0.6208
+            ]
+          },
+          {
+            "label": "bollard_104",
+            "min_gltf_m": [
+              7.9152,
+              0.0,
+              0.3104
+            ],
+            "max_gltf_m": [
+              8.2256,
+              1.0864,
+              0.6208
+            ]
+          },
+          {
+            "label": "backup_generator",
+            "min_gltf_m": [
+              3.7248,
+              0.0,
+              -18.0032
+            ],
+            "max_gltf_m": [
+              8.3808,
+              2.9488,
+              -15.3648
+            ]
+          },
+          {
+            "label": "canopy_col_-30",
+            "min_gltf_m": [
+              -2.4832,
+              0.0,
+              1.164
+            ],
+            "max_gltf_m": [
+              -2.1728,
+              2.9488,
+              1.552
+            ]
+          },
+          {
+            "label": "canopy_col_30",
+            "min_gltf_m": [
+              2.1728,
+              0.0,
+              1.164
+            ],
+            "max_gltf_m": [
+              2.4832,
+              2.9488,
+              1.552
+            ]
+          },
+          {
+            "label": "station_ground_block",
+            "min_gltf_m": [
+              -8.6912,
+              0.0,
+              -12.416
+            ],
+            "max_gltf_m": [
+              8.6912,
+              5.9364,
+              0.0
+            ]
+          },
+          {
+            "label": "station_crew_upper",
+            "min_gltf_m": [
+              -5.1216,
+              5.6648,
+              -11.7952
+            ],
+            "max_gltf_m": [
+              5.1216,
+              8.9628,
+              -2.4832
+            ]
+          },
+          {
+            "label": "lobby_canopy",
+            "min_gltf_m": [
+              -2.6772,
+              2.9488,
+              0.0
+            ],
+            "max_gltf_m": [
+              2.6772,
+              3.4144,
+              1.5908
+            ]
+          },
+          {
+            "label": "vhf_radio_mast",
+            "min_gltf_m": [
+              -4.0352,
+              8.7688,
+              -10.2432
+            ],
+            "max_gltf_m": [
+              -3.104,
+              15.6752,
+              -9.312
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

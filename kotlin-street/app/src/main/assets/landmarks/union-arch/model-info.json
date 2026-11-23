@@ -1,0 +1,39 @@
+{
+  "name": "Union Arch",
+  "era": "1929 onward",
+  "footprint_m": [
+    43,
+    36
+  ],
+  "height_m": 20.15,
+  "triangles_visible": 4648,
+  "materials": [
+    "detail_bronze",
+    "detail_foliage",
+    "detail_timber",
+    "glow_lantern",
+    "ground_grass",
+    "ground_paving",
+    "roof_copper",
+    "sign_name",
+    "wall_ashlar",
+    "wall_granite",
+    "wall_limestone"
+  ],
+  "units": "Metres, glTF Y up, front faces +Z, origin at front lot edge",
+  "doors": [],
+  "passages": {
+    "center_width_m": 9.5,
+    "side_width_m": 2.35
+  },
+  "collision": {
+    "use_the_walls": true,
+    "notes": "Use stone piers and garden curbs. Three public openings are through-passages."
+  },
+  "texel_size_m": 0.0388,
+  "texels_per_art_pixel": 2,
+  "swatches_used": [
+    "pavement",
+    "plank_horizontal"
+  ]
+}

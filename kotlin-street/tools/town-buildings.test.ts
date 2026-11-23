@@ -26,10 +26,11 @@ describe('town buildings', () => {
       // re-recorded when towns big enough got a cinema (src/town/cinema.ts), and again when every town got its stores
       // (src/town/stores.ts: the general store and the market take main-street plots, the plan grows for the rest), and again
       // for the planned town (src/town/plat.ts: the crossroads are Main Street and the civic avenue of the platted town), and
-      // again for the downtown that straddles its river, the town square and the core's side-street shops
+      // again for the downtown that straddles its river, the town square and the core's side-street shops, and again for the capital's
+      // intake models and grounds column (gamma only: the plan is 200 tiles wider)
       vale: 'b2ed05d85e9adc16376257fd9ef8c12cd0e132958ebafaf1581bf9a07ecb4b30',
       alpha: 'cb6a1db217a8e14bac76e89373be662fbfe76b3817a1500a145554e437436cdb',
-      gamma: '55b1fc030bbb0dac0f6b0a05b9083c8488292b01fc0db845dc527e8ff2a62fcc',
+      gamma: 'e7d06aeb6aa4ccec6179e4cc4646667025a25234075732a9291bc38b5e242e32',
     };
     for (const [seed, h] of Object.entries(before)) expect(sha(streetJson(seed)), seed).toBe(h);
   });

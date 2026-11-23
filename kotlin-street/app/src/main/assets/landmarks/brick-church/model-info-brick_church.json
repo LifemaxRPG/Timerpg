@@ -1,0 +1,505 @@
+{
+ "name": "Town Church",
+ "state": "landmark_glb_brick_church",
+ "file": "brick-church.glb",
+ "doors": [
+  {
+   "node": "door_main",
+   "position": [
+    0.0,
+    0.6208,
+    0.26384
+   ],
+   "outward": [
+    0,
+    0,
+    1
+   ],
+   "width_m": 1.8624,
+   "height_m": 2.4832,
+   "floor_m": 0.6208,
+   "external": true,
+   "open": true
+  },
+  {
+   "node": "door_back",
+   "position": [
+    3.4144,
+    0.6208,
+    -44.57344
+   ],
+   "outward": [
+    0,
+    0,
+    -1
+   ],
+   "width_m": 1.552,
+   "height_m": 2.6384,
+   "floor_m": 0.6208,
+   "external": true,
+   "open": true
+  },
+  {
+   "node": "door_hall",
+   "position": [
+    6.859840000000001,
+    0.6208,
+    -35.696
+   ],
+   "outward": [
+    1,
+    0,
+    0
+   ],
+   "width_m": 1.552,
+   "height_m": 2.6384,
+   "floor_m": 0.6208,
+   "external": true,
+   "open": true
+  }
+ ],
+ "collision": {
+  "node": "collision",
+  "render": false,
+  "coordinate_frame": "glTF metres, Y up/+Z front",
+  "boxes_gltf_y_up": [
+   {
+    "source": "Raised chancel",
+    "center": [
+     0.0,
+     0.8536,
+     -28.7896
+    ],
+    "size": [
+     8.6912,
+     0.4656,
+     6.3632
+    ],
+    "support_floor_m": 0.6208,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Buttress",
+    "center": [
+     -7.527200000000001,
+     4.0352,
+     -8.536
+    ],
+    "size": [
+     1.2416,
+     8.0704,
+     1.0864
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Buttress",
+    "center": [
+     -7.527200000000001,
+     4.0352,
+     -13.192
+    ],
+    "size": [
+     1.2416,
+     8.0704,
+     1.0864
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Buttress",
+    "center": [
+     -7.527200000000001,
+     4.0352,
+     -17.848
+    ],
+    "size": [
+     1.2416,
+     8.0704,
+     1.0864
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Buttress",
+    "center": [
+     -7.527200000000001,
+     4.0352,
+     -22.504
+    ],
+    "size": [
+     1.2416,
+     8.0704,
+     1.0864
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Buttress",
+    "center": [
+     -7.527200000000001,
+     4.0352,
+     -27.16
+    ],
+    "size": [
+     1.2416,
+     8.0704,
+     1.0864
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Buttress",
+    "center": [
+     -7.527200000000001,
+     4.0352,
+     -31.660800000000002
+    ],
+    "size": [
+     1.2416,
+     8.0704,
+     1.0864
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Buttress",
+    "center": [
+     7.527200000000001,
+     4.0352,
+     -3.7248
+    ],
+    "size": [
+     1.2416,
+     8.0704,
+     1.0864
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Buttress",
+    "center": [
+     7.527200000000001,
+     4.0352,
+     -8.536
+    ],
+    "size": [
+     1.2416,
+     8.0704,
+     1.0864
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Buttress",
+    "center": [
+     7.527200000000001,
+     4.0352,
+     -13.192
+    ],
+    "size": [
+     1.2416,
+     8.0704,
+     1.0864
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Buttress",
+    "center": [
+     7.527200000000001,
+     4.0352,
+     -17.848
+    ],
+    "size": [
+     1.2416,
+     8.0704,
+     1.0864
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Buttress",
+    "center": [
+     7.527200000000001,
+     4.0352,
+     -22.504
+    ],
+    "size": [
+     1.2416,
+     8.0704,
+     1.0864
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Buttress",
+    "center": [
+     7.527200000000001,
+     4.0352,
+     -27.16
+    ],
+    "size": [
+     1.2416,
+     8.0704,
+     1.0864
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Buttress",
+    "center": [
+     7.527200000000001,
+     4.0352,
+     -31.660800000000002
+    ],
+    "size": [
+     1.2416,
+     8.0704,
+     1.0864
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Fixed serving counter",
+    "center": [
+     -5.6648000000000005,
+     1.0476,
+     -41.4384
+    ],
+    "size": [
+     1.3968,
+     0.8536,
+     4.8112
+    ],
+    "support_floor_m": 0.6208,
+    "attachment": "parish_hall",
+    "group": "structure"
+   },
+   {
+    "source": "Downpipe",
+    "center": [
+     -6.782240000000001,
+     2.4056,
+     -44.0768
+    ],
+    "size": [
+     0.0776,
+     4.8112,
+     0.0776
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "parish_hall",
+    "group": "structure"
+   },
+   {
+    "source": "Downpipe",
+    "center": [
+     6.782240000000001,
+     2.4056,
+     -44.0768
+    ],
+    "size": [
+     0.0776,
+     4.8112,
+     0.0776
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "parish_hall",
+    "group": "structure"
+   },
+   {
+    "source": "Downpipe",
+    "center": [
+     -7.247840000000001,
+     4.4232000000000005,
+     -32.2816
+    ],
+    "size": [
+     0.0776,
+     8.846400000000001,
+     0.0776
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Downpipe",
+    "center": [
+     7.247840000000001,
+     4.4232000000000005,
+     -32.2816
+    ],
+    "size": [
+     0.0776,
+     8.846400000000001,
+     0.0776
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "nave",
+    "group": "structure"
+   },
+   {
+    "source": "Sign board",
+    "center": [
+     12.7264,
+     1.6296,
+     2.716
+    ],
+    "size": [
+     2.9488000000000003,
+     3.2592,
+     0.4656
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "church_sign",
+    "group": "lot"
+   },
+   {
+    "source": "Garden bed",
+    "center": [
+     -14.1232,
+     0.776,
+     -19.400000000000002
+    ],
+    "size": [
+     3.2592,
+     1.552,
+     2.3280000000000003
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "garden_bed_0",
+    "group": "lot"
+   },
+   {
+    "source": "Garden bed",
+    "center": [
+     -14.1232,
+     0.776,
+     -27.936
+    ],
+    "size": [
+     3.2592,
+     1.552,
+     2.3280000000000003
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "garden_bed_1",
+    "group": "lot"
+   },
+   {
+    "source": "Bench",
+    "center": [
+     -12.2608,
+     0.5432,
+     -23.28
+    ],
+    "size": [
+     1.7072,
+     1.0864,
+     0.6208
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "garden_bench",
+    "group": "lot"
+   },
+   {
+    "source": "Tree trunk column",
+    "center": [
+     -12.8816,
+     4.074,
+     1.1640000000000001
+    ],
+    "size": [
+     0.4074,
+     8.148,
+     0.4074
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "church_tree_0",
+    "group": "lot"
+   },
+   {
+    "source": "Tree trunk column",
+    "center": [
+     23.28,
+     4.8888,
+     -40.352000000000004
+    ],
+    "size": [
+     0.48888,
+     9.7776,
+     0.48888
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "church_tree_1",
+    "group": "lot"
+   },
+   {
+    "source": "Service bin",
+    "center": [
+     -4.1904,
+     0.5044,
+     -45.1632
+    ],
+    "size": [
+     0.6984,
+     1.0088,
+     0.6984
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "service_bin_0",
+    "group": "lot"
+   },
+   {
+    "source": "Service bin",
+    "center": [
+     -3.104,
+     0.5044,
+     -45.1632
+    ],
+    "size": [
+     0.6984,
+     1.0088,
+     0.6984
+    ],
+    "support_floor_m": 0.0,
+    "attachment": "service_bin_1",
+    "group": "lot"
+   }
+  ],
+  "use_the_walls": true,
+  "notes": "Walls, floors, real steps and architectural shells supply collision. Supplementary boxes cover buttresses, raised chancel/counter, sign, planters, bench, bins, downpipes and full-height tree-trunk columns. Do not apply the legacy Blender rotation."
+ },
+ "lot_node": "lot",
+ "triangles_visible": 9328,
+ "source": "codex/brick-church model-info-brick.json, flattened per state by tools/landmarks/intake.py"
+}

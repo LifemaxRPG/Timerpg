@@ -1,0 +1,36 @@
+{
+  "name": "The Eyrie",
+  "era": "1938 national sculptural commission, suitable from the 1940s onward",
+  "height_m": 113.4592,
+  "footprint_m": [
+    198,
+    160
+  ],
+  "triangles_visible": 8392,
+  "materials": [
+    "detail_burnished_bronze",
+    "detail_foliage",
+    "detail_patina",
+    "detail_shadowed_bronze",
+    "detail_timber",
+    "glow_amber",
+    "ground_grass",
+    "ground_paving",
+    "sign_name",
+    "wall_ashlar",
+    "wall_granite",
+    "wall_limestone"
+  ],
+  "units": "glTF metres, Y up, +Z south, origin on front edge",
+  "doors": [],
+  "collision": {
+    "use_the_walls": true,
+    "notes": "Open-air terraces. Use the granite geometry for abutments and screen walls. Verify stair traversal in game."
+  },
+  "texel_size_m": 0.0388,
+  "texels_per_art_pixel": 2,
+  "swatches_used": [
+    "pavement",
+    "plank_horizontal"
+  ]
+}

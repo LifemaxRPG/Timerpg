@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { townGraph, townLots, type RowJson } from './town-graph';
 import { townStreets } from './town-streets';
 import { TOWN } from './town-config';
+import { glbTenures } from '../../src/town/glbSites';
 import { apartmentNearCore, storeysOf } from './town-downtown';
 
 const g = townGraph(TOWN.seed, TOWN.year);
@@ -92,7 +93,9 @@ describe('town graph', () => {
     expect(spawn.buildings.filter((b) => b.kind === 'shop').length, 'a street wall at the start').toBeGreaterThanOrEqual(2);
     const dir = g.graph.spawn.dir ?? 1;
     const ahead = rows.get((dir < 0 ? spawn.ends.start.straight : spawn.ends.end.straight)!)!;
-    expect(ahead.buildings.map((b) => b.lot)).toEqual(expect.arrayContaining(['landmark:post', 'landmark:clocktower']));
+    // (the capital's post office is a model, one block behind the square on its own plot: only the clock tower flanks the plaza there)
+    const postModel = glbTenures(TOWN.seed).some((t) => t.kind.startsWith('landmark_glb_post_office'));
+    expect(ahead.buildings.map((b) => b.lot)).toEqual(expect.arrayContaining(postModel ? ['landmark:clocktower'] : ['landmark:post', 'landmark:clocktower']));
     const across = [ahead.ends.start.cross, ahead.ends.end.cross].map((id) => rows.get(id!)!);
     expect(across.flatMap((r) => r.buildings.map((b) => b.lot))).toContain('landmark:cinema');
     // the civic avenue still has its name (the v1 crossroads' junction is on it)

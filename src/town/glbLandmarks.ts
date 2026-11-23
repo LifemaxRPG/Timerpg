@@ -31,17 +31,51 @@ export type GlbLandmarkKind =
   | 'landmark_glb_county_courthouse_1962'
   | 'landmark_glb_county_courthouse_1988'
   | 'landmark_glb_county_courthouse_2008'
-  | 'landmark_glb_radio_station';
+  | 'landmark_glb_radio_station'
+  | 'landmark_glb_public_library_1912'
+  | 'landmark_glb_public_library_1970s'
+  | 'landmark_glb_corner_drugstore_family'
+  | 'landmark_glb_corner_drugstore_retail'
+  | 'landmark_glb_corner_drugstore_closed'
+  | 'landmark_glb_corner_drugstore_cafe'
+  | 'landmark_glb_small_town_bank_1920s'
+  | 'landmark_glb_small_town_bank_drive_through'
+  | 'landmark_glb_brick_church'
+  | 'landmark_glb_country_church'
+  | 'landmark_glb_lincoln_high_school_1925'
+  | 'landmark_glb_lincoln_high_school_1955'
+  | 'landmark_glb_lincoln_high_school_1975'
+  | 'landmark_glb_lincoln_high_school_2000'
+  | 'landmark_glb_carhop_drive_in_original'
+  | 'landmark_glb_carhop_drive_in_closed'
+  | 'landmark_glb_carhop_drive_in_restored'
+  | 'landmark_glb_fire_station_1924'
+  | 'landmark_glb_fire_station_1988'
+  | 'landmark_glb_post_office_1938'
+  | 'landmark_glb_post_office_1988'
+  | 'landmark_glb_highway_rest_area'
+  | 'landmark_glb_lantern_pine_lodge'
+  | 'landmark_glb_the_eyrie'
+  | 'landmark_glb_union_arch'
+  | 'landmark_glb_night_keeper'
+  | 'landmark_glb_beach_blvd_rex'
+  | 'landmark_glb_great_meridian_1926'
+  | 'landmark_glb_great_meridian_1941'
+  | 'landmark_glb_great_meridian_1976'
+  | 'landmark_glb_great_meridian_2000';
 
 export interface GlbLandmarkSpec {
   name: string;
   /** The business it houses. */
-  role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot' | 'laundromat' | 'factory' | 'funeral_home' | 'video_store' | 'phone_repair' | 'courthouse' | 'radio_station';
+  role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot' | 'laundromat' | 'factory' | 'funeral_home' | 'video_store' | 'phone_repair' | 'courthouse' | 'radio_station'
+    | 'library' | 'drugstore' | 'bank' | 'church' | 'school' | 'carhop' | 'fire_station' | 'post_office' | 'rest_area' | 'lodge' | 'monument' | 'roadside_attraction';
   /** The design's years: built from..to (it may stand long after, as the simulation decides), and its sample year. */
   era: { from: number; to: number; built: number };
   /** The lot, metres: width along the street, depth back from it; the building's walls. */
   lot: [number, number];
   building: [number, number];
+  /** The plot the whole chain of states needs, when the states differ in size (the bank's drive-through, the library's wing): the biggest lot. */
+  plot?: [number, number];
 }
 
 export const GLB_LANDMARKS: Record<GlbLandmarkKind, GlbLandmarkSpec> = {
@@ -99,6 +133,39 @@ export const GLB_LANDMARKS: Record<GlbLandmarkKind, GlbLandmarkSpec> = {
   // a 1950s-60s brick broadcast house with a glazed entrance bay, a RADIO blade sign and a lattice mast in a fenced yard
   // beside it; its call letters painted per town (glbSites.ts RADIO_NAMES)
   landmark_glb_radio_station: { name: 'Valley Radio', role: 'radio_station', era: { from: 1946, to: 1960, built: 1955 }, lot: [21.73, 17.69], building: [16.1, 15.13] },
+
+  // ---- the intake models (docs/queue/INTAKE.md, LANDMARKS_GLB.md "The intake models"): lots are the .glb's bounds, `plot` the chain's biggest
+  landmark_glb_public_library_1912: { name: "Public Library", role: 'library', era: { from: 1905, to: 1920, built: 1912 }, lot: [18.62, 27.31], building: [18.0, 13.97], plot: [23.28, 36.63] },
+  landmark_glb_public_library_1970s: { name: "Public Library", role: 'library', era: { from: 1965, to: 2040, built: 1975 }, lot: [23.28, 36.63], building: [18.0, 13.97], plot: [23.28, 36.63] },
+  landmark_glb_corner_drugstore_family: { name: "Corner Drugstore", role: 'drugstore', era: { from: 1920, to: 1980, built: 1950 }, lot: [15.75, 27.47], building: [11.8, 19.87], plot: [15.75, 27.47] },
+  landmark_glb_corner_drugstore_retail: { name: "Corner Drugstore", role: 'drugstore', era: { from: 1974, to: 2010, built: 1990 }, lot: [15.75, 27.47], building: [11.8, 19.87], plot: [15.75, 27.47] },
+  landmark_glb_corner_drugstore_closed: { name: "Corner Drugstore", role: 'drugstore', era: { from: 2004, to: 2040, built: 2012 }, lot: [15.75, 27.47], building: [11.8, 19.87], plot: [15.75, 27.47] },
+  landmark_glb_corner_drugstore_cafe: { name: "Corner Drugstore", role: 'drugstore', era: { from: 2012, to: 2040, built: 2016 }, lot: [15.75, 27.47], building: [11.8, 19.87], plot: [15.75, 27.47] },
+  landmark_glb_small_town_bank_1920s: { name: "Town State Bank", role: 'bank', era: { from: 1900, to: 1930, built: 1925 }, lot: [16.76, 23.63], building: [13.97, 18.0], plot: [26.23, 23.63] },
+  landmark_glb_small_town_bank_drive_through: { name: "Town State Bank", role: 'bank', era: { from: 1965, to: 1985, built: 1975 }, lot: [26.23, 23.63], building: [13.97, 18.0], plot: [26.23, 23.63] },
+  landmark_glb_brick_church: { name: "Town Church", role: 'church', era: { from: 1880, to: 2040, built: 1905 }, lot: [46.94, 54.7], building: [13.97, 44.23] },
+  landmark_glb_country_church: { name: "Country Church", role: 'church', era: { from: 1870, to: 2040, built: 1900 }, lot: [31.04, 32.59], building: [9.0, 24.21] },
+  landmark_glb_lincoln_high_school_1925: { name: "Lincoln High School", role: 'school', era: { from: 1925, to: 1958, built: 1925 }, lot: [232.8, 159.86], building: [139.68, 95.92], plot: [232.8, 159.86] },
+  landmark_glb_lincoln_high_school_1955: { name: "Lincoln High School", role: 'school', era: { from: 1952, to: 1978, built: 1952 }, lot: [232.8, 159.86], building: [139.68, 95.92], plot: [232.8, 159.86] },
+  landmark_glb_lincoln_high_school_1975: { name: "Lincoln High School", role: 'school', era: { from: 1972, to: 2003, built: 1972 }, lot: [232.8, 159.86], building: [139.68, 95.92], plot: [232.8, 159.86] },
+  landmark_glb_lincoln_high_school_2000: { name: "Lincoln High School", role: 'school', era: { from: 1998, to: 2040, built: 1998 }, lot: [232.8, 159.86], building: [139.68, 95.92], plot: [232.8, 159.86] },
+  landmark_glb_carhop_drive_in_original: { name: "Milo's Drive-In", role: 'carhop', era: { from: 1952, to: 1962, built: 1954 }, lot: [43.46, 34.46], building: [14.28, 10.24], plot: [43.46, 34.46] },
+  landmark_glb_carhop_drive_in_closed: { name: "Milo's Drive-In", role: 'carhop', era: { from: 1976, to: 2012, built: 1995 }, lot: [43.46, 34.46], building: [14.28, 10.24], plot: [43.46, 34.46] },
+  landmark_glb_carhop_drive_in_restored: { name: "Milo's Diner", role: 'carhop', era: { from: 2000, to: 2040, built: 2005 }, lot: [43.46, 34.46], building: [14.28, 10.24], plot: [43.46, 34.46] },
+  landmark_glb_fire_station_1924: { name: "Fire Station", role: 'fire_station', era: { from: 1924, to: 1924, built: 1924 }, lot: [28.03, 25.45], building: [16.82, 15.27], plot: [28.03, 25.45] },
+  landmark_glb_fire_station_1988: { name: "Fire Station", role: 'fire_station', era: { from: 1984, to: 1990, built: 1985 }, lot: [28.03, 25.45], building: [16.82, 15.27], plot: [28.03, 25.45] },
+  landmark_glb_post_office_1938: { name: "Post Office", role: 'post_office', era: { from: 1938, to: 1938, built: 1938 }, lot: [26.7, 24.52], building: [16.02, 14.71], plot: [26.7, 24.52] },
+  landmark_glb_post_office_1988: { name: "Post Office", role: 'post_office', era: { from: 1976, to: 2040, built: 1988 }, lot: [26.7, 24.52], building: [16.02, 14.71], plot: [26.7, 24.52] },
+  landmark_glb_highway_rest_area: { name: "Pine Bend Rest Area", role: 'rest_area', era: { from: 1975, to: 2040, built: 1978 }, lot: [82.0, 66.0], building: [82, 66] },
+  landmark_glb_lantern_pine_lodge: { name: "Lantern Pine Lodge", role: 'lodge', era: { from: 1930, to: 2040, built: 1935 }, lot: [34.0, 29.0], building: [34, 29] },
+  landmark_glb_the_eyrie: { name: "The Eyrie", role: 'monument', era: { from: 1938, to: 2040, built: 1940 }, lot: [198.0, 160.0], building: [198, 160] },
+  landmark_glb_union_arch: { name: "Union Arch", role: 'monument', era: { from: 1929, to: 2040, built: 1930 }, lot: [43.0, 36.0], building: [43, 36] },
+  landmark_glb_night_keeper: { name: "The Night Keeper", role: 'roadside_attraction', era: { from: 1930, to: 2040, built: 1935 }, lot: [62.0, 50.0], building: [62, 50] },
+  landmark_glb_beach_blvd_rex: { name: "Beach Blvd Rex", role: 'roadside_attraction', era: { from: 1964, to: 2040, built: 1964 }, lot: [9.6, 11.4], building: [4.86, 7.26] },
+  landmark_glb_great_meridian_1926: { name: "The Great Meridian", role: 'monument', era: { from: 1926, to: 1940, built: 1926 }, lot: [119.96, 120.13], building: [119.97, 119.97], plot: [119.96, 120.13] },
+  landmark_glb_great_meridian_1941: { name: "The Great Meridian", role: 'monument', era: { from: 1941, to: 1975, built: 1941 }, lot: [119.96, 120.13], building: [119.97, 119.97], plot: [119.96, 120.13] },
+  landmark_glb_great_meridian_1976: { name: "The Great Meridian", role: 'monument', era: { from: 1976, to: 1999, built: 1976 }, lot: [119.96, 120.13], building: [119.97, 119.97], plot: [119.96, 120.13] },
+  landmark_glb_great_meridian_2000: { name: "The Great Meridian", role: 'monument', era: { from: 2000, to: 2040, built: 2000 }, lot: [119.96, 120.13], building: [119.97, 119.97], plot: [119.96, 120.13] },
   landmark_glb_reel_time_video_2020: { name: 'Cell Fix', role: 'phone_repair', era: { from: 2009, to: 2015, built: 2013 }, lot: [36.01, 28.56], building: [32.28, 11.17] },
 };
 export const GLB_LANDMARK_KINDS = Object.keys(GLB_LANDMARKS) as GlbLandmarkKind[];
@@ -110,7 +177,8 @@ export const TILE_BACK_M = 2.1;
 /** The plot a model needs, in tiles (width along the street, depth back). */
 export function glbLandmarkTiles(kind: GlbLandmarkKind): [number, number] {
   const s = GLB_LANDMARKS[kind];
-  return [Math.ceil(s.lot[0] / TILE_ALONG_M), Math.ceil(s.lot[1] / TILE_BACK_M)];
+  const [w, d] = s.plot ?? s.lot;
+  return [Math.ceil(w / TILE_ALONG_M), Math.ceil(d / TILE_BACK_M)];
 }
 
 /** The year a town's [kind] opens, drawn from its design years (deterministic in the seed). */

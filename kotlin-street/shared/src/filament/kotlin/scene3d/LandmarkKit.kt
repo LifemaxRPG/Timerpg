@@ -53,6 +53,8 @@ data class LandmarkSpec(
     val variants: List<String> = emptyList(),
     /** Its distant silhouette (a few hundred triangles, the same origin and pictures), drawn past [TownLandmark.LOD]; null: none. */
     val far: String? = null,
+    /** The model x (metres) put on the slot's middle, when it is not the model's own middle: a chain of states that differ in width (the bank's drive-through, the library's wing) keeps one building place. */
+    val centre: Float? = null,
 ) {
     /** The file of variant [v] (the town's pick: street.json's glbLandmarks `variant`). */
     fun fileOf(v: Int): String = if (variants.isEmpty()) file else variants[Math.floorMod(v, variants.size)]
@@ -80,7 +82,7 @@ data class LandmarkSpec(
                     era.getInt("from"), era.getInt("to"), era.optInt("built", era.getInt("from")), lw, ld, bw, bd, o.optString("lot", "lot"), sw,
                     o.optJSONObject("price")?.let { PriceBoard.parse(it) }, hid, o.optString("room", "shelves"),
                     o.optJSONArray("variants")?.let { v -> (0 until v.length()).map { v.getString(it) } } ?: emptyList(),
-                    o.optString("far").ifBlank { null })
+                    o.optString("far").ifBlank { null }, if (o.has("centre")) o.getDouble("centre").toFloat() else null)
             }
         }
     }
@@ -384,7 +386,40 @@ object LandmarkKit {
             LandmarkDoor(n.name, n.x * U, n.z * U, tmp[0] / l, tmp[2] / l)
         }
         val m = CinemaModel(CinemaEra.of(year), parts, floatArrayOf(fx0, fz0, fx1, fz1), top, spec.buildingW * U, spec.buildingD * U, lights)
-        return LandmarkModel(spec, m, solids, doors, front, names)
+        return LandmarkModel(spec, m, clearDoors(solids, doors), doors, front, names)
+    }
+
+    /**
+     * Keeps each entrance's standing place (12 units out of its node) clear: a box across it is cut in two with a 2.4 m opening centred
+     * on the door. The Great Meridian's 1926 dedication stand, a timber platform 9 m wide, stands on the foot of its stair where `door_main`
+     * is, so "Go inside" could not be reached; nothing of the earlier models stands in a doorway (their tests pin that).
+     */
+    private fun clearDoors(solids: FloatArray, doors: List<LandmarkDoor>): FloatArray {
+        var cur = solids
+        val gap = 1.2f * UNITS_PER_METRE
+        for (d in doors) {
+            val fx = d.x + d.outX * 12f; val fz = d.z + d.outZ * 12f
+            val alongX = abs(d.outZ) >= abs(d.outX)
+            var across = false
+            var i = 0
+            while (i + 3 < cur.size) { if (fx > cur[i] && fx < cur[i + 2] && fz > cur[i + 1] && fz < cur[i + 3]) across = true; i += 4 }
+            if (!across) continue
+            val out = ArrayList<Float>(cur.size + 4)
+            i = 0
+            while (i + 3 < cur.size) {
+                val x0 = cur[i]; val z0 = cur[i + 1]; val x1 = cur[i + 2]; val z1 = cur[i + 3]; i += 4
+                if (!(fx > x0 && fx < x1 && fz > z0 && fz < z1)) { out += x0; out += z0; out += x1; out += z1; continue }
+                if (alongX) {
+                    if (fx - gap - x0 > .1f) { out += x0; out += z0; out += fx - gap; out += z1 }
+                    if (x1 - (fx + gap) > .1f) { out += fx + gap; out += z0; out += x1; out += z1 }
+                } else {
+                    if (fz - gap - z0 > .1f) { out += x0; out += z0; out += x1; out += fz - gap }
+                    if (z1 - (fz + gap) > .1f) { out += x0; out += fz + gap; out += x1; out += z1 }
+                }
+            }
+            cur = out.toFloatArray()
+        }
+        return cur
     }
 
     /** How far to lift a model so its lowest broad up-facing ground ([grounds]: positions, indices) is [GROUND] up. */
@@ -467,6 +502,8 @@ object LandmarkKit {
         val any = clear.any { it }
         val lum = IntArray(im.px.size) { val p = im.px[it]; (p shr 16 and 255) + (p shr 8 and 255) + (p and 255) }
         val frame = if (any) -1 else lum.sorted()[lum.size / 8].takeIf { it < 200 } ?: -1
+        // (a mask that lies almost wholly on the see-through texels is cut to them; one that lights door art as well, the funeral home's, is left)
+        val maskOnClear = lit != null && any && lit.indices.count { lit[it] && clear[it] } * 10 >= lit.count { it } * 9
         im.glow(0, 0, 0, 0, 0)
         for (i in im.px.indices) {
             val p = im.px[i]; val a = p ushr 24
@@ -477,7 +514,9 @@ object LandmarkKit {
                 val b = ((p and 255) * a + (room and 255) * (255 - a)) / 255
                 im.px[i] = (0xFF shl 24) or (r shl 16) or (g shl 8) or b
             }
-            val pane = if (lit != null) lit[i] else if (any) clear[i] else lum[i] > frame
+            // (a mask is cut to the panes: where the picture has see-through texels, the mask's lit texels on a mullion or a frame (the bank's
+            // 112 stray ones) stay dark; where it is painted opaque, the picture's darkest frame texels do, so a window's bars do not glow)
+            val pane = if (lit != null) lit[i] && (if (any) clear[i] || !maskOnClear else lum[i] > frame) else if (any) clear[i] else lum[i] > frame
             // the lamp's warmth over the room's own colours (blue a little over half), so a lit window shows its shelves
             im.mask[i] = if (pane) (255 shl 24) or (220 shl 16) or (255 shl 8) or 150 else 0
         }
@@ -672,6 +711,14 @@ object LandmarkKit {
 
     fun collisionTags(info: String): List<BoxTag> {
         val c = runCatching { org.json.JSONObject(info).optJSONObject("collision") }.getOrNull() ?: return emptyList()
+        // (a list in glTF's own axes, Y up, is read as it is: the later models' `boxes_gltf_y_up`; Blender's Z-up lists are turned)
+        c.optJSONArray("boxes_gltf_y_up")?.let { a ->
+            return (0 until a.length()).map { i ->
+                val b = a.getJSONObject(i); val ce = b.getJSONArray("center"); val sz = b.optJSONArray("size")
+                BoxTag(ce.getDouble(0).toFloat(), ce.getDouble(1).toFloat(), ce.getDouble(2).toFloat(), b.optString("group"), b.optString("attachment"),
+                    sz?.optDouble(0)?.toFloat() ?: 0f, sz?.optDouble(1)?.toFloat() ?: 0f, sz?.optDouble(2)?.toFloat() ?: 0f, b.optString("source").ifBlank { b.optString("name") })
+            }
+        }
         val a = c.optJSONArray("boxes_blender_z_up") ?: c.optJSONArray("boxes") ?: return emptyList()
         return (0 until a.length()).map { i ->
             val b = a.getJSONObject(i); val ce = b.getJSONArray("center")
@@ -679,7 +726,7 @@ object LandmarkKit {
             val sz = b.optJSONArray("size")
             // (sizes likewise: Blender's (x, y, z) is glTF's (x, z, y))
             BoxTag(ce.getDouble(0).toFloat(), ce.getDouble(2).toFloat(), -ce.getDouble(1).toFloat(), b.optString("group"), b.optString("attachment"),
-                sz?.optDouble(0)?.toFloat() ?: 0f, sz?.optDouble(2)?.toFloat() ?: 0f, sz?.optDouble(1)?.toFloat() ?: 0f, b.optString("source"))
+                sz?.optDouble(0)?.toFloat() ?: 0f, sz?.optDouble(2)?.toFloat() ?: 0f, sz?.optDouble(1)?.toFloat() ?: 0f, b.optString("source").ifBlank { b.optString("name") })
         }
     }
 

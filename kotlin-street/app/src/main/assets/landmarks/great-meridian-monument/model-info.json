@@ -1,0 +1,2683 @@
+{
+  "name": "The Great Meridian Monument",
+  "slug": "great-meridian-monument",
+  "revision": 2,
+  "pixel_grid_m_per_texel": 0.0388,
+  "art_pixel_m": 0.0776,
+  "coordinate_frame": "glTF metres, Y-up, +Z front, origin (0, 0, 0) at midpoint of +Z front curb",
+  "footprint_m": {
+    "width_x": 119.97,
+    "depth_z": 119.97
+  },
+  "heights_m": {
+    "reflecting_pool_water": 0.0,
+    "plaza_ground": 0.155,
+    "acropolis_rotunda_floor": 6.52,
+    "cornice_gallery_24m": 24.06,
+    "pier_setback_1": 33.99,
+    "armillary_sphere_center": 40.97,
+    "guardian_ledges_44m": 44.54,
+    "pier_setback_2": 46.02,
+    "sky_observation_deck_58m": 58.04,
+    "lantern_chamber_floor": 60.06,
+    "lantern_tier1_top": 67.05,
+    "lantern_tier2_top": 72.56,
+    "lantern_tier3_top": 76.05,
+    "sunburst_drum_top": 79.0,
+    "spire_top": 101.19,
+    "aviation_beacon_orb": 102.59,
+    "finial_tip_total": 106.16
+  },
+  "states": {
+    "1926": {
+      "years": "1926-1940",
+      "label": "Dedication",
+      "summary": "Clean limestone, glowing fresh orange-brown copper spire, cornice bunting swags, flagpole-base bunting, timber dedication stand, gas lamps, young trees.",
+      "file": "great-meridian-1926.glb",
+      "visible_triangles_instanced": 28203,
+      "doors": {
+        "door_main": [
+          0.0,
+          0.1552,
+          -28.712
+        ],
+        "door_rotunda_south": [
+          0.0,
+          6.5184,
+          -42.6024
+        ],
+        "door_north": [
+          0.0,
+          6.5184,
+          -77.3672
+        ],
+        "door_east": [
+          17.3824,
+          6.5184,
+          -59.9848
+        ],
+        "door_west": [
+          -17.3824,
+          6.5184,
+          -59.9848
+        ],
+        "door_hall_west": [
+          -7.4496,
+          6.5184,
+          -47.5688
+        ],
+        "door_hall_east": [
+          7.4496,
+          6.5184,
+          -47.5688
+        ],
+        "door_observatory_lift": [
+          -7.4496,
+          6.5184,
+          -72.4008
+        ],
+        "door_cornice_gallery": [
+          -11.7952,
+          24.056,
+          -68.9864
+        ],
+        "door_sky_deck": [
+          -11.7952,
+          58.0448,
+          -68.9864
+        ],
+        "door_lantern_chamber": [
+          -4.656,
+          60.0624,
+          -58.1224
+        ]
+      },
+      "walkable_floors": [
+        "floor_cornice_gallery",
+        "floor_hall_east",
+        "floor_hall_west",
+        "floor_lantern_chamber",
+        "floor_observation_deck",
+        "floor_plaza",
+        "floor_rotunda_plaza",
+        "floor_stair_landings",
+        "floor_stairs_mx",
+        "floor_stairs_mz",
+        "floor_stairs_px",
+        "floor_stairs_pz"
+      ],
+      "collision_box_count": 113
+    },
+    "1941": {
+      "years": "1941-1975",
+      "label": "Mature / Wartime",
+      "summary": "Slightly darkened stone with faint drips, streaky brown-green copper, 1941-1945 bronze war plaque, sandbags at main stairs, taped X-cross hall windows, mature trees.",
+      "file": "great-meridian-1941.glb",
+      "visible_triangles_instanced": 27833,
+      "doors": {
+        "door_main": [
+          0.0,
+          0.1552,
+          -28.712
+        ],
+        "door_rotunda_south": [
+          0.0,
+          6.5184,
+          -42.6024
+        ],
+        "door_north": [
+          0.0,
+          6.5184,
+          -77.3672
+        ],
+        "door_east": [
+          17.3824,
+          6.5184,
+          -59.9848
+        ],
+        "door_west": [
+          -17.3824,
+          6.5184,
+          -59.9848
+        ],
+        "door_hall_west": [
+          -7.4496,
+          6.5184,
+          -47.5688
+        ],
+        "door_hall_east": [
+          7.4496,
+          6.5184,
+          -47.5688
+        ],
+        "door_observatory_lift": [
+          -7.4496,
+          6.5184,
+          -72.4008
+        ],
+        "door_cornice_gallery": [
+          -11.7952,
+          24.056,
+          -68.9864
+        ],
+        "door_sky_deck": [
+          -11.7952,
+          58.0448,
+          -68.9864
+        ],
+        "door_lantern_chamber": [
+          -4.656,
+          60.0624,
+          -58.1224
+        ]
+      },
+      "walkable_floors": [
+        "floor_cornice_gallery",
+        "floor_hall_east",
+        "floor_hall_west",
+        "floor_lantern_chamber",
+        "floor_observation_deck",
+        "floor_plaza",
+        "floor_rotunda_plaza",
+        "floor_stair_landings",
+        "floor_stairs_mx",
+        "floor_stairs_mz",
+        "floor_stairs_px",
+        "floor_stairs_pz"
+      ],
+      "collision_box_count": 118
+    },
+    "1976": {
+      "years": "1976-1999",
+      "label": "Worn / Stalled Repairs",
+      "summary": "Heavy dark cornice drips, deep black-streaked green copper, paving weeds, chipped Industry gear, tarped SE pier scaffolding + chain-link fence, 'CLOSED FOR REPAIRS' North stair sawhorse, beacon off, 3 broken lamps, East telescope missing.",
+      "file": "great-meridian-1976.glb",
+      "visible_triangles_instanced": 28297,
+      "doors": {
+        "door_main": [
+          0.0,
+          0.1552,
+          -28.712
+        ],
+        "door_rotunda_south": [
+          0.0,
+          6.5184,
+          -42.6024
+        ],
+        "door_north": [
+          0.0,
+          6.5184,
+          -77.3672
+        ],
+        "door_east": [
+          17.3824,
+          6.5184,
+          -59.9848
+        ],
+        "door_west": [
+          -17.3824,
+          6.5184,
+          -59.9848
+        ],
+        "door_hall_west": [
+          -7.4496,
+          6.5184,
+          -47.5688
+        ],
+        "door_hall_east": [
+          7.4496,
+          6.5184,
+          -47.5688
+        ],
+        "door_observatory_lift": [
+          -7.4496,
+          6.5184,
+          -72.4008
+        ],
+        "door_cornice_gallery": [
+          -11.7952,
+          24.056,
+          -68.9864
+        ],
+        "door_sky_deck": [
+          -11.7952,
+          58.0448,
+          -68.9864
+        ],
+        "door_lantern_chamber": [
+          -4.656,
+          60.0624,
+          -58.1224
+        ]
+      },
+      "walkable_floors": [
+        "floor_cornice_gallery",
+        "floor_hall_east",
+        "floor_hall_west",
+        "floor_lantern_chamber",
+        "floor_observation_deck",
+        "floor_plaza",
+        "floor_rotunda_plaza",
+        "floor_stair_landings",
+        "floor_stairs_mx",
+        "floor_stairs_mz",
+        "floor_stairs_px",
+        "floor_stairs_pz"
+      ],
+      "collision_box_count": 116
+    },
+    "2000": {
+      "years": "2000+",
+      "label": "Restored & Accessible",
+      "summary": "Cleaned pale stone, restored streak-free bright verdigris copper, visible LED floodlight fixtures, East accessibility ramp, SW Visitor Centre, 1 m interpretive panels, trash bins, bike rack.",
+      "file": "great-meridian-2000.glb",
+      "visible_triangles_instanced": 29017,
+      "doors": {
+        "door_main": [
+          0.0,
+          0.1552,
+          -28.712
+        ],
+        "door_rotunda_south": [
+          0.0,
+          6.5184,
+          -42.6024
+        ],
+        "door_north": [
+          0.0,
+          6.5184,
+          -77.3672
+        ],
+        "door_east": [
+          17.3824,
+          6.5184,
+          -59.9848
+        ],
+        "door_west": [
+          -17.3824,
+          6.5184,
+          -59.9848
+        ],
+        "door_hall_west": [
+          -7.4496,
+          6.5184,
+          -47.5688
+        ],
+        "door_hall_east": [
+          7.4496,
+          6.5184,
+          -47.5688
+        ],
+        "door_observatory_lift": [
+          -7.4496,
+          6.5184,
+          -72.4008
+        ],
+        "door_cornice_gallery": [
+          -11.7952,
+          24.056,
+          -68.9864
+        ],
+        "door_sky_deck": [
+          -11.7952,
+          58.0448,
+          -68.9864
+        ],
+        "door_lantern_chamber": [
+          -4.656,
+          60.0624,
+          -58.1224
+        ],
+        "door_visitor_center": [
+          -44.7752,
+          0.3259,
+          -9.1568
+        ]
+      },
+      "walkable_floors": [
+        "floor_access_ramp",
+        "floor_cornice_gallery",
+        "floor_hall_east",
+        "floor_hall_west",
+        "floor_lantern_chamber",
+        "floor_observation_deck",
+        "floor_plaza",
+        "floor_rotunda_plaza",
+        "floor_stair_landings",
+        "floor_stairs_mx",
+        "floor_stairs_mz",
+        "floor_stairs_px",
+        "floor_stairs_pz",
+        "floor_visitor_center"
+      ],
+      "collision_box_count": 115
+    }
+  },
+  "mid_lod": {
+    "file": "great-meridian-mid.glb",
+    "visible_triangles": 5042,
+    "distance_range_m": "500-2000"
+  },
+  "far_lod": {
+    "file": "great-meridian-far.glb",
+    "visible_triangles": 330,
+    "distance_range_m": "2000+"
+  },
+  "materials": [
+    "stone_limestone",
+    "stone_granite",
+    "stone_ashlar",
+    "steel_truss",
+    "copper_spire",
+    "bronze_gilded",
+    "water_pool",
+    "marble_plaza",
+    "glass_cathedral",
+    "detail_atlas",
+    "inscriptions",
+    "glow_monument"
+  ],
+  "lighting_palette": {
+    "stone_floods": {
+      "color": "#FFE4B5",
+      "kelvin": 3000,
+      "description": "Warm white 3,000 K stone wash"
+    },
+    "sphere_floods": {
+      "color": "#FFD88A",
+      "kelvin": 2800,
+      "description": "Warm gold uplighting on 18 m sphere"
+    },
+    "beacon_beam": {
+      "color": "#FFFFFF",
+      "description": "Sweeping white aviation beam"
+    },
+    "lantern_lancets": {
+      "color": "#FFB347",
+      "description": "Amber crown lancet glow"
+    },
+    "eternal_flames": {
+      "color": "#FF7A28",
+      "description": "Orange eternal tripod brazier flames"
+    }
+  },
+  "armillary_nodes": {
+    "parent": "armillary_sphere",
+    "diameter_m": 18.0,
+    "outer_fixed": {
+      "node": "armillary_outer",
+      "rotation_axis": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "ecliptic_rotating": {
+      "node": "armillary_ecliptic",
+      "rotation_axis": [
+        -0.39715,
+        0.91775,
+        0.0
+      ],
+      "tilt_deg": 23.4,
+      "period": "1 game day"
+    },
+    "earth_globe_rotating": {
+      "node": "armillary_globe",
+      "rotation_axis": [
+        -0.39715,
+        0.91775,
+        0.0
+      ],
+      "polar_axis_tilt_deg": 23.4,
+      "globe_diameter_m": 5.0,
+      "period": "1 game day"
+    }
+  },
+  "beacon_beam": {
+    "node": "beacon_beam",
+    "position_m": [
+      0.0,
+      102.5872,
+      -59.9848
+    ],
+    "direction": [
+      0.0,
+      -0.05,
+      1.0
+    ],
+    "color": "#FFFFFF",
+    "rotation_period_s": 10.0
+  },
+  "lift_car": {
+    "node": "lift_car",
+    "shaft_xz_m": [
+      -11.7952,
+      -71.78
+    ],
+    "stops_y_m": [
+      6.52,
+      24.06,
+      58.04
+    ]
+  },
+  "floodlights": [
+    {
+      "node": "flood_01",
+      "role": "pier_sw_uplight",
+      "position_m": [
+        -16.296,
+        6.5184,
+        -43.6888
+      ],
+      "direction": [
+        0.2201,
+        0.9503,
+        -0.2201
+      ],
+      "color": "#FFE4B5",
+      "color_kelvin": 3000
+    },
+    {
+      "node": "flood_02",
+      "role": "pier_se_uplight",
+      "position_m": [
+        16.296,
+        6.5184,
+        -43.6888
+      ],
+      "direction": [
+        -0.2201,
+        0.9503,
+        -0.2201
+      ],
+      "color": "#FFE4B5",
+      "color_kelvin": 3000
+    },
+    {
+      "node": "flood_03",
+      "role": "pier_nw_uplight",
+      "position_m": [
+        -16.296,
+        6.5184,
+        -76.2808
+      ],
+      "direction": [
+        0.2201,
+        0.9503,
+        0.2201
+      ],
+      "color": "#FFE4B5",
+      "color_kelvin": 3000
+    },
+    {
+      "node": "flood_04",
+      "role": "pier_ne_uplight",
+      "position_m": [
+        16.296,
+        6.5184,
+        -76.2808
+      ],
+      "direction": [
+        -0.2201,
+        0.9503,
+        0.2201
+      ],
+      "color": "#FFE4B5",
+      "color_kelvin": 3000
+    },
+    {
+      "node": "flood_05",
+      "role": "rotunda_uplight_sw",
+      "position_m": [
+        -6.5184,
+        6.5184,
+        -53.4664
+      ],
+      "direction": [
+        0.1812,
+        0.9666,
+        -0.1812
+      ],
+      "color": "#FFE4B5",
+      "color_kelvin": 3000
+    },
+    {
+      "node": "flood_06",
+      "role": "rotunda_uplight_se",
+      "position_m": [
+        6.5184,
+        6.5184,
+        -53.4664
+      ],
+      "direction": [
+        -0.1812,
+        0.9666,
+        -0.1812
+      ],
+      "color": "#FFE4B5",
+      "color_kelvin": 3000
+    },
+    {
+      "node": "flood_07",
+      "role": "rotunda_uplight_nw",
+      "position_m": [
+        -6.5184,
+        6.5184,
+        -66.5032
+      ],
+      "direction": [
+        0.1812,
+        0.9666,
+        0.1812
+      ],
+      "color": "#FFE4B5",
+      "color_kelvin": 3000
+    },
+    {
+      "node": "flood_08",
+      "role": "rotunda_uplight_ne",
+      "position_m": [
+        6.5184,
+        6.5184,
+        -66.5032
+      ],
+      "direction": [
+        -0.1812,
+        0.9666,
+        0.1812
+      ],
+      "color": "#FFE4B5",
+      "color_kelvin": 3000
+    },
+    {
+      "node": "flood_09",
+      "role": "plaza_south_west_flood",
+      "position_m": [
+        -11.64,
+        0.1552,
+        -25.8408
+      ],
+      "direction": [
+        0.2395,
+        0.6186,
+        -0.7483
+      ],
+      "color": "#FFE4B5",
+      "color_kelvin": 3000
+    },
+    {
+      "node": "flood_10",
+      "role": "plaza_south_east_flood",
+      "position_m": [
+        11.64,
+        0.1552,
+        -25.8408
+      ],
+      "direction": [
+        -0.2395,
+        0.6186,
+        -0.7483
+      ],
+      "color": "#FFE4B5",
+      "color_kelvin": 3000
+    },
+    {
+      "node": "flood_11",
+      "role": "plaza_west_flood",
+      "position_m": [
+        -34.144,
+        0.1552,
+        -59.9848
+      ],
+      "direction": [
+        0.7828,
+        0.6222,
+        0.0
+      ],
+      "color": "#FFE4B5",
+      "color_kelvin": 3000
+    },
+    {
+      "node": "flood_12",
+      "role": "plaza_east_flood",
+      "position_m": [
+        34.144,
+        0.1552,
+        -59.9848
+      ],
+      "direction": [
+        -0.7828,
+        0.6222,
+        0.0
+      ],
+      "color": "#FFE4B5",
+      "color_kelvin": 3000
+    },
+    {
+      "node": "flood_sphere_01",
+      "role": "sphere_inner_pier_sw",
+      "position_m": [
+        -9.0016,
+        27.936,
+        -50.9832
+      ],
+      "direction": [
+        0.494,
+        0.7155,
+        -0.494
+      ],
+      "color": "#FFD88A",
+      "color_kelvin": 2800
+    },
+    {
+      "node": "flood_sphere_02",
+      "role": "sphere_inner_pier_se",
+      "position_m": [
+        9.0016,
+        27.936,
+        -50.9832
+      ],
+      "direction": [
+        -0.494,
+        0.7155,
+        -0.494
+      ],
+      "color": "#FFD88A",
+      "color_kelvin": 2800
+    },
+    {
+      "node": "flood_sphere_03",
+      "role": "sphere_inner_pier_nw",
+      "position_m": [
+        -9.0016,
+        27.936,
+        -68.9864
+      ],
+      "direction": [
+        0.494,
+        0.7155,
+        0.494
+      ],
+      "color": "#FFD88A",
+      "color_kelvin": 2800
+    },
+    {
+      "node": "flood_sphere_04",
+      "role": "sphere_inner_pier_ne",
+      "position_m": [
+        9.0016,
+        27.936,
+        -68.9864
+      ],
+      "direction": [
+        -0.494,
+        0.7155,
+        0.494
+      ],
+      "color": "#FFD88A",
+      "color_kelvin": 2800
+    }
+  ],
+  "tree_nodes": [
+    "tree_01",
+    "tree_02",
+    "tree_03",
+    "tree_04",
+    "tree_05",
+    "tree_06",
+    "tree_07",
+    "tree_08"
+  ],
+  "collision": {
+    "coordinate_frame": "glTF metres (Y-up, +Z front \u2014 same frame as doors)",
+    "count": 115,
+    "boxes_gltf_y_up": [
+      {
+        "source": "grand_reflecting_pool_water",
+        "category": "lot",
+        "center": [
+          0.0,
+          0.2522,
+          -17.6152
+        ],
+        "size": [
+          14.8992,
+          0.5044,
+          18.4688
+        ],
+        "height_top_m": 0.5044
+      },
+      {
+        "source": "reflecting_pool_exedra_0",
+        "category": "lot",
+        "center": [
+          5.8056,
+          0.776,
+          -5.2084
+        ],
+        "size": [
+          1.6173,
+          1.552,
+          1.9367
+        ],
+        "height_top_m": 1.552
+      },
+      {
+        "source": "reflecting_pool_exedra_1",
+        "category": "lot",
+        "center": [
+          5.0141,
+          0.776,
+          -3.791
+        ],
+        "size": [
+          1.8564,
+          1.552,
+          1.9688
+        ],
+        "height_top_m": 1.552
+      },
+      {
+        "source": "reflecting_pool_exedra_2",
+        "category": "lot",
+        "center": [
+          3.8755,
+          0.776,
+          -2.6376
+        ],
+        "size": [
+          1.9669,
+          1.552,
+          1.8647
+        ],
+        "height_top_m": 1.552
+      },
+      {
+        "source": "reflecting_pool_exedra_3",
+        "category": "lot",
+        "center": [
+          2.4685,
+          0.776,
+          -1.8281
+        ],
+        "size": [
+          1.9413,
+          1.552,
+          1.6314
+        ],
+        "height_top_m": 1.552
+      },
+      {
+        "source": "reflecting_pool_exedra_4",
+        "category": "lot",
+        "center": [
+          0.8906,
+          0.776,
+          -1.4186
+        ],
+        "size": [
+          1.7812,
+          1.552,
+          1.2852
+        ],
+        "height_top_m": 1.552
+      },
+      {
+        "source": "reflecting_pool_exedra_5",
+        "category": "lot",
+        "center": [
+          -0.8906,
+          0.776,
+          -1.4186
+        ],
+        "size": [
+          1.7812,
+          1.552,
+          1.2852
+        ],
+        "height_top_m": 1.552
+      },
+      {
+        "source": "reflecting_pool_exedra_6",
+        "category": "lot",
+        "center": [
+          -2.4685,
+          0.776,
+          -1.8281
+        ],
+        "size": [
+          1.9413,
+          1.552,
+          1.6314
+        ],
+        "height_top_m": 1.552
+      },
+      {
+        "source": "reflecting_pool_exedra_7",
+        "category": "lot",
+        "center": [
+          -3.8755,
+          0.776,
+          -2.6376
+        ],
+        "size": [
+          1.9669,
+          1.552,
+          1.8647
+        ],
+        "height_top_m": 1.552
+      },
+      {
+        "source": "reflecting_pool_exedra_8",
+        "category": "lot",
+        "center": [
+          -5.0141,
+          0.776,
+          -3.791
+        ],
+        "size": [
+          1.8564,
+          1.552,
+          1.9688
+        ],
+        "height_top_m": 1.552
+      },
+      {
+        "source": "reflecting_pool_exedra_9",
+        "category": "lot",
+        "center": [
+          -5.8056,
+          0.776,
+          -5.2084
+        ],
+        "size": [
+          1.6173,
+          1.552,
+          1.9367
+        ],
+        "height_top_m": 1.552
+      },
+      {
+        "source": "exedra_dedication_wall",
+        "category": "lot",
+        "center": [
+          0.0,
+          0.9506,
+          -0.776
+        ],
+        "size": [
+          18.9344,
+          1.9012,
+          0.6208
+        ],
+        "height_top_m": 1.9012
+      },
+      {
+        "source": "perimeter_wall_s_-773",
+        "category": "lot",
+        "center": [
+          -38.1404,
+          0.5432,
+          -0.388
+        ],
+        "size": [
+          43.6888,
+          1.0864,
+          0.776
+        ],
+        "height_top_m": 1.0864
+      },
+      {
+        "source": "perimeter_wall_n_-773",
+        "category": "lot",
+        "center": [
+          -38.1404,
+          0.5432,
+          -119.5816
+        ],
+        "size": [
+          43.6888,
+          1.0864,
+          0.776
+        ],
+        "height_top_m": 1.0864
+      },
+      {
+        "source": "perimeter_wall_w_-773",
+        "category": "lot",
+        "center": [
+          -59.5968,
+          0.5432,
+          -98.1252
+        ],
+        "size": [
+          0.776,
+          1.0864,
+          43.6888
+        ],
+        "height_top_m": 1.0864
+      },
+      {
+        "source": "perimeter_wall_e_-773",
+        "category": "lot",
+        "center": [
+          59.5968,
+          0.5432,
+          -98.1252
+        ],
+        "size": [
+          0.776,
+          1.0864,
+          43.6888
+        ],
+        "height_top_m": 1.0864
+      },
+      {
+        "source": "perimeter_wall_s_210",
+        "category": "lot",
+        "center": [
+          38.1404,
+          0.5432,
+          -0.388
+        ],
+        "size": [
+          43.6888,
+          1.0864,
+          0.776
+        ],
+        "height_top_m": 1.0864
+      },
+      {
+        "source": "perimeter_wall_n_210",
+        "category": "lot",
+        "center": [
+          38.1404,
+          0.5432,
+          -119.5816
+        ],
+        "size": [
+          43.6888,
+          1.0864,
+          0.776
+        ],
+        "height_top_m": 1.0864
+      },
+      {
+        "source": "perimeter_wall_w_210",
+        "category": "lot",
+        "center": [
+          -59.5968,
+          0.5432,
+          -21.8444
+        ],
+        "size": [
+          0.776,
+          1.0864,
+          43.6888
+        ],
+        "height_top_m": 1.0864
+      },
+      {
+        "source": "perimeter_wall_e_210",
+        "category": "lot",
+        "center": [
+          59.5968,
+          0.5432,
+          -21.8444
+        ],
+        "size": [
+          0.776,
+          1.0864,
+          43.6888
+        ],
+        "height_top_m": 1.0864
+      },
+      {
+        "source": "entry_gate_pier_-214",
+        "category": "lot",
+        "center": [
+          -16.6064,
+          1.5132,
+          -0.6208
+        ],
+        "size": [
+          1.8624,
+          3.0264,
+          1.2416
+        ],
+        "height_top_m": 3.0264
+      },
+      {
+        "source": "entry_gate_pier_214",
+        "category": "lot",
+        "center": [
+          16.6064,
+          1.5132,
+          -0.6208
+        ],
+        "size": [
+          1.8624,
+          3.0264,
+          1.2416
+        ],
+        "height_top_m": 3.0264
+      },
+      {
+        "source": "acropolis_tier1",
+        "category": "exterior",
+        "center": [
+          0.0,
+          1.0864,
+          -60.7608
+        ],
+        "size": [
+          55.872,
+          2.1728,
+          54.32
+        ],
+        "height_top_m": 2.1728
+      },
+      {
+        "source": "acropolis_tier2",
+        "category": "exterior",
+        "center": [
+          0.0,
+          3.2592,
+          -60.4504
+        ],
+        "size": [
+          48.4224,
+          2.1728,
+          47.4912
+        ],
+        "height_top_m": 4.3456
+      },
+      {
+        "source": "acropolis_tier3",
+        "category": "exterior",
+        "center": [
+          0.0,
+          5.432,
+          -59.9848
+        ],
+        "size": [
+          40.9728,
+          2.1728,
+          40.9728
+        ],
+        "height_top_m": 6.5184
+      },
+      {
+        "source": "stair_s_0",
+        "category": "steps",
+        "center": [
+          0.0,
+          0.3049,
+          -30.5899
+        ],
+        "size": [
+          14.5888,
+          0.6097,
+          1.1174
+        ],
+        "height_top_m": 0.6097
+      },
+      {
+        "source": "stair_s_2",
+        "category": "steps",
+        "center": [
+          0.0,
+          0.7594,
+          -31.7074
+        ],
+        "size": [
+          14.5888,
+          1.5187,
+          1.1174
+        ],
+        "height_top_m": 1.5187
+      },
+      {
+        "source": "stair_s_4",
+        "category": "steps",
+        "center": [
+          0.0,
+          1.2139,
+          -32.8248
+        ],
+        "size": [
+          14.5888,
+          2.4278,
+          1.1174
+        ],
+        "height_top_m": 2.4278
+      },
+      {
+        "source": "stair_s_6",
+        "category": "steps",
+        "center": [
+          0.0,
+          1.6684,
+          -34.4854
+        ],
+        "size": [
+          14.5888,
+          3.3368,
+          2.2038
+        ],
+        "height_top_m": 3.3368
+      },
+      {
+        "source": "stair_s_8",
+        "category": "steps",
+        "center": [
+          0.0,
+          2.1229,
+          -36.1461
+        ],
+        "size": [
+          14.5888,
+          4.2458,
+          1.1174
+        ],
+        "height_top_m": 4.2458
+      },
+      {
+        "source": "stair_s_10",
+        "category": "steps",
+        "center": [
+          0.0,
+          2.5774,
+          -37.2635
+        ],
+        "size": [
+          14.5888,
+          5.1549,
+          1.1174
+        ],
+        "height_top_m": 5.1549
+      },
+      {
+        "source": "stair_s_12",
+        "category": "steps",
+        "center": [
+          0.0,
+          3.0319,
+          -38.381
+        ],
+        "size": [
+          14.5888,
+          6.0639,
+          1.1174
+        ],
+        "height_top_m": 6.0639
+      },
+      {
+        "source": "stair_cheek_s_-1",
+        "category": "exterior",
+        "center": [
+          -8.148,
+          3.492,
+          -34.7338
+        ],
+        "size": [
+          1.7072,
+          6.984,
+          9.5293
+        ],
+        "height_top_m": 6.984
+      },
+      {
+        "source": "stair_cheek_s_1",
+        "category": "exterior",
+        "center": [
+          8.148,
+          3.492,
+          -34.7338
+        ],
+        "size": [
+          1.7072,
+          6.984,
+          9.5293
+        ],
+        "height_top_m": 6.984
+      },
+      {
+        "source": "stair_n_0",
+        "category": "steps",
+        "center": [
+          0.0,
+          0.3427,
+          -89.3797
+        ],
+        "size": [
+          12.416,
+          0.6855,
+          1.3037
+        ],
+        "height_top_m": 0.6855
+      },
+      {
+        "source": "stair_n_2",
+        "category": "steps",
+        "center": [
+          0.0,
+          0.873,
+          -88.076
+        ],
+        "size": [
+          12.416,
+          1.746,
+          1.3037
+        ],
+        "height_top_m": 1.746
+      },
+      {
+        "source": "stair_n_4",
+        "category": "steps",
+        "center": [
+          0.0,
+          1.4033,
+          -86.7723
+        ],
+        "size": [
+          12.416,
+          2.8065,
+          1.3037
+        ],
+        "height_top_m": 2.8065
+      },
+      {
+        "source": "stair_n_6",
+        "category": "steps",
+        "center": [
+          0.0,
+          1.9335,
+          -84.3822
+        ],
+        "size": [
+          12.416,
+          3.8671,
+          1.3037
+        ],
+        "height_top_m": 3.8671
+      },
+      {
+        "source": "stair_n_8",
+        "category": "steps",
+        "center": [
+          0.0,
+          2.4638,
+          -83.0786
+        ],
+        "size": [
+          12.416,
+          4.9276,
+          1.3037
+        ],
+        "height_top_m": 4.9276
+      },
+      {
+        "source": "stair_n_10",
+        "category": "steps",
+        "center": [
+          0.0,
+          2.9941,
+          -81.7749
+        ],
+        "size": [
+          12.416,
+          5.9881,
+          1.3037
+        ],
+        "height_top_m": 5.9881
+      },
+      {
+        "source": "stair_cheek_n_-1",
+        "category": "exterior",
+        "center": [
+          -6.8288,
+          3.492,
+          -84.9254
+        ],
+        "size": [
+          1.2416,
+          6.984,
+          8.9085
+        ],
+        "height_top_m": 6.984
+      },
+      {
+        "source": "stair_cheek_n_1",
+        "category": "exterior",
+        "center": [
+          6.8288,
+          3.492,
+          -84.9254
+        ],
+        "size": [
+          1.2416,
+          6.984,
+          8.9085
+        ],
+        "height_top_m": 6.984
+      },
+      {
+        "source": "stair_e_0",
+        "category": "steps",
+        "center": [
+          29.3949,
+          0.3427,
+          -59.9848
+        ],
+        "size": [
+          1.3037,
+          0.6855,
+          12.416
+        ],
+        "height_top_m": 0.6855
+      },
+      {
+        "source": "stair_e_2",
+        "category": "steps",
+        "center": [
+          28.0912,
+          0.873,
+          -59.9848
+        ],
+        "size": [
+          1.3037,
+          1.746,
+          12.416
+        ],
+        "height_top_m": 1.746
+      },
+      {
+        "source": "stair_e_4",
+        "category": "steps",
+        "center": [
+          26.7875,
+          1.4033,
+          -59.9848
+        ],
+        "size": [
+          1.3037,
+          2.8065,
+          12.416
+        ],
+        "height_top_m": 2.8065
+      },
+      {
+        "source": "stair_e_6",
+        "category": "steps",
+        "center": [
+          24.3974,
+          1.9335,
+          -59.9848
+        ],
+        "size": [
+          1.3037,
+          3.8671,
+          12.416
+        ],
+        "height_top_m": 3.8671
+      },
+      {
+        "source": "stair_e_8",
+        "category": "steps",
+        "center": [
+          23.0938,
+          2.4638,
+          -59.9848
+        ],
+        "size": [
+          1.3037,
+          4.9276,
+          12.416
+        ],
+        "height_top_m": 4.9276
+      },
+      {
+        "source": "stair_e_10",
+        "category": "steps",
+        "center": [
+          21.7901,
+          2.9941,
+          -59.9848
+        ],
+        "size": [
+          1.3037,
+          5.9881,
+          12.416
+        ],
+        "height_top_m": 5.9881
+      },
+      {
+        "source": "stair_cheek_e_-1",
+        "category": "exterior",
+        "center": [
+          24.9406,
+          3.492,
+          -66.8136
+        ],
+        "size": [
+          8.9085,
+          6.984,
+          1.2416
+        ],
+        "height_top_m": 6.984
+      },
+      {
+        "source": "stair_cheek_e_1",
+        "category": "exterior",
+        "center": [
+          24.9406,
+          3.492,
+          -53.156
+        ],
+        "size": [
+          8.9085,
+          6.984,
+          1.2416
+        ],
+        "height_top_m": 6.984
+      },
+      {
+        "source": "stair_w_0",
+        "category": "steps",
+        "center": [
+          -29.3949,
+          0.3427,
+          -59.9848
+        ],
+        "size": [
+          1.3037,
+          0.6855,
+          12.416
+        ],
+        "height_top_m": 0.6855
+      },
+      {
+        "source": "stair_w_2",
+        "category": "steps",
+        "center": [
+          -28.0912,
+          0.873,
+          -59.9848
+        ],
+        "size": [
+          1.3037,
+          1.746,
+          12.416
+        ],
+        "height_top_m": 1.746
+      },
+      {
+        "source": "stair_w_4",
+        "category": "steps",
+        "center": [
+          -26.7875,
+          1.4033,
+          -59.9848
+        ],
+        "size": [
+          1.3037,
+          2.8065,
+          12.416
+        ],
+        "height_top_m": 2.8065
+      },
+      {
+        "source": "stair_w_6",
+        "category": "steps",
+        "center": [
+          -24.3974,
+          1.9335,
+          -59.9848
+        ],
+        "size": [
+          1.3037,
+          3.8671,
+          12.416
+        ],
+        "height_top_m": 3.8671
+      },
+      {
+        "source": "stair_w_8",
+        "category": "steps",
+        "center": [
+          -23.0938,
+          2.4638,
+          -59.9848
+        ],
+        "size": [
+          1.3037,
+          4.9276,
+          12.416
+        ],
+        "height_top_m": 4.9276
+      },
+      {
+        "source": "stair_w_10",
+        "category": "steps",
+        "center": [
+          -21.7901,
+          2.9941,
+          -59.9848
+        ],
+        "size": [
+          1.3037,
+          5.9881,
+          12.416
+        ],
+        "height_top_m": 5.9881
+      },
+      {
+        "source": "stair_cheek_w_-1",
+        "category": "exterior",
+        "center": [
+          -24.9406,
+          3.492,
+          -66.8136
+        ],
+        "size": [
+          8.9085,
+          6.984,
+          1.2416
+        ],
+        "height_top_m": 6.984
+      },
+      {
+        "source": "stair_cheek_w_1",
+        "category": "exterior",
+        "center": [
+          -24.9406,
+          3.492,
+          -53.156
+        ],
+        "size": [
+          8.9085,
+          6.984,
+          1.2416
+        ],
+        "height_top_m": 6.984
+      },
+      {
+        "source": "accessibility_ramp_east",
+        "category": "exterior",
+        "center": [
+          29.9536,
+          3.7248,
+          -45.2408
+        ],
+        "size": [
+          4.0352,
+          7.4496,
+          13.968
+        ],
+        "height_top_m": 7.4496
+      },
+      {
+        "source": "arch_block_corner_wn",
+        "category": "exterior",
+        "center": [
+          -12.416,
+          15.2872,
+          -72.4008
+        ],
+        "size": [
+          9.9328,
+          17.5376,
+          9.9328
+        ],
+        "height_top_m": 24.056
+      },
+      {
+        "source": "arch_block_corner_ws",
+        "category": "exterior",
+        "center": [
+          -12.416,
+          15.2872,
+          -47.5688
+        ],
+        "size": [
+          9.9328,
+          17.5376,
+          9.9328
+        ],
+        "height_top_m": 24.056
+      },
+      {
+        "source": "arch_block_corner_en",
+        "category": "exterior",
+        "center": [
+          12.416,
+          15.2872,
+          -72.4008
+        ],
+        "size": [
+          9.9328,
+          17.5376,
+          9.9328
+        ],
+        "height_top_m": 24.056
+      },
+      {
+        "source": "arch_block_corner_es",
+        "category": "exterior",
+        "center": [
+          12.416,
+          15.2872,
+          -47.5688
+        ],
+        "size": [
+          9.9328,
+          17.5376,
+          9.9328
+        ],
+        "height_top_m": 24.056
+      },
+      {
+        "source": "arch_lintel_z_1",
+        "category": "exterior",
+        "center": [
+          0.0,
+          21.728,
+          -47.5688
+        ],
+        "size": [
+          14.8992,
+          4.656,
+          9.9328
+        ],
+        "height_top_m": 24.056
+      },
+      {
+        "source": "arch_lintel_z_-1",
+        "category": "exterior",
+        "center": [
+          0.0,
+          21.728,
+          -72.4008
+        ],
+        "size": [
+          14.8992,
+          4.656,
+          9.9328
+        ],
+        "height_top_m": 24.056
+      },
+      {
+        "source": "arch_lintel_x_1",
+        "category": "exterior",
+        "center": [
+          12.416,
+          21.728,
+          -59.9848
+        ],
+        "size": [
+          9.9328,
+          4.656,
+          14.8992
+        ],
+        "height_top_m": 24.056
+      },
+      {
+        "source": "arch_lintel_x_-1",
+        "category": "exterior",
+        "center": [
+          -12.416,
+          21.728,
+          -59.9848
+        ],
+        "size": [
+          9.9328,
+          4.656,
+          14.8992
+        ],
+        "height_top_m": 24.056
+      },
+      {
+        "source": "bronze_door_open_w",
+        "category": "exterior",
+        "center": [
+          -7.2478,
+          9.0016,
+          -44.1544
+        ],
+        "size": [
+          0.4346,
+          4.9664,
+          2.1728
+        ],
+        "height_top_m": 11.4848
+      },
+      {
+        "source": "bronze_door_open_e",
+        "category": "exterior",
+        "center": [
+          7.2478,
+          9.0016,
+          -44.1544
+        ],
+        "size": [
+          0.4346,
+          4.9664,
+          2.1728
+        ],
+        "height_top_m": 11.4848
+      },
+      {
+        "source": "cornice_railing_s",
+        "category": "railing",
+        "center": [
+          0.0,
+          24.638,
+          -42.6024
+        ],
+        "size": [
+          35.0752,
+          1.164,
+          0.3104
+        ],
+        "height_top_m": 25.22
+      },
+      {
+        "source": "cornice_railing_n",
+        "category": "railing",
+        "center": [
+          0.0,
+          24.638,
+          -77.3672
+        ],
+        "size": [
+          35.0752,
+          1.164,
+          0.3104
+        ],
+        "height_top_m": 25.22
+      },
+      {
+        "source": "cornice_railing_w",
+        "category": "railing",
+        "center": [
+          -17.3824,
+          24.638,
+          -59.9848
+        ],
+        "size": [
+          0.3104,
+          1.164,
+          35.0752
+        ],
+        "height_top_m": 25.22
+      },
+      {
+        "source": "cornice_railing_e",
+        "category": "railing",
+        "center": [
+          17.3824,
+          24.638,
+          -59.9848
+        ],
+        "size": [
+          0.3104,
+          1.164,
+          35.0752
+        ],
+        "height_top_m": 25.22
+      },
+      {
+        "source": "guardian_statue_industry",
+        "category": "exterior",
+        "center": [
+          -16.296,
+          48.6552,
+          -76.2808
+        ],
+        "size": [
+          4.656,
+          10.3984,
+          4.656
+        ],
+        "height_top_m": 53.8544
+      },
+      {
+        "source": "cathedral_pier_wn",
+        "category": "exterior",
+        "center": [
+          -12.1056,
+          41.0504,
+          -72.0904
+        ],
+        "size": [
+          6.208,
+          33.9888,
+          6.208
+        ],
+        "height_top_m": 58.0448
+      },
+      {
+        "source": "guardian_statue_defense",
+        "category": "exterior",
+        "center": [
+          -16.296,
+          48.6552,
+          -43.6888
+        ],
+        "size": [
+          4.656,
+          10.3984,
+          4.656
+        ],
+        "height_top_m": 53.8544
+      },
+      {
+        "source": "cathedral_pier_ws",
+        "category": "exterior",
+        "center": [
+          -12.1056,
+          41.0504,
+          -47.8792
+        ],
+        "size": [
+          6.208,
+          33.9888,
+          6.208
+        ],
+        "height_top_m": 58.0448
+      },
+      {
+        "source": "guardian_statue_harvest",
+        "category": "exterior",
+        "center": [
+          16.296,
+          48.6552,
+          -76.2808
+        ],
+        "size": [
+          4.656,
+          10.3984,
+          4.656
+        ],
+        "height_top_m": 53.8544
+      },
+      {
+        "source": "cathedral_pier_en",
+        "category": "exterior",
+        "center": [
+          12.1056,
+          41.0504,
+          -72.0904
+        ],
+        "size": [
+          6.208,
+          33.9888,
+          6.208
+        ],
+        "height_top_m": 58.0448
+      },
+      {
+        "source": "guardian_statue_learning",
+        "category": "exterior",
+        "center": [
+          16.296,
+          48.6552,
+          -43.6888
+        ],
+        "size": [
+          4.656,
+          10.3984,
+          4.656
+        ],
+        "height_top_m": 53.8544
+      },
+      {
+        "source": "cathedral_pier_es",
+        "category": "exterior",
+        "center": [
+          12.1056,
+          41.0504,
+          -47.8792
+        ],
+        "size": [
+          6.208,
+          33.9888,
+          6.208
+        ],
+        "height_top_m": 58.0448
+      },
+      {
+        "source": "nw_elevator_cage",
+        "category": "interior",
+        "center": [
+          -11.7952,
+          32.2816,
+          -71.78
+        ],
+        "size": [
+          1.8624,
+          51.5264,
+          1.8624
+        ],
+        "height_top_m": 58.0448
+      },
+      {
+        "source": "nw_stair_north",
+        "category": "interior",
+        "center": [
+          -11.7952,
+          32.2816,
+          -73.138
+        ],
+        "size": [
+          3.5696,
+          51.5264,
+          0.8536
+        ],
+        "height_top_m": 58.0448
+      },
+      {
+        "source": "nw_stair_south",
+        "category": "interior",
+        "center": [
+          -11.7952,
+          32.2816,
+          -70.422
+        ],
+        "size": [
+          3.5696,
+          51.5264,
+          0.8536
+        ],
+        "height_top_m": 58.0448
+      },
+      {
+        "source": "deck_railing_s",
+        "category": "railing",
+        "center": [
+          0.0,
+          58.6656,
+          -45.5512
+        ],
+        "size": [
+          28.8672,
+          1.2416,
+          0.4656
+        ],
+        "height_top_m": 59.2864
+      },
+      {
+        "source": "deck_railing_n",
+        "category": "railing",
+        "center": [
+          0.0,
+          58.6656,
+          -74.4184
+        ],
+        "size": [
+          28.8672,
+          1.2416,
+          0.4656
+        ],
+        "height_top_m": 59.2864
+      },
+      {
+        "source": "deck_railing_w",
+        "category": "railing",
+        "center": [
+          -14.4336,
+          58.6656,
+          -59.9848
+        ],
+        "size": [
+          0.4656,
+          1.2416,
+          28.8672
+        ],
+        "height_top_m": 59.2864
+      },
+      {
+        "source": "deck_railing_e",
+        "category": "railing",
+        "center": [
+          14.4336,
+          58.6656,
+          -59.9848
+        ],
+        "size": [
+          0.4656,
+          1.2416,
+          28.8672
+        ],
+        "height_top_m": 59.2864
+      },
+      {
+        "source": "octagonal_lantern_3tier",
+        "category": "exterior",
+        "center": [
+          0.0,
+          67.0464,
+          -59.9848
+        ],
+        "size": [
+          13.0368,
+          18.0032,
+          13.0368
+        ],
+        "height_top_m": 76.048
+      },
+      {
+        "source": "visitor_center_pavilion",
+        "category": "lot",
+        "center": [
+          -44.7752,
+          2.6772,
+          -14.2784
+        ],
+        "size": [
+          16.9168,
+          5.3544,
+          11.1744
+        ],
+        "height_top_m": 5.3544
+      },
+      {
+        "source": "eternal_brazier_1",
+        "category": "lot",
+        "center": [
+          -8.148,
+          8.3032,
+          -37.7912
+        ],
+        "size": [
+          1.8624,
+          2.6384,
+          1.8624
+        ],
+        "height_top_m": 9.6224
+      },
+      {
+        "source": "eternal_brazier_2",
+        "category": "lot",
+        "center": [
+          8.148,
+          8.3032,
+          -37.7912
+        ],
+        "size": [
+          1.8624,
+          2.6384,
+          1.8624
+        ],
+        "height_top_m": 9.6224
+      },
+      {
+        "source": "eternal_brazier_3",
+        "category": "lot",
+        "center": [
+          -8.148,
+          3.9576,
+          -31.1176
+        ],
+        "size": [
+          1.8624,
+          2.6384,
+          1.8624
+        ],
+        "height_top_m": 5.2768
+      },
+      {
+        "source": "eternal_brazier_4",
+        "category": "lot",
+        "center": [
+          8.148,
+          3.9576,
+          -31.1176
+        ],
+        "size": [
+          1.8624,
+          2.6384,
+          1.8624
+        ],
+        "height_top_m": 5.2768
+      },
+      {
+        "source": "civic_flagpole_01",
+        "category": "lot",
+        "center": [
+          -13.0368,
+          7.1392,
+          -26.5392
+        ],
+        "size": [
+          1.0864,
+          14.2784,
+          1.0864
+        ],
+        "height_top_m": 14.2784
+      },
+      {
+        "source": "civic_flagpole_02",
+        "category": "lot",
+        "center": [
+          -13.0368,
+          7.1392,
+          -22.9696
+        ],
+        "size": [
+          1.0864,
+          14.2784,
+          1.0864
+        ],
+        "height_top_m": 14.2784
+      },
+      {
+        "source": "civic_flagpole_03",
+        "category": "lot",
+        "center": [
+          -13.0368,
+          7.1392,
+          -19.4
+        ],
+        "size": [
+          1.0864,
+          14.2784,
+          1.0864
+        ],
+        "height_top_m": 14.2784
+      },
+      {
+        "source": "civic_flagpole_04",
+        "category": "lot",
+        "center": [
+          -13.0368,
+          7.1392,
+          -15.8304
+        ],
+        "size": [
+          1.0864,
+          14.2784,
+          1.0864
+        ],
+        "height_top_m": 14.2784
+      },
+      {
+        "source": "civic_flagpole_05",
+        "category": "lot",
+        "center": [
+          -13.0368,
+          7.1392,
+          -12.2608
+        ],
+        "size": [
+          1.0864,
+          14.2784,
+          1.0864
+        ],
+        "height_top_m": 14.2784
+      },
+      {
+        "source": "civic_flagpole_06",
+        "category": "lot",
+        "center": [
+          -13.0368,
+          7.1392,
+          -8.6912
+        ],
+        "size": [
+          1.0864,
+          14.2784,
+          1.0864
+        ],
+        "height_top_m": 14.2784
+      },
+      {
+        "source": "civic_flagpole_07",
+        "category": "lot",
+        "center": [
+          13.0368,
+          7.1392,
+          -26.5392
+        ],
+        "size": [
+          1.0864,
+          14.2784,
+          1.0864
+        ],
+        "height_top_m": 14.2784
+      },
+      {
+        "source": "civic_flagpole_08",
+        "category": "lot",
+        "center": [
+          13.0368,
+          7.1392,
+          -22.9696
+        ],
+        "size": [
+          1.0864,
+          14.2784,
+          1.0864
+        ],
+        "height_top_m": 14.2784
+      },
+      {
+        "source": "civic_flagpole_09",
+        "category": "lot",
+        "center": [
+          13.0368,
+          7.1392,
+          -19.4
+        ],
+        "size": [
+          1.0864,
+          14.2784,
+          1.0864
+        ],
+        "height_top_m": 14.2784
+      },
+      {
+        "source": "civic_flagpole_10",
+        "category": "lot",
+        "center": [
+          13.0368,
+          7.1392,
+          -15.8304
+        ],
+        "size": [
+          1.0864,
+          14.2784,
+          1.0864
+        ],
+        "height_top_m": 14.2784
+      },
+      {
+        "source": "civic_flagpole_11",
+        "category": "lot",
+        "center": [
+          13.0368,
+          7.1392,
+          -12.2608
+        ],
+        "size": [
+          1.0864,
+          14.2784,
+          1.0864
+        ],
+        "height_top_m": 14.2784
+      },
+      {
+        "source": "civic_flagpole_12",
+        "category": "lot",
+        "center": [
+          13.0368,
+          7.1392,
+          -8.6912
+        ],
+        "size": [
+          1.0864,
+          14.2784,
+          1.0864
+        ],
+        "height_top_m": 14.2784
+      },
+      {
+        "source": "bike_rack_2000",
+        "category": "lot",
+        "center": [
+          -34.144,
+          0.5432,
+          -13.3472
+        ],
+        "size": [
+          3.7248,
+          1.0864,
+          0.9312
+        ],
+        "height_top_m": 1.0864
+      },
+      {
+        "source": "tree_01",
+        "category": "lot",
+        "center": [
+          -48.112,
+          3.7248,
+          -32.592
+        ],
+        "size": [
+          0.9312,
+          7.4496,
+          0.9312
+        ],
+        "height_top_m": 7.4496
+      },
+      {
+        "source": "tree_02",
+        "category": "lot",
+        "center": [
+          -27.936,
+          3.7248,
+          -32.592
+        ],
+        "size": [
+          0.9312,
+          7.4496,
+          0.9312
+        ],
+        "height_top_m": 7.4496
+      },
+      {
+        "source": "tree_03",
+        "category": "lot",
+        "center": [
+          27.936,
+          3.7248,
+          -32.592
+        ],
+        "size": [
+          0.9312,
+          7.4496,
+          0.9312
+        ],
+        "height_top_m": 7.4496
+      },
+      {
+        "source": "tree_04",
+        "category": "lot",
+        "center": [
+          48.112,
+          3.7248,
+          -32.592
+        ],
+        "size": [
+          0.9312,
+          7.4496,
+          0.9312
+        ],
+        "height_top_m": 7.4496
+      },
+      {
+        "source": "tree_05",
+        "category": "lot",
+        "center": [
+          -48.112,
+          3.7248,
+          -92.5768
+        ],
+        "size": [
+          0.9312,
+          7.4496,
+          0.9312
+        ],
+        "height_top_m": 7.4496
+      },
+      {
+        "source": "tree_06",
+        "category": "lot",
+        "center": [
+          -27.936,
+          3.7248,
+          -92.5768
+        ],
+        "size": [
+          0.9312,
+          7.4496,
+          0.9312
+        ],
+        "height_top_m": 7.4496
+      },
+      {
+        "source": "tree_07",
+        "category": "lot",
+        "center": [
+          27.936,
+          3.7248,
+          -92.5768
+        ],
+        "size": [
+          0.9312,
+          7.4496,
+          0.9312
+        ],
+        "height_top_m": 7.4496
+      },
+      {
+        "source": "tree_08",
+        "category": "lot",
+        "center": [
+          48.112,
+          3.7248,
+          -92.5768
+        ],
+        "size": [
+          0.9312,
+          7.4496,
+          0.9312
+        ],
+        "height_top_m": 7.4496
+      }
+    ],
+    "per_state_extras": {
+      "1926": [
+        {
+          "source": "dedication_stand_1926",
+          "category": "lot",
+          "center": [
+            0.0,
+            1.164,
+            -28.8478
+          ],
+          "size": [
+            9.312,
+            2.328,
+            2.8324
+          ],
+          "height_top_m": 2.328
+        }
+      ],
+      "1941": [
+        {
+          "source": "wartime_sandbags_1941_0",
+          "category": "lot",
+          "center": [
+            -7.1392,
+            0.8536,
+            -29.6432
+          ],
+          "size": [
+            3.7248,
+            1.7072,
+            1.2416
+          ],
+          "height_top_m": 1.7072
+        },
+        {
+          "source": "wartime_sandbags_1941_1",
+          "category": "lot",
+          "center": [
+            7.1392,
+            0.8536,
+            -29.6432
+          ],
+          "size": [
+            3.7248,
+            1.7072,
+            1.2416
+          ],
+          "height_top_m": 1.7072
+        },
+        {
+          "source": "wartime_sandbags_1941_2",
+          "category": "lot",
+          "center": [
+            -9.312,
+            0.8536,
+            -31.816
+          ],
+          "size": [
+            1.2416,
+            1.7072,
+            1.8624
+          ],
+          "height_top_m": 1.7072
+        },
+        {
+          "source": "wartime_sandbags_1941_3",
+          "category": "lot",
+          "center": [
+            -9.312,
+            0.8536,
+            -29.9536
+          ],
+          "size": [
+            1.2416,
+            1.7072,
+            1.8624
+          ],
+          "height_top_m": 1.7072
+        },
+        {
+          "source": "wartime_sandbags_1941_4",
+          "category": "lot",
+          "center": [
+            9.312,
+            0.8536,
+            -31.816
+          ],
+          "size": [
+            1.2416,
+            1.7072,
+            1.8624
+          ],
+          "height_top_m": 1.7072
+        },
+        {
+          "source": "wartime_sandbags_1941_5",
+          "category": "lot",
+          "center": [
+            9.312,
+            0.8536,
+            -29.9536
+          ],
+          "size": [
+            1.2416,
+            1.7072,
+            1.8624
+          ],
+          "height_top_m": 1.7072
+        }
+      ],
+      "1976": [
+        {
+          "source": "closed_for_repairs_sawhorse_1976",
+          "category": "lot",
+          "center": [
+            0.0,
+            1.3968,
+            -90.404
+          ],
+          "size": [
+            4.3456,
+            2.7936,
+            1.552
+          ],
+          "height_top_m": 2.7936
+        },
+        {
+          "source": "scaffolding_se_pier_1976",
+          "category": "exterior",
+          "center": [
+            12.6488,
+            39.3432,
+            -47.336
+          ],
+          "size": [
+            8.2256,
+            30.5744,
+            8.2256
+          ],
+          "height_top_m": 54.6304
+        },
+        {
+          "source": "chain_fence_se_south_1976",
+          "category": "lot",
+          "center": [
+            24.5216,
+            1.3192,
+            -31.1176
+          ],
+          "size": [
+            12.416,
+            2.6384,
+            0.4656
+          ],
+          "height_top_m": 2.6384
+        },
+        {
+          "source": "chain_fence_se_east_1976",
+          "category": "lot",
+          "center": [
+            30.7296,
+            1.3192,
+            -37.0152
+          ],
+          "size": [
+            0.4656,
+            2.6384,
+            11.7952
+          ],
+          "height_top_m": 2.6384
+        }
+      ],
+      "2000": [
+        {
+          "source": "accessibility_ramp_east",
+          "category": "exterior",
+          "center": [
+            29.9536,
+            3.7248,
+            -45.2408
+          ],
+          "size": [
+            4.0352,
+            7.4496,
+            13.968
+          ],
+          "height_top_m": 7.4496
+        },
+        {
+          "source": "visitor_center_pavilion",
+          "category": "lot",
+          "center": [
+            -44.7752,
+            2.6772,
+            -14.2784
+          ],
+          "size": [
+            16.9168,
+            5.3544,
+            11.1744
+          ],
+          "height_top_m": 5.3544
+        },
+        {
+          "source": "bike_rack_2000",
+          "category": "lot",
+          "center": [
+            -34.144,
+            0.5432,
+            -13.3472
+          ],
+          "size": [
+            3.7248,
+            1.0864,
+            0.9312
+          ],
+          "height_top_m": 1.0864
+        }
+      ]
+    }
+  }
+}
