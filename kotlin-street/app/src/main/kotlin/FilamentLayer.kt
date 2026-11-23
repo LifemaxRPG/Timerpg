@@ -84,6 +84,22 @@ object StreetRenderer {
         setGrab(ctx, p.getBoolean("grabWorld", false))
         setBikeFollow(ctx, p.getBoolean("bikeFollow", true))
         setResolution(ctx, p.getFloat("resolution", com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.RES_AUTO))
+        setAstc(ctx, p.getBoolean("astc", true))
+    }
+
+    /**
+     * The town's pictures (the AI panel's "Textures"): ASTC 4x4 (the default: a quarter of the atlases' GPU memory, their
+     * blocks of one or two colours exact, the rest near) or exact RGBA8 as before (TownQuality.astc). The next town built
+     * takes it (textures are made as the town is built).
+     */
+    var astc by mutableStateOf(true)
+        private set
+
+    fun setAstc(ctx: Context, on: Boolean) {
+        if (on != astc) com.timerpg.street.shot.Crumbs.add("textures: " + if (on) "ASTC" else "exact RGBA8")
+        astc = on
+        com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astc = on
+        prefs(ctx).edit().putBoolean("astc", on).apply()
     }
 
     /** The open world's drawing resolution (the AI panel's "Resolution"): see TownQuality.resolution. */
