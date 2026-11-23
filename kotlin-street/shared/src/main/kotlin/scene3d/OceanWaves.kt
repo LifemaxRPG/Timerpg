@@ -63,9 +63,9 @@ data class GerstnerWave(
 /** Collection of 1..6 Gerstner waves plus surface look tuning shared by CPU and GPU. */
 class OceanSpec(
     val waves: List<GerstnerWave>,
-    /** 0 = glassy calm, 1 = stormy rough sea (controls foam density & ripple contrast). */
+    /** 0 = glassy calm, 1 = stormy rough sea (controls whitecap density, wind streaks, and horizon bumps). */
     val roughness: Float,
-    /** Crest foam onset threshold in [0, 1] (lower = more foam pixels on crests). */
+    /** Whitecap onset threshold in [0, 1] (lower = more scattered whitecaps on crests). */
     val foamThreshold: Float,
 ) {
     init {
@@ -74,7 +74,7 @@ class OceanSpec(
         }
     }
 
-    /** Sum of wave amplitudes (m), used by the shader to normalize height bands. */
+    /** Sum of wave amplitudes (m), used by the shader to normalize 3D wave height. */
     val maxAmplitude: Float = waves.fold(0f) { acc, w -> acc + w.amplitude }.coerceAtLeast(0.05f)
 
     /** Sum of `k * Q * A` across all waves; must remain < 1.0 to avoid self-intersecting loops. */
@@ -127,45 +127,44 @@ data class OceanSample(
 /**
  * Pure-Kotlin Gerstner wave evaluator matching `kotlin-street/filament/materials/ocean.mat` vertex-for-vertex.
  *
- * - [evalDisplaced] / [evalDisplacedInto]: evaluates the exact vertex shader displacement, analytical normal,
- *   and Jacobian at undisturbed grid coordinates `(x0, z0)`.
- * - [height] / [heightInto]: inverts the horizontal Gerstner shift (`x = x0 + dx`, `z = z0 + dz`) with
- *   fixed-point iteration so callers querying a fixed world `(x, z)` (e.g. a Jolt buoyancy hull) get the exact
- *   surface elevation and normal underneath that point, with zero per-call allocations in [heightInto].
+ * Uses a natural directional wave spectrum (primary swell along `-Z` interfered with oblique cross-swells at
+ * ±24°..±46° and incommensurate wavelengths/dispersion speeds) so 3D waves break into organic, staggered,
+ * rounded mounds that travel and morph dynamically over time rather than unbroken horizontal stripes.
  */
 object OceanWaves {
     /**
-     * Calm open sea: 6 aligned gentle swells traveling roughly along `-Z` (forming long parallel horizontal
-     * bands across a `+Z`-facing camera), wavelengths 2.6..13.5 m, non-folding (`foldingIndex ~= 0.11`).
+     * Calm open sea: 6 gentle swells with natural directional spread (wavelengths 2.8..14.0 m,
+     * `maxAmplitude = 0.456 m`, `foldingIndex ~= 0.14`).
      */
     val CALM: OceanSpec = OceanSpec(
         waves = listOf(
-            GerstnerWave.of(0.00f, -1.00f, wavelength = 13.5f, amplitude = 0.140f, steepness = 0.38f, speedScale = 0.90f, phaseOffset = 0.2f),
-            GerstnerWave.of(0.21f, -0.98f, wavelength = 9.2f, amplitude = 0.090f, steepness = 0.36f, speedScale = 0.95f, phaseOffset = 1.7f),
-            GerstnerWave.of(-0.24f, -0.97f, wavelength = 6.6f, amplitude = 0.060f, steepness = 0.35f, speedScale = 1.00f, phaseOffset = 3.1f),
-            GerstnerWave.of(0.32f, -0.95f, wavelength = 4.8f, amplitude = 0.038f, steepness = 0.32f, speedScale = 1.05f, phaseOffset = 4.5f),
-            GerstnerWave.of(-0.36f, -0.93f, wavelength = 3.5f, amplitude = 0.024f, steepness = 0.30f, speedScale = 1.10f, phaseOffset = 0.9f),
-            GerstnerWave.of(0.14f, -0.99f, wavelength = 2.6f, amplitude = 0.014f, steepness = 0.28f, speedScale = 1.15f, phaseOffset = 2.4f),
+            GerstnerWave.of(0.00f, -1.00f, wavelength = 14.0f, amplitude = 0.160f, steepness = 0.42f, speedScale = 0.92f, phaseOffset = 0.2f),
+            GerstnerWave.of(0.41f, -0.91f, wavelength = 9.8f, amplitude = 0.110f, steepness = 0.40f, speedScale = 0.98f, phaseOffset = 1.7f),
+            GerstnerWave.of(-0.48f, -0.87f, wavelength = 7.4f, amplitude = 0.080f, steepness = 0.38f, speedScale = 1.04f, phaseOffset = 3.1f),
+            GerstnerWave.of(0.66f, -0.75f, wavelength = 5.3f, amplitude = 0.052f, steepness = 0.34f, speedScale = 1.09f, phaseOffset = 4.6f),
+            GerstnerWave.of(-0.69f, -0.72f, wavelength = 3.9f, amplitude = 0.034f, steepness = 0.30f, speedScale = 1.15f, phaseOffset = 0.9f),
+            GerstnerWave.of(0.26f, -0.97f, wavelength = 2.8f, amplitude = 0.020f, steepness = 0.26f, speedScale = 1.22f, phaseOffset = 2.4f),
         ),
         roughness = 0.20f,
-        foamThreshold = 0.68f,
+        foamThreshold = 0.62f,
     )
 
     /**
-     * Rough open sea: 6 aligned steep rolling swells (wavelengths 3.1..18 m, ~3 m peak-to-trough) with sharp
-     * parallel crests and lively horizontal chop, strictly non-folding (`foldingIndex ~= 0.58`).
+     * Rough open sea: 6 bold rolling 3D swells (wavelengths 3.4..19.5 m, `maxAmplitude = 1.91 m`, ~3.2 m peak-to-trough
+     * near waves that visibly overlap water behind them and rise around the boat) while remaining strictly non-folding
+     * (`foldingIndex ~= 0.65 < 0.75`).
      */
     val ROUGH: OceanSpec = OceanSpec(
         waves = listOf(
-            GerstnerWave.of(0.00f, -1.00f, wavelength = 18.0f, amplitude = 0.620f, steepness = 0.68f, speedScale = 1.05f, phaseOffset = 0.4f),
-            GerstnerWave.of(0.19f, -0.98f, wavelength = 12.2f, amplitude = 0.380f, steepness = 0.65f, speedScale = 1.08f, phaseOffset = 1.9f),
-            GerstnerWave.of(-0.22f, -0.97f, wavelength = 8.4f, amplitude = 0.240f, steepness = 0.62f, speedScale = 1.12f, phaseOffset = 3.4f),
-            GerstnerWave.of(0.31f, -0.95f, wavelength = 5.8f, amplitude = 0.140f, steepness = 0.56f, speedScale = 1.16f, phaseOffset = 5.0f),
-            GerstnerWave.of(-0.34f, -0.94f, wavelength = 4.2f, amplitude = 0.085f, steepness = 0.50f, speedScale = 1.20f, phaseOffset = 0.8f),
-            GerstnerWave.of(0.12f, -0.99f, wavelength = 3.1f, amplitude = 0.048f, steepness = 0.46f, speedScale = 1.24f, phaseOffset = 2.7f),
+            GerstnerWave.of(0.00f, -1.00f, wavelength = 19.5f, amplitude = 0.800f, steepness = 0.66f, speedScale = 1.02f, phaseOffset = 0.4f),
+            GerstnerWave.of(0.42f, -0.91f, wavelength = 13.6f, amplitude = 0.480f, steepness = 0.62f, speedScale = 1.07f, phaseOffset = 1.9f),
+            GerstnerWave.of(-0.52f, -0.86f, wavelength = 9.6f, amplitude = 0.300f, steepness = 0.58f, speedScale = 1.12f, phaseOffset = 3.5f),
+            GerstnerWave.of(0.64f, -0.77f, wavelength = 6.7f, amplitude = 0.170f, steepness = 0.52f, speedScale = 1.18f, phaseOffset = 5.1f),
+            GerstnerWave.of(-0.72f, -0.69f, wavelength = 4.8f, amplitude = 0.105f, steepness = 0.46f, speedScale = 1.24f, phaseOffset = 0.8f),
+            GerstnerWave.of(0.22f, -0.97f, wavelength = 3.4f, amplitude = 0.058f, steepness = 0.42f, speedScale = 1.30f, phaseOffset = 2.7f),
         ),
-        roughness = 0.92f,
-        foamThreshold = 0.44f,
+        roughness = 0.90f,
+        foamThreshold = 0.38f,
     )
 
     /**
@@ -201,7 +200,6 @@ object OceanWaves {
         var dispX = 0f
         var dispY = 0f
         var dispZ = 0f
-        // Partial derivatives dP/dx0 (dX) and dP/dz0 (dZ)
         var dXx = 1f; var dXy = 0f; var dXz = 0f
         var dZx = 0f; var dZy = 0f; var dZz = 1f
 
@@ -260,7 +258,7 @@ object OceanWaves {
         t: Float,
         spec: OceanSpec = CALM,
         seaLevelY: Float = 0f,
-        iterations: Int = 4,
+        iterations: Int = 6,
     ): OceanSample = OceanSample().also { heightInto(x, z, t, spec, it, seaLevelY, iterations) }
 
     /** Zero-allocation version of [height] suitable for per-frame physics & buoyancy loops. */
@@ -271,7 +269,7 @@ object OceanWaves {
         spec: OceanSpec,
         out: OceanSample,
         seaLevelY: Float = 0f,
-        iterations: Int = 4,
+        iterations: Int = 6,
     ) {
         var x0 = x
         var z0 = z
@@ -287,15 +285,6 @@ object OceanWaves {
 /**
  * Watertight conformal nested-ring ocean mesh generator (pure Kotlin so topology & horizon reach can be
  * verified directly by JVM unit tests without requiring native Filament).
- *
- * Layout:
- * - Ring 0: dense `ringCells x ringCells` core at `baseCellSize` around `(0, 0)`.
- * - Rings `1 .. ringCount - 1`: concentric hollow square rings doubling cell size each level (`2x, 4x, ...`)
- *   out to `±halfN * baseCellSize * 2^(ringCount - 1)` (~7.2 km at defaults).
- * - Every inner-to-outer ring seam uses exact 3-triangle border fans + 4-triangle L-corners (using only even
- *   outer boundary vertices) so adjacent rings share identical vertices with zero T-junctions or cracks.
- * - Far horizon skirt: connects the outermost wave ring cleanly out to `±farHorizonRadius` (24 km) in the
- *   same single vertex/index buffer (1 draw call total).
  */
 class OceanGridMesh(
     val positionsX: FloatArray,
@@ -331,14 +320,12 @@ class OceanGridMesh(
                 "farHorizonRadius ($farHorizonRadius) must exceed outermost wave ring ($waveOuter)"
             }
 
-            // Deduplicate shared boundary vertices across rings by exact quantized integer coordinates
             val vertMap = HashMap<Long, Int>(32768)
             val vx = ArrayList<Float>(32768)
             val vz = ArrayList<Float>(32768)
             val idx = ArrayList<Int>(150000)
 
             fun getVert(x: Float, z: Float): Int {
-                // Quantize to 1/16th of baseCellSize (exact for all power-of-2 ring multiples and horizon coords)
                 val qx = round(x * 16.0).toLong()
                 val qz = round(z * 16.0).toLong()
                 val key = (qx shl 32) xor (qz and 0xFFFFFFFFL)
@@ -368,7 +355,6 @@ class OceanGridMesh(
                 val minC = if (stitchOuter) 1 else 0
                 val maxC = if (stitchOuter) ringCells - 1 else ringCells
 
-                // Interior regular cells (skipping inner hole for r > 0)
                 for (iz in minC until maxC) {
                     for (ix in minC until maxC) {
                         if (r > 0 && ix in holeLo until holeHi && iz in holeLo until holeHi) continue
@@ -383,28 +369,23 @@ class OceanGridMesh(
 
                 if (stitchOuter) {
                     val n = ringCells
-                    // 4 straight stitched outer border strips (step 2, skipping the 2-cell L-corners)
                     var i = 2
                     while (i <= n - 4) {
-                        // Bottom border (iz = 0 -> 1)
                         run {
                             val a = v(i, 0); val c = v(i + 2, 0)
                             val d = v(i, 1); val e = v(i + 1, 1); val f = v(i + 2, 1)
                             tri(a, d, e); tri(a, e, c); tri(c, e, f)
                         }
-                        // Top border (iz = n - 1 -> n)
                         run {
                             val a = v(i, n); val c = v(i + 2, n)
                             val d = v(i, n - 1); val e = v(i + 1, n - 1); val f = v(i + 2, n - 1)
                             tri(d, a, e); tri(e, a, c); tri(e, c, f)
                         }
-                        // Left border (ix = 0 -> 1)
                         run {
                             val a = v(0, i); val c = v(0, i + 2)
                             val d = v(1, i); val e = v(1, i + 1); val f = v(1, i + 2)
                             tri(a, e, d); tri(a, c, e); tri(c, f, e)
                         }
-                        // Right border (ix = n - 1 -> n)
                         run {
                             val a = v(n, i); val c = v(n, i + 2)
                             val d = v(n - 1, i); val e = v(n - 1, i + 1); val f = v(n - 1, i + 2)
@@ -413,29 +394,24 @@ class OceanGridMesh(
                         i += 2
                     }
 
-                    // 4 watertight L-shaped corners (connecting even outer boundary vertices cleanly)
-                    // Bottom-left (0, 0)
                     run {
                         val c00 = v(0, 0); val c20 = v(2, 0); val c02 = v(0, 2)
                         val i11 = v(1, 1); val i21 = v(2, 1); val i12 = v(1, 2)
                         tri(c00, i11, c20); tri(c20, i11, i21)
                         tri(c00, c02, i11); tri(c02, i12, i11)
                     }
-                    // Bottom-right (n, 0)
                     run {
                         val c00 = v(n, 0); val c20 = v(n - 2, 0); val c02 = v(n, 2)
                         val i11 = v(n - 1, 1); val i21 = v(n - 2, 1); val i12 = v(n - 1, 2)
                         tri(c20, i11, c00); tri(i21, i11, c20)
                         tri(c00, i11, c02); tri(c02, i11, i12)
                     }
-                    // Top-left (0, n)
                     run {
                         val c00 = v(0, n); val c20 = v(2, n); val c02 = v(0, n - 2)
                         val i11 = v(1, n - 1); val i21 = v(2, n - 1); val i12 = v(1, n - 2)
                         tri(c00, c20, i11); tri(c20, i21, i11)
                         tri(c02, c00, i11); tri(i12, c02, i11)
                     }
-                    // Top-right (n, n)
                     run {
                         val c00 = v(n, n); val c20 = v(n - 2, n); val c02 = v(n, n - 2)
                         val i11 = v(n - 1, n - 1); val i21 = v(n - 2, n - 1); val i12 = v(n - 1, n - 2)
@@ -445,32 +421,27 @@ class OceanGridMesh(
                 }
             }
 
-            // Far horizon skirt: connects the outermost wave ring perimeter (waveOuter) to farHorizonRadius
             val outerCell = baseCellSize * (1 shl (ringCount - 1))
             val farStep = (2f * farHorizonRadius) / ringCells
             fun innerEdge(ix: Int, iz: Int): Int = getVert((ix - halfN) * outerCell, (iz - halfN) * outerCell)
             fun farEdge(ix: Int, iz: Int): Int = getVert(-farHorizonRadius + ix * farStep, -farHorizonRadius + iz * farStep)
 
             for (i in 0 until ringCells) {
-                // Bottom strip (-Z)
                 run {
                     val i0 = innerEdge(i, 0); val i1 = innerEdge(i + 1, 0)
                     val f0 = farEdge(i, 0); val f1 = farEdge(i + 1, 0)
                     tri(f0, i0, f1); tri(f1, i0, i1)
                 }
-                // Top strip (+Z)
                 run {
                     val i0 = innerEdge(i, ringCells); val i1 = innerEdge(i + 1, ringCells)
                     val f0 = farEdge(i, ringCells); val f1 = farEdge(i + 1, ringCells)
                     tri(i0, f0, i1); tri(i1, f0, f1)
                 }
-                // Left strip (-X)
                 run {
                     val i0 = innerEdge(0, i); val i1 = innerEdge(0, i + 1)
                     val f0 = farEdge(0, i); val f1 = farEdge(0, i + 1)
                     tri(f0, f1, i0); tri(i0, f1, i1)
                 }
-                // Right strip (+X)
                 run {
                     val i0 = innerEdge(ringCells, i); val i1 = innerEdge(ringCells, i + 1)
                     val f0 = farEdge(ringCells, i); val f1 = farEdge(ringCells, i + 1)
@@ -481,7 +452,6 @@ class OceanGridMesh(
             val px = FloatArray(vx.size) { vx[it] }
             val pz = FloatArray(vz.size) { vz[it] }
             val indArr = IntArray(idx.size) { idx[it] }
-            // Snap step = 8 * baseCellSize (exact integer multiple of rings 0..3 covering ±224 m)
             val snapStep = baseCellSize * 8f
 
             return OceanGridMesh(

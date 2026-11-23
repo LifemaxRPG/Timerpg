@@ -1,86 +1,84 @@
-# Delivery: G002 — Ocean water prototype for Filament (Revision 1)
+# G002 — Ocean Water Prototype for Filament (Round 3 — Addressing `G002-r2`)
 
-- **Task ID:** `G002`
-- **Branch:** `gemini/G002-ocean`
-- **Assignee:** `gemini`
-- **Answers review:** `docs/queue/reviews/G002-r1.md`
+## Summary of Round 3 Changes (`docs/queue/reviews/G002-r2.md`)
 
-## What changed in Revision 1 (answering `G002-r1.md`)
+All items in `G002-r2.md` have been addressed on branch `gemini/G002-ocean` (preserving Round 2's working `vertexDomain : device` projection, upright boat, 9-ring + 24 km horizon mesh, and dusk/night sky+trough framing):
 
-1. **Fixed upside-down ocean projection relative to boat and camera (`G002-r1` #1 — MUST):**
-   - **Root cause:** In round 1, `ocean.mat` used `vertexDomain : object` (projected by Filament's `Camera.setProjection`, which puts `dot(up, P - eye) < 0` into negative `clip.y`), whereas `street_lit.filamat` (the boat) used `vertexDomain : device` with `LookMatrix` (`windowY = false` on headless `CONFIG_READABLE` desktop, flipping `clip.y` so negative `clip.y` maps to the top of the readback PNG). That inverted the ocean vertically against the upright boat, placing the water in the top half and leaving flat sky at the bottom.
-   - **Fix:** Switched `ocean.mat` to `vertexDomain : device` with `materialParams.look` (the exact same projection and reversed-Z depth convention as `street_lit.mat`, `street_albedo.mat`, and `LookMatrix`, honoring `LookMatrix.windowY` on both headless desktop and Android `TextureView`). In `materialVertex`, `ocean.mat` shifts `localPos -> displacedWorld` via `displaceMat` and outputs `material.clipSpaceTransform = materialParams.look * displaceMat`, so the ocean and the boat go through the **exact same clip matrix** and share bit-for-bit identical Y orientation and reversed-Z depth (`D = near / w`).
-   - **Verification camera & runtime guard:** Updated `FilamentOceanPreview.kt` to place the camera at `(0, 6.0, -20.0)` — **6 m up and 20 m behind** the boat at `(0, y, 0)` — looking slightly down at `(0, 1.8, 4.0)` (`fovY = 42°`). Added a runtime alpha-distribution assertion in `FilamentOceanPreview.kt` (`topOpaque < 15%`, `botOpaque > 95%`) plus a new unit test (`OceanWavesTest.deviceProjectionPutsWaterBelowHorizonAndBoatUpright`) verifying exact row placement and ocean-vs-boat clip parity.
-   - **Expected render appearance:** The stepped pixel-art sky fills the upper ~27% of the frame (with low sunset sun at dusk and crescent/full moon + 2×2 stars at night), meeting a crisp horizon line at ~27% from the top. Ocean water fills the entire lower ~73% of the frame from the horizon straight down to the bottom edge, directly under and in front of the upright boat (boat waterline around ~65% down from top, mast rising to ~41%).
+### 1. Fixed the Solid White Glint Sheet (`ocean.mat`, `OceanSurface.kt`, `FilamentOceanPreview.kt`, `OceanWavesTest.kt`)
+- **Elevation-scaled & facet-gated glint:** Glint reach and intensity now scale with sun/moon elevation (`L.y`): high midday sun (`L.y = 0.48`) produces sparse scattered sparkle dashes; low dusk sun (`L.y = 0.096`) produces a strong tapering golden sunset road; night moon (`L.y = 0.118`) produces slender crisp silver sparkles.
+- **Tapering ragged funnel (no solid white sheet, no straight vertical rectangle):** The glint path narrows cleanly from the foreground toward the sun/moon at the horizon (`baseHalf` tapers with distance) and its outer edges are broken by 2D organic noise (`ragged`), eliminating straight vertical box edges at night.
+- **Broken horizontal dashes on sun-facing facets:** Each glint pixel is gated on `dot(N, normalize(V + L))` AND two-octave horizontal dash noise (`dashA`/`dashB`), leaving mostly open water between dashes near the camera (~25–32% of path lit) and shrinking to fine sparkles near the horizon.
+- **Hard coverage gate & telemetry:** `FilamentOceanPreview.kt` measures exact sRGB glint pixel fraction below the horizon for every shot, prints `day_calm`, `dusk_calm`, `dusk_rough`, and `night_calm` percentages to `ocean_bench.txt`, and asserts `day_calm < 8.0%`, `dusk_calm < 20.0%`, and `dusk_rough < 20.0%`.
+- **CPU fragment oracle measurements (`OceanWavesTest.glintCoverageMatchesG002r2Limits`, 240×135 grid on exact `(0, 6, -20) -> (0, 1.8, 4)` camera):**
+  - `day_calm`: **4.27%** below horizon (limit `< 8%`, max horizontal run `11.7%`)
+  - `day_rough`: **3.55%** below horizon (limit `< 8%`, max horizontal run `11.7%`)
+  - `dusk_calm`: **6.99%** below horizon (limit `< 20%`, max horizontal run `15.8%`)
+  - `dusk_rough`: **5.84%** below horizon (limit `< 20%`, max horizontal run `14.6%`)
+  - `night_calm`: **5.01%** below horizon (max horizontal run `13.8%`)
+  - `night_rough`: **4.74%** below horizon (max horizontal run `11.7%`)
 
-2. **Full coverage to the horizon with nested distance rings + far horizon skirt (`G002-r1` #2):**
-   - Replaced the fixed 320 m grid with a watertight conformal nested-ring mesh (`OceanGridMesh` in `OceanWaves.kt`, uploaded once in `OceanSurface.kt`) in **1 single draw call** (`21,841` vertices in 16-bit `USHORT`, `43,456` triangles — fewer triangles than round 1 while extending 75× farther):
-     - **9 concentric wave rings** (`ringCells = 56`, `baseCellSize = 1.0 m` core doubling to `2, 4, 8, 16, 32, 64, 128, 256 m`) reaching **`±7,168 m` (7.17 km)** in every direction, with exact 3-triangle border fans + 4-triangle L-corners eliminating all T-junctions across every ring seam.
-     - **Watertight far horizon skirt** extending the outermost ring perimeter seamlessly to **`±24,000 m` (24 km)** in the calm flat horizon sea band.
-     - **Distance & Nyquist wave fade** in `ocean.mat`: full unattenuated Gerstner amplitude within `40 m` of the camera/boat (preserving exact CPU-to-GPU parity), smooth Nyquist attenuation of shorter wavelengths on coarser outer rings, and smooth overall amplitude fade to `0` over `140 m .. 2,200 m`.
-     - **Grid snapping** preserved (`snapStep = 8.0 m`, an exact integer multiple of Rings 0..3 out to `±224 m`).
-   - **Expected render appearance:** Unbroken ocean from the very bottom edge of the frame (`~10 m` ahead of the camera, in front of the boat) all the way to a crisp, level, gap-free horizon line with zero seam cracks or distant wave aliasing.
+### 2. Sculpted 3D Pixel-Art Wave Forms (Owner's Note — No Flat Computer Stripes)
+- **Removed all infinite horizontal sine stripes** from `ocean.mat`.
+- **Natural 6-wave directional spectrum (`OceanWaves.kt`):** Cross-swells spread across `±46°` (`0°, +24°..+25°, -29°..-31°, +40°..+41°, -44°..-46°, +13°..+15°`) with incommensurate wavelengths and deep-water dispersion speeds (`foldingIndex ≈ 0.145` calm, `0.654 < 0.75` rough) so waves interfere into staggered 3D mounds that travel and change shape dynamically over time.
+- **True 3D facet-normal shading across 7 hue-shifted flat colours (`ocean.mat`, `OceanSurface.kt`):** Every pixel is shaded from its Gerstner 3D facet normal `N` against sun `L` and view `V` (`colAbyss`, `colTrough`, `colShadowFace`, `colBody`, `colLitFace`, `colTealCrest`, `colLipHighlight`), giving lit turquoise/coral/slate shoulders and deep indigo/plum shadow backs with subtle organic hand-drawn contour wobble.
+- **Broken curved `"~"` crests, under-lip shadow, whitecaps, & wind foam streaks:**
+  - Staggered curved `"~"` highlight strokes (`colLipHighlight`) of varied length ride upper ridges (no unbroken lines across the screen).
+  - Darker 1–2 px curling-lip shadow lines tuck just under taller camera-facing lips.
+  - Scattered 2–4 px whitecap clusters dynamically appear and fade on the steepest crests.
+  - Thin wind-aligned foam streaks drift across rough water (`roughness > 0.45`).
+- **Real height & uneven rough horizon:** `ROUGH` swells reach ~3.2 m peak-to-trough near the camera so crests rise visibly and overlap water behind them; rough water also adds subtle 1–2 px uneven wave silhouette bumps along the distant horizon band (strictly 0 on calm water and inside 3.2 km).
+- **New person-height close-ups & motion strips (`FilamentOceanPreview.kt`):**
+  - 4 close-ups at eye height `2.0 m` above the water near the boat (`ocean_closeup_day_calm.png`, `ocean_closeup_day_rough.png`, `ocean_closeup_dusk_calm.png`, `ocean_closeup_dusk_rough.png`, plus `ocean_closeup_4up.png`).
+  - 6-frame close-up motion strips (`ocean_motion_calm_6f.png`, `ocean_motion_rough_6f.png`, `t = 0.0..2.5s` in 0.5 s steps).
 
-3. **True 16-bit pixel-art sea lines instead of cloud-like blobs (`G002-r1` #3):**
-   - **Aligned wave trains (`OceanWaves.kt`):** Re-tuned all 6 waves in `CALM` (`2.6..13.5 m` wavelengths) and `ROUGH` (`3.1..18.0 m` wavelengths) within `±20°` of a coherent main swell axis `(0, -1)` so crests form long parallel horizontal swell lines perpendicular to the wave travel direction rather than isotropic blobs (`CALM foldingIndex = 0.105`, `ROUGH foldingIndex = 0.579`).
-   - **16-bit wave-shaped banding (`ocean.mat`):** Rebuilt the fragment band signal around wave elevation + camera-facing swell slope + fine parallel horizontal ripple phase (few metres wide near the camera), mapped cleanly to 4 flat stepped colours: dark parallel troughs (`bandDeep`), main sea body (`bandMid`), lighter lit wave faces (`bandLight`), and thin crisp crest highlights (`bandCrest`).
-   - **Calm atmospheric distance band & 16-bit sparkle:** Fades via a crisp Bayer-dithered transition (`55 m .. 520 m`) into a single calm flat distant sea colour (`horizonSeaColor`) toward the horizon, with 16-bit horizontal sun/moon sparkle dashes along the light reflection path and Bayer-dithered white crest foam that fades with distance so the horizon stays serene.
-   - **Expected render appearance:** Clearly legible horizontal 16-bit sea bands (few metres wide near the boat, compressing into crisp horizontal scanlines toward the calm flat distant sea band), with shimmering warm-white sun sparkles by day, molten gold sunset ribbon over dark indigo-violet troughs at dusk, and crisp silver moon sparkles across dark midnight-navy water at night.
+### 3. Small Fixes (All 4 from `G002-r2`)
+- **Hull waterline foam ring:** Moved AFTER glint in `ocean.mat` so sparkle never hides it; sharpened to a crisp 1–2 px band (`foamRingWidth = 0.36 m`), broken organically on the lee side (`windward = dot(relDir, -swellDir)`), with a subtle 1-px windward dark water contact rim.
+- **Rough sea boat tilt cap:** Upgraded `OceanSurface.boatTransformInto(...)` to 4-point hull buoyancy sampling (bow, stern, starboard, port — zero allocations) plus a `maxTiltDeg = 14.0f` ceiling (previously peaked at `23.9 deg`). Verified in `OceanWavesTest.boatTiltIsCappedAt14DegOnRoughSeaWhileStillHeaving` and asserted (`<= 14.5 deg`) in `FilamentOceanPreview.kt`.
+- **0 B per-frame allocation:** Replaced `mx.getThreadAllocatedBytes(tid)` (which allocated `long[1]` + MXBean warmup) with pre-warmed scalar `mx.currentThreadAllocatedBytes` in both `FilamentOceanPreview.kt` and `OceanWavesTest.kt`. Verified `0 B` over 2,000 calls.
+- **Tight 2–4 px Bayer dither:** Reduced band-edge dither amplitude to `±0.021` (2–4 px crisp pixel-art step transitions, eliminating wide noisy checkerboard carpets) and tightened the atmospheric horizon transition seam.
 
-4. **Boat sitting in the water with a thin waterline foam ring (`G002-r1` #4):**
-   - Lowered default `draftOffsetY` in `OceanSurface.boatTransformInto` from `0.25 m` to `0.05 m` so the boat's dark keel sits submerged beneath the surface and the cedar hull rides right at the waterline, clipping accurately against foreground waves in the shared reversed-Z depth buffer.
-   - Added `OceanSurface.setHullFoam(...)` (`hullPose` + `hullShape` uniforms in `ocean.mat`) drawing a thin, tapered, Bayer-dithered white pixel-art waterline foam ring hugging the hull's exact footprint and breathing subtly with the local wave crest/Jacobian (`crest`).
-   - **Expected render appearance:** The wooden box boat sits naturally immersed in the waves with a crisp thin white pixel-art foam ring tracing the hull's contact line on the water surface as it heaves, pitches, and rolls across the 4-frame bobbing strip.
-
-## Files changed (strict G002 scope — zero town code touched)
-
+## Allowed Files Modified
 - `kotlin-street/filament/materials/ocean.mat`
 - `kotlin-street/shared/src/main/kotlin/scene3d/OceanWaves.kt`
 - `kotlin-street/shared/src/filament/kotlin/scene3d/OceanSurface.kt`
 - `kotlin-street/desktop/src/filament/kotlin/FilamentOceanPreview.kt`
 - `kotlin-street/desktop/src/crossroadsTest/kotlin/OceanWavesTest.kt`
-- `kotlin-street/desktop/build.gradle.kts` (1 line from round 1 registering `-Dmode=ocean`)
 - `prototypes/ocean/DELIVERY.md`
+(Plus existing 1-line `ocean` mode registration in `kotlin-street/desktop/build.gradle.kts` from Round 1.)
 
-## Tests & verification
-
-### Ran here
-- **Plain-JVM test suite (`gradle --configure-on-demand :desktop:crossroadsTest --rerun-tasks`):** **PASSED (40/40 tests, 0 failures, 0 errors, 0 skipped)**
-  - `OceanWavesTest`: **7/7 passed** (`0.379 s`)
-    - `cpuMatchesShaderFormulaAtSamplePoints` — PASS (exact near-field parity `< 1e-4` + far-field flatten to `0`)
-    - `heightInvertsHorizontalGerstnerShiftForBuoyancy` — PASS (`< 5 mm` residual, normal dot `> 0.997`)
-    - `presetsStayNonFoldingWithPositiveJacobian` — PASS (`foldingIndex < 0.75`, positive Jacobian, aligned swell directions)
-    - `gridSnappingLocksVerticesWithoutSwimming` — PASS
-    - `heightIntoAllocatesZeroBytes` — PASS
-    - `nestedRingMeshIsWatertightAndReachesHorizon` — PASS (`21,841` verts `<= 65535`, `7,168 m` wave radius, `24,000 m` horizon skirt, **0 T-junctions / 0 non-manifold edges** across all 9 rings + skirt)
-    - `deviceProjectionPutsWaterBelowHorizonAndBoatUpright` — PASS (verifies `6 m` up / `20 m` behind camera places horizon in upper ~27%, mast upright above hull, near water filling to bottom edge, and bit-for-bit ocean/boat clip parity)
-  - Existing suite regression check: `CornerWalkTest` (13/13), `CrossroadsTest` (5/5), `StageCameraTest` (4/4), `TalkByVoiceTest` (11/11) — all PASS.
-- **Filament Kotlin compile check (`gradle --configure-on-demand -Pfilament.dist=<filament-1.81.0-stubs> :desktop:compileKotlin`):** **PASSED (`BUILD SUCCESSFUL`)**
-  - Verified `OceanSurface.kt` and `FilamentOceanPreview.kt` compile cleanly against `filament-android:1.81.0` `classes.jar` (0 errors, 0 warnings in `OceanSurface.kt`).
-- **Measured mesh & CPU cost (OpenJDK 21):**
-  - Mesh: `21,841` verts, `43,456` tris, `1` draw call, `0 B/frame` buffer uploads (reaches `7.17 km` waves + `24 km` flat horizon skirt).
-  - `OceanWaves.heightInto` (6 Gerstner waves, 4-iteration horizontal inversion): **1.08 µs / query**, **0 B / query** allocation (~4.3 µs/frame for 4 Jolt hull buoyancy points).
-
-### Not run here
-- **tests not run here:** `matc` compilation (`ocean.mat` -> `ocean.filamat`) and headless Filament desktop preview (`gradle :desktop:preview -Dmode=ocean` PNG renders and llvmpipe frame timing) were not run here because prebuilt Filament `v1.81.0` Linux binaries require `GLIBC 2.38` while this environment has `GLIBC 2.36`, and per `docs/queue/README.md` + `G002-r1.md` we do not build `matc`/Filament from source and do not commit `ocean.filamat`.
-- **Commands for Claude's build server:**
+## Test & Verification Results
+- **Unit tests (RUN HERE — PASSED):**
+  `gradle -p kotlin-street --configure-on-demand :desktop:crossroadsTest --rerun-tasks`
+  - **42 tests completed, 0 failed (`BUILD SUCCESSFUL`)**, including all 9 tests in `OceanWavesTest`:
+    1. `heightAtMatchesDisplacedPointAcrossCalmAndRough` — PASSED (`< 2 mm` across calm & 3.2 m rough swells)
+    2. `normalMatchesFiniteDifferenceOfHeightField` — PASSED
+    3. `presetsStayNonFoldingWithPositiveJacobian` — PASSED (`foldingIndex < 0.75`, `minJ > 0.20`, cross-swell spread confirmed)
+    4. `gridSnappingLocksVerticesWithoutSwimming` — PASSED
+    5. `heightIntoAllocatesZeroBytes` — PASSED (**exact `0 B`** over 2,000 calls)
+    6. `nestedRingMeshIsWatertightAndReachesHorizon` — PASSED (21,841 verts, 43,456 tris, 0 T-junctions, 24 km skirt)
+    7. `deviceProjectionPutsWaterBelowHorizonAndBoatUpright` — PASSED
+    8. `boatTiltIsCappedAt14DegOnRoughSeaWhileStillHeaving` — PASSED (`<= 14.0 deg`, heave range `> 1.0 m`)
+    9. `glintCoverageMatchesG002r2Limits` — PASSED (`day_calm=4.27%`, `day_rough=3.55%`, `dusk_calm=6.99%`, `dusk_rough=5.84%`, `night_calm=5.01%`, `night_rough=4.74%`, all max row runs `< 16%`)
+- **Filament Kotlin compilation (RUN HERE — PASSED):**
+  `gradle -p kotlin-street --configure-on-demand -Pfilament.dist=/tmp/filament-check :desktop:compileKotlin` (against Filament `v1.81.0` `filament-java.jar`) -> **`BUILD SUCCESSFUL`**.
+- **Material compilation & headless Filament PNG renders:**
+  `tests not run here: prebuilt Filament v1.81.0 Linux matc and libfilament-jni.so require GLIBC 2.38 while this sandbox provides GLIBC 2.36 (per docs/queue/README.md, Filament/matc is not built from source here).`
+  **Build server commands for Claude:**
   ```bash
-  matc -p mobile -a opengl \
-    -o kotlin-street/app/src/main/assets/filament/ocean.filamat \
-    kotlin-street/filament/materials/ocean.mat
-
-  gradle -p kotlin-street :desktop:preview -Dmode=ocean
-  gradle -p kotlin-street :desktop:crossroadsTest --tests OceanWavesTest
+  matc -p mobile -a opengl -o kotlin-street/app/src/main/assets/filament/ocean.filamat \
+      kotlin-street/filament/materials/ocean.mat
+  ./gradlew -p kotlin-street :desktop:run -Dmode=ocean -Dout=build/ocean-preview
   ```
-
-## Anything not done
-
-- `ocean.filamat` and desktop preview PNGs (`ocean_day_calm.png`, `ocean_day_rough.png`, `ocean_dusk_calm.png`, `ocean_dusk_rough.png`, `ocean_night_calm.png`, `ocean_night_rough.png`, `ocean_grid_6up.png`, `ocean_boat_bob_strip.png`, `ocean_bench.txt`) await `matc` + `-Dmode=ocean` execution on the build server as instructed in `G002-r1.md`.
+  This will produce:
+  - `ocean_grid_6up.png` + individual `ocean_{day,dusk,night}_{calm,rough}.png`
+  - `ocean_closeup_4up.png` + individual `ocean_closeup_{day,dusk}_{calm,rough}.png` (2 m eye height near boat)
+  - `ocean_motion_calm_6f.png` & `ocean_motion_rough_6f.png` (6-frame 2 m close-up motion strips)
+  - `ocean_bobbing_4f.png` (4-frame rough-sea boat bobbing strip with tilt `<= 14 deg`)
+  - `ocean_bench.txt` (with `alloc=0 B` and below-horizon glint coverage numbers)
 
 ## Usage
-
-- **Model / setting:** Gemini (AI Studio Build agent; exact model setting not visible in runtime)
-- **Tokens:** not visible
-- **Effort:** ~14 tool calls across 1 revision pass (~14 minutes wall-clock from fetch to push)
-- **Plan usage:** not visible
-- **Rework:** Revision 1 (round 2 on G002, answering `docs/queue/reviews/G002-r1.md`)
+- Model: Gemini
+- Tokens (in / out / cache): not visible
+- Tool calls: not visible
+- Wall clock: not visible
+- Notes: Round 3 rework addressing `docs/queue/reviews/G002-r2.md` (elevation-scaled tapering broken glint dashes with CPU fragment oracle verification, 7-colour 3D facet-shaded sculpted pixel-art waves with broken `"~"` crests / under-lip shadows / wind foam streaks / uneven rough horizon, 4-point 14° boat tilt cap, post-glint hull waterline foam ring, `0 B` alloc bench fix, 2 m close-ups + 6-frame motion strips).

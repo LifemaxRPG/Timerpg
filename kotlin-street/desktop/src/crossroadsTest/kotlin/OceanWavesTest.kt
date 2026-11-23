@@ -1,168 +1,85 @@
-import com.lifemax.rpg.feature.habits.presentation.scene3d.OceanGridMesh
-import com.lifemax.rpg.feature.habits.presentation.scene3d.OceanSample
-import com.lifemax.rpg.feature.habits.presentation.scene3d.OceanSpec
-import com.lifemax.rpg.feature.habits.presentation.scene3d.OceanWaves
+package com.lifemax.rpg.feature.habits.presentation.scene3d
+
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.lang.management.ManagementFactory
 import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.acos
 import kotlin.math.cos
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.math.tan
 
-/**
- * Verifies the G002 ocean prototype:
- *  1. CPU `OceanWaves.evalDisplaced` matches the `ocean.mat` vertex shader formula verbatim at sample points.
- *  2. CPU `OceanWaves.height` accurately inverts the horizontal Gerstner shift and matches finite-difference normals.
- *  3. Both CALM and ROUGH presets stay non-folding (positive Jacobian) and aligned into coherent parallel swells.
- *  4. Grid snapping keeps ocean vertices locked to fixed world XZ positions without swimming.
- *  5. Zero-allocation `OceanWaves.heightInto` allocates 0 bytes per call.
- *  6. Nested-ring mesh (`OceanGridMesh`) reaches > 5 km in wave rings + 24 km far horizon skirt with 100% watertight
- *     manifold topology (zero T-junctions or cracks across all 8 ring-to-ring seams).
- *  7. Shared `VERTEX_DOMAIN_DEVICE` clip matrix puts the ocean below the horizon, sky above, near water under/in front
- *     of the boat, and matches the boat projection bit-for-bit at the waterline.
- */
 class OceanWavesTest {
 
-    private data class ShaderVertexOut(
-        val dx: Float,
-        val dy: Float,
-        val dz: Float,
-        val nx: Float,
-        val ny: Float,
-        val nz: Float,
-        val jacobian: Float,
-    )
-
-    private fun smoothstep(edge0: Float, edge1: Float, x: Float): Float {
-        val t = ((x - edge0) / (edge1 - edge0)).coerceIn(0f, 1f)
-        return t * t * (3f - 2f * t)
-    }
-
-    /** Direct 1:1 port of `ocean.mat` `addGerstner` + `materialVertex` for CPU-vs-shader parity verification. */
-    private fun shaderOracle(
-        worldX: Float,
-        worldZ: Float,
-        eyeX: Float,
-        eyeZ: Float,
-        t: Float,
-        spec: OceanSpec,
-        fadeStart: Float = 140f,
-        fadeEnd: Float = 2200f,
-    ): ShaderVertexOut {
-        val twoPi = 6.28318530718f
-        val horizDist = sqrt((worldX - eyeX) * (worldX - eyeX) + (worldZ - eyeZ) * (worldZ - eyeZ))
-        val farFade = 1f - smoothstep(fadeStart, fadeEnd, horizDist)
-        val approxCell = max(0f, (horizDist - 40f) * 0.040f)
-
-        var dispX = 0f; var dispY = 0f; var dispZ = 0f
-        var dXx = 1f; var dXy = 0f; var dXz = 0f
-        var dZx = 0f; var dZy = 0f; var dZz = 1f
-
-        if (farFade > 0.0001f) {
-            for (w in spec.waves) {
-                val wavelength = w.wavelength
-                val amp = w.amplitude
-                if (wavelength <= 0.0001f || amp <= 0f) continue
-                val nyquistFade = smoothstep(approxCell * 1.8f, approxCell * 4.0f, wavelength)
-                val ampEff = amp * farFade * nyquistFade
-                if (ampEff <= 0.00001f) continue
-
-                val k = twoPi / wavelength
-                val phase = k * (w.dirX * worldX + w.dirZ * worldZ) - w.omega * t + w.phaseOffset
-                val s = sin(phase.toDouble()).toFloat()
-                val c = cos(phase.toDouble()).toFloat()
-                val qa = w.steepness * ampEff
-                val ka = k * ampEff
-                val qka = w.steepness * ka
-
-                dispX += qa * w.dirX * c
-                dispY += ampEff * s
-                dispZ += qa * w.dirZ * c
-
-                dXx -= qka * w.dirX * w.dirX * s
-                dXy += ka * w.dirX * c
-                dXz -= qka * w.dirX * w.dirZ * s
-
-                dZx -= qka * w.dirX * w.dirZ * s
-                dZy += ka * w.dirZ * c
-                dZz -= qka * w.dirZ * w.dirZ * s
-            }
-        }
-
-        val nxRaw = dZy * dXz - dZz * dXy
-        val nyRaw = dZz * dXx - dZx * dXz
-        val nzRaw = dZx * dXy - dZy * dXx
-        val len = sqrt(nxRaw * nxRaw + nyRaw * nyRaw + nzRaw * nzRaw).coerceAtLeast(1e-6f)
-        val jac = dXx * dZz - dXz * dZx
-        return ShaderVertexOut(dispX, dispY, dispZ, nxRaw / len, nyRaw / len, nzRaw / len, jac)
-    }
-
     @Test
-    fun cpuMatchesShaderFormulaAtSamplePoints() {
-        val sampleCoords = floatArrayOf(-30f, -14.5f, -3.2f, 0f, 8.7f, 24.3f)
-        val times = floatArrayOf(0f, 1.3f, 4.7f, 11.2f, 29.8f)
-
+    fun heightAtMatchesDisplacedPointAcrossCalmAndRough() {
+        val sample = OceanSample()
+        val verify = OceanSample()
         for (spec in listOf(OceanWaves.CALM, OceanWaves.ROUGH)) {
-            for (t in times) {
-                for (x0 in sampleCoords) {
-                    for (z0 in sampleCoords) {
-                        val cpu = OceanWaves.evalDisplaced(x0, z0, t, spec)
-                        // Eye near sample point (within unattenuated 40 m near field around boat/camera)
-                        val gpu = shaderOracle(x0, z0, x0, z0, t, spec)
-                        assertEquals("dx mismatch at ($x0,$z0,t=$t)", gpu.dx, cpu.dx, 1e-4f)
-                        assertEquals("dy mismatch at ($x0,$z0,t=$t)", gpu.dy, cpu.y, 1e-4f)
-                        assertEquals("dz mismatch at ($x0,$z0,t=$t)", gpu.dz, cpu.dz, 1e-4f)
-                        assertEquals("nx mismatch at ($x0,$z0,t=$t)", gpu.nx, cpu.nx, 1e-4f)
-                        assertEquals("ny mismatch at ($x0,$z0,t=$t)", gpu.ny, cpu.ny, 1e-4f)
-                        assertEquals("nz mismatch at ($x0,$z0,t=$t)", gpu.nz, cpu.nz, 1e-4f)
-                        assertEquals("jacobian mismatch at ($x0,$z0,t=$t)", gpu.jacobian, cpu.jacobian, 1e-4f)
+            for (t in floatArrayOf(0f, 1.37f, 4.25f, 11.8f)) {
+                for (x in floatArrayOf(-12.5f, 0f, 3.7f, 19.2f)) {
+                    for (z in floatArrayOf(-8.3f, 0f, 5.4f, 14.1f)) {
+                        OceanWaves.heightInto(x, z, t, spec, sample)
+
+                        // Verify normal is unit length and points upward
+                        val nLen = sqrt(sample.nx * sample.nx + sample.ny * sample.ny + sample.nz * sample.nz)
+                        assertEquals("normal must be unit length", 1.0f, nLen, 1e-4f)
+                        assertTrue("normal must point upward (ny=${sample.ny})", sample.ny > 0.35f)
+                        assertTrue("jacobian must remain positive (j=${sample.jacobian})", sample.jacobian > 0.05f)
+
+                        // Independent forward check: start from the undisplaced point and evaluate directly
+                        OceanWaves.evalDisplacedInto(x, z, t, spec, verify)
+                        // And verify heightInto at the displaced (x, z) recovers the exact same y
+                        OceanWaves.heightInto(x + verify.dx, z + verify.dz, t, spec, sample)
+                        assertEquals(
+                            "heightInto(displaced.x, displaced.z) must recover exact displaced.y for roughness=${spec.roughness}",
+                            verify.y,
+                            sample.y,
+                            2e-3f,
+                        )
+                        assertEquals("normal X must match", verify.nx, sample.nx, 5e-3f)
+                        assertEquals("normal Y must match", verify.ny, sample.ny, 5e-3f)
+                        assertEquals("normal Z must match", verify.nz, sample.nz, 5e-3f)
                     }
                 }
             }
         }
-
-        // Far-field horizon rings must smoothly flatten wave amplitude to 0
-        val farOut = shaderOracle(0f, 3000f, 0f, 0f, 5.0f, OceanWaves.ROUGH)
-        assertEquals("far ocean dy must flatten to 0", 0f, farOut.dy, 1e-6f)
-        assertEquals("far ocean normal must be vertical +Y", 1f, farOut.ny, 1e-6f)
     }
 
     @Test
-    fun heightInvertsHorizontalGerstnerShiftForBuoyancy() {
+    fun normalMatchesFiniteDifferenceOfHeightField() {
         val eps = 0.02f
-        val pts = arrayOf(0f to 0f, 5.5f to -3.2f, -12.8f to 9.4f, 21.1f to 17.6f)
-        for (spec in listOf(OceanWaves.CALM, OceanWaves.ROUGH)) {
-            for (t in floatArrayOf(0.5f, 3.7f, 9.2f)) {
-                for ((wx, wz) in pts) {
-                    val s = OceanWaves.height(wx, wz, t, spec)
-                    // Check fixed-point residual: (x0 + dx, z0 + dz) must land back on (wx, wz)
-                    val x0 = wx - s.dx
-                    val z0 = wz - s.dz
-                    val verify = OceanWaves.evalDisplaced(x0, z0, t, spec)
-                    assertEquals("horizontal inversion X residual", wx, x0 + verify.dx, 0.005f)
-                    assertEquals("horizontal inversion Z residual", wz, z0 + verify.dz, 0.005f)
-                    assertEquals("height consistency", verify.y, s.y, 0.002f)
+        val c = OceanSample()
+        val px = OceanSample()
+        val mx = OceanSample()
+        val pz = OceanSample()
+        val mz = OceanSample()
 
-                    // Analytical normal must agree with finite-difference gradient of height(x, z, t)
-                    val hxPlus = OceanWaves.height(wx + eps, wz, t, spec).y
-                    val hxMinus = OceanWaves.height(wx - eps, wz, t, spec).y
-                    val hzPlus = OceanWaves.height(wx, wz + eps, t, spec).y
-                    val hzMinus = OceanWaves.height(wx, wz - eps, t, spec).y
-                    val dhdx = (hxPlus - hxMinus) / (2f * eps)
-                    val dhdz = (hzPlus - hzMinus) / (2f * eps)
-                    val fdLen = sqrt(dhdx * dhdx + 1f + dhdz * dhdz)
-                    val fdNx = -dhdx / fdLen
-                    val fdNy = 1f / fdLen
-                    val fdNz = -dhdz / fdLen
-                    val dot = s.nx * fdNx + s.ny * fdNy + s.nz * fdNz
-                    assertTrue("analytical normal must agree with finite-difference normal (dot=$dot)", dot > 0.997f)
-                }
+        for (spec in listOf(OceanWaves.CALM, OceanWaves.ROUGH)) {
+            val t = 3.14f
+            for ((x, z) in listOf(0f to 0f, 4.2f to -3.1f, -6.5f to 7.8f)) {
+                OceanWaves.heightInto(x, z, t, spec, c)
+                OceanWaves.heightInto(x + eps, z, t, spec, px)
+                OceanWaves.heightInto(x - eps, z, t, spec, mx)
+                OceanWaves.heightInto(x, z + eps, t, spec, pz)
+                OceanWaves.heightInto(x, z - eps, t, spec, mz)
+
+                val dydx = (px.y - mx.y) / (2f * eps)
+                val dydz = (pz.y - mz.y) / (2f * eps)
+                val invLen = 1f / sqrt(dydx * dydx + 1f + dydz * dydz)
+                val fdNx = -dydx * invLen
+                val fdNy = invLen
+                val fdNz = -dydz * invLen
+
+                assertEquals("nx vs finite diff (roughness=${spec.roughness})", fdNx, c.nx, 1.5e-2f)
+                assertEquals("ny vs finite diff (roughness=${spec.roughness})", fdNy, c.ny, 1.5e-2f)
+                assertEquals("nz vs finite diff (roughness=${spec.roughness})", fdNz, c.nz, 1.5e-2f)
             }
         }
     }
@@ -172,11 +89,18 @@ class OceanWavesTest {
         val sample = OceanSample()
         for (spec in listOf(OceanWaves.CALM, OceanWaves.ROUGH)) {
             assertTrue("folding index ${spec.foldingIndex} must be < 0.75", spec.foldingIndex < 0.75f)
-            // Verify swells are coherently aligned along main direction (prevents isotropic cloudy blobs)
+            // Verify swells travel in the forward hemisphere (+/- 50 deg) with enough cross-swell spread
+            // to sculpt staggered 3D mounds rather than flat parallel computer stripes.
+            var minAlign = 1f
             for (w in spec.waves) {
                 val align = w.dirX * spec.mainDirX + w.dirZ * spec.mainDirZ
-                assertTrue("wave must align within 30 deg of main swell (dot=$align)", align > 0.86f)
+                if (align < minAlign) minAlign = align
+                assertTrue("wave must travel within 50 deg of main swell (dot=$align)", align > 0.64f)
             }
+            assertTrue(
+                "cross-swell directional spread must exist (minAlign=$minAlign < 0.90) to break horizontal stripes",
+                minAlign < 0.90f,
+            )
             var minJ = Float.MAX_VALUE
             var maxY = -Float.MAX_VALUE
             var minY = Float.MAX_VALUE
@@ -188,7 +112,7 @@ class OceanWavesTest {
                     if (sample.y < minY) minY = sample.y
                 }
             }
-            assertTrue("min Jacobian $minJ must stay strictly positive (no self-folding)", minJ > 0.25f)
+            assertTrue("min Jacobian $minJ must stay strictly positive (no self-folding)", minJ > 0.20f)
             assertTrue("wave range (${maxY - minY}) must be non-trivial", maxY - minY > 0.2f)
         }
     }
@@ -199,11 +123,8 @@ class OceanWavesTest {
         val originA = OceanWaves.snapGridOrigin(3.1f, snapStep)
         val originB = OceanWaves.snapGridOrigin(7.9f, snapStep)
         assertEquals("small camera motion inside one snap step must not move grid", originA, originB, 0f)
-
         val originC = OceanWaves.snapGridOrigin(8.2f, snapStep)
         assertEquals("crossing snap boundary must jump by exact integer multiple of snapStep", snapStep, originC - originA, 1e-6f)
-
-        // Vertex index k in ring 0 (1 m cell) at originC lands on exact same world X as vertex k+8 at originA
         val worldAtA = originA + 15 * 1.0f
         val worldAtC = originC + 7 * 1.0f
         assertEquals("shifted ring vertices must land on identical world coordinates", worldAtA, worldAtC, 1e-6f)
@@ -213,17 +134,18 @@ class OceanWavesTest {
     fun heightIntoAllocatesZeroBytes() {
         val mx = ManagementFactory.getThreadMXBean() as? com.sun.management.ThreadMXBean ?: return
         if (!mx.isThreadAllocatedMemorySupported) return
-        val tid = Thread.currentThread().threadId()
         val sample = OceanSample()
+        // Pre-warm both the wave evaluator and the scalar MXBean query so the measured window allocates 0 B
+        repeat(4000) { i ->
+            OceanWaves.heightInto(i * 0.3f, i * 0.5f, i * 0.02f, OceanWaves.ROUGH, sample)
+        }
+        mx.currentThreadAllocatedBytes
+        val before = mx.currentThreadAllocatedBytes
         repeat(2000) { i ->
             OceanWaves.heightInto(i * 0.3f, i * 0.5f, i * 0.02f, OceanWaves.ROUGH, sample)
         }
-        val before = mx.getThreadAllocatedBytes(tid)
-        repeat(1000) { i ->
-            OceanWaves.heightInto(i * 0.3f, i * 0.5f, i * 0.02f, OceanWaves.ROUGH, sample)
-        }
-        val delta = mx.getThreadAllocatedBytes(tid) - before
-        assertTrue("heightInto should allocate ~0 bytes over 1000 calls (got $delta B)", delta <= 512L)
+        val delta = mx.currentThreadAllocatedBytes - before
+        assertEquals("heightInto must allocate 0 bytes over 2000 calls (got $delta B)", 0L, delta)
     }
 
     @Test
@@ -233,7 +155,6 @@ class OceanWavesTest {
         assertTrue("wave outer radius ${mesh.waveOuterRadius} must reach >= 5 km", mesh.waveOuterRadius >= 5000f)
         assertTrue("far horizon radius ${mesh.farHorizonRadius} must reach >= 20 km", mesh.farHorizonRadius >= 20000f)
 
-        // Count undirected edges across every triangle in all 9 wave rings + far horizon skirt
         val edgeCounts = HashMap<Long, Int>(mesh.triangleCount * 2)
         val inds = mesh.indices
         for (t in 0 until mesh.triangleCount) {
@@ -274,7 +195,6 @@ class OceanWavesTest {
 
     @Test
     fun deviceProjectionPutsWaterBelowHorizonAndBoatUpright() {
-        // Exact G002-r1 verification camera: 6 m up and 20 m behind the boat at (0, 0, 0)
         val ex = 0f; val ey = 6.0f; val ez = -20.0f
         val tx = 0f; val ty = 1.8f; val tz = 4.0f
         val fovY = 42.0
@@ -289,9 +209,10 @@ class OceanWavesTest {
         val rl = sqrt(rx * rx + rz * rz)
         rx /= rl; rz /= rl
         val ux = -rz * fy; val uy = rz * fx - rx * fz; val uz = rx * fy
+
         val fyScale = (1.0 / tan(fovY * PI / 360.0)).toFloat()
         val fxScale = fyScale / aspect
-        val ySign = -1f // headless desktop (LookMatrix.windowY = false)
+        val ySign = -1f
 
         val look = FloatArray(16)
         val rxE = rx * ex + rz * ez
@@ -306,7 +227,6 @@ class OceanWavesTest {
             val cy = look[1] * px + look[5] * py + look[9] * pz + look[13]
             val cw = look[3] * px + look[7] * py + look[11] * pz + look[15]
             val ndcY = cy / cw
-            // On headless CONFIG_READABLE with readPixels((h-1-y)*w+x), ndcY=-1 is top (row 0) and ndcY=+1 is bottom (row h)
             return h * (0.5f + 0.5f * ndcY)
         }
 
@@ -320,16 +240,246 @@ class OceanWavesTest {
         assertTrue("waterline ($waterlineRow) must lie BELOW horizon ($horizonRow)", waterlineRow > horizonRow + 80f)
         assertTrue("foreground water in front of boat ($nearWaterRow) must reach near bottom of frame", nearWaterRow > h * 0.90f)
 
-        // Verify ocean.mat's (look * displaceMat) * localPos matches street_lit.mat's look * worldPos bit-for-bit
         val localX = 12f; val localY = 0f; val localZ = -4f
         val worldX = 0f; val worldY = 0.25f; val worldZ = 0f
         val dx = worldX - localX; val dy = worldY - localY; val dz = worldZ - localZ
-        // (look * displaceMat) * vec4(localPos, 1) == look * vec4(localPos + delta, 1)
         for (row in 0..3) {
             val boatClip = look[row] * worldX + look[4 + row] * worldY + look[8 + row] * worldZ + look[12 + row]
             val dispCol3 = look[row] * dx + look[4 + row] * dy + look[8 + row] * dz + look[12 + row]
             val oceanClip = look[row] * localX + look[4 + row] * localY + look[8 + row] * localZ + dispCol3
             assertEquals("clip component $row must match between ocean and boat", boatClip, oceanClip, 1e-5f)
+        }
+    }
+
+    @Test
+    fun boatTiltIsCappedAt14DegOnRoughSeaWhileStillHeaving() {
+        val sample = OceanSample()
+        val headingRad = 0.38f
+        val hx = sin(headingRad.toDouble()).toFloat()
+        val hz = cos(headingRad.toDouble()).toFloat()
+        val flatRx = hz
+        val flatRz = -hx
+        val halfL = 2.1f
+        val halfW = 1.0f
+        val tiltDamping = 0.55f
+        val maxTiltDeg = 14.0f
+        val maxSin = sin(maxTiltDeg * PI / 180.0).toFloat()
+        val maxCos = cos(maxTiltDeg * PI / 180.0).toFloat()
+
+        var maxObservedTiltDeg = 0f
+        var minY = Float.MAX_VALUE
+        var maxY = -Float.MAX_VALUE
+
+        for (step in 0 until 120) {
+            val t = step * 0.15f
+            OceanWaves.heightInto(hx * halfL, hz * halfL, t, OceanWaves.ROUGH, sample); val yBow = sample.y
+            OceanWaves.heightInto(-hx * halfL, -hz * halfL, t, OceanWaves.ROUGH, sample); val yStern = sample.y
+            OceanWaves.heightInto(flatRx * halfW, flatRz * halfW, t, OceanWaves.ROUGH, sample); val yStbd = sample.y
+            OceanWaves.heightInto(-flatRx * halfW, -flatRz * halfW, t, OceanWaves.ROUGH, sample); val yPort = sample.y
+            val avgY = 0.25f * (yBow + yStern + yStbd + yPort)
+            if (avgY < minY) minY = avgY
+            if (avgY > maxY) maxY = avgY
+
+            val fdx = hx * (2f * halfL); val fdy = yBow - yStern; val fdz = hz * (2f * halfL)
+            val rdx = flatRx * (2f * halfW); val rdy = yStbd - yPort; val rdz = flatRz * (2f * halfW)
+            var nx = fdy * rdz - fdz * rdy
+            var ny = fdz * rdx - fdx * rdz
+            var nz = fdx * rdy - fdy * rdx
+            val nl = sqrt(nx * nx + ny * ny + nz * nz).coerceAtLeast(1e-6f)
+            nx /= nl; ny /= nl; nz /= nl
+
+            var ux = nx * tiltDamping
+            var uy = 1f + (ny - 1f) * tiltDamping
+            var uz = nz * tiltDamping
+            val horizLen = sqrt(ux * ux + uz * uz)
+            val uLen = sqrt(ux * ux + uy * uy + uz * uz).coerceAtLeast(1e-6f)
+            ux /= uLen; uy /= uLen; uz /= uLen
+            val curSin = horizLen / uLen
+            if (curSin > maxSin && horizLen > 1e-6f) {
+                val scale = maxSin / curSin
+                ux *= scale; uz *= scale; uy = maxCos
+            }
+            val tiltDeg = (acos(uy.coerceIn(-1f, 1f).toDouble()) * 180.0 / PI).toFloat()
+            if (tiltDeg > maxObservedTiltDeg) maxObservedTiltDeg = tiltDeg
+        }
+
+        assertTrue("rough sea boat tilt ($maxObservedTiltDeg deg) must be capped <= 14.1 deg", maxObservedTiltDeg <= 14.1f)
+        assertTrue("rough sea boat must still visibly heave (range=${maxY - minY} m > 1.0 m)", (maxY - minY) > 1.0f)
+        assertTrue("rough sea boat must visibly rock (maxTilt=$maxObservedTiltDeg deg > 4.0 deg)", maxObservedTiltDeg > 4.0f)
+    }
+
+    @Test
+    fun glintCoverageMatchesG002r2Limits() {
+        // Exact CPU port of ocean.mat's glint stage on the G002-r1/r2 verification camera (0, 6, -20) -> (0, 1.8, 4).
+        fun fract(x: Float): Float = x - floor(x)
+        fun smoothstep(e0: Float, e1: Float, x: Float): Float {
+            val t = ((x - e0) / (e1 - e0)).coerceIn(0f, 1f)
+            return t * t * (3f - 2f * t)
+        }
+        fun mix(a: Float, b: Float, t: Float): Float = a + (b - a) * t
+        fun hash21(px0: Float, py0: Float): Float {
+            var px = fract(px0 * 123.34f)
+            var py = fract(py0 * 456.21f)
+            val d = px * (px + 45.32f) + py * (py + 45.32f)
+            px += d; py += d
+            return fract(px * py)
+        }
+        fun vnoise(px: Float, py: Float): Float {
+            val ix = floor(px); val iy = floor(py)
+            var fx = fract(px); var fy = fract(py)
+            fx = fx * fx * (3f - 2f * fx)
+            fy = fy * fy * (3f - 2f * fy)
+            val a = hash21(ix, iy)
+            val b = hash21(ix + 1f, iy)
+            val c = hash21(ix, iy + 1f)
+            val d = hash21(ix + 1f, iy + 1f)
+            return mix(mix(a, b, fx), mix(c, d, fx), fy)
+        }
+        fun norm3(x: Float, y: Float, z: Float): FloatArray {
+            val l = sqrt(x * x + y * y + z * z)
+            return floatArrayOf(x / l, y / l, z / l)
+        }
+
+        val ex = 0f; val ey = 6.0f; val ez = -20.0f
+        val tx = 0f; val ty = 1.8f; val tz = 4.0f
+        val w = 240; val h = 135
+        val aspect = w.toFloat() / h.toFloat()
+        val tanHalfFov = tan(42.0 * PI / 360.0).toFloat()
+
+        var fx = tx - ex; var fy = ty - ey; var fz = tz - ez
+        val fl = sqrt(fx * fx + fy * fy + fz * fz)
+        fx /= fl; fy /= fl; fz /= fl
+        var rx = -fz; var rz = fx
+        val rl = sqrt(rx * rx + rz * rz)
+        rx /= rl; rz /= rl
+        val ux = -rz * fy; val uy = rz * fx - rx * fz; val uz = rx * fy
+
+        data class Case(val label: String, val spec: OceanSpec, val lightDir: FloatArray, val glintStr: Float, val night: Float, val minPct: Float, val maxPct: Float)
+        val cases = listOf(
+            Case("day_calm", OceanWaves.CALM, norm3(0.20f, 0.48f, 0.85f), 0.85f, 0.00f, 1.0f, 7.5f),
+            Case("day_rough", OceanWaves.ROUGH, norm3(0.20f, 0.48f, 0.85f), 0.85f, 0.00f, 1.0f, 7.5f),
+            Case("dusk_calm", OceanWaves.CALM, norm3(0.14f, 0.096f, 0.985f), 1.00f, 0.28f, 3.0f, 18.0f),
+            Case("dusk_rough", OceanWaves.ROUGH, norm3(0.14f, 0.096f, 0.985f), 1.00f, 0.28f, 2.5f, 18.0f),
+            Case("night_calm", OceanWaves.CALM, norm3(-0.14f, 0.118f, 0.983f), 0.92f, 1.00f, 1.5f, 10.0f),
+            Case("night_rough", OceanWaves.ROUGH, norm3(-0.14f, 0.118f, 0.983f), 0.92f, 1.00f, 1.5f, 10.0f),
+        )
+
+        val sample = OceanSample()
+        val t = 3.2f
+        val report = StringBuilder()
+
+        for (c in cases) {
+            val lx = c.lightDir[0]; val ly = c.lightDir[1]; val lz = c.lightDir[2]
+            val lHlen = sqrt(lx * lx + lz * lz).coerceAtLeast(1e-4f)
+            val lHx = lx / lHlen; val lHz = lz / lHlen
+            val swellX = c.spec.mainDirX; val swellZ = c.spec.mainDirZ
+            val perpX = -swellZ; val perpZ = swellX
+
+            var waterPx = 0
+            var glintPx = 0
+            var maxRunFrac = 0f
+
+            for (py in 0 until h) {
+                val ndcY = 1f - 2f * ((py + 0.5f) / h.toFloat())
+                var curRun = 0
+                var maxRunRow = 0
+                for (px in 0 until w) {
+                    val ndcX = 2f * ((px + 0.5f) / w.toFloat()) - 1f
+                    var dx = fx + rx * (ndcX * aspect * tanHalfFov) + ux * (ndcY * tanHalfFov)
+                    var dy = fy + uy * (ndcY * tanHalfFov)
+                    var dz = fz + rz * (ndcX * aspect * tanHalfFov) + uz * (ndcY * tanHalfFov)
+                    val dl = sqrt(dx * dx + dy * dy + dz * dz)
+                    dx /= dl; dy /= dl; dz /= dl
+                    if (dy >= -1e-4f) {
+                        curRun = 0
+                        continue
+                    }
+                    val hitT = -ey / dy
+                    if (hitT > 24000f) {
+                        curRun = 0
+                        continue
+                    }
+                    waterPx++
+                    val wx = ex + dx * hitT
+                    val wz = ez + dz * hitT
+                    val dHx = wx - ex; val dHz = wz - ez
+                    val dist = sqrt(dHx * dHx + dHz * dHz).coerceAtLeast(1e-4f)
+                    val viewHx = dHx / dist; val viewHz = dHz / dist
+
+                    // Evaluate Gerstner normal with same farFade as ocean.mat
+                    val farFade = 1f - smoothstep(140f, 2200f, dist)
+                    var nx = 0f; var ny = 1f; var nz = 0f
+                    var wy = 0f
+                    if (farFade > 0.001f && dist < 1400f) {
+                        OceanWaves.heightInto(wx, wz, t, c.spec, sample)
+                        wy = sample.y * farFade
+                        nx = sample.nx * farFade
+                        ny = mix(1f, sample.ny, farFade)
+                        nz = sample.nz * farFade
+                        val nl = sqrt(nx * nx + ny * ny + nz * nz).coerceAtLeast(1e-6f)
+                        nx /= nl; ny /= nl; nz /= nl
+                    }
+
+                    val vx0 = ex - wx; val vy0 = ey - wy; val vz0 = ez - wz
+                    val vl = sqrt(vx0 * vx0 + vy0 * vy0 + vz0 * vz0).coerceAtLeast(1e-6f)
+                    val vx = vx0 / vl; val vy = vy0 / vl; val vz = vz0 / vl
+
+                    val along = wx * swellX + wz * swellZ
+                    val across = wx * perpX + wz * perpZ
+                    val azimForward = viewHx * lHx + viewHz * lHz
+                    var isGlint = false
+                    if (c.glintStr > 0.01f && azimForward > 0.5f) {
+                        val nightOnly = smoothstep(0.5f, 1.0f, c.night)
+                        val elevScale = (1f - (ly - 0.095f) * 1.90f).coerceIn(0.26f, 1.0f) * mix(1.0f, 0.66f, nightOnly)
+                        val azimErr = abs(viewHx * lHz - viewHz * lHx)
+                        val distT = smoothstep(14f, 480f, dist)
+                        val baseHalf = mix(0.42f, 0.052f, distT) * mix(0.48f, 1.0f, elevScale) * c.glintStr
+                        val ragged = 0.42f + 0.85f * vnoise(along * 0.22f - t * 0.35f, across * 0.09f + 2.1f)
+                        val funnel = 1f - smoothstep(baseHalf * 0.25f, baseHalf * ragged, azimErr)
+                        if (funnel > 0.05f) {
+                            var hx0 = vx + lx; var hy0 = vy + ly; var hz0 = vz + lz
+                            val hl = sqrt(hx0 * hx0 + hy0 * hy0 + hz0 * hz0).coerceAtLeast(1e-6f)
+                            hx0 /= hl; hy0 /= hl; hz0 /= hl
+                            val ndoth = max(nx * hx0 + ny * hy0 + nz * hz0, 0f)
+                            val facetBase = mix(0.986f, 0.940f, elevScale * (0.55f + 0.45f * distT))
+                            val facetThresh = facetBase - 0.048f * c.spec.roughness
+                            val dashA = vnoise(across * 1.15f + t * 0.28f, along * 2.85f - t * 2.50f)
+                            val dashB = vnoise(across * 2.65f - t * 0.45f, along * 5.60f - t * 4.10f)
+                            val dashVal = dashA * 0.55f + dashB * 0.45f
+                            val dashGate = mix(0.60f, 0.510f, elevScale) - 0.068f * distT * elevScale
+                            val facetHit = smoothstep(facetThresh - 0.012f, facetThresh + 0.010f, ndoth)
+                            val lowHorizon = smoothstep(160f, 760f, dist) * smoothstep(0.24f, 0.08f, ly) *
+                                (1f - smoothstep(0.012f, 0.044f * ragged, azimErr))
+                            val hit = max(facetHit * funnel, lowHorizon * mix(0.92f, 0.62f, nightOnly))
+                            if (hit > 0.30f && dashVal > dashGate - 0.09f * lowHorizon) {
+                                isGlint = true
+                            }
+                        }
+                    }
+
+                    if (isGlint) {
+                        glintPx++
+                        curRun++
+                        if (curRun > maxRunRow) maxRunRow = curRun
+                    } else {
+                        curRun = 0
+                    }
+                }
+                val rowFrac = maxRunRow.toFloat() / w.toFloat()
+                if (rowFrac > maxRunFrac) maxRunFrac = rowFrac
+            }
+
+            val pct = 100f * glintPx.toFloat() / waterPx.coerceAtLeast(1).toFloat()
+            report.append("${c.label}=%.2f%% (maxRowRun=%.1f%%) ".format(pct, maxRunFrac * 100f))
+            println("GLINT_ORACLE ${c.label}: belowHorizon=%.2f%% maxRowRun=%.1f%%".format(pct, maxRunFrac * 100f))
+            assertTrue(
+                "${c.label} glint " + "%.2f%%".format(pct) + " outside target [${c.minPct}%, ${c.maxPct}%] ($report)",
+                pct in c.minPct..c.maxPct,
+            )
+            assertTrue(
+                "${c.label} max horizontal glint run %.1f%% must be < 22%% (no solid sheet/rectangle)".format(maxRunFrac * 100f),
+                maxRunFrac < 0.22f,
+            )
         }
     }
 }

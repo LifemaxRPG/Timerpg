@@ -1,17 +1,19 @@
-// Pixel-art ocean surface for Filament (G002 prototype, revision 1).
+// Pixel-art ocean surface for Filament (G002 prototype, round 3 / G002-r2).
 //
-// Uses `vertexDomain : device` with `materialParams.look` (the exact same projection and depth convention as
-// `street_lit.mat` / `LookMatrix`) so the ocean, boats, and town geometry always share identical Y orientation
-// (both on headless desktop and Android TextureView) and reversed-Z depth ordering.
+// Uses `vertexDomain : device` with `materialParams.look` (matching `street_lit.mat` / `LookMatrix`) so the
+// ocean, boats, and town share identical Y orientation and reversed-Z depth on headless desktop & Android.
 //
-// Vertex shader: sums up to 6 aligned Gerstner waves in world space around a camera-snapped nested-ring mesh
-// (out to ~7 km of wave rings + flat 24 km horizon skirt), attenuating wave amplitude smoothly with distance
-// and wavelength (zero aliasing in outer rings, exact CPU parity near the camera/boat).
+// Vertex shader: sums 6 Gerstner waves across a watertight 9-ring nested mesh + 24 km horizon skirt (1 draw call),
+// keeping exact CPU parity inside 40 m, attenuating smoothly with distance/Nyquist to avoid aliasing, and adding
+// subtle 1-2 px horizon silhouette bumps on rough seas.
 //
-// Fragment shader: 16-bit pixel-art sea shading — long parallel swell bands (dark troughs, mid body, lit faces,
-// thin bright crest ribbons), fine parallel wave-line shimmer, Bayer-dithered white crest foam, crisp sun/moon
-// sparkle ribbon, stepped time-of-day sky reflection, calm atmospheric fade to a single flat horizon sea colour,
-// and an optional waterline foam ring around a floating boat hull.
+// Fragment shader: hand-shaded 16-bit pixel-art 3D wave forms (NOT flat stripes):
+//   - 7 hue-shifted flat colours per time of day driven by 3D facet normal N against sun/moon L and camera V
+//   - Tight 2-4 px band transitions (no wide noisy Bayer checkerboards)
+//   - Staggered short curved "~" crest highlights, 2-4 px whitecaps with a darker shadow line under the lip
+//   - Thin wind-aligned foam streaks on rough seas that drift with the waves
+//   - Elevation-scaled, facet-gated, tapering broken horizontal sun/moon glint dashes (zero white sheets)
+//   - Crisp 1-2 px hull waterline foam ring broken on the lee side (evaluated after glint so it stays visible)
 //
 // Compile with Filament v1.81.0 matc (same flags as street_lit.mat):
 //   matc -p mobile -a opengl -o kotlin-street/app/src/main/assets/filament/ocean.filamat \
@@ -57,18 +59,21 @@ material {
         { type : float4, name : eyePos, precision : high },
         // Unit vector pointing TOWARDS the sun (day/dusk) or moon (night) in xyz; night factor 0..1 in w
         { type : float4, name : lightDir, precision : high },
-        // Sun/moon glint sparkle colour (rgb) and intensity (a)
+        // Sun/moon glint sparkle colour (rgb) and base strength (a)
         { type : float4, name : glintColor },
         // Sky reflection colour for the current hour (rgb) and reflection strength (a)
         { type : float4, name : skyColor },
-        // Calm distant flat sea colour (rgb) and atmospheric distance-fade end in metres (a)
+        // Calm flat distant sea colour (rgb) and atmospheric distance-band end in metres (a)
         { type : float4, name : horizonColor },
-        // 4 flat stepped pixel-art water bands (deep trough -> mid body -> lit face -> thin crest highlight)
-        { type : float4, name : bandDeep },
-        { type : float4, name : bandMid },
-        { type : float4, name : bandLight },
-        { type : float4, name : bandCrest },
-        // Crest & hull foam colour (rgb) and crest foam threshold (a)
+        // 7 hue-shifted flat pixel-art sea colours (deep shadow -> trough -> shaded flank -> body -> lit shoulder -> aqua crest -> lip highlight)
+        { type : float4, name : colAbyss },
+        { type : float4, name : colTrough },
+        { type : float4, name : colShadowFace },
+        { type : float4, name : colBody },
+        { type : float4, name : colLitFace },
+        { type : float4, name : colTealCrest },
+        { type : float4, name : colLipHighlight },
+        // Whitecap, wind-streak & hull foam colour (rgb) and whitecap threshold (a)
         { type : float4, name : foamColor },
         // Optional floating boat waterline foam ring:
         //   hullPose  = (boatWorldX, boatWorldZ, cosHeading, sinHeading)
@@ -97,7 +102,7 @@ vertex {
         if (wavelength <= 0.0001 || amp <= 0.0) {
             return;
         }
-        // Fade short waves on coarse outer rings to prevent aliasing while keeping 1.0 inside ~40 m of camera
+        // Fade short waves on coarse outer rings to prevent aliasing while keeping 1.0 inside 40 m of camera
         float nyquistFade = smoothstep(approxCell * 1.8, approxCell * 4.0, wavelength);
         float ampEff = amp * farFade * nyquistFade;
         if (ampEff <= 0.00001) {
@@ -136,12 +141,13 @@ vertex {
         vec3 localPos = getPosition().xyz;
         vec2 worldXZ = materialParams.gridOrigin.xz + localPos.xz;
         float t = materialParams.oceanTime.x;
+        float roughness = materialParams.waveParams.x;
 
         float horizDist = length(worldXZ - materialParams.eyePos.xz);
         float fadeStart = max(materialParams.waveParams.y, 40.0);
         float fadeEnd = max(materialParams.waveParams.z, fadeStart + 100.0);
         float farFade = 1.0 - smoothstep(fadeStart, fadeEnd, horizDist);
-        // Zero inside 40 m so near-camera/boat vertices match CPU OceanWaves.height exactly
+        // Strictly 0 inside 40 m so near-camera/boat vertices match CPU OceanWaves.height exactly
         float approxCell = max(0.0, (horizDist - 40.0) * 0.040);
 
         vec3 disp = vec3(0.0);
@@ -155,6 +161,15 @@ vertex {
             addGerstner(worldXZ, t, farFade, approxCell, materialParams.waveA3, materialParams.waveB3, disp, dX, dZ);
             addGerstner(worldXZ, t, farFade, approxCell, materialParams.waveA4, materialParams.waveB4, disp, dX, dZ);
             addGerstner(worldXZ, t, farFade, approxCell, materialParams.waveA5, materialParams.waveB5, disp, dX, dZ);
+        }
+
+        // Subtle 1-2 px uneven horizon silhouette bumps in rough water (strictly 0 inside 3.2 km and on calm water)
+        float roughGate = smoothstep(0.45, 0.90, roughness);
+        if (roughGate > 0.001 && horizDist > 3200.0 && horizDist < 12000.0) {
+            float ringMask = smoothstep(3200.0, 6000.0, horizDist) * (1.0 - smoothstep(7300.0, 11500.0, horizDist));
+            float bump = 0.62 * sin(worldXZ.x * 0.0036 + t * 0.42)
+                       + 0.38 * sin(worldXZ.x * 0.0082 - worldXZ.y * 0.0019 - t * 0.65);
+            disp.y += 11.5 * roughGate * ringMask * max(bump, -0.35);
         }
 
         // Right-handed Y-up normal: (+Z) x (+X) = +Y
@@ -187,7 +202,7 @@ vertex {
             disp.y,
             max(materialParams.oceanTime.y, 0.05),
             farFade,
-            materialParams.waveParams.x
+            roughness
         );
     }
 }
@@ -203,6 +218,23 @@ fragment {
             15.0, 7.0, 13.0, 5.0
         );
         return (m[int(i)] + 0.5) / 16.0;
+    }
+
+    float hash21(vec2 p) {
+        p = fract(p * vec2(123.34, 456.21));
+        p += dot(p, p + 45.32);
+        return fract(p.x * p.y);
+    }
+
+    float vnoise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+        float a = hash21(i);
+        float b = hash21(i + vec2(1.0, 0.0));
+        float c = hash21(i + vec2(0.0, 1.0));
+        float d = hash21(i + vec2(1.0, 1.0));
+        return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
     }
 
     void material(inout MaterialInputs material) {
@@ -222,125 +254,186 @@ fragment {
         float night = clamp(materialParams.lightDir.w, 0.0, 1.0);
         float cell = max(materialParams.waveParams.w, 1.0);
         float dither = bayer4(gl_FragCoord.xy / cell);
+        float t = materialParams.oceanTime.x;
 
-        // Distance fade to calm flat horizon sea colour (pixel-art atmospheric band)
-        float atmEnd = max(materialParams.horizonColor.a, 120.0);
-        float atmFade = smoothstep(55.0, atmEnd, dist);
-        float detailFade = 1.0 - smoothstep(45.0, 320.0, dist);
-
-        // Main swell axis & perpendicular coordinate for crisp 16-bit parallel wave lines
+        // Swell-aligned world coordinates (along = travel axis, across = crest axis)
         vec2 swellDir = normalize(materialParams.oceanTime.zw);
         vec2 swellPerp = vec2(-swellDir.y, swellDir.x);
         highp float along = dot(pos.xz, swellDir);
         highp float across = dot(pos.xz, swellPerp);
-        float t = materialParams.oceanTime.x;
 
-        // Fine parallel horizontal ripple phase (few metres wide near camera) so even calm sea reads as water lines
-        float warp = 0.35 * sin(across * 0.22 + t * 0.55) + 0.18 * sin(across * 0.53 - t * 0.85);
-        float fineLineA = sin(along * 1.45 - t * 2.10 + warp);
-        float fineLineB = sin(along * 2.75 - t * 3.20 - warp * 1.3);
-        float fineRipple = (0.65 * fineLineA + 0.35 * fineLineB) * detailFade;
+        float detailFade = 1.0 - smoothstep(45.0, 260.0, dist);
+        float farAtten = 1.0 - smoothstep(140.0, 420.0, dist);
 
-        // Wave elevation normalized to [-1, 1], combined with front-face slope along the swell & camera
-        float elevNorm = clamp(waveY / max(maxAmp * 0.68, 0.05), -1.0, 1.0);
-        // Slope facing the camera vs facing away separates dark wave troughs from bright front faces
-        float frontSlope = clamp(dot(N.xz, V.xz) * 2.4, -1.0, 1.0);
-        float sunSlope = clamp(dot(N.xz, L.xz) * 1.6, -1.0, 1.0);
-
-        // Band signal: follows parallel swell troughs & crests (narrow crest ridge, distinct troughs)
-        float swellBand = elevNorm * 0.62
-            + frontSlope * 0.24
-            + sunSlope * 0.14
-            + fineRipple * mix(0.28, 0.14, roughness);
-        swellBand *= (1.0 - atmFade * 0.85);
-
-        // 4 flat stepped pixel-art water bands (no smooth gradients):
-        //   bandDeep  : dark parallel troughs
-        //   bandMid   : primary sea body
-        //   bandLight : lighter lit wave faces & horizontal ripple lines
-        //   bandCrest : thin bright highlight ribbon right along swell ridges
-        vec3 col = materialParams.bandMid.rgb;
-        if (swellBand > 0.64) {
-            col = materialParams.bandCrest.rgb;
-        } else if (swellBand > 0.18) {
-            col = materialParams.bandLight.rgb;
-        } else if (swellBand < -0.24) {
-            col = materialParams.bandDeep.rgb;
-        }
-
-        // Stepped time-of-day sky reflection on grazing distant wave backs (dithered edge, no smooth gradient)
-        float ndotv = clamp(dot(N, V), 0.0, 1.0);
-        float fresnel = pow(1.0 - ndotv, 3.0);
-        float skyRefl = clamp((fresnel - 0.36) / 0.48, 0.0, 1.0) * materialParams.skyColor.a * (1.0 - atmFade * 0.65);
-        if (skyRefl > 0.55 || (skyRefl > 0.18 && dither < skyRefl)) {
-            col = mix(col, materialParams.skyColor.rgb, 0.48);
-        }
-
-        // Crisp atmospheric fade toward a single calm flat distant sea band at the horizon
-        if (atmFade > 0.88 || (atmFade > 0.04 && dither < atmFade)) {
-            col = materialParams.horizonColor.rgb;
-        }
-
-        // 16-bit horizontal sun glint (day/dusk) or silver moon sparkle ribbon (night)
-        // Aligned to the sun/moon azimuth and broken into crisp horizontal pixel-art sparkles by wave normals
-        vec3 R = reflect(-V, N);
-        float spec = max(dot(R, L), 0.0);
-        // Azimuthal column alignment along light direction (keeps a clean reflection path all the way to horizon)
+        // 1. Sculpted 3D wave form shading from the true Gerstner facet normal N against sun L and view V.
+        //    Every wave mound shows a lit shoulder (teal/coral/slate) and a darker shadow back (deep blue/indigo).
+        float elevNorm = clamp(waveY / max(maxAmp * 0.52, 0.08), -1.0, 1.0);
+        vec2 Lh = L.xz / max(length(L.xz), 0.25);
         highp vec2 dH = pos.xz - materialParams.eyePos.xz;
         vec2 viewH = dH / max(length(dH), 1e-4);
-        vec2 lightH = L.xz / max(length(L.xz), 1e-4);
-        float azim = max(dot(viewH, lightH), 0.0);
-        float pathMask = smoothstep(0.955, 0.996, azim);
-        float sparkleWave = step(0.15, sin(along * 2.2 - t * 2.8 + warp * 1.8) + 0.45 * elevNorm);
-        float glintStr = materialParams.glintColor.a;
-        if (glintStr > 0.01) {
-            float tight = mix(0.962, 0.976, night);
-            float wide = mix(0.905, 0.935, night);
-            float glintVal = 0.0;
-            if (spec > tight) {
-                glintVal = 1.0;
-            } else if (spec > wide) {
-                glintVal = (spec - wide) / (tight - wide) * 0.85;
-            }
-            // Add crisp 16-bit horizontal path sparkles stretching toward the horizon
-            float horizonSparkle = pathMask * sparkleWave * (0.42 + 0.58 * detailFade);
-            glintVal = max(glintVal, horizonSparkle * mix(0.85, 0.95, night));
-            if (glintVal > 0.72 || (glintVal > 0.16 && dither < glintVal * glintStr)) {
-                col = mix(col, materialParams.glintColor.rgb, clamp(glintStr, 0.0, 1.0));
+        vec2 camBackH = -viewH; // horizontal direction from water back toward camera
+
+        float sunFace = dot(N.xz, Lh);
+        float camFace = dot(N.xz, camBackH);
+        float slopeGain = mix(3.1, 1.75, roughness);
+
+        // Organic hand-drawn contour wobble (breaks computer-straight isolines without creating stripes)
+        float wobbleA = vnoise(vec2(across * 0.34 + t * 0.08, along * 0.52 - t * 0.48));
+        float wobbleB = vnoise(vec2(across * 0.82 - t * 0.14, along * 1.15 - t * 0.82));
+        float organic = ((wobbleA * 0.65 + wobbleB * 0.35) - 0.5) * 0.22 * detailFade;
+
+        float form = (elevNorm * 0.44 + sunFace * slopeGain * 0.34 + camFace * slopeGain * 0.26 + organic) * farAtten;
+
+        // Tight 2-4 px dither margin at band edges only (eliminates wide noisy checkerboards)
+        float fStep = form + (dither - 0.5) * 0.042;
+
+        // 6 hue-shifted flat stepped sea colours (7th colour colLipHighlight used for broken "~" crest arcs)
+        vec3 col = materialParams.colBody.rgb;
+        if (fStep < -0.52) {
+            col = materialParams.colAbyss.rgb;
+        } else if (fStep < -0.24) {
+            col = materialParams.colTrough.rgb;
+        } else if (fStep < -0.02) {
+            col = materialParams.colShadowFace.rgb;
+        } else if (fStep < 0.22) {
+            col = materialParams.colBody.rgb;
+        } else if (fStep < 0.48) {
+            col = materialParams.colLitFace.rgb;
+        } else {
+            col = materialParams.colTealCrest.rgb;
+        }
+
+        // Subtle stepped sky reflection on grazing sunlit shoulders (narrow crisp edge, no checkerboard noise)
+        float ndotv = clamp(dot(N, V), 0.0, 1.0);
+        float fresnel = pow(1.0 - ndotv, 3.0);
+        float skyRefl = (fresnel - 0.50) * materialParams.skyColor.a * farAtten;
+        if (skyRefl > 0.12 + (dither - 0.5) * 0.05 && fStep > 0.10) {
+            col = mix(col, materialParams.skyColor.rgb, 0.35);
+        }
+
+        // 2. Broken curved "~" crest arcs, curling-lip shadow underline, and scattered whitecaps (no unbroken stripes!)
+        float arcNoise = vnoise(vec2(across * 0.21 + sin(along * 0.26 + t * 0.35) * 0.55, along * 0.34 - t * 0.54));
+        float breakNoise = vnoise(vec2(across * 0.58 - t * 0.16, along * 0.88 - t * 0.92));
+        float crestArch = arcNoise * 0.60 + breakNoise * 0.40;
+
+        // Darker 1-2 pixel shadow line tucked just under taller wave lips facing the viewer
+        if (dist < 110.0 && elevNorm > 0.14 && elevNorm < 0.52 && camFace > 0.08 && crest > mix(0.16, 0.12, roughness)) {
+            if (crestArch > 0.52) {
+                col = (roughness > 0.5) ? materialParams.colAbyss.rgb : materialParams.colTrough.rgb;
             }
         }
 
-        // Bayer-dithered white foam pixels along steep wave crests (fades out with distance so horizon stays calm)
-        float crestSignal = clamp(crest * 0.85 + max(elevNorm - 0.45, 0.0) * 0.95, 0.0, 1.0)
-            * (0.40 + 0.60 * roughness) * waveAlive * detailFade;
+        // Short staggered curved "~" highlight strokes riding the upper ridges
+        float ridgeBand = elevNorm * 0.55 + crest * 0.65 + max(camFace, 0.0) * 0.35;
+        if (dist < 240.0 && ridgeBand > mix(0.56, 0.50, roughness) && crestArch > mix(0.58, 0.50, roughness)) {
+            col = materialParams.colLipHighlight.rgb;
+        }
+
+        // Scattered 2-4 px whitecaps on the tallest steep crests that dynamically appear and fade over time
+        float capCell = vnoise(vec2(across * 0.32 + t * 0.10, along * 0.38 - t * 0.62))
+                      * vnoise(vec2(across * 0.78 - t * 0.24, along * 0.84 - t * 0.95));
+        float capScore = (crest * 0.88 + max(elevNorm - 0.36, 0.0) * 0.85) * (0.38 + 0.62 * roughness) * waveAlive * detailFade;
         float foamThresh = materialParams.foamColor.a;
-        if (crestSignal > foamThresh) {
-            float fNorm = clamp((crestSignal - foamThresh) / max(1.0 - foamThresh, 0.05), 0.0, 1.0);
-            if (fNorm > 0.76 || dither < fNorm) {
+        if (capScore > foamThresh && capCell > mix(0.36, 0.22, roughness)) {
+            float capEdge = clamp((capScore - foamThresh) * 5.0, 0.0, 1.0);
+            if (capEdge > 0.55 || dither < capEdge) {
                 col = materialParams.foamColor.rgb;
             }
         }
 
-        // Thin pixel-art waterline foam ring where a floating boat hull meets the ocean surface
+        // 3. Thin wind-aligned foam streaks drifting across rough water (a few pixels wide, broken across troughs)
+        if (roughness > 0.45 && dist < 170.0) {
+            float roughStr = smoothstep(0.45, 0.85, roughness) * (1.0 - smoothstep(75.0, 170.0, dist));
+            // Elongated 10:1 along the wind/swell travel direction, gently warped by cross-swells
+            float streakWarp = (wobbleA - 0.5) * 1.4;
+            vec2 windCoord = vec2(across * 1.45 + streakWarp, along * 0.14 - t * 0.28);
+            float streakA = vnoise(windCoord);
+            float streakB = vnoise(windCoord * vec2(2.1, 1.9) + vec2(4.7, -t * 0.18));
+            float streakMask = streakA * streakB;
+            if (streakMask > (0.58 - 0.06 * roughStr) && elevNorm > -0.30) {
+                col = mix(materialParams.colLipHighlight.rgb, materialParams.foamColor.rgb, 0.78);
+            }
+        }
+
+        // 4. Calm atmospheric horizon transition (tight 4-8 px dithered seam into a single flat distant sea band)
+        float atmEnd = max(materialParams.horizonColor.a, 240.0);
+        float atmStart = atmEnd * 0.74;
+        float atmFrac = smoothstep(atmStart, atmEnd, dist);
+        if (atmFrac > 0.90 || (atmFrac > 0.10 && dither < atmFrac)) {
+            col = materialParams.horizonColor.rgb;
+        }
+
+        // 5. Elevation-scaled, facet-gated sun/moon glint: tapering ragged column of broken horizontal dashes.
+        //    High noon sun produces subtle sparse scatter (< 8% below horizon); low dusk sun produces a strong golden road (< 20%);
+        //    night moon produces slender crisp silver sparkles tapering cleanly toward the horizon (zero vertical box).
+        vec2 lightH = L.xz / max(length(L.xz), 1e-4);
+        float azimForward = dot(viewH, lightH);
+        float glintStr = materialParams.glintColor.a;
+        if (glintStr > 0.01 && azimForward > 0.5) {
+            // Scale intensity & reach by sun/moon elevation: strong golden road at low dusk (L.y ~ 0.10),
+            // slender silver column at night, modest sparse scatter at high midday sun (L.y ~ 0.48)
+            float nightOnly = smoothstep(0.5, 1.0, night);
+            float elevScale = clamp(1.0 - (L.y - 0.095) * 1.90, 0.26, 1.0) * mix(1.0, 0.66, nightOnly);
+            // Horizontal angular offset from sun/moon bearing
+            float azimErr = abs(viewH.x * lightH.y - viewH.y * lightH.x);
+            // Tapering funnel: widest near camera, narrowing cleanly beneath the sun/moon at horizon
+            float distT = smoothstep(14.0, 480.0, dist);
+            float baseHalf = mix(0.42, 0.052, distT) * mix(0.48, 1.0, elevScale) * glintStr;
+            // Organic ragged edges (no straight vertical rectangle sides)
+            float ragged = 0.42 + 0.85 * vnoise(vec2(along * 0.22 - t * 0.35, across * 0.09 + 2.1));
+            float funnel = 1.0 - smoothstep(baseHalf * 0.25, baseHalf * ragged, azimErr);
+
+            if (funnel > 0.05) {
+                // Gate strictly on the 3D facet normal tilting toward the half-vector H = normalize(V + L)
+                vec3 H = normalize(V + L);
+                float ndoth = max(dot(N, H), 0.0);
+                // Crisp facet gate (slightly wider on steep rough waves so sunlit slopes catch glints cleanly)
+                float facetBase = mix(0.986, 0.940, elevScale * (0.55 + 0.45 * distT));
+                float facetThresh = facetBase - 0.048 * roughness;
+                // Short broken horizontal dashes (2-6 px wide near camera, shrinking to fine sparkles near horizon)
+                float dashA = vnoise(vec2(across * 1.15 + t * 0.28, along * 2.85 - t * 2.50));
+                float dashB = vnoise(vec2(across * 2.65 - t * 0.45, along * 5.60 - t * 4.10));
+                float dashVal = dashA * 0.55 + dashB * 0.45;
+                // Near camera: <= 25-32% of path lit with mostly open water between dashes; rarer at noon
+                float dashGate = mix(0.60, 0.510, elevScale) - 0.068 * distT * elevScale;
+                float facetHit = smoothstep(facetThresh - 0.012, facetThresh + 0.010, ndoth);
+                // Narrow horizon sparkle tip directly under a low sun/moon (dusk/night only)
+                float lowHorizon = smoothstep(160.0, 760.0, dist) * smoothstep(0.24, 0.08, L.y)
+                                 * (1.0 - smoothstep(0.012, 0.044 * ragged, azimErr));
+                float hit = max(facetHit * funnel, lowHorizon * mix(0.92, 0.62, nightOnly));
+                if (hit > 0.30 && dashVal > dashGate - 0.09 * lowHorizon) {
+                    // Hard pixel-art sparkle dash (no blurry bloom)
+                    col = materialParams.glintColor.rgb;
+                }
+            }
+        }
+
+        // 6. Thin 1-2 px hull waterline foam ring where the boat meets the water, broken on the lee side.
+        //    Evaluated AFTER glint so the hull contact line is never washed out by sun/moon sparkle.
         if (materialParams.hullShape.w > 0.5) {
             highp vec2 rel = pos.xz - materialParams.hullPose.xy;
             float ch = materialParams.hullPose.z;
             float sh = materialParams.hullPose.w;
-            // Boat local right (+X) and forward (+Z) matching OceanSurface.boatTransformInto
             float lx = rel.x * ch - rel.y * sh;
             float lz = rel.x * sh + rel.y * ch;
             float halfL = max(materialParams.hullShape.y, 0.2);
-            // Taper bow smoothly for lz > 0 to hug the pointed bow block
             float bowT = clamp(lz / halfL, 0.0, 1.0);
-            float halfW = materialParams.hullShape.x * mix(1.0, 0.58, bowT * bowT);
+            float halfW = materialParams.hullShape.x * mix(1.0, 0.62, bowT * bowT);
             vec2 q = abs(vec2(lx, lz)) - vec2(halfW, halfL);
             float sdf = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
-            // Modulate ring thickness subtly with crest/Jacobian and wave motion
-            float ringW = materialParams.hullShape.z * (0.80 + 0.45 * crest + 0.20 * sin(t * 3.4 + lz * 2.2));
-            if (sdf > -0.22 && sdf < ringW) {
-                float edge = 1.0 - clamp(sdf / max(ringW, 0.05), 0.0, 1.0);
-                if (edge > 0.56 || dither < edge * 1.15) {
+
+            float ringW = materialParams.hullShape.z * (0.85 + 0.30 * crest);
+            if (sdf > -0.10 && sdf < ringW + 0.18) {
+                vec2 relDir = rel / max(length(rel), 1e-4);
+                // Windward side faces incoming waves (-swellDir); lee side is sheltered (+swellDir)
+                float windward = dot(relDir, -swellDir);
+                float leeBreak = vnoise(vec2(lx * 3.8 + t * 0.7, lz * 3.8 - t * 1.1));
+                bool onFoam = (sdf < ringW) && (windward > -0.10 || leeBreak > 0.52);
+                if (onFoam) {
                     col = materialParams.foamColor.rgb;
+                } else if (sdf >= ringW && windward > -0.15) {
+                    // 1-px subtle dark water contact rim right outside the windward foam for crisp contrast
+                    col = materialParams.colAbyss.rgb;
                 }
             }
         }

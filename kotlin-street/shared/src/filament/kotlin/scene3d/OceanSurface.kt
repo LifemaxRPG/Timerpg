@@ -11,22 +11,27 @@ import com.google.android.filament.Scene
 import com.google.android.filament.VertexBuffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
- * Lighting and flat 16-bit pixel-art water palette (linear RGB for Filament `unlit` + `LinearToneMapper`)
- * for one time of day (day, dusk, or night), uploaded to `ocean.mat`.
+ * Lighting and 7-colour hue-shifted flat pixel-art water palette (stored in linear RGB for Filament `unlit` +
+ * `LinearToneMapper`) for one time of day (day, dusk, or night), uploaded to `ocean.mat`.
  */
 class OceanPalette(
-    val bandDeep: FloatArray,
-    val bandMid: FloatArray,
-    val bandLight: FloatArray,
-    val bandCrest: FloatArray,
+    val colAbyss: FloatArray,
+    val colTrough: FloatArray,
+    val colShadowFace: FloatArray,
+    val colBody: FloatArray,
+    val colLitFace: FloatArray,
+    val colTealCrest: FloatArray,
+    val colLipHighlight: FloatArray,
     val skyColor: FloatArray,
     val skyReflectStrength: Float,
-    /** Calm flat distant sea colour that the water settles into toward the horizon. */
+    /** Calm flat distant sea colour that the water transitions into toward the horizon. */
     val horizonSeaColor: FloatArray,
     val glintColor: FloatArray,
     val glintStrength: Float,
@@ -41,52 +46,79 @@ class OceanPalette(
             return floatArrayOf(x / l, y / l, z / l)
         }
 
-        /** Bright sunlit 16-bit open ocean: crisp cobalt troughs, cerulean body, turquoise faces, pale aqua ridges. */
+        /** Converts an sRGB hex colour (0xRRGGBB) to linear RGB so Filament's sRGB output hits the exact pixel-art hex. */
+        private fun srgbHex(hex: Int): FloatArray {
+            fun ch(shift: Int): Float {
+                val c = ((hex shr shift) and 0xFF) / 255.0
+                return (if (c <= 0.04045) c / 12.92 else ((c + 0.055) / 1.055).pow(2.4)).toFloat()
+            }
+            return floatArrayOf(ch(16), ch(8), ch(0))
+        }
+
+        /**
+         * Sunlit 16-bit day ocean: 7 hue-shifted colours from deep indigo-navy troughs through ocean cobalt/cerulean
+         * to sunlit turquoise shoulders and sea-glass aqua crest highlights, with modest high-sun midday sparkle.
+         */
         val DAY = OceanPalette(
-            bandDeep = floatArrayOf(0.028f, 0.115f, 0.285f),
-            bandMid = floatArrayOf(0.055f, 0.215f, 0.445f),
-            bandLight = floatArrayOf(0.110f, 0.365f, 0.595f),
-            bandCrest = floatArrayOf(0.285f, 0.610f, 0.785f),
-            skyColor = floatArrayOf(0.42f, 0.68f, 0.92f),
-            skyReflectStrength = 0.50f,
-            horizonSeaColor = floatArrayOf(0.105f, 0.285f, 0.510f),
-            glintColor = floatArrayOf(1.00f, 0.98f, 0.86f),
-            glintStrength = 0.95f,
-            foamColor = floatArrayOf(0.95f, 0.97f, 0.99f),
-            // High midday sun (+25 deg elevation) in front-left over the ocean
-            lightDir = norm3(0.20f, 0.43f, 0.88f),
+            colAbyss = srgbHex(0x0D1F4A),
+            colTrough = srgbHex(0x15356B),
+            colShadowFace = srgbHex(0x1D4F8A),
+            colBody = srgbHex(0x246CA3),
+            colLitFace = srgbHex(0x2E90B5),
+            colTealCrest = srgbHex(0x4CC0C4),
+            colLipHighlight = srgbHex(0x8CE2DC),
+            skyColor = srgbHex(0x7EB8EB),
+            skyReflectStrength = 0.42f,
+            horizonSeaColor = srgbHex(0x2B75AB),
+            glintColor = srgbHex(0xFFFCE6),
+            glintStrength = 0.85f,
+            foamColor = srgbHex(0xF4FAFF),
+            // High midday sun (+29 deg elevation) -> modest sparse scatter, NOT a white sheet
+            lightDir = norm3(0.20f, 0.48f, 0.85f),
             nightFactor = 0.0f,
         )
 
-        /** Low-sun dusk sea: deep slate-violet troughs, warm indigo body, coral-lit faces, molten gold sun ribbon. */
+        /**
+         * Low-sun dusk ocean: 7 hue-shifted colours from midnight plum-indigo troughs through dusty violet
+         * to warm mauve-rose and glowing coral-amber sunlit shoulders, with a strong golden sunset road.
+         */
         val DUSK = OceanPalette(
-            bandDeep = floatArrayOf(0.045f, 0.055f, 0.145f),
-            bandMid = floatArrayOf(0.105f, 0.115f, 0.245f),
-            bandLight = floatArrayOf(0.240f, 0.195f, 0.310f),
-            bandCrest = floatArrayOf(0.560f, 0.340f, 0.295f),
-            skyColor = floatArrayOf(0.86f, 0.40f, 0.26f),
-            skyReflectStrength = 0.65f,
-            horizonSeaColor = floatArrayOf(0.210f, 0.165f, 0.275f),
-            glintColor = floatArrayOf(1.00f, 0.72f, 0.28f),
+            colAbyss = srgbHex(0x14122E),
+            colTrough = srgbHex(0x221D47),
+            colShadowFace = srgbHex(0x332B5E),
+            colBody = srgbHex(0x463A6E),
+            colLitFace = srgbHex(0x78486B),
+            colTealCrest = srgbHex(0xB86058),
+            colLipHighlight = srgbHex(0xE8965A),
+            skyColor = srgbHex(0xE0764A),
+            skyReflectStrength = 0.58f,
+            horizonSeaColor = srgbHex(0x4F3D66),
+            glintColor = srgbHex(0xFFD466),
             glintStrength = 1.00f,
-            foamColor = floatArrayOf(0.95f, 0.80f, 0.72f),
+            foamColor = srgbHex(0xF2D2C4),
             // Low sunset sun (+5.5 deg elevation) visibly above the horizon
             lightDir = norm3(0.14f, 0.096f, 0.985f),
             nightFactor = 0.28f,
         )
 
-        /** Dark open sea at night: midnight-indigo stepped bands with crisp cool silver-white moon sparkles. */
+        /**
+         * Dark open night ocean: 7 hue-shifted colours from near-black abyssal navy through midnight indigo
+         * to cool slate-blue and pale moonlit cyan ridges, with crisp broken silver-white moon sparkles.
+         */
         val NIGHT = OceanPalette(
-            bandDeep = floatArrayOf(0.008f, 0.016f, 0.048f),
-            bandMid = floatArrayOf(0.016f, 0.032f, 0.088f),
-            bandLight = floatArrayOf(0.034f, 0.064f, 0.145f),
-            bandCrest = floatArrayOf(0.075f, 0.125f, 0.235f),
-            skyColor = floatArrayOf(0.05f, 0.09f, 0.19f),
-            skyReflectStrength = 0.45f,
-            horizonSeaColor = floatArrayOf(0.018f, 0.036f, 0.092f),
-            glintColor = floatArrayOf(0.86f, 0.92f, 1.00f),
-            glintStrength = 0.94f,
-            foamColor = floatArrayOf(0.58f, 0.68f, 0.80f),
+            colAbyss = srgbHex(0x060B1A),
+            colTrough = srgbHex(0x0B1530),
+            colShadowFace = srgbHex(0x112247),
+            colBody = srgbHex(0x18325E),
+            colLitFace = srgbHex(0x244978),
+            colTealCrest = srgbHex(0x376591),
+            colLipHighlight = srgbHex(0x5D8FB5),
+            skyColor = srgbHex(0x1E355E),
+            skyReflectStrength = 0.40f,
+            horizonSeaColor = srgbHex(0x13264A),
+            glintColor = srgbHex(0xE8F3FF),
+            glintStrength = 0.92f,
+            foamColor = srgbHex(0x9FB6D1),
             // Moon (+6.8 deg elevation) visibly above the horizon
             lightDir = norm3(-0.14f, 0.118f, 0.983f),
             nightFactor = 1.0f,
@@ -177,10 +209,10 @@ class OceanSurface(
 
         // Default hull foam ring off until setHullFoam() is called
         mi.setParameter("hullPose", 0f, 0f, 1f, 0f)
-        mi.setParameter("hullShape", 1f, 2f, 0.5f, 0f)
+        mi.setParameter("hullShape", 1f, 2f, 0.35f, 0f)
 
         RenderableManager.Builder(1)
-            .boundingBox(Box(0f, 0f, 0f, farHorizonRadius, 16f, farHorizonRadius))
+            .boundingBox(Box(0f, 0f, 0f, farHorizonRadius, 20f, farHorizonRadius))
             .culling(false)
             .castShadows(false)
             .receiveShadows(false)
@@ -194,7 +226,7 @@ class OceanSurface(
     /**
      * Uploads the camera's `VERTEX_DOMAIN_DEVICE` clip-space matrix `look` (matching `street_lit.mat` / `LookMatrix`),
      * updates grid snapping around `([camX], [camY], [camZ])`, wave time [timeSeconds], [spec], and [palette].
-     * Allocates nothing per frame.
+     * Allocates zero bytes per frame.
      */
     fun update(
         lookMatrix: FloatArray,
@@ -229,16 +261,16 @@ class OceanSurface(
     }
 
     /**
-     * Enables a thin pixel-art waterline foam ring where a floating boat hull meets the ocean surface.
-     * Allocates nothing per frame.
+     * Enables a crisp 1-2 px waterline foam ring around a floating boat hull (broken on the lee side).
+     * Allocates zero bytes per frame.
      */
     fun setHullFoam(
         boatX: Float,
         boatZ: Float,
         headingRad: Float,
-        halfBeam: Float = 1.15f,
-        halfLength: Float = 2.65f,
-        foamRingWidth: Float = 0.65f,
+        halfBeam: Float = 1.16f,
+        halfLength: Float = 2.68f,
+        foamRingWidth: Float = 0.36f,
     ) {
         val ch = cos(headingRad.toDouble()).toFloat()
         val sh = sin(headingRad.toDouble()).toFloat()
@@ -248,7 +280,7 @@ class OceanSurface(
 
     /** Disables the hull waterline foam ring. */
     fun clearHullFoam() {
-        mi.setParameter("hullShape", 1f, 2f, 0.5f, 0f)
+        mi.setParameter("hullShape", 1f, 2f, 0.35f, 0f)
     }
 
     private fun uploadWaves(spec: OceanSpec) {
@@ -270,11 +302,14 @@ class OceanSurface(
         mi.setParameter("lightDir", p.lightDir[0], p.lightDir[1], p.lightDir[2], p.nightFactor)
         mi.setParameter("glintColor", p.glintColor[0], p.glintColor[1], p.glintColor[2], p.glintStrength)
         mi.setParameter("skyColor", p.skyColor[0], p.skyColor[1], p.skyColor[2], p.skyReflectStrength)
-        mi.setParameter("horizonColor", p.horizonSeaColor[0], p.horizonSeaColor[1], p.horizonSeaColor[2], 520.0f)
-        mi.setParameter("bandDeep", p.bandDeep[0], p.bandDeep[1], p.bandDeep[2], 1f)
-        mi.setParameter("bandMid", p.bandMid[0], p.bandMid[1], p.bandMid[2], 1f)
-        mi.setParameter("bandLight", p.bandLight[0], p.bandLight[1], p.bandLight[2], 1f)
-        mi.setParameter("bandCrest", p.bandCrest[0], p.bandCrest[1], p.bandCrest[2], 1f)
+        mi.setParameter("horizonColor", p.horizonSeaColor[0], p.horizonSeaColor[1], p.horizonSeaColor[2], 420.0f)
+        mi.setParameter("colAbyss", p.colAbyss[0], p.colAbyss[1], p.colAbyss[2], 1f)
+        mi.setParameter("colTrough", p.colTrough[0], p.colTrough[1], p.colTrough[2], 1f)
+        mi.setParameter("colShadowFace", p.colShadowFace[0], p.colShadowFace[1], p.colShadowFace[2], 1f)
+        mi.setParameter("colBody", p.colBody[0], p.colBody[1], p.colBody[2], 1f)
+        mi.setParameter("colLitFace", p.colLitFace[0], p.colLitFace[1], p.colLitFace[2], 1f)
+        mi.setParameter("colTealCrest", p.colTealCrest[0], p.colTealCrest[1], p.colTealCrest[2], 1f)
+        mi.setParameter("colLipHighlight", p.colLipHighlight[0], p.colLipHighlight[1], p.colLipHighlight[2], 1f)
         mi.setParameter("foamColor", p.foamColor[0], p.foamColor[1], p.foamColor[2], foamThreshold)
     }
 
@@ -292,9 +327,12 @@ class OceanSurface(
         private val WAVE_B_NAMES = arrayOf("waveB0", "waveB1", "waveB2", "waveB3", "waveB4", "waveB5")
 
         /**
-         * Builds a column-major 4x4 boat model matrix floating at `([boatX], [boatZ])` using [OceanWaves.heightInto],
-         * aligning the hull's up axis to a damped wave normal so the simple box boat sits in the water and heaves,
-         * pitches, and rolls naturally without allocating.
+         * Builds a column-major 4x4 boat model matrix floating at `([boatX], [boatZ])` by sampling 4 hull buoyancy
+         * points (bow, stern, port, starboard) via [OceanWaves.heightInto] with zero allocations.
+         *
+         * Averaging across the hull footprint prevents single-point steepness spikes, and [maxTiltDeg] caps roll/pitch
+         * cleanly (default 14 deg) so the vessel rides rough swells realistically without excessive capsize tilt.
+         * The resulting hull waterline height and clamped unit up vector are written back into [sample].
          */
         fun boatTransformInto(
             boatX: Float,
@@ -304,22 +342,67 @@ class OceanSurface(
             spec: OceanSpec,
             sample: OceanSample,
             outMatrix: FloatArray,
-            draftOffsetY: Float = 0.05f,
-            tiltDamping: Float = 0.65f,
+            draftOffsetY: Float = 0.04f,
+            tiltDamping: Float = 0.55f,
+            maxTiltDeg: Float = 14.0f,
+            hullHalfLength: Float = 2.1f,
+            hullHalfBeam: Float = 1.0f,
         ) {
-            OceanWaves.heightInto(boatX, boatZ, t, spec, sample)
-
-            // Damped surface normal for stable hull roll/pitch
-            var uy = 1f + (sample.ny - 1f) * tiltDamping
-            var ux = sample.nx * tiltDamping
-            var uz = sample.nz * tiltDamping
-            val ul = sqrt(ux * ux + uy * uy + uz * uz).coerceAtLeast(1e-6f)
-            ux /= ul; uy /= ul; uz /= ul
-
-            // Desired heading forward projected onto the wave tangent plane
             val hx = sin(headingRad.toDouble()).toFloat()
             val hz = cos(headingRad.toDouble()).toFloat()
-            // right = normalize(up x forward) in right-handed Y-up
+            // Right-handed flat-water hull right axis: up(0,1,0) x forward(hx,0,hz) = (hz, 0, -hx)
+            val flatRx = hz
+            val flatRz = -hx
+
+            // 4-point hull buoyancy probe (bow, stern, starboard, port) — zero allocations
+            OceanWaves.heightInto(boatX + hx * hullHalfLength, boatZ + hz * hullHalfLength, t, spec, sample)
+            val yBow = sample.y
+            OceanWaves.heightInto(boatX - hx * hullHalfLength, boatZ - hz * hullHalfLength, t, spec, sample)
+            val yStern = sample.y
+            OceanWaves.heightInto(boatX + flatRx * hullHalfBeam, boatZ + flatRz * hullHalfBeam, t, spec, sample)
+            val yStbd = sample.y
+            OceanWaves.heightInto(boatX - flatRx * hullHalfBeam, boatZ - flatRz * hullHalfBeam, t, spec, sample)
+            val yPort = sample.y
+
+            val avgY = 0.25f * (yBow + yStern + yStbd + yPort)
+            // Hull tangent vectors along forward and starboard
+            val fdx = hx * (2f * hullHalfLength)
+            val fdy = yBow - yStern
+            val fdz = hz * (2f * hullHalfLength)
+            val rdx = flatRx * (2f * hullHalfBeam)
+            val rdy = yStbd - yPort
+            val rdz = flatRz * (2f * hullHalfBeam)
+            // Hull normal = forward x right (points +Y in right-handed coordinates)
+            var rawNx = fdy * rdz - fdz * rdy
+            var rawNy = fdz * rdx - fdx * rdz
+            var rawNz = fdx * rdy - fdy * rdx
+            val rawLen = sqrt(rawNx * rawNx + rawNy * rawNy + rawNz * rawNz).coerceAtLeast(1e-6f)
+            rawNx /= rawLen; rawNy /= rawLen; rawNz /= rawLen
+
+            // Apply tilt damping then enforce maxTiltDeg ceiling (keeps rough sea tilt realistic around 12-14 deg)
+            var ux = rawNx * tiltDamping
+            var uy = 1f + (rawNy - 1f) * tiltDamping
+            var uz = rawNz * tiltDamping
+            val horizLen = sqrt(ux * ux + uz * uz)
+            val maxSin = sin(maxTiltDeg * PI / 180.0).toFloat()
+            val maxCos = cos(maxTiltDeg * PI / 180.0).toFloat()
+            val uLen = sqrt(ux * ux + uy * uy + uz * uz).coerceAtLeast(1e-6f)
+            ux /= uLen; uy /= uLen; uz /= uLen
+            val curSin = horizLen / uLen
+            if (curSin > maxSin && horizLen > 1e-6f) {
+                val scale = maxSin / curSin
+                ux *= scale
+                uz *= scale
+                uy = maxCos
+            }
+
+            // Write effective hull waterline and clamped up normal back into sample for telemetry
+            sample.y = avgY
+            sample.nx = ux
+            sample.ny = uy
+            sample.nz = uz
+
+            // right = normalize(up x forward)
             var rx = uy * hz
             var ry = uz * hx - ux * hz
             var rz = -uy * hx
@@ -334,7 +417,7 @@ class OceanSurface(
             outMatrix[4] = ux; outMatrix[5] = uy; outMatrix[6] = uz; outMatrix[7] = 0f
             outMatrix[8] = fx; outMatrix[9] = fy; outMatrix[10] = fz; outMatrix[11] = 0f
             outMatrix[12] = boatX
-            outMatrix[13] = sample.y + draftOffsetY
+            outMatrix[13] = avgY + draftOffsetY
             outMatrix[14] = boatZ
             outMatrix[15] = 1f
         }
