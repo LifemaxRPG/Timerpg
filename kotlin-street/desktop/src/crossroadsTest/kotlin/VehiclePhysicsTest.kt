@@ -433,4 +433,79 @@ class VehiclePhysicsTest {
         assertEquals("at the kerb, inside the roadway", 9656.5f, s.z, VehicleSpots.HALF_ROADWAY)
         assertNotNull(VehicleSpots.driveways(yards, sp.x, sp.z, null).firstOrNull())
     }
+
+    // ------------------------------------------------------------------ the safety net and the ground beyond the town
+
+    /** A town-less world: a car of [key] on a flat box 1,000 street units (47 m) each way, [ground] beyond it, driven. */
+    private fun openWorld(key: String, ground: ((Float, Float) -> Float?)?, ph: Physics = world()): Triple<VehicleWorld, VehicleWorld.Car, FakeWalk> {
+        val vw = VehicleWorld(ph, null, specs, ground, floatArrayOf(-1000f, -1000f, 1000f, 1000f))
+        val car = vw.add(spec(key), 0, false, VehicleSpots.Spot("t", 0f, 0f, 0f, 1f, 8f * VehicleWorld.U))
+        val walk = FakeWalk()
+        assertTrue(vw.enter(car, walk))
+        repeat(80) { vw.step(dt, walk, 0f, 0f) }
+        return Triple(vw, car, walk)
+    }
+
+    @Test fun aCarDrivenOffTheGroundWithNoTerrainIsPutBack() {
+        val (vw, car, walk) = openWorld("tallmere", null)
+        val events = ArrayList<String>()
+        vw.onEvent = { events += it }
+        var t = 0f; var minY = 0f
+        // full throttle straight on: off the end of the flat box (z 47 m) into nothing
+        while (t < 14f && events.isEmpty()) { vw.step(dt, walk, 0f, -1f); minY = min(minY, car.pose.y / VehicleWorld.U); t += dt }
+        assertTrue("it was rescued (${events})", events.isNotEmpty() && events[0].startsWith("car: rescued from"))
+        // (put back still)
+        assertTrue("at rest when put back (${car.forwardSpeed})", abs(car.forwardSpeed) < 1f)
+        // let go: it stays on the box
+        repeat(180) { vw.step(dt, walk, 0f, 0f) }
+        val zm = car.z / VehicleWorld.U
+        println("fell off the end at full throttle: ${events[0]}; at rest at z %.1f m, y %.2f m, lowest %.1f m".format(zm, car.pose.y / VehicleWorld.U, minY))
+        assertTrue("near its last good spot, on the box (z $zm)", zm in 5f..47f)
+        assertTrue("on the ground (y ${car.pose.y / VehicleWorld.U} m)", car.pose.y / VehicleWorld.U in -.5f..2f)
+        assertTrue("rescued once, not over and over (${events.size})", events.size == 1)
+        // a player's reset does the same on demand
+        repeat(120) { vw.step(dt, walk, 0f, -1f) }
+        vw.resetDriven()
+        vw.step(dt, walk, 0f, 0f)
+        assertTrue("reset logged", events.last().contains("player's reset"))
+        assertTrue("at rest after the reset", abs(car.forwardSpeed) < 1f)
+        vw.close()
+    }
+
+    @Test fun withTerrainBeyondTheTownTheCarStaysOnItAtASaneSpeed() {
+        // gentle ground from the box's edge (z 47 m): 4% up, a swell across
+        val ground: (Float, Float) -> Float? = { x, z -> .04f * max(0f, z - 47f) + if (z > 47f) .3f * kotlin.math.sin(x * .1f) * min(1f, (z - 47f) / 20f) else 0f }
+        val (vw, car, walk) = openWorld("tallmere", ground)
+        val events = ArrayList<String>()
+        vw.onEvent = { events += it }
+        var t = 0f; var top = 0f; var worst = 0f
+        while (t < 20f) {
+            vw.step(dt, walk, 0f, -.6f)
+            val zm = car.z / VehicleWorld.U; val xm = car.x / VehicleWorld.U
+            if (zm > 52f) worst = max(worst, abs(car.pose.y / VehicleWorld.U - ground(xm, zm)!!))
+            top = max(top, abs(car.forwardSpeed)); t += dt
+        }
+        val zm = car.z / VehicleWorld.U
+        println("drove past the box's edge: z %.0f m, top %.1f m/s, off the terrain by at most %.2f m, events ${events}".format(zm, top, worst))
+        assertTrue("past the edge (z $zm)", zm > 80f)
+        assertTrue("no rescue was needed: $events", events.isEmpty())
+        assertTrue("a sane speed ($top m/s)", top < 45f)
+        assertTrue("on the terrain, not above or under it ($worst m)", worst < 1.2f)
+        vw.close()
+    }
+
+    @Test fun aStateThatIsNotANumberIsPutBack() {
+        class Poisoned(val p: Physics) : Physics by p { var poison = 0
+            override fun state(v: Int, out: FloatArray) { p.state(v, out); if (poison > 0) { poison--; out[VehicleState.X] = Float.NaN; out[VehicleState.VY] = Float.NaN } } }
+        val ph = Poisoned(world())
+        val (vw, car, walk) = openWorld("tallmere", null, ph)
+        val events = ArrayList<String>()
+        vw.onEvent = { events += it }
+        repeat(60) { vw.step(dt, walk, 0f, -.5f) }
+        ph.poison = 1
+        repeat(30) { vw.step(dt, walk, 0f, -.5f) }
+        assertTrue("rescued from NaN (${events})", events.any { it.contains("not a number") })
+        assertTrue("its place is a number again", car.x.isFinite() && car.z.isFinite() && car.pose.y.isFinite() && car.forwardSpeed.isFinite())
+        vw.close()
+    }
 }

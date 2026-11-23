@@ -215,6 +215,36 @@ getting in with the door open, the sedan driving down Main Street from the follo
 its headlamps and brake lamps. They are written to `desktop/build/preview/filament-cars/`. These are desktop renders
 (Mesa software GL), not S25 captures.
 
+## The ground beyond the town, and the safety net (2026-11-23)
+
+The owner drove through trees into the open field past the town and the car sped up to ~300 mph and was lost: the app
+built `VehicleWorld` with no `ground` and no `flat`, so the only floor was a box under the collision map's bounds and
+past it the car free-fell forever (Jolt has no drag), which read as runaway acceleration.
+
+- **Real ground.** `TownSession` passes `VehicleWorld.start(..., ground, flat)`. `flat` is `TownGround.boundsOf(town)`, the
+  same rectangle the renderer leaves to the town's grass (the flat box's top is y 0, the town's ground). `ground` is
+  `TownPlay.groundFor(site)`: the terrain's `WorldTerrain.heightLocal` (the very function `WorldFar`/`WorldNear` build
+  the drawn ground from), in physics metres converted through the hub frame (street units / `unitsPerMetre`, plus the
+  plan origin's offset from the frame's). The terrain is made on a worker, so `WorldFar.whenTerrain` hands it to
+  `TownPlay.terrain` when ready and calls `VehicleWorld.groundChanged()`; until then the lambda returns null (the town's
+  edge stays a wall and the flat box the only floor), then the shapes and chunks are streamed again with the terrain.
+  `streamGround` no longer remembers a chunk the terrain could not give, so it is tried again at the next restream, and
+  it runs without a collision map too. Beyond the box the drawn terrain is 5 cm under the town's ground for 150 m, then
+  rises (WorldFarPlan.UNDER_M, FLAT_M): the car drops 5 cm leaving the flat box, as the picture does.
+- **Safety net (always on).** After each batch of physics steps `VehicleWorld.watch` looks at every car: one that is
+  more than 6 m below the floor under it (the flat 0, or the terrain), faster than 85 m/s, or has a NaN state is put back
+  (`rescue`): teleported (`Physics.place`) to a pose it held on the ground (>= 3 wheels in contact, below 70 m/s, one
+  recorded every 0.5 s, the 8 latest kept; the rescue takes the one 1 s back, since the newest may be the slip), upright,
+  at rest, facing as it did, steering reset; with no pose yet it goes to where it was parked. Logged through
+  `VehicleWorld.onEvent` (the app writes it to the Crumbs and the PlayLog as `car/rescue`): "car: rescued from a fall of
+  6 m below the ground at ..., put back at ...".
+- **A way out.** `VehicleWorld.resetDriven()` does the same on demand (at the next step). The drive HUD has a ⟲ button
+  beside Exit (the 🚗 test button is hidden while driving), with a note "Car put back on the road".
+- Tests (`VehiclePhysicsTest`): a car driven off a flat box with no terrain is rescued once and ends on the box near its
+  last good spot; with terrain past the edge it stays on it (within 2 cm of the function) at a sane speed; a NaN state is
+  rescued. Not measured on the S25; the heights were checked in desktop physics tests against the same function, not
+  against a render.
+
 ## Open problems
 
 - **The near terrain in the game:** the physics and the streaming handle heightfield ground (tested on a slope), but the

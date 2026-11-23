@@ -67,6 +67,29 @@ object TownPlay {
      */
     @Volatile var cars: com.lifemax.rpg.feature.habits.vehicle.VehicleWorld? = null
 
+    /**
+     * The planet's terrain round the town, once the renderer has made it (a worker): the cars' ground outside the town's
+     * flat ground ([groundFor]). Null until then.
+     */
+    @Volatile var terrain: com.lifemax.rpg.feature.habits.domain.WorldTerrain? = null
+
+    /**
+     * The cars' ground function for a town placed on the planet by [site]: the terrain's height (m) at physics metres
+     * (street units / [com.lifemax.rpg.feature.habits.vehicle.VehicleWorld.U]), null while the terrain is not made. The
+     * terrain is measured in metres from its plan's origin, the town's frame's origin when the plan was made.
+     */
+    fun groundFor(site: com.lifemax.rpg.feature.habits.domain.WorldSite): (Float, Float) -> Float? {
+        val u = site.frame.unitsPerMetre
+        return { xm, zm ->
+            val t = terrain
+            if (t == null) null else {
+                val o = t.plan.origin
+                val dx = o.dx(site.frame.origin); val dz = o.dz(site.frame.origin)
+                t.heightLocal(xm * com.lifemax.rpg.feature.habits.vehicle.VehicleWorld.U / u + dx, zm * com.lifemax.rpg.feature.habits.vehicle.VehicleWorld.U / u + dz).toFloat()
+            }
+        }
+    }
+
     /** The player drives (or is getting in or out of) a car. */
     val inCar: Boolean get() = (walk as? OpenWalk)?.carried == true
 

@@ -78,7 +78,22 @@ fun BoxScope.DriveHud(show: Boolean) {
         Modifier.align(Alignment.BottomEnd).padding(end = 22.dp, bottom = 26.dp).systemGestureExclusion(),
         horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        // the way out of a stuck or lost car: it is put back where it last stood on the ground (VehicleWorld.resetDriven)
+        var putBackAt by remember { mutableStateOf(0L) }
+        if (putBackAt != 0L) {
+            LaunchedEffect(putBackAt) { kotlinx.coroutines.delay(2200); putBackAt = 0L }
+            Text("Car put back on the road", fontSize = 14.sp, color = Color.White, modifier = Modifier.background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 5.dp))
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.background(Color(0xCC101420), RoundedCornerShape(16.dp))
+                    .pointerInput(Unit) {
+                        awaitEachGesture {
+                            awaitFirstDown()
+                            if (waitForUpOrCancellation() != null) { c.resetDriven(); putBackAt = System.currentTimeMillis(); com.timerpg.street.shot.Crumbs.add("car: reset by the player") }
+                        }
+                    }.padding(horizontal = 14.dp, vertical = 8.dp),
+            ) { Text("⟲", fontSize = 18.sp, color = Color.White) }
             Text("$mph mph", fontSize = 18.sp, color = Color.White, modifier = Modifier.background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
             Box(
                 Modifier.background(if (canExit) Color(0xCC101420) else Color(0x55101420), RoundedCornerShape(16.dp))

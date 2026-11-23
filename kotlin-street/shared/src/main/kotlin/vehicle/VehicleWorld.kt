@@ -58,6 +58,14 @@ class VehicleWorld(
         var steer = 0f; internal set
         val index: Int get() = cars.indexOf(this)
 
+        /** Recent poses it stood on the ground in at a sane speed (x, y, z m; yaw), newest at [goodHead] - 1: [rescue] puts it back. */
+        internal val good = FloatArray(GOOD_POSES * 4)
+        internal var goodCount = 0
+        internal var goodHead = 0
+        internal var goodAt = -1e9f
+        /** Where it was parked (x, y, z m; yaw): the last resort. */
+        internal val home = FloatArray(4)
+
         /** Where it stands (street units) and the way it faces (unit, world x, z). */
         val x: Float get() = now[VehicleState.X] * U
         val z: Float get() = now[VehicleState.Z] * U
@@ -116,9 +124,14 @@ class VehicleWorld(
     private val tmp = FloatArray(6)
     private val p2 = FloatArray(2)
     private var flatHandle = -1
+    /** The flat ground box's extent (street units: x0, z0, x1, z1). */
+    private val flatRect: FloatArray = flat ?: collision?.let { floatArrayOf(it.minX, it.minZ, it.maxX, it.maxZ) } ?: floatArrayOf(-50000f, -50000f, 50000f, 50000f)
+
+    /** Told of what happened to the cars worth a line in the log ("car: rescued from ..."): set by the app. */
+    @Volatile var onEvent: ((String) -> Unit)? = null
 
     init {
-        val b = flat ?: collision?.let { floatArrayOf(it.minX, it.minZ, it.maxX, it.maxZ) } ?: floatArrayOf(-50000f, -50000f, 50000f, 50000f)
+        val b = flatRect
         val cx = (b[0] + b[2]) / 2f / U; val cz = (b[1] + b[3]) / 2f / U
         val hx = (b[2] - b[0]) / 2f / U; val hz = (b[3] - b[1]) / 2f / U
         flatHandle = physics.addBox(cx, -1f, cz, hx, 1f, hz, 0f, 1f)
@@ -166,6 +179,7 @@ class VehicleWorld(
         val yaw = atan2(spot.fx, spot.fz)
         val mx = spot.x / U - spot.fx * s.footprint[2]; val mz = spot.z / U - spot.fz * s.footprint[2]
         c.handle = physics.addVehicle(s.desc(), s.boxes, mx, .02f, mz, yaw)
+        c.home[0] = mx; c.home[1] = .1f; c.home[2] = mz; c.home[3] = yaw
         physics.input(c.handle, 0f, 0f, 0f, 1f)
         physics.state(c.handle, c.now); c.now.copyInto(c.before)
         settle(c)
@@ -326,6 +340,8 @@ class VehicleWorld(
     fun step(dt: Float, walk: Carried, steerIn: Float, pedalIn: Float) {
         val d = driven
         val a = active
+        if (groundDirty) { groundDirty = false; dropStreamed() }
+        if (resetWanted) { resetWanted = false; if (d != null && phase == Phase.DRIVING) rescue(d, "the player's reset") }
         if (spawnWanted) { spawnWanted = false; spawnNear(walk.wx, walk.wz) }
         if (bringWanted) { bringWanted = false; bringFirstNear(walk.wx, walk.wz) }
         when (phase) {
@@ -366,6 +382,7 @@ class VehicleWorld(
             for (i in cars.indices) physics.state(cars[i].handle, cars[i].now)
             acc -= STEP; n++
         }
+        if (n > 0) { simT += n * STEP; for (i in cars.indices) watch(cars[i]) }
         if (n > 0) { val ms = (System.nanoTime() - t0) / 1e6f / n; stepMs = if (stepMs == 0f) ms else stepMs + (ms - stepMs) * .05f }
         stepsLast = n
         if (changedFrames > 0) changedFrames--
@@ -430,16 +447,19 @@ class VehicleWorld(
      * [RESTREAM_M] or the town's added shapes changed (a store built). Shapes further than [STREAM_M] + [RESTREAM_M] go.
      */
     fun stream(c: Car, force: Boolean) {
-        val col = collision ?: return
+        val col = collision
+        if (col == null) { streamGround(c); return }
         val x = c.x; val z = c.z
         if (!force && !streamX.isNaN() && hypot(x - streamX, z - streamZ) < RESTREAM_M * U && col.extraVersion == streamVersion) return
         streamX = x; streamZ = z; streamVersion = col.extraVersion
         val t0 = System.nanoTime()
         val r = STREAM_M * U
         keepNow.clear()
+        // (the town's edge is a wall only where the terrain does not run on past it)
+        val edgeOpen = ground?.invoke(x / U, z / U) != null
         col.forEachNear(x - r, z - r, x + r, z + r, tmp) { i, kind, owner, circle, s ->
             if (owner != null && owner.startsWith(KEY)) return@forEachNear
-            if (kind == SolidKind.EDGE && ground != null) return@forEachNear
+            if (kind == SolidKind.EDGE && edgeOpen) return@forEachNear
             val key = if (i < col.size) i.toLong() else keyOf(s, kind)
             keepNow += key
             if (key !in streamed) streamed[key] = addShape(s, circle, kind)
@@ -487,10 +507,88 @@ class VehicleWorld(
                 if (h != null) any = true
                 heights[b * CHUNK_N + a] = h ?: 0f
             }
-            chunks[key] = if (any) physics.addHeightfield(x0, z0, CHUNK_N, cell, heights) else -1
+            // (a chunk the terrain cannot give yet is tried again at the next restream)
+            if (any) chunks[key] = physics.addHeightfield(x0, z0, CHUNK_N, cell, heights)
         }
         val it = chunks.entries.iterator()
         while (it.hasNext()) { val e = it.next(); if (e.key !in want) { physics.remove(e.value); it.remove() } }
+    }
+
+    // ------------------------------------------------------------------ the safety net
+
+    private var simT = 0f
+    @Volatile private var resetWanted = false
+    @Volatile private var groundDirty = false
+
+    /** The ground changed (the terrain became ready): the streamed shapes and chunks are made again at the next restream. */
+    fun groundChanged() { groundDirty = true }
+
+    private fun dropStreamed() {
+        for (h in streamed.values) physics.remove(h)
+        streamed.clear()
+        for (h in chunks.values) physics.remove(h)
+        chunks.clear()
+        streamX = Float.NaN
+    }
+
+    /** The driven car is put back where it last stood on the ground (done at the next step: a stuck or lost car). */
+    fun resetDriven() { if (driven != null) resetWanted = true }
+
+    /** The floor (m) under ([xm], [zm]): the flat ground's 0, the terrain's height beyond it, else the flat box's 0. */
+    private fun floorAt(xm: Float, zm: Float): Float {
+        val xs = xm * U; val zs = zm * U
+        if (xs >= flatRect[0] && xs <= flatRect[2] && zs >= flatRect[1] && zs <= flatRect[3]) return 0f
+        val h = ground?.invoke(xm, zm)
+        return if (h != null && h.isFinite()) h else 0f
+    }
+
+    /** Notes where [c] stands well, or puts it back if it fell through the world, flew, or its state is not a number. */
+    private fun watch(c: Car) {
+        val s = c.now
+        var finite = true
+        for (k in 0..VehicleState.VZ) if (!s[k].isFinite()) finite = false
+        val x = s[VehicleState.X]; val y = s[VehicleState.Y]; val z = s[VehicleState.Z]
+        val speed = if (finite) sqrt(s[VehicleState.VX] * s[VehicleState.VX] + s[VehicleState.VY] * s[VehicleState.VY] + s[VehicleState.VZ] * s[VehicleState.VZ]) else 0f
+        val floor = if (finite) floorAt(x, z) else 0f
+        val why = when {
+            !finite -> "a state that is not a number"
+            y < floor - FALL_M -> "a fall of %.0f m below the ground".format(java.util.Locale.US, floor - y)
+            speed > MAX_SPEED -> "a speed of %.0f m/s".format(java.util.Locale.US, speed)
+            else -> null
+        }
+        if (why != null) { rescue(c, why); return }
+        if (simT - c.goodAt < GOOD_EVERY) return
+        var contact = 0
+        for (w in 0 until 4) if (s[VehicleState.WHEELS + w * VehicleState.W_COUNT + VehicleState.W_CONTACT] > .5f) contact++
+        if (contact >= 3 && speed < GOOD_SPEED && abs(y - floor) < 3f) {
+            val k = c.goodHead * 4
+            c.good[k] = x; c.good[k + 1] = y; c.good[k + 2] = z; c.good[k + 3] = atan2(forwardX(s), forwardZ(s))
+            c.goodHead = (c.goodHead + 1) % GOOD_POSES
+            c.goodCount = min(GOOD_POSES, c.goodCount + 1)
+            c.goodAt = simT
+        }
+    }
+
+    /** Puts [c] back, upright and at rest, on its last good ground (a second or so before: the newest pose may be the slip). */
+    private fun rescue(c: Car, why: String) {
+        val s = c.now
+        val from = "(%.0f, %.0f, %.0f) m".format(java.util.Locale.US, s[VehicleState.X], s[VehicleState.Y], s[VehicleState.Z])
+        val px: Float; val py: Float; val pz: Float; val yaw: Float
+        if (c.goodCount > 0) {
+            val back = min(c.goodCount, BACK_POSES + 1) - 1
+            val k = Math.floorMod(c.goodHead - 1 - back, GOOD_POSES) * 4
+            px = c.good[k]; py = c.good[k + 1]; pz = c.good[k + 2]; yaw = c.good[k + 3]
+        } else { px = c.home[0]; py = c.home[1]; pz = c.home[2]; yaw = c.home[3] }
+        physics.place(c.handle, px, py + .15f, pz, yaw)
+        physics.input(c.handle, 0f, 0f, 0f, 1f)
+        physics.state(c.handle, c.now); c.now.copyInto(c.before)
+        c.steer = 0f
+        c.goodCount = 1; c.goodHead = 1
+        c.good[0] = px; c.good[1] = py; c.good[2] = pz; c.good[3] = yaw
+        c.goodAt = simT
+        streamX = Float.NaN
+        changedFrames = 30
+        onEvent?.invoke("car: rescued from $why at $from, put back at (%.0f, %.0f, %.0f) m".format(java.util.Locale.US, px, py, pz))
     }
 
     override fun close() {
@@ -511,11 +609,12 @@ class VehicleWorld(
          * The V1 cars for [town] ([VehicleSpec.V1] read by [read]: a path under assets/vehicles, e.g.
          * "northcairn-1956/model-info.json"), parked ([park], for [year]); null where the physics library does not load.
          */
-        fun start(town: Town, collision: TownCollision?, yards: TownYards, read: (String) -> String?, year: Int = town.year): VehicleWorld? {
+        fun start(town: Town, collision: TownCollision?, yards: TownYards, read: (String) -> String?, year: Int = town.year,
+                  ground: ((xM: Float, zM: Float) -> Float?)? = null, flat: FloatArray? = null): VehicleWorld? {
             val specs = VehicleSpec.V1.mapNotNull { k -> read("$k/model-info.json")?.let { runCatching { VehicleSpec.parse(it) }.getOrNull() } }
             if (specs.isEmpty()) return null
             val ph = Physics.create() ?: return null
-            return VehicleWorld(ph, collision, specs).also { it.park(town, yards, year) }
+            return VehicleWorld(ph, collision, specs, ground, flat).also { it.park(town, yards, year) }
         }
 
         /** Street units in a metre (the buildings' 0.0388 m texel is 184/224 units). */
@@ -538,6 +637,14 @@ class VehicleWorld(
         /** The terrain's heightfield chunks round the car: this wide (m), this many samples a side. */
         const val CHUNK_M = 64f
         const val CHUNK_N = 33
+        /** The safety net: a car this far (m) below the ground, or faster than [MAX_SPEED] (m/s), or not a number, is put back. */
+        const val FALL_M = 6f
+        const val MAX_SPEED = 85f
+        /** The poses kept (one each [GOOD_EVERY] s while on the ground below [GOOD_SPEED] m/s); a rescue goes [BACK_POSES] back. */
+        const val GOOD_POSES = 8
+        const val GOOD_EVERY = .5f
+        const val GOOD_SPEED = 70f
+        const val BACK_POSES = 2
         /** A door's standing spot within this (m) of the player shows "Enter". */
         const val ENTER_REACH = 1.7f
         private val EXITS = listOf("exit_left", "exit_right")

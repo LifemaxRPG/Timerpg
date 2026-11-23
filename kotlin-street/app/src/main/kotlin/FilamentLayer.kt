@@ -430,7 +430,16 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
                 runCatching { ctx.assets.open("vehicles/$p").use { it.readBytes() } }.getOrNull()
             }
             // the world round the town (docs/WORLD_GEN.md W4: the skeleton's far view to the horizon), planned and built on the town's workers
-            data.world?.let { w -> com.lifemax.rpg.feature.habits.presentation.scene3d.WorldFar.attach(ft, { w.plan(data.town.year) }, w.origin) }
+            data.world?.let { w ->
+                val far = com.lifemax.rpg.feature.habits.presentation.scene3d.WorldFar.attach(ft, { w.plan(data.town.year) }, w.origin)
+                // (the cars' ground beyond the town is this same terrain, handed over once it is made)
+                com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.terrain = null
+                far.whenTerrain { t ->
+                    com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.terrain = t
+                    com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.cars?.groundChanged()
+                    com.timerpg.street.shot.Crumbs.add("cars: the terrain is the ground beyond the town now")
+                }
+            }
             town = ft
             com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.applyResolution(ft.view)
             appliedResolution = com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.resolution

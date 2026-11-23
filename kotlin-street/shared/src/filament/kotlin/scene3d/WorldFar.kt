@@ -133,10 +133,15 @@ internal class WorldFar(
 
     /** The near terrain's ground (W5a), made with the plan when the near terrain is on: its finest level wears the near's materials. */
     @Volatile var terrain: WorldTerrain? = null; private set
+    private var terrainCb: ((WorldTerrain) -> Unit)? = null
+
+    /** Calls [cb] with the terrain once it is made (at once if it is): the cars' physics takes its ground from it. */
+    @Synchronized fun whenTerrain(cb: (WorldTerrain) -> Unit) { terrainCb = cb; terrain?.let(cb) }
+    @Synchronized private fun terrainMade(t: WorldTerrain) { terrain = t; terrainCb?.invoke(t) }
 
     private fun build(): List<Part> {
         val plan = planOf().also { this.plan = it }
-        if (townGrass != null) terrain = WorldTerrain(plan.sk, plan, townGrass)
+        if (townGrass != null) terrainMade(WorldTerrain(plan.sk, plan, townGrass))
         val out = ArrayList<Part>()
         for ((k, lv) in plan.levels.withIndex()) out += if (k == 0) blocks(lv) else listOfNotNull(level(k, lv))
         val mid = plan.levels.first().let { doubleArrayOf(it.ox + it.n * it.spacing / 2, it.oz + it.n * it.spacing / 2) }
