@@ -88,4 +88,47 @@ object VehicleSpots {
         for (a in floatArrayOf(-hl, 0f, hl)) for (b in floatArrayOf(-hw, hw)) if (c.blocked(x + fx * a + lx * b, z + fz * a + lz * b, .3f * u)) return true
         return false
     }
+
+    /**
+     * Whether the rectangle centred at ([x], [z]), [hl] half long along ([fx], [fz]) and [hw] half wide, is clear of every
+     * solid shape in [c] (exactly: a separating-axis test against each box, the nearest point against each circle) and
+     * inside the collision's bounds. The test button's spawn uses it; [street]'s sampled check is looser.
+     */
+    fun clear(c: TownCollision, x: Float, z: Float, fx: Float, fz: Float, hl: Float, hw: Float): Boolean {
+        val lx = fz; val lz = -fx
+        // the rectangle's bounds (for the collision's grid), inside the world
+        val ex = abs(fx) * hl + abs(lx) * hw; val ez = abs(fz) * hl + abs(lz) * hw
+        if (x - ex < c.minX || z - ez < c.minZ || x + ex > c.maxX || z + ez > c.maxZ) return false
+        var hit = false
+        val tmp = FloatArray(6)
+        c.forEachNear(x - ex, z - ez, x + ex, z + ez, tmp) { _, _, _, circle, d ->
+            if (hit) return@forEachNear
+            hit = if (circle) rectDistance(x, z, fx, fz, hl, hw, d[0], d[1]) < d[2]
+                else boxesOverlap(x, z, fx, fz, hl, hw, d[0], d[1], d[2], d[3], d[4], d[5])
+        }
+        return !hit
+    }
+
+    /** How far ([px], [pz]) is from the rectangle (centre ([x], [z]), [hl] along ([fx], [fz]), [hw] across); 0 inside. */
+    fun rectDistance(x: Float, z: Float, fx: Float, fz: Float, hl: Float, hw: Float, px: Float, pz: Float): Float {
+        val dx = px - x; val dz = pz - z
+        val a = abs(dx * fx + dz * fz) - hl
+        val b = abs(dx * fz - dz * fx) - hw
+        return hypot(max(a, 0f), max(b, 0f))
+    }
+
+    /** Whether two oriented boxes overlap (each a centre, a unit axis and half sizes along it and across it). */
+    fun boxesOverlap(ax: Float, az: Float, aux: Float, auz: Float, ahu: Float, ahv: Float,
+                     bx: Float, bz: Float, bux: Float, buz: Float, bhu: Float, bhv: Float): Boolean {
+        val dx = bx - ax; val dz = bz - az
+        // the four axes: each box's u and v (v is u turned a quarter)
+        val axes = floatArrayOf(aux, auz, -auz, aux, bux, buz, -buz, bux)
+        for (k in 0 until 4) {
+            val nx = axes[k * 2]; val nz = axes[k * 2 + 1]
+            val ra = ahu * abs(aux * nx + auz * nz) + ahv * abs(-auz * nx + aux * nz)
+            val rb = bhu * abs(bux * nx + buz * nz) + bhv * abs(-buz * nx + bux * nz)
+            if (abs(dx * nx + dz * nz) >= ra + rb) return false
+        }
+        return true
+    }
 }

@@ -112,6 +112,8 @@ object TownSession {
                 com.timerpg.street.shot.Crumbs.add("cars: " + (TownPlay.cars?.cars?.joinToString { it.spec.key + " at " + it.spot } ?: "none"))
                 // where the player was last time in this town (the world position), if anywhere
                 restore(app, d.town.seed, w)
+                // (the first car, parked by the spawn on Main Street, comes to the kerb beside a player who starts far from it)
+                TownPlay.cars?.requestFirstNearPlayer()
                 loading = false
                 com.timerpg.street.shot.Crumbs.add("town load end: $seed, ${d.town.rows.size} rows, ${d.town.rows.sumOf { it.buildings.size }} buildings, %.0f ms".format(java.util.Locale.US, loadMs))
             }

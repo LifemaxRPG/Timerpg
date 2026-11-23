@@ -77,7 +77,12 @@ class VehicleWorld(
         }
     }
 
-    val cars = ArrayList<Car>()
+    /** The cars (copied on write: the renderer iterates them on its own thread while a test spawn adds or removes one). */
+    val cars = java.util.concurrent.CopyOnWriteArrayList<Car>()
+
+    /** The town the cars were parked in ([park]): where the test button's spawn looks for a kerb. */
+    var town: Town? = null; private set
+    private var parkedYards: TownYards? = null
 
     /** The car being driven (null on foot) and the one being got into or out of. */
     var driven: Car? = null; private set
@@ -129,7 +134,8 @@ class VehicleWorld(
      */
     fun park(town: Town, yards: TownYards, year: Int = town.year): List<Car> {
         for (c in cars) { physics.removeVehicle(c.handle); collision?.setExtra(KEY + c.spot, null) }
-        cars.clear(); driven = null; phase = Phase.ON_FOOT
+        cars.clear(); driven = null; phase = Phase.ON_FOOT; spawned = null
+        this.town = town; parkedYards = yards
         val fits = specs.filter { it.era(year) != VehicleEra.NONE }
         if (fits.isEmpty()) return cars
         val sp = town.row(town.spawn.row).pointAt(town.spawn.x, town.spawn.lane)
@@ -162,10 +168,12 @@ class VehicleWorld(
         c.handle = physics.addVehicle(s.desc(), s.boxes, mx, .02f, mz, yaw)
         physics.input(c.handle, 0f, 0f, 0f, 1f)
         physics.state(c.handle, c.now); c.now.copyInto(c.before)
-        cars += c
         settle(c)
         footprint(c)
         c.pose.set(c, 1f)
+        // (in the list once it stands on its springs: the renderer may pick it up on its own thread at once)
+        cars += c
+        changedFrames = 30
         return c
     }
 
@@ -182,7 +190,91 @@ class VehicleWorld(
         val f = c.spec.footprint
         val fx = c.fx; val fz = c.fz
         val cx = c.x + fx * f[2] * U; val cz = c.z + fz * f[2] * U
-        col.setExtra(KEY + c.spot, floatArrayOf(cx, cz, fx, fz, f[0] * U, f[1] * U), SolidKind.PROP, KEY + c.spec.key)
+        col.setExtra(KEY + c.spot, floatArrayOf(cx, cz, fx, fz, f[0] * U, f[1] * U), SolidKind.PROP, KEY + c.spot)
+    }
+
+    // ------------------------------------------------------------------ the test button's spawn
+
+    /** The car the test button spawned last (replaced by the next tap), and which of [specs] comes next. */
+    var spawned: Car? = null; private set
+    private var spawnNext = 0
+    /** Asked by the HUD (any thread); done at the next [step], on the game loop's thread, while on foot. */
+    @Volatile private var spawnWanted = false
+    /** What the last spawn did, for the HUD ("Northcairn Terrace", or why none), and a count that moves with each one. */
+    @Volatile var spawnNote: String? = null; private set
+    @Volatile var spawnCount = 0; private set
+
+    /** The test button: at the next [step], the next of the five cars beside the player (replacing the last one spawned). */
+    fun requestSpawn() { spawnWanted = true }
+
+    /**
+     * Where a car of [s] can be spawned for a player at ([x], [z]): the nearest kerbside spot ([VehicleSpots.street])
+     * whose whole footprint, with a margin, is clear of everything solid ([VehicleSpots.clear]: buildings, fences,
+     * props and the parked cars, which are in the collision), not on the player and within [SPAWN_REACH_M]; else the
+     * nearest clear driveway. Null: nowhere near.
+     */
+    fun spawnSpot(town: Town, s: VehicleSpec, x: Float, z: Float, yards: TownYards? = null): VehicleSpots.Spot? {
+        val col = collision
+        val hl = (s.footprint[0] + SPAWN_MARGIN_M) * U; val hw = (s.footprint[1] + SPAWN_MARGIN_M) * U
+        fun ok(sp: VehicleSpots.Spot): Boolean {
+            if (hypot(sp.x - x, sp.z - z) > SPAWN_REACH_M * U) return false
+            // (not on the player: their middle at least a stride outside the footprint)
+            if (VehicleSpots.rectDistance(sp.x, sp.z, sp.fx, sp.fz, hl, hw, x, z) < SPAWN_PLAYER_M * U) return false
+            return col == null || VehicleSpots.clear(col, sp.x, sp.z, sp.fx, sp.fz, hl, hw)
+        }
+        VehicleSpots.street(town, x, z, col).firstOrNull { ok(it) }?.let { return it }
+        return yards?.let { y -> VehicleSpots.driveways(y, x, z, col).firstOrNull { it.length >= s.footprint[0] * 2f * U && ok(it) } }
+    }
+
+    /**
+     * Spawns the next of the five cars (whatever the year: a test) beside the player at ([x], [z]), replacing the one
+     * spawned last. Null (and [spawnNote] says why) when there is no town, the player is in a car, or no clear kerb is near.
+     */
+    fun spawnNear(x: Float, z: Float, yards: TownYards? = parkedYards): Car? {
+        val t = town ?: run { spawnNote = "no town"; spawnCount++; return null }
+        if (phase != Phase.ON_FOOT || specs.isEmpty()) { spawnNote = "not while in a car"; spawnCount++; return null }
+        spawned?.let { remove(it) }
+        spawned = null
+        val s = specs[Math.floorMod(spawnNext++, specs.size)]
+        val spot = spawnSpot(t, s, x, z, yards)
+        if (spot == null) { spawnNote = "${s.name}: no clear kerb near here"; spawnCount++; return null }
+        val colour = s.colours[Math.floorMod((t.seed + s.key + spawnNext).hashCode(), s.colours.size)]
+        val c = add(s, colour, s.era(t.year) == VehicleEra.CLASSIC, VehicleSpots.Spot("spawn:" + spot.name, spot.x, spot.z, spot.fx, spot.fz, spot.length))
+        spawned = c
+        spawnNote = s.name; spawnCount++
+        return c
+    }
+
+    /**
+     * The first parked car (the 1956 sedan in the capital) is parked beside the spawn on Main Street; a game that
+     * starts where the player last stood (TownSession.restore) may be far from it, and the owner could not find the
+     * cars. Asked once after the restore: at the next [step], if the player is more than [BRING_FROM_M] from it, it is
+     * moved to the clear kerb nearest them ([spawnSpot]), keeping its colour.
+     */
+    fun requestFirstNearPlayer() { bringWanted = true }
+    @Volatile private var bringWanted = false
+
+    /** See [requestFirstNearPlayer]: the moved car, or null when it stayed (near already, driven, or no clear kerb). */
+    fun bringFirstNear(x: Float, z: Float): Car? {
+        val t = town ?: return null
+        val c = cars.firstOrNull { it !== spawned } ?: return null
+        if (c === driven || phase != Phase.ON_FOOT || hypot(c.x - x, c.z - z) < BRING_FROM_M * U) return null
+        val spot = spawnSpot(t, c.spec, x, z, parkedYards) ?: return null
+        remove(c)
+        val moved = add(c.spec, c.colour, c.classic, VehicleSpots.Spot("near:" + spot.name, spot.x, spot.z, spot.fx, spot.fz, spot.length))
+        // (still the first: the one the town is shown with)
+        cars.remove(moved); cars.add(0, moved)
+        return moved
+    }
+
+    /** Takes [c] out of the world (its body and its footprint). */
+    private fun remove(c: Car) {
+        if (c === driven) return
+        physics.removeVehicle(c.handle)
+        collision?.setExtra(KEY + c.spot, null)
+        cars.remove(c)
+        changedFrames = 30
+        if (enterable === c) enterable = null
     }
 
     // ------------------------------------------------------------------ getting in and out
@@ -234,6 +326,8 @@ class VehicleWorld(
     fun step(dt: Float, walk: Carried, steerIn: Float, pedalIn: Float) {
         val d = driven
         val a = active
+        if (spawnWanted) { spawnWanted = false; spawnNear(walk.wx, walk.wz) }
+        if (bringWanted) { bringWanted = false; bringFirstNear(walk.wx, walk.wz) }
         when (phase) {
             Phase.ON_FOOT -> enterable = doorNear(walk.wx, walk.wz)
             Phase.ENTERING -> {
@@ -274,6 +368,7 @@ class VehicleWorld(
         }
         if (n > 0) { val ms = (System.nanoTime() - t0) / 1e6f / n; stepMs = if (stepMs == 0f) ms else stepMs + (ms - stepMs) * .05f }
         stepsLast = n
+        if (changedFrames > 0) changedFrames--
         val alpha = (acc / STEP).coerceIn(0f, 1f)
         for (i in cars.indices) cars[i].pose.set(cars[i], alpha)
         val c = driven
@@ -284,7 +379,9 @@ class VehicleWorld(
     }
 
     /** Whether anything about the cars still moves (frames should keep coming). */
-    val moving: Boolean get() = phase != Phase.ON_FOOT || cars.any { it.now[VehicleState.ACTIVE] > .5f } || cars.any { c -> c.doorOpen.any { it > 0f && it < 1f } }
+    val moving: Boolean get() = phase != Phase.ON_FOOT || changedFrames > 0 || cars.any { it.now[VehicleState.ACTIVE] > .5f } || cars.any { c -> c.doorOpen.any { it > 0f && it < 1f } }
+    /** Frames still to draw after a car was added or taken away (the scene shows it). */
+    private var changedFrames = 0
 
     private fun drive(c: Car, dt: Float, steerIn: Float, pedalIn: Float) {
         // the pedal: the HUD's gas and brake, or the stick's up (gas) and down (brake, then reverse from a stop)
@@ -425,6 +522,13 @@ class VehicleWorld(
         const val U = (184f / 224f) / .0388f
         /** Parked cars stand at least this far apart (m). */
         const val SPACING_M = 18f
+        /** The test button's spawn: a car's footprint keeps this much (m) clear all round, stands this far (m) off the
+         *  player at least, and within this reach (m) of them. */
+        const val SPAWN_MARGIN_M = .3f
+        const val SPAWN_PLAYER_M = .8f
+        const val SPAWN_REACH_M = 80f
+        /** The first car is brought to a player who starts further than this (m) from it ([requestFirstNearPlayer]). */
+        const val BRING_FROM_M = 60f
         /** The physics' fixed step (s). */
         const val STEP = 1f / 60f
         const val MAX_STEPS = 4

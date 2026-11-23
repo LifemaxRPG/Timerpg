@@ -666,17 +666,53 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     var micGranted by remember { mutableStateOf(ears.hasPermission()) }
     var wantAlways by remember { mutableStateOf(false) }
     fun setMicAlways(on: Boolean) { micAlways = on; micPrefs.edit().putBoolean("always", on).apply() }
+    // Android will not ask again (two "no"s on Android 11+): the request returns "denied" at once and shows nothing, so
+    // a tap opens the app's settings page instead, with a word on what to change there (voice/MicAsk.kt)
+    var micBlocked by remember { mutableStateOf(micPrefs.getBoolean("blocked", false) && !ears.hasPermission()) }
+    val micAsk = remember { longArrayOf(0L, 0L) }   // when the request went, and the rationale before it (1/0)
+    fun micRationale() = (ctx as? android.app.Activity)?.shouldShowRequestPermissionRationale(android.Manifest.permission.RECORD_AUDIO) == true
+    fun openMicSettings() {
+        com.timerpg.street.shot.Crumbs.add("mic: opening the app's settings (Android will not ask again)")
+        android.widget.Toast.makeText(ctx, com.timerpg.street.voice.MicAsk.SETTINGS_HELP, android.widget.Toast.LENGTH_LONG).show()
+        runCatching {
+            ctx.startActivity(android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                android.net.Uri.fromParts("package", ctx.packageName, null)).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+        }.onFailure { com.timerpg.street.shot.Crumbs.add("mic: settings did not open: ${it.javaClass.simpleName}") }
+    }
     val askMic = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        val ms = android.os.SystemClock.elapsedRealtime() - micAsk[0]
+        val before = micAsk[1] == 1L; val after = micRationale()
+        val out = com.timerpg.street.voice.MicAsk.outcome(granted, before, after, ms)
+        com.timerpg.street.shot.Crumbs.add("mic permission: $out (rationale $before to $after, answered in $ms ms)")
         micGranted = granted
+        micBlocked = out == com.timerpg.street.voice.MicAsk.Outcome.BLOCKED
+        micPrefs.edit().putBoolean("blocked", micBlocked).apply()
         if (wantAlways && granted) setMicAlways(true)
         wantAlways = false
+        if (micBlocked) openMicSettings()
+    }
+    /** Asks for the microphone (or, when Android will not ask any more, opens the app's settings page). */
+    fun requestMic() {
+        if (ears.hasPermission()) { micGranted = true; micBlocked = false; return }
+        if (micBlocked) { openMicSettings(); return }
+        micAsk[0] = android.os.SystemClock.elapsedRealtime(); micAsk[1] = if (micRationale()) 1L else 0L
+        com.timerpg.street.shot.Crumbs.add("mic: asking for the permission")
+        runCatching { askMic.launch(android.Manifest.permission.RECORD_AUDIO) }
+            .onFailure { com.timerpg.street.shot.Crumbs.add("mic: the request failed: ${it.javaClass.simpleName}"); openMicSettings() }
     }
     // (granted in the system's settings meanwhile: seen when the game comes back to the front)
-    LaunchedEffect(Foreground.resumed) { if (Foreground.resumed) micGranted = ears.hasPermission() }
+    LaunchedEffect(Foreground.resumed) {
+        if (Foreground.resumed) {
+            micGranted = ears.hasPermission()
+            if (micGranted && micBlocked) { micBlocked = false; micPrefs.edit().putBoolean("blocked", false).apply() }
+            // (always listening was being switched on when the settings page opened instead of the dialog)
+            if (micGranted && wantAlways) { setMicAlways(true); wantAlways = false }
+        }
+    }
     val onMicAlways: (Boolean) -> Unit = { on ->
         if (!on) setMicAlways(false)
         else if (ears.hasPermission()) { micGranted = true; setMicAlways(true) }
-        else { wantAlways = true; askMic.launch(android.Manifest.permission.RECORD_AUDIO) }
+        else { wantAlways = true; requestMic() }
     }
     // the words to expect: the town's name and everyone's names, so the recognizer spells them as the game does
     val names = remember(engine.data.value) {
@@ -703,6 +739,9 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     // moment a tap found no room for it
     var bikeOn by remember { mutableStateOf(false) }
     var noRoom by remember { mutableStateOf(0L) }
+    // the test button's car (with the 📷/🔖 test buttons): when it was tapped, and the car's name shown for a moment
+    var carAskAt by remember { mutableStateOf(0L) }
+    var carNote by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) { while (true) { if (bikeOn != GameState.riding) bikeOn = GameState.riding; kotlinx.coroutines.delay(150) } }
     // off the bike to go in at a door or to talk to someone
     LaunchedEffect(doorTo) { if (doorTo != null) townPlay.dismount("door") }
@@ -1057,6 +1096,35 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 contentAlignment = Alignment.Center,
             ) { Text(if (bikeOn) "🚲✓" else "🚲", if (bikeOn) 18.sp else 24.sp) }
         }
+        // a test button (behind the 📷/🔖 switch): a car beside the player on the street, the next of the five each tap,
+        // replacing the last one spawned (docs/VEHICLES.md); its name shown for a moment
+        if (com.timerpg.street.shot.ShotSettings.buttonOn && townMode && StreetRenderer.view == StreetRenderer.OPEN && inside == null && !townLoading &&
+            doorTo == null && !com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.inCar && com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.cars != null) {
+            val conf = androidx.compose.ui.platform.LocalConfiguration.current
+            val stickW = minOf(conf.screenWidthDp / 3, 300)
+            Box(
+                Modifier.align(Alignment.BottomStart).padding(start = (stickW + 12 + 58 + 10).dp, bottom = 22.dp).size(58.dp)
+                    .background(Color(0x99101420), CircleShape)
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = {
+                            com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.cars?.let { it.requestSpawn(); carAskAt = System.currentTimeMillis() }
+                        })
+                    },
+                contentAlignment = Alignment.Center,
+            ) { Text("🚗", 24.sp) }
+        }
+        if (carAskAt != 0L) LaunchedEffect(carAskAt) {
+            val vw = com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.cars
+            val before = vw?.spawnCount ?: 0
+            // (done at the game loop's next step)
+            var waited = 0
+            while (vw != null && vw.spawnCount == before && waited < 2000) { kotlinx.coroutines.delay(40); waited += 40 }
+            carNote = vw?.spawnNote ?: "no cars in this town"
+            com.timerpg.street.shot.Crumbs.add("car button: $carNote (${vw?.spawned?.spot ?: "none"})")
+            kotlinx.coroutines.delay(1800)
+            carNote = null
+        }
+        carNote?.let { Text("🚗 $it", 14.sp, Modifier.align(Alignment.BottomCenter).padding(bottom = 92.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 5.dp)) }
         if (noRoom != 0L) {
             Text("no room for the bike here", 12.sp, Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp), color = DIM.copy(alpha = .8f))
             LaunchedEffect(noRoom) { kotlinx.coroutines.delay(1600); noRoom = 0L }
@@ -1090,7 +1158,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 ears = ears, holdToTalk = !micAlways,
                 onTalk = { down ->
                     if (down) {
-                        if (!ears.hasPermission()) askMic.launch(android.Manifest.permission.RECORD_AUDIO)
+                        if (!ears.hasPermission()) requestMic()
                         else { voices.stop(); engine.pause("listening"); ears.start() }
                     } else ears.stop(names) { said -> engine.resume("listening"); open.heardNote = ears.lastHeard; open.heardInfo = ears.lastHeardInfo; open.askSaid(engine, said, voices, memory) }
                     if (!down && ears.state == com.timerpg.street.voice.PlayerVoice.State.IDLE) engine.resume("listening")
@@ -1232,7 +1300,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     townPlay.walk?.let { com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.recentre(Math.toDegrees(it.heading.toDouble()).toFloat()) }
                 }
             }
-            if (micAlways) MicLamp(ears, canListen, granted = micGranted) { askMic.launch(android.Manifest.permission.RECORD_AUDIO) }
+            if (micAlways) MicLamp(ears, canListen, granted = micGranted, blocked = micBlocked) { requestMic() }
             updater.available?.let { r -> if (!aiPanel) Chip("⬆ Update: ${r.versionName}", false) { aiPanel = true } }
             if (aiPanel) AiPanel(ai, engine, voices, updater, micAlways, onMicAlways, ears, onPick = {
                 try { pickModel.launch(arrayOf("*/*")) } catch (e: Exception) { /* no document picker on this device */ }
@@ -1504,10 +1572,11 @@ private object Foreground {
 
 /** The always-listening mic at a glance: listening, hearing the player (with the meter), writing it down, paused. */
 @Composable
-private fun MicLamp(ears: com.timerpg.street.voice.PlayerVoice, live: Boolean, granted: Boolean = true, onAllow: () -> Unit = {}) {
+private fun MicLamp(ears: com.timerpg.street.voice.PlayerVoice, live: Boolean, granted: Boolean = true, blocked: Boolean = false, onAllow: () -> Unit = {}) {
     if (!granted) {
-        // always listening is on, but the game may not use the microphone: say so, and ask again on a tap
-        Chip("🎤 needs the microphone: tap to allow", false) { onAllow() }
+        // always listening is on, but the game may not use the microphone: say so, and ask again on a tap (or, when
+        // Android will not ask any more, open the app's settings page)
+        Chip(com.timerpg.street.voice.MicAsk.label(blocked), false) { onAllow() }
         return
     }
     val label = when {

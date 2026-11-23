@@ -291,6 +291,10 @@ class PlayRecorderTest {
         assertFalse(PlayUploads.allowed(X, wifi = true, charging = false))
         assertFalse(PlayUploads.allowed(X, wifi = false, charging = true))
         assertTrue(PlayUploads.allowed(X, wifi = true, charging = true))
+        // the network state unreadable (0.1.638 and before: no ACCESS_NETWORK_STATE): the small files go, traces do not
+        assertTrue(PlayUploads.allowed(P, wifi = null, charging = false))
+        assertTrue(PlayUploads.allowed(T, wifi = null, charging = false))
+        assertFalse(PlayUploads.allowed(X, wifi = null, charging = true))
         assertEquals(X, PlayUploads.kindOf("trace~2026-11-23~101500-mark.perfetto-trace.gz"))
         assertEquals(null, PlayUploads.kindOf("open-play~2026-11-23~101500-900.jsonl.gz"))
     }

@@ -62,6 +62,16 @@ object Diagnostics {
             "pending" to pendingByKind(dir.list()?.toList().orEmpty()),
             "uploads" to runCatching { UploadLog.summary(app) }.getOrNull(),
         )
+        // the playtest recorder: is it running, what is it writing; and whether its uploads may go now
+        m["recorder"] = runCatching { com.timerpg.street.play.PlayLog.status() }.getOrElse { mapOf("error" to it.toString()) }
+        m["uploadGate"] = runCatching {
+            val p = com.timerpg.street.play.Probes(app)
+            val wifi = p.wifiOrNull(); val charging = p.chargingNow()
+            linkedMapOf("wifi" to (wifi ?: "unknown"), "networkError" to p.networkError, "charging" to charging,
+                "playAllowed" to com.timerpg.street.play.PlayUploads.allowed(com.timerpg.street.play.PlayUploads.Kind.PLAY, wifi, charging),
+                "traceAllowed" to com.timerpg.street.play.PlayUploads.allowed(com.timerpg.street.play.PlayUploads.Kind.TRACE, wifi, charging),
+                "hasToken" to ShotSettings.hasToken)
+        }.getOrElse { mapOf("error" to it.toString()) }
         m["writer"] = runCatching {
             val nw = com.timerpg.street.night.NightWriter
             linkedMapOf("status" to nw.status(app)?.map(System.currentTimeMillis()), "lastRun" to nw.lastSummary(app),

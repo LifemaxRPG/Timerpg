@@ -92,6 +92,21 @@ about 1.24 GB: its copy needs ~2.3 GB with the margin, inside every reading the 
 
 ## A spoken turn in play (the always-listening mic), and where its time goes
 
+**The microphone's permission (2026-11-23).** On the owner's S25 (Android 17) "🎤 needs the microphone: tap to allow"
+did nothing. Android 11 and later stop showing the permission dialog after the second "no" (older versions after
+"don't ask again"): `requestPermission` then answers "denied" at once, and the game showed nothing. `voice/MicAsk` tells
+this from the rationale flag before and after the request and how fast the answer came (under 400 ms: no dialog was
+shown); then the chip reads "🎤 microphone blocked: tap to open settings" and a tap opens the app's settings page with
+a toast saying what to change (Permissions, Microphone, Allow only while using the app). Coming back with it allowed,
+the chip goes and always listening switches on if that was what was asked. Each request and its outcome is a
+breadcrumb ("mic permission: BLOCKED (rationale false to false, answered in 30 ms)").
+
+To check on the phone: Settings, Apps, Timerpg Street, Permissions, Microphone, "Don't allow"; in the game turn
+always listening on (AI panel); the chip should open the app's settings, not do nothing. To see the dialog path again,
+set the permission to "Ask every time" or clear it with `adb shell pm reset-permissions -p com.timerpg.street`
+(or `adb shell pm revoke com.timerpg.street android.permission.RECORD_AUDIO`), then tap the chip. A 📷 screenshot's
+breadcrumbs show what happened.
+
 The owner's first test on the S25 Ultra (always-listening mic): the words took very long to appear and the reply took
 "way too long". The turn is now:
 

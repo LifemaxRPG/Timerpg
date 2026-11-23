@@ -95,12 +95,23 @@ class Probes(private val ctx: Context) {
     private fun readLong(f: File): Long? = try { f.readText().trim().toLongOrNull() } catch (t: Throwable) { null }
 
     /** On Wi-Fi (unmetered) now. */
-    fun wifi(): Boolean = runCatching {
+    fun wifi(): Boolean = wifiOrNull() == true
+
+    /**
+     * On Wi-Fi (unmetered) now, or null when the phone's network state cannot be read ([networkError] says why). Until
+     * 0.1.638 the manifest lacked ACCESS_NETWORK_STATE: every read threw a SecurityException, which [wifi] took as "not
+     * on Wi-Fi", so the timelines and conversations waited for a charger that the game is rarely played on.
+     */
+    fun wifiOrNull(): Boolean? = try {
         val cm = ctx.getSystemService(android.net.ConnectivityManager::class.java)
-        val caps = cm.getNetworkCapabilities(cm.activeNetwork) ?: return@runCatching false
-        caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+        val caps = cm.getNetworkCapabilities(cm.activeNetwork)
+        networkError = null
+        caps != null && caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
             (caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) || caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_NOT_METERED))
-    }.getOrDefault(false)
+    } catch (t: Throwable) { networkError = "${t.javaClass.simpleName}: ${t.message}"; null }
+
+    /** Why the network state could not be read last time (null: it could). */
+    var networkError: String? = null; private set
 
     /** Charging now (read afresh). */
     fun chargingNow(): Boolean = runCatching {

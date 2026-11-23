@@ -90,6 +90,24 @@ object PlayLog {
         phase("process.init")
     }
 
+    /**
+     * Whether the recorder runs and what it writes, for the screenshot JSON's diagnostics: started in this process, its
+     * thread alive, the game in front, the session and its part, seconds recorded, the open file and its size so far,
+     * and the switches (the conversation log, the owner's build). Read from any thread (a moment's picture).
+     */
+    fun status(): Map<String, Any?> {
+        val g = gz
+        return linkedMapOf(
+            "initialised" to (app != null),
+            "threadAlive" to (handler?.looper?.thread?.isAlive == true),
+            "foreground" to foreground,
+            "session" to sessionId, "part" to if (sessionId != null) part else null,
+            "seconds" to ticks,
+            "file" to g?.file?.name, "fileBytes" to g?.written, "fileLines" to g?.lines,
+            "recordTalk" to talkOn, "ownerBuild" to com.timerpg.street.BuildConfig.OWNER_BUILD,
+        )
+    }
+
     /** Renames every "open-" file in [d] to its finished name (an earlier process's, which can write no more). */
     fun closeOrphans(d: File): Int {
         var n = 0
