@@ -1,0 +1,65 @@
+[
+  {
+    "file": "lark-bend-1925.glb",
+    "triangles": 920,
+    "materials": 10,
+    "boxes": 26,
+    "max_uv_error_m": 2.135279949300184e-06
+  },
+  {
+    "file": "lark-bend-1925-mid.glb",
+    "triangles": 800,
+    "materials": 10,
+    "boxes": 24,
+    "max_uv_error_m": 2.135279949300184e-06
+  },
+  {
+    "file": "lark-bend-1925-far.glb",
+    "triangles": 792,
+    "materials": 10,
+    "boxes": 24,
+    "max_uv_error_m": 2.135279949300184e-06
+  },
+  {
+    "file": "lark-bend-1950.glb",
+    "triangles": 3228,
+    "materials": 10,
+    "boxes": 40,
+    "max_uv_error_m": 6.234186039177914e-06
+  },
+  {
+    "file": "lark-bend-1950-mid.glb",
+    "triangles": 2076,
+    "materials": 10,
+    "boxes": 38,
+    "max_uv_error_m": 6.234186039177914e-06
+  },
+  {
+    "file": "lark-bend-1950-far.glb",
+    "triangles": 1472,
+    "materials": 10,
+    "boxes": 38,
+    "max_uv_error_m": 5.87407292584885e-06
+  },
+  {
+    "file": "lark-bend-1990.glb",
+    "triangles": 2920,
+    "materials": 10,
+    "boxes": 37,
+    "max_uv_error_m": 6.234186039177914e-06
+  },
+  {
+    "file": "lark-bend-1990-mid.glb",
+    "triangles": 1768,
+    "materials": 10,
+    "boxes": 35,
+    "max_uv_error_m": 6.234186039177914e-06
+  },
+  {
+    "file": "lark-bend-1990-far.glb",
+    "triangles": 1172,
+    "materials": 10,
+    "boxes": 35,
+    "max_uv_error_m": 5.87407292584885e-06
+  }
+]
