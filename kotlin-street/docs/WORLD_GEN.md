@@ -877,3 +877,62 @@ mountains as well.
   - snow caps;
   - tree lines;
   - stronger slope lighting so ridges read in 3D.
+
+## Natural wonders (the owner's request, 2026-11-23)
+
+The world must not be mundane. Most land is ordinary and pleasant, but the player should have a real chance of finding
+places that stop them in their tracks.
+
+**The rule:** every wonder has a natural cause the generator already models (plates, height, climate, rivers, the
+coast). So each appears where it makes sense, feels discovered rather than placed, and is deterministic per seed.
+This is a new **wonders pass** after hydrology and biomes (W1 pipeline), stored in the skeleton, drawn as W5b and later
+add the features.
+
+**Rarity:**
+- **Common:** pleasant everywhere.
+- **Uncommon:** a few per region.
+- **Rare:** a few per continent. Every continent gets at least one.
+- **Legendary:** 1-3 on the whole planet, named and spoken of everywhere.
+
+| Wonder | Where it comes from | Rarity |
+|---|---|---|
+| Blossom valleys: groves of pink, white or purple flowering trees, golden autumn stands | Sheltered temperate valleys ringed by mountains; bloom by season | uncommon; one legendary valley |
+| Wildflower meadows and superblooms | Alpine meadows; arid basins after a wet year | common to uncommon (year-dependent) |
+| Great waterfalls, with mist and rainbows at the right sun angle | Rivers crossing escarpments, cliffs or glacial valley lips; flow follows rainfall | uncommon; a legendary drop |
+| Canyons and gorges with layered coloured rock | Rivers cutting uplifted plateaus in dry climates | rare |
+| Arches, hoodoos and rock spires | Arid sandstone country | rare |
+| Karst towers: steep forested limestone pillars over rice-green valleys; sinkholes and cenote pools | Humid subtropical limestone | rare |
+| Table mountains with waterfalls off their sheer edges | Old eroded plateaus in wet tropics | legendary |
+| Volcanoes, crater lakes, hot springs, geysers, steaming mineral terraces | Plate boundaries and hotspots | rare |
+| Glaciers, ice caves, turquoise glacial lakes | Great ranges, high latitudes | uncommon in great ranges |
+| Fjords | Glaciated high-latitude coasts | rare |
+| Giant ancient trees: groves of colossal trunks | Foggy temperate coastal rainforest | rare |
+| Salt flats that mirror the sky; pink and turquoise lakes | Closed basins in arid climates | rare |
+| Sea stacks, arches, sea caves, black-sand beaches | Rocky and volcanic coasts | uncommon |
+| Atolls and turquoise lagoons | Tropical seas | rare |
+| Night wonders: glowing bays, firefly meadows, aurora | Warm sheltered bays; summer meadows; high latitudes on clear nights | uncommon (time-dependent) |
+| Caves: big cave systems with underground rivers | Limestone and volcanic rock | uncommon |
+
+**What makes them more than scenery:**
+- **Time.** They change with season, weather and hour:
+  - blossom weeks;
+  - waterfalls roaring after rain;
+  - aurora on clear winter nights;
+  - low tide opening a sea cave.
+- **History.** Across the century:
+  - a falls can be dammed in 1950;
+  - a grove logged or protected;
+  - a park founded in a given year;
+  - tourist towns, lodges, postcards and souvenir stands growing round the famous ones.
+- **People.**
+  - Wonders have names and legends.
+  - Nearby NPCs talk about them and give directions (from the place registry).
+  - The famous ones are known across the continent.
+- **Discovery.**
+  - A journal of the wonders the player has found.
+  - Some sit on the road; others are hidden off-trail or up a climb.
+  - Their silhouettes (a volcano, a table mountain) read from very far away.
+- **The look.** Each wonder gets its own pixel-art palette and features, in our style:
+  - blossom trees as low-poly crowns with pixel petals;
+  - waterfalls as stepped animated pixel water;
+  - layered canyon walls as banded pixel rock.
