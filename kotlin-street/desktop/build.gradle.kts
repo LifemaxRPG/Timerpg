@@ -1,3 +1,4 @@
+import java.util.Properties as JProperties
 plugins {
     kotlin("jvm")
     id("org.jetbrains.compose")
@@ -23,6 +24,30 @@ if (withFilament) {
     sourceSets { main { kotlin.srcDir("../shared/src/filament/kotlin"); kotlin.srcDir("src/filament/kotlin") } }
     dependencies { implementation(files(File(filamentDist, "lib/filament-java.jar"), File(filamentDist, "lib/androidx-annotation.jar"))) }
 }
+// The physics (docs/VEHICLES.md): Jolt and our JNI wrapper built for this computer (Linux x86-64) from the app's
+// app/src/main/cpp/physics, out of tree in build/physics; the preview and the tests load it by -Dtimerpg.physics.lib.
+val joltDirDesktop: File = JProperties().apply { rootProject.file("local.properties").takeIf { it.isFile }?.inputStream()?.use { load(it) } }
+    .getProperty("jolt.dir")?.trim()?.takeIf { it.isNotEmpty() }?.let { rootProject.file(it) } ?: rootProject.file("third_party/JoltPhysics")
+val physicsDir = layout.buildDirectory.dir("physics").get().asFile
+val physicsLib = File(physicsDir, "libtimerpg_physics.so")
+val physicsConfigure by tasks.registering(Exec::class) {
+    group = "build"
+    description = "Configures the physics' native build for this computer"
+    val src = file("../app/src/main/cpp/physics")
+    inputs.file(File(src, "CMakeLists.txt"))
+    outputs.file(File(physicsDir, "build.ninja"))
+    commandLine("cmake", "-S", src.absolutePath, "-B", physicsDir.absolutePath, "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Release", "-DJOLT_DIR=${joltDirDesktop.absolutePath}")
+    doFirst { if (!joltDirDesktop.resolve("Jolt/Jolt.h").isFile) throw GradleException("Jolt Physics not found at $joltDirDesktop. Run kotlin-street/tools/get-jolt.sh, or set jolt.dir in local.properties.") }
+}
+val physicsHost by tasks.registering(Exec::class) {
+    group = "build"
+    description = "Builds the physics (Jolt and its JNI wrapper) for this computer"
+    dependsOn(physicsConfigure)
+    inputs.dir(file("../app/src/main/cpp/physics"))
+    outputs.file(physicsLib)
+    commandLine("ninja", "-C", physicsDir.absolutePath, "timerpg_physics", "physics_host_test")
+}
+
 // -DtestOnly=HouseGeometryTest,DuskTest: compile and run only those test files (a few of the habit tracker's old tests,
 // HabitsViewModelTest and its kin, no longer compile against this engine)
 System.getProperty("testOnly")?.let { only ->
@@ -48,6 +73,9 @@ tasks.register<Test>("crossroadsTest") {
     classpath = crossroadsTest.runtimeClasspath
     useJUnit()
     jvmArgs("-Djava.awt.headless=true")
+    // (the cars' physics: VehiclePhysicsTest drives them)
+    dependsOn(physicsHost)
+    jvmArgs("-Dtimerpg.physics.lib=" + physicsLib.absolutePath)
     // (the planned town's yards, baked all at once by YardKitTest: about 2.5 times the old town's)
     maxHeapSize = "3g"
     if (withFilament) {
@@ -67,6 +95,11 @@ tasks.register<JavaExec>("preview") {
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set(if (System.getProperty("mode") == "ocean") "FilamentOceanPreviewKt" else "PreviewKt")
     jvmArgs("-Djava.awt.headless=true", "-Xmx" + (System.getProperty("xmx") ?: "3g"))
+    // (the cars' physics, for the open world's and the cars' previews)
+    dependsOn(physicsHost)
+    jvmArgs("-Dtimerpg.physics.lib=" + physicsLib.absolutePath)
+    // the cars' preview (-Dmode=filament-cars): which year, which shots
+    for (k in listOf("carYear", "cars")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // (more JVM flags for a measurement, space separated: -Djvm="-Xlog:gc -XX:ActiveProcessorCount=8")
     System.getProperty("jvm")?.let { jvmArgs(it.split(' ').filter(String::isNotBlank)) }
     System.getProperty("seamdebug")?.let { jvmArgs("-Dseamdebug=$it") }

@@ -61,6 +61,15 @@ object TownPlay {
     /** The open world's walk (anywhere, against the town's collision); null if the town has no collision map. */
     @Volatile var open: OpenWalk? = null
         private set
+    /**
+     * The town's cars (docs/VEHICLES.md): parked, got into and driven; stepped with the open world's walk. Set by the app
+     * (and previews) once the town is started, where the physics library loads; null: no cars.
+     */
+    @Volatile var cars: com.lifemax.rpg.feature.habits.vehicle.VehicleWorld? = null
+
+    /** The player drives (or is getting in or out of) a car. */
+    val inCar: Boolean get() = (walk as? OpenWalk)?.carried == true
+
     /** The open world is being played (the player's own camera, walking anywhere). */
     val openWorld: Boolean get() = walk is OpenWalk
     val town: Town? get() = walk?.town
@@ -185,6 +194,7 @@ object TownPlay {
         if (walk == null) return
         walk = null
         street = null; open = null
+        cars?.close(); cars = null
         CornerWalk.reset()
         GameState.street = 0
         figureCount = 0
@@ -209,6 +219,7 @@ object TownPlay {
      */
     fun toggleBike(): Boolean {
         val w = walk as? OpenWalk ?: return false
+        if (w.carried) return false
         if (w.riding) { w.dismount(); event("bike off at (${w.wx.toInt()}, ${w.wz.toInt()})"); return false }
         if (frozen) return false
         val ok = w.mount()
@@ -279,6 +290,8 @@ object TownPlay {
      */
     private fun stepOpen(w: OpenWalk, dt: Float): Float {
         val wasRescued = w.rescued
+        val cs = cars
+        cs?.step(dt, w, GameState.moveX, GameState.moveLane)
         w.step(dt)
         if (w.rescued !== wasRescued) { w.rescued?.let { event("rescue: $it") }; street?.placeAt(w.wx, w.wz, w.hx, w.hz) }
         if (w.row.id != lastRow) {
@@ -294,8 +307,8 @@ object TownPlay {
         GameState.nearest = nearestOnRow(w.row, w.x)
         GameState.atCorner = false
         val mark = w.wx * 3f + w.wz * 7f + w.hx * 13f + w.hz * 17f + rowChanges * 31f + (if (GameState.walking) GameState.gait * 5f else 0f) +
-            (if (w.riding) w.bike.lean * 1000f + w.bike.crank * 50f else 0f)
-        GameState.inMotion = mark != lastMark || GameState.walking || renderBusy || (w.riding && (w.bike.speed > 0f || abs(w.bike.lean) > 1e-3f))
+            (if (w.riding) w.bike.lean * 1000f + w.bike.crank * 50f else 0f) + (cs?.driven?.pose?.let { it.y * 11f + it.spin[0] * 100f } ?: 0f)
+        GameState.inMotion = mark != lastMark || GameState.walking || renderBusy || (w.riding && (w.bike.speed > 0f || abs(w.bike.lean) > 1e-3f)) || cs?.moving == true
         lastMark = mark
         return mark
     }
@@ -459,6 +472,8 @@ object TownPlay {
                 f.keeper = b.sprite
             }
         }
+        // (in a car the player sits inside it, unseen: the car is drawn by its own layer)
+        if (w is OpenWalk && w.carried) return figureCount
         val me = next()
         me.me = true
         me.x = w.wx; me.z = w.wz

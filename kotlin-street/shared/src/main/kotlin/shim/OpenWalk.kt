@@ -36,12 +36,40 @@ class OpenWalk(
     val collision: TownCollision,
     val yards: TownYards = TownYards(emptyList(), emptyList()),
     val doors: TownDoors = TownDoors(town, yards, collision, collision.cinema),
-) : TownWalkView {
+) : TownWalkView, com.lifemax.rpg.feature.habits.vehicle.VehicleWorld.Carried {
     /** The player's feet (world). */
     override var wx = 0f
         private set
     override var wz = 0f
         private set
+
+    /** In a car (docs/VEHICLES.md): [step] does not walk, the car sets the place ([carry]) until the player gets out ([release]). */
+    var carried = false
+        private set
+    /** The car's speed while [carried] (street units a second; the camera's follow goes by it). */
+    var carriedSpeed = 0f
+        private set
+
+    override fun carry(x: Float, z: Float, dx: Float, dz: Float, speed: Float) {
+        if (riding) dismount()
+        carried = true
+        carriedSpeed = speed
+        val moved = x != wx || z != wz
+        wx = x; wz = z
+        val l = hypot(dx, dz)
+        if (l > 1e-6f) { hx = dx / l; hz = dz / l }
+        GameState.motion.vx = 0f; GameState.motion.vy = 0f
+        GameState.walking = false; GameState.running = false
+        door = null
+        if (moved) { derive(force = false); yard = yardAt(wx, wz) }
+        aim()
+    }
+
+    override fun release(x: Float, z: Float, dx: Float, dz: Float) {
+        carried = false
+        carriedSpeed = 0f
+        placeAt(x, z, dx, dz)
+    }
     /** The way the player faces (unit): turns towards where they walk. */
     override var hx = 0f
         private set
@@ -256,6 +284,7 @@ class OpenWalk(
      * and the derived frame, door and yard kept. Allocates nothing.
      */
     fun step(dt: Float, mx: Float = GameState.moveX, my: Float = GameState.moveLane) {
+        if (carried) return
         recheck()
         val x0 = wx; val z0 = wz
         if (riding) stepRide(dt, mx, my) else stepFoot(dt, mx, my)

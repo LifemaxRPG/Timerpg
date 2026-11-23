@@ -115,12 +115,15 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
         // (on the bike, and only there, the camera swings round behind the rider unless the player turned it lately: the
         // owner's one exception; on foot nothing but the player turns it)
         val ow = walk as? com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk
-        if (ow != null && ow.riding) c.ride(dt, heading, ow.bike.speed) else c.onFoot(dt)
+        // (and in a car, the same: the follow by the car's speed, docs/VEHICLES.md)
+        if (ow != null && ow.riding) c.ride(dt, heading, ow.bike.speed) else if (ow != null && ow.carried) c.ride(dt, heading, ow.carriedSpeed) else c.onFoot(dt)
         c.step(dt)
         c.follow(walk.wx, walk.wz)
         // (on the bike the camera stands a little further back, eased: a zoom out the player's own zoom rides on, never a turn)
         val riding = (walk as? com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk)?.riding == true
-        c.rideBack = if (dt == 0f) (if (riding) 1f else 0f) else c.rideBack + ((if (riding) 1f else 0f) - c.rideBack) * (1f - kotlin.math.exp(-dt / RIDE_EASE))
+        // (further back still in a car: it is longer than the bike, and faster)
+        val back = if (ow?.carried == true) CAR_BACK else if (riding) 1f else 0f
+        c.rideBack = if (dt == 0f) back else c.rideBack + (back - c.rideBack) * (1f - kotlin.math.exp(-dt / RIDE_EASE))
         val dist = c.dist * (1f + OrbitCamera.RIDE_BACK * c.rideBack)
         // (the open walk's stick pushes relative to where the camera looks; the walk never turns the camera)
         (walk as? com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk)?.cameraYaw = c.yawRad
@@ -155,6 +158,8 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
         const val PULL_OUT = .5f
         /** Seconds the camera takes to stand back for the bike (and in again off it). */
         const val RIDE_EASE = .8f
+        /** In a car the camera stands this many bike-steps back ([OrbitCamera.RIDE_BACK] each). */
+        const val CAR_BACK = 2.6f
 
         /** The first view waits for the buildings this near the player (street units): the street in view and the next blocks. */
         const val READY_RADIUS = 1800f

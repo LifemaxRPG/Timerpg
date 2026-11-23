@@ -1,0 +1,1256 @@
+{
+ "task": "C011",
+ "format": "glTF metres, +Y up, +Z forward, +X vehicle left",
+ "origin": "Ground below the axle midpoint",
+ "texel_m": 0.0388,
+ "vehicle": {
+  "name": "Fenmere Club Coupe",
+  "key": "fenmere-1938",
+  "years": [
+   1937,
+   1940
+  ],
+  "estimated_mass_kg": 1465,
+  "estimated_top_speed_kmh": 132,
+  "wheel_radius_m": 0.366,
+  "wheelbase_m": 2.94,
+  "track_m": 1.52,
+  "suggested_lod_m": {
+   "mid": 38,
+   "far": 95
+  },
+  "collision_boxes": [
+   {
+    "center_gltf_m": [
+     0,
+     0.6675,
+     0
+    ],
+    "size_gltf_m": [
+     1.3820999999999999,
+     0.7349999999999999,
+     3.9732000000000003
+    ]
+   },
+   {
+    "center_gltf_m": [
+     0,
+     1.35,
+     -0.51
+    ],
+    "size_gltf_m": [
+     1.23576,
+     0.6300000000000001,
+     1.65
+    ]
+   }
+  ],
+  "paint": {
+   "preset_body_colours": [
+    "#81443f",
+    "#3c6054",
+    "#434c68",
+    "#5e5353",
+    "#86735a"
+   ],
+   "stock_secondary": "#413a39",
+   "masks": {
+    "primary": "textures/fenmere-1938-primary-mask.png",
+    "secondary": "textures/fenmere-1938-secondary-mask.png"
+   },
+   "badge": {
+    "node": "badge_plate",
+    "material": "hardware_and_trim",
+    "atlas_texels": 256,
+    "center_texels": [
+     103,
+     216
+    ]
+   }
+  },
+  "lods": [
+   {
+    "file": "fenmere-1938.glb",
+    "lod": "near",
+    "triangles": 2558,
+    "bounds_gltf_m": [
+     [
+      -1.032,
+      1.032
+     ],
+     [
+      0.0,
+      1.665
+     ],
+     [
+      -2.451,
+      2.313
+     ]
+    ],
+    "materials": [
+     "glass_vehicle",
+     "glow_lamps",
+     "hardware_and_trim",
+     "interior_and_rubber",
+     "paint_primary"
+    ],
+    "nodes": {
+     "hood": {
+      "center_gltf_m": [
+       0.0,
+       1.13,
+       0.58
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "trunk": {
+      "center_gltf_m": [
+       0.0,
+       1.031176,
+       -1.68
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "door_front_l": {
+      "center_gltf_m": [
+       0.799992,
+       0.533,
+       0.57
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_front_r": {
+      "center_gltf_m": [
+       -0.799992,
+       0.533,
+       0.57
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "steer_fl": {
+      "center_gltf_m": [
+       0.76,
+       0.366,
+       1.47
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "center_gltf_m": [
+       0.76,
+       0.366,
+       1.47
+      ],
+      "parent": "steer_fl",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "center_gltf_m": [
+       -0.76,
+       0.366,
+       1.47
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "center_gltf_m": [
+       -0.76,
+       0.366,
+       1.47
+      ],
+      "parent": "steer_fr",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "center_gltf_m": [
+       0.76,
+       0.366,
+       -1.47
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "center_gltf_m": [
+       -0.76,
+       0.366,
+       -1.47
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "seat_driver": {
+      "center_gltf_m": [
+       0.346,
+       0.701,
+       -0.204
+      ],
+      "parent": "fenmere-1938"
+     },
+     "seat_passenger": {
+      "center_gltf_m": [
+       -0.346,
+       0.701,
+       -0.204
+      ],
+      "parent": "fenmere-1938"
+     },
+     "seat_rear_left": {
+      "center_gltf_m": [
+       0.336,
+       0.701,
+       -1.147
+      ],
+      "parent": "fenmere-1938"
+     },
+     "seat_rear_right": {
+      "center_gltf_m": [
+       -0.336,
+       0.701,
+       -1.147
+      ],
+      "parent": "fenmere-1938"
+     },
+     "steering_wheel": {
+      "center_gltf_m": [
+       0.34,
+       1.002,
+       0.256
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "exit_left": {
+      "center_gltf_m": [
+       1.383,
+       0.0,
+       0.014
+      ],
+      "parent": "fenmere-1938"
+     },
+     "exit_right": {
+      "center_gltf_m": [
+       -1.383,
+       0.0,
+       0.014
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_head_l": {
+      "center_gltf_m": [
+       0.662,
+       0.86,
+       2.22
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_tail_l": {
+      "center_gltf_m": [
+       0.698,
+       0.722,
+       -2.341
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_brake_l": {
+      "center_gltf_m": [
+       0.698,
+       0.613,
+       -2.346
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_turn_front_l": {
+      "center_gltf_m": [
+       0.662,
+       0.565,
+       2.183
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_turn_rear_l": {
+      "center_gltf_m": [
+       0.781,
+       0.644,
+       -2.345
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_head_r": {
+      "center_gltf_m": [
+       -0.662,
+       0.86,
+       2.22
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_tail_r": {
+      "center_gltf_m": [
+       -0.698,
+       0.722,
+       -2.341
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_brake_r": {
+      "center_gltf_m": [
+       -0.698,
+       0.613,
+       -2.346
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_turn_front_r": {
+      "center_gltf_m": [
+       -0.662,
+       0.565,
+       2.183
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_turn_rear_r": {
+      "center_gltf_m": [
+       -0.781,
+       0.644,
+       -2.345
+      ],
+      "parent": "fenmere-1938"
+     }
+    },
+    "door_preview_degrees": {
+     "door_front_l": -66,
+     "door_front_r": 66
+    },
+    "lamps": {
+     "light_head_l": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_head_r": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     }
+    }
+   },
+   {
+    "file": "fenmere-1938-mid.glb",
+    "lod": "mid",
+    "triangles": 852,
+    "bounds_gltf_m": [
+     [
+      -1.028,
+      1.028
+     ],
+     [
+      0.0,
+      1.665
+     ],
+     [
+      -2.451,
+      2.313
+     ]
+    ],
+    "materials": [
+     "glass_vehicle",
+     "glow_lamps",
+     "hardware_and_trim",
+     "interior_and_rubber",
+     "paint_primary"
+    ],
+    "nodes": {
+     "hood": {
+      "center_gltf_m": [
+       0.0,
+       1.13,
+       0.58
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "trunk": {
+      "center_gltf_m": [
+       0.0,
+       1.031176,
+       -1.68
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "door_front_l": {
+      "center_gltf_m": [
+       0.799992,
+       0.533,
+       0.57
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_front_r": {
+      "center_gltf_m": [
+       -0.799992,
+       0.533,
+       0.57
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "steer_fl": {
+      "center_gltf_m": [
+       0.76,
+       0.366,
+       1.47
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "center_gltf_m": [
+       0.76,
+       0.366,
+       1.47
+      ],
+      "parent": "steer_fl",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "center_gltf_m": [
+       -0.76,
+       0.366,
+       1.47
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "center_gltf_m": [
+       -0.76,
+       0.366,
+       1.47
+      ],
+      "parent": "steer_fr",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "center_gltf_m": [
+       0.76,
+       0.366,
+       -1.47
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "center_gltf_m": [
+       -0.76,
+       0.366,
+       -1.47
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "seat_driver": {
+      "center_gltf_m": [
+       0.346,
+       0.701,
+       -0.204
+      ],
+      "parent": "fenmere-1938"
+     },
+     "seat_passenger": {
+      "center_gltf_m": [
+       -0.346,
+       0.701,
+       -0.204
+      ],
+      "parent": "fenmere-1938"
+     },
+     "seat_rear_left": {
+      "center_gltf_m": [
+       0.336,
+       0.701,
+       -1.147
+      ],
+      "parent": "fenmere-1938"
+     },
+     "seat_rear_right": {
+      "center_gltf_m": [
+       -0.336,
+       0.701,
+       -1.147
+      ],
+      "parent": "fenmere-1938"
+     },
+     "steering_wheel": {
+      "center_gltf_m": [
+       0.34,
+       1.002,
+       0.256
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "exit_left": {
+      "center_gltf_m": [
+       1.383,
+       0.0,
+       0.014
+      ],
+      "parent": "fenmere-1938"
+     },
+     "exit_right": {
+      "center_gltf_m": [
+       -1.383,
+       0.0,
+       0.014
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_head_l": {
+      "center_gltf_m": [
+       0.662,
+       0.86,
+       2.22
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_tail_l": {
+      "center_gltf_m": [
+       0.698,
+       0.722,
+       -2.341
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_brake_l": {
+      "center_gltf_m": [
+       0.698,
+       0.613,
+       -2.346
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_turn_front_l": {
+      "center_gltf_m": [
+       0.662,
+       0.565,
+       2.183
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_turn_rear_l": {
+      "center_gltf_m": [
+       0.781,
+       0.644,
+       -2.345
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_head_r": {
+      "center_gltf_m": [
+       -0.662,
+       0.86,
+       2.22
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_tail_r": {
+      "center_gltf_m": [
+       -0.698,
+       0.722,
+       -2.341
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_brake_r": {
+      "center_gltf_m": [
+       -0.698,
+       0.613,
+       -2.346
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_turn_front_r": {
+      "center_gltf_m": [
+       -0.662,
+       0.565,
+       2.183
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_turn_rear_r": {
+      "center_gltf_m": [
+       -0.781,
+       0.644,
+       -2.345
+      ],
+      "parent": "fenmere-1938"
+     }
+    },
+    "door_preview_degrees": {
+     "door_front_l": -66,
+     "door_front_r": 66
+    },
+    "lamps": {
+     "light_head_l": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_head_r": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     }
+    }
+   },
+   {
+    "file": "fenmere-1938-far.glb",
+    "lod": "far",
+    "triangles": 136,
+    "bounds_gltf_m": [
+     [
+      -0.925,
+      0.925
+     ],
+     [
+      0.0,
+      1.665
+     ],
+     [
+      -2.31,
+      2.17
+     ]
+    ],
+    "materials": [
+     "interior_and_rubber",
+     "paint_primary"
+    ],
+    "nodes": {
+     "door_front_l": {
+      "center_gltf_m": [
+       0.799992,
+       0.533,
+       0.57
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_front_r": {
+      "center_gltf_m": [
+       -0.799992,
+       0.533,
+       0.57
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "steer_fl": {
+      "center_gltf_m": [
+       0.76,
+       0.366,
+       1.47
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "center_gltf_m": [
+       0.76,
+       0.366,
+       1.47
+      ],
+      "parent": "steer_fl",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "center_gltf_m": [
+       -0.76,
+       0.366,
+       1.47
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "center_gltf_m": [
+       -0.76,
+       0.366,
+       1.47
+      ],
+      "parent": "steer_fr",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "center_gltf_m": [
+       0.76,
+       0.366,
+       -1.47
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "center_gltf_m": [
+       -0.76,
+       0.366,
+       -1.47
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "seat_driver": {
+      "center_gltf_m": [
+       0.346,
+       0.701,
+       -0.204
+      ],
+      "parent": "fenmere-1938"
+     },
+     "seat_passenger": {
+      "center_gltf_m": [
+       -0.346,
+       0.701,
+       -0.204
+      ],
+      "parent": "fenmere-1938"
+     },
+     "seat_rear_left": {
+      "center_gltf_m": [
+       0.336,
+       0.701,
+       -1.147
+      ],
+      "parent": "fenmere-1938"
+     },
+     "seat_rear_right": {
+      "center_gltf_m": [
+       -0.336,
+       0.701,
+       -1.147
+      ],
+      "parent": "fenmere-1938"
+     },
+     "steering_wheel": {
+      "center_gltf_m": [
+       0.34,
+       1.002,
+       0.256
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "hood": {
+      "center_gltf_m": [
+       0.0,
+       1.13,
+       0.58
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "trunk": {
+      "center_gltf_m": [
+       0.0,
+       1.031176,
+       -1.68
+      ],
+      "parent": "fenmere-1938",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "exit_left": {
+      "center_gltf_m": [
+       1.383,
+       0.0,
+       0.014
+      ],
+      "parent": "fenmere-1938"
+     },
+     "exit_right": {
+      "center_gltf_m": [
+       -1.383,
+       0.0,
+       0.014
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_head_l": {
+      "center_gltf_m": [
+       0.662,
+       0.86,
+       2.22
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_tail_l": {
+      "center_gltf_m": [
+       0.698,
+       0.722,
+       -2.341
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_brake_l": {
+      "center_gltf_m": [
+       0.698,
+       0.613,
+       -2.346
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_turn_front_l": {
+      "center_gltf_m": [
+       0.662,
+       0.565,
+       2.183
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_turn_rear_l": {
+      "center_gltf_m": [
+       0.781,
+       0.644,
+       -2.345
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_head_r": {
+      "center_gltf_m": [
+       -0.662,
+       0.86,
+       2.22
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_tail_r": {
+      "center_gltf_m": [
+       -0.698,
+       0.722,
+       -2.341
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_brake_r": {
+      "center_gltf_m": [
+       -0.698,
+       0.613,
+       -2.346
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_turn_front_r": {
+      "center_gltf_m": [
+       -0.662,
+       0.565,
+       2.183
+      ],
+      "parent": "fenmere-1938"
+     },
+     "light_turn_rear_r": {
+      "center_gltf_m": [
+       -0.781,
+       0.644,
+       -2.345
+      ],
+      "parent": "fenmere-1938"
+     }
+    },
+    "door_preview_degrees": {
+     "door_front_l": -66,
+     "door_front_r": 66
+    },
+    "lamps": {
+     "light_head_l": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_head_r": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     }
+    }
+   }
+  ]
+ }
+}
