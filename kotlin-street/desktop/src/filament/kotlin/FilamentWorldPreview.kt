@@ -221,6 +221,40 @@ internal object WorldPreview {
                         eyePose(sx, ey, sz, yawTo(dx, dz), pitch, fov, w, h, reach, u, 800f), 16f)
                 }
             }
+            // the highest great-range ground (over 4,000 m) within the far view's reach: the capital keeps 150 km from the
+            // great ranges (WORLD_GEN.md "Grand mountains"), so this is the skyline's far edge, if one is in reach at all
+            run {
+                val sk = site.skeleton
+                val cm = com.lifemax.rpg.feature.habits.domain.Planet.CELL_M
+                val circ = WorldSkeleton.W * cm
+                val ox = plan.origin.x + mx / u; val oz = plan.origin.z + mz / u
+                val rr = plan.reach * .97
+                var best = -1.0; var bx = 0.0; var bz = 0.0
+                val ri = (rr / cm).toInt() + 1
+                val ci = Math.floor(ox / cm).toInt(); val cj = Math.floor(oz / cm).toInt()
+                for (dj in -ri..ri) for (di in -ri..ri) {
+                    val i = ci + di; val j = cj + dj
+                    if (j < 0 || j >= WorldSkeleton.H) continue
+                    val e = sk.elev(i, j).toDouble()
+                    if (e < 4000 || e <= best) continue
+                    var lx = (i + .5) * cm - ox; lx -= Math.round(lx / circ) * circ
+                    val lz = (j + .5) * cm - oz
+                    val d = hypot(lx, lz)
+                    if (d < 100_000 || d > rr) continue
+                    best = e; bx = lx; bz = lz
+                }
+                if (best < 0) println("  mtn_great: no great-range ground over 4,000 m within the far view (%.0f km)".format(rr / 1000))
+                else {
+                    val dl = hypot(bx, bz)
+                    val sx = ((mx / u + bx / dl * 900.0) * u).toFloat(); val sz = ((mz / u + bz / dl * 900.0) * u).toFloat()
+                    val ey = ground(sx, sz) + 30f * u
+                    for ((nm, fov) in listOf("mtn_great" to 6f, "mtn_great_wide" to 30f)) {
+                        val pitch = -Math.toDegrees(kotlin.math.atan2(best * u - ey, dl * u)).toFloat() + (if (fov < 10f) 0.5f else -2f)
+                        shot(nm, "the nearest great range's highest ground in reach (%.0f m, %.0f km out) from the capital's edge, 30 m up, a %.0f degree lens".format(best, dl / 1000, fov),
+                            eyePose(sx, ey, sz, yawTo(bx, bz), pitch, fov, w, h, reach, u, 800f), 7f)
+                    }
+                }
+            }
         }
     }
 

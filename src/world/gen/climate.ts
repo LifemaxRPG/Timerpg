@@ -74,8 +74,10 @@ export interface Climate {
   slope: Float32Array;
   /** Koppen class (index into KOPPEN). */
   koppen: Uint8Array;
-  /** The snow line (m): where the warmest month is at freezing. */
+  /** The snow line (m): the glaciers' equilibrium line, where the warmest month is as warm as [snowlineTemp] of the rain. */
   snowline: Float32Array;
+  /** The timberline (m): where the warmest month is 10 C (trees above it are stunted, then none). */
+  timberline: Float32Array;
 }
 
 export function makeClimate(t: Terrain): Climate {
@@ -123,12 +125,28 @@ export function makeClimate(t: Terrain): Climate {
   const rain = new Float32Array(N);
   for (let m = 0; m < MONTHS; m++) for (let c = 0; c < N; c++) rain[c] += rainM[m * N + c]!;
   const koppen = new Uint8Array(N);
-  const snowline = new Float32Array(N);
+  const snowline = new Float32Array(N), timberline = new Float32Array(N);
   for (let c = 0; c < N; c++) {
-    snowline[c] = Math.max(0, elev[c]!) + tmax[c]! / LAPSE;
+    snowline[c] = Math.max(0, elev[c]!) + (tmax[c]! - snowlineTemp(rain[c]!)) / LAPSE;
+    timberline[c] = Math.max(0, elev[c]!) + (tmax[c]! - TIMBERLINE_C) / LAPSE;
     koppen[c] = land[c] ? classify(c, tempM, rainM, tmin[c]!, tmax[c]!, temp[c]!, rain[c]!, latOf(((c / W) | 0) + 0.5), elev[c]!) : KG.ocean;
   }
-  return { tempM, rainM, temp, tmin, tmax, rain, current, cont, slope, koppen, snowline };
+  return { tempM, rainM, temp, tmin, tmax, rain, current, cont, slope, koppen, snowline, timberline };
+}
+
+/** The warmest month's mean (C) at the timberline (the classic 10 C July isotherm). */
+export const TIMBERLINE_C = 10;
+
+/**
+ * The warmest month's mean temperature (C) at the snow line, from the year's precipitation [mm] (Ohmura, Kasser and Funk
+ * 1992: at glaciers' equilibrium lines P = 645 + 296 T + 9 T^2 with T the summer's (June-August) mean, which is about a
+ * degree under the warmest month's). Snow outlasts a warmer summer where more of it falls: about 0 C in dry ranges, 2 C at
+ * 1,000 mm, 5 C at 2,000 mm. (The line was where the warmest month is at freezing, too high by 300-800 m in wet ranges.)
+ */
+export function snowlineTemp(mm: number): number {
+  const P = Math.max(150, Math.min(4000, mm));
+  const t = (-296 + Math.sqrt(296 * 296 - 36 * (645 - P))) / 18;
+  return Math.max(-3, Math.min(7, t)) + 1;
 }
 
 /** The ocean currents' anomaly (C) on the sea, spread a little onto the land beside it. */
@@ -289,7 +307,7 @@ export function makeBiomes(t: Terrain, cl: Climate, lake: Uint8Array | Int32Arra
     const k = KOPPEN[cl.koppen[c]!]!, R = cl.rain[c]!, e = t.elev[c]!, s = cl.slope[c]!;
     let v: number;
     if (k === 'EF') v = e > 600 && lat < 65 ? B.glacier : B.ice;
-    else if (cl.tmax[c]! < 2 && e > 1200) v = B.glacier;
+    else if (e > cl.snowline[c]! && e > 1000) v = B.glacier;
     else if (s > 260) v = B.rock;
     else if (k === 'ET') v = e > 1200 ? B.alpine : B.tundra;
     else if (k === 'H' || (e > 1800 && cl.tmax[c]! < 12)) v = B.alpine;

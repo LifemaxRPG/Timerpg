@@ -11,6 +11,13 @@ import { generateWorld, type World } from './world';
 import { PTS_SCALE, decodeSkeleton, encodeSkeleton } from './bake';
 import { worldPaths, type Pt } from './paths';
 import { linksOf, planRoute, stationOf, type Route } from '../rail';
+import { MAX_STEP_M, RANGE_GREAT } from './terrain';
+import { RIVER_FLOW } from './hydro';
+import { B } from './climate';
+import { TIERS, WONDER_PARAMS } from './wonders';
+import { MAX_GRADE, countSwitchbacks } from './winding';
+import { CAPITAL_GREAT_KM } from './places';
+import { NearTerrain } from './near';
 
 // The world skeleton (WORLD_GEN.md phases W1-W3) on one seed, generated once (about 20 s), plus a second run for determinism.
 const SEED = 'alpha';
@@ -23,6 +30,9 @@ const factsOf = (x: World): string => JSON.stringify({
   p: x.places.map((p) => [p.id, p.name, p.x, p.z, p.founded, p.type, p.rank]), roads: x.roads.map((r) => [r.id, r.cells.length, r.built, r.paved, r.expressway]),
   rail: x.rail.links.map((l) => [l.id, l.a, l.b, l.built, l.passengerEnd, l.abandoned]), sea: x.sea.routes.map((r) => [r.id, r.a, r.b, r.km, r.hours]), dams: x.dams.map((d) => [d.cell, d.year]),
   wx: x.weather.regions.slice(0, 400),
+  ranges: x.terrain.ranges.map((r) => [r.id, r.cls, r.peakM]),
+  wonders: x.wonders.map((q) => [q.id, q.tier, q.name, q.x, q.z, JSON.stringify(q.params)]),
+  paths: x.roads.map((r) => [r.km, r.maxGrade, r.switchbacks, r.path?.length]),
 });
 
 describe('determinism', () => {
@@ -295,6 +305,11 @@ describe('the baked skeleton', () => {
     for (let c = 0; c < N; c += 997) expect(Math.abs(back.elev[c]! - Math.round(w.terrain.elev[c]!))).toBeLessThanOrEqual(1);
     expect(back.roads.length).toBe(w.roads.length);
     expect(back.railLinks.length).toBe(w.rail.links.length);
+    // version 3: the wonders with their parameters, the mountain places' settings
+    const ws = back.json.wonders as { id: string; name: string; params: Record<string, unknown> }[];
+    expect(ws.length).toBe(w.wonders.length);
+    ws.forEach((q, k) => { expect(q.id).toBe(w.wonders[k]!.id); expect(q.params).toEqual(w.wonders[k]!.params); });
+    expect((back.json.places as { setting?: string }[]).filter((p) => p.setting).length).toBe(w.places.filter((p) => p.setting).length);
   });
 });
 
@@ -333,5 +348,186 @@ describe('W4 paths: the vectors meet the hubs at their pins', () => {
     const rv = (back.json.rivers as { path: [number, number] }[])[k]!.path;
     expect(rv[1]).toBe(path.length);
     expect(Math.abs(pts[(rv[0] + i) * 2]! / PTS_SCALE - pin.x) * CELL_M).toBeLessThan(0.003);
+  });
+});
+
+describe('grand mountains (WORLD_GEN.md "Grand mountains")', () => {
+  it('has 1-2 great ranges of 4,500-7,000 m crests with many summits, middle ranges on most continents, the rest modest', () => {
+    const t = w.terrain;
+    const great = t.ranges.filter((r) => r.cls === 'great');
+    expect(great.length).toBeGreaterThanOrEqual(1);
+    expect(great.length).toBeLessThanOrEqual(2);
+    for (const r of great) {
+      expect(r.peakM).toBeGreaterThanOrEqual(4500);
+      expect(r.peakM).toBeLessThanOrEqual(7000);
+      // a real range, not a lone dome: thousands of km2 over 500 m, and many separate summits over 4,000 m
+      expect(r.cells).toBeGreaterThan(5000);
+      let summits = 0;
+      for (let c = W + 1; c < N - W - 1; c++) {
+        if (t.range[c] !== r.pair || t.elev[c]! < 4000) continue;
+        let top = true;
+        for (const d of [-1, 1, -W, W, -W - 1, -W + 1, W - 1, W + 1]) if (t.elev[c + d]! > t.elev[c]!) top = false;
+        if (top) summits++;
+      }
+      expect(summits, r.id).toBeGreaterThanOrEqual(5);
+    }
+    const middle = t.ranges.filter((r) => r.cls === 'middle');
+    const conts = t.masses.filter((m) => m.kind === 'continent');
+    const withMiddle = conts.filter((m) => [...middle, ...great].some((r) => t.mass[r.peakCell] === m.id));
+    expect(withMiddle.length).toBeGreaterThanOrEqual(Math.ceil(conts.length * 0.6));
+    let top = 0;
+    for (let c = 0; c < N; c++) if (t.land[c]) top = Math.max(top, t.elev[c]!);
+    expect(top).toBeLessThanOrEqual(7000);
+    for (const r of t.ranges.filter((q) => q.cls === 'modest')) expect(r.peakM, r.id).toBeLessThan(3600);
+  });
+  it('is continuous on the great ranges too: no land step over the slope limit', () => {
+    let worst = 0;
+    for (let c = 0; c < N - W; c++) {
+      if (!w.terrain.land[c]) continue;
+      for (const m of [c % W === W - 1 ? c - W + 1 : c + 1, c + W]) if (w.terrain.land[m]) worst = Math.max(worst, Math.abs(w.terrain.elev[c]! - w.terrain.elev[m]!));
+    }
+    expect(worst).toBeLessThanOrEqual(MAX_STEP_M + 0.01);
+  });
+  it('has passes over the great ranges at 1,800-3,600 m (the highest point of each road over a range\'s core)', () => {
+    const t = w.terrain;
+    let checked = 0;
+    for (const r of t.ranges.filter((q) => q.cls === 'great')) {
+      // roads whose highest cell is in the range's core (its own term 2,500 m or more): that cell is their pass
+      const passes: number[] = [];
+      for (const rd of w.roads) {
+        let top = rd.cells[0]!;
+        for (const c of rd.cells) if (t.elev[c]! > t.elev[top]!) top = c;
+        if (t.range[top] === r.pair && t.mount[top]! >= 2500) passes.push(t.elev[top]!);
+      }
+      if (!passes.length) continue;
+      checked++;
+      passes.sort((a, b) => a - b);
+      expect(passes[0]!, r.id).toBeGreaterThanOrEqual(1800);
+      expect(passes[0]!, r.id).toBeLessThanOrEqual(3600);
+      expect(passes[passes.length >> 1]!, r.id).toBeLessThanOrEqual(4200);
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+  it('keeps the capital on gentle land far from the great ranges, with snow on the great summits', () => {
+    const cap = w.hubs[0]!;
+    expect(w.fields.greatKm[cap.cell]!).toBeGreaterThanOrEqual(CAPITAL_GREAT_KM);
+    let hi = 0;
+    for (let dj = -30; dj <= 30; dj++) for (let di = -30; di <= 30; di++) {
+      const c = (Math.floor(cap.z) + dj) * W + ((Math.floor(cap.x) + di + W) % W);
+      if (w.terrain.land[c]) hi = Math.max(hi, w.terrain.elev[c]!);
+    }
+    expect(hi).toBeLessThan(2500);
+    for (const r of w.terrain.ranges.filter((q) => q.cls === 'great')) {
+      expect(w.terrain.elev[r.peakCell]!).toBeGreaterThan(w.climate.snowline[r.peakCell]! + 500);
+      expect([B.glacier, B.ice]).toContain(w.biome[r.peakCell]!);
+      expect(w.climate.timberline[r.peakCell]!).toBeLessThan(w.climate.snowline[r.peakCell]!);
+    }
+  });
+  it('places alpine villages in high valleys, hamlets on passes and mining towns on ore, all with roads', () => {
+    const alpine = w.towns.filter((p) => p.setting === 'alpine'), pass = w.places.filter((p) => p.setting === 'pass'), mining = w.towns.filter((p) => p.setting === 'mining');
+    expect(alpine.length).toBeGreaterThan(30);
+    expect(pass.length).toBeGreaterThan(10);
+    expect(mining.length).toBeGreaterThan(20);
+    for (const p of alpine) { expect(w.terrain.elev[p.cell]!).toBeGreaterThanOrEqual(1000); expect(w.climate.tmax[p.cell]!).toBeGreaterThanOrEqual(8); expect(w.terrain.mount[p.cell]!).toBeGreaterThanOrEqual(400); }
+    for (const p of pass) expect(w.terrain.elev[p.cell]!).toBeGreaterThanOrEqual(900);
+    for (const p of mining) expect(p.ore).toBeTruthy();
+    // every mountain town has its road where its landmass has roads
+    const served = new Set(w.roads.flatMap((r) => r.cells));
+    const withRoads = new Set(w.roads.map((r) => w.byId.get(r.a)!.mass));
+    for (const p of [...alpine, ...mining]) if (withRoads.has(p.mass)) expect(served.has(p.cell), p.id).toBe(true);
+  });
+});
+
+describe('natural wonders (WORLD_GEN.md "Natural wonders")', () => {
+  it('has 1-3 legendary wonders, at least one rare on every continent, and every kind\'s parameters', () => {
+    const leg = w.wonders.filter((q) => q.tier === 'legendary');
+    expect(leg.length).toBeGreaterThanOrEqual(1);
+    expect(leg.length).toBeLessThanOrEqual(3);
+    for (const m of w.terrain.masses.filter((q) => q.kind === 'continent')) expect(w.wonders.some((q) => q.mass === m.id && q.tier === 'rare'), `continent ${m.id}`).toBe(true);
+    expect(new Set(w.wonders.map((q) => q.id)).size).toBe(w.wonders.length);
+    const names = new Set([...w.places.map((p) => p.name.toLowerCase()), ...w.wonders.map((q) => q.name.toLowerCase())]);
+    expect(names.size).toBe(w.places.length + w.wonders.length);
+    for (const q of w.wonders) {
+      expect(TIERS).toContain(q.tier);
+      expect(Object.keys(q.params).sort(), q.id).toEqual([...WONDER_PARAMS[q.kind]].sort());
+      expect(q.extentKm).toBeGreaterThan(0);
+    }
+    expect(w.wonders.filter((q) => q.tier === 'common').length).toBeGreaterThan(w.wonders.filter((q) => q.tier === 'rare').length);
+  });
+  it('puts every wonder where its cause is', () => {
+    const t = w.terrain, cl = w.climate, h = w.hydro;
+    const kg = (c: number): string => KOPPEN[cl.koppen[c]!]!;
+    const lat = (c: number): number => Math.abs(latOf(((c / W) | 0) + 0.5));
+    for (const q of w.wonders) {
+      const c = q.cell, p = q.params;
+      switch (q.kind) {
+        case 'waterfall': {
+          // on a river with a real drop: one of the river's own cells, its fall over the next one or two at least the drop
+          const r = h.rivers[p.river as number]!;
+          const i = r.cells.indexOf(c);
+          expect(i, q.id).toBeGreaterThanOrEqual(0);
+          expect(h.flow[c]!).toBeGreaterThanOrEqual(RIVER_FLOW);
+          const fall = t.elev[c]! - Math.min(...r.cells.slice(i + 1, i + 3).map((d) => Math.max(0, t.elev[d]!)));
+          expect(fall, q.id).toBeGreaterThanOrEqual(p.dropM as number);
+          expect(p.dropM as number).toBeGreaterThanOrEqual(100);
+          break;
+        }
+        case 'canyon': expect(h.flow[c]!).toBeGreaterThanOrEqual(RIVER_FLOW); break;
+        case 'arches': expect(kg(c)[0]).toBe('B'); break;
+        case 'glacier': expect(t.elev[c]!).toBeGreaterThan(cl.snowline[c]!); break;
+        case 'fjord': expect(h.coast[c]! > 0 && lat(c) >= 46).toBe(true); break;
+        case 'atoll': expect(lat(c)).toBeLessThanOrEqual(25); break;
+        case 'karst': expect(cl.rain[c]!).toBeGreaterThanOrEqual(1100); break;
+        case 'salt flat': expect(kg(c)[0]).toBe('B'); break;
+        case 'blossom valley': expect(/^[CD]/.test(kg(c)) && w.fields.valley[c] === 1).toBe(true); break;
+        case 'meadow': expect(w.biome[c]).toBe(B.alpine); break;
+        case 'volcano': if (p.type === 'stratovolcano') expect(t.mount[c]!).toBeGreaterThanOrEqual(700); break;
+        case 'sea stacks': expect(h.coast[c]!).toBeGreaterThanOrEqual(2); break;
+        case 'giant trees': expect(t.distSea[c]!).toBeLessThanOrEqual(45); break;
+        case 'table mountain': expect(['Af', 'Am']).toContain(kg(c)); break;
+        default: break;
+      }
+    }
+    expect(w.wonders.some((q) => q.kind === 'glacier' && t.range[q.cell]! >= 0 && t.rangeCls[t.range[q.cell]!] === RANGE_GREAT)).toBe(true);
+  });
+});
+
+describe('winding roads (WORLD_GEN.md 5)', () => {
+  it('keeps the roads under their grade limits along their whole lines (sampled every 25 m)', () => {
+    const nt = new NearTerrain(SEED, Int16Array.from(w.terrain.elev, (e) => Math.round(e)));
+    let over = 0;
+    for (const r of w.roads) {
+      const lim = (r.cls === 'county' ? MAX_GRADE.county : MAX_GRADE.highway) + 0.005;
+      const line = r.path!;
+      expect(line.length).toBeGreaterThanOrEqual(2);
+      let worst = 0;
+      for (let q = 1; q < line.length; q++) {
+        const [ax, az] = line[q - 1]!, [bx, bz] = line[q]!;
+        const L = Math.hypot(bx - ax, bz - az) * CELL_M, k = Math.max(1, Math.ceil(L / 25));
+        let prev = nt.height(ax, az);
+        for (let s = 1; s <= k; s++) { const e = nt.height(ax + ((bx - ax) * s) / k, az + ((bz - az) * s) / k); worst = Math.max(worst, Math.abs(e - prev) / (L / k)); prev = e; }
+      }
+      if (worst > lim) over++;
+    }
+    // (a few stretches where no line under the limit fits even a wide corridor are relaxed: winding.ts's stats)
+    expect(over / w.roads.length).toBeLessThan(0.03);
+  });
+  it('winds: county roads longer than their cells, switchbacks on mountain climbs', () => {
+    const county = w.roads.filter((r) => r.cls === 'county' && r.cellKm! > 5);
+    const ratio = county.map((r) => r.km / r.cellKm!).sort((a, b) => a - b);
+    expect(ratio[ratio.length >> 1]!).toBeGreaterThan(1.03);
+    const climbs = w.roads.filter((r) => { const e = r.cells.map((c) => w.terrain.elev[c]!); return Math.max(...e) - Math.min(...e) > 600 && (r.switchbacks ?? 0) > 0; });
+    expect(climbs.length).toBeGreaterThan(5);
+    expect(countSwitchbacks([[0, 0], [1, 0], [0.2, 0.1]])).toBe(1);
+  });
+  it('still leaves the hubs by their pins, and joins the roads it meets on their own lines', () => {
+    const cap = w.hubs[0]!;
+    for (const r of w.roads) if (r.a === cap.id) expect(cap.pins!.some((q) => q.kind === 'highway' && Math.hypot(wrapDx(r.path![0]![0] - q.x), r.path![0]![1] - q.z) * CELL_M < 0.01)).toBe(true);
+    const key = (x: number, z: number): string => `${Math.round((((x % W) + W) % W) * 1e5)},${Math.round(z * 1e5)}`;
+    const counts = new Map<string, number>();
+    for (const r of w.roads) for (const [x, z] of r.path!) { const k = key(x, z); counts.set(k, (counts.get(k) ?? 0) + 1); }
+    const county = w.roads.filter((r) => r.cls === 'county');
+    const joined = county.filter((r) => (counts.get(key(...r.path!.at(-1)!)) ?? 0) >= 2).length;
+    expect(joined / county.length).toBeGreaterThan(0.95);
   });
 });

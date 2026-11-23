@@ -117,8 +117,12 @@ drift) give the mountain ranges (2.2).
 ### 2.2 Elevation and mountains
 
 - Land base height rises with distance from the coast (a smooth 0-400 m plain-and-plateau shape) plus low fBm.
+- **Range classes** (built 2026-11-23, "Grand mountains, wonders and winding roads: as built" below): the one or two
+  strongest converging boundaries are **great ranges** (4,500-7,000 m, 90-150 km wide, ridgelines and passes), each
+  continent's next one or two **middle ranges** (nominal crest 3,200-4,500 m), the rest modest; the start continent's
+  heart eases every range back to modest, and a slope limit keeps every land step under 480 m.
 - **Mountain ranges** where plates converge: every pair of plates (a, b) whose drift converges has its own range
-  (crest 1,500-3,200 m, the pair's), standing on the pair's boundary distance g = (d_a + d_b - 2 d1) / 2 (d1 the
+  (modest: nominal crest 1,300-3,000 m, the pair's; it was 1,500-3,200 before the classes), standing on the pair's boundary distance g = (d_a + d_b - 2 d1) / 2 (d1 the
   nearest plate's distance): the usual half-gap (d2 - d1) / 2 for the nearest pair, growing smoothly past the ends of
   their boundary, so a range tapers out past a triple junction instead of stopping. A cell takes the highest pair's
   term, so the height is continuous everywhere (no step where the second-nearest plate changes: the W4 plateau-wall).
@@ -163,8 +167,11 @@ stripes are gone), then a climate class, the biomes and the crop belts from it.
   month under -3 C; E polar: warmest under 10 C, EF under 0; H highland above 2,300 m), with the s/w/f and a/b/c/d
   letters. Measured on three seeds: C 29-45% of the land, B 24-33%, A 22-31%, E 5-8%, D 2-3% (the continents are
   small and maritime, so true continental climates are rare: an honest result of the owner's 8-10 continents).
-- The **snow line** per cell (where the warmest month is at freezing) and glaciers (warmest month under 2 C above
-  1,200 m) come from the same months.
+- The **snow line** per cell and glaciers (cells above it, over 1,000 m) come from the same months: the glaciers'
+  equilibrium line, where the warmest month is as warm as the precipitation lets snow outlast (Ohmura, Kasser and Funk
+  1992: about 0 C in dry ranges, 2 C at 1,000 mm, 5 C at 2,000 mm; `snowlineTemp` in climate.ts). Until 2026-11-23 it
+  was where the warmest month is at freezing: 300-800 m too high in wet ranges. The **timberline** is where the warmest
+  month is 10 C (baked as the `timberline` grid).
 - **Crop belts** (`makeCrops`): wheat on the cool dry plains (BSk, cool C/D with 380-650 mm), corn in the warm humid
   ones (warmest month 21 C, 550 mm), cotton where summers are long and hot (warmest 25 C, 8 frost-free months), orchards
   on the summer-dry coasts (Cs), rice on wet tropical lowlands (Af, Am, wet Aw, Cwa), dairy in the cool wet country,
@@ -268,6 +275,8 @@ The world seed only decides **where** each hub stands, by site rules and a score
   the places (no link where a third place sits between), each routed by a least-cost path on the atlas grid (cost: slope
   squared, water crossings dear, steep mountains very dear, existing roads cheap so routes share), then smoothed into
   curves with a maximum grade. Bridges where they cross rivers; passes over ranges.
+- **Winding** (built 2026-11-23, winding.ts): every road's drawn line is routed again on 134 m nodes with a hard grade
+  limit (county 10%, highways 7%), so roads wind round the hills and climb by switchbacks; see "Winding roads" below.
 - **County roads**: every town and hamlet to the nearest road; then a coarse section grid on farmland (the American
   section roads farms.ts already uses round a town: a 1-mile grid, here 1.6 km) where the land is flat.
 - **Expressways** (the limited-access network, made-up name like Pennant, from 1956): a subset of highways rebuilt
@@ -567,7 +576,7 @@ east-west and north-south main lines).
 **The asset**: `kotlin-street/tools/bake-world.ts [seed]` writes `content/world/<seed>/skeleton.twsk.gz` (format in
 bake.ts: a JSON header with every vector and fact, then typed grids: height, flags, biome, Koppen, crop, flow,
 steadiness, landmass, lake, snow line, current, the land cells' monthly temperature and rain, the sea's monthly
-temperature on 4 x 4 cells, the region weather, one cell pool for the polylines). For `alpha`: 40.3 MB raw, **7.3 MB
+temperature on 4 x 4 cells, the region weather, one cell pool for the polylines). For `alpha` (version 2): 40.3 MB raw, **7.3 MB
 gzipped** (more than section 7's 5-10 MB guess only because of the monthly climate; about 40 MB in RAM as stored).
 
 **Measured** (desktop, 4-core x86 server, Node 22; not the S25), three seeds:
@@ -631,6 +640,10 @@ hub names), the Koppen classes, and January and July temperatures.
   it inside meets the bent river outside). Gamma's river pins are at the plan's edge, and the town's own river runs on
   from them to its ground's edge (the farm ring) along the same line, so the world river meets the town's where the
   town's ground ends. Gamma's highway pins moved to Main Street's middle line (plan y 142, not 141).
+- **The skeleton, version 3** (2026-11-23): adds `wonders`, `ranges`, places' `setting` and `ore`, the roads' winding
+  paths, and the grids `timberline` and `range`; `alpha` is 47.6 MB raw, **9.6 MB gzipped** (the winding paths are most
+  of the growth). `WorldSkeleton.kt` reads versions 2 and 3 (`wonders` parsed into `WorldSkeleton.Wonder` with its
+  parameters; an unknown section is skipped).
 - **The skeleton, version 2** (`bake.ts`): the paths in a fixed-point section `pts` (2^19 a cell: 2 mm), places and pins
   at full precision, each hub's pad and the capital's plan frame (`planTiles`). `alpha` rebaked: 7.4 MB gzipped.
 - **The Kotlin reader** (shared/src/main/kotlin/domain, engine-agnostic): `WorldSkeleton` (streams the gzip, keeps only
@@ -940,3 +953,154 @@ add the features.
   - blossom trees as low-poly crowns with pixel petals;
   - waterfalls as stepped animated pixel water;
   - layered canyon walls as banded pixel rock.
+
+## Grand mountains, wonders and winding roads: as built (2026-11-23)
+
+Built in `src/world/gen/` (terrain.ts, climate.ts, places.ts, wonders.ts, winding.ts, names.ts, bake.ts), baked into
+`content/world/alpha/skeleton.twsk.gz` (version 3). Every number below is measured on the 4-core x86 build server
+(Node 22), seeds alpha, bravo and charlie; nothing here is an S25 measurement.
+
+### Range classes (terrain.ts)
+
+- **Scoring**: every converging plate pair's boundary is scored by the land along it (land cells within 20 km of it,
+  times the convergence), leaving out land within 170 km of the start continent's centre (110 km for middle ranges).
+  The strongest becomes a **great range**, and the second too when it scores 60% of the first (1-2 on the planet).
+  Each continent's next one or two strongest boundaries are **middle ranges** (nominal crest 3,200-4,500 m,
+  convergence at least 0.75), the rest stay **modest** (1,300-3,000 m nominal, the old profile).
+- **A great range's profile**: a massif 2,300 m high falling to nothing 46-74 km either side of the boundary (90-150 km
+  wide), on it ridgelines parallel to the boundary every 17 km (a triangle wave across it, its phase meandering by a
+  noise, so the ridges are continuous lines), peaks along them by a second noise, and passes where a slow noise along
+  the range drops the ridges to 12% of their height. Heights over 6,000 m ease towards 7,000 (tanh).
+- **The capital's region stays gentle**: middle and great terms ease back to the modest ones over 120 km from the
+  start continent's heart, and the capital's site rule now asks for 150 km or more to any great-range cell
+  (`CAPITAL_GREAT_KM`).
+- **Continuity**: a min-plus cone envelope (`limitSlope`) lowers land so no land neighbour pair differs by more than
+  480 m per cell (a no-op where the ground was already gentler: the old worst step was about 350 m). The peaks become
+  pyramids, the ridgelines keep their line. The W4 cliff-wall test stays green (worst step 480 m).
+- **Snow and trees**: the snow line now follows Ohmura's relation (section 2.3), the timberline the 10 C warmest month.
+  Why the 3,251 m summit 58.5 km from the capital looked bare: the summit was above the old snow line (its cell's line
+  was 3,108 m, a glacier biome), but it stands on the far view's coarsest levels, which painted snow above one fixed
+  2,700 m, and at 58 km the air's haze turns that white into the same pale band as the sky, so it did not read as snow.
+  The real error was the snow line's rule (where the warmest month is at freezing: 300-800 m too high in wet ranges);
+  now the line is the glaciers' equilibrium line, and the far view paints snow above the skeleton's own line
+  (`WorldFarPlan`, the near terrain already did). A test checks every great range's summit stands over 500 m above
+  its snow line on glacier, with the timberline under the snow line.
+
+| | alpha | bravo | charlie |
+|---|---|---|---|
+| great ranges: highest peak, km2 over 500 m | 2: 6,086 m (33,000 km2), 6,753 m (29,600 km2) | 2: 6,003 m, 5,904 m | 1: 6,297 m |
+| middle ranges (their peaks) | 7 (1,289-4,801 m) | 9 (2,624-4,692 m) | 4 (3,162-3,496 m) |
+| passes: roads' highest points in a great range's core | 2,704-3,545 m (most); a few county roads to mining towns and villages higher | 2,741-4,473 m | 2,732-4,507 m |
+| capital: km to the nearest great range; highest ground within 60 km | 419 km; 3,009 m | 473 km; 359 m | 492 km; 1,729 m |
+| terrain stage | 10-11 s (was 6-7 s) | 11 s | 10 s |
+
+### Mountain places (places.ts, roads.ts)
+
+`placeMountainPlaces`, after the towns (their ids unchanged; the new ones are `t:<n>` after them), rank small:
+- **alpine villages** in high valleys: 1,000-3,600 m, in a range (its term 400 m or more), 70 m or more under the ground
+  round them, a warmest month of 8 C or more (hay and pasture), not on ice and 150 m under the snow line, 8 km apart;
+- **pass hamlets**: saddles (two shoulders 100 m higher across one axis, the land lower both ways along the other, 3 km
+  out), and on every road at its summit crossing a ridge (150 m over both sides 4 km away, 900 m or higher);
+- **mining towns** on ore bodies (a slow ore noise in the ranges): gold, silver, copper and tungsten high up, copper,
+  lead, zinc and silver in the middle heights, coal and iron in the foothills (a quarter of them rank `town`).
+- Hamlets along the county roads in the mountains (over 1,100 m in a range) are marked alpine. Every mountain place gets
+  its county road like any town (the roads now avoid ground above the snow line where they can: +6 to its cost).
+
+| | alpha | bravo | charlie |
+|---|---|---|---|
+| alpine villages, pass places (town + hamlet), mining towns, alpine hamlets | 122, 8 + 15, 203, 541 | 158, 4 + 23, 154, 516 | 44, 5 + 10, 119, 296 |
+| towns, hamlets in all (before: 1,102 and 3,424 on alpha) | 1,251, 3,827 | 1,375, 3,969 | 1,119, 3,975 |
+
+### The wonders pass (wonders.ts)
+
+After the places and their names, every wonder where its cause is (a list of the rules in the file's header and per
+kind): blossom valleys (temperate valleys ringed by mountains; colour and bloom months from the climate: pink cherries
+and white plums where the spring warms through 9 C, white almonds in summer-dry climates, purple jacarandas in warm
+subtropics, golden aspen and larch autumns in the cool and continental ones), alpine meadows, desert superblooms (dry
+flat basins, by the region's drought chance), waterfalls (river cells whose fall over the next one or two cells is 140 m
+or more; drop 0.8 of it), canyons (rivers in high dry country), arches and hoodoos (dry sandstone country), karst towers
+(humid subtropical limestone), table mountains (old plateaus in the wet tropics), volcanoes (summits on converging
+ranges within 140 km of the coast, and five hotspots), hot springs (by volcanoes and on high ranges), glaciers (snow
+line edges, great ranges first), fjords (high-latitude coasts under high ground), giant trees (foggy coastal temperate
+rainforest), salt flats (closed dry basins and salt lakes), sea stacks (rocky and cliff coasts), atolls (small tropical
+islands), glowing bays, firefly meadows, aurora viewpoints and caves (limestone, lava tubes). Two geology fields are new:
+limestone and sandstone country as slow noises (limestone kept off the young ranges).
+
+- **Tiers**: common (meadows), uncommon (one of a kind within 30-160 km), rare (a few per continent, at most 1-2 of a
+  kind each), legendary (the finest flowering blossom valley, the greatest waterfall if it drops 300 m or more, the best
+  table mountain: 1-3 on the planet). Every continent without a rare wonder gets its best rare candidate (failing that, a
+  gorge on its steepest river).
+- **Each wonder**: id `w:<kind>:<n>`, kind, tier, name (the place registry's, unique among places and wonders: "Otter
+  Falls", "Saddle Table Mountain"), position, landmass, extent (km), fame (planet, continent, county, local) and the
+  renderer's parameters (`WONDER_PARAMS`): e.g. a waterfall's river (index into the skeleton's rivers), drop, flow,
+  width, facing, peak month, steadiness, style and mist; a blossom valley's colour, tree, bloom months and mountain
+  ring; a canyon's river, depth, length, width, heading, band colours and its end cells.
+- **Baked** as the skeleton's `wonders` list; Kotlin `WorldSkeleton.wonders` (`num`/`str` accessors).
+
+| | alpha | bravo | charlie |
+|---|---|---|---|
+| wonders: common, uncommon, rare, legendary | 381: 64, 253, 61, 3 | 352: 54, 239, 56, 3 | 308: 30, 221, 54, 3 |
+| legendary | Blue Vale (blossom valley), Otter Falls (waterfall, 710 m), Saddle Table Mountain | Silver Valley, Pemey Veil Falls (442 m), Otter Tableland | Raven Valley, Bramble Cascade (570 m), Lion Tableland |
+| within 60 km of the capital | 7: two waterfalls, a blossom valley, a canyon, two meadows, caves | 4 | 5 |
+| stage | 2.4-2.6 s | 2.4 s | 2.4 s |
+
+### Winding roads (winding.ts)
+
+roads.ts still routes every road on the atlas grid (the network's topology, junctions and drive times); each road's
+drawn line is then routed again on a fine grid of 134.4 m nodes (8 an atlas cell; 32 move directions where the ground is
+steep, 16 where it is gentle) in a corridor of 1.5 cells round its cells (widened to 3 and 6 where no line fits), A* with
+a weighted heuristic:
+- **the grade is a hard limit** (county 10%, highway 7%) on the ground the renderer lays a road on (the skeleton's
+  bilinear heights: WorldTerrain calms the detail within 36 m of a road), sampled every 70 m along a move where a cell's
+  bilinear patches could be steeper than the limit; a climb steeper than the limit can only be made across the slope,
+  so the line zigzags: **switchbacks**;
+- grade under the limit costs more near it; the near terrain's knolls and ridges (near.ts's peak term) cost by their
+  height (county roads 3.6 times more than highways), so country roads go round the hills and highways stay straighter;
+- each river crossing costs a bridge (1.5 km of road), hub pads are closed and the capital's growth margin is dear;
+- a road on cells an earlier road already holds (a county road joining a highway, two highways on one trunk) runs on
+  that road's line and joins it exactly; hub ends stay on their pins (the W4 paths test).
+- A road's `km` is its line's length, and the road graph's stretches share it out (drive times follow the winding).
+
+| | alpha | bravo | charlie |
+|---|---|---|---|
+| hairpin bends, bridges | 1,143, 632 | 2,053, 606 | 612, 487 |
+| median length over the cells' (county, highway) | 1.09, 1.02 | 1.09, 1.02 | 1.10, 1.03 |
+| roads over their limit (county > 10.5%, highway > 7.5%), of all | 7 + 4 of 1,186 | 10 + 8 of 1,288 | 3 + 3 of 1,090 |
+| stage | 13-16 s | 16 s | 10 s |
+
+The roads over the limit are stretches where even a 6-cell corridor holds no line under it (the grade then relaxes to
+1.4, 2 and 3 times the limit) or a county road's few metres to its junction; the test allows 3%. Generation is now about
+36 s for alpha (was 20 s): terrain 10 s, winding 13-16 s.
+
+### Tests (gen.test.ts, about 100 s with two generations)
+
+Great-range count (1-2), heights (4,500-7,000 m, 5,000+ km2 over 500 m, 5 or more summits over 4,000 m), middle
+ranges on 60% of continents or more, modest ranges under 3,600 m; no land step over 480 m; passes 1,800-3,600 m;
+the capital 150 km or more from a great range with nothing over 2,500 m within 30 cells; great summits on glacier over
+their snow line; alpine villages, pass places and mining towns with their rules and roads; 1-3 legendary wonders and a
+rare one on every continent; unique ids and names, every kind's parameters; every wonder where its cause is (every
+waterfall on its own river's cell with a fall at least its drop, glaciers over the snow line, fjords at high latitude...);
+every road under its grade limit sampled every 25 m (97% or more), county roads longer than their cells, switchbacks on
+climbs over 600 m, hub pins, junctions on the joined road's line; determinism of all of it. Kotlin `WorldSkeletonTest`:
+the wonders (one of each kind, every parameter), the settings and the new grids against the fixture.
+
+### Maps and previews
+
+`npx tsx kotlin-street/tools/world-mountains-map.ts <dir> [seed]` (planet height with the great ranges, the wonders by
+kind and tier, a close-up of the most switchbacked road to a mountain place on the near terrain's relief), then
+`python3 kotlin-street/tools/world-mountains-sheet.py <dir> <preview.png> <out.jpg> [caption]`. The preview's
+`-Dshots=mtn` has a new `mtn_great` shot aimed at the nearest great range in the far view's reach; from the capital there
+is none (the nearest is 419 km away, the far view reaches 167 km), so it reports that and draws nothing.
+
+### Open problems
+
+- Wonders are data only: W5b and later draw them (and their history: parks, dams on falls, lodges, postcards).
+- The skeleton's heights do not carve canyons, fjords or the glacial valleys: the renderer has to (the parameters say
+  where and how deep). A waterfall's drop is concentrated from a 1-2 km fall, not a cliff in the skeleton.
+- Salt flats are rare to absent on some seeds (alpha has none: few closed dry basins).
+- The fine routing has no turning radius: a hairpin is a corner on the 134 m grid; the renderer should fillet it (with a
+  level turn) when roads get meshes (W6).
+- Mountain places are towns in the registry with archetypes farm, resort and mining; an alpine archetype (chapel,
+  guesthouse, terraced pasture) is for the town generator.
+- A great range from the capital: none in reach of the far view by design; seeing one from far needs the T3 horizon
+  tier and impostors ("Seeing land from the sea").

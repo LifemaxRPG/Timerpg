@@ -25,6 +25,14 @@ export interface Road {
   paved: number;
   /** Rebuilt as an expressway (the limited-access network, from 1956). */
   expressway?: number;
+  /** The drawn line (winding.ts: terrain-following, in atlas cell units, x unwrapped; hub ends on their pins). */
+  path?: [number, number][];
+  /** Its steepest grade (rise over run, sampled every 25-70 m), its hairpin bends and its bridges. */
+  maxGrade?: number;
+  switchbacks?: number;
+  bridges?: number;
+  /** The cells' length (km), for the road graph's share of [km] by stretch. */
+  cellKm?: number;
 }
 
 /** The road's surface in a year. */
@@ -47,7 +55,7 @@ function baseCost(t: Terrain, cl: Climate, h: Hydro, bio: Uint8Array): Float32Ar
   for (let c = 0; c < N; c++) {
     if (!t.land[c]) { cost[c] = Infinity; continue; }
     const s = cl.slope[c]! / 45;
-    cost[c] = 1 + s * s + (h.lake[c] ? 25 : 0) + (h.flow[c]! >= RIVER_FLOW ? 2.5 : 0) + (bio[c] === B.ice || bio[c] === B.glacier ? 4 : 0) + (bio[c] === B.marsh ? 1.5 : 0);
+    cost[c] = 1 + s * s + (h.lake[c] ? 25 : 0) + (h.flow[c]! >= RIVER_FLOW ? 2.5 : 0) + (bio[c] === B.ice || bio[c] === B.glacier ? 4 : 0) + (t.elev[c]! > cl.snowline[c]! ? 6 : 0) + (bio[c] === B.marsh ? 1.5 : 0);
   }
   return cost;
 }
@@ -242,6 +250,22 @@ export function makeRoads(t: Terrain, cl: Climate, h: Hydro, bio: Uint8Array, hu
   for (const p of places) addB(p.x, p.z);
   for (const [c] of pads) addB((c % W) + 0.5, ((c / W) | 0) + 0.5);
   const hh = hashStr(`${seed}|hamlets`);
+  // hamlets on the passes first: where a road crosses a ridge (its highest cell for 4 cells each way, 150 m over both
+  // sides, up in a range): an inn, a chapel, a few houses
+  for (const r of roads) {
+    const cs = r.cells;
+    for (let q = 4; q + 4 < cs.length; q++) {
+      const c = cs[q]!, e = t.elev[c]!;
+      if (e < 900 || t.mount[c]! < 400 || !t.land[c] || h.lake[c] || bio[c] === B.glacier || bio[c] === B.ice) continue;
+      let top = true;
+      for (let d = -4; d <= 4 && top; d++) if (d && t.elev[cs[q + d]!]! > e) top = false;
+      if (!top || e - t.elev[cs[q - 4]!]! < 150 || e - t.elev[cs[q + 4]!]! < 150) continue;
+      const x = (c % W) + 0.5, z = ((c / W) | 0) + 0.5;
+      if (near(x, z, 3.5)) continue;
+      hamlets.push({ id: `m:${hamlets.length}`, kind: 'hamlet', type: 'hamlet', rank: 'small', x, z, cell: c, mass: t.mass[c]!, seed: `${seed}/m/${hamlets.length}`, name: '', founded: 0, coastal: false, setting: 'pass' });
+      addB(x, z);
+    }
+  }
   for (const r of roads) {
     let next = 4 + 4 * hashU(hh, hashStr(r.id));
     let run = 0;
@@ -252,7 +276,7 @@ export function makeRoads(t: Terrain, cl: Climate, h: Hydro, bio: Uint8Array, hu
       const x = (c % W) + 0.5, z = ((c / W) | 0) + 0.5;
       if (!t.land[c] || h.lake[c] || bio[c] === B.glacier || bio[c] === B.ice || near(x, z, 3.5)) continue;
       run = 0; next = 4 + 4 * hashU(hh, c);
-      hamlets.push({ id: `m:${hamlets.length}`, kind: 'hamlet', type: 'hamlet', rank: 'small', x, z, cell: c, mass: t.mass[c]!, seed: `${seed}/m/${hamlets.length}`, name: '', founded: 0, coastal: h.coast[c]! > 0 });
+      hamlets.push({ id: `m:${hamlets.length}`, kind: 'hamlet', type: 'hamlet', rank: 'small', x, z, cell: c, mass: t.mass[c]!, seed: `${seed}/m/${hamlets.length}`, name: '', founded: 0, coastal: h.coast[c]! > 0, ...(t.mount[c]! > 400 && t.elev[c]! > 1100 ? { setting: 'alpine' as const } : {}) });
       addB(x, z);
     }
   }
@@ -281,7 +305,9 @@ export class RoadGraph {
         const a = r.cells[q - 1]!, c = r.cells[q]!;
         km += Math.hypot(wrapDx((c % W) - (a % W)), ((c / W) | 0) - ((a / W) | 0)) * CELL_KM;
         if (isNode.has(c) || q === r.cells.length - 1) {
-          if (c !== from) { this.add(from, c, km, k); this.add(c, from, km, k); }
+          // (the drawn line's length shared out over the cells' stretches: a winding road is longer than its cells)
+          const f = r.cellKm ? r.km / r.cellKm : 1;
+          if (c !== from) { this.add(from, c, km * f, k); this.add(c, from, km * f, k); }
           from = c; km = 0;
         }
       }

@@ -26,7 +26,7 @@ export const wrapDx = (dx: number): number => {
   else if (d >= W / 2) d -= W;
   return d;
 };
-export const wrapX = (x: number): number => ((x % W) + W) % W;
+export const wrapX = (x: number): number => (x >= 0 && x < W ? x : ((x % W) + W) % W);
 
 /** Distance in km between two points given in cell units (x wraps). */
 export const distKm = (x0: number, z0: number, x1: number, z1: number): number => Math.hypot(wrapDx(x1 - x0), z1 - z0) * CELL_KM;

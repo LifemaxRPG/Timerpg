@@ -17,7 +17,11 @@ import type { World } from './world';
 // Version 2 (W4): every river, road and rail line has its true path (paths.ts: hub ends on their pins, the capital's
 // river bent through its river pins) in the "pts" section (x, z pairs in atlas cells x 2^19, x unwrapped along the
 // line), referenced as path: [first point, points]; places and pins at full precision; the capital's plan frame.
-export const SKELETON_VERSION = 2;
+// Version 3 (grand mountains and wonders): a "wonders" list (wonders.ts: id, kind, tier, name, position, extent, fame and
+// the renderer's parameters), the ranges ("ranges": id, class, peak), places' mountain settings ("setting", "ore"),
+// roads' winding paths (the path of a road is now its terrain-following line, hub ends still on their pins) and the
+// grids "timberline" and "range" (the class of the range whose term is highest at a cell: 0 none, 1 modest, 2 middle, 3 great).
+export const SKELETON_VERSION = 3;
 /** Fixed point of the "pts" section: units of an atlas cell. */
 export const PTS_SCALE = 524288;
 
@@ -56,7 +60,9 @@ export function encodeSkeleton(w: World): Uint8Array {
   add('steady', 'u8', steady, 'driest month over mean month flow, x 255');
   add('mass', 'u16', mass, 'landmass id (0 sea)');
   add('lake', 'u16', Uint16Array.from(h.lake), 'lake id (0 none)');
-  add('snowline', 'i16', snow, 'metres: where the warmest month is at freezing');
+  add('snowline', 'i16', snow, 'metres: the snow line (glaciers\' equilibrium line, from the warmest month and the year\'s precipitation)');
+  add('timberline', 'i16', Int16Array.from(cl.timberline, (v) => Math.max(-32768, Math.min(32767, Math.round(v)))), 'metres: where the warmest month is 10 C');
+  add('range', 'u8', Uint8Array.from(t.range, (k) => (k >= 0 ? t.rangeCls[k]! : 0)), 'class of the range highest at the cell: 0 none, 1 modest, 2 middle, 3 great');
   add('current', 'i8', Int8Array.from(cl.current, (v) => Math.round(v * 10)), 'ocean current anomaly, C x 10');
   // ---- monthly climate: land cells (temperature C x 2, rain as round(sqrt(mm) x 10)), sea temperatures on 4 x 4 cells
   const landIdx: number[] = [];
@@ -93,6 +99,8 @@ export function encodeSkeleton(w: World): Uint8Array {
       ...(p.hub.plan === 'gamma' ? { planTiles: { ...GAMMA_PLAN_TILES, tileM: 2.1 } } : {}),
       pins: p.pins!.map((q, k) => ({ kind: q.kind, name: q.name, x: r6(q.x), z: r6(q.z), ox: q.ox, oz: q.oz, dx: p.hub!.pins[k]!.dx, dz: p.hub!.pins[k]!.dz })),
     } : {}),
+    ...(p.setting ? { setting: p.setting } : {}),
+    ...(p.ore ? { ore: p.ore } : {}),
     tags: w.tags.get(p.id) ?? [],
   });
   const json = {
@@ -106,6 +114,8 @@ export function encodeSkeleton(w: World): Uint8Array {
     rivers: w.hydro.rivers.map((r, k) => ({ flow: r.flow, order: r.order, end: r.end, cells: ref(r.cells), path: path(paths.rivers[k]!) })),
     lakes: w.hydro.lakes,
     dams: w.dams.map((d) => ({ ...d, cells: ref(d.cells) })),
+    ranges: t.ranges.map((r) => ({ id: r.id, cls: r.cls, peakM: r.peakM, peakCell: r.peakCell, cells: r.cells })),
+    wonders: w.wonders.map((q) => ({ id: q.id, kind: q.kind, tier: q.tier, name: q.name, x: Math.round(q.x * 1000) / 1000, z: Math.round(q.z * 1000) / 1000, mass: q.mass, extentKm: q.extentKm, fame: q.fame, params: q.params })),
     sections,
   };
   add('cells', 'i32', Int32Array.from(pool), 'the vectors\' cell lists (index = z * w + x)');

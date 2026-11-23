@@ -159,7 +159,9 @@ class WorldFarPlan(
         val dither = WorldNoise.hashU(tone, floor(x / 100).toInt(), floor(z / 100).toInt(), k)
         var c = biomeColour(b, dither < .5)
         val e = sk.elev(i, j)
-        if (sk.land(i, j) && e > SNOW_M && b != 0) c = if (dither < .5) 0xFFF2F4FA.toInt() else 0xFFE2E8F2.toInt()
+        // (snow above the skeleton's snow line where it was kept: the climate's, not one height for the planet)
+        val line = if (sk.has("snowline")) sk.raw("snowline", Math.floorMod(i, WorldSkeleton.W) + j.coerceIn(0, WorldSkeleton.H - 1) * WorldSkeleton.W) else SNOW_M
+        if (sk.land(i, j) && e > line && b != 0) c = if (dither < .5) 0xFFF2F4FA.toInt() else 0xFFE2E8F2.toInt()
         // the town's own grass dithered in round its ground
         val d = outside(x, z)
         if (d < GRASS_M && sk.land(i, j)) {
@@ -292,7 +294,7 @@ class WorldFarPlan(
         const val UNDER_M = .05
         /** The finest level's detail noise: its full swing (m). */
         const val DETAIL_M = 36.0
-        /** Snow on the ground above this (m), whatever the biome. */
+        /** Snow on the ground above this (m) when the skeleton's snow line grid was not kept. */
         const val SNOW_M = 2700
         /** The town's grass dithered in this far round its ground (m). */
         const val GRASS_M = 1600.0

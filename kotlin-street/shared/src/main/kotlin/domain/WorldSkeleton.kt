@@ -9,12 +9,12 @@ import java.nio.ByteOrder
 import kotlin.math.floor
 
 /**
- * The baked world skeleton (WORLD_GEN.md section 2, "The skeleton"; the format is src/world/gen/bake.ts, version 2),
+ * The baked world skeleton (WORLD_GEN.md section 2, "The skeleton"; the format is src/world/gen/bake.ts, versions 2-3),
  * read whole from its asset (content/world/<seed>/skeleton.twsk.gz, shipped as assets/world/<seed>/). The atlas grids the
  * app needs (by default height, flags, biome, flow, landmass, crop and snowline: [DEFAULT_GRIDS]; the monthly climate stays on disk until
  * something asks for it) and every vector and fact of the JSON header: places with the hubs' pins, roads, rail lines,
  * rivers with their true paths (hub ends on their pins, the capital's river bent through its river pins: paths.ts), sea
- * routes, lakes. Engine-agnostic: no Filament, no Android.
+ * routes, lakes, and (version 3) the natural wonders with their parameters. Engine-agnostic: no Filament, no Android.
  *
  * Positions are in atlas cell units (x east, wrapping at [W]; z south) as the TypeScript keeps them; [Planet] turns them
  * into metres ([WorldPos]).
@@ -27,6 +27,8 @@ class WorldSkeleton private constructor(
     val railLines: List<Route>,
     val rivers: List<River>,
     val sea: List<Route>,
+    /** The natural wonders (version 3; empty in older skeletons): WORLD_GEN.md "Natural wonders". */
+    val wonders: List<Wonder>,
     private val grids: Map<String, Any>,
     private val pts: IntArray,
     /** Bytes held by the grids and the paths (the RAM line's world share). */
@@ -42,7 +44,19 @@ class WorldSkeleton private constructor(
         val seed: String, val name: String, val founded: Int, val pins: List<Pin>, val plan: String?, val planTiles: PlanTiles?,
         /** A hub's pad (m). */
         val padW: Double, val padH: Double,
+        /** A mountain place's setting ("alpine", "pass", "mining"; version 3) and a mining town's ore, or null. */
+        val setting: String? = null, val ore: String? = null,
     ) { val hub: Boolean get() = kind == "hub" }
+    /**
+     * A natural wonder: its stable id (`w:<kind>:<n>`), kind ("waterfall", "blossom valley"...), tier ("common", "uncommon",
+     * "rare", "legendary"), name, position in atlas cell units, landmass, extent (km) and fame, and the parameters a renderer
+     * needs ([params]: numbers as Double, strings, booleans, lists of them), as src/world/gen/wonders.ts documents per kind.
+     */
+    class Wonder(val id: String, val kind: String, val tier: String, val name: String, val x: Double, val z: Double, val mass: Int,
+        val extentKm: Double, val fame: String, val params: Map<String, Any>) {
+        fun num(key: String): Double? = params[key] as? Double
+        fun str(key: String): String? = params[key] as? String
+    }
     /** A road, rail line or sea route: its id, class, the places it joins, its years, its path (first point, points). */
     class Route(val id: String, val cls: String, val a: String?, val b: String?, val built: Int, val expressway: Int?, val stations: List<String>, val path: IntArray?)
     class River(val flow: Int, val order: Int, val end: String, val path: IntArray?)
@@ -99,7 +113,7 @@ class WorldSkeleton private constructor(
         const val PTS_SCALE = 524288.0
         /** The grids kept by default (about 17 MB): what the far view, the near terrain (crops, snowline), the hubs and the facts read. */
         val DEFAULT_GRIDS = setOf("elev", "flags", "biome", "flow", "mass", "crop", "snowline")
-        private val UNSIGNED = setOf("flags", "biome", "koppen", "crop", "flow", "steady", "mass", "lake")
+        private val UNSIGNED = setOf("flags", "biome", "koppen", "crop", "flow", "steady", "mass", "lake", "range")
         /** The biomes in the skeleton's order (src/world/gen/climate.ts BIOMES). */
         val BIOMES = listOf("ocean", "ice", "tundra", "taiga", "temperate forest", "temperate rainforest", "prairie", "steppe", "desert", "savanna",
             "tropical forest", "rainforest", "alpine", "marsh", "lake", "beach", "rock", "chaparral", "glacier")
@@ -153,7 +167,7 @@ class WorldSkeleton private constructor(
                 val pad = o.optJSONObject("padM")
                 Place(o.getString("id"), o.getString("kind"), o.getString("type"), o.getString("rank"), o.getDouble("x"), o.getDouble("z"), o.getInt("mass"),
                     o.getString("seed"), o.getString("name"), o.getInt("founded"), pins, if (o.isNull("plan")) null else o.optString("plan").ifEmpty { null }, pt,
-                    pad?.getDouble("w") ?: 0.0, pad?.getDouble("h") ?: 0.0)
+                    pad?.getDouble("w") ?: 0.0, pad?.getDouble("h") ?: 0.0, o.optString("setting").ifEmpty { null }, o.optString("ore").ifEmpty { null })
             } }
             val roads = json.getJSONArray("roads").let { a -> (0 until a.length()).map { i -> val o = a.getJSONObject(i)
                 Route(o.getString("id"), o.getString("cls"), o.optString("a"), if (o.isNull("b")) null else o.getString("b"), o.getInt("built"), intOrNull(o, "expressway"), emptyList(), ints(o.optJSONArray("path"))) } }
@@ -164,8 +178,22 @@ class WorldSkeleton private constructor(
                 River(o.getInt("flow"), o.getInt("order"), o.getString("end"), ints(o.optJSONArray("path"))) } }
             val sea = json.getJSONArray("sea").let { a -> (0 until a.length()).map { i -> val o = a.getJSONObject(i)
                 Route(o.optString("id"), o.optString("kind"), o.optString("a"), o.optString("b"), 0, null, emptyList(), null) } }
-            return WorldSkeleton(json.getString("seed"), version, places, roads, rail, rivers, sea, grids, pts, held, len * 2L)
+            // (version 3: the wonders; an older skeleton has none, and a section this reader does not know is skipped above)
+            val wonders = json.optJSONArray("wonders")?.let { a -> (0 until a.length()).map { i -> val o = a.getJSONObject(i)
+                Wonder(o.getString("id"), o.getString("kind"), o.getString("tier"), o.getString("name"), o.getDouble("x"), o.getDouble("z"), o.optInt("mass"),
+                    o.optDouble("extentKm", 0.0), o.optString("fame"), o.optJSONObject("params")?.let { paramsOf(it) } ?: emptyMap())
+            } } ?: emptyList()
+            return WorldSkeleton(json.getString("seed"), version, places, roads, rail, rivers, sea, wonders, grids, pts, held, len * 2L)
         }
+
+        private fun valueOf(v: Any?): Any = when (v) {
+            is Number -> v.toDouble()
+            is JSONArray -> (0 until v.length()).map { valueOf(v.get(it)) }
+            is JSONObject -> paramsOf(v)
+            null -> ""
+            else -> if (v == JSONObject.NULL) "" else v
+        }
+        private fun paramsOf(o: JSONObject): Map<String, Any> = o.keys().asSequence().sorted().associateWith { valueOf(o.get(it)) }
 
         private fun skip(inp: DataInputStream, n: Long) {
             var left = n

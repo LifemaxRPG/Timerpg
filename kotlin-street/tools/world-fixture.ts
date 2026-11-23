@@ -20,7 +20,7 @@ for (const [s, a, b, c] of [[0, 0, 0, 0], [1, 2, 3, 4], [4294967295, -1, -7, 123
 const pts: [number, number][] = [[0, 0], [0.5, 0.5], [935.661, 277.5], [1855.999, 927.9], [-3.25, 10.75], [2000.125, 400.5], [17.3, -2.0], [1200.0001, 930.4], [463.77, 211.12]];
 const lat = new Lattice(seed, 'test', 64), fbm = new Fbm(seed, 'hills', 16, 7), fbm2 = new Fbm(seed, 'w4-detail', W / 2, 3);
 const noise = pts.map(([x, z]) => ({ x, z, lattice: lat.at(x, z), hills: fbm.at(x, z), detail: fbm2.at(x, z) }));
-const grids = ['elev', 'flags', 'biome', 'koppen', 'crop', 'flow', 'steady', 'mass', 'lake', 'snowline'];
+const grids = ['elev', 'flags', 'biome', 'koppen', 'crop', 'flow', 'steady', 'mass', 'lake', 'snowline', 'timberline', 'range'];
 const cells: number[] = [];
 for (let c = 7; c < N; c += 104729) cells.push(c);
 const json = sk.json as Record<string, any>;
@@ -33,7 +33,10 @@ const capRiver = json.rivers.findIndex((r: any) => path(r.path).some(([x, z]) =>
 const fixture = {
   seed, version: json.version,
   hashStr: strs.map((s) => [s, hashStr(s)]), hash3: h3, noise, samples,
-  counts: { places: json.places.length, roads: json.roads.length, railLines: json.railLines.length, rivers: json.rivers.length, sea: json.sea.length },
+  counts: { places: json.places.length, roads: json.roads.length, railLines: json.railLines.length, rivers: json.rivers.length, sea: json.sea.length, wonders: json.wonders.length },
+  // (version 3: one wonder of each kind, and the mountain places by setting)
+  wonders: json.wonders.filter((q: any, k: number, a: any[]) => a.findIndex((o: any) => o.kind === q.kind) === k),
+  settings: Object.fromEntries(['alpine', 'pass', 'mining'].map((s) => [s, json.places.filter((p: any) => p.setting === s).length])),
   capital: { id: cap.id, name: cap.name, x: cap.x, z: cap.z, plan: cap.plan, pins: cap.pins, planTiles: cap.planTiles },
   capRiver: { index: capRiver, path: path(json.rivers[capRiver].path) },
   roads: json.roads.slice(0, 5).map((r: any) => ({ id: r.id, path: path(r.path) })),

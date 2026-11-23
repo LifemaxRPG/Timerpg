@@ -1,9 +1,9 @@
 import { B, CR, koppenGroup, type Climate } from './climate';
-import { CELL_KM, CELL_M, H, N, W, blur, distKm, latOf, nb, wrapDx, wrapX } from './grid';
+import { CELL_KM, CELL_M, H, N, W, blur, distKm, distanceTo, latOf, nb, wrapDx, wrapX } from './grid';
 import { CAPITAL, GAMMA_PLAN_TILES, HUB_COUNT, LAUNCH, laterHub, type HubSpec, type HubType, type Pin } from './hubs';
 import { RIVER_FLOW, type Hydro } from './hydro';
-import { hashU, hashStr, stream } from './noise';
-import type { Terrain } from './terrain';
+import { Fbm, hashU, hashStr, stream } from './noise';
+import { RANGE_GREAT, type Terrain } from './terrain';
 import { archetypeOf, type ArchetypeId } from '../../sim/archetype';
 
 // PLACES (WORLD_GEN.md sections 3-4): the hubs by type with their site rules and scores (the capital first, honouring
@@ -35,6 +35,11 @@ export interface Place {
   coastal: boolean;
   /** A hub's spec and pins (world positions). */
   hub?: HubSpec;
+  /** A mountain place's setting (WORLD_GEN.md "Grand mountains", "Mountain villages"): an alpine village in a high valley,
+   * a hamlet on a pass, a mining town on an ore body. */
+  setting?: 'alpine' | 'pass' | 'mining';
+  /** A mining town's ore. */
+  ore?: string;
   pins?: WorldPin[];
 }
 
@@ -47,6 +52,8 @@ export interface SiteFields {
   mainDonor: Int32Array;
   /** Flow at the top 5% of river cells (the planet's largest rivers). */
   bigFlow: number;
+  /** km to the nearest cell of a great range (its own term over 1,500 m). */
+  greatKm: Float32Array;
 }
 
 /** Crop belts good for a farm town (not ranching country). */
@@ -74,11 +81,15 @@ export function siteFields(t: Terrain, cl: Climate, h: Hydro, bio: Uint8Array, c
   const rf: number[] = [];
   for (let c = 0; c < N; c++) if (t.land[c] && !h.lake[c] && h.flow[c]! >= RIVER_FLOW) rf.push(h.flow[c]!);
   rf.sort((a, b) => a - b);
-  return { usable, fertile, flat, seaFrac, valley, mainDonor, bigFlow: rf[Math.floor(rf.length * 0.95)] ?? Infinity };
+  const greatKm = distanceTo((c) => t.land[c] === 1 && t.range[c]! >= 0 && t.rangeCls[t.range[c]!] === RANGE_GREAT && t.mount[c]! > 1500);
+  for (let c = 0; c < N; c++) greatKm[c] = greatKm[c]! * CELL_KM;
+  return { usable, fertile, flat, seaFrac, valley, mainDonor, bigFlow: rf[Math.floor(rf.length * 0.95)] ?? Infinity, greatKm };
 }
 
 /** The capital stands on lowland (WORLD_GEN.md 3): no higher than this, in metres. */
 export const CAPITAL_MAX_M = 450;
+/** No great range within this many km of the capital (WORLD_GEN.md "Grand mountains": its region stays gently rolling). */
+export const CAPITAL_GREAT_KM = 150;
 
 const temperate = (T: number): number => Math.exp(-((T - 13) / 6) * ((T - 13) / 6));
 
@@ -104,6 +115,7 @@ export function hubRule(type: HubType, t: Terrain, cl: Climate, h: Hydro, f: Sit
       if (f.flat[c]! > 30) return no('not flat');
       if (e > CAPITAL_MAX_M) return no('not lowland');
       if (t.distSea[c]! < 12) return no('too near the coast');
+      if (f.greatKm[c]! < CAPITAL_GREAT_KM) return no('a great range too near');
       const [dx, dz] = riverDir(h, f, c);
       if (Math.abs(dz) < 1.6 * Math.abs(dx) || Math.abs(dz) < 3) return no('river not north-south');
       // the plan's pad and its growth margin: land, no lake, not steep
@@ -355,6 +367,92 @@ export function townSeed(world: string, n: number, type: ArchetypeId): string {
     if (archetypeOf(s).id === type) return s;
   }
   return `${world}/t/${n}`;
+}
+
+// ---------------------------------------------------------------- mountain places (WORLD_GEN.md "Grand mountains")
+
+/** Mountain places keep this far (km) from every other place, and TOWN_HUB_KM from a hub. */
+export const ALPINE_SEP_KM = 8;
+export const PASS_SEP_KM = 10;
+export const MINE_SEP_KM = 10;
+/** The ores by where they lie: the high ranges' veins, the middle heights, the foothills' seams. */
+const ORES_HIGH = ['gold', 'silver', 'copper', 'tungsten'], ORES_MID = ['copper', 'lead', 'zinc', 'silver'], ORES_LOW = ['coal', 'iron', 'coal'];
+
+/**
+ * The mountain places, placed after the towns (so every earlier town keeps its id): alpine villages in the high valleys
+ * (a valley floor under its surroundings, a summer warm enough for pasture), hamlets on the passes (a saddle between two
+ * higher shoulders, on the way from one valley to the next), and mining towns on ore bodies (a slow noise of ore in the
+ * ranges: veins of gold, silver and copper high up, lead and zinc in the middle heights, coal and iron in the
+ * foothills). They are towns (ids `t:<n>` after the others), rank small (some mining towns larger), with their setting.
+ */
+export function placeMountainPlaces(t: Terrain, cl: Climate, h: Hydro, f: SiteFields, bio: Uint8Array, hubs: Place[], towns: Place[]): Place[] {
+  const seed = t.seed;
+  const hs = hashStr(`${seed}|mountain-places`);
+  const meanE = blur(Float32Array.from(t.elev, (e) => Math.max(0, e)), 4, 4, 2);
+  const oreN = new Fbm(seed, 'ore', 160, 3);
+  const at = (i: number, j: number): number => (j < 0 || j >= H ? -1 : t.elev[j * W + wrapX(i)]!);
+  const ok = (c: number): boolean => t.land[c] === 1 && !h.lake[c] && bio[c] !== B.glacier && bio[c] !== B.ice && t.elev[c]! < cl.snowline[c]! - 150;
+  const cands: { c: number; s: number; setting: 'alpine' | 'pass' | 'mining' }[] = [];
+  for (let c = 0; c < N; c++) {
+    if (!ok(c) || t.mount[c]! < 400) continue;
+    const e = t.elev[c]!, i = c % W, j = (c / W) | 0, T = cl.tmax[c]!;
+    const jit = hashU(hs, c);
+    // a pass: two shoulders higher across one axis, the land lower both ways along the other (3 cells out)
+    if (e >= 900 && e <= 3900 && T >= 4) {
+      for (const [dx, dz] of [[3, 0], [0, 3], [2, 2], [2, -2]] as const) {
+        const a1 = at(i + dx, j + dz), a2 = at(i - dx, j - dz), b1 = at(i - dz, j + dx), b2 = at(i + dz, j - dx);
+        if (a1 > e + 100 && a2 > e + 100 && b1 >= 0 && b2 >= 0 && b1 < e - 60 && b2 < e - 60) {
+          cands.push({ c, s: 2 + jit, setting: 'pass' });
+          break;
+        }
+      }
+    }
+    // a high valley: its floor under the ground round it, a summer warm enough for hay and pasture, not too steep
+    if (e >= 1000 && e <= 3600 && T >= 8 && e < meanE[c]! - 70 && cl.slope[c]! < 320) cands.push({ c, s: 1 + jit * (1 + (meanE[c]! - e) / 400), setting: 'alpine' });
+    // an ore body
+    const ore = oreN.at(i + 0.5, j + 0.5);
+    if (ore > 0.7 && e >= 500 && e <= 4200 && T >= 2 && cl.slope[c]! < 380) cands.push({ c, s: 1.5 + (ore - 0.7) * 4 + jit * 0.5, setting: 'mining' });
+  }
+  cands.sort((a, b) => b.s - a.s || a.c - b.c);
+  const all = [...hubs, ...towns];
+  const BK = 16, nbx = Math.ceil(W / BK);
+  const buckets = new Map<number, Place[]>();
+  const put = (p: Place): void => { const k = Math.floor(p.z / BK) * nbx + (Math.floor(p.x / BK) % nbx); const a = buckets.get(k); if (a) a.push(p); else buckets.set(k, [p]); };
+  for (const p of all) put(p);
+  const clear = (x: number, z: number, km: number): boolean => {
+    const bx = Math.floor(x / BK), bz = Math.floor(z / BK);
+    for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
+      const a = buckets.get((bz + dz) * nbx + ((((bx + dx) % nbx) + nbx) % nbx));
+      if (a) for (const p of a) if (distKm(x, z, p.x, p.z) < (p.kind === 'hub' ? TOWN_HUB_KM : km)) return false;
+    }
+    return true;
+  };
+  const out: Place[] = [];
+  const used = new Set<number>();
+  for (const { c, setting } of cands) {
+    if (used.has(c)) continue;
+    const x = (c % W) + 0.5, z = ((c / W) | 0) + 0.5;
+    if (!clear(x, z, setting === 'alpine' ? ALPINE_SEP_KM : setting === 'pass' ? PASS_SEP_KM : MINE_SEP_KM)) continue;
+    used.add(c);
+    const n = towns.length + out.length;
+    let type: ArchetypeId = 'farm';
+    let ore: string | undefined;
+    if (setting === 'mining') {
+      type = 'mining';
+      const e = t.elev[c]!, r = hashU(hs, c, 7);
+      const list = e > 2200 || t.mount[c]! > 2500 ? ORES_HIGH : e > 1100 ? ORES_MID : ORES_LOW;
+      ore = list[Math.floor(r * list.length)]!;
+    } else {
+      let lake = false;
+      for (let k = 0; k < 8; k++) { const m = nb(c, k); if (m >= 0 && h.lake[m]) lake = true; }
+      type = setting === 'pass' || lake ? 'resort' : 'farm';
+    }
+    const rank: Rank = setting === 'mining' && hashU(hs, c, 9) < 0.25 ? 'town' : 'small';
+    const p: Place = { id: `t:${n}`, kind: 'town', type, rank, x, z, cell: c, mass: t.mass[c]!, seed: townSeed(seed, n, type), name: '', founded: 0, coastal: h.coast[c]! > 0, setting, ...(ore ? { ore } : {}) };
+    out.push(p);
+    put(p);
+  }
+  return out;
 }
 
 /** The year a place was first settled: the land was settled from the coasts inland (older near the sea and the ports). */

@@ -4,12 +4,14 @@ import { growthFacts, makeDams, type Dam, type GrowthFacts } from './history';
 import { CAPITAL_NAME, HUB_COUNT } from './hubs';
 import { RIVER_FLOW, makeHydro, type Hydro } from './hydro';
 import { NameRegistry, type NameStyle } from './names';
-import { foundedYear, placeHubs, placeTowns, siteFields, type Place, type SiteFields } from './places';
+import { foundedYear, placeHubs, placeMountainPlaces, placeTowns, siteFields, type Place, type SiteFields } from './places';
 import { makeRail, skeletonRail, type RailNet } from './railnet';
 import { RoadGraph, makeRoads, type Road } from './roads';
 import { makeSea, type SeaNet } from './sea';
 import { makeTerrain, type Terrain } from './terrain';
 import { climateTags, makeWeather, type Weather } from './weather';
+import { makeWonders, type Wonder } from './wonders';
+import { windRoads, type WindStats } from './winding';
 import type { RailWorld } from '../rail';
 
 // THE WORLD SKELETON (WORLD_GEN.md sections 2-11, phases W1-W3): everything that becomes a fact somebody can say or
@@ -29,6 +31,8 @@ export interface World {
   hubs: Place[];
   towns: Place[];
   hamlets: Place[];
+  /** The natural wonders (wonders.ts), named in the same registry as the places. */
+  wonders: Wonder[];
   /** Every place: hubs, towns, hamlets. */
   places: Place[];
   byId: Map<string, Place>;
@@ -44,6 +48,8 @@ export interface World {
   /** Climate hooks per place (town identity, NPC talk). */
   tags: Map<string, string[]>;
   startMass: number;
+  /** The winding roads' totals (winding.ts). */
+  winding: WindStats;
   /** Milliseconds per stage. */
   timing: Record<string, number>;
 }
@@ -70,16 +76,22 @@ export function generateWorld(seed: string, opts: { hubs?: number } = {}): World
   const hubs = hp.hubs;
   for (const p of hubs) p.founded = foundedYear(terrain, p, hubs);
   const towns = placeTowns(terrain, climate, hydro, fields, biome, hubs);
+  towns.push(...placeMountainPlaces(terrain, climate, hydro, fields, biome, hubs, towns));
   for (const p of towns) p.founded = foundedYear(terrain, p, hubs);
   lap('places');
   const rd = makeRoads(terrain, climate, hydro, biome, hubs, towns);
   const hamlets = rd.hamlets;
+  for (const r of rd.roads) r.cellKm = r.km;
+  const winding = windRoads(terrain, hydro, hubs, rd.roads);
+  timing.windingMs = winding.ms;
   for (const p of hamlets) p.founded = foundedYear(terrain, p, hubs);
   lap('roads');
   // names: the capital's authored placeholder, then hubs, towns and hamlets in order (unique on the planet)
   const reg = new NameRegistry(seed);
-  for (const p of [...hubs, ...towns, ...hamlets]) p.name = p.hub?.name ? reg.claim(p.hub.name === CAPITAL_NAME ? CAPITAL_NAME : p.hub.name) : reg.make(p.id, STYLE[p.type] ?? 'farm');
+  for (const p of [...hubs, ...towns, ...hamlets]) p.name = p.hub?.name ? reg.claim(p.hub.name === CAPITAL_NAME ? CAPITAL_NAME : p.hub.name) : reg.make(p.id, p.setting === 'alpine' || p.setting === 'pass' ? 'mountain' : STYLE[p.type] ?? 'farm');
   const places = [...hubs, ...towns, ...hamlets];
+  const wonders = makeWonders(terrain, climate, hydro, biome, weather, fields, places, reg);
+  lap('wonders');
   const byId = new Map(places.map((p) => [p.id, p]));
   const byName = new Map(places.map((p) => [p.name.toLowerCase(), p]));
   const railWorld: RailWorld = { seed };
@@ -92,7 +104,7 @@ export function generateWorld(seed: string, opts: { hubs?: number } = {}): World
   const growth = new Map(places.map((p) => [p.id, growthFacts(p, rd.roads, rail.links, hubs, dams)]));
   const tags = new Map(places.map((p) => [p.id, climateTags(climate, weather, p.cell, p.x, p.z)]));
   lap('history');
-  return { seed, terrain, climate, hydro, biome, crop, weather, fields, hubs, towns, hamlets, places, byId, byName, roads: rd.roads, roadGraph, rail, railWorld, sea, dams, growth, tags, startMass: hp.startMass, timing };
+  return { seed, terrain, climate, hydro, biome, crop, weather, fields, hubs, towns, hamlets, wonders, places, byId, byName, roads: rd.roads, roadGraph, rail, railWorld, sea, dams, growth, tags, startMass: hp.startMass, winding, timing };
 }
 
 const cache = new Map<string, World>();
