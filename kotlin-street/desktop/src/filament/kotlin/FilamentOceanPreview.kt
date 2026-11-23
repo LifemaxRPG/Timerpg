@@ -37,21 +37,19 @@ import java.nio.ByteOrder
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.imageio.ImageIO
-import kotlin.math.PI
 import kotlin.math.atan2
-import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.math.tan
 
 /**
  * Standalone headless Filament preview for the G002 pixel-art ocean prototype (`-Dmode=ocean`).
  *
- * Renders open ocean by day, dusk, and night in both calm and rough states, with a simple box "boat"
- * bobbing via [OceanWaves.heightInto], plus a 4-frame wave-bobbing strip and a CPU/render benchmark.
+ * Renders open ocean from a camera 6 m up and 20 m behind a floating box boat (looking slightly down so
+ * water fills the lower ~73% of the frame up to the horizon line and stepped pixel-art sky fills the upper
+ * ~27%), across day, dusk, and night in both calm and rough seas, plus a 4-frame bobbing strip and benchmark.
  *
  * Run via:
  *   gradle :desktop:preview -Dmode=ocean
@@ -114,12 +112,15 @@ fun renderOcean(outRoot: String) {
     val oceanMat = loadMaterial(oceanMatFile)
     val litMat = loadMaterial(litMatFile)
 
+    // Nested watertight rings (1 m core -> 7.17 km wave rings -> 24 km flat far horizon skirt, 1 draw call)
     val ocean = OceanSurface(
         engine = engine,
         scene = scene,
         material = oceanMat,
-        gridCells = 160,
-        cellSize = 2.0f,
+        ringCells = 56,
+        baseCellSize = 1.0f,
+        ringCount = 9,
+        farHorizonRadius = 24000f,
         seaLevelY = 0f,
     )
 
@@ -136,21 +137,26 @@ fun renderOcean(outRoot: String) {
 
     val boat = OceanBoxBoat(engine, scene, litMat)
 
-    // Camera perched above open ocean looking along +Z toward the sun/moon over the horizon, with the boat at (0, y, 6)
-    val camX = 0f
-    val camY = 9.5f
-    val camZ = -24f
-    val targetX = 0f
-    val targetY = 0.2f
-    val targetZ = 22f
-    val fovY = 38.0
+    // Verification camera (G002-r1): 6 m up and 20 m behind the boat at (0, y, 0), looking slightly down
+    // toward (0, 1.8, 4.0) so water fills the lower ~73% up to the horizon line and sky fills the upper ~27%.
+    val boatX = 0.0f
+    val boatZ = 0.0f
+    val boatHeading = 0.55f
+    val camX = 0.0f
+    val camY = 6.0f
+    val camZ = -20.0f
+    val targetX = 0.0f
+    val targetY = 1.8f
+    val targetZ = 4.0f
+    val fovY = 42.0
     val nearPlane = 0.5
-    val farPlane = 600.0
+    val farPlane = 30000.0
     val lookMatrix = FloatArray(16)
 
     fun setCamera(ex: Float, ey: Float, ez: Float, tx: Float, ty: Float, tz: Float) {
         camera.setProjection(fovY, w.toDouble() / h.toDouble(), nearPlane, farPlane, Camera.Fov.VERTICAL)
         camera.lookAt(ex.toDouble(), ey.toDouble(), ez.toDouble(), tx.toDouble(), ty.toDouble(), tz.toDouble(), 0.0, 1.0, 0.0)
+        // Both ocean.mat and street_lit.mat use vertexDomain : device with this exact shared clip matrix
         buildDeviceLookMatrix(ex, ey, ez, tx, ty, tz, fovY, w.toFloat() / h.toFloat(), nearPlane.toFloat(), lookMatrix)
         boat.setLook(lookMatrix)
     }
@@ -158,7 +164,6 @@ fun renderOcean(outRoot: String) {
     fun applyLighting(palette: OceanPalette) {
         val lm = engine.lightManager
         val li = lm.getInstance(sunEntity)
-        // lightDir points TOWARDS sun/moon; Filament directional light direction points FROM light toward scene
         val ld = palette.lightDir
         lm.setDirection(li, -ld[0], -ld[1], -ld[2])
         val night = palette.nightFactor
@@ -183,7 +188,6 @@ fun renderOcean(outRoot: String) {
         ibl = IndirectLight.Builder().irradiance(2, sh).intensity(1.0f).build(engine).also {
             scene.indirectLight = it
         }
-        // Subtle warm cabin glow at dusk and night
         val cabinGlow = if (night > 0.75f) 0.95f else if (night > 0.10f) 0.45f else 0.0f
         boat.setCabinGlow(cabinGlow)
     }
@@ -191,7 +195,9 @@ fun renderOcean(outRoot: String) {
     val readBuf = ByteBuffer.allocateDirect(w * h * 4).order(ByteOrder.nativeOrder())
     val renderTimesMs = ArrayList<Double>()
 
-    fun renderFrame(palette: OceanPalette): IntArray {
+    data class RenderOut(val rgb: IntArray, val topAlphaRatio: Float, val bottomAlphaRatio: Float, val firstWaterRow: Int)
+
+    fun renderFrame(palette: OceanPalette): RenderOut {
         val t0 = System.nanoTime()
         val done = AtomicBoolean(false)
         for (pass in 0..1) {
@@ -224,13 +230,27 @@ fun renderOcean(outRoot: String) {
 
         val sky = renderPixelArtSky(w, h, palette, fovY, camX, camY, camZ, targetX, targetY, targetZ)
         val out = IntArray(w * h)
+        var topOpaque = 0
+        var topTotal = 0
+        var botOpaque = 0
+        var botTotal = 0
+        var firstWaterRow = -1
         for (y in 0 until h) {
+            var rowOpaque = 0
             for (x in 0 until w) {
                 val i = ((h - 1 - y) * w + x) * 4
                 val fr = readBuf.get(i).toInt() and 255
                 val fg = readBuf.get(i + 1).toInt() and 255
                 val fb = readBuf.get(i + 2).toInt() and 255
                 val fa = readBuf.get(i + 3).toInt() and 255
+                if (fa > 200) rowOpaque++
+                if (y < h / 6) {
+                    topTotal++
+                    if (fa > 200) topOpaque++
+                } else if (y >= h * 3 / 4) {
+                    botTotal++
+                    if (fa > 200) botOpaque++
+                }
                 val s = sky[y * w + x]
                 val sr = (s shr 16) and 255
                 val sg = (s shr 8) and 255
@@ -240,15 +260,18 @@ fun renderOcean(outRoot: String) {
                 val bb = (fb + sb * (255 - fa) / 255).coerceAtMost(255)
                 out[y * w + x] = (255 shl 24) or (rr shl 16) or (gg shl 8) or bb
             }
+            if (firstWaterRow < 0 && rowOpaque > w * 3 / 4) firstWaterRow = y
         }
-        return out
+        return RenderOut(
+            rgb = out,
+            topAlphaRatio = topOpaque.toFloat() / topTotal.coerceAtLeast(1),
+            bottomAlphaRatio = botOpaque.toFloat() / botTotal.coerceAtLeast(1),
+            firstWaterRow = firstWaterRow,
+        )
     }
 
     val boatSample = OceanSample()
     val boatModel = FloatArray(16)
-    val boatX = -2.0f
-    val boatZ = 5.5f
-    val boatHeading = 0.58f // slightly angled to show hull length, cabin, and mast clearly
 
     data class Shot(val tag: String, val label: String, val spec: OceanSpec, val palette: OceanPalette, val t: Float)
     val shots = listOf(
@@ -260,22 +283,33 @@ fun renderOcean(outRoot: String) {
         Shot("night_rough", "NIGHT  22:30  |  ROUGH SEA", OceanWaves.ROUGH, OceanPalette.NIGHT, 5.1f),
     )
 
-    log("G002 Ocean Prototype — Filament Preview (${w}x${h})")
-    log("Mesh: ${ocean.gridCells}x${ocean.gridCells} cells (${ocean.cellSize} m/cell, ${ocean.vertexCount} verts, ${ocean.triangleCount} tris, 1 draw call)")
+    log("G002 Ocean Prototype (Rev 1) — Filament Preview (${w}x${h})")
+    log("Camera: eye=(%.1f, %.1f, %.1f) target=(%.1f, %.1f, %.1f) fovY=%.0f deg (6 m up, 20 m behind boat)".format(
+        camX, camY, camZ, targetX, targetY, targetZ, fovY,
+    ))
+    log("Mesh: ${ocean.ringCount} nested rings (${ocean.ringCells}x${ocean.ringCells}/ring, ${ocean.baseCellSize} m core -> %.0f m wave outer -> %.0f m far horizon skirt; ${ocean.vertexCount} verts, ${ocean.triangleCount} tris, 1 draw call, snapStep=%.1f m)".format(
+        ocean.mesh.waveOuterRadius, ocean.farHorizonRadius, ocean.snapStep,
+    ))
     setCamera(camX, camY, camZ, targetX, targetY, targetZ)
+    ocean.setHullFoam(boatX, boatZ, boatHeading, halfBeam = 1.15f, halfLength = 2.65f, foamRingWidth = 0.72f)
 
     val gridImages = ArrayList<Pair<String, IntArray>>(shots.size)
     for (s in shots) {
         applyLighting(s.palette)
-        ocean.update(camX, camY, camZ, s.t, s.spec, s.palette, artPixelCell = 2.0f)
+        ocean.update(lookMatrix, camX, camY, camZ, s.t, s.spec, s.palette, artPixelCell = 2.0f)
         OceanSurface.boatTransformInto(boatX, boatZ, boatHeading, s.t, s.spec, boatSample, boatModel)
         boat.setTransform(boatModel)
-        val px = renderFrame(s.palette)
-        writePng(File(outDir, "ocean_${s.tag}.png"), px, w, h)
-        gridImages += s.label to px
-        log("  %-12s  boat y=%+.3f m  n=(%+.3f,%+.3f,%+.3f)  render=%.1f ms".format(
-            s.tag, boatSample.y, boatSample.nx, boatSample.ny, boatSample.nz, renderTimesMs.last(),
+        val res = renderFrame(s.palette)
+        writePng(File(outDir, "ocean_${s.tag}.png"), res.rgb, w, h)
+        gridImages += s.label to res.rgb
+        log("  %-12s  boat y=%+.3f m  horizonRow=%d/%d (%.0f%%)  topOpaque=%.1f%%  botOpaque=%.1f%%  render=%.1f ms".format(
+            s.tag, boatSample.y, res.firstWaterRow, h, res.firstWaterRow * 100f / h,
+            res.topAlphaRatio * 100f, res.bottomAlphaRatio * 100f, renderTimesMs.last(),
         ))
+        // Sanity check: sky must be open at the top, and ocean must fill the bottom below the boat
+        check(res.topAlphaRatio < 0.15f && res.bottomAlphaRatio > 0.95f) {
+            "Orientation check failed for ${s.tag}: topOpaque=${res.topAlphaRatio}, botOpaque=${res.bottomAlphaRatio} (water must fill bottom and sky must fill top)"
+        }
     }
 
     // 3x2 contact sheet: columns = Day / Dusk / Night, rows = Calm / Rough
@@ -288,19 +322,19 @@ fun renderOcean(outRoot: String) {
         tileH = h,
     )
 
-    // 4-frame bobbing strip on rough daytime ocean showing heave, pitch, and roll from OceanWaves.height
+    // 4-frame bobbing strip on rough daytime ocean showing heave, pitch, roll, and hull foam ring
     val bobTimes = floatArrayOf(0.0f, 0.7f, 1.4f, 2.1f)
     val bobFrames = ArrayList<Pair<String, IntArray>>(bobTimes.size)
     applyLighting(OceanPalette.DAY)
     for ((idx, bt) in bobTimes.withIndex()) {
-        ocean.update(camX, camY, camZ, bt, OceanWaves.ROUGH, OceanPalette.DAY, artPixelCell = 2.0f)
+        ocean.update(lookMatrix, camX, camY, camZ, bt, OceanWaves.ROUGH, OceanPalette.DAY, artPixelCell = 2.0f)
         OceanSurface.boatTransformInto(boatX, boatZ, boatHeading, bt, OceanWaves.ROUGH, boatSample, boatModel)
         boat.setTransform(boatModel)
-        val px = renderFrame(OceanPalette.DAY)
-        writePng(File(outDir, "boat_bob_$idx.png"), px, w, h)
+        val res = renderFrame(OceanPalette.DAY)
+        writePng(File(outDir, "boat_bob_$idx.png"), res.rgb, w, h)
         val tiltDeg = Math.toDegrees(atan2(sqrt(boatSample.nx * boatSample.nx + boatSample.nz * boatSample.nz).toDouble(), boatSample.ny.toDouble()))
         val lbl = "t = %.1fs  |  y = %+.2fm  |  tilt = %.1f deg".format(bt, boatSample.y, tiltDeg)
-        bobFrames += lbl to px
+        bobFrames += lbl to res.rgb
         log("  bob[$idx] t=%.1fs  y=%+.3f m  tilt=%.1f deg".format(bt, boatSample.y, tiltDeg))
     }
     writeContactSheet(
@@ -312,20 +346,22 @@ fun renderOcean(outRoot: String) {
         tileH = h,
     )
 
-    // Per-frame CPU benchmark: OceanSurface.update + OceanSurface.boatTransformInto
+    // Per-frame CPU benchmark: OceanSurface.update + setHullFoam + boatTransformInto
     val benchWarmup = 5000
     val benchIters = 2000
     var simT = 0f
     for (i in 0 until benchWarmup) {
         simT += 1f / 60f
-        ocean.update(camX + simT * 2f, camY, camZ + simT * 3f, simT, OceanWaves.ROUGH, OceanPalette.DAY)
+        ocean.update(lookMatrix, camX + simT * 2f, camY, camZ + simT * 3f, simT, OceanWaves.ROUGH, OceanPalette.DAY)
+        ocean.setHullFoam(boatX + simT, boatZ, boatHeading)
         OceanSurface.boatTransformInto(boatX + simT, boatZ, boatHeading, simT, OceanWaves.ROUGH, boatSample, boatModel)
     }
     val allocBefore = currentThreadAllocatedBytes()
     val cpuT0 = System.nanoTime()
     for (i in 0 until benchIters) {
         simT += 1f / 60f
-        ocean.update(camX + simT * 2f, camY, camZ + simT * 3f, simT, OceanWaves.ROUGH, OceanPalette.DAY)
+        ocean.update(lookMatrix, camX + simT * 2f, camY, camZ + simT * 3f, simT, OceanWaves.ROUGH, OceanPalette.DAY)
+        ocean.setHullFoam(boatX + simT, boatZ, boatHeading)
         OceanSurface.boatTransformInto(boatX + simT, boatZ, boatHeading, simT, OceanWaves.ROUGH, boatSample, boatModel)
     }
     val cpuNs = System.nanoTime() - cpuT0
@@ -336,7 +372,7 @@ fun renderOcean(outRoot: String) {
 
     log("")
     log("Bench ($benchIters frames after $benchWarmup warmup):")
-    log("  CPU (OceanSurface.update + boatTransformInto): %.2f us/frame (alloc=%d B over %d frames)".format(cpuUsPerFrame, allocDelta, benchIters))
+    log("  CPU (OceanSurface.update + setHullFoam + boatTransformInto): %.2f us/frame (alloc=%d B over %d frames)".format(cpuUsPerFrame, allocDelta, benchIters))
     log("  Headless Filament render (llvmpipe, ${w}x${h}): median %.1f ms/frame over %d warm frames".format(medianRenderMs, warmRender.size))
     log("  Output dir: ${outDir.absolutePath}")
 
@@ -361,10 +397,9 @@ fun renderOcean(outRoot: String) {
 }
 
 /**
- * Builds the `VERTEX_DOMAIN_DEVICE` clip-space matrix `look` for `street_lit.filamat` that matches
- * Filament's standard right-handed `camera.setProjection(fovY, aspect, near, far, VERTICAL)` + `camera.lookAt`
- * in X, Y (respecting [LookMatrix.windowY]), and infinite reversed-Z depth (`D = near / d`), so the boat
- * clips accurately against the `VERTEX_DOMAIN_OBJECT` ocean waves in the shared depth buffer.
+ * Builds the `VERTEX_DOMAIN_DEVICE` clip-space matrix `look` shared by BOTH `ocean.mat` and `street_lit.filamat`,
+ * respecting [LookMatrix.windowY] (`false` on headless desktop, `true` on Android `TextureView`) and using
+ * Filament's infinite reversed-Z depth (`D = near / w`).
  */
 private fun buildDeviceLookMatrix(
     ex: Float, ey: Float, ez: Float,
@@ -397,20 +432,16 @@ private fun buildDeviceLookMatrix(
     val fxE = fx * ex + fy * ey + fz * ez
 
     // Column-major 4x4: out[col * 4 + row]
-    // Row 0: fxScale * dot(r, P - eye)
     out[0] = fxScale * rx; out[4] = fxScale * ry; out[8] = fxScale * rz; out[12] = -fxScale * rxE
-    // Row 1: ySign * fyScale * dot(u, P - eye)
     out[1] = ySign * fyScale * ux; out[5] = ySign * fyScale * uy; out[9] = ySign * fyScale * uz; out[13] = -ySign * fyScale * uxE
-    // Row 2: Filament surface_main.vs maps device z via z' = -0.5 * z + 0.5 -> setting z = 1 - 2 * near yields z' = near,
-    //        matching Filament's infinite reversed-Z projection (D = near / w) used by ocean.mat (VERTEX_DOMAIN_OBJECT).
+    // Filament surface_main.vs maps device z via z' = -0.5 * z + 0.5 -> z = 1 - 2 * near gives z' = near (D = near / w)
     out[2] = 0f; out[6] = 0f; out[10] = 0f; out[14] = 1f - 2f * near
-    // Row 3: w = dot(f, P - eye)
     out[3] = fx; out[7] = fy; out[11] = fz; out[15] = -fxE
 }
 
 /**
- * Simple multi-part pixel-art wooden box boat (hull + deck + cabin + mast + pennant) rendered with `street_lit.filamat`,
- * driven every frame by [OceanSurface.boatTransformInto].
+ * Simple multi-part pixel-art wooden box boat (submerged keel + hull + deck + cabin + mast + pennant)
+ * rendered with `street_lit.filamat`, driven every frame by [OceanSurface.boatTransformInto].
  */
 private class OceanBoxBoat(
     private val engine: Engine,
@@ -426,19 +457,16 @@ private class OceanBoxBoat(
     private val tmInstance: Int
 
     init {
-        // 8x1 nearest-neighbour palette texture (sRGB) for crisp flat pixel-art boat colours
-        // 0: cedar hull, 1: dark hull keel, 2: tan deck, 3: cream cabin, 4: red roof, 5: wood mast, 6: pennant, 7: cabin window
         val paletteArgb = intArrayOf(
-            0xFF8C5630.toInt(),
-            0xFF4D2D18.toInt(),
-            0xFFC89B64.toInt(),
-            0xFFE9DFCE.toInt(),
-            0xFFA63F2E.toInt(),
-            0xFF6B4226.toInt(),
-            0xFFD94A38.toInt(),
-            0xFF23384F.toInt(),
+            0xFF8C5630.toInt(), // 0: cedar hull
+            0xFF4D2D18.toInt(), // 1: dark submerged keel
+            0xFFC89B64.toInt(), // 2: tan deck
+            0xFFE9DFCE.toInt(), // 3: cream cabin
+            0xFFA63F2E.toInt(), // 4: red roof
+            0xFF6B4226.toInt(), // 5: wood mast
+            0xFFD94A38.toInt(), // 6: pennant
+            0xFF23384F.toInt(), // 7: cabin porthole
         )
-        // Mask texture: pixel 7 (cabin window) has R=255 so it glows warmly at dusk/night via street_lit's `glow`
         val maskArgb = intArrayOf(
             0xFF000000.toInt(),
             0xFF000000.toInt(),
@@ -453,17 +481,17 @@ private class OceanBoxBoat(
         maskTex = makeStripTexture(engine, maskArgb, srgb = false)
 
         val builder = BoxMeshBuilder()
-        // Lower keel (partially submerged below y=0 waterline so wave immersion reads clearly)
-        builder.addBox(-0.95f, -0.55f, -2.30f, 0.95f, -0.05f, 2.30f, sideTile = 1, topTile = 1)
+        // Submerged keel (sits under y = 0 waterline so wave immersion & hull foam ring read cleanly)
+        builder.addBox(-0.98f, -0.65f, -2.35f, 0.98f, -0.04f, 2.35f, sideTile = 1, topTile = 1)
         // Main hull sides + deck
-        builder.addBox(-1.10f, -0.05f, -2.50f, 1.10f, 0.72f, 2.50f, sideTile = 0, topTile = 2)
-        // Bow block (slightly narrower forward nose)
-        builder.addBox(-0.75f, 0.05f, 2.50f, 0.75f, 0.80f, 3.25f, sideTile = 0, topTile = 2)
+        builder.addBox(-1.12f, -0.04f, -2.50f, 1.12f, 0.72f, 2.50f, sideTile = 0, topTile = 2)
+        // Tapered bow block
+        builder.addBox(-0.76f, -0.02f, 2.50f, 0.76f, 0.80f, 3.22f, sideTile = 0, topTile = 2)
         // Cabin box
         builder.addBox(-0.78f, 0.72f, -1.35f, 0.78f, 1.85f, 0.55f, sideTile = 3, topTile = 4)
         // Cabin roof overhang
         builder.addBox(-0.88f, 1.85f, -1.48f, 0.88f, 2.02f, 0.68f, sideTile = 4, topTile = 4)
-        // Cabin glowing porthole bands (left, right, front, back)
+        // Glowing portholes
         builder.addBox(-0.80f, 1.15f, -1.05f, 0.80f, 1.50f, 0.25f, sideTile = 7, topTile = 3)
         builder.addBox(-0.52f, 1.15f, -1.37f, 0.52f, 1.50f, 0.57f, sideTile = 7, topTile = 3)
         // Mast + pennant
@@ -578,18 +606,12 @@ private class BoxMeshBuilder {
     val indexCount: Int get() = inds.size
 
     fun addBox(x0: Float, y0: Float, z0: Float, x1: Float, y1: Float, z1: Float, sideTile: Int, topTile: Int) {
-        // +Y top (normal = 0,1,0) -> quat rotating (0,0,1) to (0,1,0): -90 deg around X -> (-sin45, 0, 0, cos45)
         val s = 0.70710677f
         addQuad(x0, y1, z1, x1, y1, z1, x1, y1, z0, x0, y1, z0, topTile, -s, 0f, 0f, s)
-        // -Y bottom (normal = 0,-1,0) -> +90 deg around X
         addQuad(x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1, sideTile, s, 0f, 0f, s)
-        // +Z front (normal = 0,0,1) -> identity quat
         addQuad(x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1, sideTile, 0f, 0f, 0f, 1f)
-        // -Z back (normal = 0,0,-1) -> 180 deg around Y
         addQuad(x1, y0, z0, x0, y0, z0, x0, y1, z0, x1, y1, z0, sideTile, 0f, 1f, 0f, 0f)
-        // +X right (normal = 1,0,0) -> +90 deg around Y
         addQuad(x1, y0, z1, x1, y0, z0, x1, y1, z0, x1, y1, z1, sideTile, 0f, s, 0f, s)
-        // -X left (normal = -1,0,0) -> -90 deg around Y
         addQuad(x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0, sideTile, 0f, -s, 0f, s)
     }
 
@@ -630,8 +652,8 @@ private class BoxMeshBuilder {
 }
 
 /**
- * Generates a stepped pixel-art sky backdrop (5 flat bands + sun or moon disc positioned along [OceanPalette.lightDir],
- * plus sparse crisp stars at night) so the transparent Filament ocean render composites onto a cohesive time-of-day sky.
+ * Generates a stepped 16-bit pixel-art sky backdrop (5 flat horizontal bands + sun or moon disc positioned
+ * along [OceanPalette.lightDir], plus sparse crisp 2x2 stars at night) filling the upper sky above the horizon.
  */
 private fun renderPixelArtSky(
     w: Int,
@@ -643,17 +665,16 @@ private fun renderPixelArtSky(
 ): IntArray {
     val night = palette.nightFactor
     val bands = when {
-        night > 0.75f -> intArrayOf(0xFF0A1024.toInt(), 0xFF0F1936.toInt(), 0xFF152447.toInt(), 0xFF1E3259.toInt(), 0xFF28416B.toInt())
+        night > 0.75f -> intArrayOf(0xFF070C1C.toInt(), 0xFF0C152E.toInt(), 0xFF121F40.toInt(), 0xFF1A2B52.toInt(), 0xFF233863.toInt())
         night > 0.10f -> intArrayOf(0xFF2B2852.toInt(), 0xFF5A3762.toInt(), 0xFF9F4B58.toInt(), 0xFFD9724C.toInt(), 0xFFF2A45A.toInt())
         else -> intArrayOf(0xFF4284C9.toInt(), 0xFF5FA2DF.toInt(), 0xFF82BCEB.toInt(), 0xFFAAD4F4.toInt(), 0xFFCDE6F9.toInt())
     }
     val px = IntArray(w * h)
-    // Approximate horizon row from camera pitch
     val dy = ty - ey
     val dHoriz = sqrt((tx - ex) * (tx - ex) + (tz - ez) * (tz - ez)).coerceAtLeast(1e-4f)
     val pitchRad = atan2(dy.toDouble(), dHoriz.toDouble())
     val halfFovRad = Math.toRadians(fovYDeg / 2.0)
-    val horizonY = (h * (0.5 + tan(pitchRad) / (2.0 * tan(halfFovRad)))).toInt().coerceIn(h / 4, h * 3 / 4)
+    val horizonY = (h * (0.5 + tan(pitchRad) / (2.0 * tan(halfFovRad)))).toInt().coerceIn(h / 8, h * 3 / 4)
 
     for (y in 0 until h) {
         val frac = (y.toFloat() / horizonY.coerceAtLeast(1)).coerceIn(0f, 0.999f)
@@ -666,17 +687,17 @@ private fun renderPixelArtSky(
     // Crisp 2x2 pixel stars above the horizon at night
     if (night > 0.75f) {
         var seed = 0x51A7F31D
-        repeat(90) {
+        repeat(80) {
             seed = seed * 1664525 + 1013904223
             val sx = ((seed ushr 16) and 0xFFFF) % (w - 4) + 2
             seed = seed * 1664525 + 1013904223
-            val sy = ((seed ushr 16) and 0xFFFF) % (horizonY - 12).coerceAtLeast(10) + 4
+            val sy = ((seed ushr 16) and 0xFFFF) % (horizonY - 10).coerceAtLeast(8) + 4
             val bright = if ((seed and 3) == 0) 0xFFEAF2FF.toInt() else 0xFFA4BCDF.toInt()
             for (oy in 0..1) for (ox in 0..1) px[(sy + oy) * w + (sx + ox)] = bright
         }
     }
 
-    // Project sun/moon disc along palette.lightDir onto the sky
+    // Project sun/moon disc along palette.lightDir using exact same camera basis as buildDeviceLookMatrix
     var fx = tx - ex; var fy = ty - ey; var fz = tz - ez
     val fl = sqrt(fx * fx + fy * fy + fz * fz).coerceAtLeast(1e-6f)
     fx /= fl; fy /= fl; fz /= fl
@@ -711,7 +732,6 @@ private fun renderPixelArtSky(
         val halo2 = (radius + 5) * (radius + 5)
         for (py in max(0, cy - radius - 6)..min(horizonY, cy + radius + 6)) {
             for (pxi in max(0, cx - radius - 6)..min(w - 1, cx + radius + 6)) {
-                // Quantize to 2x2 pixel-art blocks
                 val qx = (pxi / 2) * 2 - cx
                 val qy = (py / 2) * 2 - cy
                 val d2 = qx * qx + qy * qy
@@ -771,7 +791,7 @@ private fun writeContactSheet(
 private fun currentThreadAllocatedBytes(): Long {
     val bean = ManagementFactory.getThreadMXBean()
     return if (bean is com.sun.management.ThreadMXBean && bean.isThreadAllocatedMemorySupported) {
-        bean.getThreadAllocatedBytes(Thread.currentThread().id)
+        bean.getThreadAllocatedBytes(Thread.currentThread().threadId())
     } else {
         -1L
     }

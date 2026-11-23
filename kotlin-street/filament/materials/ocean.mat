@@ -1,20 +1,27 @@
-// Standalone pixel-art ocean surface for Filament (G002 prototype).
+// Pixel-art ocean surface for Filament (G002 prototype, revision 1).
 //
-// Vertex shader: sums up to 6 Gerstner waves in world space around a camera-snapped grid origin (so vertices lock
-// onto fixed world coordinates and never swim), computing exact analytical normals and horizontal Jacobian compression
-// for crest foam.
-// Fragment shader: unlit pixel-art water shading in 4 flat stepped depth/angle bands (no smooth gradients), stepped
-// time-of-day sky reflection at grazing angles, Bayer-dithered white foam pixels on steep wave crests, a crisp sun
-// glint ribbon by day/dusk, dark night water with cool moon glint, and a dithered horizon dissolve.
+// Uses `vertexDomain : device` with `materialParams.look` (the exact same projection and depth convention as
+// `street_lit.mat` / `LookMatrix`) so the ocean, boats, and town geometry always share identical Y orientation
+// (both on headless desktop and Android TextureView) and reversed-Z depth ordering.
+//
+// Vertex shader: sums up to 6 aligned Gerstner waves in world space around a camera-snapped nested-ring mesh
+// (out to ~7 km of wave rings + flat 24 km horizon skirt), attenuating wave amplitude smoothly with distance
+// and wavelength (zero aliasing in outer rings, exact CPU parity near the camera/boat).
+//
+// Fragment shader: 16-bit pixel-art sea shading — long parallel swell bands (dark troughs, mid body, lit faces,
+// thin bright crest ribbons), fine parallel wave-line shimmer, Bayer-dithered white crest foam, crisp sun/moon
+// sparkle ribbon, stepped time-of-day sky reflection, calm atmospheric fade to a single flat horizon sea colour,
+// and an optional waterline foam ring around a floating boat hull.
 //
 // Compile with Filament v1.81.0 matc (same flags as street_lit.mat):
 //   matc -p mobile -a opengl -o kotlin-street/app/src/main/assets/filament/ocean.filamat \
 //       kotlin-street/filament/materials/ocean.mat
+
 material {
     name : OceanWater,
     shadingModel : unlit,
     blending : opaque,
-    vertexDomain : object,
+    vertexDomain : device,
     culling : none,
     doubleSided : false,
     variables : [
@@ -23,10 +30,14 @@ material {
         waveMeta
     ],
     parameters : [
-        // Snapped world-space grid origin (snapX, seaLevelY, snapZ, cellSize)
+        // Clip-space camera matrix matching street_lit.mat / LookMatrix
+        { type : mat4, name : look, precision : high },
+        // Snapped world-space grid origin: (snapX, seaLevelY, snapZ, snapStep)
         { type : float4, name : gridOrigin, precision : high },
-        // (timeSec, maxTotalAmplitude, depthScaleMeters, seaRoughness 0..1)
+        // (timeSec, maxTotalAmplitude, mainSwellDirX, mainSwellDirZ)
         { type : float4, name : oceanTime, precision : high },
+        // (seaRoughness 0..1, waveFadeStartM, waveFadeEndM, artPixelCellPx)
+        { type : float4, name : waveParams, precision : high },
         // Up to 6 Gerstner waves matching OceanWaves.kt:
         //   waveA_i = (dirX, dirZ, wavelengthMeters, amplitudeMeters)
         //   waveB_i = (steepnessQ, omegaRadPerSec, phaseOffsetRad, 0.0)
@@ -42,23 +53,28 @@ material {
         { type : float4, name : waveB4, precision : high },
         { type : float4, name : waveA5, precision : high },
         { type : float4, name : waveB5, precision : high },
-        // Camera world position (xyz) and art-pixel Bayer cell size in screen px (w)
+        // Camera world position (xyz)
         { type : float4, name : eyePos, precision : high },
         // Unit vector pointing TOWARDS the sun (day/dusk) or moon (night) in xyz; night factor 0..1 in w
         { type : float4, name : lightDir, precision : high },
-        // Sun/moon glint colour (rgb) and intensity (a)
+        // Sun/moon glint sparkle colour (rgb) and intensity (a)
         { type : float4, name : glintColor },
         // Sky reflection colour for the current hour (rgb) and reflection strength (a)
         { type : float4, name : skyColor },
-        // Horizon sky colour (rgb) and outer fog distance in metres (a)
+        // Calm distant flat sea colour (rgb) and atmospheric distance-fade end in metres (a)
         { type : float4, name : horizonColor },
-        // 4 flat stepped pixel-art water bands (deep -> mid -> light -> crest)
+        // 4 flat stepped pixel-art water bands (deep trough -> mid body -> lit face -> thin crest highlight)
         { type : float4, name : bandDeep },
         { type : float4, name : bandMid },
         { type : float4, name : bandLight },
         { type : float4, name : bandCrest },
-        // Crest foam colour (rgb) and foam threshold (a)
-        { type : float4, name : foamColor }
+        // Crest & hull foam colour (rgb) and crest foam threshold (a)
+        { type : float4, name : foamColor },
+        // Optional floating boat waterline foam ring:
+        //   hullPose  = (boatWorldX, boatWorldZ, cosHeading, sinHeading)
+        //   hullShape = (halfBeamM, halfLengthM, foamRingWidthM, active 0/1)
+        { type : float4, name : hullPose, precision : high },
+        { type : float4, name : hullShape }
     ]
 }
 
@@ -68,6 +84,8 @@ vertex {
     void addGerstner(
         vec2 xz,
         float t,
+        float farFade,
+        float approxCell,
         vec4 wA,
         vec4 wB,
         inout vec3 disp,
@@ -79,6 +97,13 @@ vertex {
         if (wavelength <= 0.0001 || amp <= 0.0) {
             return;
         }
+        // Fade short waves on coarse outer rings to prevent aliasing while keeping 1.0 inside ~40 m of camera
+        float nyquistFade = smoothstep(approxCell * 1.8, approxCell * 4.0, wavelength);
+        float ampEff = amp * farFade * nyquistFade;
+        if (ampEff <= 0.00001) {
+            return;
+        }
+
         vec2 dir = wA.xy;
         float q = wB.x;
         float omega = wB.y;
@@ -89,12 +114,12 @@ vertex {
         float s = sin(phase);
         float c = cos(phase);
 
-        float qa = q * amp;
-        float ka = k * amp;
+        float qa = q * ampEff;
+        float ka = k * ampEff;
         float qka = q * ka;
 
         disp.x += qa * dir.x * c;
-        disp.y += amp * s;
+        disp.y += ampEff * s;
         disp.z += qa * dir.y * c;
 
         // Exact partial derivatives dP/dx0 (dX) and dP/dz0 (dZ)
@@ -112,16 +137,25 @@ vertex {
         vec2 worldXZ = materialParams.gridOrigin.xz + localPos.xz;
         float t = materialParams.oceanTime.x;
 
+        float horizDist = length(worldXZ - materialParams.eyePos.xz);
+        float fadeStart = max(materialParams.waveParams.y, 40.0);
+        float fadeEnd = max(materialParams.waveParams.z, fadeStart + 100.0);
+        float farFade = 1.0 - smoothstep(fadeStart, fadeEnd, horizDist);
+        // Zero inside 40 m so near-camera/boat vertices match CPU OceanWaves.height exactly
+        float approxCell = max(0.0, (horizDist - 40.0) * 0.040);
+
         vec3 disp = vec3(0.0);
         vec3 dX = vec3(1.0, 0.0, 0.0);
         vec3 dZ = vec3(0.0, 0.0, 1.0);
 
-        addGerstner(worldXZ, t, materialParams.waveA0, materialParams.waveB0, disp, dX, dZ);
-        addGerstner(worldXZ, t, materialParams.waveA1, materialParams.waveB1, disp, dX, dZ);
-        addGerstner(worldXZ, t, materialParams.waveA2, materialParams.waveB2, disp, dX, dZ);
-        addGerstner(worldXZ, t, materialParams.waveA3, materialParams.waveB3, disp, dX, dZ);
-        addGerstner(worldXZ, t, materialParams.waveA4, materialParams.waveB4, disp, dX, dZ);
-        addGerstner(worldXZ, t, materialParams.waveA5, materialParams.waveB5, disp, dX, dZ);
+        if (farFade > 0.0001) {
+            addGerstner(worldXZ, t, farFade, approxCell, materialParams.waveA0, materialParams.waveB0, disp, dX, dZ);
+            addGerstner(worldXZ, t, farFade, approxCell, materialParams.waveA1, materialParams.waveB1, disp, dX, dZ);
+            addGerstner(worldXZ, t, farFade, approxCell, materialParams.waveA2, materialParams.waveB2, disp, dX, dZ);
+            addGerstner(worldXZ, t, farFade, approxCell, materialParams.waveA3, materialParams.waveB3, disp, dX, dZ);
+            addGerstner(worldXZ, t, farFade, approxCell, materialParams.waveA4, materialParams.waveB4, disp, dX, dZ);
+            addGerstner(worldXZ, t, farFade, approxCell, materialParams.waveA5, materialParams.waveB5, disp, dX, dZ);
+        }
 
         // Right-handed Y-up normal: (+Z) x (+X) = +Y
         vec3 nrm = normalize(cross(dZ, dX));
@@ -129,22 +163,31 @@ vertex {
         float jacobian = dX.x * dZ.z - dX.z * dZ.x;
         float crest = clamp(1.0 - jacobian, 0.0, 1.0);
 
-        material.worldPosition.xyz += disp;
-
         vec3 displacedWorld = vec3(
             worldXZ.x + disp.x,
             materialParams.gridOrigin.y + disp.y,
             worldXZ.y + disp.z
         );
-        float camDist = length(displacedWorld.xz - materialParams.eyePos.xz);
+        material.worldPosition = vec4(displacedWorld, 1.0);
 
+        // Shift localPos -> displacedWorld, then project via materialParams.look (exact same transform as street_lit.mat)
+        vec3 delta = displacedWorld - localPos;
+        mat4 displaceMat = mat4(
+            vec4(1.0, 0.0, 0.0, 0.0),
+            vec4(0.0, 1.0, 0.0, 0.0),
+            vec4(0.0, 0.0, 1.0, 0.0),
+            vec4(delta.x, delta.y, delta.z, 1.0)
+        );
+        material.clipSpaceTransform = materialParams.look * displaceMat;
+
+        float camDist = length(displacedWorld.xz - materialParams.eyePos.xz);
         material.wavePos = vec4(displacedWorld, camDist);
         material.waveNormal = vec4(nrm, crest);
         material.waveMeta = vec4(
             disp.y,
             max(materialParams.oceanTime.y, 0.05),
-            jacobian,
-            materialParams.oceanTime.w
+            farFade,
+            materialParams.waveParams.x
         );
     }
 }
@@ -165,78 +208,141 @@ fragment {
     void material(inout MaterialInputs material) {
         prepareMaterial(material);
 
-        vec3 pos = variable_wavePos.xyz;
-        float dist = variable_wavePos.w;
+        highp vec3 pos = variable_wavePos.xyz;
+        highp float dist = variable_wavePos.w;
         vec3 N = normalize(variable_waveNormal.xyz);
         float crest = variable_waveNormal.w;
         float waveY = variable_waveMeta.x;
         float maxAmp = variable_waveMeta.y;
+        float waveAlive = variable_waveMeta.z;
         float roughness = variable_waveMeta.w;
 
-        vec3 V = normalize(materialParams.eyePos.xyz - pos);
+        highp vec3 V = normalize(materialParams.eyePos.xyz - pos);
         vec3 L = normalize(materialParams.lightDir.xyz);
         float night = clamp(materialParams.lightDir.w, 0.0, 1.0);
-
-        float cell = max(materialParams.eyePos.w, 1.0);
+        float cell = max(materialParams.waveParams.w, 1.0);
         float dither = bayer4(gl_FragCoord.xy / cell);
 
-        // Quantized depth + view-angle + wave-slope tone mapped to 4 flat pixel-art bands
+        // Distance fade to calm flat horizon sea colour (pixel-art atmospheric band)
+        float atmEnd = max(materialParams.horizonColor.a, 120.0);
+        float atmFade = smoothstep(55.0, atmEnd, dist);
+        float detailFade = 1.0 - smoothstep(45.0, 320.0, dist);
+
+        // Main swell axis & perpendicular coordinate for crisp 16-bit parallel wave lines
+        vec2 swellDir = normalize(materialParams.oceanTime.zw);
+        vec2 swellPerp = vec2(-swellDir.y, swellDir.x);
+        highp float along = dot(pos.xz, swellDir);
+        highp float across = dot(pos.xz, swellPerp);
+        float t = materialParams.oceanTime.x;
+
+        // Fine parallel horizontal ripple phase (few metres wide near camera) so even calm sea reads as water lines
+        float warp = 0.35 * sin(across * 0.22 + t * 0.55) + 0.18 * sin(across * 0.53 - t * 0.85);
+        float fineLineA = sin(along * 1.45 - t * 2.10 + warp);
+        float fineLineB = sin(along * 2.75 - t * 3.20 - warp * 1.3);
+        float fineRipple = (0.65 * fineLineA + 0.35 * fineLineB) * detailFade;
+
+        // Wave elevation normalized to [-1, 1], combined with front-face slope along the swell & camera
+        float elevNorm = clamp(waveY / max(maxAmp * 0.68, 0.05), -1.0, 1.0);
+        // Slope facing the camera vs facing away separates dark wave troughs from bright front faces
+        float frontSlope = clamp(dot(N.xz, V.xz) * 2.4, -1.0, 1.0);
+        float sunSlope = clamp(dot(N.xz, L.xz) * 1.6, -1.0, 1.0);
+
+        // Band signal: follows parallel swell troughs & crests (narrow crest ridge, distinct troughs)
+        float swellBand = elevNorm * 0.62
+            + frontSlope * 0.24
+            + sunSlope * 0.14
+            + fineRipple * mix(0.28, 0.14, roughness);
+        swellBand *= (1.0 - atmFade * 0.85);
+
+        // 4 flat stepped pixel-art water bands (no smooth gradients):
+        //   bandDeep  : dark parallel troughs
+        //   bandMid   : primary sea body
+        //   bandLight : lighter lit wave faces & horizontal ripple lines
+        //   bandCrest : thin bright highlight ribbon right along swell ridges
+        vec3 col = materialParams.bandMid.rgb;
+        if (swellBand > 0.64) {
+            col = materialParams.bandCrest.rgb;
+        } else if (swellBand > 0.18) {
+            col = materialParams.bandLight.rgb;
+        } else if (swellBand < -0.24) {
+            col = materialParams.bandDeep.rgb;
+        }
+
+        // Stepped time-of-day sky reflection on grazing distant wave backs (dithered edge, no smooth gradient)
         float ndotv = clamp(dot(N, V), 0.0, 1.0);
         float fresnel = pow(1.0 - ndotv, 3.0);
-        float elev = clamp(waveY / maxAmp * 0.5 + 0.5, 0.0, 1.0);
-        float ndotl = clamp(dot(N, L), 0.0, 1.0);
-        float depthFactor = clamp(dist / max(materialParams.oceanTime.z, 1.0), 0.0, 1.0);
-
-        float tone = clamp(0.15 + 0.34 * elev + 0.30 * ndotl + 0.24 * fresnel - 0.16 * depthFactor, 0.0, 1.0);
-
-        vec3 col = materialParams.bandDeep.rgb;
-        if (tone >= 0.75) {
-            col = materialParams.bandCrest.rgb;
-        } else if (tone >= 0.52) {
-            col = materialParams.bandLight.rgb;
-        } else if (tone >= 0.30) {
-            col = materialParams.bandMid.rgb;
+        float skyRefl = clamp((fresnel - 0.36) / 0.48, 0.0, 1.0) * materialParams.skyColor.a * (1.0 - atmFade * 0.65);
+        if (skyRefl > 0.55 || (skyRefl > 0.18 && dither < skyRefl)) {
+            col = mix(col, materialParams.skyColor.rgb, 0.48);
         }
 
-        // Stepped sky colour reflection at grazing angles (whole art-pixel dithered edge)
-        float skyRefl = clamp((fresnel - 0.38) / 0.45, 0.0, 1.0) * materialParams.skyColor.a;
-        if (skyRefl > 0.65 || (skyRefl > 0.22 && dither < skyRefl)) {
-            col = mix(col, materialParams.skyColor.rgb, 0.62);
+        // Crisp atmospheric fade toward a single calm flat distant sea band at the horizon
+        if (atmFade > 0.88 || (atmFade > 0.04 && dither < atmFade)) {
+            col = materialParams.horizonColor.rgb;
         }
 
-        // Quantized sun glint band (day/dusk) or cool moon glint band (night)
+        // 16-bit horizontal sun glint (day/dusk) or silver moon sparkle ribbon (night)
+        // Aligned to the sun/moon azimuth and broken into crisp horizontal pixel-art sparkles by wave normals
         vec3 R = reflect(-V, N);
         float spec = max(dot(R, L), 0.0);
-        float tight = mix(0.968, 0.980, night);
-        float wide = mix(0.915, 0.945, night);
+        // Azimuthal column alignment along light direction (keeps a clean reflection path all the way to horizon)
+        highp vec2 dH = pos.xz - materialParams.eyePos.xz;
+        vec2 viewH = dH / max(length(dH), 1e-4);
+        vec2 lightH = L.xz / max(length(L.xz), 1e-4);
+        float azim = max(dot(viewH, lightH), 0.0);
+        float pathMask = smoothstep(0.955, 0.996, azim);
+        float sparkleWave = step(0.15, sin(along * 2.2 - t * 2.8 + warp * 1.8) + 0.45 * elevNorm);
         float glintStr = materialParams.glintColor.a;
         if (glintStr > 0.01) {
+            float tight = mix(0.962, 0.976, night);
+            float wide = mix(0.905, 0.935, night);
+            float glintVal = 0.0;
             if (spec > tight) {
-                col = mix(col, materialParams.glintColor.rgb, clamp(glintStr, 0.0, 1.0));
+                glintVal = 1.0;
             } else if (spec > wide) {
-                float gFrac = (spec - wide) / (tight - wide);
-                if (dither < gFrac * glintStr) {
-                    col = mix(col, materialParams.glintColor.rgb, 0.75 * clamp(glintStr, 0.0, 1.0));
-                }
+                glintVal = (spec - wide) / (tight - wide) * 0.85;
+            }
+            // Add crisp 16-bit horizontal path sparkles stretching toward the horizon
+            float horizonSparkle = pathMask * sparkleWave * (0.42 + 0.58 * detailFade);
+            glintVal = max(glintVal, horizonSparkle * mix(0.85, 0.95, night));
+            if (glintVal > 0.72 || (glintVal > 0.16 && dither < glintVal * glintStr)) {
+                col = mix(col, materialParams.glintColor.rgb, clamp(glintStr, 0.0, 1.0));
             }
         }
 
-        // Bayer-dithered white foam pixels on steep wave crests
-        float foamMetric = clamp(crest * 0.78 + max(elev - 0.56, 0.0) * 1.10, 0.0, 1.0) * (0.55 + 0.45 * roughness);
+        // Bayer-dithered white foam pixels along steep wave crests (fades out with distance so horizon stays calm)
+        float crestSignal = clamp(crest * 0.85 + max(elevNorm - 0.45, 0.0) * 0.95, 0.0, 1.0)
+            * (0.40 + 0.60 * roughness) * waveAlive * detailFade;
         float foamThresh = materialParams.foamColor.a;
-        if (foamMetric > foamThresh) {
-            float fNorm = clamp((foamMetric - foamThresh) / max(1.0 - foamThresh, 0.05), 0.0, 1.0);
-            if (fNorm > 0.78 || dither < fNorm) {
+        if (crestSignal > foamThresh) {
+            float fNorm = clamp((crestSignal - foamThresh) / max(1.0 - foamThresh, 0.05), 0.0, 1.0);
+            if (fNorm > 0.76 || dither < fNorm) {
                 col = materialParams.foamColor.rgb;
             }
         }
 
-        // Stepped horizon dither dissolve into the time-of-day sky
-        float fogEnd = max(materialParams.horizonColor.a, 10.0);
-        float fogStart = fogEnd * 0.62;
-        float fogFrac = clamp((dist - fogStart) / max(fogEnd - fogStart, 1.0), 0.0, 1.0);
-        if (fogFrac > 0.85 || (fogFrac > 0.02 && dither < fogFrac)) {
-            col = materialParams.horizonColor.rgb;
+        // Thin pixel-art waterline foam ring where a floating boat hull meets the ocean surface
+        if (materialParams.hullShape.w > 0.5) {
+            highp vec2 rel = pos.xz - materialParams.hullPose.xy;
+            float ch = materialParams.hullPose.z;
+            float sh = materialParams.hullPose.w;
+            // Boat local right (+X) and forward (+Z) matching OceanSurface.boatTransformInto
+            float lx = rel.x * ch - rel.y * sh;
+            float lz = rel.x * sh + rel.y * ch;
+            float halfL = max(materialParams.hullShape.y, 0.2);
+            // Taper bow smoothly for lz > 0 to hug the pointed bow block
+            float bowT = clamp(lz / halfL, 0.0, 1.0);
+            float halfW = materialParams.hullShape.x * mix(1.0, 0.58, bowT * bowT);
+            vec2 q = abs(vec2(lx, lz)) - vec2(halfW, halfL);
+            float sdf = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
+            // Modulate ring thickness subtly with crest/Jacobian and wave motion
+            float ringW = materialParams.hullShape.z * (0.80 + 0.45 * crest + 0.20 * sin(t * 3.4 + lz * 2.2));
+            if (sdf > -0.22 && sdf < ringW) {
+                float edge = 1.0 - clamp(sdf / max(ringW, 0.05), 0.0, 1.0);
+                if (edge > 0.56 || dither < edge * 1.15) {
+                    col = materialParams.foamColor.rgb;
+                }
+            }
         }
 
         material.baseColor = vec4(col, 1.0);

@@ -16,7 +16,8 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
- * Lighting and flat stepped pixel-art water palette for one time of day (day, dusk, or night), uploaded to `ocean.mat`.
+ * Lighting and flat 16-bit pixel-art water palette (linear RGB for Filament `unlit` + `LinearToneMapper`)
+ * for one time of day (day, dusk, or night), uploaded to `ocean.mat`.
  */
 class OceanPalette(
     val bandDeep: FloatArray,
@@ -25,10 +26,12 @@ class OceanPalette(
     val bandCrest: FloatArray,
     val skyColor: FloatArray,
     val skyReflectStrength: Float,
-    val horizonColor: FloatArray,
+    /** Calm flat distant sea colour that the water settles into toward the horizon. */
+    val horizonSeaColor: FloatArray,
     val glintColor: FloatArray,
     val glintStrength: Float,
     val foamColor: FloatArray,
+    /** Unit vector pointing TOWARDS the sun (day/dusk) or moon (night). */
     val lightDir: FloatArray,
     val nightFactor: Float,
 ) {
@@ -38,51 +41,54 @@ class OceanPalette(
             return floatArrayOf(x / l, y / l, z / l)
         }
 
-        /** Bright sunlit open ocean: crisp turquoise-to-cobalt 4-band palette and warm white sun glint. */
+        /** Bright sunlit 16-bit open ocean: crisp cobalt troughs, cerulean body, turquoise faces, pale aqua ridges. */
         val DAY = OceanPalette(
-            bandDeep = floatArrayOf(0.055f, 0.165f, 0.340f),
-            bandMid = floatArrayOf(0.085f, 0.275f, 0.490f),
-            bandLight = floatArrayOf(0.145f, 0.420f, 0.640f),
-            bandCrest = floatArrayOf(0.255f, 0.565f, 0.745f),
-            skyColor = floatArrayOf(0.55f, 0.78f, 0.96f),
-            skyReflectStrength = 0.65f,
-            horizonColor = floatArrayOf(0.68f, 0.84f, 0.96f),
+            bandDeep = floatArrayOf(0.028f, 0.115f, 0.285f),
+            bandMid = floatArrayOf(0.055f, 0.215f, 0.445f),
+            bandLight = floatArrayOf(0.110f, 0.365f, 0.595f),
+            bandCrest = floatArrayOf(0.285f, 0.610f, 0.785f),
+            skyColor = floatArrayOf(0.42f, 0.68f, 0.92f),
+            skyReflectStrength = 0.50f,
+            horizonSeaColor = floatArrayOf(0.105f, 0.285f, 0.510f),
             glintColor = floatArrayOf(1.00f, 0.98f, 0.86f),
             glintStrength = 0.95f,
             foamColor = floatArrayOf(0.95f, 0.97f, 0.99f),
-            lightDir = norm3(0.32f, 0.52f, 0.79f),
+            // High midday sun (+25 deg elevation) in front-left over the ocean
+            lightDir = norm3(0.20f, 0.43f, 0.88f),
             nightFactor = 0.0f,
         )
 
-        /** Low-sun dusk sea: slate-violet troughs, warm teal midtones, coral sky reflection, molten gold sun ribbon. */
+        /** Low-sun dusk sea: deep slate-violet troughs, warm indigo body, coral-lit faces, molten gold sun ribbon. */
         val DUSK = OceanPalette(
-            bandDeep = floatArrayOf(0.085f, 0.105f, 0.220f),
-            bandMid = floatArrayOf(0.155f, 0.185f, 0.330f),
-            bandLight = floatArrayOf(0.280f, 0.275f, 0.410f),
-            bandCrest = floatArrayOf(0.470f, 0.350f, 0.420f),
-            skyColor = floatArrayOf(0.92f, 0.52f, 0.36f),
-            skyReflectStrength = 0.78f,
-            horizonColor = floatArrayOf(0.90f, 0.55f, 0.38f),
-            glintColor = floatArrayOf(1.00f, 0.74f, 0.32f),
+            bandDeep = floatArrayOf(0.045f, 0.055f, 0.145f),
+            bandMid = floatArrayOf(0.105f, 0.115f, 0.245f),
+            bandLight = floatArrayOf(0.240f, 0.195f, 0.310f),
+            bandCrest = floatArrayOf(0.560f, 0.340f, 0.295f),
+            skyColor = floatArrayOf(0.86f, 0.40f, 0.26f),
+            skyReflectStrength = 0.65f,
+            horizonSeaColor = floatArrayOf(0.210f, 0.165f, 0.275f),
+            glintColor = floatArrayOf(1.00f, 0.72f, 0.28f),
             glintStrength = 1.00f,
-            foamColor = floatArrayOf(0.94f, 0.82f, 0.76f),
-            lightDir = norm3(0.18f, 0.17f, 0.97f),
-            nightFactor = 0.25f,
+            foamColor = floatArrayOf(0.95f, 0.80f, 0.72f),
+            // Low sunset sun (+5.5 deg elevation) visibly above the horizon
+            lightDir = norm3(0.14f, 0.096f, 0.985f),
+            nightFactor = 0.28f,
         )
 
-        /** Dark open sea at night: deep indigo-navy stepped bands with crisp cool silver-white moon glint. */
+        /** Dark open sea at night: midnight-indigo stepped bands with crisp cool silver-white moon sparkles. */
         val NIGHT = OceanPalette(
-            bandDeep = floatArrayOf(0.015f, 0.030f, 0.075f),
-            bandMid = floatArrayOf(0.028f, 0.055f, 0.125f),
-            bandLight = floatArrayOf(0.048f, 0.090f, 0.190f),
-            bandCrest = floatArrayOf(0.082f, 0.140f, 0.260f),
-            skyColor = floatArrayOf(0.08f, 0.13f, 0.25f),
-            skyReflectStrength = 0.55f,
-            horizonColor = floatArrayOf(0.055f, 0.090f, 0.185f),
-            glintColor = floatArrayOf(0.84f, 0.91f, 1.00f),
-            glintStrength = 0.92f,
-            foamColor = floatArrayOf(0.62f, 0.72f, 0.84f),
-            lightDir = norm3(-0.14f, 0.26f, 0.95f),
+            bandDeep = floatArrayOf(0.008f, 0.016f, 0.048f),
+            bandMid = floatArrayOf(0.016f, 0.032f, 0.088f),
+            bandLight = floatArrayOf(0.034f, 0.064f, 0.145f),
+            bandCrest = floatArrayOf(0.075f, 0.125f, 0.235f),
+            skyColor = floatArrayOf(0.05f, 0.09f, 0.19f),
+            skyReflectStrength = 0.45f,
+            horizonSeaColor = floatArrayOf(0.018f, 0.036f, 0.092f),
+            glintColor = floatArrayOf(0.86f, 0.92f, 1.00f),
+            glintStrength = 0.94f,
+            foamColor = floatArrayOf(0.58f, 0.68f, 0.80f),
+            // Moon (+6.8 deg elevation) visibly above the horizon
+            lightDir = norm3(-0.14f, 0.118f, 0.983f),
             nightFactor = 1.0f,
         )
 
@@ -90,58 +96,58 @@ class OceanPalette(
         fun forHour(hour: Float): OceanPalette {
             val h = ((hour % 24f) + 24f) % 24f
             return when {
-                h < 5.5f || h >= 20.5f -> NIGHT
-                h < 7.5f || h >= 17.5f -> DUSK
-                else -> DAY
+                h in 7.5f..17.2f -> DAY
+                h in 5.5f..7.5f || h in 17.2f..20.2f -> DUSK
+                else -> NIGHT
             }
         }
     }
 }
 
 /**
- * Standalone Filament renderable for the Gerstner ocean surface (`ocean.mat`).
+ * Filament renderable wrapper for the G002 pixel-art ocean prototype.
  *
- * Uploads a single uniform grid mesh once (`[gridCells] x [gridCells]` quads spaced by [cellSize] metres). Each frame,
- * [update] snaps the mesh origin to integer steps of [cellSize] around the camera `(camX, camZ)` via `TransformManager`
- * and updates wave/palette uniforms with zero per-frame heap allocations.
+ * Uses a single static watertight nested-ring mesh ([OceanGridMesh]) covering ~7.2 km in progressively coarser
+ * Gerstner wave rings plus a flat far-horizon skirt out to 24 km in **1 draw call**.
+ *
+ * Uses `vertexDomain : device` with `materialParams.look` (matching `street_lit.mat` / `LookMatrix`) so the
+ * ocean always shares exact Y orientation and reversed-Z depth with boats and town geometry on both headless
+ * desktop and Android `TextureView`.
  */
 class OceanSurface(
     private val engine: Engine,
     private val scene: Scene,
     material: Material,
-    /** Number of grid cells along each axis (`160` -> 25,921 vertices, 51,200 triangles, 16-bit indices, 1 draw call). */
-    val gridCells: Int = 160,
-    /** Spacing between adjacent resting grid vertices in metres. */
-    val cellSize: Float = 1.25f,
-    /** Sea-level elevation in metres. */
+    val ringCells: Int = 56,
+    val baseCellSize: Float = 1.0f,
+    val ringCount: Int = 9,
+    val farHorizonRadius: Float = 24000f,
     val seaLevelY: Float = 0f,
 ) {
-    val vertexCount: Int = (gridCells + 1) * (gridCells + 1)
-    val triangleCount: Int = gridCells * gridCells * 2
-    val halfSpan: Float = gridCells * cellSize * 0.5f
+    val mesh: OceanGridMesh = OceanGridMesh.build(
+        ringCells = ringCells,
+        baseCellSize = baseCellSize,
+        ringCount = ringCount,
+        farHorizonRadius = farHorizonRadius,
+    )
+    val vertexCount: Int get() = mesh.vertexCount
+    val triangleCount: Int get() = mesh.triangleCount
+    val snapStep: Float get() = mesh.snapStep
 
     private val vb: VertexBuffer
     private val ib: IndexBuffer
     private val mi: MaterialInstance = material.createInstance()
     private val entity: Int = EntityManager.get().create()
-    private val transformInstance: Int
 
-    // Pre-allocated 4x4 translation matrix (column-major) for zero-allocation grid snapping
-    private val modelMatrix = FloatArray(16).also {
-        it[0] = 1f; it[5] = 1f; it[10] = 1f; it[15] = 1f
-    }
     private var lastSpec: OceanSpec? = null
     private var lastPalette: OceanPalette? = null
 
     init {
-        val vertsPerSide = gridCells + 1
         val posBytes = ByteBuffer.allocateDirect(vertexCount * 12).order(ByteOrder.nativeOrder())
-        for (iz in 0 until vertsPerSide) {
-            val z = -halfSpan + iz * cellSize
-            for (ix in 0 until vertsPerSide) {
-                val x = -halfSpan + ix * cellSize
-                posBytes.putFloat(x).putFloat(0f).putFloat(z)
-            }
+        val px = mesh.positionsX
+        val pz = mesh.positionsZ
+        for (i in 0 until vertexCount) {
+            posBytes.putFloat(px[i]).putFloat(0f).putFloat(pz[i])
         }
         posBytes.flip()
 
@@ -152,23 +158,14 @@ class OceanSurface(
             .build(engine)
         vb.setBufferAt(engine, 0, posBytes)
 
-        val indexCount = triangleCount * 3
+        val indexCount = mesh.indices.size
         val useShort = vertexCount <= 65536
         val idxBytes = ByteBuffer.allocateDirect(indexCount * if (useShort) 2 else 4).order(ByteOrder.nativeOrder())
-        for (iz in 0 until gridCells) {
-            for (ix in 0 until gridCells) {
-                val a = iz * vertsPerSide + ix
-                val b = a + 1
-                val c = a + vertsPerSide
-                val d = c + 1
-                if (useShort) {
-                    idxBytes.putShort(a.toShort()).putShort(c.toShort()).putShort(b.toShort())
-                    idxBytes.putShort(b.toShort()).putShort(c.toShort()).putShort(d.toShort())
-                } else {
-                    idxBytes.putInt(a).putInt(c).putInt(b)
-                    idxBytes.putInt(b).putInt(c).putInt(d)
-                }
-            }
+        val ind = mesh.indices
+        if (useShort) {
+            for (i in 0 until indexCount) idxBytes.putShort(ind[i].toShort())
+        } else {
+            for (i in 0 until indexCount) idxBytes.putInt(ind[i])
         }
         idxBytes.flip()
 
@@ -178,28 +175,29 @@ class OceanSurface(
             .build(engine)
         ib.setBuffer(engine, idxBytes)
 
-        // Generous vertical margin in the local bounding box so displaced wave peaks never frustum-cull out
-        val box = Box(0f, 0f, 0f, halfSpan + 4f, 8f, halfSpan + 4f)
+        // Default hull foam ring off until setHullFoam() is called
+        mi.setParameter("hullPose", 0f, 0f, 1f, 0f)
+        mi.setParameter("hullShape", 1f, 2f, 0.5f, 0f)
+
         RenderableManager.Builder(1)
-            .boundingBox(box)
-            .culling(true)
+            .boundingBox(Box(0f, 0f, 0f, farHorizonRadius, 16f, farHorizonRadius))
+            .culling(false)
             .castShadows(false)
             .receiveShadows(false)
             .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, vb, ib, 0, indexCount)
             .material(0, mi)
             .build(engine, entity)
 
-        val tm = engine.transformManager
-        if (!tm.hasComponent(entity)) tm.create(entity)
-        transformInstance = tm.getInstance(entity)
         scene.addEntity(entity)
     }
 
     /**
-     * Updates grid snapping around camera `([camX], [camY], [camZ])`, wave time [timeSeconds], [spec], and [palette].
+     * Uploads the camera's `VERTEX_DOMAIN_DEVICE` clip-space matrix `look` (matching `street_lit.mat` / `LookMatrix`),
+     * updates grid snapping around `([camX], [camY], [camZ])`, wave time [timeSeconds], [spec], and [palette].
      * Allocates nothing per frame.
      */
     fun update(
+        lookMatrix: FloatArray,
         camX: Float,
         camY: Float,
         camZ: Float,
@@ -208,19 +206,14 @@ class OceanSurface(
         palette: OceanPalette,
         artPixelCell: Float = 2.0f,
     ) {
-        val snapX = OceanWaves.snapGridOrigin(camX, cellSize)
-        val snapZ = OceanWaves.snapGridOrigin(camZ, cellSize)
+        val snapX = OceanWaves.snapGridOrigin(camX, snapStep)
+        val snapZ = OceanWaves.snapGridOrigin(camZ, snapStep)
 
-        modelMatrix[12] = snapX
-        modelMatrix[13] = seaLevelY
-        modelMatrix[14] = snapZ
-        if (transformInstance != 0) {
-            engine.transformManager.setTransform(transformInstance, modelMatrix)
-        }
-
-        mi.setParameter("gridOrigin", snapX, seaLevelY, snapZ, cellSize)
-        mi.setParameter("oceanTime", timeSeconds, spec.maxAmplitude, halfSpan * 0.9f, spec.roughness)
-        mi.setParameter("eyePos", camX, camY, camZ, artPixelCell)
+        mi.setParameter("look", MaterialInstance.FloatElement.MAT4, lookMatrix, 0, 1)
+        mi.setParameter("gridOrigin", snapX, seaLevelY, snapZ, snapStep)
+        mi.setParameter("oceanTime", timeSeconds, spec.maxAmplitude, spec.mainDirX, spec.mainDirZ)
+        mi.setParameter("waveParams", spec.roughness, 140.0f, 2200.0f, artPixelCell)
+        mi.setParameter("eyePos", camX, camY, camZ, 0f)
 
         if (lastSpec !== spec) {
             uploadWaves(spec)
@@ -230,10 +223,32 @@ class OceanSurface(
             uploadPalette(palette, spec.foamThreshold)
             lastPalette = palette
         } else {
-            // Keep foam threshold synced if spec changed while palette stayed the same
             val fc = palette.foamColor
             mi.setParameter("foamColor", fc[0], fc[1], fc[2], spec.foamThreshold)
         }
+    }
+
+    /**
+     * Enables a thin pixel-art waterline foam ring where a floating boat hull meets the ocean surface.
+     * Allocates nothing per frame.
+     */
+    fun setHullFoam(
+        boatX: Float,
+        boatZ: Float,
+        headingRad: Float,
+        halfBeam: Float = 1.15f,
+        halfLength: Float = 2.65f,
+        foamRingWidth: Float = 0.65f,
+    ) {
+        val ch = cos(headingRad.toDouble()).toFloat()
+        val sh = sin(headingRad.toDouble()).toFloat()
+        mi.setParameter("hullPose", boatX, boatZ, ch, sh)
+        mi.setParameter("hullShape", halfBeam, halfLength, foamRingWidth, 1f)
+    }
+
+    /** Disables the hull waterline foam ring. */
+    fun clearHullFoam() {
+        mi.setParameter("hullShape", 1f, 2f, 0.5f, 0f)
     }
 
     private fun uploadWaves(spec: OceanSpec) {
@@ -255,7 +270,7 @@ class OceanSurface(
         mi.setParameter("lightDir", p.lightDir[0], p.lightDir[1], p.lightDir[2], p.nightFactor)
         mi.setParameter("glintColor", p.glintColor[0], p.glintColor[1], p.glintColor[2], p.glintStrength)
         mi.setParameter("skyColor", p.skyColor[0], p.skyColor[1], p.skyColor[2], p.skyReflectStrength)
-        mi.setParameter("horizonColor", p.horizonColor[0], p.horizonColor[1], p.horizonColor[2], halfSpan * 0.94f)
+        mi.setParameter("horizonColor", p.horizonSeaColor[0], p.horizonSeaColor[1], p.horizonSeaColor[2], 520.0f)
         mi.setParameter("bandDeep", p.bandDeep[0], p.bandDeep[1], p.bandDeep[2], 1f)
         mi.setParameter("bandMid", p.bandMid[0], p.bandMid[1], p.bandMid[2], 1f)
         mi.setParameter("bandLight", p.bandLight[0], p.bandLight[1], p.bandLight[2], 1f)
@@ -278,8 +293,8 @@ class OceanSurface(
 
         /**
          * Builds a column-major 4x4 boat model matrix floating at `([boatX], [boatZ])` using [OceanWaves.heightInto],
-         * aligning the hull's up axis to a damped wave normal so the simple box boat heaves, pitches, and rolls naturally
-         * without allocating.
+         * aligning the hull's up axis to a damped wave normal so the simple box boat sits in the water and heaves,
+         * pitches, and rolls naturally without allocating.
          */
         fun boatTransformInto(
             boatX: Float,
@@ -289,10 +304,11 @@ class OceanSurface(
             spec: OceanSpec,
             sample: OceanSample,
             outMatrix: FloatArray,
-            draftOffsetY: Float = 0.25f,
+            draftOffsetY: Float = 0.05f,
             tiltDamping: Float = 0.65f,
         ) {
             OceanWaves.heightInto(boatX, boatZ, t, spec, sample)
+
             // Damped surface normal for stable hull roll/pitch
             var uy = 1f + (sample.ny - 1f) * tiltDamping
             var ux = sample.nx * tiltDamping
