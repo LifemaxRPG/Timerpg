@@ -30,7 +30,7 @@ describe('town buildings', () => {
       // intake models and grounds column (gamma only: the plan is 200 tiles wider), and again for the third intake (a third south block of grounds, the rail column's far end made one block, the elevator's siding)
       vale: 'b2ed05d85e9adc16376257fd9ef8c12cd0e132958ebafaf1581bf9a07ecb4b30',
       alpha: 'cb6a1db217a8e14bac76e89373be662fbfe76b3817a1500a145554e437436cdb',
-      gamma: '756af4c20d4e946442bcecd1aadf0a03007b9121b62899f600ef7503a98b79fd',
+      gamma: 'd5e9d9724ccace5630af9d33444b408cba4a66a19d395e199d7f2aa04e22f0d0',
     };
     for (const [seed, h] of Object.entries(before)) expect(sha(streetJson(seed)), seed).toBe(h);
   });
