@@ -163,17 +163,18 @@ The turning radii were measured at 19-27 km/h.
 | Case | Step time |
 | --- | ---: |
 | One car on one box (`physics_host_test`) | 0.015 ms |
-| Five cars in the capital, 750-1750 streamed statics | 0.04-0.06 ms |
+| Five cars in the capital, 750-1750 streamed statics | 0.04-0.06 ms (0.11 ms on one busy run) |
 
-Streaming the town's shapes when the player gets in (about 750 bodies added at once) takes the time the test prints
-("streaming: first ... ms"). Later restreams add and remove only the edge of the range.
+Streaming the town's shapes when the player gets in (about 750 bodies added at once) took **9.7 ms** on this server.
+That is a one-frame hitch as the player gets in, while the door is opening. Later restreams add and remove only the
+edge of the range. It is the first thing to spread over frames, or to move to a worker, if the S25 shows it.
 
 **S25 estimate:** the Oryon cores are at least as fast per thread as this server's, so a step should be well under
 0.1 ms: about 0.5% of an 8.3 ms frame at 120 Hz. This has not been measured on the phone yet.
 
 ### Size
 
-`libtimerpg_physics.so` is about 2.3 MB on x86-64 (stripped, without symbols). The five cars' assets are 2.2 MB.
+`libtimerpg_physics.so` is 1.19 MB in the arm64 APK and 2.3 MB on x86-64. The five cars' assets are 2.2 MB.
 
 ## Tests
 
