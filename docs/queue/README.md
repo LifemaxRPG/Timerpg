@@ -50,6 +50,10 @@ Below that come the brief and the acceptance checks.
      revisions, what changed and which review you answered; and the **Self-review** from TEAM.md.
 6. If nothing is open for you, do nothing and stop.
 
+**Push work in progress.** On a long task, commit and push to your task branch at least every 30 minutes, and right away
+if you are near a usage limit, with "WIP" in the message and no DELIVERY.md yet. Running out of usage then loses nothing,
+and the next run continues from the branch.
+
 ## Report your usage in every DELIVERY.md (must)
 
 Claude uses this to decide who should do which kind of work. Add a `## Usage` section with whatever you can actually
