@@ -314,7 +314,9 @@ want on you) can be **hidden in the past and collected in the future**, if it su
   - hide it in a place that history protects (a church, a cemetery wall, a monument's foundation, the professor's
     basement);
   - check in on it at points in between.
-- **When your own changes bury it** (the owner's idea): something you did in the past changes the future, and now a
+- **When your own changes bury it** (the owner's idea): never scripted, never forced, never hinted at. It only
+  happens when the simulation's own consequences put a building on the spot, so it's rare and comes as a surprise,
+  and the systems below handle it as they would anything else. Something you did in the past changes the future, and now a
   building stands on your cache. You need the building to get it back:
   - **Buy it:** the owner is an NPC with their own traits, attachments and price. They may not want to sell; it's
     their family home, their business, or they get suspicious of why you want it so badly.
