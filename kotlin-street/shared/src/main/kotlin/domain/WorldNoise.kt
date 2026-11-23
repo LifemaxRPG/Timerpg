@@ -48,12 +48,10 @@ object WorldNoise {
 class WorldLattice(seed: String, key: String, val nx: Int) {
     val ny: Int = ceil(WorldSkeleton.H.toDouble() / WorldSkeleton.W * nx).toInt() + 3
     private val s: Double = nx.toDouble() / WorldSkeleton.W
-    private val v = DoubleArray(nx * ny)
-
-    init {
-        val h = WorldNoise.hashStr("$seed|noise|$key|$nx")
-        for (j in 0 until ny) for (i in 0 until nx) v[j * nx + i] = WorldNoise.hashU(h, i, j)
-    }
+    private val h = WorldNoise.hashStr("$seed|noise|$key|$nx")
+    // (the TypeScript fills a table of hashU(h, i, j) for the whole planet; here each lattice value is hashed when asked:
+    // the same values, without a planet-sized table: a fine lattice's is tens of MB)
+    private fun v(i: Int, j: Int): Double = WorldNoise.hashU(h, i, j)
 
     fun at(x: Double, z: Double): Double {
         val u = x * s; val w = z * s + 1
@@ -66,8 +64,7 @@ class WorldLattice(seed: String, key: String, val nx: Int) {
         // (JavaScript's ((fu0 % nx) + nx) % nx on a double: the same integer here)
         val i0 = (((fu0 % nx) + nx) % nx).toInt()
         val i1 = if (i0 + 1 == nx) 0 else i0 + 1
-        val r0 = j0 * nx; val r1 = r0 + nx
-        val a = v[r0 + i0]; val b = v[r0 + i1]; val c = v[r1 + i0]; val d = v[r1 + i1]
+        val a = v(i0, j0); val b = v(i1, j0); val c = v(i0, j0 + 1); val d = v(i1, j0 + 1)
         val top = a + (b - a) * fu; val bot = c + (d - c) * fu
         return top + (bot - top) * fv
     }

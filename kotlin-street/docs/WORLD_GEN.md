@@ -648,11 +648,14 @@ hub names), the Koppen classes, and January and July temperatures.
   its root transform its origin less the render origin. The town's grass apron is left out with the world on, and the
   camera's far plane reaches the horizon (the look's depth is reversed infinite, so only culling sees the far plane).
 - **Measured** (desktop, 4-core x86 build server, software GL; not the S25): the skeleton read in 180 ms (the app's
-  grids); the far view planned in 130 ms and packed in 110 ms on a worker; 84,500 triangles in 6 draws; world RAM 15.9 MB
-  (grids 13.5, facts about 2.4) of the 200 MB budget, GPU 6.1 MB (buffers 6.0, pictures 0.1) of 250 MB. The town's
-  memory check with the world: held peak 219 MB of 256 (see the W4 report for the run without it). The phone's
-  numbers come with the next NPU fit test: its report's settings now carry the world line, the GPU line and the town's
-  memory summary, and the breadcrumbs' GPU and memory lines end with the world's.
+  grids); the far view planned in 90-130 ms and packed in 110-210 ms on a worker, written straight into its buffers;
+  84,500 triangles in 6 draws; world RAM 15.9 MB (grids 13.5, facts about 2.4) of the 200 MB budget, GPU 7.4 MB
+  (buffers 7.4, pictures 0.03) of 250 MB. The town's memory check (`:desktop:townMemoryCheck`, now with the world as the
+  app attaches it; `-Dworld=0` without): held peak 160 MB with the world, 125 MB without (budget 256). (A first try held
+  233 MB: the noise port's planet-sized lattice tables, 100 MB for the detail and jitter noise; the lattice values are
+  now hashed when asked, the same values.) The phone's numbers come with the next NPU fit test: its report's settings
+  carry the world line, the GPU line and the town's memory summary, and the breadcrumbs' GPU and memory lines end with
+  the world's.
 - **Tests**: desktop `WorldSkeletonTest` (crossroadsTest): the noise and the reader against `tools/world-fixture.ts`'s
   fixture (exact), wrapping and the render origin (a thing stepping 1 cm across the seam 1,995 km out moves a steady
   0.21 units a step; raw floats would jump by units), saves round-trip, gamma's pins on Main Street's ends, the rail

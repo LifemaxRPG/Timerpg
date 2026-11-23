@@ -15,6 +15,11 @@
 
 ## The walkable town in the app (T10; desktop renders and JVM tests only, NOT yet run on the S25)
 
+- The town stands on the generated planet (docs/WORLD_GEN.md "The world in the app (W4)"; desktop renders and JVM tests
+  only): the app reads the baked skeleton (assets/world/alpha) with the town, places gamma at the capital's hub site
+  (its river, rail portals and highway exits on the world's at its pins), saves the player's position in world terms,
+  and draws the world round the town to the horizon (terrain by biome, ocean, rivers, roads, rail, far towns as blocks).
+
 - The downtown grows with the town (docs/TOWN.md "The downtown through the decades"): Main Street blocks of the pack's
   facade kit over each shop's own storefront, 1960s-70s car parks behind them, mid-rise offices and hotels and later glass
   towers as the population passes 175 and 235, the town hall in the plaza, the chapel, big mobile homes, condo terraces;
