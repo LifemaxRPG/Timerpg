@@ -503,3 +503,35 @@ changes by rules for its type, its owner and its era.
   - corners, foundations, steps and porches, awnings, sign boards, trims, chimneys.
   Each part takes the base model's own materials, so any addition can be built in any shape. ChatGPT's later work
   includes these toolkit parts per era, alongside new whole models.
+
+### Getting into a nuclear site: many ways in, all systemic (the owner's idea, 2026-11-23)
+
+A power plant or lab is one of the hardest places in the game, and it must have **many solutions** built from systems
+the game already has, not one scripted heist.
+- **The site is a simulation, not a level.** It has:
+  - staff with schedules, traits and homes;
+  - guards with shifts;
+  - doors with access levels;
+  - visitor logs;
+  - era security: guards, paper logs and keys in the 1950s; badges, cameras and alarms later; biometrics and audits in
+    the 2020s.
+  Anything taken goes missing in its records, and the records get checked.
+- **Routes:**
+  - **Friendship.** Get to know the plant's director or an engineer: where they drink, their family, their worries.
+    Become their friend. Tell them about the time machine: they might believe you and become a **companion** (an NPC
+    who knows your secret and travels or helps), or think you're mad, or report you. A secret you tell is a fact that
+    spreads by the gossip rules.
+  - **Coercion.** Blackmail, threats, debts called in. It works by their traits and your leverage, and it's a crime
+    with the usual consequences: they may go to the police, tell their family, or set a trap.
+  - **The time loop.** Get the access code from them in the future (by any of the above), then go back a year before
+    they gave it to you, and they don't remember. But codes and badges change over time, so you need to learn **when**
+    a code was valid. Time travel turns the site's history into the puzzle.
+  - **Their badge** in the modern era: lift it, borrow it, or copy it. A missing badge is reported and cancelled within
+    a time set by the era and the staff member's habits, so timing matters.
+  - **The inside job.** Get hired there (the long, legal-looking route), work your way up the access levels, and wait
+    for your moment.
+  - **Salvage and shortcuts.** A decommissioned site, an accident's aftermath, a shipment on the road, a
+    corrupt official.
+- **Every route leaves traces** (witnesses, logs, cameras by era). The national response is far bigger than a town
+  sheriff's. That makes fuel the game's highest-stakes resource, and the reason a player who gets a big supply has
+  earned it.
