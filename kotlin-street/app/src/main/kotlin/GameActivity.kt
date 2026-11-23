@@ -1616,23 +1616,44 @@ private fun SpeechBubbles(
     walker: com.lifemax.rpg.feature.habits.presentation.scene.RoomWalker,
 ) {
     val tr = com.lifemax.rpg.feature.habits.presentation.scene.TalkRange
+    // where the person's bubble was placed last frame: the player's own keeps clear of it (side by side, else stacked)
+    val theirs = remember { BubbleRect() }
     if (talk != null && talk.byVoice && talk.said != null) {
         val l = talk.line
         // the game's own line stands in while the model writes (it is not what they will say): dots until the model's words come
         val text = when { l == null -> "…"; l.ai || l.final -> l.text; else -> "…" }
-        Bubble(text, l?.final == true, think = l?.final != true, keyOf = talk.npc.id + "#" + talk.asked, frameTick = frameTick) { w, h ->
+        Bubble(text, l?.final == true, think = l?.final != true, keyOf = talk.npc.id + "#" + talk.asked, frameTick = frameTick, placed = theirs) { w, h ->
             if (room != null) keeperSpot?.let { tr.inRoom(room, it.first, it.second, w, h) }
             else if (talk.doorSprite != null) com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.keeperHead(talk.doorSprite)
             else tr.keeperHead(talk.door)
         }
     }
     if (playerSaid != null) {
-        Bubble(playerSaid.first, playerSaid.third, think = false, keyOf = playerSaid.second.toString(), frameTick = frameTick, small = true) { w, h ->
+        Bubble(playerSaid.first, playerSaid.third, think = false, keyOf = playerSaid.second.toString(), frameTick = frameTick, small = true, avoid = theirs) { w, h ->
             if (room != null) tr.inRoom(room, walker.x, walker.y, w, h)
             else if (com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.active) com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.playerHead()
             else tr.playerHead()
         }
     }
+}
+
+/** A bubble's place on the screen (px) at the frame time [tick] (ns) it was laid out (stale after 0.1 s: gone). */
+private class BubbleRect { var x = 0; var y = 0; var w = 0; var h = 0; var tick = Long.MIN_VALUE }
+
+/** Moves a [pw] x [ph] bubble at [x], [y] (on a [sw] x [sh] screen) off [o]: beside it on the head's side, else above or below it. */
+private fun clearOf(o: BubbleRect, x: Int, y: Int, pw: Int, ph: Int, headX: Float, sw: Int, sh: Int): Pair<Int, Int> {
+    val gap = 6
+    fun hits(ax: Int, ay: Int) = ax < o.x + o.w + gap && ax + pw + gap > o.x && ay < o.y + o.h + gap && ay + ph + gap > o.y
+    if (!hits(x, y)) return x to y
+    val maxX = (sw - pw - 4).coerceAtLeast(4); val maxY = (sh - ph - 4).coerceAtLeast(4)
+    // beside it, on the side this head is on (then the other side)
+    val left = (o.x - gap - pw).coerceIn(4, maxX); val right = (o.x + o.w + gap).coerceIn(4, maxX)
+    val sides = if (headX < o.x + o.w / 2f) listOf(left, right) else listOf(right, left)
+    for (sx in sides) if (!hits(sx, y)) return sx to y
+    // stacked: above it, else below it
+    val above = o.y - gap - ph
+    if (above >= 4) return x to above
+    return x to (o.y + o.h + gap).coerceIn(4, maxY)
 }
 
 /**
@@ -1642,7 +1663,8 @@ private fun SpeechBubbles(
  */
 @Composable
 private fun Bubble(text: String, final: Boolean, think: Boolean, keyOf: String, frameTick: androidx.compose.runtime.LongState,
-                   small: Boolean = false, anchor: (Float, Float) -> androidx.compose.ui.geometry.Offset?) {
+                   small: Boolean = false, placed: BubbleRect? = null, avoid: BubbleRect? = null,
+                   anchor: (Float, Float) -> androidx.compose.ui.geometry.Offset?) {
     val alpha = remember(keyOf) { androidx.compose.animation.core.Animatable(0f) }
     LaunchedEffect(keyOf, text, final) {
         alpha.animateTo(1f, androidx.compose.animation.core.tween(150))
@@ -1659,13 +1681,16 @@ private fun Bubble(text: String, final: Boolean, think: Boolean, keyOf: String, 
         Modifier.layout { measurable, constraints ->
             val w = constraints.maxWidth; val h = constraints.maxHeight
             val p = measurable.measure(androidx.compose.ui.unit.Constraints(maxWidth = w, maxHeight = h))
-            @Suppress("UNUSED_VARIABLE") val tick = frameTick.longValue   // laid out again every frame
+            val tick = frameTick.longValue   // laid out again every frame
             val at = anchor(w.toFloat(), h.toFloat())
             layout(w, h) {
                 if (at != null) {
-                    val x = (at.x - p.width / 2f).toInt().coerceIn(4, (w - p.width - 4).coerceAtLeast(4))
-                    val y = (at.y - p.height).toInt().coerceIn(4, (h - p.height - 4).coerceAtLeast(4))
+                    var x = (at.x - p.width / 2f).toInt().coerceIn(4, (w - p.width - 4).coerceAtLeast(4))
+                    var y = (at.y - p.height).toInt().coerceIn(4, (h - p.height - 4).coerceAtLeast(4))
+                    // (the other bubble, if it was up within the last 0.1 s: kept clear of)
+                    if (avoid != null && tick - avoid.tick < 100_000_000L) clearOf(avoid, x, y, p.width, p.height, at.x, w, h).let { x = it.first; y = it.second }
                     p.place(x, y)
+                    placed?.let { it.x = x; it.y = y; it.w = p.width; it.h = p.height; it.tick = tick }
                 }
             }
         }.graphicsLayer { this.alpha = alpha.value },
