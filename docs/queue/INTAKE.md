@@ -31,6 +31,7 @@ C001, C002 and C003 went in on 2026-11-23 (see "Done" below). Waiting:
 | C004 | codex/C004-elementary-school | Mill Branch one-room school (in use, abandoned) + Westmeadow Elementary 1955 and 1990+ | Westmeadow in a residential district of the capital; Mill Branch for farm towns (one abandoned at the capital's rural edge) |
 | C005 | codex/C005-barbershop | Mercer Barber and Lilac Beauty, narrow Main Street shops, 3 eras each; `barber_pole` node spins | Main Street street walls (fill the empty lot beside the five-and-dime) |
 | C006 | codex/C006-truck-stop | Cedar Relay truck stop 1960-1989 and Relay Travel Center 1990+: diesel and car canopies, diner, 30 truck bays, scale, lube bay / truck wash | the highway outside the capital (east approach), not in town |
+| C007 | codex/C007-mini-golf | Thimble Trails Mini Golf, 3 eras, winding course with creek, pipe hole, golf-ball finale; statue pad for the Rex | roadside on the edge of town with the Beach Blvd Rex on its pad (later: a coastal hub) |
 
 Coastal and port set: these wait for the coastal hub and the ocean, so they aren't placed in the capital yet:
 - codex/copperwake (the ships);
@@ -60,3 +61,6 @@ kotlin-street/docs/TOWN_PLAN.md "The third intake in the capital"). Files copied
 | C002 | codex/C002-grain-elevator | `glb:grain_elevator`: the rail column's far end (two blocks made one, 82 tiles), 16 x 58 tiles facing the town side, its own siding along its back; timber 1925, concrete bins 1950, co-op 1990 |
 | C003 | codex/C003-baseball-park | `glb:baseball_park`: a third south block of the grounds column behind the school, 117 x 74 tiles, its gravel lot on the street; wooden park 1935, lights 1950, steel bleachers 1960, renovation 2000; gravel re-skinned with the town's yard gravel |
 
+## Vehicles (wait for the driving system, not placed as landmarks)
+
+- C011 `codex/C011-cars-early`: Alderwick Six (1927-1930), Fenmere Club Coupe (1937-1940), Northcairn Terrace (1955-1957). Wheels, steering, doors, lights, repaint masks, mid and far models.

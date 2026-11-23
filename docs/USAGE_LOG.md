@@ -84,3 +84,5 @@ row per accepted or revised delivery here, so we can compare cost per finished i
 | C006 truck stop | ChatGPT (Codex, GPT-6 family) | model, 2 states + LODs | 1 turn, ~32 tool calls, ~13 min | 1 | revise: bare lot, needs lot life, signs, era extras, night floods |
 | C007 mini golf | ChatGPT (Codex, GPT-6 family) | model, 3 states + LODs | 1 turn, ~27 tool calls, ~10 min | 1 | revise: rigid rows, flat, closed state not closed |
 | C006 truck stop r1 | ChatGPT (Codex) | model revision | ~14 min, tool calls not reported | 2 | accepted |
+| C007 mini golf r1 | ChatGPT (Codex) | model revision | ~18 min | 2 | accepted |
+| C011 early cars | ChatGPT (Codex) | 3 vehicles + LODs | ~15 min | 1 | accepted first try |
