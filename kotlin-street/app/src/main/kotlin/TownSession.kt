@@ -43,6 +43,8 @@ class TownData(
     val rail: com.lifemax.rpg.feature.habits.domain.RailNet? = null,
     /** The hand-made landmark models (assets/landmarks: docs/LANDMARKS_GLB.md) and the ones the town places (graph.glbLandmarks). */
     val landmarks: com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkAssets? = null,
+    /** The town placed on the planet (docs/WORLD_GEN.md W4: the baked skeleton, assets/world/<seed>/), or null where none is shipped. */
+    val world: com.lifemax.rpg.feature.habits.domain.WorldSite? = null,
 )
 
 /**
@@ -55,6 +57,8 @@ class TownData(
 object TownSession {
     /** The town played unless the AI panel chose the old crossroads. */
     const val DEFAULT = "gamma"
+    /** The planet's world seed (the baked skeleton the app ships: src/world/gen/hubs.ts PLANET_SEED). */
+    const val WORLD = "alpha"
     /** The engine thread's building budget a frame (ms): while playing, and behind the loading screen. */
     const val BUDGET_MS = 4f
     const val LOADING_BUDGET_MS = 14f
@@ -128,14 +132,19 @@ object TownSession {
      */
     fun save(ctx: Context) {
         val w = TownPlay.walk ?: return
+        // (and where that is on the planet: the world position and the hub's tile, docs/WORLD_GEN.md 1 "Saved positions")
+        val world = loaded?.world?.takeIf { loaded?.town === w.town }?.save(w.wx, w.wz)?.encode()
         prefs(ctx).edit().putString("seed", w.town.seed).putFloat("wx", w.wx).putFloat("wz", w.wz)
-            .putFloat("hx", w.hx).putFloat("hz", w.hz).putFloat("dir", com.lifemax.rpg.feature.habits.presentation.scene.GameState.dir).apply()
+            .putFloat("hx", w.hx).putFloat("hz", w.hz).putFloat("dir", com.lifemax.rpg.feature.habits.presentation.scene.GameState.dir)
+            .putString("world", world).apply()
     }
 
     private fun restore(ctx: Context, seed: String, w: com.lifemax.rpg.feature.habits.presentation.scene.TownWalk) {
         val p = prefs(ctx)
         if (p.getString("seed", null) != seed) return
-        val x = p.getFloat("wx", Float.NaN); val z = p.getFloat("wz", Float.NaN)
+        // (the world save first: the planet position put back into this town's street units; else the town's own)
+        val back = loaded?.world?.let { site -> com.lifemax.rpg.feature.habits.domain.WorldSave.decode(p.getString("world", null))?.let { site.restore(it) } }
+        val x = back?.get(0) ?: p.getFloat("wx", Float.NaN); val z = back?.get(1) ?: p.getFloat("wz", Float.NaN)
         if (x.isNaN() || z.isNaN()) return
         // (never off the town: then the spawn as before; a spot a building now stands on, as a save from before the town was
         // replanned may be, goes to the nearest free ground: the open world's walk finds it (TownCollision.nearestClear), the
@@ -221,8 +230,17 @@ object TownSession {
         fun farmText(n: String): String? = try { ctx.assets.open("farm/$n").bufferedReader().use { it.readText() } } catch (e: Exception) { null }
         val farmArt = com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt({ p -> img("farm/$p") }, { n -> farmText(n) }, { p -> img("town/art/$p") })
         if (!farms.isEmpty) com.timerpg.street.shot.Crumbs.add("town farms: ${farms.farms.size} farms, ${farms.fields.size} fields, ${farms.roads.size} roads")
+        // the planet: the baked world skeleton and this town on its hub site (gamma is the capital); its far view is drawn round the town
+        val world = try {
+            val w0 = System.nanoTime()
+            val sk = ctx.assets.open(com.lifemax.rpg.feature.habits.domain.WorldSite.asset(WORLD)).use { com.lifemax.rpg.feature.habits.domain.WorldSkeleton.read(it) }
+            com.lifemax.rpg.feature.habits.domain.WorldSite.of(sk, town.seed, town.scale.toDouble()).also {
+                com.timerpg.street.shot.Crumbs.add(if (it == null) "world: no hub has the plan ${town.seed}"
+                    else "${it.report}, read in %.0f ms; ".format(java.util.Locale.US, (System.nanoTime() - w0) / 1e6f) + com.lifemax.rpg.feature.habits.domain.WorldMemory.line())
+            }
+        } catch (t: Throwable) { com.timerpg.street.shot.Crumbs.add("world: not loaded (${t.javaClass.simpleName}: ${t.message})"); null }
         return TownData(seed, town, yards, art, building, names, root.optString("type"), dir,
             com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(root), collision,
-            com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root), farms, farmArt, rail, landmarks)
+            com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root), farms, farmArt, rail, landmarks, world)
     }
 }

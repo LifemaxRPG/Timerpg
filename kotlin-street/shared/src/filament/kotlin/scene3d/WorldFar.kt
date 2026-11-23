@@ -26,7 +26,9 @@ import kotlin.math.min
  * Built on the town's workers once ([step] starts it, uploads one mesh a call), drawn every frame without shadows (the
  * town's cascades stay on the town); its memory goes to [WorldMemory] (the breadcrumbs' and the fit test's world line).
  */
-internal class WorldFar(private val kit: TownExtra.Kit, private val plan: WorldFarPlan, private val origin: RenderOrigin) : TownExtra {
+internal class WorldFar(private val kit: TownExtra.Kit, private val planOf: () -> WorldFarPlan, private val origin: RenderOrigin) : TownExtra {
+    /** The plan, made on a worker at the first [step]. */
+    @Volatile var plan: WorldFarPlan? = null; private set
     private val u = origin.unitsPerMetre.toFloat()
 
     private class Part(val name: String, val anchor: WorldPos, val packed: PropLayer.Packed) { var layer: PropLayer? = null; var gen = -1 }
@@ -35,7 +37,7 @@ internal class WorldFar(private val kit: TownExtra.Kit, private val plan: WorldF
     private var buildMs = 0f
 
     override val pending: Boolean get() = parts?.any { it.layer == null } ?: true
-    override val report: String get() = "world far view: ${plan.report}; ${WorldMemory.triangles} triangles in ${WorldMemory.draws} draws, built in %.0f ms".format(java.util.Locale.US, buildMs)
+    override val report: String get() = "world far view: ${plan?.report ?: "not planned yet"}; ${WorldMemory.triangles} triangles in ${WorldMemory.draws} draws, built in %.0f ms".format(java.util.Locale.US, buildMs)
 
     override fun step() {
         if (job == null && parts == null) job = kit.pool.submit(java.util.concurrent.Callable { val t0 = System.nanoTime(); build().also { buildMs = (System.nanoTime() - t0) / 1e6f } })
@@ -88,6 +90,7 @@ internal class WorldFar(private val kit: TownExtra.Kit, private val plan: WorldF
     // ---------------------------------------------------------------- building (a worker)
 
     private fun build(): List<Part> {
+        val plan = planOf().also { this.plan = it }
         val out = ArrayList<Part>()
         for ((k, lv) in plan.levels.withIndex()) out += level(k, lv) ?: continue
         val mid = plan.levels.first().let { doubleArrayOf(it.ox + it.n * it.spacing / 2, it.oz + it.n * it.spacing / 2) }
@@ -99,6 +102,7 @@ internal class WorldFar(private val kit: TownExtra.Kit, private val plan: WorldF
     }
 
     private fun level(k: Int, lv: WorldFarPlan.Level): Part? {
+        val plan = plan!!
         val n = lv.n
         val img = PixImg(n, n)
         for (i in 0 until n * n) img.px[i] = lv.colours[i].takeIf { it != 0 } ?: 0xFF000000.toInt()
@@ -141,6 +145,7 @@ internal class WorldFar(private val kit: TownExtra.Kit, private val plan: WorldF
     }
 
     private fun ocean(): PropLayer.Packed? {
+        val plan = plan!!
         val r = (plan.reach * u).toFloat(); val y = plan.seaLevel * u
         val img = PixImg(2, 2).also { it.fill(OCEAN) }
         val mb = MeshBuilder()
@@ -149,6 +154,7 @@ internal class WorldFar(private val kit: TownExtra.Kit, private val plan: WorldF
     }
 
     private fun lines(mid: DoubleArray): PropLayer.Packed? {
+        val plan = plan!!
         val imgs = WorldFarPlan.LINE_COLOURS.map { c -> PixImg(2, 2).also { it.fill(c) } }
         val mb = MeshBuilder()
         // (drawn in order: county roads, highways, rail, then the rivers over all)
@@ -163,6 +169,7 @@ internal class WorldFar(private val kit: TownExtra.Kit, private val plan: WorldF
 
     /** A line as a ribbon on the surface: cut into pieces short enough to follow the ground, each a flat quad. */
     private fun ribbon(mb: MeshBuilder, l: WorldFarPlan.Line, img: PixImg, lift: Double, mid: DoubleArray) {
+        val plan = plan!!
         val p = l.pts
         for (k in 0 until p.size / 2 - 1) {
             val x0 = p[k * 2]; val z0 = p[k * 2 + 1]; val x1 = p[k * 2 + 2]; val z1 = p[k * 2 + 3]
@@ -194,6 +201,7 @@ internal class WorldFar(private val kit: TownExtra.Kit, private val plan: WorldF
     }
 
     private fun boxes(mid: DoubleArray): PropLayer.Packed? {
+        val plan = plan!!
         if (plan.boxes.isEmpty()) return null
         // the walls' pictures: each wall colour with its windows (a third lit at night), the roofs flat
         val walls = WorldFarPlan.WALLS.map { c -> wall(c) }
@@ -216,6 +224,7 @@ internal class WorldFar(private val kit: TownExtra.Kit, private val plan: WorldF
         // (a few windows glow at night, in their own warm colour)
         im[1, 1] = 0xFFFFD890.toInt(); im.glow(1, 1, 1, 1)
         im[4, 2] = 0xFFFFD890.toInt(); im.glow(4, 2, 4, 2)
+        im[3, 1] = 0xFFFFD890.toInt(); im.glow(3, 1, 3, 1)
         return im
     }
 
@@ -228,11 +237,11 @@ internal class WorldFar(private val kit: TownExtra.Kit, private val plan: WorldF
         const val OCEAN = 0xFF2C6296.toInt()
 
         /**
-         * Adds the world round [frame]'s town to [town] (its far plane reaching the horizon, its own grass apron left out:
+         * Adds the world round the town to [town] ([plan] made on a worker) (its far plane reaching the horizon, its own grass apron left out:
          * the world's ground runs on from the town's edge instead); [origin] is the app's render origin.
          */
-        fun attach(town: FilamentTown, plan: WorldFarPlan, origin: RenderOrigin): WorldFar {
-            town.worldReach = (plan.reach * origin.unitsPerMetre * 1.02).toFloat()
+        fun attach(town: FilamentTown, plan: () -> WorldFarPlan, origin: RenderOrigin): WorldFar {
+            town.worldReach = (WorldFarPlan.REACH_M * origin.unitsPerMetre * 1.02).toFloat()
             return town.addExtra { WorldFar(it, plan, origin) }
         }
     }

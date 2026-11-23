@@ -2,8 +2,8 @@
 
 The world the towns stand in: a small planet made from one seed, with hand-made hub cities placed on it by rules and
 generated countryside between them. Phases W1-W3 (the skeleton: terrain, climate, places, links, history) are built in
-TypeScript in `src/world/gen/` (see "The generator (W1-W3)" near the end, with measurements); the app does not read it
-yet (W4). The first prototype was `kotlin-street/tools/world-sketch.py` (see "The prototype" at the end).
+TypeScript in `src/world/gen/` (see "The generator (W1-W3)" near the end, with measurements); W4 puts the app on it
+(see "The world in the app (W4)"). The first prototype was `kotlin-street/tools/world-sketch.py` (see "The prototype" at the end).
 
 The owner's decisions it starts from (CLAUDE.md, "Hand-made hub towns plus procedural fill" and "The planet", and the
 briefs of 2026-11-23): a planet about 2,000 km round that wraps east to west, polar ice as the north and south borders
@@ -476,7 +476,7 @@ their normal pace, fading back to true speed near land.
 | **W1 skeleton terrain** (built) | src/world/gen: periodic integer-hashed noise, continents, elevation, climate, biomes, hydrology, lakes, coasts on the atlas grid; a map tool (the sketch's renderer in TS or reading its export) | deterministic; wraps seamlessly; land 28-32%; 3-5 continents; every river reaches the sea or a lake; climate bands sane | 1,500 lines; 2 sessions (Opus design, Sonnet tests) |
 | **W2 places** (built) | hub catalogue (data: type, pins, footprint), hub placement with gamma first, towns, hamlets, unique names, the registry; `TownSite` from it | hubs meet their hard rules and spacing; launch hubs stay put when hubs are added; names unique | 800 lines; 1 session |
 | **W3 networks and history** (built) | roads, rail (the RailGraph interface: gridRail and skeletonRail), sea routes and sailings, the multimodal planner, history by year (roads, dams, rail, ports, growth), lore on the graph | rail.test.ts green on both providers; every nameable place routable in 1930/1955/1975/2000/2025; pins honoured | 1,500 lines; 2 sessions |
-| **W4 export and frames** | skeleton.bin export, Kotlin reader, WorldPos and the render origin, gamma placed on its world site with nothing else changed; NPC fact lines from the registry | the town's previews identical before and after (pixel diff); memory check of the skeleton; first S25 memory measurement with the 9B model loaded | 1,000 lines; 1-2 sessions |
+| **W4 export and frames** (built, but the NPC fact lines and the redone exports) | skeleton.bin export, Kotlin reader, WorldPos and the render origin, gamma placed on its world site with nothing else changed; NPC fact lines from the registry | the town's previews identical before and after (pixel diff); memory check of the skeleton; first S25 memory measurement with the 9B model loaded | 1,000 lines; 1-2 sessions |
 | **W5 terrain renderer** | FastNoise2 in the native layer (arm64 NEON, desktop), chunk heightfields T0/T1, region tiles T2, atlas horizon T3, streaming with caps and disk cache, the town's ground blended into the terrain, pixel-art ground materials and autotiles, cliffs, beaches, snow, rivers and lakes; Jolt heightfield collision per T0 chunk when Jolt comes | LOD seams (no cracks: a render test); determinism of the skeleton-bound features; previews from ground, bike height and 200 m; frame time and memory on the S25 | the big one: 4,000 lines; 4-6 sessions |
 | **W6 countryside** | roads and rail meshes outside towns (RailKit's pieces), bridges, small towns from plat.ts's S plans, hamlets, farms on county roads (farms.ts), forests by biome | previews of a drive between two towns; nothing floating or buried; side/back/above views | 2,500 lines; 3 sessions |
 | **W7 sea** | the Gerstner ocean joined to the coast and depth, ports' waterfronts, the sailboat, compression, sailing through the night, liners | the compression never shows land at c > 1 (a test over the routes); arrival times equal the timetables | 2,000 lines; 3 sessions (after the ocean prototype) |
@@ -609,9 +609,6 @@ hub names), the Koppen classes, and January and July temperatures.
   plains); W6 smooths them into curves with a maximum grade.
 - True continental (D) climates are rare (2-3% of the land) because the continents are small; that is the owner's
   geography's honest result, not a bug. A larger capital's continent would add some.
-- The capital's world river is chosen to run north-south through the plan's river column, and the capital's pins are
-  in the skeleton, but the river polyline is not yet bent to pass exactly through the plan's entry and exit points
-  (W4, with the render origin).
 - About 100 tiny islands get ferries; the planner's land legs to a station still use the road graph's drive, but rail.ts
   plans its own road legs by the road graph's km at a 40 km/h bus, which is slower than `planTrip`'s by-car option.
 - A crossing to a far continent can take several days in the liners' off years (weekly freighters after 1965-1975),
@@ -619,6 +616,62 @@ hub names), the Koppen classes, and January and July temperatures.
 - Names avoid a blocklist of well-known real towns; with invented roots almost all names are new words, but a short
   compound can still match some small real place.
 - Generation is 15-26 s on the server: fine for a bake; the climate's twelve wind passes are the slowest stage.
+
+## The world in the app (W4)
+
+- **True paths** (`src/world/gen/paths.ts`): every river, road and rail line as a polyline in atlas cell units. A road or
+  rail line ending at a hub ends exactly on the pin it leaves by (then half a cell straight out along the pin's way);
+  a river through a hub with river pins (the capital) is bent through them: its cells inside the pad and a 450 m margin
+  give way to the inflow pin's approach, the inflow pin, the outflow pin and the outflow's approach (a tributary that met
+  it inside meets the bent river outside). Gamma's river pins are at the plan's edge, and the town's own river runs on
+  from them to its ground's edge (the farm ring) along the same line, so the world river meets the town's where the
+  town's ground ends. Gamma's highway pins moved to Main Street's middle line (plan y 142, not 141).
+- **The skeleton, version 2** (`bake.ts`): the paths in a fixed-point section `pts` (2^19 a cell: 2 mm), places and pins
+  at full precision, each hub's pad and the capital's plan frame (`planTiles`). `alpha` rebaked: 7.4 MB gzipped.
+- **The Kotlin reader** (shared/src/main/kotlin/domain, engine-agnostic): `WorldSkeleton` (streams the gzip, keeps only
+  the grids asked for: by default height, flags, biome, flow and landmass, 13.5 MB; all the vectors and facts),
+  `WorldNoise`/`WorldLattice`/`WorldFbm` (noise.ts ported bit for bit: the same hashes and doubles), `WorldPos`, `Planet`,
+  `HubFrame` (a town's frame on the planet), `RenderOrigin` (section 1's rules: the town's own frame within 3 km of its
+  centre, else re-centred on the player's chunk corner past 2 km, a generation count for the layers), `WorldSave`
+  (WorldPos + hub + tile), `WorldSite` (a town on the planet), `WorldFarPlan` (the far view's data), `WorldMemory`.
+- **Gamma on the planet**: `h:capital` at (1004.366, 298.066) km, 228 m up; its frame's origin is plan tile (0, 0), so
+  the town's code runs unchanged in its street units (the render origin is the town's own while the player is in it).
+  The app reads the skeleton with the town (assets/world/alpha/, copied from content/world at each build), saves the
+  player's position in world terms beside the town's own, and restores from it first.
+- **The far view** (`WorldFar`, a `TownExtra`, planned and built on the town's workers): three nested terrain levels
+  (268.8 m quads to 8.6 km, 1,075 m to 52 km, 4.3 km to 172 km: the horizon), faceted low-poly triangles with a flat
+  normal each, a texel a quad in a biome palette (two tones dithered, borders broken by noise, snow above 2,700 m, the
+  town's grass dithered in round its ground), skirts on the finer levels' rims; the ground flattened to the town's height
+  under and round its ground (blending over 900 m); the ocean a flat plane at sea level; rivers (by order), highways,
+  county roads and rail lines as ribbons on the surface, cut at the town's ground's edge, wider far off so they read;
+  every other place within reach as a few blocks by rank with lit windows at night. Every mesh in its own local frame,
+  its root transform its origin less the render origin. The town's grass apron is left out with the world on, and the
+  camera's far plane reaches the horizon (the look's depth is reversed infinite, so only culling sees the far plane).
+- **Measured** (desktop, 4-core x86 build server, software GL; not the S25): the skeleton read in 180 ms (the app's
+  grids); the far view planned in 130 ms and packed in 110 ms on a worker; 84,500 triangles in 6 draws; world RAM 15.9 MB
+  (grids 13.5, facts about 2.4) of the 200 MB budget, GPU 6.1 MB (buffers 6.0, pictures 0.1) of 250 MB. The town's
+  memory check with the world: held peak 219 MB of 256 (see the W4 report for the run without it). The phone's
+  numbers come with the next NPU fit test: its report's settings now carry the world line, the GPU line and the town's
+  memory summary, and the breadcrumbs' GPU and memory lines end with the world's.
+- **Tests**: desktop `WorldSkeletonTest` (crossroadsTest): the noise and the reader against `tools/world-fixture.ts`'s
+  fixture (exact), wrapping and the render origin (a thing stepping 1 cm across the seam 1,995 km out moves a steady
+  0.21 units a step; raw floats would jump by units), saves round-trip, gamma's pins on Main Street's ends, the rail
+  portals and the town river's ends at its ground's edge, the far plan; `gen.test.ts` "W4 paths". The town's renders
+  are pixel-identical before and after (filament-open, four views, without the world).
+- **Previews**: `gradle :desktop:preview -Dmode=filament-open -Dworld=1 -Dshots=world`.
+
+**Open problems (W4)**:
+- **The generator's cliffs**: east of the capital the ground steps from about 210 m to 1,930 m in one atlas cell along
+  a line some 40 km long (a plateau-wall). Likely cause in terrain.ts: a range's crest height `maxh` is per pair of
+  nearest plates, so it jumps where the second-nearest plate changes; the convergence term flips there too. It dominates
+  every far view east of the capital; a W1 fix (blend the pair's height across the switch) belongs before W5.
+- Far towns are blocks a little bigger than life; 15 km off they are a few pixels, readable only with a long lens or by
+  their lights at night (W5's T2/T3 tiers draw landmark silhouettes).
+- The open world's own haze (the player's camera) still takes everything past about 3 km on low ground; ground well
+  above the town stands clear of its height falloff, so far mountains show crisp. W5 tunes the haze for the horizon.
+- Rail lines are drawn whatever the year (their links' history is not read yet); roads by their built year.
+- Not done in W4: the NPC fact lines from the registry, and rail.json / dialogue.json / rail-checks.json redone from the
+  skeleton (gamma's neighbours are still `world-6`'s grid towns in the town's own rail and dialogue).
 
 ## The prototype
 

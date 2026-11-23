@@ -244,12 +244,14 @@ class WorldFarPlan(
             if (p.id == skip) continue
             val x = origin.dx(WorldPos.ofCells(p.x, p.z)); val z = p.z * Planet.CELL_M - origin.z
             if (!inReach(x, z)) continue
+            // (a far town is a stand-in, as TownFar's boxes are for the town's own buildings: its blocks a little bigger than
+            // a real block, so the place still reads as a town 10-40 km off; heights by rank)
             val (count, radius, tall) = when {
-                p.kind == "hub" -> Triple(26, 900.0, 46.0)
-                p.kind == "hamlet" -> Triple(4, 160.0, 9.0)
-                p.rank == "major" -> Triple(14, 520.0, 22.0)
-                p.rank == "town" -> Triple(9, 380.0, 14.0)
-                else -> Triple(6, 260.0, 11.0)
+                p.kind == "hub" -> Triple(30, 1000.0, 70.0)
+                p.kind == "hamlet" -> Triple(4, 180.0, 14.0)
+                p.rank == "major" -> Triple(16, 600.0, 36.0)
+                p.rank == "town" -> Triple(11, 450.0, 26.0)
+                else -> Triple(7, 300.0, 18.0)
             }
             val h0 = WorldNoise.hashStr("${sk.seed}|w4-box|${p.id}")
             for (k in 0 until count) {
@@ -257,7 +259,7 @@ class WorldFarPlan(
                 val r = radius * kotlin.math.sqrt(WorldNoise.hashU(h0, k, 1)) * (if (k < 3) .35 else 1.0)
                 val a = WorldNoise.hashU(h0, k, 2) * Math.PI * 2
                 val bx = x + kotlin.math.cos(a) * r; val bz = z + kotlin.math.sin(a) * r
-                val w = 40 + 50 * WorldNoise.hashU(h0, k, 3); val d = 40 + 50 * WorldNoise.hashU(h0, k, 4)
+                val w = 60 + 80 * WorldNoise.hashU(h0, k, 3); val d = 60 + 80 * WorldNoise.hashU(h0, k, 4)
                 val hgt = tall * (.35 + .65 * WorldNoise.hashU(h0, k, 5)) * (if (k < 3) 1.0 else .6)
                 val wall = WALLS[(WorldNoise.hashU(h0, k, 6) * WALLS.size).toInt().coerceIn(0, WALLS.size - 1)]
                 val roof = ROOFS[(WorldNoise.hashU(h0, k, 7) * ROOFS.size).toInt().coerceIn(0, ROOFS.size - 1)]
@@ -276,6 +278,8 @@ class WorldFarPlan(
     companion object {
         /** The levels: atlas cells a quad, quads a side (finest first). */
         val LEVELS = listOf(.25 to 64, 1.0 to 96, 4.0 to 80)
+        /** How far the coarsest level reaches from its middle (m): the horizon, 172 km. */
+        val REACH_M: Double = LEVELS.last().let { it.first * it.second / 2 } * Planet.CELL_M
         const val RIVER = 0; const val HIGHWAY = 1; const val COUNTY = 2; const val RAIL = 3
         val RIVER_W = floatArrayOf(30f, 45f, 70f, 110f, 170f, 250f)
         /** The town's ground: flat this far past its edge, then blending to the land's own height over [BLEND_M] (m). */
