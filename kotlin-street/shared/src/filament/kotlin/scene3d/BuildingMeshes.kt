@@ -553,6 +553,11 @@ internal class BuildingMeshes(
         val back: () -> Texture
         /** Heap bytes kept for the night light. */
         val bytes: Long get() = win.size + egAt.size * 6L
+        /**
+         * The mask's channels: red and green only (half the bytes, the same on screen) unless the emissive picture lights
+         * a pixel, which marks it blue (a lit display in its own colours).
+         */
+        private val maskFmt: StreetTextures.Fmt get() = if (egE.any { it.toInt() != 0 }) StreetTextures.Fmt.RGBA8 else StreetTextures.Fmt.RG8
 
         init {
             val art = StreetTextures.argb(sb.front)
@@ -618,7 +623,7 @@ internal class BuildingMeshes(
                 }
             }
             albedo = pic(StreetTextures.prepare(px, w, h, mips = true))
-            mask = pic(StreetTextures.blank(w, h, linear = true))
+            mask = pic(StreetTextures.blank(w, h, linear = true, fmt = maskFmt))
             back = if (sb.house != null) pic(StreetTextures.prepare(plainBack(art, px), w, h, mips = true)) else albedo
         }
 
@@ -674,10 +679,13 @@ internal class BuildingMeshes(
             lit = bits
             // the mask as Filament takes it (RGBA, bottom row first): opaque, the emissive's red (and blue) and the
             // glass's green where they show, then the windows' see-through pixels over them
-            val buf = StreetTextures.blank(w, h, linear = true).buf
-            for (i in 0 until w * h) buf.put(StreetTextures.offset(i, w, h) + 3, 255.toByte())
+            // (in RG8 only red and green: no pixel is then blue, and a missing alpha reads opaque)
+            val fmt = maskFmt
+            val st = fmt.bytes
+            val buf = StreetTextures.blank(w, h, linear = true, fmt = fmt).buf
+            if (st == 4) for (i in 0 until w * h) buf.put(StreetTextures.offset(i, w, h) + 3, 255.toByte())
             for (k in egAt.indices) {
-                val o = StreetTextures.offset(egAt[k], w, h)
+                val o = StreetTextures.offset(egAt[k], w, h, st)
                 val ec = egComp[k]
                 val e = if (ec >= 0 && !compLit[ec]) 0.toByte() else egE[k]
                 buf.put(o, e).put(o + 1, egG[k])
@@ -691,8 +699,9 @@ internal class BuildingMeshes(
                     val c = win[i]
                     if (c == NONE) continue
                     val red = if (on) 255 else if (c == CITY) 150 else 0
-                    val o = StreetTextures.offset(i, w, h)
-                    buf.put(o, red.toByte()).put(o + 1, 255.toByte()).put(o + 2, 0).put(o + 3, 255.toByte())
+                    val o = StreetTextures.offset(i, w, h, st)
+                    buf.put(o, red.toByte()).put(o + 1, 255.toByte())
+                    if (st == 4) buf.put(o + 2, 0).put(o + 3, 255.toByte())
                 }
             }
             textures.update(mask(), buf)

@@ -435,6 +435,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             com.timerpg.street.shot.Crumbs.add(built)
             com.timerpg.street.shot.Crumbs.add("town built, biggest textures: " + ft.biggestTextures(10))
             com.timerpg.street.shot.Crumbs.add("town built, ${w}x$h: " + ft.gpuEstimate(w, h).line())
+            com.timerpg.street.shot.Crumbs.add("town built, " + com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.line())
             com.timerpg.street.shot.Crumbs.add("town built, memory: " + com.lifemax.rpg.feature.habits.presentation.scene3d.TownMemory.summary() + "; ground queue peak ${ft.queuedPeak shr 20} MB")
             FilamentStats.measureMemory("town built")
         }

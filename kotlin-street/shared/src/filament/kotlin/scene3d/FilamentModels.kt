@@ -934,7 +934,15 @@ internal object FilamentModels {
         /** Many windows (a tower, a hotel): a share of them lit by the hour ([BuildingMeshes.towerShare]), each window by its own draw. */
         private var tall = false
         /** The mask (made on the engine's thread the first time it is asked for: [Night] itself is made on a worker). */
-        val mask: Texture? by lazy(LazyThreadSafetyMode.NONE) { if (!glows) null else textures.make(StreetTextures.blank(w, h, linear = true)) }
+        val mask: Texture? by lazy(LazyThreadSafetyMode.NONE) { if (!glows) null else textures.make(StreetTextures.blank(w, h, linear = true, fmt = maskFmt)) }
+        /**
+         * The mask's channels: red (the lamplight) and green (the glass) only, unless some pixel lights in its own colours
+         * (rgb and a half alpha) or is the sign's light (blue): the same on screen for half the bytes ([StreetTextures.Fmt]).
+         */
+        private val maskFmt: StreetTextures.Fmt by lazy(LazyThreadSafetyMode.NONE) {
+            val signs = seeds.size - 1
+            if (glowOwn != null || (0 until glowRuns.size step 3).any { glowRuns[it + 2] == signs }) StreetTextures.Fmt.RGBA8 else StreetTextures.Fmt.RG8
+        }
 
         init {
             val glow: IntArray? = art.glow?.takeIf { it.width == w && it.height == h }?.let { StreetTextures.argb(it) }
@@ -1079,17 +1087,20 @@ internal object FilamentModels {
             done = true
             val signs = seeds.size - 1
             // the mask as Filament takes it (RGBA, bottom row first): opaque black, the panes' glass green, then the glow
-            val buf = StreetTextures.blank(w, h, linear = true).buf
-            for (i in 0 until w * h) buf.put(StreetTextures.offset(i, w, h) + 3, 255.toByte())
+            // (in RG8, only red and green: no pixel then lights in its own colours or as the sign, and a missing alpha reads opaque)
+            val fmt = maskFmt
+            val st = fmt.bytes
+            val buf = StreetTextures.blank(w, h, linear = true, fmt = fmt).buf
+            if (st == 4) for (i in 0 until w * h) buf.put(StreetTextures.offset(i, w, h) + 3, 255.toByte())
             val glassByte = PANE_GLASS.toByte()
-            for (g in 0 until glassRuns.size step 2) for (i in glassRuns[g] until glassRuns[g] + glassRuns[g + 1]) buf.put(StreetTextures.offset(i, w, h) + 1, glassByte)
+            for (g in 0 until glassRuns.size step 2) for (i in glassRuns[g] until glassRuns[g] + glassRuns[g + 1]) buf.put(StreetTextures.offset(i, w, h, st) + 1, glassByte)
             val own = glowOwn
             var k = 0
             for (r in 0 until glowRuns.size step 3) {
                 val owner = glowRuns[r + 2]
                 val on = now[owner]
                 for (i in glowRuns[r] until glowRuns[r] + glowRuns[r + 1]) {
-                    val o = StreetTextures.offset(i, w, h)
+                    val o = StreetTextures.offset(i, w, h, st)
                     // (as bright as the glow picture is there: its frames and bars stay darker than its panes)
                     val oc = own?.get(k) ?: -1
                     if (oc >= 0) {

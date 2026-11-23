@@ -616,6 +616,7 @@ private fun coldStart(
     // what the town holds on the GPU (as made; the shadow map, targets and surfaces from their sizes), at the phone's size
     report.appendLine("cold start, " + ft.gpuEstimate(sw, shh).line() + " (shadow map %d x %d cascades)".format(ft.shadowMap, ft.shadowCascades))
     report.appendLine("cold start, the largest textures by size: " + ft.biggestTextures(12))
+    report.appendLine("cold start, " + com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.line())
     report.appendLine("cold start, memory: " + TownMemory.summary() + "; the ground's queue peaked at ${TownMemory.mb(ft.queuedPeak)} MB")
     println("  memory: " + TownMemory.summary())
     // (-DmemOwners: what held the direct buffers at the peak, by the town's code that made them)
