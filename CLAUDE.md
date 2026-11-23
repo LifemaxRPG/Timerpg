@@ -49,6 +49,10 @@ Elite for Galaxy: 8 fast Oryon cores, no little cores; Adreno 830 GPU; Hexagon N
   The starting town is the **capital city** (name to come from the owner). It is also the test city: every new
   building and landmark goes into it as it is made, so it keeps growing. Its plan must stay adaptable (room
   reserved for more districts and landmarks, nothing that breaks when a new model is added).
+- **The planet** (the owner's decisions, 2026-11-23; design in kotlin-street/docs/WORLD_GEN.md): a cylinder about
+  2,000 x 1,000 km that wraps east-west, ice caps as natural borders; **30% land split into 8-10 small continents and
+  big islands** (short drives, lots of sailing between them); terrain is **smooth rolling ground with hard low-poly
+  cliff faces only where steep**, pixel-art ground textures on top.
 - **Approved real-world exception: the Beach Blvd Rex** (the owner's decision, 2026-11-22): a faithful model of the
   1964 roadside dinosaur statue on Beach Boulevard, Jacksonville (an Easter egg to the owner's hometown; the
   mini-golf course it came from is long gone). Keep it as made (`codex/beach-blvd-rex`). Every other model stays
