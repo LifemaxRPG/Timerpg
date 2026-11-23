@@ -1,0 +1,91 @@
+// The near terrain (WORLD_GEN.md phase W5a; WorldNear.kt): the heightfield chunks round the camera, wearing the ground's
+// pixel-art pictures (the terrain atlas: a texture array, a layer a material, the town's 0.0389 m texel) chosen per quad
+// by a small map of material ids (a byte a quad, a ring of the neighbours' round it). The border between two quads'
+// materials is dithered in whole art texels (clumps and single texels jittering the lookup), so transitions read as
+// pixel-art edges, not blurs. Steep faces (cliffs) take the picture projected on the wall, not stretched from above.
+// Drawn through the same `look` as street_lit.mat (the true camera's clip-space matrix), lit and shadowed by the sun.
+//
+// Compile: matc -p mobile -a opengl -o kotlin-street/app/src/main/assets/filament/terrain.filamat \
+//     kotlin-street/filament/materials/terrain.mat
+material {
+    name : Terrain,
+    shadingModel : lit,
+    blending : opaque,
+    vertexDomain : device,
+    culling : none,
+    doubleSided : false,
+    parameters : [
+        { type : mat4, name : look, precision : high },
+        // the ground's pictures, a layer a material (WorldTerrain.GRASS...)
+        { type : sampler2dArray, name : atlas, precision : medium },
+        // the node's quads' materials: (quads + 2)^2 texels, a ring outside
+        { type : sampler2d, name : ids, precision : medium },
+        // x: street units a quad, y: street units a texel, z: quads a side, w: the dither's reach (quads)
+        { type : float4, name : node, precision : high },
+        // the node's corner in texels, wrapped (xy: x and z, modulo the pictures' size), z: the pictures' size (texels)
+        { type : float4, name : corner, precision : high }
+    ],
+    variables : [
+        // xy: the world's texel (wrapped as the corner is), zw: the quad's coordinates in the node
+        ground
+    ],
+    requires : [ tangents ]
+}
+
+vertex {
+    void materialVertex(inout MaterialVertexInputs material) {
+        material.worldPosition = getWorldFromModelMatrix() * getPosition();
+        material.clipSpaceTransform = materialParams.look * getUserWorldFromWorldMatrix() * getWorldFromModelMatrix();
+        highp vec2 p = getPosition().xz;
+        material.ground = vec4(materialParams.corner.xy + p / materialParams.node.y, p / materialParams.node.x);
+    }
+}
+
+fragment {
+    highp float hash2(highp vec2 p) {
+        // (integer-ish inputs: whole texels; a cheap hash that does not lose precision at a few thousand)
+        highp vec3 q = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
+        q += dot(q, q.yzx + 33.33);
+        return fract((q.x + q.y) * q.z);
+    }
+
+    void material(inout MaterialInputs material) {
+        // the normal first (prepareMaterial uses it): the vertex's own (smooth on rolling ground, a face's on cliffs)
+        prepareMaterial(material);
+        highp vec2 tex = variable_ground.xy;
+        highp vec2 q = variable_ground.zw;
+        highp vec2 t = floor(tex);
+        float size = materialParams.corner.z;
+        // the material: the quad's, or a neighbour's where the dither reaches across the border (clumps of 3 texels and
+        // single texels, both jittering where the lookup lands)
+        highp vec2 b = floor(t / 3.0);
+        vec2 off = (vec2(hash2(b), hash2(b + 57.0)) - 0.5) * 0.75 + (vec2(hash2(t + 11.0), hash2(t + 101.0)) - 0.5) * 0.35;
+        highp vec2 at = q + off * materialParams.node.w;
+        float n = materialParams.node.z;
+        ivec2 c = ivec2(clamp(floor(at), vec2(-1.0), vec2(n))) + 1;
+        float layer = floor(texelFetch(materialParams_ids, c, 0).r * 255.0 + 0.5);
+        // steep faces (cliffs, and the skirts under the edges): the picture laid on the wall (its across from x or z, its up
+        // from the height) instead of from above; the face's own normal, from the position's derivatives
+        highp vec3 wp = getUserWorldPosition();
+        vec3 nrm = normalize(cross(dFdx(wp), dFdy(wp)));
+        highp vec2 st = tex;
+        highp vec2 gx = dFdx(tex); highp vec2 gy = dFdy(tex);
+        if (abs(nrm.y) < 0.55) {
+            highp float y = wp.y / materialParams.node.y;
+            highp float across = abs(nrm.x) > abs(nrm.z) ? tex.y : tex.x;
+            st = vec2(across, -y);
+            gx = dFdx(st); gy = dFdy(st);
+        }
+        vec4 col = textureGrad(materialParams_atlas, vec3(st / size, layer), gx / size, gy / size);
+        // a slow variation over tens of metres (three steps, dithered at their edges): the repeat of the picture never shows
+        highp vec2 m = floor((tex + vec2(hash2(t) * 24.0)) / 384.0);
+        float v = hash2(m + 7.0);
+        col.rgb *= 0.95 + 0.05 * floor(v * 3.0);
+        material.baseColor = vec4(col.rgb, 1.0);
+        // the ground is matt; the water a little glossy
+        bool water = abs(layer - 10.0) < 0.5;
+        material.roughness = water ? 0.35 : 0.95;
+        material.metallic = 0.0;
+        material.reflectance = water ? 0.5 : 0.25;
+    }
+}

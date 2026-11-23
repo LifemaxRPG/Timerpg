@@ -631,7 +631,10 @@ class FilamentTown(
     private val extras = ArrayList<TownExtra>()
     /** Adds something more the town draws ([TownExtra]: the farms), made with the town's engine, scene, materials and workers. */
     internal fun <T : TownExtra> addExtra(make: (TownExtra.Kit) -> T): T =
-        make(TownExtra.Kit(engine, scene, lit, proxyMat, textures, pool)).also { extras += it }
+        make(TownExtra.Kit(engine, scene, lit, proxyMat, textures, pool, ::extraMaterial, art)).also { extras += it }
+    private val extraMaterials = HashMap<String, Material>()
+    private val materialBytesOf = materialBytes
+    private fun extraMaterial(name: String): Material = extraMaterials.getOrPut(name) { load(name, materialBytesOf) }
     /** The extras' report lines (for previews). */
     val extraReport: List<String> get() = extras.map { it.report }
     var stats = TownStats(slots.size, 0, 0, 0, 0, 0, 0); private set
@@ -765,7 +768,7 @@ class FilamentTown(
 
     /** (A worker) the ground's pieces, the rows' furniture, greenery and props, chunked and packed. */
     private fun prepareGround() {
-        val tg = TownGround(town, art)
+        val tg = TownGround(town, art, farFields = farFields)
         for (p in tg.pieces()) {
             // (one packed picture per mesh, shared by all its chunks' batches while they wait for their upload; a piece's
             // own, so it is let go with the piece's batches, not held to the end of the whole ground)
@@ -1304,6 +1307,12 @@ class FilamentTown(
      */
     internal var worldReach = 0f
 
+    /**
+     * Whether the town's grass runs on as plain fields to the horizon round its ground (TownGround); the world's near
+     * terrain (W5a) turns it off and meets the town's grass at its edge instead. Set before the ground is built.
+     */
+    internal var farFields = true
+
     private fun buildSkirt() {
         val c = collision ?: return
         if (skirtUp || worldReach > 0f) return
@@ -1695,6 +1704,24 @@ class FilamentTown(
         fog.enabled = !hazeOff
         fog.distance = p.hazeFrom
         fog.height = 0f
+        if (p.open && worldReach > 0f && worldBaseM != null) {
+            // the world round the town (W5a): the air's own haze, by the distance through it and thinning with height over
+            // the aerosols' scale height ([air]: the weather's), from sea level; nothing of the town's thick ground haze, so a
+            // clear day shows the land to the horizon and a far mountain is hazed as the ground at its distance is
+            val a = air
+            val u = worldUnitsPerMetre
+            fog.distance = 0f
+            fog.height = (-(worldBaseM ?: 0.0) * u).toFloat()
+            fog.density = (a.extinction / u).toFloat() * (1f - .3f * sky.dark)
+            fog.heightFalloff = (1.0 / (a.scaleHeightM * u)).toFloat()
+            fog.maximumOpacity = 1f
+            fog.inScatteringStart = 0f
+            fog.inScatteringSize = -1f
+            fog.fogColorFromIbl = false
+            fog.color = floatArrayOf(lin(tone.red), lin(tone.green), lin(tone.blue))
+            view.fogOptions = fog
+            return
+        }
         if (p.open) {
             // a ground haze, thinning with height; its density at the ground set so that a line from the eye down to the
             // far ground meets [TownPose.haze] on average whatever the camera's height (a camera up high does not see the
@@ -1729,6 +1756,12 @@ class FilamentTown(
      */
     /** (Measuring) no haze. */
     var hazeOff = false
+
+    /** The air's haze with the world round the town (WORLD_GEN.md W5a; the weather sets it): a clear day by default. */
+    var air = com.lifemax.rpg.feature.habits.domain.WorldAir.CLEAR
+    /** The town's ground height above sea level (m) and street units a metre, once the world is attached: the haze's sea level. */
+    internal var worldBaseM: Double? = null
+    internal var worldUnitsPerMetre = 1.0
     /** (Measuring) what is left out of the frame: [HIDE_FAR] and the rest, or-ed (the preview's GPU cost breakdown). */
     var debugHide = 0
 
@@ -1789,6 +1822,8 @@ class FilamentTown(
         scene.remove(sun); engine.destroyEntity(sun); em.destroy(sun)
         ibl?.let { engine.destroyIndirectLight(it) }; ibl = null
         engine.destroyMaterial(lit); engine.destroyMaterial(proxyMat)
+        for (m in extraMaterials.values) engine.destroyMaterial(m)
+        extraMaterials.clear()
         engine.destroyColorGrading(grading)
         val ce = camera.entity
         engine.destroyCameraComponent(ce); em.destroy(ce)

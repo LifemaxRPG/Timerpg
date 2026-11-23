@@ -65,7 +65,7 @@ class WorldFarPlan(
     /** Sea level (m above [baseElev]). */
     val seaLevel: Float get() = (-baseElev).toFloat()
 
-    private val detail = WorldFbm(sk.seed, "w4-detail", WorldSkeleton.W / 2, 3)
+    private val relief = WorldRelief(sk)
     private val jx = WorldLattice(sk.seed, "w4-jitter-x", WorldSkeleton.W)
     private val jz = WorldLattice(sk.seed, "w4-jitter-z", WorldSkeleton.W)
     private val tone = WorldNoise.hashStr("${sk.seed}|w4-tone")
@@ -93,6 +93,9 @@ class WorldFarPlan(
         val t = ((d - FLAT_M) / BLEND_M).coerceIn(0.0, 1.0)
         return t * t * (3 - 2 * t)
     }
+
+    /** The scene's height (m above [baseElev]) of ground [raw] m above sea level at ([x], [z]): flattened under and round the town. */
+    fun shapeRaw(x: Double, z: Double, raw: Double): Float = shape(x, z, raw)
 
     private fun shape(x: Double, z: Double, raw: Double): Float {
         if (outside(x, z) <= 0) return (-UNDER_M).toFloat()
@@ -123,11 +126,11 @@ class WorldFarPlan(
             for (j in 0..n) for (i in 0..n) {
                 val x = ox + i * sp; val z = oz + j * sp
                 val raw = if (k == 0) {
-                    // the bilinear cells' heights and the detail noise, on land, none at the rim (it meets level 1 there)
+                    // the near terrain's relief (W5a: the same ground the near terrain draws, here every 268.8 m), none at
+                    // the rim (it meets level 1, the cells' own heights, there)
                     val c = sk.height(cx(x), cz(z))
                     val rim = min(min(i, n - i), min(j, n - j)) / 4.0
-                    val land = sk.land(floor(cx(x)).toInt(), floor(cz(z)).toInt())
-                    c + if (land && c > 2) (detail.at(cx(x), cz(z)) - .5) * DETAIL_M * min(1.0, rim) else 0.0
+                    c + (relief.raw(cx(x), cz(z)) - c) * min(1.0, rim)
                 } else sk.elev(floor(cx(x)).toInt(), floor(cz(z)).toInt()).toDouble()
                 hs[j * (n + 1) + i] = shape(x, z, raw)
             }
@@ -277,7 +280,7 @@ class WorldFarPlan(
 
     companion object {
         /** The levels: atlas cells a quad, quads a side (finest first). */
-        val LEVELS = listOf(.25 to 64, 1.0 to 96, 4.0 to 80)
+        val LEVELS = listOf(.125 to 128, 1.0 to 96, 4.0 to 80)
         /** How far the coarsest level reaches from its middle (m): the horizon, 172 km. */
         val REACH_M: Double = LEVELS.last().let { it.first * it.second / 2 } * Planet.CELL_M
         const val RIVER = 0; const val HIGHWAY = 1; const val COUNTY = 2; const val RAIL = 3

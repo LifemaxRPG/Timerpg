@@ -11,7 +11,7 @@ import kotlin.math.floor
 /**
  * The baked world skeleton (WORLD_GEN.md section 2, "The skeleton"; the format is src/world/gen/bake.ts, version 2),
  * read whole from its asset (content/world/<seed>/skeleton.twsk.gz, shipped as assets/world/<seed>/). The atlas grids the
- * app needs (by default height, flags, biome, flow and landmass: [DEFAULT_GRIDS]; the monthly climate stays on disk until
+ * app needs (by default height, flags, biome, flow, landmass, crop and snowline: [DEFAULT_GRIDS]; the monthly climate stays on disk until
  * something asks for it) and every vector and fact of the JSON header: places with the hubs' pins, roads, rail lines,
  * rivers with their true paths (hub ends on their pins, the capital's river bent through its river pins: paths.ts), sea
  * routes, lakes. Engine-agnostic: no Filament, no Android.
@@ -97,8 +97,8 @@ class WorldSkeleton private constructor(
         const val H = 928
         const val CELL_M = 1075.2
         const val PTS_SCALE = 524288.0
-        /** The grids kept by default (about 12 MB): what the far view, the hubs and the facts read. */
-        val DEFAULT_GRIDS = setOf("elev", "flags", "biome", "flow", "mass")
+        /** The grids kept by default (about 17 MB): what the far view, the near terrain (crops, snowline), the hubs and the facts read. */
+        val DEFAULT_GRIDS = setOf("elev", "flags", "biome", "flow", "mass", "crop", "snowline")
         private val UNSIGNED = setOf("flags", "biome", "koppen", "crop", "flow", "steady", "mass", "lake")
         /** The biomes in the skeleton's order (src/world/gen/climate.ts BIOMES). */
         val BIOMES = listOf("ocean", "ice", "tundra", "taiga", "temperate forest", "temperate rainforest", "prairie", "steppe", "desert", "savanna",

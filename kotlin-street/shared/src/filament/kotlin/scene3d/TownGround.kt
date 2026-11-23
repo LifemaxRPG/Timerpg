@@ -64,7 +64,14 @@ internal class Anchor(val row: com.lifemax.rpg.feature.habits.domain.Row?, val x
  *  - the rows' furniture: lamps (3D, their lanterns lit at night), benches (the props' bench), trees (cards);
  *  - the street props by [PropRules] along every row ([props]).
  */
-internal class TownGround(private val town: Town, private val art: TownArt) {
+internal class TownGround(
+    private val town: Town, private val art: TownArt,
+    /**
+     * Whether the grass runs on past the ground as plain fields to the horizon (the town alone); false with the world's
+     * terrain round it (WORLD_GEN.md W5a: the near terrain meets the town's ground at its edge instead).
+     */
+    private val farFields: Boolean = true,
+) {
     /** The ground's extent (world x0, z0, x1, z1): everything in the town and a margin of fields round it. */
     val bounds: FloatArray
     private val tile = town.scale
@@ -81,6 +88,7 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         i0 = floor((x0 - MARGIN) / tile).toInt(); j0 = floor((z0 - MARGIN) / tile).toInt()
         i1 = ceil((x1 + MARGIN) / tile).toInt(); j1 = ceil((z1 + MARGIN) / tile).toInt()
         bounds = floatArrayOf(i0 * tile, j0 * tile, i1 * tile, j1 * tile)
+        // (boundsOf works it out the same way, without the rest)
         for (poly in town.water) {
             val ax = poly.minOf { it.x }; val bx = poly.maxOf { it.x }; val az = poly.minOf { it.z }; val bz = poly.maxOf { it.z }
             for (i in floor(ax / tile + .01f).toInt() until ceil(bx / tile - .01f).toInt())
@@ -148,81 +156,6 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
     private fun pic(path: String): PixImg? = art.image(path)?.let { im ->
         val px = StreetTextures.argb(im)
         PixImg(im.width, im.height).also { px.copyInto(it.px) }
-    }
-
-    /** A slow noise that wraps every [n] texels: a lattice of [cells] a side, smoothly blended. */
-    private fun wrapNoise(n: Int, cells: Int, seed: Int): (Int, Int) -> Float {
-        val r = Paint.Rnd(seed)
-        val g = FloatArray(cells * cells) { r.next() }
-        return { x, y ->
-            val fx = x.toFloat() * cells / n; val fy = y.toFloat() * cells / n
-            val ix = floor(fx).toInt(); val iy = floor(fy).toInt()
-            val tx = fx - ix; val ty = fy - iy
-            val sx = tx * tx * (3 - 2 * tx); val sy = ty * ty * (3 - 2 * ty)
-            fun at(i: Int, j: Int) = g[(j.mod(cells)) * cells + i.mod(cells)]
-            val a = at(ix, iy) + (at(ix + 1, iy) - at(ix, iy)) * sx
-            val b = at(ix, iy + 1) + (at(ix + 1, iy + 1) - at(ix, iy + 1)) * sx
-            a + (b - a) * sy
-        }
-    }
-
-    /**
-     * The grass: [GRASS] texels a side, seamless. The grass tiles' base colour broken into four shades by two wrapped
-     * noises (a slow one for patches across tens of metres, a quicker one for clumps), dithered at their edges a texel at
-     * a time; the tiles' own tufts, pebbles and leaves stamped over it at random, a few more tiny flowers.
-     */
-    private fun grassPicture(): PixImg {
-        val n = GRASS
-        val im = PixImg(n, n)
-        val shades = intArrayOf(Paint.c(0x3F8E50), Paint.c(0x439353), Paint.c(0x479757), Paint.c(0x4C9C5A), Paint.c(0x51A15D))
-        val slow = wrapNoise(n, 6, 31)
-        val mid = wrapNoise(n, 22, 32)
-        val fine = wrapNoise(n, 96, 33)
-        val dither = intArrayOf(0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5)
-        for (y in 0 until n) for (x in 0 until n) {
-            val v = slow(x, y) * .55f + mid(x, y) * .3f + fine(x, y) * .15f
-            val t = ((v - .3f) / .4f * .6f + .2f).coerceIn(0f, .999f) * (shades.size - 1)
-            val k = t.toInt()
-            val frac = t - k
-            val d = (dither[(y and 3) * 4 + (x and 3)] + .5f) / 16f
-            im.px[y * n + x] = shades[(if (frac > d) k + 1 else k).coerceAtMost(shades.size - 1)]
-        }
-        // the tiles' details: every pixel of theirs that is not the base, stamped where it falls, the tile turned
-        val base = Paint.c(0x479757)
-        val stamps = listOf("grass/grass_9.png", "grass/grass_11.png", "grass/grass_12.png", "grassPatch/grass_patch_8.png", "grassPatch/grass_patch_9.png")
-            .mapNotNull { pic(it) }
-        val details = stamps.map { s ->
-            val pts = ArrayList<IntArray>()
-            for (y in 0 until s.h) for (x in 0 until s.w) { val c = s.px[y * s.w + x]; if ((c ushr 24) > 200 && (c or 0xFF000000.toInt()) != base) pts += intArrayOf(x, y, c) }
-            pts
-        }.filter { it.isNotEmpty() }
-        val r = Paint.Rnd(77)
-        if (details.isNotEmpty()) repeat(n * n / 2200) {
-            val d = details[r.int(details.size)]
-            val ox = r.int(n); val oy = r.int(n)
-            val turn = r.int(4)
-            // only the tiles' small things (a stamp's pixels within 6 of one picked at random): a tuft, a stone, a leaf
-            val c0 = d[r.int(d.size)]
-            for (p in d) {
-                if (abs(p[0] - c0[0]) > 5 || abs(p[1] - c0[1]) > 5) continue
-                val lx = p[0] - c0[0]; val ly = p[1] - c0[1]
-                val (tx, ty) = when (turn) { 0 -> lx to ly; 1 -> -ly to lx; 2 -> -lx to -ly; else -> ly to -lx }
-                im.px[(oy + ty).mod(n) * n + (ox + tx).mod(n)] = p[2]
-            }
-        }
-        // a scatter of tiny flowers and darker tufts
-        val petals = intArrayOf(Paint.c(0xF2E9A0), Paint.c(0xFFFFFF), Paint.c(0xE8A0C8), Paint.c(0xF7D650))
-        val tuft = Paint.c(0x37854E)
-        repeat(n * n / 260) {
-            val x = r.int(n); val y = r.int(n)
-            im.px[y * n + x] = tuft; im.px[((y + 1) % n) * n + x] = tuft
-            im.px[y * n + (x + 1) % n] = tuft
-        }
-        repeat(n * n / 2600) {
-            val x = r.int(n); val y = r.int(n)
-            im.px[y * n + x] = petals[r.int(petals.size)]
-        }
-        return im
     }
 
     /** A tile of the pack's as a repeating source (its own colour if missing). */
@@ -488,7 +421,7 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
 
     /** Grass over every tile of the ground that is not water: one quad a run of tiles along each row of the grid. */
     private fun grass(): GroundPiece {
-        val f = Flat(grassPicture())
+        val f = Flat(grassPicture(GRASS, ::pic))
         val s = GRASS * UNIT
         for (j in j0 until j1) {
             var i = i0
@@ -501,6 +434,7 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
                 i = k
             }
         }
+        if (!farFields) return piece("grass", f)
         // the fields on to the horizon round it (the haze takes them)
         val far = 60000f
         val (bx0, bz0, bx1, bz1) = bounds.toList()
@@ -922,6 +856,92 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
     }
 
     companion object {
+        /** The ground's extent (street units: x0, z0, x1, z1) of [town], as [bounds] has it: what its grass covers. */
+        fun boundsOf(town: Town): FloatArray {
+            var x0 = Float.MAX_VALUE; var z0 = Float.MAX_VALUE; var x1 = -Float.MAX_VALUE; var z1 = -Float.MAX_VALUE
+            fun take(x: Float, z: Float) { x0 = min(x0, x); z0 = min(z0, z); x1 = max(x1, x); z1 = max(z1, z) }
+            for (n in town.nodes) take(n.x, n.z)
+            for (p in town.props) take(p.x, p.z)
+            for (r in town.rows) for (p in r.pts) take(p.x, p.z)
+            for (poly in town.water) for (p in poly) take(p.x, p.z)
+            val tile = town.scale
+            return floatArrayOf(floor((x0 - MARGIN) / tile).toInt() * tile, floor((z0 - MARGIN) / tile).toInt() * tile, ceil((x1 + MARGIN) / tile).toInt() * tile, ceil((z1 + MARGIN) / tile).toInt() * tile)
+        }
+
+        /** A slow noise that wraps every [n] texels: a lattice of [cells] a side, smoothly blended. */
+        internal fun wrapNoise(n: Int, cells: Int, seed: Int): (Int, Int) -> Float {
+            val r = Paint.Rnd(seed)
+            val g = FloatArray(cells * cells) { r.next() }
+            return { x, y ->
+                val fx = x.toFloat() * cells / n; val fy = y.toFloat() * cells / n
+                val ix = floor(fx).toInt(); val iy = floor(fy).toInt()
+                val tx = fx - ix; val ty = fy - iy
+                val sx = tx * tx * (3 - 2 * tx); val sy = ty * ty * (3 - 2 * ty)
+                fun at(i: Int, j: Int) = g[(j.mod(cells)) * cells + i.mod(cells)]
+                val a = at(ix, iy) + (at(ix + 1, iy) - at(ix, iy)) * sx
+                val b = at(ix, iy + 1) + (at(ix + 1, iy + 1) - at(ix, iy + 1)) * sx
+                a + (b - a) * sy
+            }
+        }
+
+        /**
+         * The grass: [GRASS] texels a side, seamless. The grass tiles' base colour broken into four shades by two wrapped
+         * noises (a slow one for patches across tens of metres, a quicker one for clumps), dithered at their edges a texel at
+         * a time; the tiles' own tufts, pebbles and leaves stamped over it at random, a few more tiny flowers.
+         */
+        fun grassPicture(n: Int, pic: (String) -> PixImg?): PixImg {
+            val im = PixImg(n, n)
+            val shades = intArrayOf(Paint.c(0x3F8E50), Paint.c(0x439353), Paint.c(0x479757), Paint.c(0x4C9C5A), Paint.c(0x51A15D))
+            val slow = wrapNoise(n, 6, 31)
+            val mid = wrapNoise(n, 22, 32)
+            val fine = wrapNoise(n, 96, 33)
+            val dither = intArrayOf(0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5)
+            for (y in 0 until n) for (x in 0 until n) {
+                val v = slow(x, y) * .55f + mid(x, y) * .3f + fine(x, y) * .15f
+                val t = ((v - .3f) / .4f * .6f + .2f).coerceIn(0f, .999f) * (shades.size - 1)
+                val k = t.toInt()
+                val frac = t - k
+                val d = (dither[(y and 3) * 4 + (x and 3)] + .5f) / 16f
+                im.px[y * n + x] = shades[(if (frac > d) k + 1 else k).coerceAtMost(shades.size - 1)]
+            }
+            // the tiles' details: every pixel of theirs that is not the base, stamped where it falls, the tile turned
+            val base = Paint.c(0x479757)
+            val stamps = listOf("grass/grass_9.png", "grass/grass_11.png", "grass/grass_12.png", "grassPatch/grass_patch_8.png", "grassPatch/grass_patch_9.png")
+                .mapNotNull { pic(it) }
+            val details = stamps.map { s ->
+                val pts = ArrayList<IntArray>()
+                for (y in 0 until s.h) for (x in 0 until s.w) { val c = s.px[y * s.w + x]; if ((c ushr 24) > 200 && (c or 0xFF000000.toInt()) != base) pts += intArrayOf(x, y, c) }
+                pts
+            }.filter { it.isNotEmpty() }
+            val r = Paint.Rnd(77)
+            if (details.isNotEmpty()) repeat(n * n / 2200) {
+                val d = details[r.int(details.size)]
+                val ox = r.int(n); val oy = r.int(n)
+                val turn = r.int(4)
+                // only the tiles' small things (a stamp's pixels within 6 of one picked at random): a tuft, a stone, a leaf
+                val c0 = d[r.int(d.size)]
+                for (p in d) {
+                    if (abs(p[0] - c0[0]) > 5 || abs(p[1] - c0[1]) > 5) continue
+                    val lx = p[0] - c0[0]; val ly = p[1] - c0[1]
+                    val (tx, ty) = when (turn) { 0 -> lx to ly; 1 -> -ly to lx; 2 -> -lx to -ly; else -> ly to -lx }
+                    im.px[(oy + ty).mod(n) * n + (ox + tx).mod(n)] = p[2]
+                }
+            }
+            // a scatter of tiny flowers and darker tufts
+            val petals = intArrayOf(Paint.c(0xF2E9A0), Paint.c(0xFFFFFF), Paint.c(0xE8A0C8), Paint.c(0xF7D650))
+            val tuft = Paint.c(0x37854E)
+            repeat(n * n / 260) {
+                val x = r.int(n); val y = r.int(n)
+                im.px[y * n + x] = tuft; im.px[((y + 1) % n) * n + x] = tuft
+                im.px[y * n + (x + 1) % n] = tuft
+            }
+            repeat(n * n / 2600) {
+                val x = r.int(n); val y = r.int(n)
+                im.px[y * n + x] = petals[r.int(petals.size)]
+            }
+            return im
+        }
+
         /** Street units per texel of the ground's pictures (the road's 216 texels across its 178 units). */
         const val UNIT = Crossroads.MOUTH / 216f
         const val ROAD_W = 216

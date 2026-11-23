@@ -482,7 +482,7 @@ their normal pace, fading back to true speed near land.
 | **W2 places** (built) | hub catalogue (data: type, pins, footprint), hub placement with gamma first, towns, hamlets, unique names, the registry; `TownSite` from it | hubs meet their hard rules and spacing; launch hubs stay put when hubs are added; names unique | 800 lines; 1 session |
 | **W3 networks and history** (built) | roads, rail (the RailGraph interface: gridRail and skeletonRail), sea routes and sailings, the multimodal planner, history by year (roads, dams, rail, ports, growth), lore on the graph | rail.test.ts green on both providers; every nameable place routable in 1930/1955/1975/2000/2025; pins honoured | 1,500 lines; 2 sessions |
 | **W4 export and frames** (built, but the NPC fact lines and the redone exports) | skeleton.bin export, Kotlin reader, WorldPos and the render origin, gamma placed on its world site with nothing else changed; NPC fact lines from the registry | the town's previews identical before and after (pixel diff); memory check of the skeleton; first S25 memory measurement with the 9B model loaded | 1,000 lines; 1-2 sessions |
-| **W5 terrain renderer** | FastNoise2 in the native layer (arm64 NEON, desktop), chunk heightfields T0/T1, region tiles T2, atlas horizon T3, streaming with caps and disk cache, the town's ground blended into the terrain, pixel-art ground materials and autotiles, cliffs, beaches, snow, rivers and lakes; Jolt heightfield collision per T0 chunk when Jolt comes | LOD seams (no cracks: a render test); determinism of the skeleton-bound features; previews from ground, bike height and 200 m; frame time and memory on the S25 | the big one: 4,000 lines; 4-6 sessions |
+| **W5 terrain renderer** (W5a built: the near terrain T0/T1, its materials and cliffs, the town blended in, the haze; see "The near terrain (W5a)") | FastNoise2 in the native layer (arm64 NEON, desktop), chunk heightfields T0/T1, region tiles T2, atlas horizon T3, streaming with caps and disk cache, the town's ground blended into the terrain, pixel-art ground materials and autotiles, cliffs, beaches, snow, rivers and lakes; Jolt heightfield collision per T0 chunk when Jolt comes | LOD seams (no cracks: a render test); determinism of the skeleton-bound features; previews from ground, bike height and 200 m; frame time and memory on the S25 | the big one: 4,000 lines; 4-6 sessions |
 | **W6 countryside** | roads and rail meshes outside towns (RailKit's pieces), bridges, small towns from plat.ts's S plans, hamlets, farms on county roads (farms.ts), forests by biome | previews of a drive between two towns; nothing floating or buried; side/back/above views | 2,500 lines; 3 sessions |
 | **W7 sea** | the Gerstner ocean joined to the coast and depth, ports' waterfronts, the sailboat, compression, sailing through the night, liners | the compression never shows land at c > 1 (a test over the routes); arrival times equal the timetables | 2,000 lines; 3 sessions (after the ocean prototype) |
 | **W8 time** | the world by year in the renderer: surfaces, expressways, dams and reservoirs, town growth, farmland | previews of one valley in 1945/1965/1985/2025 | 1,200 lines; 2 sessions |
@@ -644,7 +644,7 @@ hub names), the Koppen classes, and January and July temperatures.
   The app reads the skeleton with the town (assets/world/alpha/, copied from content/world at each build), saves the
   player's position in world terms beside the town's own, and restores from it first.
 - **The far view** (`WorldFar`, a `TownExtra`, planned and built on the town's workers): three nested terrain levels
-  (268.8 m quads to 8.6 km, 1,075 m to 52 km, 4.3 km to 172 km: the horizon), faceted low-poly triangles with a flat
+  (268.8 m quads to 8.6 km (134.4 m since W5a, sampled from the near terrain's relief and wearing its materials), 1,075 m to 52 km, 4.3 km to 172 km: the horizon), faceted low-poly triangles with a flat
   normal each, a texel a quad in a biome palette (two tones dithered, borders broken by noise, snow above 2,700 m, the
   town's grass dithered in round its ground), skirts on the finer levels' rims; the ground flattened to the town's height
   under and round its ground (blending over 900 m); the ocean a flat plane at sea level; rivers (by order), highways,
@@ -677,11 +677,126 @@ hub names), the Koppen classes, and January and July temperatures.
   old wall became the range's flank, so the capital moved about 44 km west to 326 m (its rule now asks for lowland).
 - Far towns are blocks a little bigger than life; 15 km off they are a few pixels, readable only with a long lens or by
   their lights at night (W5's T2/T3 tiers draw landmark silhouettes).
-- The open world's own haze (the player's camera) still takes everything past about 3 km on low ground; ground well
-  above the town stands clear of its height falloff, so far mountains show crisp. W5 tunes the haze for the horizon.
+- ~~The open world's own haze~~ (fixed in W5a): it took everything past about 3 km on low ground while ground well above
+  the town stood clear of its height falloff, so far mountains showed crisp. With the world round the town the haze is
+  now the air's own (W5a, `WorldAir`).
 - Rail lines are drawn whatever the year (their links' history is not read yet); roads by their built year.
 - Not done in W4: the NPC fact lines from the registry, and rail.json / dialogue.json / rail-checks.json redone from the
   skeleton (gamma's neighbours are still `world-6`'s grid towns in the town's own rail and dialogue).
+
+## The near terrain (W5a)
+
+Built 2026-11-23: the first part of phase W5, the T0/T1 tiers of section 7 drawn as section 8 asks, round the camera,
+replacing the town's flat green fields and W4's coarse triangles near the town. Everything is desktop-measured on the
+4-core x86 build server with software GL (llvmpipe), not the S25.
+
+**What was built**
+- **The relief** (`WorldRelief`, shared/src/main/kotlin/domain; cross-language: `src/world/gen/near.ts` computes the same
+  doubles, `tools/world-fixture.ts` writes samples). From the skeleton's bilinear cell heights and the integer-hashed
+  noise only (+, -, *, /, floor, abs, sqrt): W4's detail noise, gentle rolling hills everywhere (10-36 m swing over
+  268.8-33.6 m wavelengths, more where a slow roughness noise is high), rocky outcrops (ridged knolls up to 160 m where
+  the roughness is highest), ridged mountains on high ground (up to 320 m over 450-1,350 m), all fading out at the shore.
+  **The owner's terrain decision (section 14)**: where that ground's slope passes 0.62 (32 degrees; whole by 0.9) it is
+  terraced into ledges and risers 7-13 m tall (a tread of 72% of the step rising 6% of it, the riser the rest: on a 45
+  degree slope a near-vertical rock wall every 7-13 m with a ledge on top). Below the threshold nothing changes: smooth
+  rolling ground. The slope is central differences of the smooth height (deterministic: no LOD's vertex grid enters it).
+  A ridge's crest is rounded over a few metres (`sqrt(a^2 + 0.003)`), so the slope, and the cliffs it makes, never jump.
+- **The ground on the town's planet** (`WorldTerrain`): the relief, then the world's own lines on it (the far view's
+  rivers, highways, county roads and rail lines: within 70 m of a river and 36 m of a road the land's detail calms
+  towards the cells' own height, a river's bed is carved 1.6 m over 8 m banks), then the town's flattening exactly as the
+  far view does it (`WorldFarPlan.shapeRaw`: flat 150 m past the town's ground, blending over 900 m: the graded apron).
+  Under the town's own grass (TownGround's extent) the terrain stays 0.6 m down, below the town's river water.
+- **Materials** (12 pixel-art pictures, `TerrainPics`, 1024 texels a side at the town's 0.0389 m texel, a texture array):
+  grass (the town's own grass picture, its LimeZu tufts stamped in: the countryside matches the town), dry grass (the same
+  texels recoloured in straw), dirt, farmland rows two ways (furrows 0.8 m apart, a crop's clumps on the ridges), sand
+  with wind ripples, rock (blocky stones, dark cracks, lit top edges), snow, gravel (the farms' palette), forest floor,
+  water with ripple dashes, asphalt (the town's asphalt tile). Chosen per quad by `WorldTerrain.material`: the lines first
+  (river water, highway asphalt with gravel shoulders, county roads and rail beds gravel), sand under 3.5 m by the sea and
+  on beaches, rock on steep quads and cliff risers, gravel scree round them, snow above the skeleton's snowline (and on
+  ice and glaciers), the town's grass in organic patches thinning out over 700 m round its ground, fields as a patchwork
+  of 100-200 m plots on cropped land (rows one way or the other, fallow dirt, pasture), then the biome's ground with
+  patches by a noise.
+- **terrain.mat** (filament/materials, compiled to app/src/main/assets/filament/terrain.filamat): a node's material map is
+  a byte a quad (with a ring of the neighbours' round it); the border between two materials is **dithered in whole art
+  texels** (clumps of three texels and single ones jitter the lookup by up to about a metre), so transitions are jagged
+  pixel-art edges, never a blur. Nearest magnification, the town's mip filtering. Steep faces (cliff risers, skirts) take
+  the picture projected on the wall (across from x or z, up from the height) instead of stretched from above. A slow
+  three-step variation over about 15 m hides the 40 m repeat. Shading: the town's lit model; smooth normals on rolling
+  ground, a flat normal a triangle on cliffs (the faceted low-poly rock).
+- **Chunks and streaming** (`WorldNear`, a `TownExtra`): a quadtree whose roots are blocks of 1,024 tiles (2,150.4 m),
+  each node 64 x 64 quads: 2.1 m (a tile) at level 0 to 33.6 m at level 4. Roots within 3 km of the camera that lie
+  wholly on the far view's finest level; a node splits while the camera (its distance including its height over the
+  ground) is nearer than 1.3 of its size. Nodes are built on the town's workers (coarse first, then nearest; six at a time),
+  at most two uploaded a frame within 3 ms, nothing heavy on the engine's thread. For each root the finest wholly-ready
+  cover is drawn (a parent stays until its four children are up, and the other way round), so no hole ever shows while
+  streaming; 48 unused nodes are kept for a quick way back. Every node is its own entity in its own frame (its corner),
+  its root transform its corner less the render origin. `settle(pose)` builds everything at once (previews, a teleport).
+- **No cracks.** Every vertex position comes from integer tile indices, so a vertex shared by two nodes, or two levels,
+  has bit-for-bit the same height. Each node drops a skirt from each edge as deep as the largest step to any coarser
+  neighbour's edge (its vertices are every 2^d-th of these) or to the far view's surface along it, plus a margin; the
+  far view's finest level is now split into the same root blocks (one part a block, with skirts round its rim, and its
+  lines cut at the blocks' edges), and a block the near terrain draws is hidden in the far view in the same frame. So the
+  two never both draw a block, nor neither.
+- **The far view (W4) changed with it**: its finest level is now 134.4 m quads (128 a side, still to 8.6 km), its heights
+  sampled from the same relief (fading to the cells' heights at its rim where level 1 takes over), and each quad wears the
+  near ground's material at its middle in that picture's mean colour (dithered back to the biome palette over its outer
+  5 km), so past the near terrain the same fields, rock and water go on. With the near terrain the town draws no fields
+  past its ground (`TownGround(farFields = false)`), and the far view covers everything but the town's grass.
+- **The haze** (W4 open problem 3, fixed): with the world round the town the open-world camera's haze is the air's own
+  (`WorldAir`: meteorological visibility at sea level, 90 km on a clear day, thinning over a 1,400 m scale height,
+  through Filament's height fog from sea level), not the town's thick ground haze, so a clear day shows the land to the
+  horizon and a far mountain is hazed as the low ground at its distance is. `FilamentTown.air` is the weather's hook
+  (presets: clear, hazy 25 km, rain 6 km, fog 400 m). Without the world the town's haze is unchanged.
+
+**Numbers** (desktop, not the S25; `-Dshots=w5` in `gradle :desktop:preview -Dmode=filament-open -Dworld=1`):
+- A node (65 x 65 vertices plus its ring, 66 x 66 material points): median 13.5 ms, p90 19 ms, max 45 ms of one worker,
+  in Kotlin on the JVM (the test `nodesBuildInTime`: 14-16 ms). Settling a view from nothing: 0.7-1.1 s on the 4-core
+  server for 113-149 nodes (the first view's atlas besides: 12 layers made one at a time on a worker, about 1.5 s).
+- Drawn: 0.9-1.3 million triangles in 113-149 draws (levels drawn in the town-edge views: about 40 at 2.1 m, 30 at 4.2
+  m, 38 at 8.4 m, 36 at 16.8 m, 2 at 33.6 m); from 4 km up, 6 nodes (52,000 triangles). The far view: 119,000 triangles
+  in 128 draws (it was 84,500 in 6: its finest level is four times finer and in blocks).
+- GPU: the ground's pictures 64 MB (RGBA8 with mips; ASTC would be 16 MB), the nodes' buffers 24 MB for 194 nodes up
+  (146 wanted, the rest the cache), material maps 0.7 MB, the far view's buffers 10.3 MB: the world 100 MB of its 250 MB.
+- RAM: the skeleton's grids 18.4 MB (crop and snowline now kept: +5 MB). The town's memory check
+  (`gradle :desktop:townMemoryCheck`, the world and its near terrain attached as the app does): held peak 199 MB of the
+  256 MB budget (160 MB with W4's far view alone).
+- **Native noise (FastNoise2/NEON): not needed yet.** In Kotlin a node costs 14 ms of one worker; on the S25's cores
+  that is a few nodes a frame's worth of one worker, and a walk or a ride needs a few nodes a second. Most of the cost is
+  the slope's four extra evaluations of the relief at every point: analytic derivatives of the value noise would cut a
+  node to about a third before anything native. Native becomes worth it for the T2 region tiles (262,000 samples each)
+  and for car speeds; then port `WorldRelief` as it is (the fixture pins its values).
+
+**Tests**: `WorldTerrainTest` (crossroadsTest): the relief is the TypeScript's bit for bit at the fixture's points (a
+terraced cliff among them); a level-0 node's vertex there is the fixture's height where nothing shapes the ground; nodes
+are deterministic (built again by another terrain, after other nodes: the same bits) and share their edge and
+parent-child vertices exactly; the geometric seam test: for four cameras (a person at the town's edge, a bike 2 km out,
+200 m up 3 km out, 900 m over the town) the chosen nodes cover their root blocks exactly once, and at every vertex of
+1,036 shared edges and 112 edges onto the far view the higher side's skirt reaches below the lower side's edge (the
+largest step between nodes 8.5 m, onto the far view 50 m, each covered). `near.test.ts` (vitest): the hashed lattice
+equals noise.ts's tabled one, determinism, terracing only where steep, continuity. The town's four filament-open views
+(main_behind_13h, plan_above, downtown_wide_13h, chk_world_edge) are pixel-identical without the world; with it the town
+itself is unchanged and only the distance above the rooftops differs (the air's haze, the terrain).
+
+**Open problems and what is left (W5b on)**
+- The hand-over to the far view can step up to 50 m on the sharpest outcrop crests 3 km off (the far view samples the
+  relief every 134 m): no crack (the skirts), but a notch may show in a silhouette. Morph the outer ring of nodes towards
+  the far view's surface, or make the far view's finest level from the near nodes' own coarsest heights (W5b's T2).
+- The far view is still planned once round the town: the near terrain exists only on its finest level (8.6 km round the
+  town). Walking further needs the far rings re-centred and region tiles (T2) streamed: W5b.
+- Triangles: about a million near the town (SPLIT 1.3); fine for the Adreno 830 on paper, to be measured on the S25 and
+  tuned (a quality setting: SPLIT, or 4.2 m quads at the finest level).
+- The relief reads more by its materials than by its shading: the town's light is ambient-heavy, so a hill facing away
+  from the sun is one flat tone. Worth a terrain-only light balance or baked ambient occlusion in the near nodes.
+- Rivers are painted water on a 1.6 m-deep carved bed, with no water surface of their own; lakes are painted, not flat
+  planes at their level; the world river meeting the town's river at the town's edge is not checked in a render yet.
+  Roads are asphalt and gravel paint following the ground (no markings, no cuttings or embankments). Bridges: W6.
+- Beaches and snow are in the materials but the capital is inland and low: neither shows in these renders (the
+  snowline there is 3,700 m). Judge them at a coastal and a mountain hub.
+- The town's grass picture and the terrain's are the same pixels with a different phase where they meet (a seam in the
+  pattern, not the colour); the town's grass ends at its tile grid, the terrain's quads straddling that edge are below it.
+- Out of scope, not started: trees and props on the terrain, Jolt heightfield collision per T0 chunk, the sea view's
+  curvature and far-coast impostors, weather beyond the haze's visibility hook, region tiles (T2), the horizon tier (T3),
+  the disk cache, native noise.
 
 ## The prototype
 

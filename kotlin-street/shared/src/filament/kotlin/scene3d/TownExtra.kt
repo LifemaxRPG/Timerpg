@@ -15,6 +15,10 @@ interface TownExtra {
     class Kit internal constructor(
         internal val engine: Engine, internal val scene: Scene, internal val lit: Material, internal val proxy: Material,
         internal val textures: StreetTextures, internal val pool: java.util.concurrent.ExecutorService,
+        /** Another of the town's materials by name (loaded once: the near terrain's `terrain`). */
+        internal val material: (String) -> Material = { error("no material $it") },
+        /** The game's own pictures (the town's grass tiles, its asphalt). */
+        internal val art: TownArt? = null,
     )
 
     /**
