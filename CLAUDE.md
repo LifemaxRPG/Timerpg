@@ -28,6 +28,10 @@ one major feature rather than the whole premise:
 - **The time machine is always in the capital**, kept by a professor who lives there. Reaching the capital is an
   early goal for anyone who wants to time travel.
 - **Money: legit and nefarious ways** to earn it (jobs and businesses; crime, with law, police and consequences).
+- **Crime is grounded:** the player can do anything a person could do in real life, with the consequences it would
+  really have. Consequences travel through people: witnesses remember, may tell others (by their traits and
+  relationships), someone who will report it does, the police in that jurisdiction then know and look for the player;
+  fleeing to another continent to hide out is a real option. Evidence, descriptions and policing follow the era.
 - Everything else (the living simulated world, NPC dialogue on-device, eras, towns, travel by road, rail and sea)
   serves an open world the player is free to live in.
 
