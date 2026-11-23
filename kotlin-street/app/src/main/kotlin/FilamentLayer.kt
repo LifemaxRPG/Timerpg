@@ -413,6 +413,8 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
                 stores = data.stores, collision = data.collision, rail = data.rail, landmarks = data.landmarks)
             // the farms round the town, their fields as they are today
             farms = data.farmArt?.let { fa -> com.lifemax.rpg.feature.habits.presentation.scene3d.TownFarms.attach(ft, data.farms, fa, data.collision, day = farmDay()) }
+            // the world round the town (docs/WORLD_GEN.md W4: the skeleton's far view to the horizon), planned and built on the town's workers
+            data.world?.let { w -> com.lifemax.rpg.feature.habits.presentation.scene3d.WorldFar.attach(ft, { w.plan(data.town.year) }, w.origin) }
             town = ft
             com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.applyResolution(ft.view)
             appliedResolution = com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.resolution
@@ -420,6 +422,8 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             run = rn
             FilamentStats.loadMs = (System.nanoTime() - t0) / 1e6f
         }
+        // (the render origin follows the player: in the town it stays the town's own frame, so nothing moves)
+        data.world?.let { w -> w.origin.update(w.world(walk.wx, walk.wz)) }
         // (the AI panel's resolution changed)
         val q = com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.resolution
         if (q != appliedResolution) { appliedResolution = q; town?.view?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.applyResolution(it) } }

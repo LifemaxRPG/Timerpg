@@ -1,5 +1,7 @@
 import { MONTHS } from './climate';
 import { H, N, W } from './grid';
+import { GAMMA_PLAN_TILES } from './hubs';
+import { worldPaths, type Pt } from './paths';
 import type { Place } from './places';
 import type { World } from './world';
 
@@ -12,7 +14,12 @@ import type { World } from './world';
 // the monthly climate is stored for land cells only (in the order of their index), the sea's months on a 4 x 4 grid.
 // The tool kotlin-street/tools/bake-world.ts gzips it.
 
-export const SKELETON_VERSION = 1;
+// Version 2 (W4): every river, road and rail line has its true path (paths.ts: hub ends on their pins, the capital's
+// river bent through its river pins) in the "pts" section (x, z pairs in atlas cells x 2^19, x unwrapped along the
+// line), referenced as path: [first point, points]; places and pins at full precision; the capital's plan frame.
+export const SKELETON_VERSION = 2;
+/** Fixed point of the "pts" section: units of an atlas cell. */
+export const PTS_SCALE = 524288;
 
 interface Section { name: string; type: 'i8' | 'u8' | 'i16' | 'u16' | 'i32' | 'f32'; offset: number; length: number; note: string }
 type Typed = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Float32Array;
@@ -75,25 +82,34 @@ export function encodeSkeleton(w: World): Uint8Array {
   // ---- vectors: cell pool
   const pool: number[] = [];
   const ref = (cells: readonly number[]): [number, number] => { const o = pool.length; pool.push(...cells); return [o, cells.length]; };
+  const pts: number[] = [];
+  const path = (line: readonly Pt[]): [number, number] => { const o = pts.length / 2; for (const [x, z] of line) pts.push(Math.round(x * PTS_SCALE), Math.round(z * PTS_SCALE)); return [o, line.length]; };
+  const paths = worldPaths(w);
+  const r6 = (v: number): number => Math.round(v * 1e6) / 1e6;
   const place = (p: Place): unknown => ({
-    id: p.id, kind: p.kind, type: p.type, rank: p.rank, x: Math.round(p.x * 1000) / 1000, z: Math.round(p.z * 1000) / 1000, mass: p.mass, seed: p.seed, name: p.name, founded: p.founded,
-    ...(p.hub ? { launch: p.hub.launch, plan: p.hub.plan ?? null, pins: p.pins!.map((q) => ({ kind: q.kind, name: q.name, x: Math.round(q.x * 1000) / 1000, z: Math.round(q.z * 1000) / 1000, ox: q.ox, oz: q.oz })) } : {}),
+    id: p.id, kind: p.kind, type: p.type, rank: p.rank, x: p.hub ? r6(p.x) : Math.round(p.x * 1000) / 1000, z: p.hub ? r6(p.z) : Math.round(p.z * 1000) / 1000, mass: p.mass, seed: p.seed, name: p.name, founded: p.founded,
+    ...(p.hub ? {
+      launch: p.hub.launch, plan: p.hub.plan ?? null, padM: p.hub.padM, growthM: p.hub.growthM,
+      ...(p.hub.plan === 'gamma' ? { planTiles: { ...GAMMA_PLAN_TILES, tileM: 2.1 } } : {}),
+      pins: p.pins!.map((q, k) => ({ kind: q.kind, name: q.name, x: r6(q.x), z: r6(q.z), ox: q.ox, oz: q.oz, dx: p.hub!.pins[k]!.dx, dz: p.hub!.pins[k]!.dz })),
+    } : {}),
     tags: w.tags.get(p.id) ?? [],
   });
   const json = {
     format: 'Timerpg world skeleton', version: SKELETON_VERSION, seed: w.seed, grid: { w: W, h: H, cellM: 1075.2, wrapsX: true }, startMass: w.startMass,
     masses: w.terrain.masses,
     places: w.places.map(place),
-    roads: w.roads.map((r) => ({ id: r.id, cls: r.cls, a: r.a, b: r.b, km: r.km, built: r.built, paved: r.paved, ...(r.expressway !== undefined ? { expressway: r.expressway } : {}), cells: ref(r.cells) })),
-    railLines: w.rail.lines.map((l) => ({ id: l.id, kind: l.kind, stations: l.stations, at: l.at, cells: ref(l.cells) })),
+    roads: w.roads.map((r, k) => ({ id: r.id, cls: r.cls, a: r.a, b: r.b, km: r.km, built: r.built, paved: r.paved, ...(r.expressway !== undefined ? { expressway: r.expressway } : {}), cells: ref(r.cells), path: path(paths.roads[k]!) })),
+    railLines: w.rail.lines.map((l, k) => ({ id: l.id, kind: l.kind, stations: l.stations, at: l.at, cells: ref(l.cells), path: path(paths.rail[k]!) })),
     railLinks: w.rail.links,
     sea: w.sea.routes.map((r) => ({ ...r, cells: ref(r.cells) })),
-    rivers: w.hydro.rivers.map((r) => ({ flow: r.flow, order: r.order, end: r.end, cells: ref(r.cells) })),
+    rivers: w.hydro.rivers.map((r, k) => ({ flow: r.flow, order: r.order, end: r.end, cells: ref(r.cells), path: path(paths.rivers[k]!) })),
     lakes: w.hydro.lakes,
     dams: w.dams.map((d) => ({ ...d, cells: ref(d.cells) })),
     sections,
   };
   add('cells', 'i32', Int32Array.from(pool), 'the vectors\' cell lists (index = z * w + x)');
+  add('pts', 'i32', Int32Array.from(pts), `the vectors' paths: x, z pairs in atlas cells x ${PTS_SCALE} (x unwrapped along a line)`);
   json.sections = sections;
   const head = new TextEncoder().encode(JSON.stringify(json));
   const start = (12 + head.length + 3) & ~3;
@@ -125,7 +141,8 @@ export function decodeSkeleton(bin: Uint8Array): DecodedSkeleton {
   const start = (12 + len + 3) & ~3;
   const section = (name: string): Typed => {
     const s = json.sections.find((q) => q.name === name)!;
-    const buf = bin.slice(start + s.offset, start + s.offset + s.length * SIZE[s.type]).buffer;
+    // (a copy of its bytes: a Node Buffer's slice is a view into a shared pool, whose .buffer is the whole pool)
+    const buf = Uint8Array.prototype.slice.call(bin, start + s.offset, start + s.offset + s.length * SIZE[s.type]).buffer;
     return s.type === 'i8' ? new Int8Array(buf) : s.type === 'u8' ? new Uint8Array(buf) : s.type === 'i16' ? new Int16Array(buf) : s.type === 'u16' ? new Uint16Array(buf) : s.type === 'i32' ? new Int32Array(buf) : new Float32Array(buf);
   };
   return { seed: json.seed as string, places: json.places as DecodedSkeleton['places'], roads: json.roads as unknown[], railLinks: json.railLinks as unknown[], elev: section('elev') as Int16Array, json, section };

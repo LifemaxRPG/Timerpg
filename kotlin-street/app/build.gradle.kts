@@ -85,6 +85,9 @@ android {
     sourceSets["main"].java.srcDir("../shared/src/filament/kotlin")
     // the NPU's own code (libggml-htp-vNN.so, built for the Hexagon DSP by the native build) goes into the APK beside the rest
     sourceSets["main"].jniLibs.srcDir(layout.buildDirectory.dir("htp"))
+    // the baked world skeleton (docs/WORLD_GEN.md W4: content/world/<seed>/skeleton.twsk.gz, kotlin-street/tools/bake-world.ts)
+    // as assets/world/<seed>/, copied in at each build from the repository's content folder
+    sourceSets["main"].assets.srcDir(layout.buildDirectory.dir("worldAssets"))
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
         // the OpenCL link stub is not shipped: the phone's own driver (libOpenCL.so, a public vendor library) is used
@@ -108,6 +111,12 @@ tasks.matching { it.name.startsWith("buildCMake") }.configureEach {
         }
     }
 }
+
+val copyWorldAssets = tasks.register<Copy>("copyWorldAssets") {
+    from(rootProject.file("../content/world")) { include("*/skeleton.twsk.gz") }
+    into(layout.buildDirectory.dir("worldAssets/world"))
+}
+tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") || it.name.startsWith("generate") && it.name.endsWith("Assets") }.configureEach { dependsOn(copyWorldAssets) }
 
 // A clear message instead of a CMake error deep in the log when llama.cpp is missing.
 tasks.matching { it.name.startsWith("configureCMake") || it.name.startsWith("buildCMake") }.configureEach {

@@ -1298,9 +1298,15 @@ class FilamentTown(
     private val skirt = PropLayer(engine, scene, lit, null, sharedTextures = textures, cull = false).also { it.seeThrough = false }
     private var skirtUp = false
 
+    /**
+     * How far the world's far view reaches (street units; [WorldFar]): the camera's far plane goes out to it, and the
+     * grass apron is left out (the world's own ground runs on from the town's edge). 0: no world, the town as before.
+     */
+    internal var worldReach = 0f
+
     private fun buildSkirt() {
         val c = collision ?: return
-        if (skirtUp) return
+        if (skirtUp || worldReach > 0f) return
         val x0 = c.minX; val z0 = c.minZ; val x1 = c.maxX; val z1 = c.maxZ
         val o = TownFar.REACH + 6000f; val y = -SKIRT_DROP
         val img = PixImg(2, 2).also { it.fill(SKIRT_GRASS) }
@@ -1612,7 +1618,7 @@ class FilamentTown(
     private fun aim(p: TownPose) {
         val k = (p.near / p.fl).toDouble()
         // (the far boxes are drawn to the far end of the world: the far plane reaches them once any are up)
-        val farPlane = if (p.range < Float.MAX_VALUE && far.readyCount > 0) max(p.far, TownFar.REACH) else p.far
+        val farPlane = max(if (p.range < Float.MAX_VALUE && far.readyCount > 0) max(p.far, TownFar.REACH) else p.far, worldReach)
         camera.setProjection(Camera.Projection.PERSPECTIVE, -p.cx * k, (p.w - p.cx) * k, -(p.h - p.cy) * k, p.cy * k, p.near.toDouble(), farPlane.toDouble())
         camera.lookAt(p.ex.toDouble(), p.ey.toDouble(), p.ez.toDouble(), (p.ex + p.fx).toDouble(), (p.ey + p.fy).toDouble(), (p.ez + p.fz).toDouble(),
             p.ux.toDouble(), p.uy.toDouble(), p.uz.toDouble())

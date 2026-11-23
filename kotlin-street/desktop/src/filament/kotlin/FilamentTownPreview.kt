@@ -545,6 +545,13 @@ private fun coldStart(
     val ft = FilamentTown(engine, mats, town, yards, art, building, cinema = cinema, stores = stores, rail = rail)
     // (the farms round the town, as the app adds them)
     val farmDraw = farmArt?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownFarms.attach(ft, farms, it, null) }
+    // (the world round the town, as the app adds it: the baked skeleton read and held, its far view built on the workers;
+    // -Dworld=0 leaves it out)
+    val worldSite = if (System.getProperty("world") == "0") null else File("../../content/world/alpha/skeleton.twsk.gz").takeIf { it.exists() }?.let { f ->
+        val sk = f.inputStream().use { com.lifemax.rpg.feature.habits.domain.WorldSkeleton.read(it) }
+        com.lifemax.rpg.feature.habits.domain.WorldSite.of(sk, town.seed, town.scale.toDouble())
+    }
+    val worldDraw = worldSite?.let { w -> com.lifemax.rpg.feature.habits.presentation.scene3d.WorldFar.attach(ft, { w.plan(town.year) }, w.origin) }
     GameState.enabled = true; GameState.look = 1
     GameState.moveX = 0f; GameState.moveLane = 0f
     val walk = TownPlay.start(town)
@@ -613,6 +620,7 @@ private fun coldStart(
             ft.buildingsMs, ft.slowest.first, ft.slowest.second, ft.prepareMs, ft.slowestPrepare.first, ft.slowestPrepare.second, ft.groundMs))
     report.appendLine("(cold start: main-thread work only, on the build server's CPU with software GL; the render itself and the S25 are not measured)")
     farmDraw?.let { report.appendLine("cold start, " + it.report) }
+    worldDraw?.let { report.appendLine("cold start, " + it.report + "; " + (worldSite?.report ?: "")) }
     TownMemory.stop()
     // (-DmemDumpEnd: the heap once the whole town is in, to memdump-end.hprof: what it holds for good)
     if (System.getProperty("memDumpEnd") != null) java.lang.management.ManagementFactory.getPlatformMXBean(com.sun.management.HotSpotDiagnosticMXBean::class.java).dumpHeap(File("memdump-end.hprof").absolutePath, true)
@@ -635,6 +643,9 @@ private fun coldStart(
         val held = TownMemory.mb(TownMemory.peakHeld)
         check(held <= budget) { "the town's cold build held $held MB of heap and direct buffers at its peak, over the budget of $budget MB" }
         report.appendLine("cold start, memory check: held $held MB at the peak, within the budget of $budget MB")
+        // (and the world's share within WORLD_GEN.md 7's: 0.20 GB of RAM, 0.25 GB of GPU)
+        check(com.lifemax.rpg.feature.habits.domain.WorldMemory.withinBudget) { "the world is over its budget: " + com.lifemax.rpg.feature.habits.domain.WorldMemory.line() }
+        report.appendLine("cold start, memory check: " + com.lifemax.rpg.feature.habits.domain.WorldMemory.line())
     }
     TownPlay.stop()
     ft.destroy()

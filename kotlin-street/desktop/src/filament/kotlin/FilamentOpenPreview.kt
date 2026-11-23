@@ -107,6 +107,9 @@ fun renderFilamentOpen(out: String) {
             com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt({ p -> open(File(farmDir, p)) }, { p -> File(farmDir, p).takeIf { it.exists() }?.readText() }, { p -> open(File(assets, p)) }),
             collision, day = 200)
     }
+    // (-Dworld=1: gamma on the planet, the world's far view round it: FilamentWorldPreview.kt)
+    val worldSite = WorldPreview.site(town)
+    val world = worldSite?.let { WorldPreview.attach(ft, town, it) }
     // (a still picture shows everyone in its one frame)
     ft.sheetsOnWorker = false
     // (and the see-through cone open or shut at once in it)
@@ -117,6 +120,7 @@ fun renderFilamentOpen(out: String) {
     while (!ft.uploadGround(8f)) Thread.sleep(1)
     while (ft.pending > 0) { if (ft.buildNearest(0f, 0f, 8f) == 0) Thread.sleep(1) }
     report.appendLine(ft.farReport)
+    for (l in ft.extraReport) report.appendLine(l)
     report.appendLine("(software GL on the build server, not the S25: draws and triangles are what is sent, the times are not the phone's)")
     ft.textureStats.let { (n, t, sh) -> report.appendLine("textures after the build: %d, %.1fM texels, %d shared; biggest: %s".format(n, t / 1e6, sh, ft.biggestTextures(10))) }
     // the GPU memory account (TOWN.md "GPU memory"): every texture by owner and format, the shadow map and targets
@@ -614,6 +618,7 @@ fun renderFilamentOpen(out: String) {
     view("fb3_larch", 1407.5f, 3857.5f, .5477f, -.8367f, -98.07f, 14.15f, 437f, 19.2f, "074956: Larch Road, the terraced house across the road")
     view("fb3_trailers", 4617.1f, 7643.4f, -.9836f, -.1802f, 69.24f, 10f, 437f, 13f, "075232: Elm Street, Old Town, the mobile homes")
     view("fb3_king_back", 3553f, 2648.5f, .9953f, -.0965f, 20f, 18f, 600f, 13f, "061348's spot, the other way (the backs)")
+    if (worldSite != null && world != null) WorldPreview.shots(dir, ft, shooter, town, worldSite, world, report, ::want, w, h)
     File(dir, "open.txt").writeText(report.toString())
     print(report)
     if (only != null && "bench" in only) {
