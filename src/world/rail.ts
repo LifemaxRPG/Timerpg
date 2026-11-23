@@ -22,7 +22,45 @@ import { townFounded, townName } from './names';
 
 /** The world the network is laid over: its seed, and optionally the seed of the town standing at cell (0,0) instead of
  * the one the map would put there (the Kotlin app's hand-picked town, kotlin-street/tools/town-config.ts). */
-export interface RailWorld { seed: string; home?: string }
+export interface RailWorld {
+  seed: string;
+  home?: string;
+  /** Where the network comes from: absent for the endless cell grid below (the tests' and today's app's world), or a
+   * graph from the world skeleton (src/world/gen/railnet.ts skeletonRail). Everything else here (history, stations,
+   * timetables, fares, the planner) runs the same on both. */
+  graph?: RailGraph;
+}
+
+/**
+ * A railroad network the history, timetables and planner run on (WORLD_GEN.md 6, "How it plugs into rail.ts"). Ids are
+ * place ids: "cx,cy" on the grid, "h:<hub>", "t:<n>", "m:<n>" on the skeleton. Lengths are in tiles (METERS_PER_TILE).
+ */
+export interface RailGraph {
+  /** A cache key unique to the network. */
+  readonly key: string;
+  site(id: string): TownSite | null;
+  /** Every link ever built into the place. */
+  linksAt(id: string): RailLink[];
+  linkLength(l: RailLink): number;
+  /** The track's route (world tiles), [n] segments or the surveyed polyline. */
+  alignment(l: RailLink, n: number): Pt[];
+  /** A station's position along a line (the index the timetables count from). */
+  pos(line: string, id: string): number;
+  /** Tiles along the line from position 0 to position [i]. */
+  alongLine(line: string, i: number): number;
+  lineKind(line: string): LinkKind;
+  rank(s: TownSite): TownRank;
+  findTown(q: string): TownSite | null;
+  searchTowns(prefix: string, near: TownSite | null, limit: number): TownSite[];
+  /** Places by road from [s], nearest first, within reach of a bus or a lift (for nearestStation): km by road. */
+  nearby(s: TownSite): { site: TownSite; km: number }[];
+  /** Places the planner may pass through between [a] and [b] (the grid keeps to a box round them). */
+  inSearch(a: TownSite, b: TownSite): (id: string) => boolean;
+  /** Km by road between two places (null: no road joins them). */
+  roadKm(a: TownSite, b: TownSite): number | null;
+}
+
+const isGridId = (q: string): boolean => /^-?\d+,-?\d+$/.test(q);
 
 /** The national passenger service, from 1971 (a made-up name: no real railroad). */
 export const PASSENGER_SERVICE = { name: 'Pennant', full: 'Pennant National Passenger Service', from: 1971 } as const;
@@ -67,7 +105,10 @@ export function railSite(w: RailWorld, cx: number, cy: number): TownSite {
 }
 
 const cellOf = (id: string): [number, number] => id.split(',').map(Number) as [number, number];
-export const siteById = (w: RailWorld, id: string): TownSite => railSite(w, ...cellOf(id));
+export const siteById = (w: RailWorld, id: string): TownSite => (w.graph ? w.graph.site(id)! : railSite(w, ...cellOf(id)));
+/** Every line ever built into place [id] (either network). */
+export const linksOf = (w: RailWorld, id: string): RailLink[] => (w.graph ? w.graph.linksAt(id) : linksAt(w, ...cellOf(id)));
+const rankOf = (w: RailWorld, s: TownSite): TownRank => (w.graph ? w.graph.rank(s) : townRank(s));
 const odd = (n: number): boolean => ((n % 2) + 2) % 2 === 1;
 const isJunctionName = (s: TownSite): boolean => /\bJunction\b/.test(s.name);
 
@@ -109,7 +150,7 @@ function companyOf(w: RailWorld, line: string, at: number, kind: LinkKind): stri
   return kind === 'main' ? `${firstWord(s.name)} & ${tail} Railroad` : `${firstWord(s.name)} Valley Railway`;
 }
 
-function history(w: RailWorld, id: string, kind: LinkKind, a: TownSite, b: TownSite): Pick<RailLink, 'built' | 'passengerEnd' | 'abandoned' | 'trail'> {
+export function history(w: RailWorld, id: string, kind: LinkKind, a: TownSite, b: TownSite): Pick<RailLink, 'built' | 'passengerEnd' | 'abandoned' | 'trail'> {
   const r = (k: string): number => rand(w.seed, 'rail-hist', id, k);
   const late = Math.max(a.founded, b.founded) + 1;
   if (kind === 'main') return { built: Math.max(1852 + Math.floor(r('built') * 38), late) };
@@ -192,7 +233,7 @@ interface StationFacts {
 
 function stationFacts(w: RailWorld, s: TownSite): StationFacts {
   const r = (k: string): number => rand(w.seed, 'rail-stn', s.id, k);
-  const rank = townRank(s);
+  const rank = rankOf(w, s);
   const pClose = rank === 'small' ? 0.75 : rank === 'town' ? 0.35 : 0;
   const closes = r('close') < pClose ? 1953 + Math.floor(r('cy') * 17) : undefined;
   const national = rank === 'major' || (rank === 'town' && closes === undefined && r('nat') < 0.45);
@@ -209,7 +250,7 @@ function reachesMain(w: RailWorld, id: string, year: number): boolean {
   for (let step = 0; step < 16 && edge.length; step++) {
     const next: string[] = [];
     for (const t of edge) {
-      for (const l of linksAt(w, ...cellOf(t))) {
+      for (const l of linksOf(w, t)) {
         if (!passengersOn(l, year)) continue;
         if (l.kind === 'main') return true;
         const o = otherEnd(l, t);
@@ -223,8 +264,13 @@ function reachesMain(w: RailWorld, id: string, year: number): boolean {
 
 /** The station of the town at (cx,cy) in [year]. */
 export function stationAt(w: RailWorld, cx: number, cy: number, year: number): Station {
-  const s = railSite(w, cx, cy);
-  const all = linksAt(w, cx, cy);
+  return stationOf(w, `${cx},${cy}`, year);
+}
+
+/** The station of place [id] in [year] (either network). */
+export function stationOf(w: RailWorld, id: string, year: number): Station {
+  const s = siteById(w, id);
+  const all = linksOf(w, id);
   const built = all.length ? Math.min(...all.map((l) => l.built)) : undefined;
   const track = all.filter((l) => trackIn(l, year));
   const trail = all.some((l) => l.trail !== undefined && l.trail <= year);
@@ -239,7 +285,8 @@ function passengerStop(w: RailWorld, s: TownSite, track: RailLink[], year: numbe
   const f = stationFacts(w, s);
   const main = track.some((l) => l.kind === 'main');
   // (where two main lines cross, the station is where everyone changes trains: it never shuts)
-  const mainJunction = track.some((l) => l.kind === 'main' && l.dir === 'ew') && track.some((l) => l.kind === 'main' && l.dir === 'ns');
+  // (on the grid: an east-west and a north-south main line; on the skeleton: any two main lines)
+  const mainJunction = new Set(track.filter((l) => l.kind === 'main').map((l) => l.line)).size >= 2;
   if (year >= PASSENGER_SERVICE.from) {
     if (!main) return false;
     if (mainJunction) return true;
@@ -266,10 +313,14 @@ function serviceAt(w: RailWorld, s: TownSite, track: RailLink[], year: number): 
 
 /** What happened to the town's railroad, year by year (for the depot's plaque, the NPCs' fact sheets and the docs). */
 export function stationEvents(w: RailWorld, cx: number, cy: number): { year: number; text: string }[] {
-  const s = railSite(w, cx, cy);
+  return stationEventsOf(w, `${cx},${cy}`);
+}
+
+export function stationEventsOf(w: RailWorld, id: string): { year: number; text: string }[] {
+  const s = siteById(w, id);
   const out: { year: number; text: string }[] = [];
   const name = (l: RailLink): string => { const o = siteById(w, otherEnd(l, s.id)); return `the line to ${o.name}`; };
-  for (const l of linksAt(w, cx, cy)) {
+  for (const l of linksOf(w, id)) {
     out.push({ year: l.built, text: `The ${l.company} opens ${name(l)}.` });
     if (l.passengerEnd !== undefined && l.passengerEnd < PASSENGER_SERVICE.from) out.push({ year: l.passengerEnd + 1, text: `The last passenger train runs on ${name(l)}.` });
     if (l.abandoned !== undefined) out.push({ year: l.abandoned, text: `The rails of ${name(l)} are lifted.` });
@@ -277,7 +328,7 @@ export function stationEvents(w: RailWorld, cx: number, cy: number): { year: num
   }
   let was: StationStatus = 'none';
   for (let y = 1900; y <= 2025; y++) {
-    const st = stationAt(w, cx, cy, y).status;
+    const st = stationOf(w, id, y).status;
     if (st !== was) {
       if (st === 'passenger' && was === 'freight') out.push({ year: y, text: y >= PASSENGER_SERVICE.from ? `Passenger trains stop again (${PASSENGER_SERVICE.name}).` : 'Passenger trains stop again.' });
       if (st === 'freight' && was === 'passenger') out.push({ year: y, text: 'The depot closes to passengers; freight trains still pass.' });
@@ -303,6 +354,7 @@ export function linePoint(w: RailWorld, s: TownSite, dir: LinkDir): Pt {
 /** The surveyed route of [l] between its towns' line points (world tiles): a smooth S of a valley route, square to the
  * line at both ends; [n] segments. */
 export function alignment(w: RailWorld, l: RailLink, n = 32): Pt[] {
+  if (w.graph) return w.graph.alignment(l, n);
   const a = siteById(w, l.a), b = siteById(w, l.b);
   const p0 = linePoint(w, a, l.dir), p3 = linePoint(w, b, l.dir);
   const ew = l.dir === 'ew';
@@ -324,6 +376,7 @@ export const pathLength = (p: readonly Pt[]): number => p.reduce((s, q, i) => (i
 const lengthCache = new Map<string, number>();
 /** The length of [l] along the track, in tiles (its alignment). */
 export function linkLength(w: RailWorld, l: RailLink): number {
+  if (w.graph) return w.graph.linkLength(l);
   const k = `${w.seed}|${w.home ?? ''}|${l.id}`;
   let v = lengthCache.get(k);
   if (v === undefined) { v = pathLength(alignment(w, l)); lengthCache.set(k, v); }
@@ -360,7 +413,8 @@ export function trainEra(year: number, kind: LinkKind = 'main'): TrainEra {
 export const SERVICE_FROM = 5 * 60 + 30;
 export const SERVICE_HOURS = 17;
 
-const lineKind = (line: string): LinkKind => (line.includes('b:') ? 'branch' : 'main');
+const gridLineKind = (line: string): LinkKind => (line.includes('b:') ? 'branch' : 'main');
+const lineKindOf = (w: RailWorld, line: string): LinkKind => (w.graph ? w.graph.lineKind(line) : gridLineKind(line));
 const lineIndex = (line: string): number => Number(line.split(':')[1]);
 
 /** The link of [line] that starts at position [i] (cx for an east-west line, cy for a north-south one). */
@@ -373,6 +427,7 @@ function lineLink(w: RailWorld, line: string, i: number): RailLink | null {
 const cumCache = new Map<string, Map<number, number>>();
 /** Tiles along [line] from its position 0 to position [i] (negative for positions before 0). */
 export function alongLine(w: RailWorld, line: string, i: number): number {
+  if (w.graph) return w.graph.alongLine(line, i);
   const key = `${w.seed}|${w.home ?? ''}|${line}`;
   let m = cumCache.get(key);
   if (!m) { m = new Map([[0, 0]]); cumCache.set(key, m); }
@@ -382,7 +437,7 @@ export function alongLine(w: RailWorld, line: string, i: number): number {
   let j = 0;
   for (const k of m.keys()) if (Math.abs(k - i) < Math.abs(j - i)) j = k;
   let s = m.get(j)!;
-  const len = (p: number): number => { const idx = lineIndex(line); return linkLength(w, line.startsWith('ew') ? makeLink(w, 'ew', p, idx, lineKind(line)) : makeLink(w, 'ns', idx, p, lineKind(line))); };
+  const len = (p: number): number => { const idx = lineIndex(line); return linkLength(w, line.startsWith('ew') ? makeLink(w, 'ew', p, idx, gridLineKind(line)) : makeLink(w, 'ns', idx, p, gridLineKind(line))); };
   while (j < i) { s += len(j); j++; m.set(j, s); }
   while (j > i) { j--; s -= len(j); m.set(j, s); }
   return s;
@@ -396,7 +451,7 @@ const minutesFor = (tiles: number, kind: LinkKind, year: number): number => (til
  * departure at the next one exactly a link's running time later (minus the day's wrap).
  */
 export function departures(w: RailWorld, line: string, i: number, dir: 1 | -1, year: number): number[] {
-  const kind = lineKind(line);
+  const kind = lineKindOf(w, line);
   const n = trainsPerDay(kind, year);
   const head = (SERVICE_HOURS * 60) / n;
   const phase = rand(w.seed, 'rail-phase', line, dir, year >= PASSENGER_SERVICE.from ? 'n' : 'p') * head;
@@ -429,6 +484,7 @@ export function fare(year: number, km: number): number {
 
 /** The town called [query] (a name, any case, or an id "cx,cy") nearest cell [near], searching [radius] cells round it. */
 export function findTown(w: RailWorld, query: string, near: { cx: number; cy: number } = { cx: 0, cy: 0 }, radius = 8): TownSite | null {
+  if (w.graph) return w.graph.site(query.trim()) ?? w.graph.findTown(query);
   const q = query.trim().toLowerCase();
   if (/^-?\d+,-?\d+$/.test(q)) return siteById(w, q);
   for (let r = 0; r <= radius; r++) {
@@ -447,6 +503,7 @@ export function findTown(w: RailWorld, query: string, near: { cx: number; cy: nu
 
 /** Town names starting with [prefix] (any case) within [radius] cells of [near], nearest first: the ticket window's search. */
 export function searchTowns(w: RailWorld, prefix: string, near: { cx: number; cy: number }, radius = 6, limit = 12): TownSite[] {
+  if (w.graph) return w.graph.searchTowns(prefix, null, limit);
   const q = prefix.trim().toLowerCase();
   const out: { s: TownSite; d: number }[] = [];
   for (let cy = near.cy - radius; cy <= near.cy + radius; cy++) for (let cx = near.cx - radius; cx <= near.cx + radius; cx++) {
@@ -499,6 +556,10 @@ export const ROAD_WAIT = 15;
 
 /** The nearest town with passenger trains in [year] to [s] by road (rings of cells out to [radius]), with the road's km. */
 export function nearestStation(w: RailWorld, s: TownSite, year: number, radius = 4): { site: TownSite; km: number } | null {
+  if (w.graph) {
+    for (const o of w.graph.nearby(s)) if (o.site.id !== s.id && stationOf(w, o.site.id, year).status === 'passenger') return o;
+    return null;
+  }
   let best: { site: TownSite; km: number } | null = null;
   for (let r = 0; r <= radius; r++) {
     for (let cy = s.cy - r; cy <= s.cy + r; cy++) for (let cx = s.cx - r; cx <= s.cx + r; cx++) {
@@ -520,14 +581,14 @@ const roadLeg = (a: TownSite, b: TownSite, km: number, depart: number): RouteLeg
 interface Edge { link: RailLink; to: string; line: string; dir: 1 | -1; pos: number }
 
 function edgesFrom(w: RailWorld, id: string, year: number): Edge[] {
-  const [cx, cy] = cellOf(id);
+  const [cx, cy] = w.graph ? [0, 0] : cellOf(id);
   const out: Edge[] = [];
-  for (const l of linksAt(w, cx, cy)) {
+  for (const l of linksOf(w, id)) {
     if (!passengersOn(l, year)) continue;
     // national-era trains run on the main lines only
     if (year >= PASSENGER_SERVICE.from && l.kind !== 'main') continue;
     const fwd = l.a === id;
-    out.push({ link: l, to: otherEnd(l, id), line: l.line, dir: fwd ? 1 : -1, pos: l.dir === 'ew' ? cx : cy });
+    out.push({ link: l, to: otherEnd(l, id), line: l.line, dir: fwd ? 1 : -1, pos: w.graph ? w.graph.pos(l.line, id) : l.dir === 'ew' ? cx : cy });
   }
   return out;
 }
@@ -540,21 +601,22 @@ function edgesFrom(w: RailWorld, id: string, year: number): Edge[] {
  */
 export function planRoute(w: RailWorld, from: string, to: string, year: number, time = 8 * 60, near: { cx: number; cy: number } = { cx: 0, cy: 0 }): Route | NoRoute {
   // (names repeat across the endless world: [from] is the one nearest [near], [to] the one nearest [from])
-  const A = /^-?\d+,-?\d+$/.test(from) ? siteById(w, from) : findTown(w, from, near);
-  const B = !A ? null : /^-?\d+,-?\d+$/.test(to) ? siteById(w, to) : findTown(w, to, { cx: A.cx, cy: A.cy });
+  const isId = (q: string): boolean => (w.graph ? w.graph.site(q) !== null : isGridId(q));
+  const A = isId(from) ? siteById(w, from) : findTown(w, from, near);
+  const B = !A ? null : isId(to) ? siteById(w, to) : findTown(w, to, { cx: A.cx, cy: A.cy });
   if (!A || !B) return { from, to, year, reason: `No town called ${!A ? from : to} nearby.` };
   const notes: string[] = [];
   const legs: RouteLeg[] = [];
   if (A.id === B.id) return { from: A.id, to: B.id, year, legs, depart: time, arrive: time, changes: 0, km: 0, fare: 0, notes: ['You are already there.'] };
   let t = time;
   let start = A, end = B;
-  if (stationAt(w, A.cx, A.cy, year).status !== 'passenger') {
+  if (stationOf(w, A.id, year).status !== 'passenger') {
     const n = nearestStation(w, A, year);
     if (!n) return { from: A.id, to: B.id, year, reason: `No passenger trains anywhere near ${A.name} in ${year}.` };
     notes.push(`${A.name} has no passenger trains in ${year}: by road to ${n.site.name} first.`);
     start = n.site;
   }
-  if (stationAt(w, B.cx, B.cy, year).status !== 'passenger') {
+  if (stationOf(w, B.id, year).status !== 'passenger') {
     const n = nearestStation(w, B, year);
     if (!n) return { from: A.id, to: B.id, year, reason: `Passenger trains go nowhere near ${B.name} in ${year}.` };
     notes.push(`Passenger trains do not stop at ${B.name} in ${year}: the nearest station is ${n.site.name}, ${Math.round(n.km * 10) / 10} km by road.`);
@@ -565,7 +627,7 @@ export function planRoute(w: RailWorld, from: string, to: string, year: number, 
     const rail = railLegs(w, start, end, year, t);
     if (!rail) {
       // no passenger rail between them: the whole way by road
-      const km = tilesToKm(Math.hypot(B.center.x - A.center.x, B.center.y - A.center.y) * ROAD_FACTOR);
+      const km = w.graph ? w.graph.roadKm(A, B) ?? Infinity : tilesToKm(Math.hypot(B.center.x - A.center.x, B.center.y - A.center.y) * ROAD_FACTOR);
       return { from: A.id, to: B.id, year, reason: `No passenger trains run between ${start.name} and ${end.name} in ${year}; it is ${Math.round(km)} km by road.`, nearest: start.name };
     }
     legs.push(...rail);
@@ -584,13 +646,14 @@ export function planRoute(w: RailWorld, from: string, to: string, year: number, 
 function railLegs(w: RailWorld, A: TownSite, B: TownSite, year: number, t0: number): RouteLeg[] | null {
   const pad = 3;
   const x0 = Math.min(A.cx, B.cx) - pad, x1 = Math.max(A.cx, B.cx) + pad, y0 = Math.min(A.cy, B.cy) - pad, y1 = Math.max(A.cy, B.cy) + pad;
+  const allow = w.graph ? w.graph.inSearch(A, B) : (id: string): boolean => { const [ncx, ncy] = cellOf(id); return ncx >= x0 && ncx <= x1 && ncy >= y0 && ncy <= y1; };
   // (ordered by arrival plus a penalty for each change: the same train is better than hopping off and back on, and a
   // traveller takes one change and a short wait over three changes for a few minutes)
   interface St { id: string; line: string; dir: number; t: number; c: number; prev: string | null; edge: Edge | null; dep: number }
   const best = new Map<string, St>();
   const key = (id: string, line: string, dir: number): string => `${id}|${line}|${dir}`;
   const open = new Map<string, boolean>();
-  const isOpen = (id: string): boolean => { let v = open.get(id); if (v === undefined) { const [cx, cy] = cellOf(id); v = stationAt(w, cx, cy, year).status === 'passenger'; open.set(id, v); } return v; };
+  const isOpen = (id: string): boolean => { let v = open.get(id); if (v === undefined) { v = stationOf(w, id, year).status === 'passenger'; open.set(id, v); } return v; };
   const heap: St[] = [];
   const push = (s: St): void => {
     const k = key(s.id, s.line, s.dir);
@@ -618,8 +681,7 @@ function railLegs(w: RailWorld, A: TownSite, B: TownSite, year: number, t0: numb
     if (s.id === B.id) { goal = s; break; }
     if (s.t - t0 > 3 * 1440) break;
     for (const e of edgesFrom(w, s.id, year)) {
-      const [ncx, ncy] = cellOf(e.to);
-      if (ncx < x0 || ncx > x1 || ncy < y0 || ncy > y1) continue;
+      if (!allow(e.to)) continue;
       const stay = e.line === s.line && e.dir === s.dir;
       if (!stay && !isOpen(s.id)) continue;
       const dep = stay ? s.t : nextDeparture(w, e.line, e.pos, e.dir, year, s.t + (s.line ? TRANSFER_MIN : 0));
@@ -662,10 +724,14 @@ const round1 = (v: number): number => Math.round(v * 10) / 10;
 
 /** One line an NPC can say about the town's railroad in [year] (for the dialogue fact sheets). */
 export function railFact(w: RailWorld, cx: number, cy: number, year: number): string {
-  const st = stationAt(w, cx, cy, year);
-  const s = railSite(w, cx, cy);
+  return railFactOf(w, `${cx},${cy}`, year);
+}
+
+export function railFactOf(w: RailWorld, id: string, year: number): string {
+  const st = stationOf(w, id, year);
+  const s = siteById(w, id);
   const to = (): string => {
-    const names = linksAt(w, cx, cy).filter((l) => passengersOn(l, year) && (year < PASSENGER_SERVICE.from || l.kind === 'main')).map((l) => siteById(w, otherEnd(l, s.id)).name);
+    const names = linksOf(w, id).filter((l) => passengersOn(l, year) && (year < PASSENGER_SERVICE.from || l.kind === 'main')).map((l) => siteById(w, otherEnd(l, s.id)).name);
     return names.length ? ` Trains run to ${names.join(' and ')}.` : '';
   };
   switch (st.status) {
