@@ -58,6 +58,25 @@ describe('W1 terrain', () => {
   it('lakes have a level and an outlet', () => {
     for (const l of w.hydro.lakes) { expect(l.outlet).toBeGreaterThanOrEqual(0); expect(w.hydro.lake[l.outlet]).toBe(l.id); }
   });
+  it('has no height steps: neighbouring land cells one atlas cell apart differ by a sane slope everywhere', () => {
+    // The owner's rule (WORLD_GEN.md 2.2, 6): smooth rolling ground, ranges rising over kilometres. The skeleton marks no
+    // cells as deliberate cliffs (the renderer cuts cliff faces from the local slope), so every land neighbour pair east and
+    // south across the whole planet (x wrapping) is checked; the coastline (land next to sea) is a shore, not a slope.
+    // Before the plate-pair blend the worst step was 2,945 m (the plateau-wall east of the capital); after, about 350 m.
+    const MAX_STEP_M = 500; // about 25 deg averaged over 1.075 km
+    let worst = 0, at = -1, over = 0;
+    for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+      const c = j * W + i;
+      if (!w.terrain.land[c]) continue;
+      for (const m of [j * W + ((i + 1) % W), j + 1 < H ? c + W : -1]) {
+        if (m < 0 || !w.terrain.land[m]) continue;
+        const d = Math.abs(w.terrain.elev[c]! - w.terrain.elev[m]!);
+        if (d > MAX_STEP_M) over++;
+        if (d > worst) { worst = d; at = c; }
+      }
+    }
+    expect(over, `worst step ${Math.round(worst)} m at cell (${at % W}, ${(at / W) | 0})`).toBe(0);
+  });
 });
 
 describe('W1 climate', () => {

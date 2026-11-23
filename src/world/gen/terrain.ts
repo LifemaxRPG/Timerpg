@@ -190,22 +190,50 @@ export function makeTerrain(seed: string): Terrain {
   const maxh: number[] = [];
   for (let k = 0; k < K * K; k++) maxh.push(1500 + 1700 * r());
   const rwN = new Lattice(seed, 'rw', 10), ridgeN = new Fbm(seed, 'ridge', 24, 5), hillsN = new Fbm(seed, 'hills', 16, 7);
+  // Each pair of plates (a, b) has its own range: its crest height and convergence are the pair's (symmetric), and it
+  // stands on the pair's boundary distance g = (d_a + d_b - 2 d1) / 2, which is the usual (d2 - d1) / 2 for the nearest
+  // pair and grows smoothly past the ends of their boundary. Every pair's term is continuous everywhere, and the cell
+  // takes the highest (a max of continuous terms is continuous), so the height never steps where the second-nearest
+  // plate changes (the W4 plateau-wall east of the capital). The profile has compact support (a (1 - x^2)^3 bump), so
+  // only plates within reach of the nearest can contribute and skipping the rest is exact, not an approximation.
+  const pairConv = new Float64Array(K * K), pairH = new Float64Array(K * K);
+  for (let a = 0; a < K; a++) for (let b = 0; b < K; b++) {
+    if (a === b) continue;
+    const ddx = wrapDx(px[b]! - px[a]!), ddz = pz[b]! - pz[a]!, nn = Math.hypot(ddx, ddz) + 1e-6;
+    pairConv[a * K + b] = Math.min(Math.max(((vx[a]! - vx[b]!) * ddx + (vz[a]! - vz[b]!) * ddz) / nn, 0), 1);
+    pairH[a * K + b] = maxh[Math.min(a, b) * K + Math.max(a, b)]!;
+  }
+  const bump = (x: number): number => { if (x >= 1) return 0; const q = 1 - x * x; return q * q * q; };
+  /** The range's crest falls to nothing at CREST x its width, its foothills at FOOT x (WORLD_GEN.md 2.2). */
+  const CREST = 1.9, FOOT = 3.2, FOOT_SHARE = 0.16;
+  const dk = new Float64Array(K);
+  const near: number[] = [];
   const elev = new Float32Array(N);
   const mount = new Float32Array(N);
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
     const c = j * W + i, x = i + 0.5, z = j + 0.5;
     const wx = warpX[c]!, wz = warpZ[c]!;
-    let d1 = Infinity, d2 = Infinity, p1 = 0, p2 = 0;
+    let d1 = Infinity;
     for (let k = 0; k < K; k++) {
       const d = Math.hypot(wrapDx(wx - px[k]!), wz - pz[k]!);
-      if (d < d1) { d2 = d1; p2 = p1; d1 = d; p1 = k; } else if (d < d2) { d2 = d; p2 = k; }
+      dk[k] = d;
+      if (d < d1) d1 = d;
     }
-    const bdKm = ((d2 - d1) / 2) * CELL_KM;
-    const ddx = wrapDx(px[p2]! - px[p1]!), ddz = pz[p2]! - pz[p1]!, nn = Math.hypot(ddx, ddz) + 1e-6;
-    const conv = ((vx[p1]! - vx[p2]!) * ddx + (vz[p1]! - vz[p2]!) * ddz) / nn;
     const widthKm = 11 + 17 * rwN.at(x, z);
+    const reach = (2 * FOOT * widthKm) / CELL_KM; // g (in cells, doubled) past which no pair reaches
+    near.length = 0;
+    for (let k = 0; k < K; k++) if (dk[k]! - d1 < reach) near.push(k);
+    // the crest (shaped by the ridged noise) on a broad apron of foothills: ranges rise over kilometres, not in a step
     const rd = 1 - Math.abs(2 * ridgeN.at(x, z) - 1);
-    const mt = Math.min(Math.max(conv, 0), 1.0) * Math.exp(-(bdKm / widthKm) * (bdKm / widthKm)) * maxh[Math.min(p1, p2) * K + Math.max(p1, p2)]! * (0.3 + 0.7 * rd * rd);
+    const crestMod = 0.3 + 0.7 * rd * rd;
+    let mt = 0;
+    for (let qa = 0; qa < near.length; qa++) for (let qb = qa + 1; qb < near.length; qb++) {
+      const a = near[qa]!, b = near[qb]!, pc = pairConv[a * K + b]!;
+      if (pc <= 0) continue;
+      const gKm = ((dk[a]! + dk[b]! - 2 * d1) / 2) * CELL_KM;
+      const m = pc * pairH[a * K + b]! * ((1 - FOOT_SHARE) * crestMod * bump(gKm / (CREST * widthKm)) + FOOT_SHARE * bump(gKm / (FOOT * widthKm)));
+      if (m > mt) mt = m;
+    }
     const hills = hillsN.at(x, z);
     if (land[c]) {
       mount[c] = mt;
