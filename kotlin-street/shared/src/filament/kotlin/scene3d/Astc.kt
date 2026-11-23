@@ -124,6 +124,8 @@ object Astc {
         val cs = IntArray(16); val ns = IntArray(16); var n = 0
         var lo = 0L; var hi = 0L
         val q2 = IntArray(16)
+        val ends = IntArray(4); val bestEnds = IntArray(4); val bestW = IntArray(16)
+        val idx = IntArray(16); val dd = LongArray(256); val cw = IntArray(16); val ce = LongArray(16)
     }
     private val scratch = ThreadLocal.withInitial { Enc() }
 
@@ -209,11 +211,22 @@ object Astc {
 
     /** Each partition index's texels in partition 1, as a 16-bit mask (texel j = y * 4 + x). */
     private val partMasks = IntArray(1024) { p -> var m = 0; for (j in 0 until 16) if (partitionOf(p, j and 3, j shr 2) == 1) m = m or (1 shl j); m }
-    /** The partition indices worth trying: one of each mask that splits the block (both partitions some texels). */
-    private val partIndex: IntArray = run {
+    /**
+     * For every split of a block's 16 texels (a 16-bit mask), the two partition indices whose masks are nearest it (fewest
+     * texels in the other partition, either way round), packed as first | second shl 16: worked out once (some 50 ms).
+     */
+    private val nearestParts: IntArray by lazy {
         val seen = HashSet<Int>(); val l = ArrayList<Int>()
         for (p in 0 until 1024) { val m = partMasks[p]; if (m != 0 && m != 0xFFFF && seen.add(m)) l += p }
-        l.toIntArray()
+        val ps = l.toIntArray(); val ms = IntArray(ps.size) { partMasks[ps[it]] }
+        IntArray(65536) { want ->
+            var b0 = 0; var d0 = 99; var b1 = 0; var d1 = 99
+            for (k in ps.indices) {
+                val d = minOf(Integer.bitCount(ms[k] xor want), 16 - Integer.bitCount(ms[k] xor want))
+                if (d < d0) { b1 = b0; d1 = d0; b0 = ps[k]; d0 = d } else if (d < d1) { b1 = ps[k]; d1 = d }
+            }
+            b0 or (b1 shl 16)
+        }
     }
 
     /** The 6-bit endpoint value nearest each 8-bit one, and the 8 bits each decodes to (bit replication). */
@@ -228,46 +241,50 @@ object Astc {
      * (a few tried), each partition's line its farthest pair quantised. Returns the error (or [cap] or more: not written).
      */
     private fun twoPartitions(t: IntArray, e: Enc, cap: Long): Long {
-        // (the block's farthest pair: e.cs holds its distinct colours from the line fit)
+        // (e.cs holds the block's distinct colours from the line fit: each texel's colour by its index there, the pairs' distances)
+        val n = e.n; val cs = e.cs; val idx = e.idx; val dd = e.dd
+        for (i in 0 until 16) { val c = t[i]; var k = 0; while (cs[k] != c) k++; idx[i] = k }
         var fa = 0; var fb = 1; var fd = -1L
-        for (i in 0 until e.n) for (j in i + 1 until e.n) { val d = dist(e.cs[i], e.cs[j]); if (d > fd) { fd = d; fa = i; fb = j } }
-        val ca = e.cs[fa]; val cb = e.cs[fb]
+        for (i in 0 until n) for (j in i + 1 until n) { val d = dist(cs[i], cs[j]); dd[i * 16 + j] = d; dd[j * 16 + i] = d; if (d > fd) { fd = d; fa = i; fb = j } }
         var want = 0
-        for (j in 0 until 16) if (dist(t[j], cb) < dist(t[j], ca)) want = want or (1 shl j)
-        // the nearest masks (either way round: the partitions' order does not matter)
-        val best = IntArray(3) { -1 }; val bestD = IntArray(3) { 99 }
-        for (p in partIndex) {
-            val m = partMasks[p]
-            val d = minOf(Integer.bitCount(m xor want), Integer.bitCount(m xor want.inv() and 0xFFFF))
-            if (d < bestD[2]) {
-                var k = 2
-                while (k > 0 && d < bestD[k - 1]) { bestD[k] = bestD[k - 1]; best[k] = best[k - 1]; k-- }
-                bestD[k] = d; best[k] = p
-            }
-        }
+        for (j in 0 until 16) { val k = idx[j]; if (k != fa && (k == fb || dd[k * 16 + fb] < dd[k * 16 + fa])) want = want or (1 shl j) }
+        // the two nearest masks (either way round: the partitions' order does not matter)
+        val near = nearestParts[want]
         var bestErr = cap; var bestP = -1
-        val ends = IntArray(4); val bestEnds = IntArray(4); val bestW = IntArray(16)
-        for (p in best) {
-            if (p < 0) continue
+        val ends = e.ends; val bestEnds = e.bestEnds; val bestW = e.bestW; val cw = e.cw
+        for (pk in 0..1) {
+            val p = if (pk == 0) near and 0xFFFF else near ushr 16
+            if (pk == 1 && p == (near and 0xFFFF)) break
             val m = partMasks[p]
             var err = 0L
             for (s in 0..1) {
-                // the partition's farthest pair, quantised
-                var a = -1; var b = -1; var d0 = -1L
-                for (i in 0 until 16) { if (((m shr i) and 1) != s) continue
-                    for (j in i until 16) { if (((m shr j) and 1) != s) continue
-                        val d = dist(t[i], t[j]); if (d > d0) { d0 = d; a = t[i]; b = t[j] } } }
-                var qa = quant6(a); var qb = quant6(b)
+                // the partition's distinct colours (a bit each) and their farthest pair, quantised
+                var cm = 0; var cnt = 0
+                for (i in 0 until 16) if (((m shr i) and 1) == s) cm = cm or (1 shl idx[i])
+                var a = Integer.numberOfTrailingZeros(cm); var b = a; var d0 = -1L
+                var x = cm
+                while (x != 0) {
+                    val i = Integer.numberOfTrailingZeros(x); x = x and (x - 1)
+                    var y = x
+                    while (y != 0) { val j = Integer.numberOfTrailingZeros(y); y = y and (y - 1); val d = dd[i * 16 + j]; if (d > d0) { d0 = d; a = i; b = j } }
+                    cnt++
+                }
+                var qa = quant6(cs[a]); var qb = quant6(cs[b])
                 var ua = unquant6(qa); var ub = unquant6(qb)
                 // (mode 8 contracts blue and swaps unless the second end's sum is at least the first's)
-                if (ch(ub, 2) + ch(ub, 1) + ch(ub, 0) < ch(ua, 2) + ch(ua, 1) + ch(ua, 0)) { val x = qa; qa = qb; qb = x; val y = ua; ua = ub; ub = y }
+                if (ch(ub, 2) + ch(ub, 1) + ch(ub, 0) < ch(ua, 2) + ch(ua, 1) + ch(ua, 0)) { val q = qa; qa = qb; qb = q; val u = ua; ua = ub; ub = u }
                 ends[s * 2] = qa; ends[s * 2 + 1] = qb
                 val p0 = ua; val p1 = lerp(ua, ub, 32); val p2 = ub
-                for (i in 0 until 16) { if (((m shr i) and 1) != s) continue
-                    val d0x = dist(t[i], p0); val d1 = dist(t[i], p1); val d2 = dist(t[i], p2)
-                    val w = if (d0x <= d1 && d0x <= d2) 0 else if (d1 <= d2) 1 else 2
-                    e.q2[i] = w; err += minOf(d0x, minOf(d1, d2))
+                // each distinct colour's weight and error, once
+                x = cm
+                while (x != 0) {
+                    val k = Integer.numberOfTrailingZeros(x); x = x and (x - 1)
+                    val c = cs[k]
+                    val d0x = dist(c, p0); val d1 = dist(c, p1); val d2 = dist(c, p2)
+                    cw[k] = if (d0x <= d1 && d0x <= d2) 0 else if (d1 <= d2) 1 else 2
+                    e.ce[k] = minOf(d0x, minOf(d1, d2))
                 }
+                for (i in 0 until 16) if (((m shr i) and 1) == s) { val k = idx[i]; e.q2[i] = cw[k]; err += e.ce[k] }
                 if (err >= bestErr) break
             }
             if (err < bestErr) { bestErr = err; bestP = p; ends.copyInto(bestEnds); e.q2.copyInto(bestW) }
@@ -442,16 +459,23 @@ object Astc {
     /** The linear value at which the sRGB byte rounds up to the next: (c + 0.5) / 255 in sRGB, made linear. */
     private val upAt = FloatArray(255) { val c = (it + .5f) / 255f; if (c <= .04045f) c / 12.92f else Math.pow(((c + .055f) / 1.055f).toDouble(), 2.4).toFloat() }
     /** Linear light [l] as the nearest sRGB byte (a binary search of [upAt]: the same as converting and rounding). */
-    private fun toSrgb(l: Float): Int {
+    private fun toSrgbExact(l: Float): Int {
         var lo = 0; var hi = 255
         while (lo < hi) { val mid = (lo + hi) ushr 1; if (l < upAt[mid]) hi = mid else lo = mid + 1 }
         return lo
     }
+    /** [toSrgbExact] tabled over 16384 steps of linear light (a step off only right at a rounding edge). */
+    private val srgbOf = IntArray(16385) { toSrgbExact(it / 16384f) }
+    private fun toSrgb(l: Float): Int = srgbOf[(l * 16384f + .5f).toInt().coerceIn(0, 16384)]
 
     /** The next level: each texel the mean of the 2 x 2 under it (rgb in linear light for [srgb]), rows top first. */
     fun halve(px: IntArray, w: Int, h: Int, nw: Int, nh: Int, srgb: Boolean): IntArray {
         val out = IntArray(nw * nh)
         for (y in 0 until nh) for (x in 0 until nw) {
+            // (four texels of one colour, most of the art: that colour)
+            val x0 = minOf(x * 2, w - 1); val x1 = minOf(x * 2 + 1, w - 1); val y0 = minOf(y * 2, h - 1); val y1 = minOf(y * 2 + 1, h - 1)
+            val c00 = px[y0 * w + x0]
+            if (px[y0 * w + x1] == c00 && px[y1 * w + x0] == c00 && px[y1 * w + x1] == c00) { out[y * nw + x] = c00; continue }
             var r = 0f; var g = 0f; var bl = 0f; var a = 0; var n = 0
             for (dy in 0..1) for (dx in 0..1) {
                 val sx = minOf(x * 2 + dx, w - 1); val sy = minOf(y * 2 + dy, h - 1)
