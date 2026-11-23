@@ -9,9 +9,11 @@ import type { Terrain } from './terrain';
 // (no third place inside the circle on the link: fewer detours than the sketch's relative-neighbourhood graph), each
 // a least-cost path on the atlas grid (slope squared, water dear, the hubs' pads closed except at their pins, roads
 // already built cheap so routes share); county roads bring every other town to the nearest highway; hamlets stand
-// along them every 4-8 km. Every road has years: built, paved, rebuilt as an expressway.
+// along them every 4-8 km. Every road has years: built and paved; the rest of its life (realignments, widening, bypasses,
+// numbers, decommissioning) and the expressways are highways.ts's (Highways v2).
 
-export type RoadClass = 'highway' | 'county';
+/** 'expressway': the road graph's limited-access links (highways.ts), not in w.roads. */
+export type RoadClass = 'highway' | 'county' | 'expressway';
 export interface Road {
   id: string;
   cls: RoadClass;
@@ -23,8 +25,17 @@ export interface Road {
   built: number;
   /** Paved from (a highway by the 1930s, a county road 1950-1975). */
   paved: number;
-  /** Rebuilt as an expressway (the limited-access network, from 1956). */
-  expressway?: number;
+  /** Limited access (the expressways, highways.ts): joined to other roads only at [junctions] (cells) and its ends. */
+  limited?: boolean;
+  junctions?: number[];
+  /** Lanes by year (from year, lanes): an expressway's speed follows them. */
+  lanesBy?: [number, number][];
+  /** Changes of its length from a year on (km; the 1930s realignments shorten a highway). */
+  kmBy?: [number, number][];
+  /** A highway handed to the county from this year (highways.ts's decommissioning). */
+  downgraded?: number;
+  /** A road that did not exist before this year at all (no wagon track before it: a connector to an interchange). */
+  opened?: number;
   /** The drawn line (winding.ts: terrain-following, in atlas cell units, x unwrapped; hub ends on their pins). */
   path?: [number, number][];
   /** Its steepest grade (rise over run, sampled every 25-70 m), its hairpin bends and its bridges. */
@@ -37,13 +48,20 @@ export interface Road {
 
 /** The road's surface in a year. */
 export const surfaceOf = (r: Road, year: number): 'none' | 'dirt' | 'gravel' | 'paved' | 'expressway' =>
-  year < r.built ? 'none' : r.expressway !== undefined && year >= r.expressway ? 'expressway' : year >= r.paved ? 'paved' : r.cls === 'highway' ? 'gravel' : year < r.built + 10 ? 'dirt' : 'gravel';
+  year < r.built ? 'none' : r.cls === 'expressway' ? 'expressway' : year >= r.paved ? 'paved' : r.cls === 'highway' ? 'gravel' : year < r.built + 10 ? 'dirt' : 'gravel';
 
-/** A car's speed on it (km/h): highways 80 before 1950, 95 after; expressways 115; county roads 50 gravel, 70 paved. */
+const lanesAt = (r: Road, year: number): number => { let n = 2; for (const [y, k] of r.lanesBy ?? []) if (y <= year) n = k; return n; };
+/** A road's length in [year] (its realignments counted). */
+export const roadKmAt = (r: Road, year: number): number => { let km = r.km; for (const [y, d] of r.kmBy ?? []) if (y <= year) km += d; return km; };
+
+/** A car's speed on it (km/h): highways 80 before 1950, 95 after; expressways 115 (100 on two lanes), none before they
+ * open; county roads 50 gravel, 70 paved (a highway handed to the county too). */
 export function roadKmh(r: Road | null, year: number): number {
   if (!r) return 30; // town streets (a hub's centre to its pins)
+  if (r.opened !== undefined && year < r.opened) return 0;
   const s = surfaceOf(r, year);
-  if (s === 'expressway') return 115;
+  if (r.cls === 'expressway') return s === 'none' ? 0 : lanesAt(r, year) >= 4 ? 115 : 100;
+  if (r.cls === 'highway' && r.downgraded !== undefined && year >= r.downgraded) return 70;
   if (r.cls === 'highway') return s === 'paved' ? (year < 1950 ? 80 : 95) : s === 'gravel' ? 55 : 30;
   return s === 'paved' ? 70 : s === 'gravel' ? 50 : 30;
 }
@@ -210,10 +228,7 @@ export function makeRoads(t: Terrain, cl: Climate, h: Hydro, bio: Uint8Array, hu
       const id = `hw:${roads.length}`;
       const r = (k: string): number => hashU(hs, hashStr(id + k));
       const built = 1905 + Math.floor(r('b') * 25);
-      const both = A.kind === 'hub' && Bp.kind === 'hub';
-      const capital = A.type === 'capital' || Bp.type === 'capital';
       const road: Road = { id, cls: 'highway', a: A.id, b: Bp.id, cells, km: Math.round(pathKm(cells) * 10) / 10, built, paved: Math.min(1938, built + 6 + Math.floor(r('p') * 10)) };
-      if (both || (capital && r('x') < 0.8) || (Bp.kind === 'hub' || A.kind === 'hub') && r('x') < 0.35) road.expressway = (capital ? 1956 : 1959) + Math.floor(r('e') * (capital ? 8 : 22));
       roads.push(road);
       for (const c of path) { onRoad[c] = 1; cost[c] = Math.min(cost[c]!, 0.35 * base[c]!); }
     }
@@ -294,17 +309,18 @@ export class RoadGraph {
   readonly nodeOf = new Map<string, number>();
   constructor(readonly roads: readonly Road[], places: readonly Place[]) {
     const isNode = new Set<number>();
-    for (const r of roads) { isNode.add(r.cells[0]!); isNode.add(r.cells[r.cells.length - 1]!); }
+    for (const r of roads) { isNode.add(r.cells[0]!); isNode.add(r.cells[r.cells.length - 1]!); for (const c of r.junctions ?? []) isNode.add(c); }
     for (const p of places) { isNode.add(p.cell); this.nodeOf.set(p.id, p.cell); }
-    // (where roads cross or meet: a cell on two roads)
+    // (where roads cross or meet: a cell on two roads; a limited-access road meets others only at its junctions)
     const seen = new Map<number, number>();
-    roads.forEach((r, k) => { for (const c of r.cells) { const o = seen.get(c); if (o === undefined) seen.set(c, k); else if (o !== k) isNode.add(c); } });
+    roads.forEach((r, k) => { if (r.limited) return; for (const c of r.cells) { const o = seen.get(c); if (o === undefined) seen.set(c, k); else if (o !== k) isNode.add(c); } });
     roads.forEach((r, k) => {
       let from = r.cells[0]!, km = 0;
+      const stop = r.limited ? new Set(r.junctions ?? []) : isNode;
       for (let q = 1; q < r.cells.length; q++) {
         const a = r.cells[q - 1]!, c = r.cells[q]!;
         km += Math.hypot(wrapDx((c % W) - (a % W)), ((c / W) | 0) - ((a / W) | 0)) * CELL_KM;
-        if (isNode.has(c) || q === r.cells.length - 1) {
+        if (stop.has(c) || q === r.cells.length - 1) {
           // (the drawn line's length shared out over the cells' stretches: a winding road is longer than its cells)
           const f = r.cellKm ? r.km / r.cellKm : 1;
           if (c !== from) { this.add(from, c, km * f, k); this.add(c, from, km * f, k); }
@@ -336,8 +352,10 @@ export class RoadGraph {
       const dc = dist.get(c)!;
       for (const e of this.adj.get(c) ?? []) {
         const r = this.roads[e.road]!;
-        // (before a road was built there was a wagon track the same way: slow, but there)
-        const nd = dc + (e.km / speed(r, year)) * 60;
+        // (before a road was built there was a wagon track the same way: slow, but there; an expressway is not there at all)
+        const v = speed(r, year);
+        if (!(v > 0)) continue;
+        const nd = dc + ((e.km * (r.kmBy ? roadKmAt(r, year) / r.km : 1)) / v) * 60;
         if (nd < (dist.get(e.to) ?? Infinity)) { dist.set(e.to, nd); km.set(e.to, km.get(c)! + e.km); prev.set(e.to, { from: c, road: e.road }); heap.push(nd, e.to); }
       }
     }

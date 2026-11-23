@@ -107,7 +107,7 @@ export function encodeSkeleton(w: World): Uint8Array {
     format: 'Timerpg world skeleton', version: SKELETON_VERSION, seed: w.seed, grid: { w: W, h: H, cellM: 1075.2, wrapsX: true }, startMass: w.startMass,
     masses: w.terrain.masses,
     places: w.places.map(place),
-    roads: w.roads.map((r, k) => ({ id: r.id, cls: r.cls, a: r.a, b: r.b, km: r.km, built: r.built, paved: r.paved, ...(r.expressway !== undefined ? { expressway: r.expressway } : {}), cells: ref(r.cells), path: path(paths.roads[k]!) })),
+    roads: w.roads.map((r, k) => ({ id: r.id, cls: r.cls, a: r.a, b: r.b, km: r.km, built: r.built, paved: r.paved, cells: ref(r.cells), path: path(paths.roads[k]!) })),
     railLines: w.rail.lines.map((l, k) => ({ id: l.id, kind: l.kind, stations: l.stations, at: l.at, cells: ref(l.cells), path: path(paths.rail[k]!) })),
     railLinks: w.rail.links,
     sea: w.sea.routes.map((r) => ({ ...r, cells: ref(r.cells) })),

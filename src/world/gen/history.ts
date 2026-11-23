@@ -3,6 +3,7 @@ import type { Hydro } from './hydro';
 import { hashStr, hashU } from './noise';
 import type { Place, SiteFields } from './places';
 import type { Road } from './roads';
+import type { TownRoads } from './highways';
 import type { SeaRoute } from './sea';
 import type { Terrain } from './terrain';
 import type { RailLink } from '../rail';
@@ -88,11 +89,12 @@ export function portEra(p: Place, year: number, routes: readonly SeaRoute[]): 'h
 export interface GrowthFacts { expressway?: number; bypassed?: number; branchEnd?: number; hubKm: number; dam?: number; ghost?: number }
 
 /** What a place's growth depends on (computed once per world). */
-export function growthFacts(p: Place, roads: readonly Road[], links: readonly RailLink[], hubs: readonly Place[], dams: readonly Dam[]): GrowthFacts {
-  const mine = roads.filter((r) => r.a === p.id || r.b === p.id);
-  const xs = mine.map((r) => r.expressway).filter((y): y is number => y !== undefined);
+export function growthFacts(p: Place, roads: readonly Road[], links: readonly RailLink[], hubs: readonly Place[], dams: readonly Dam[], tr?: TownRoads): GrowthFacts {
+  void roads;
   const out: GrowthFacts = { hubKm: Math.min(999, ...hubs.filter((q) => q.mass === p.mass && q.id !== p.id).map((q) => distKm(p.x, p.z, q.x, q.z))) };
-  if (xs.length) out.expressway = Math.min(...xs);
+  // (Highways v2: a town grows from its interchange's year when that is within 6 km; a bypassed Main Street declines)
+  if (tr?.interchangeYear !== undefined && (tr.interchangeKm ?? 99) <= 6) out.expressway = tr.interchangeYear;
+  if (tr?.bypassed) out.bypassed = tr.bypassed.year;
   const rl = links.filter((l) => l.a === p.id || l.b === p.id);
   if (rl.length && rl.every((l) => l.kind === 'branch')) out.branchEnd = Math.min(...rl.map((l) => l.passengerEnd ?? 9999));
   const d = dams.find((q) => distKm(p.x, p.z, (q.cell % W) + 0.5, ((q.cell / W) | 0) + 0.5) < 8);
@@ -112,6 +114,7 @@ export function population(p: Place, g: GrowthFacts, year: number): number {
   let v = base * (0.15 + 0.85 * age) * (1 + 0.004 * Math.max(0, Math.min(year, 1950) - 1900));
   const after = (y: number | undefined): number => (y === undefined ? 0 : Math.max(0, year - y));
   if (g.expressway !== undefined) v *= 1 + 0.012 * after(g.expressway);
+  if (g.bypassed !== undefined) v *= Math.max(0.8, 1 - 0.004 * after(g.bypassed));
   if (g.branchEnd !== undefined) v *= Math.max(0.55, 1 - 0.008 * after(g.branchEnd));
   if (p.kind !== 'hub' && g.hubKm < 30) v *= 1 + 0.015 * after(1950); // the suburbs
   if (g.dam !== undefined) v *= 1 + 0.01 * Math.min(30, after(g.dam));
