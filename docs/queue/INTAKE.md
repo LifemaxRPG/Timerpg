@@ -72,3 +72,4 @@ C004, C005 and C006 are in the game (kotlin-street/docs/LANDMARKS_GLB.md "The fo
 ## Vehicles (wait for the driving system, not placed as landmarks)
 
 - C011 `codex/C011-cars-early`: Alderwick Six (1927-1930), Fenmere Club Coupe (1937-1940), Northcairn Terrace (1955-1957). Wheels, steering, doors, lights, repaint masks, mid and far models.
+- C013 `codex/C013-motorcycles`: Brackenton Quarry Twin (1941-1949), Marrowfield Standard 550 (1971-1978), Kelveran Slipstream (2002-2008). Kickstand, two seats, lamps, repaint masks, mid and far models.
