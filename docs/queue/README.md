@@ -48,7 +48,8 @@ Below that come the brief and the acceptance checks.
      line means not delivered.
    - In your delivery folder, add `DELIVERY.md` with: the task ID; what you made; anything not done; for
      revisions, what changed and which review you answered; and the **Self-review** from TEAM.md.
-6. If nothing is open for you, do nothing and stop.
+6. If nothing is `open` or `revise` for you, take your lowest-numbered task with status `hold` instead (a paused task
+   is better than idle time). Only if you have none of those either, stop and tell the owner "My queue is empty".
 
 **Push work in progress.** On a long task, commit and push to your task branch at least every 30 minutes, and right away
 if you are near a usage limit, with "WIP" in the message and no DELIVERY.md yet. Running out of usage then loses nothing,
