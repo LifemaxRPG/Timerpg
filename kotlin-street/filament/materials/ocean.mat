@@ -1,0 +1,244 @@
+// Standalone pixel-art ocean surface for Filament (G002 prototype).
+//
+// Vertex shader: sums up to 6 Gerstner waves in world space around a camera-snapped grid origin (so vertices lock
+// onto fixed world coordinates and never swim), computing exact analytical normals and horizontal Jacobian compression
+// for crest foam.
+// Fragment shader: unlit pixel-art water shading in 4 flat stepped depth/angle bands (no smooth gradients), stepped
+// time-of-day sky reflection at grazing angles, Bayer-dithered white foam pixels on steep wave crests, a crisp sun
+// glint ribbon by day/dusk, dark night water with cool moon glint, and a dithered horizon dissolve.
+//
+// Compile with Filament v1.81.0 matc (same flags as street_lit.mat):
+//   matc -p mobile -a opengl -o kotlin-street/app/src/main/assets/filament/ocean.filamat \
+//       kotlin-street/filament/materials/ocean.mat
+material {
+    name : OceanWater,
+    shadingModel : unlit,
+    blending : opaque,
+    vertexDomain : object,
+    culling : none,
+    doubleSided : false,
+    variables : [
+        wavePos,
+        waveNormal,
+        waveMeta
+    ],
+    parameters : [
+        // Snapped world-space grid origin (snapX, seaLevelY, snapZ, cellSize)
+        { type : float4, name : gridOrigin, precision : high },
+        // (timeSec, maxTotalAmplitude, depthScaleMeters, seaRoughness 0..1)
+        { type : float4, name : oceanTime, precision : high },
+        // Up to 6 Gerstner waves matching OceanWaves.kt:
+        //   waveA_i = (dirX, dirZ, wavelengthMeters, amplitudeMeters)
+        //   waveB_i = (steepnessQ, omegaRadPerSec, phaseOffsetRad, 0.0)
+        { type : float4, name : waveA0, precision : high },
+        { type : float4, name : waveB0, precision : high },
+        { type : float4, name : waveA1, precision : high },
+        { type : float4, name : waveB1, precision : high },
+        { type : float4, name : waveA2, precision : high },
+        { type : float4, name : waveB2, precision : high },
+        { type : float4, name : waveA3, precision : high },
+        { type : float4, name : waveB3, precision : high },
+        { type : float4, name : waveA4, precision : high },
+        { type : float4, name : waveB4, precision : high },
+        { type : float4, name : waveA5, precision : high },
+        { type : float4, name : waveB5, precision : high },
+        // Camera world position (xyz) and art-pixel Bayer cell size in screen px (w)
+        { type : float4, name : eyePos, precision : high },
+        // Unit vector pointing TOWARDS the sun (day/dusk) or moon (night) in xyz; night factor 0..1 in w
+        { type : float4, name : lightDir, precision : high },
+        // Sun/moon glint colour (rgb) and intensity (a)
+        { type : float4, name : glintColor },
+        // Sky reflection colour for the current hour (rgb) and reflection strength (a)
+        { type : float4, name : skyColor },
+        // Horizon sky colour (rgb) and outer fog distance in metres (a)
+        { type : float4, name : horizonColor },
+        // 4 flat stepped pixel-art water bands (deep -> mid -> light -> crest)
+        { type : float4, name : bandDeep },
+        { type : float4, name : bandMid },
+        { type : float4, name : bandLight },
+        { type : float4, name : bandCrest },
+        // Crest foam colour (rgb) and foam threshold (a)
+        { type : float4, name : foamColor }
+    ]
+}
+
+vertex {
+    const float TWO_PI = 6.28318530718;
+
+    void addGerstner(
+        vec2 xz,
+        float t,
+        vec4 wA,
+        vec4 wB,
+        inout vec3 disp,
+        inout vec3 dX,
+        inout vec3 dZ
+    ) {
+        float wavelength = wA.z;
+        float amp = wA.w;
+        if (wavelength <= 0.0001 || amp <= 0.0) {
+            return;
+        }
+        vec2 dir = wA.xy;
+        float q = wB.x;
+        float omega = wB.y;
+        float phase0 = wB.z;
+
+        float k = TWO_PI / wavelength;
+        float phase = k * (dir.x * xz.x + dir.y * xz.y) - omega * t + phase0;
+        float s = sin(phase);
+        float c = cos(phase);
+
+        float qa = q * amp;
+        float ka = k * amp;
+        float qka = q * ka;
+
+        disp.x += qa * dir.x * c;
+        disp.y += amp * s;
+        disp.z += qa * dir.y * c;
+
+        // Exact partial derivatives dP/dx0 (dX) and dP/dz0 (dZ)
+        dX.x -= qka * dir.x * dir.x * s;
+        dX.y += ka * dir.x * c;
+        dX.z -= qka * dir.x * dir.y * s;
+
+        dZ.x -= qka * dir.x * dir.y * s;
+        dZ.y += ka * dir.y * c;
+        dZ.z -= qka * dir.y * dir.y * s;
+    }
+
+    void materialVertex(inout MaterialVertexInputs material) {
+        vec3 localPos = getPosition().xyz;
+        vec2 worldXZ = materialParams.gridOrigin.xz + localPos.xz;
+        float t = materialParams.oceanTime.x;
+
+        vec3 disp = vec3(0.0);
+        vec3 dX = vec3(1.0, 0.0, 0.0);
+        vec3 dZ = vec3(0.0, 0.0, 1.0);
+
+        addGerstner(worldXZ, t, materialParams.waveA0, materialParams.waveB0, disp, dX, dZ);
+        addGerstner(worldXZ, t, materialParams.waveA1, materialParams.waveB1, disp, dX, dZ);
+        addGerstner(worldXZ, t, materialParams.waveA2, materialParams.waveB2, disp, dX, dZ);
+        addGerstner(worldXZ, t, materialParams.waveA3, materialParams.waveB3, disp, dX, dZ);
+        addGerstner(worldXZ, t, materialParams.waveA4, materialParams.waveB4, disp, dX, dZ);
+        addGerstner(worldXZ, t, materialParams.waveA5, materialParams.waveB5, disp, dX, dZ);
+
+        // Right-handed Y-up normal: (+Z) x (+X) = +Y
+        vec3 nrm = normalize(cross(dZ, dX));
+        // Horizontal Jacobian determinant: 1 on flat sea, drops towards 0 on sharp crests
+        float jacobian = dX.x * dZ.z - dX.z * dZ.x;
+        float crest = clamp(1.0 - jacobian, 0.0, 1.0);
+
+        material.worldPosition.xyz += disp;
+
+        vec3 displacedWorld = vec3(
+            worldXZ.x + disp.x,
+            materialParams.gridOrigin.y + disp.y,
+            worldXZ.y + disp.z
+        );
+        float camDist = length(displacedWorld.xz - materialParams.eyePos.xz);
+
+        material.wavePos = vec4(displacedWorld, camDist);
+        material.waveNormal = vec4(nrm, crest);
+        material.waveMeta = vec4(
+            disp.y,
+            max(materialParams.oceanTime.y, 0.05),
+            jacobian,
+            materialParams.oceanTime.w
+        );
+    }
+}
+
+fragment {
+    float bayer4(vec2 p) {
+        vec2 q = mod(floor(p), 4.0);
+        float i = q.x + 4.0 * q.y;
+        const float m[16] = float[16](
+            0.0, 8.0, 2.0, 10.0,
+            12.0, 4.0, 14.0, 6.0,
+            3.0, 11.0, 1.0, 9.0,
+            15.0, 7.0, 13.0, 5.0
+        );
+        return (m[int(i)] + 0.5) / 16.0;
+    }
+
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+
+        vec3 pos = variable_wavePos.xyz;
+        float dist = variable_wavePos.w;
+        vec3 N = normalize(variable_waveNormal.xyz);
+        float crest = variable_waveNormal.w;
+        float waveY = variable_waveMeta.x;
+        float maxAmp = variable_waveMeta.y;
+        float roughness = variable_waveMeta.w;
+
+        vec3 V = normalize(materialParams.eyePos.xyz - pos);
+        vec3 L = normalize(materialParams.lightDir.xyz);
+        float night = clamp(materialParams.lightDir.w, 0.0, 1.0);
+
+        float cell = max(materialParams.eyePos.w, 1.0);
+        float dither = bayer4(gl_FragCoord.xy / cell);
+
+        // Quantized depth + view-angle + wave-slope tone mapped to 4 flat pixel-art bands
+        float ndotv = clamp(dot(N, V), 0.0, 1.0);
+        float fresnel = pow(1.0 - ndotv, 3.0);
+        float elev = clamp(waveY / maxAmp * 0.5 + 0.5, 0.0, 1.0);
+        float ndotl = clamp(dot(N, L), 0.0, 1.0);
+        float depthFactor = clamp(dist / max(materialParams.oceanTime.z, 1.0), 0.0, 1.0);
+
+        float tone = clamp(0.15 + 0.34 * elev + 0.30 * ndotl + 0.24 * fresnel - 0.16 * depthFactor, 0.0, 1.0);
+
+        vec3 col = materialParams.bandDeep.rgb;
+        if (tone >= 0.75) {
+            col = materialParams.bandCrest.rgb;
+        } else if (tone >= 0.52) {
+            col = materialParams.bandLight.rgb;
+        } else if (tone >= 0.30) {
+            col = materialParams.bandMid.rgb;
+        }
+
+        // Stepped sky colour reflection at grazing angles (whole art-pixel dithered edge)
+        float skyRefl = clamp((fresnel - 0.38) / 0.45, 0.0, 1.0) * materialParams.skyColor.a;
+        if (skyRefl > 0.65 || (skyRefl > 0.22 && dither < skyRefl)) {
+            col = mix(col, materialParams.skyColor.rgb, 0.62);
+        }
+
+        // Quantized sun glint band (day/dusk) or cool moon glint band (night)
+        vec3 R = reflect(-V, N);
+        float spec = max(dot(R, L), 0.0);
+        float tight = mix(0.968, 0.980, night);
+        float wide = mix(0.915, 0.945, night);
+        float glintStr = materialParams.glintColor.a;
+        if (glintStr > 0.01) {
+            if (spec > tight) {
+                col = mix(col, materialParams.glintColor.rgb, clamp(glintStr, 0.0, 1.0));
+            } else if (spec > wide) {
+                float gFrac = (spec - wide) / (tight - wide);
+                if (dither < gFrac * glintStr) {
+                    col = mix(col, materialParams.glintColor.rgb, 0.75 * clamp(glintStr, 0.0, 1.0));
+                }
+            }
+        }
+
+        // Bayer-dithered white foam pixels on steep wave crests
+        float foamMetric = clamp(crest * 0.78 + max(elev - 0.56, 0.0) * 1.10, 0.0, 1.0) * (0.55 + 0.45 * roughness);
+        float foamThresh = materialParams.foamColor.a;
+        if (foamMetric > foamThresh) {
+            float fNorm = clamp((foamMetric - foamThresh) / max(1.0 - foamThresh, 0.05), 0.0, 1.0);
+            if (fNorm > 0.78 || dither < fNorm) {
+                col = materialParams.foamColor.rgb;
+            }
+        }
+
+        // Stepped horizon dither dissolve into the time-of-day sky
+        float fogEnd = max(materialParams.horizonColor.a, 10.0);
+        float fogStart = fogEnd * 0.62;
+        float fogFrac = clamp((dist - fogStart) / max(fogEnd - fogStart, 1.0), 0.0, 1.0);
+        if (fogFrac > 0.85 || (fogFrac > 0.02 && dither < fogFrac)) {
+            col = materialParams.horizonColor.rgb;
+        }
+
+        material.baseColor = vec4(col, 1.0);
+    }
+}

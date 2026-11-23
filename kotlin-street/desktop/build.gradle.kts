@@ -65,7 +65,7 @@ tasks.register<JavaExec>("preview") {
     group = "verification"
     description = "Renders the street headlessly to PNG files (no phone needed)"
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass.set("PreviewKt")
+    mainClass.set(if (System.getProperty("mode") == "ocean") "FilamentOceanPreviewKt" else "PreviewKt")
     jvmArgs("-Djava.awt.headless=true", "-Xmx" + (System.getProperty("xmx") ?: "3g"))
     // (more JVM flags for a measurement, space separated: -Djvm="-Xlog:gc -XX:ActiveProcessorCount=8")
     System.getProperty("jvm")?.let { jvmArgs(it.split(' ').filter(String::isNotBlank)) }
