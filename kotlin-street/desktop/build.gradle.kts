@@ -153,7 +153,7 @@ tasks.register<JavaExec>("preview") {
     // the street props' preview: which half (lineup, street) and which rows of the town
     for (k in listOf("props", "rows")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // the yards' preview: which half (lineup, real)
-    for (k in listOf("yards")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    for (k in listOf("yards", "yardLots")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // the movie theater's preview (-Dmode=filament-cinema): which eras, or posters
     for (k in listOf("cinema", "cinemaBills")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // the stores' preview (-Dmode=filament-stores): which variants or kinds

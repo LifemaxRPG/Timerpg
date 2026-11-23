@@ -48,7 +48,7 @@ import kotlin.math.tan
  *    night (22.5), from the front and a three-quarter view; sheet_<view>_<hour>.png stacks the groups;
  *  - yard_<name>_<view>_<hour>.png: three real yards of the town gamma (build-town/gamma/street.json: heights with a
  *    pool, woodside, gardens) and their neighbours, the houses as plain boxes, from the street, from behind and above.
- * -Dhour= one hour only; -Dyards=lineup or real for one half; -Dstreet=<path> another street.json. Writes into
+ * -Dhour= one hour only; -Dyards=lineup or real for one half; -Dstreet=<path> another street.json; -DyardLots= other yards. Writes into
  * build/preview/yards/.
  */
 fun renderYards(out: String) {
@@ -128,7 +128,9 @@ fun renderYards(out: String) {
         val yards = YardData.yards(json)
         val lanes = YardData.laneItems(json)
         val w = 2340; val h = 1080
-        val picks = listOf("heights_pool" to "medium:75,91", "woodside" to "small:147,72", "gardens" to "medium:261,116")
+        // (-DyardLots=name=lot;name=lot: other yards, e.g. the capital's blocks of flats)
+        val picks = System.getProperty("yardLots")?.split(";")?.map { it.substringBefore("=") to it.substringAfter("=") }
+            ?: listOf("heights_pool" to "medium:75,91", "woodside" to "small:147,72", "gardens" to "medium:261,116")
         for ((name, lot) in picks) {
             val y = yards.firstOrNull { it.lot == lot } ?: continue
             val p = y.parcel

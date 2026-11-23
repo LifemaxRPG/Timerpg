@@ -84,6 +84,32 @@ interface L { u0: number; u1: number; d0: number; d1: number }
 const lhit = (a: L, b: L, pad = 0): boolean => a.u0 < b.u1 + pad - 1e-6 && b.u0 < a.u1 + pad - 1e-6 && a.d0 < b.d1 + pad - 1e-6 && b.d0 < a.d1 + pad - 1e-6;
 const inside = (a: L, b: L): boolean => a.u0 >= b.u0 - 1e-6 && a.u1 <= b.u1 + 1e-6 && a.d0 >= b.d0 - 1e-6 && a.d1 <= b.d1 + 1e-6;
 
+/** A yard item's footprint a walker meets (as TownCollision builds it: a trunk, posts, a bush's middle, a rect). */
+function solidsOf(kind: string, l: L): L[] {
+  const w = l.u1 - l.u0, d = l.d1 - l.d0, cu = (l.u0 + l.u1) / 2, cd = (l.d0 + l.d1) / 2;
+  const sq = (u: number, dd: number, h: number): L => ({ u0: u - h, u1: u + h, d0: dd - h, d1: dd + h });
+  switch (kind) {
+    case 'tree': case 'fruitTree': return [sq(cu, cd, 6)];
+    case 'bush': return [sq(cu, cd, Math.min(w, d) * 0.35)];
+    case 'birdbath': case 'firePit': return [sq(cu, cd, Math.min(w, d) / 2)];
+    case 'chair': return [sq(cu, cd, Math.min(6, Math.min(w, d) / 2))];
+    case 'carport': case 'gazebo': return [[l.u0 + 4, l.d0 + 4], [l.u1 - 4, l.d0 + 4], [l.u0 + 4, l.d1 - 4], [l.u1 - 4, l.d1 - 4]].map(([u, dd]) => sq(u!, dd!, 3));
+    case 'washingLine':
+      if (Math.abs(w - d) < 8) return [sq(cu, cd, 3)];
+      return w > d ? [sq(l.u0 + 3, cd, 3), sq(l.u1 - 3, cd, 3)] : [sq(cu, l.d0 + 3, 3), sq(cu, l.d1 - 3, 3)];
+    // (the pool that goes on a deck: its water)
+    case 'poolDeck': return [{ u0: l.u0 + 18, u1: l.u1 - 18, d0: l.d0 + 18, d1: l.d1 - 18 }];
+    case 'bench': case 'bikeShed': case 'bins': case 'compost': case 'doghouse': case 'garage': case 'greenhouse': case 'grill': case 'hammock':
+    case 'logPile': case 'pallets': case 'planter': case 'playSet': case 'pond': case 'pool': case 'shed': case 'swing': case 'table':
+    case 'trampoline': case 'vegBed': return [l];
+    default: return [];
+  }
+}
+/** How far a yard's things keep their solid parts from the ground a walker must still reach: a walker's radius (OpenWalk's 5) and room to spare. */
+const WALK_CLEAR = 8;
+/** The walk grid's cell, in local units. */
+const WALK_CELL = 4;
+
 /** Where the door is across a front (fraction of the art's width from its left, as seen from the street). */
 function doorAt(key: string): number {
   if (key.startsWith('house_small_')) return 0.42;
@@ -366,11 +392,71 @@ export function townYards(g: TownGraph): Yards {
     }
     const inner: L = { u0: P.u0 + fenceIn, u1: P.u1 - fenceIn, d0: back.d0, d1: P.d1 - bfw - 2 };
 
+    // ---- the backyard's walk: every part of it a person can get to from its gates (the side gates by the house, the
+    // back gate), checked on a grid; nothing is put where it would shut off ground that could be walked to before
+    // (a bike shed and the bins side by side across a block's garden, a shed against a play set)
+    const gatesIn = items.filter((it) => it.kind === 'sideGate' || it.kind === 'gate').map((it) => localOf.get(it)!).filter((l) => l.d1 > B.d0);
+    const wd0 = Math.min(back.d0, ...gatesIn.map((l) => l.d1 + 0.01));
+    const walk = { u0: inner.u0, d0: wd0, nu: Math.max(0, Math.floor((inner.u1 - inner.u0) / WALK_CELL)), nd: Math.max(0, Math.floor((inner.d1 + 2 - wd0) / WALK_CELL)) };
+    const walkBlocked = (extra: L[]): Uint8Array => {
+      const bl = new Uint8Array(walk.nu * walk.nd);
+      const mark = (o: L, pad: number): void => {
+        const i0 = Math.max(0, Math.floor((o.u0 - pad - walk.u0) / WALK_CELL)), i1 = Math.min(walk.nu - 1, Math.floor((o.u1 + pad - walk.u0) / WALK_CELL));
+        const j0 = Math.max(0, Math.floor((o.d0 - pad - walk.d0) / WALK_CELL)), j1 = Math.min(walk.nd - 1, Math.floor((o.d1 + pad - walk.d0) / WALK_CELL));
+        for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+          const cu = walk.u0 + (i + 0.5) * WALK_CELL, cd = walk.d0 + (j + 0.5) * WALK_CELL;
+          if (cu >= o.u0 - pad && cu <= o.u1 + pad && cd >= o.d0 - pad && cd <= o.d1 + pad) bl[j * walk.nu + i] = 1;
+        }
+      };
+      mark(B, 5);
+      // the fences round it (the side fences 2 out from the walk's sides, the back fence at its end)
+      for (let j = 0; j < walk.nd; j++) for (let i = 0; i < walk.nu; i++) {
+        const cu = walk.u0 + (i + 0.5) * WALK_CELL, cd = walk.d0 + (j + 0.5) * WALK_CELL;
+        if (cu < inner.u0 + WALK_CLEAR - 2 || cu > inner.u1 - WALK_CLEAR + 2 || cd > inner.d1 + 2 - WALK_CLEAR) bl[j * walk.nu + i] = 1;
+      }
+      for (const it of items) if (it.layer !== 'edge') for (const o of solidsOf(it.kind, localOf.get(it)!)) mark(o, WALK_CLEAR);
+      for (const o of extra) mark(o, WALK_CLEAR);
+      return bl;
+    };
+    /** The cells reached from the gates (1), over the free ones of [bl]; null when the yard has no gate to start from. */
+    const walkReach = (bl: Uint8Array): Uint8Array | null => {
+      const n = walk.nu * walk.nd, seen = new Uint8Array(n), q = new Int32Array(n);
+      let h = 0, t = 0;
+      for (const gl of gatesIn) {
+        // the free cell nearest the gate's middle, on the yard's side of it
+        const gu = (gl.u0 + gl.u1) / 2, gd = Math.max(walk.d0, Math.min(walk.d0 + walk.nd * WALK_CELL, (gl.d0 + gl.d1) / 2));
+        let best = -1, bd = 32 * 32;
+        for (let j = 0; j < walk.nd; j++) for (let i = 0; i < walk.nu; i++) {
+          if (bl[j * walk.nu + i]) continue;
+          const du = walk.u0 + (i + 0.5) * WALK_CELL - gu, dd = walk.d0 + (j + 0.5) * WALK_CELL - gd;
+          if (du * du + dd * dd < bd) { bd = du * du + dd * dd; best = j * walk.nu + i; }
+        }
+        if (best >= 0 && !seen[best]) { seen[best] = 1; q[t++] = best; }
+      }
+      if (t === 0) return null;
+      while (h < t) {
+        const c = q[h++]!, i = c % walk.nu, j = (c - i) / walk.nu;
+        const go = (m: number): void => { if (!seen[m] && !bl[m]) { seen[m] = 1; q[t++] = m; } };
+        if (i > 0) go(c - 1); if (i < walk.nu - 1) go(c + 1); if (j > 0) go(c - walk.nu); if (j < walk.nd - 1) go(c + walk.nu);
+      }
+      return seen;
+    };
+    /** Putting [l] (a [kind]) leaves every cell reached now still reached (bar the ones it covers). */
+    const keepsWalk = (kind: string, l: L, before: Uint8Array | null): boolean => {
+      if (!before) return true;
+      const sol = solidsOf(kind, l);
+      if (!sol.length) return true;
+      const bl = walkBlocked(sol), after = walkReach(bl);
+      if (!after) return false;
+      for (let c = 0; c < before.length; c++) if (before[c] && !bl[c] && !after[c]) return false;
+      return true;
+    };
+
     /** Puts an object of w x h (along x deep) in the backyard where `score` likes best (free, inside `region`). */
     const place = (kind: string, w: number, h: number, score: (c: { u: number; d: number; t: number; s: number }) => number,
       opts: { region?: L; turn?: boolean; gap?: number; layer?: Layer; face?: [number, number]; variant?: number; key?: string } = {}): L | undefined => {
       const region = opts.region ?? inner, gap = opts.gap ?? 6;
-      let best: { l: L; sc: number } | undefined;
+      const cands: { l: L; sc: number }[] = [];
       const dims: [number, number][] = opts.turn ? [[w, h], [h, w]] : [[w, h]];
       for (const [ww, hh] of dims) {
         for (let u = region.u0; u + ww <= region.u1 + 1e-6; u += 6) {
@@ -381,10 +467,14 @@ export function townYards(g: TownGraph): Yards {
             const t = (cd - inner.d0) / Math.max(1, inner.d1 - inner.d0);
             const s = (cu - inner.u0) / Math.max(1, inner.u1 - inner.u0);
             const sc = score({ u: cu, d: cd, t, s }) + 0.08 * R(id, 'jit', kind, u, d);
-            if (!best || sc > best.sc) best = { l, sc };
+            cands.push({ l, sc });
           }
         }
       }
+      // the best-liked spot that shuts no ground off from the gates (the first found, in the order they were met, on a tie)
+      cands.sort((a, b) => b.sc - a.sc);
+      const before = solidsOf(kind, { u0: 0, u1: w, d0: 0, d1: h }).length ? walkReach(walkBlocked([])) : null;
+      const best = cands.find((c) => keepsWalk(kind, c.l, before));
       if (!best) return undefined;
       occ.push(best.l);
       add(kind, best.l, opts.layer ?? 'object', 'back', opts.face ?? [0, -1], opts.variant ?? v(opts.key ?? kind));
