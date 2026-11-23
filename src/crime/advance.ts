@@ -6,6 +6,7 @@ import {
   refreshAccount,
   type RefreshReason,
 } from './memory';
+import { decayTraceOneDay, reexamineColdCases } from './evidence';
 import { ingestPoliceReport } from './police';
 import { evaluateReportingForCrime } from './reporting';
 import type {
@@ -316,7 +317,40 @@ export function advanceDay(
     }
   }
 
-  return {
+  // 5. Decay uncollected physical traces (zero overhead when no traces exist)
+  let nextTraces = state.traces;
+  if (state.traces) {
+    const traceCrimeIds = Object.keys(state.traces);
+    let tracesMapCopied = false;
+    for (let i = 0; i < traceCrimeIds.length; i++) {
+      const cid = traceCrimeIds[i]!;
+      const list = state.traces[cid]!;
+      let listChanged = false;
+      let nextList = list;
+      for (let t = 0; t < list.length; t++) {
+        const tr = list[t]!;
+        if (tr.destroyed || tr.collected) continue;
+        const weather = ctx?.weatherOf ? ctx.weatherOf(tr.placeId, day) : 'clear';
+        const decayed = decayTraceOneDay(tr, day, weather);
+        if (decayed !== tr) {
+          if (!listChanged) {
+            nextList = list.slice();
+            listChanged = true;
+          }
+          nextList[t] = decayed;
+        }
+      }
+      if (listChanged) {
+        if (!tracesMapCopied) {
+          nextTraces = { ...state.traces };
+          tracesMapCopied = true;
+        }
+        nextTraces![cid] = nextList;
+      }
+    }
+  }
+
+  let nextState: CrimeState = {
     seed: state.seed,
     currentDay: day,
     crimes: state.crimes,
@@ -324,5 +358,14 @@ export function advanceDay(
     pendingReports: remainingPending,
     jurisdictions: nextJurisdictions,
     toldPairs: nextToldPairs,
+    ...(nextTraces !== undefined ? { traces: nextTraces } : {}),
+    ...(state.identityFiles !== undefined ? { identityFiles: state.identityFiles } : {}),
   };
+
+  // 6. Re-examine cold cases when identity files exist (skips immediately if no unmatched collected traces)
+  if (state.identityFiles) {
+    nextState = reexamineColdCases(nextState, world, day, ctx);
+  }
+
+  return nextState;
 }
