@@ -16,7 +16,8 @@ Each task is one file, `docs/queue/tasks/<ID>.md` (e.g. `C014.md`, `G003.md`). T
 - **Assignee:** `chatgpt` or `gemini`.
 - **Type:** `model` (a 3D model) or `engineering` (game code).
 - **Branch:** the exact branch to push to.
-- **Status:** `open`, `revise`, `accepted`, `closed` or `hold` (paused by Claude: skip it until it's `open` again).
+- **Status:** `open`, `revise`, `accepted`, `closed`, `hold` (paused by Claude: skip it until it's `open` again) or
+  `later` (parked by Claude: never start it, even when idle; Claude reopens it).
 
 Below that come the brief and the acceptance checks.
 
@@ -56,7 +57,7 @@ Below that come the brief and the acceptance checks.
      line means not delivered.
    - In your delivery folder, add `DELIVERY.md` with: the task ID; what you made; anything not done; for
      revisions, what changed and which review you answered; and the **Self-review** from TEAM.md.
-6. If nothing is `open` or `revise` for you, take your lowest-numbered task with status `hold` instead (a paused task
+6. If nothing is `open` or `revise` for you, take your lowest-numbered task with status `hold` (never `later`) instead (a paused task
    is better than idle time). Only if you have none of those either, stop and tell the owner "My queue is empty".
 
 **Push work in progress.** On a long task, commit and push to your task branch at least every 30 minutes, and right away
