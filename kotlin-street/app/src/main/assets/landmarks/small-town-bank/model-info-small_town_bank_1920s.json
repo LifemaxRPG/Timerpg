@@ -1,0 +1,179 @@
+{
+ "name": "Town State Bank",
+ "state": "landmark_glb_small_town_bank_1920s",
+ "file": "small-town-bank-1920s.glb",
+ "doors": [
+  {
+   "node": "door_main",
+   "position": [
+    0.0,
+    0.31040000915527344,
+    0.24831999838352203
+   ],
+   "outward": [
+    0,
+    0,
+    1
+   ],
+   "width_m": 1.8624,
+   "height_m": 2.9488000000000003,
+   "floor_m": 0.3104,
+   "external": true,
+   "open": true
+  },
+  {
+   "node": "door_staff",
+   "position": [
+    -5.276800155639648,
+    0.31040000915527344,
+    -18.25152015686035
+   ],
+   "outward": [
+    0,
+    0,
+    -1
+   ],
+   "width_m": 1.2416,
+   "height_m": 2.6384,
+   "floor_m": 0.3104,
+   "external": true,
+   "open": true
+  }
+ ],
+ "collision": {
+  "node": "collision",
+  "render": false,
+  "coordinate_frame": "glTF metres: Y up, +Z front",
+  "boxes_gltf_y_up": [
+   {
+    "source": "Portico column",
+    "support_floor_m": 0.0,
+    "attachment": "structure",
+    "group": "structure",
+    "center": [
+     -2.6384,
+     3.0264,
+     0.9312
+    ],
+    "size": [
+     1.0864,
+     6.0528,
+     1.0864
+    ]
+   },
+   {
+    "source": "Portico column",
+    "support_floor_m": 0.0,
+    "attachment": "structure",
+    "group": "structure",
+    "center": [
+     2.6384,
+     3.0264,
+     0.9312
+    ],
+    "size": [
+     1.0864,
+     6.0528,
+     1.0864
+    ]
+   },
+   {
+    "source": "Fixed vault front",
+    "support_floor_m": 0.3104,
+    "attachment": "vault_door",
+    "group": "structure",
+    "center": [
+     0.0,
+     2.4832,
+     -14.6858
+    ],
+    "size": [
+     4.1904,
+     4.3456,
+     1.1252
+    ]
+   },
+   {
+    "source": "Teller line",
+    "support_floor_m": 0.3104,
+    "attachment": "structure",
+    "group": "structure",
+    "center": [
+     0.0,
+     1.8624,
+     -11.1744
+    ],
+    "size": [
+     10.2432,
+     3.104,
+     1.3968
+    ]
+   },
+   {
+    "source": "Downpipe",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -7.178,
+     3.9576000000000002,
+     -17.848
+    ],
+    "size": [
+     0.0776,
+     7.9152000000000005,
+     0.0776
+    ]
+   },
+   {
+    "source": "Downpipe",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     7.178,
+     3.9576000000000002,
+     -17.848
+    ],
+    "size": [
+     0.0776,
+     7.9152000000000005,
+     0.0776
+    ]
+   },
+   {
+    "source": "Rear bin",
+    "group": "lot",
+    "attachment": "rear_bin",
+    "center": [
+     -6.3632,
+     0.5820000000000001,
+     -20.176000000000002
+    ],
+    "size": [
+     0.6208,
+     1.1640000000000001,
+     0.6984
+    ]
+   },
+   {
+    "source": "Rear bin",
+    "group": "lot",
+    "attachment": "rear_bin.001",
+    "center": [
+     -5.5872,
+     0.5820000000000001,
+     -20.176000000000002
+    ],
+    "size": [
+     0.6208,
+     1.1640000000000001,
+     0.6984
+    ]
+   }
+  ],
+  "use_the_walls": true,
+  "notes": "Exterior entries remain open without door panels/gates. Teller/vault blockers begin at the hall floor; exterior columns/fixtures are full-height from grade. Actual architectural surfaces provide walls/floors."
+ },
+ "lot_node": "lot",
+ "triangles_visible": 3119,
+ "source": "codex/small-town-bank model-info.json, flattened per state by tools/landmarks/intake.py"
+}

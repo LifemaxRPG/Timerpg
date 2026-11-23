@@ -1,0 +1,248 @@
+{
+ "name": "Fire Station",
+ "state": "landmark_glb_fire_station_1988",
+ "file": "fire-station-1988.glb",
+ "doors": [
+  {
+   "node": "door_main",
+   "external": true
+  },
+  {
+   "node": "door_back",
+   "external": true
+  }
+ ],
+ "collision": {
+  "coordinate_note": "Full-height glTF Y-up boxes in metres from ground y=0 to full structure/tower/mast top.",
+  "boxes_gltf_y_up": [
+   {
+    "source": "fire_hydrant",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -10.2432,
+     0.5432,
+     4.8111999999999995
+    ],
+    "size": [
+     0.6207999999999991,
+     1.0864,
+     0.6208
+    ]
+   },
+   {
+    "source": "flagpole",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     11.4848,
+     4.9276,
+     4.1904
+    ],
+    "size": [
+     0.6207999999999991,
+     9.8552,
+     0.6208
+    ]
+   },
+   {
+    "source": "rear_dumpster",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -10.864,
+     0.8536,
+     -16.9944
+    ],
+    "size": [
+     2.9488000000000003,
+     1.7072,
+     2.1728000000000005
+    ]
+   },
+   {
+    "source": "rear_fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     0.6208,
+     -19.0896
+    ],
+    "size": [
+     25.7632,
+     1.2416,
+     0.31040000000000134
+    ]
+   },
+   {
+    "source": "bollard_-104",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -8.0704,
+     0.5432,
+     0.4656
+    ],
+    "size": [
+     0.31040000000000045,
+     1.0864,
+     0.3104
+    ]
+   },
+   {
+    "source": "bollard_-28",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -2.1727999999999996,
+     0.5432,
+     0.4656
+    ],
+    "size": [
+     0.3104,
+     1.0864,
+     0.3104
+    ]
+   },
+   {
+    "source": "bollard_28",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     2.1727999999999996,
+     0.5432,
+     0.4656
+    ],
+    "size": [
+     0.3104,
+     1.0864,
+     0.3104
+    ]
+   },
+   {
+    "source": "bollard_104",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     8.0704,
+     0.5432,
+     0.4656
+    ],
+    "size": [
+     0.31040000000000045,
+     1.0864,
+     0.3104
+    ]
+   },
+   {
+    "source": "backup_generator",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     6.0528,
+     1.4744,
+     -16.684
+    ],
+    "size": [
+     4.656000000000001,
+     2.9488,
+     2.638399999999999
+    ]
+   },
+   {
+    "source": "canopy_col_-30",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -2.3280000000000003,
+     1.4744,
+     1.358
+    ],
+    "size": [
+     0.3104,
+     2.9488,
+     0.3880000000000001
+    ]
+   },
+   {
+    "source": "canopy_col_30",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     2.3280000000000003,
+     1.4744,
+     1.358
+    ],
+    "size": [
+     0.3104,
+     2.9488,
+     0.3880000000000001
+    ]
+   },
+   {
+    "source": "station_ground_block",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     2.9682,
+     -6.208
+    ],
+    "size": [
+     17.3824,
+     5.9364,
+     12.416
+    ]
+   },
+   {
+    "source": "station_crew_upper",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     7.3138,
+     -7.1392
+    ],
+    "size": [
+     10.2432,
+     3.298,
+     9.312
+    ]
+   },
+   {
+    "source": "lobby_canopy",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     3.1816,
+     0.7954
+    ],
+    "size": [
+     5.3544,
+     0.46560000000000024,
+     1.5908
+    ]
+   },
+   {
+    "source": "vhf_radio_mast",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -3.5696,
+     12.222000000000001,
+     -9.7776
+    ],
+    "size": [
+     0.9311999999999996,
+     6.9064,
+     0.9312000000000005
+    ]
+   }
+  ]
+ },
+ "lot_node": null,
+ "triangles_visible": 1594,
+ "source": "codex/fire-station model-info.json, flattened per state by tools/landmarks/intake.py"
+}

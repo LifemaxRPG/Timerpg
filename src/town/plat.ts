@@ -30,12 +30,22 @@ import type { Rect, Road } from './kinds';
 // plots into the blocks.
 
 export type District = 'core' | 'square' | 'civic' | 'old' | 'westmain' | 'worker' | 'rail' | 'strip' | 'postwar' | 'heights'
-  | 'late' | 'edge' | 'river';
+  | 'late' | 'edge' | 'river' | 'grounds';
+
+/**
+ * The capital (the owner's test city, CLAUDE.md "Hand-made hub towns plus procedural fill"): it gets every hand-made model and a
+ * column of GROUNDS past the highway's far end, big blocks for the landmarks that need acres (the Great Meridian, the Eyrie, the
+ * school campus, the rest area, the roadside giants). Other towns are platted as before.
+ */
+export const CAPITAL_SEED = 'gamma';
+export const isCapital = (seed: string): boolean => seed === CAPITAL_SEED;
+/** The grounds column's width and its blocks' depths (tiles; north of Main Street first, nearest it first), sized for the models. */
+export const GROUNDS = { w: 200, north: [62, 80], south: [30, 80] } as const;
 
 /** The year each district is platted (its streets and first plots may be built from then on). */
 export const PLATTED: Record<District, number> = {
   core: 1885, square: 1885, civic: 1890, old: 1895, westmain: 1890, worker: 1905, rail: 1888, strip: 1950, postwar: 1947,
-  heights: 1958, late: 1975, edge: 1985, river: 1885,
+  heights: 1958, late: 1975, edge: 1985, river: 1885, grounds: 1885,
 };
 
 export type SizeClass = 'S' | 'M' | 'L';
@@ -317,6 +327,34 @@ export function platTown(seed: string): Plat {
     for (const b of edgeN) if (b !== keep) blocks.splice(blocks.indexOf(b), 1);
   }
 
+  // ---------------------------------------------------------------------------------------------- the capital's grounds
+  // (abstract frame, past the edge column: Main Street runs on through it; a street between it and the edge, a street between each
+  // of its blocks; the blocks north of Main Street reach past the grid's top, as far as the models need)
+  let groundsTop = Y[0]!, groundsBottom = Y[rows.length]!, groundsRight = X[cols.length]!;
+  if (isCapital(seed)) {
+    const gx0 = X[cols.length]!, G = GROUNDS.w;
+    const mainY = Y[mainRow]!;
+    const mainRoad = roads.find((r) => r.main)!;
+    mainRoad.w += G;
+    const northH = GROUNDS.north.reduce((a, b) => a + b + 4, 0), southH = GROUNDS.south.reduce((a, b) => a + b + 4, 0);
+    groundsTop = Math.min(Y[0]!, mainY - northH); groundsBottom = Math.max(Y[rows.length]!, mainY + southH); groundsRight = gx0 + G;
+    add({ x: gx0 - 1, y: groundsTop - 1, w: 2, h: groundsBottom - groundsTop + 2, main: false, horizontal: false }, 'street');
+    // blocks outward from Main Street, a street (2 tiles, 2 more of verge each side) between them
+    let yN = mainY, yS = mainY;
+    GROUNDS.north.forEach((h, k) => {
+      const y1 = yN - 2, y0 = y1 - h;
+      blocks.push({ x: gx0 + 2, y: y0, w: G - 4, h, col: cols.length - civic, row: -1 - k, district: 'grounds', faces: [] });
+      yN = y0 - 2;
+      add({ x: gx0 + 1, y: yN - 1, w: G - 2, h: 2, main: false, horizontal: true }, 'street');
+    });
+    GROUNDS.south.forEach((h, k) => {
+      const y0 = yS + 2;
+      blocks.push({ x: gx0 + 2, y: y0, w: G - 4, h, col: cols.length - civic, row: k, district: 'grounds', faces: [] });
+      yS = y0 + h + 2;
+      add({ x: gx0 + 1, y: yS - 1, w: G - 2, h: 2, main: false, horizontal: true }, 'street');
+    });
+  }
+
   // ---------------------------------------------------------------------------------------------- the rail band
   let railBand: RailBand | null = null;
   const railRow = rows.findIndex((r) => r.kind === 'rail');
@@ -344,8 +382,8 @@ export function platTown(seed: string): Plat {
   const alleys: Rect[] = [];
 
   // ---------------------------------------------------------------------------------------------- mirror and move
-  const W0 = X[0]! - MARGIN - 80, W1 = X[cols.length]! + MARGIN + 80;
-  const H0 = Y[0]! - MARGIN - 80, H1 = Y[rows.length]! + MARGIN + 80;
+  const W0 = X[0]! - MARGIN - 80, W1 = groundsRight + MARGIN + 80;
+  const H0 = groundsTop - MARGIN - 80, H1 = groundsBottom + MARGIN + 80;
   const fx = (r: Rect): Rect => (flipX ? { ...r, x: W1 - (r.x + r.w) + W0 } : r);
   const fy = (r: Rect): Rect => (flipY ? { ...r, y: H1 - (r.y + r.h) + H0 } : r);
   const mv = <T extends Rect>(r: T): T => { const a = fy(fx(r)); return { ...r, x: a.x - W0, y: a.y - H0 }; };

@@ -124,7 +124,9 @@ describe('farms: by year', () => {
   });
 
   it('runs a country road in along a street not built yet', () => {
-    const y1955 = layoutTown(worldAt(tl, 1955)).farms.roads;
-    expect(y1955.some((r) => r.inner)).toBe(true);
+    // (not gamma, the capital: its grounds' street is built from its first model on, and both its north and south roads continue it)
+    const eta = runTimeline({ seed: 'eta', endYear: 2025 });
+    const y1975 = layoutTown(worldAt(eta, 1975)).farms.roads;
+    expect(y1975.some((r) => r.inner)).toBe(true);
   });
 });

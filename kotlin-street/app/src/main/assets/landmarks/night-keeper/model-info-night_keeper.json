@@ -1,0 +1,30 @@
+{
+ "name": "The Night Keeper",
+ "state": "landmark_glb_night_keeper",
+ "file": "night-keeper.glb",
+ "doors": [
+  {
+   "node": "door_main",
+   "position_gltf_m": [
+    11.0,
+    0.8899999856948853,
+    -11.87031078338623
+   ]
+  },
+  {
+   "node": "door_back",
+   "position_gltf_m": [
+    11.0,
+    0.8899999856948853,
+    -20.129690170288086
+   ]
+  }
+ ],
+ "collision": {
+  "use_the_walls": true,
+  "notes": "Use pier, figure, square, pavilion post and pane geometry. Both lantern portals stay open."
+ },
+ "lot_node": null,
+ "triangles_visible": 8023,
+ "source": "codex/night-keeper model-info.json, flattened per state by tools/landmarks/intake.py"
+}

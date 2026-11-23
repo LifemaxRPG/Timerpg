@@ -1,7 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { planTown, planVersion, setPlanVersion, type TownPlan } from './plan';
 import { isCountySeat, platTown } from './plat';
-import { glbTenures } from './glbSites';
+import { glbPlotOf, glbTenures, REPLACED_LANDMARKS } from './glbSites';
+import type { GlbLandmarkKind } from './glbLandmarks';
 import { chooseLandmarks } from './landmarks';
 import { storeNeeds } from './stores';
 import { populationIn, POPULATION_BY, POPULATION_FROM } from './population';
@@ -11,7 +12,7 @@ import { runTimeline } from '../sim';
 // The planned town (kotlin-street/docs/TOWN_PLAN.md): src/town/plat.ts and src/town/districts.ts through plan.ts.
 const SEEDS = ['gamma', 'pi', 'orbit', 'tau', 'beta', 'rho'];
 const hit = (a: Rect, b: Rect, pad = 0): boolean => a.x < b.x + b.w + pad && b.x - pad < a.x + a.w && a.y < b.y + b.h + pad && b.y - pad < a.y + a.h;
-const site = (k: string): string => k.slice('landmark_glb_'.length).replace(/_\d{4}$/, '').replace(/^(mirage|pulse)_nightclub$/, 'club').replace(/^foundry_(factory|nightclub)$/, 'foundry');
+const site = (k: string): string => glbPlotOf(k as GlbLandmarkKind).slice('glb:'.length);
 
 let before: 1 | 2;
 beforeAll(() => { before = planVersion(); setPlanVersion(2); });
@@ -80,7 +81,9 @@ describe('the planned town', () => {
       const ids = p.v2!.reserved.map((q) => q.id);
       for (const t of glbTenures(s)) expect(ids, `${s} ${t.kind}`).toContain(`glb:${site(t.kind)}`);
       const lm = p.landmarks.map((l) => l.id);
-      for (const k of chooseLandmarks(s)) expect(lm, `${s} ${k}`).toContain(k);
+      // (the capital's school campus, fire station and post office are models: the sprite landmarks they replace are not in its plan)
+      const gone = Object.entries(REPLACED_LANDMARKS).filter(([m]) => glbTenures(s).some((t) => glbPlotOf(t.kind) === `glb:${m}`)).map(([, k]) => k as string);
+      for (const k of chooseLandmarks(s)) if (!gone.includes(k)) expect(lm, `${s} ${k}`).toContain(k);
       for (const [k, y] of Object.entries(storeNeeds(s))) if (y !== undefined) expect(lm, `${s} ${k}`).toContain(k);
       expect(lm).toContain('generalstore');
       const district = (id: string): string => p.v2!.reserved.find((q) => q.id === id)?.district ?? '';

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { runTimeline, worldAt } from '../sim';
 import { railSite, type RailWorld } from '../world/rail';
 import { GLB_LANDMARK_KINDS, GLB_LANDMARKS, type GlbLandmarkKind } from './glbLandmarks';
-import { FUNERAL_NAMES, VIDEO_PEOPLE, VIDEO_STATES, glbSites, glbStandingOn, glbTenures, glbUnplaced, peakPeople, premierDepot, type GlbSite } from './glbSites';
+import { FUNERAL_NAMES, INTAKE_STATES, REPLACED_LANDMARKS, VIDEO_PEOPLE, VIDEO_STATES, glbSites, glbStandingOn, glbTenures, glbUnplaced, peakPeople, premierDepot, type GlbSite } from './glbSites';
 import { planTown } from './plan';
 import { townRail, type TownRail } from './rail';
 import type { Rect } from './kinds';
@@ -263,5 +263,25 @@ describe('hand-made landmark models in the towns', () => {
     expect(glbUnplaced('gamma', town('gamma').sites)).toEqual([]);
     // 1955 and 1985 show something standing
     for (const y of [1955, 1985]) expect(SEEDS.some((seed) => town(seed).sites.some((s) => glbStandingOn(s, y)))).toBe(true);
+  }, 60000);
+  it('give the capital every intake model, each chain of states on one plot in date order, and no other town any (for now)', () => {
+    const plan = planTown('gamma');
+    const sites = town('gamma').sites;
+    for (const [model, kinds] of Object.entries(INTAKE_STATES)) {
+      const ts = sites.flatMap((s) => s.tenures.filter((t) => (kinds as readonly string[]).includes(t.kind)).map((t) => ({ s, t })));
+      expect(ts.length, `gamma ${model}`).toBeGreaterThan(0);
+      // one plot for the chain, the states one after another (the last never gone)
+      expect(new Set(ts.map((x) => x.s.id)).size, model).toBe(1);
+      const sorted = ts.map((x) => x.t).sort((a, b) => a.opened - b.opened);
+      sorted.forEach((t, i) => { if (i + 1 < sorted.length) expect(t.gone, `${model} ${t.kind} gone as the next opens`).toBe(sorted[i + 1]!.opened); else expect(t.gone, `${model} last state`).toBeUndefined(); });
+    }
+    // the school campus, the fire station and the post office replace the sprite landmarks (not in the capital's plan)
+    for (const k of Object.values(REPLACED_LANDMARKS)) expect(plan.landmarks.some((l) => l.id === k), `sprite ${k}`).toBe(false);
+    // the big ones stand on the grounds; one reserved landmark plot is free for what comes next
+    const ids = plan.v2!.reserved.filter((q) => q.district === 'grounds').map((q) => q.id);
+    for (const m of ['great_meridian', 'the_eyrie', 'lincoln_high_school', 'union_arch', 'night_keeper', 'highway_rest_area']) expect(ids).toContain(`glb:${m}`);
+    expect(plan.v2!.reserved.filter((q) => q.id.startsWith('future:')).length).toBeGreaterThanOrEqual(1);
+    // (the other towns keep their ledgers: INTAKE_FOR_OTHERS is off)
+    for (const seed of ['eta', 'orbit', 'quartz']) expect(glbTenures(seed).some((t) => Object.values(INTAKE_STATES).flat().includes(t.kind)), seed).toBe(false);
   }, 60000);
 });

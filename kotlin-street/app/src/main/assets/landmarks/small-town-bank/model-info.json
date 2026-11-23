@@ -1,0 +1,1047 @@
+{
+  "name": "Town State Bank",
+  "state": "1920s",
+  "file": "small-town-bank-1920s.glb",
+  "design_years": [
+    1900,
+    1930
+  ],
+  "drive_through_from": null,
+  "units": "metres",
+  "axes": "glTF Y up; public entrance +Z",
+  "origin": "Grade at centre of original front stone wall. Both states retain the same origin and original door anchors.",
+  "exterior_walls": "Matching ashlar stone on front, sides, rear and parapets",
+  "main_footprint_m": [
+    13.968,
+    18.0032
+  ],
+  "heights_m": {
+    "hall_floor": 0.3104,
+    "hall_ceiling": 6.6736,
+    "front_coping": 8.846400000000001,
+    "canopy_nominal_clearance": null
+  },
+  "triangles_visible": 3119,
+  "materials": [
+    "detail_bronze",
+    "detail_panels",
+    "detail_steel",
+    "glass_bank",
+    "glow_lamps",
+    "ground_floor",
+    "ground_paving",
+    "roof_membrane",
+    "sign_name",
+    "wall_brick",
+    "wall_interior",
+    "wall_stone"
+  ],
+  "pixel_grid": {
+    "metres_per_texel": 0.0388,
+    "texels_per_art_pixel": 2
+  },
+  "doors": [
+    {
+      "node": "door_main",
+      "position": [
+        0.0,
+        0.31040000915527344,
+        0.24831999838352203
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "width_m": 1.8624,
+      "height_m": 2.9488000000000003,
+      "floor_m": 0.3104,
+      "external": true,
+      "open": true
+    },
+    {
+      "node": "door_staff",
+      "position": [
+        -5.276800155639648,
+        0.31040000915527344,
+        -18.25152015686035
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ],
+      "width_m": 1.2416,
+      "height_m": 2.6384,
+      "floor_m": 0.3104,
+      "external": true,
+      "open": true
+    }
+  ],
+  "rooms": [
+    {
+      "id": "banking_hall",
+      "floor_m": 0.3104,
+      "notes": "Fixed four-wicket teller counter; open staff routes at both ends. No loose furnishings or generated financial contents."
+    },
+    {
+      "id": "left_office",
+      "floor_m": 0.3104,
+      "notes": "Unfurnished side-office shell; rear staff exit."
+    },
+    {
+      "id": "right_office",
+      "floor_m": 0.3104,
+      "notes": "Unfurnished side-office shell."
+    },
+    {
+      "id": "vault_chamber",
+      "floor_m": 0.3104,
+      "notes": "Closed fixed circular vault-door geometry and enclosure; no opening, security, loot or account behavior."
+    }
+  ],
+  "vault": {
+    "node": "vault_door",
+    "fixed_closed": true,
+    "notes": "Circular leaf, metal rim, hinges, locking bars and three-spoke handwheel; not an exterior entry anchor."
+  },
+  "sign_name": {
+    "node": "sign_name",
+    "material": "sign_name",
+    "texture": "textures/signs.png",
+    "rect_art": [
+      0,
+      0,
+      128,
+      18
+    ],
+    "text": "TOWN STATE BANK",
+    "binding": "Exactly one carved frieze name region. Repaint per town; preview name creates no real business or bank identity."
+  },
+  "collision": {
+    "node": "collision",
+    "render": false,
+    "coordinate_frame": "glTF metres: Y up, +Z front",
+    "boxes_gltf_y_up": [
+      {
+        "source": "Portico column",
+        "support_floor_m": 0.0,
+        "attachment": "structure",
+        "group": "structure",
+        "center": [
+          -2.6384,
+          3.0264,
+          0.9312
+        ],
+        "size": [
+          1.0864,
+          6.0528,
+          1.0864
+        ]
+      },
+      {
+        "source": "Portico column",
+        "support_floor_m": 0.0,
+        "attachment": "structure",
+        "group": "structure",
+        "center": [
+          2.6384,
+          3.0264,
+          0.9312
+        ],
+        "size": [
+          1.0864,
+          6.0528,
+          1.0864
+        ]
+      },
+      {
+        "source": "Fixed vault front",
+        "support_floor_m": 0.3104,
+        "attachment": "vault_door",
+        "group": "structure",
+        "center": [
+          0.0,
+          2.4832,
+          -14.6858
+        ],
+        "size": [
+          4.1904,
+          4.3456,
+          1.1252
+        ]
+      },
+      {
+        "source": "Teller line",
+        "support_floor_m": 0.3104,
+        "attachment": "structure",
+        "group": "structure",
+        "center": [
+          0.0,
+          1.8624,
+          -11.1744
+        ],
+        "size": [
+          10.2432,
+          3.104,
+          1.3968
+        ]
+      },
+      {
+        "source": "Downpipe",
+        "group": "structure",
+        "attachment": "structure",
+        "center": [
+          -7.178,
+          3.9576000000000002,
+          -17.848
+        ],
+        "size": [
+          0.0776,
+          7.9152000000000005,
+          0.0776
+        ]
+      },
+      {
+        "source": "Downpipe",
+        "group": "structure",
+        "attachment": "structure",
+        "center": [
+          7.178,
+          3.9576000000000002,
+          -17.848
+        ],
+        "size": [
+          0.0776,
+          7.9152000000000005,
+          0.0776
+        ]
+      },
+      {
+        "source": "Rear bin",
+        "group": "lot",
+        "attachment": "rear_bin",
+        "center": [
+          -6.3632,
+          0.5820000000000001,
+          -20.176000000000002
+        ],
+        "size": [
+          0.6208,
+          1.1640000000000001,
+          0.6984
+        ]
+      },
+      {
+        "source": "Rear bin",
+        "group": "lot",
+        "attachment": "rear_bin.001",
+        "center": [
+          -5.5872,
+          0.5820000000000001,
+          -20.176000000000002
+        ],
+        "size": [
+          0.6208,
+          1.1640000000000001,
+          0.6984
+        ]
+      }
+    ],
+    "use_the_walls": true,
+    "notes": "Exterior entries remain open without door panels/gates. Teller/vault blockers begin at the hall floor; exterior columns/fixtures are full-height from grade. Actual architectural surfaces provide walls/floors."
+  },
+  "lot_node": "lot",
+  "lot_bounds_gltf_m": {
+    "x": [
+      -8.536,
+      8.536
+    ],
+    "z": [
+      -20.564,
+      3.104
+    ]
+  },
+  "drive_through": {
+    "present": false,
+    "node": null,
+    "lane_direction_gltf": [
+      0,
+      0,
+      -1
+    ],
+    "lane_reference_only": true,
+    "lanes": [],
+    "terminals": [],
+    "night_deposit_node": null,
+    "notes": "Static canopy, islands, document terminals, pneumatic conduit and deposit fixture. Anchors/lanes are references only; no banking transactions, tube transport, vehicle spawning/routing or deposit handling is implemented."
+  },
+  "runtime_handoff": [
+    "No financial balances, money, accounts, transactions, residents, ownership or town history are generated.",
+    "State construction/drive-through timing must follow simulation facts; 1965 is eligibility, not a forced event.",
+    "Exterior thresholds are open. The interior vault is intentionally fixed/closed and not a working lock.",
+    "Importer must consume glTF collision coordinates without applying the older Blender-frame rotation.",
+    "Glass emission mask, lights, navigation, state selection and vehicle interactions need game integration.",
+    "Both complete states preserve the original doors and carved-name region; pick one GLB at a time."
+  ],
+  "swatches_used": [
+    "brick_red",
+    "wall_stucco_red",
+    "roof_membrane_grey",
+    "pavement"
+  ],
+  "licence": "LimeZu shared swatches are Timerpg-only; retain original credit. Supplemental pixel art and all geometry original.",
+  "renders": "Actual Blender desktop previews, not Filament/S25 captures.",
+  "states": [
+    {
+      "name": "Town State Bank",
+      "state": "1920s",
+      "file": "small-town-bank-1920s.glb",
+      "design_years": [
+        1900,
+        1930
+      ],
+      "drive_through_from": null,
+      "units": "metres",
+      "axes": "glTF Y up; public entrance +Z",
+      "origin": "Grade at centre of original front stone wall. Both states retain the same origin and original door anchors.",
+      "exterior_walls": "Matching ashlar stone on front, sides, rear and parapets",
+      "main_footprint_m": [
+        13.968,
+        18.0032
+      ],
+      "heights_m": {
+        "hall_floor": 0.3104,
+        "hall_ceiling": 6.6736,
+        "front_coping": 8.846400000000001,
+        "canopy_nominal_clearance": null
+      },
+      "triangles_visible": 3119,
+      "materials": [
+        "detail_bronze",
+        "detail_panels",
+        "detail_steel",
+        "glass_bank",
+        "glow_lamps",
+        "ground_floor",
+        "ground_paving",
+        "roof_membrane",
+        "sign_name",
+        "wall_brick",
+        "wall_interior",
+        "wall_stone"
+      ],
+      "pixel_grid": {
+        "metres_per_texel": 0.0388,
+        "texels_per_art_pixel": 2
+      },
+      "doors": [
+        {
+          "node": "door_main",
+          "position": [
+            0.0,
+            0.31040000915527344,
+            0.24831999838352203
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 1.8624,
+          "height_m": 2.9488000000000003,
+          "floor_m": 0.3104,
+          "external": true,
+          "open": true
+        },
+        {
+          "node": "door_staff",
+          "position": [
+            -5.276800155639648,
+            0.31040000915527344,
+            -18.25152015686035
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 1.2416,
+          "height_m": 2.6384,
+          "floor_m": 0.3104,
+          "external": true,
+          "open": true
+        }
+      ],
+      "rooms": [
+        {
+          "id": "banking_hall",
+          "floor_m": 0.3104,
+          "notes": "Fixed four-wicket teller counter; open staff routes at both ends. No loose furnishings or generated financial contents."
+        },
+        {
+          "id": "left_office",
+          "floor_m": 0.3104,
+          "notes": "Unfurnished side-office shell; rear staff exit."
+        },
+        {
+          "id": "right_office",
+          "floor_m": 0.3104,
+          "notes": "Unfurnished side-office shell."
+        },
+        {
+          "id": "vault_chamber",
+          "floor_m": 0.3104,
+          "notes": "Closed fixed circular vault-door geometry and enclosure; no opening, security, loot or account behavior."
+        }
+      ],
+      "vault": {
+        "node": "vault_door",
+        "fixed_closed": true,
+        "notes": "Circular leaf, metal rim, hinges, locking bars and three-spoke handwheel; not an exterior entry anchor."
+      },
+      "sign_name": {
+        "node": "sign_name",
+        "material": "sign_name",
+        "texture": "textures/signs.png",
+        "rect_art": [
+          0,
+          0,
+          128,
+          18
+        ],
+        "text": "TOWN STATE BANK",
+        "binding": "Exactly one carved frieze name region. Repaint per town; preview name creates no real business or bank identity."
+      },
+      "collision": {
+        "node": "collision",
+        "render": false,
+        "coordinate_frame": "glTF metres: Y up, +Z front",
+        "boxes_gltf_y_up": [
+          {
+            "source": "Portico column",
+            "support_floor_m": 0.0,
+            "attachment": "structure",
+            "group": "structure",
+            "center": [
+              -2.6384,
+              3.0264,
+              0.9312
+            ],
+            "size": [
+              1.0864,
+              6.0528,
+              1.0864
+            ]
+          },
+          {
+            "source": "Portico column",
+            "support_floor_m": 0.0,
+            "attachment": "structure",
+            "group": "structure",
+            "center": [
+              2.6384,
+              3.0264,
+              0.9312
+            ],
+            "size": [
+              1.0864,
+              6.0528,
+              1.0864
+            ]
+          },
+          {
+            "source": "Fixed vault front",
+            "support_floor_m": 0.3104,
+            "attachment": "vault_door",
+            "group": "structure",
+            "center": [
+              0.0,
+              2.4832,
+              -14.6858
+            ],
+            "size": [
+              4.1904,
+              4.3456,
+              1.1252
+            ]
+          },
+          {
+            "source": "Teller line",
+            "support_floor_m": 0.3104,
+            "attachment": "structure",
+            "group": "structure",
+            "center": [
+              0.0,
+              1.8624,
+              -11.1744
+            ],
+            "size": [
+              10.2432,
+              3.104,
+              1.3968
+            ]
+          },
+          {
+            "source": "Downpipe",
+            "group": "structure",
+            "attachment": "structure",
+            "center": [
+              -7.178,
+              3.9576000000000002,
+              -17.848
+            ],
+            "size": [
+              0.0776,
+              7.9152000000000005,
+              0.0776
+            ]
+          },
+          {
+            "source": "Downpipe",
+            "group": "structure",
+            "attachment": "structure",
+            "center": [
+              7.178,
+              3.9576000000000002,
+              -17.848
+            ],
+            "size": [
+              0.0776,
+              7.9152000000000005,
+              0.0776
+            ]
+          },
+          {
+            "source": "Rear bin",
+            "group": "lot",
+            "attachment": "rear_bin",
+            "center": [
+              -6.3632,
+              0.5820000000000001,
+              -20.176000000000002
+            ],
+            "size": [
+              0.6208,
+              1.1640000000000001,
+              0.6984
+            ]
+          },
+          {
+            "source": "Rear bin",
+            "group": "lot",
+            "attachment": "rear_bin.001",
+            "center": [
+              -5.5872,
+              0.5820000000000001,
+              -20.176000000000002
+            ],
+            "size": [
+              0.6208,
+              1.1640000000000001,
+              0.6984
+            ]
+          }
+        ],
+        "use_the_walls": true,
+        "notes": "Exterior entries remain open without door panels/gates. Teller/vault blockers begin at the hall floor; exterior columns/fixtures are full-height from grade. Actual architectural surfaces provide walls/floors."
+      },
+      "lot_node": "lot",
+      "lot_bounds_gltf_m": {
+        "x": [
+          -8.536,
+          8.536
+        ],
+        "z": [
+          -20.564,
+          3.104
+        ]
+      },
+      "drive_through": {
+        "present": false,
+        "node": null,
+        "lane_direction_gltf": [
+          0,
+          0,
+          -1
+        ],
+        "lane_reference_only": true,
+        "lanes": [],
+        "terminals": [],
+        "night_deposit_node": null,
+        "notes": "Static canopy, islands, document terminals, pneumatic conduit and deposit fixture. Anchors/lanes are references only; no banking transactions, tube transport, vehicle spawning/routing or deposit handling is implemented."
+      },
+      "runtime_handoff": [
+        "No financial balances, money, accounts, transactions, residents, ownership or town history are generated.",
+        "State construction/drive-through timing must follow simulation facts; 1965 is eligibility, not a forced event.",
+        "Exterior thresholds are open. The interior vault is intentionally fixed/closed and not a working lock.",
+        "Importer must consume glTF collision coordinates without applying the older Blender-frame rotation.",
+        "Glass emission mask, lights, navigation, state selection and vehicle interactions need game integration.",
+        "Both complete states preserve the original doors and carved-name region; pick one GLB at a time."
+      ],
+      "swatches_used": [
+        "brick_red",
+        "wall_stucco_red",
+        "roof_membrane_grey",
+        "pavement"
+      ],
+      "licence": "LimeZu shared swatches are Timerpg-only; retain original credit. Supplemental pixel art and all geometry original.",
+      "renders": "Actual Blender desktop previews, not Filament/S25 captures."
+    },
+    {
+      "name": "Town State Bank",
+      "state": "drive-through",
+      "file": "small-town-bank-drive-through.glb",
+      "design_years": [
+        1900,
+        1930
+      ],
+      "drive_through_from": 1965,
+      "units": "metres",
+      "axes": "glTF Y up; public entrance +Z",
+      "origin": "Grade at centre of original front stone wall. Both states retain the same origin and original door anchors.",
+      "exterior_walls": "Matching ashlar stone on front, sides, rear and parapets",
+      "main_footprint_m": [
+        13.968,
+        18.0032
+      ],
+      "heights_m": {
+        "hall_floor": 0.3104,
+        "hall_ceiling": 6.6736,
+        "front_coping": 8.846400000000001,
+        "canopy_nominal_clearance": 3.9964
+      },
+      "triangles_visible": 3749,
+      "materials": [
+        "detail_bronze",
+        "detail_panels",
+        "detail_steel",
+        "glass_bank",
+        "glow_lamps",
+        "ground_floor",
+        "ground_paving",
+        "roof_membrane",
+        "sign_name",
+        "wall_brick",
+        "wall_interior",
+        "wall_stone"
+      ],
+      "pixel_grid": {
+        "metres_per_texel": 0.0388,
+        "texels_per_art_pixel": 2
+      },
+      "doors": [
+        {
+          "node": "door_main",
+          "position": [
+            0.0,
+            0.31040000915527344,
+            0.24831999838352203
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 1.8624,
+          "height_m": 2.9488000000000003,
+          "floor_m": 0.3104,
+          "external": true,
+          "open": true
+        },
+        {
+          "node": "door_staff",
+          "position": [
+            -5.276800155639648,
+            0.31040000915527344,
+            -18.25152015686035
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 1.2416,
+          "height_m": 2.6384,
+          "floor_m": 0.3104,
+          "external": true,
+          "open": true
+        }
+      ],
+      "rooms": [
+        {
+          "id": "banking_hall",
+          "floor_m": 0.3104,
+          "notes": "Fixed four-wicket teller counter; open staff routes at both ends. No loose furnishings or generated financial contents."
+        },
+        {
+          "id": "left_office",
+          "floor_m": 0.3104,
+          "notes": "Unfurnished side-office shell; rear staff exit."
+        },
+        {
+          "id": "right_office",
+          "floor_m": 0.3104,
+          "notes": "Unfurnished side-office shell."
+        },
+        {
+          "id": "vault_chamber",
+          "floor_m": 0.3104,
+          "notes": "Closed fixed circular vault-door geometry and enclosure; no opening, security, loot or account behavior."
+        }
+      ],
+      "vault": {
+        "node": "vault_door",
+        "fixed_closed": true,
+        "notes": "Circular leaf, metal rim, hinges, locking bars and three-spoke handwheel; not an exterior entry anchor."
+      },
+      "sign_name": {
+        "node": "sign_name",
+        "material": "sign_name",
+        "texture": "textures/signs.png",
+        "rect_art": [
+          0,
+          0,
+          128,
+          18
+        ],
+        "text": "TOWN STATE BANK",
+        "binding": "Exactly one carved frieze name region. Repaint per town; preview name creates no real business or bank identity."
+      },
+      "collision": {
+        "node": "collision",
+        "render": false,
+        "coordinate_frame": "glTF metres: Y up, +Z front",
+        "boxes_gltf_y_up": [
+          {
+            "source": "Portico column",
+            "support_floor_m": 0.0,
+            "attachment": "structure",
+            "group": "structure",
+            "center": [
+              -2.6384,
+              3.0264,
+              0.9312
+            ],
+            "size": [
+              1.0864,
+              6.0528,
+              1.0864
+            ]
+          },
+          {
+            "source": "Portico column",
+            "support_floor_m": 0.0,
+            "attachment": "structure",
+            "group": "structure",
+            "center": [
+              2.6384,
+              3.0264,
+              0.9312
+            ],
+            "size": [
+              1.0864,
+              6.0528,
+              1.0864
+            ]
+          },
+          {
+            "source": "Fixed vault front",
+            "support_floor_m": 0.3104,
+            "attachment": "vault_door",
+            "group": "structure",
+            "center": [
+              0.0,
+              2.4832,
+              -14.6858
+            ],
+            "size": [
+              4.1904,
+              4.3456,
+              1.1252
+            ]
+          },
+          {
+            "source": "Teller line",
+            "support_floor_m": 0.3104,
+            "attachment": "structure",
+            "group": "structure",
+            "center": [
+              0.0,
+              1.8624,
+              -11.1744
+            ],
+            "size": [
+              10.2432,
+              3.104,
+              1.3968
+            ]
+          },
+          {
+            "source": "Downpipe",
+            "group": "structure",
+            "attachment": "structure",
+            "center": [
+              -7.178,
+              3.9576000000000002,
+              -17.848
+            ],
+            "size": [
+              0.0776,
+              7.9152000000000005,
+              0.0776
+            ]
+          },
+          {
+            "source": "Downpipe",
+            "group": "structure",
+            "attachment": "structure",
+            "center": [
+              7.178,
+              3.9576000000000002,
+              -17.848
+            ],
+            "size": [
+              0.0776,
+              7.9152000000000005,
+              0.0776
+            ]
+          },
+          {
+            "source": "Canopy post",
+            "support_floor_m": 0.0,
+            "attachment": "drive_through",
+            "group": "structure",
+            "center": [
+              7.76,
+              2.2892,
+              -5.2768
+            ],
+            "size": [
+              0.6208,
+              4.5784,
+              0.6208
+            ]
+          },
+          {
+            "source": "Canopy post",
+            "support_floor_m": 0.0,
+            "attachment": "drive_through",
+            "group": "structure",
+            "center": [
+              7.76,
+              2.2892,
+              -12.8816
+            ],
+            "size": [
+              0.6208,
+              4.5784,
+              0.6208
+            ]
+          },
+          {
+            "source": "Canopy post",
+            "support_floor_m": 0.0,
+            "attachment": "drive_through",
+            "group": "structure",
+            "center": [
+              17.2272,
+              2.2892,
+              -5.2768
+            ],
+            "size": [
+              0.6208,
+              4.5784,
+              0.6208
+            ]
+          },
+          {
+            "source": "Canopy post",
+            "support_floor_m": 0.0,
+            "attachment": "drive_through",
+            "group": "structure",
+            "center": [
+              17.2272,
+              2.2892,
+              -12.8816
+            ],
+            "size": [
+              0.6208,
+              4.5784,
+              0.6208
+            ]
+          },
+          {
+            "source": "Drive terminal and island",
+            "support_floor_m": 0.0,
+            "attachment": "terminal_near",
+            "group": "structure",
+            "center": [
+              8.3808,
+              2.1728,
+              -9.1568
+            ],
+            "size": [
+              1.2416,
+              4.3456,
+              4.3456
+            ]
+          },
+          {
+            "source": "Drive terminal and island",
+            "support_floor_m": 0.0,
+            "attachment": "terminal_far",
+            "group": "structure",
+            "center": [
+              12.8816,
+              2.1728,
+              -9.1568
+            ],
+            "size": [
+              1.552,
+              4.3456,
+              4.3456
+            ]
+          },
+          {
+            "source": "Night deposit",
+            "support_floor_m": 0.0,
+            "attachment": "night_deposit",
+            "group": "structure",
+            "center": [
+              7.2168,
+              1.1252,
+              -1.2416
+            ],
+            "size": [
+              0.4656,
+              2.2504,
+              0.9312
+            ]
+          },
+          {
+            "source": "Rear bin",
+            "group": "lot",
+            "attachment": "rear_bin",
+            "center": [
+              -6.3632,
+              0.5820000000000001,
+              -20.176000000000002
+            ],
+            "size": [
+              0.6208,
+              1.1640000000000001,
+              0.6984
+            ]
+          },
+          {
+            "source": "Rear bin",
+            "group": "lot",
+            "attachment": "rear_bin.001",
+            "center": [
+              -5.5872,
+              0.5820000000000001,
+              -20.176000000000002
+            ],
+            "size": [
+              0.6208,
+              1.1640000000000001,
+              0.6984
+            ]
+          }
+        ],
+        "use_the_walls": true,
+        "notes": "Exterior entries remain open without door panels/gates. Teller/vault blockers begin at the hall floor; exterior columns/fixtures are full-height from grade. Actual architectural surfaces provide walls/floors."
+      },
+      "lot_node": "lot",
+      "lot_bounds_gltf_m": {
+        "x": [
+          -8.536,
+          18.3136
+        ],
+        "z": [
+          -20.564,
+          3.104
+        ]
+      },
+      "drive_through": {
+        "present": true,
+        "node": "drive_through",
+        "lane_direction_gltf": [
+          0,
+          0,
+          -1
+        ],
+        "lane_reference_only": true,
+        "lanes": [
+          {
+            "bounds_x_m": [
+              8.6912,
+              11.795200000000001
+            ],
+            "entry": [
+              10.2432,
+              0.0388,
+              2.1728
+            ],
+            "service": [
+              10.2432,
+              0.0388,
+              -8.846400000000001
+            ],
+            "exit": [
+              10.2432,
+              0.0388,
+              -20.4864
+            ]
+          },
+          {
+            "bounds_x_m": [
+              13.3472,
+              16.4512
+            ],
+            "entry": [
+              14.8992,
+              0.0388,
+              2.1728
+            ],
+            "service": [
+              14.8992,
+              0.0388,
+              -8.846400000000001
+            ],
+            "exit": [
+              14.8992,
+              0.0388,
+              -20.4864
+            ]
+          }
+        ],
+        "terminals": [
+          "terminal_near",
+          "terminal_far"
+        ],
+        "night_deposit_node": "night_deposit",
+        "notes": "Static canopy, islands, document terminals, pneumatic conduit and deposit fixture. Anchors/lanes are references only; no banking transactions, tube transport, vehicle spawning/routing or deposit handling is implemented."
+      },
+      "runtime_handoff": [
+        "No financial balances, money, accounts, transactions, residents, ownership or town history are generated.",
+        "State construction/drive-through timing must follow simulation facts; 1965 is eligibility, not a forced event.",
+        "Exterior thresholds are open. The interior vault is intentionally fixed/closed and not a working lock.",
+        "Importer must consume glTF collision coordinates without applying the older Blender-frame rotation.",
+        "Glass emission mask, lights, navigation, state selection and vehicle interactions need game integration.",
+        "Both complete states preserve the original doors and carved-name region; pick one GLB at a time."
+      ],
+      "swatches_used": [
+        "brick_red",
+        "wall_stucco_red",
+        "roof_membrane_grey",
+        "pavement"
+      ],
+      "licence": "LimeZu shared swatches are Timerpg-only; retain original credit. Supplemental pixel art and all geometry original.",
+      "renders": "Actual Blender desktop previews, not Filament/S25 captures."
+    }
+  ],
+  "default_state": "1920s",
+  "state_selection": "Choose one complete state from actual town history and available side land. The drive-through is eligible from 1965, never a forced event."
+}

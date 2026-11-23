@@ -1,0 +1,13 @@
+{
+ "name": "Union Arch",
+ "state": "landmark_glb_union_arch",
+ "file": "union-arch.glb",
+ "doors": [],
+ "collision": {
+  "use_the_walls": true,
+  "notes": "Use stone piers and garden curbs. Three public openings are through-passages."
+ },
+ "lot_node": null,
+ "triangles_visible": 4648,
+ "source": "codex/union-arch model-info.json, flattened per state by tools/landmarks/intake.py"
+}

@@ -1,0 +1,54 @@
+{
+  "name": "The Night Keeper",
+  "era": "Original interwar civic commission, suitable from the 1930s onward",
+  "footprint_m": [
+    62,
+    50
+  ],
+  "height_m": 34.3416,
+  "triangles_visible": 8023,
+  "materials": [
+    "detail_cast_iron",
+    "detail_timber",
+    "detail_yellow_ochre",
+    "glass_story_panels",
+    "ground_foliage",
+    "ground_paving",
+    "sign_name",
+    "wall_brick",
+    "wall_fired_clay",
+    "wall_indigo",
+    "wall_limestone"
+  ],
+  "units": "metres, glTF Y up, +Z south/front; origin at south sidewalk",
+  "doors": [
+    {
+      "node": "door_main",
+      "position_gltf_m": [
+        11.0,
+        0.8899999856948853,
+        -11.87031078338623
+      ]
+    },
+    {
+      "node": "door_back",
+      "position_gltf_m": [
+        11.0,
+        0.8899999856948853,
+        -20.129690170288086
+      ]
+    }
+  ],
+  "collision": {
+    "use_the_walls": true,
+    "notes": "Use pier, figure, square, pavilion post and pane geometry. Both lantern portals stay open."
+  },
+  "swatches_used": [
+    "brick_red",
+    "pavement",
+    "plank_horizontal"
+  ],
+  "texel_size_m": 0.0388,
+  "texels_per_art_pixel": 2,
+  "runtime": "Static civic sculpture. Light and navigation integration require engine testing."
+}

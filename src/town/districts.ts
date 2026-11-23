@@ -2,7 +2,7 @@ import { rand } from '../sim/rng';
 import { CINEMA_SIZES, chooseLandmarks, LANDMARK_SPECS, type LandmarkKind } from './landmarks';
 import { STORE_SIZES, storeNeeds } from './stores';
 import { glbLandmarkTiles, type GlbLandmarkKind } from './glbLandmarks';
-import { glbTenures, premierDepot, type GlbTenure } from './glbSites';
+import { glbPlotOf, glbTenures, INTAKE_STATES, premierDepot, REPLACED_LANDMARKS, type GlbTenure } from './glbSites';
 import { SIZES, type LotKind, type Rect, type Road } from './kinds';
 import { PLATTED, platTown, type Block, type District, type Plat } from './plat';
 
@@ -138,7 +138,10 @@ function fill(p: Plat): Districts {
   const has = (k: string): GlbTenure[] => tenures.filter((t) => t.kind === `landmark_glb_${k}`);
   const chainOf = (ts: GlbTenure[], before = 'field'): PlotUse[] => [{ use: before, from: 0, to: ts[0]?.opened }, ...ts.map((t) => ({ use: t.kind, from: t.opened, ...(t.gone ? { to: t.gone } : {}) }))];
   const tiles = (k: GlbLandmarkKind): [number, number] => glbLandmarkTiles(k);
-  const civicKinds = chooseLandmarks(seed);
+  // (the capital's school campus, fire station and post office are models: the sprite landmarks they replace are not reserved)
+  const replaced = new Set<string>(Object.entries(REPLACED_LANDMARKS).filter(([m]) => tenures.some((t) => glbPlotOf(t.kind) === `glb:${m}`)).map(([, k]) => k));
+  const civicKinds = chooseLandmarks(seed).filter((k) => !replaced.has(k));
+  const plotChain = (m: string): GlbTenure[] => tenures.filter((t) => glbPlotOf(t.kind) === `glb:${m}`);
   const needs = storeNeeds(seed);
   const spec = (k: LandmarkKind): [number, number] => [LANDMARK_SPECS[k].w, LANDMARK_SPECS[k].h];
   const lm = (k: LandmarkKind, chain: PlotUse[] = [{ use: 'woods', from: 0 }, { use: k, from: 0 }]): PlotUse[] => chain;
@@ -164,6 +167,10 @@ function fill(p: Plat): Districts {
   }
   const civic2 = at(0, -2);
   const behind = [civic2, at(1, -2), at(-1, -2)].filter((b): b is Block => !!b && b.district !== 'river');
+  // the post office and the fire station, as models, face the square from the blocks behind it (the post office first)
+  const towardSq = (b: Block): Face[] => [p.flipY ? 'N' : 'S', p.flipY ? 'S' : 'N'];
+  if (replaced.has('post')) reserve('glb:post_office', chainOf(plotChain('post_office'), 'woods'), behind, towardSq, [tiles('landmark_glb_post_office_1938')], 'near');
+  if (replaced.has('fire')) reserve('glb:fire_station', chainOf(plotChain('fire_station'), 'woods'), [...behind.slice(1), ...behind.slice(0, 1)], towardSq, [tiles('landmark_glb_fire_station_1924')], 'near');
   if (p.countySeat) {
     // the town hall, the post office and the fire station face the square from the block behind it
     const toSq = (b: Block): Face[] => [back(mainFace(b)) === 'N' ? 'S' : 'N'].filter((f) => b.faces.includes(f as Face)) as Face[];
@@ -300,6 +307,37 @@ function fill(p: Plat): Districts {
       reserved.push({ ...r, id: 'civic:cemetery', district: b.district, face: f, chain: [{ use: 'cemetery', from: 1885 }] });
       break;
     }
+  }
+
+  // ---- the intake models (docs/queue/INTAKE.md): the library near the square, the drugstore and the bank downtown, the churches in the old
+  // town and at the edge, the carhop on the strip; the capital's school, rest area, lodge, Eyrie, arch, giants and Great Meridian on
+  // its grounds (plat.ts GROUNDS: the acres they need), each fronting its street
+  const toSquare = (b: Block): Face[] => [back(mainFace(b)), mainFace(b)];
+  if (plotChain('public_library').length) reserve('glb:public_library', chainOf(plotChain('public_library'), 'woods'), [...behind, ...byNear(blocksOf(['old', 'civic', 'westmain']))], towardSq, [tiles('landmark_glb_public_library_1912')], 'near', { pad: 2 });
+  if (plotChain('corner_drugstore').length) reserve('glb:corner_drugstore', chainOf(plotChain('corner_drugstore'), 'shops'), [...nearCivic(north, -1), ...nearCivic(north, 1), ...south], (b) => [mainFace(b)], [tiles('landmark_glb_corner_drugstore_family')], 'strip');
+  if (plotChain('small_town_bank').length) reserve('glb:small_town_bank', chainOf(plotChain('small_town_bank'), 'shops'), [...nearCivic(south, -1), ...nearCivic(south, 1), ...north], (b) => [mainFace(b)], [tiles('landmark_glb_small_town_bank_1920s')], 'near');
+  if (plotChain('brick_church').length) reserve('glb:brick_church', chainOf(plotChain('brick_church'), 'woods'), byNear(blocksOf(['old', 'westmain'])), toSquare, [tiles('landmark_glb_brick_church')], 'strip', { pad: 2 });
+  if (plotChain('country_church').length) reserve('glb:country_church', chainOf(plotChain('country_church'), 'field'), [...byNear(blocksOf(['late', 'postwar', 'heights', 'old'])).reverse()], toSquare, [tiles('landmark_glb_country_church')], 'far', { pad: 2 });
+  if (plotChain('carhop_drive_in').length) reserve('glb:carhop_drive_in', chainOf(plotChain('carhop_drive_in')), [...stripN, ...stripS], (b) => [mainFace(b)], [tiles('landmark_glb_carhop_drive_in_original')], 'core', { pad: 2 });
+  {
+    const gb = (row: number): Block | undefined => blocksOf('grounds', row)[0];
+    const onG = (id: string, m: string, row: number, pos: Parameters<typeof positions>[3], first?: GlbLandmarkKind): void => {
+      const ts = plotChain(m);
+      if (!ts.length) return;
+      reserve(id, chainOf(ts), [gb(row)], (b) => [mainFace(b)], [tiles(first ?? ts[0]!.kind)], pos, { pad: 1 });
+    };
+    // north of Main Street: the Great Meridian by the town, the rest area at the far end, the lodge between; behind them the Eyrie
+    onG('glb:great_meridian', 'great_meridian', -1, 'near');
+    onG('glb:highway_rest_area', 'highway_rest_area', -1, 'far');
+    onG('glb:lantern_pine_lodge', 'lantern_pine_lodge', -1, 'mid');
+    onG('glb:the_eyrie', 'the_eyrie', -2, 'mid');
+    // south: the Night Keeper by the town, the arch at the highway's far end, the Rex between; behind them the campus
+    onG('glb:night_keeper', 'night_keeper', 0, 'near');
+    onG('glb:union_arch', 'union_arch', 0, 'far');
+    onG('glb:beach_blvd_rex', 'beach_blvd_rex', 0, 'mid');
+    onG('glb:lincoln_high_school', 'lincoln_high_school', 1, 'mid');
+    // (one more reserved landmark plot for what comes next, between the Rex and the Night Keeper)
+    if (gb(0)) reserve('future:landmark:3', [{ use: 'reserved', from: 0 }], [gb(0)], (b) => [mainFace(b)], [[30, 20]], 'near', { pad: 1 });
   }
 
   // ---- room for what is to come (the capital and test city, CLAUDE.md "Hand-made hub towns plus procedural fill": every

@@ -1,0 +1,293 @@
+{
+ "name": "Post Office",
+ "state": "landmark_glb_post_office_1988",
+ "file": "post-office-1988.glb",
+ "doors": [
+  {
+   "node": "door_main",
+   "external": true
+  },
+  {
+   "node": "door_back",
+   "external": true
+  }
+ ],
+ "collision": {
+  "coordinate_note": "Full-height glTF Y-up boxes in metres from ground y=0 to cupola finial top.",
+  "boxes_gltf_y_up": [
+   {
+    "source": "rear_fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     0.6208,
+     -18.1584
+    ],
+    "size": [
+     24.832,
+     1.2416,
+     0.31040000000000134
+    ]
+   },
+   {
+    "source": "flagpole",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -11.0192,
+     5.1604,
+     4.1904
+    ],
+    "size": [
+     0.7759999999999998,
+     10.3208,
+     0.7760000000000002
+    ]
+   },
+   {
+    "source": "west_planter",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -5.5096,
+     0.582,
+     0.8536
+    ],
+    "size": [
+     5.121599999999999,
+     1.164,
+     1.3968
+    ]
+   },
+   {
+    "source": "collection_box_64",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     4.9664,
+     0.8924,
+     4.8111999999999995
+    ],
+    "size": [
+     0.9312000000000005,
+     1.7848,
+     0.7760000000000007
+    ]
+   },
+   {
+    "source": "collection_box_84",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     6.5184,
+     0.8924,
+     4.8111999999999995
+    ],
+    "size": [
+     0.9311999999999996,
+     1.7848,
+     0.7760000000000007
+    ]
+   },
+   {
+    "source": "monument_sign_1988",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -5.2768,
+     0.9312,
+     4.0352
+    ],
+    "size": [
+     3.88,
+     1.8624,
+     0.6208
+    ]
+   },
+   {
+    "source": "dock_bollard_14",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     1.0864,
+     0.5432,
+     -12.571200000000001
+    ],
+    "size": [
+     0.3104,
+     1.0864,
+     0.31039999999999957
+    ]
+   },
+   {
+    "source": "dock_bollard_70",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     5.432,
+     0.5432,
+     -12.571200000000001
+    ],
+    "size": [
+     0.31040000000000045,
+     1.0864,
+     0.31039999999999957
+    ]
+   },
+   {
+    "source": "rear_utility_bin",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -10.5536,
+     0.8148,
+     -16.3736
+    ],
+    "size": [
+     2.3279999999999994,
+     1.6296,
+     1.862400000000001
+    ]
+   },
+   {
+    "source": "accessibility_ramp",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     5.3156,
+     0.8148,
+     0.8536
+    ],
+    "size": [
+     5.509599999999999,
+     1.6296,
+     1.0864
+    ]
+   },
+   {
+    "source": "rear_loading_canopy_1988",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     1.8624,
+     2.2116,
+     -12.105599999999999
+    ],
+    "size": [
+     7.76,
+     4.4232,
+     1.8623999999999992
+    ]
+   },
+   {
+    "source": "rooftop_hvac_1988",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     5.897600000000001,
+     7.372,
+     -9.622399999999999
+    ],
+    "size": [
+     3.104,
+     1.0863999999999994,
+     1.5520000000000014
+    ]
+   },
+   {
+    "source": "post_office_main_body",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     3.7248,
+     -5.432
+    ],
+    "size": [
+     16.7616,
+     7.4496,
+     11.4848
+    ]
+   },
+   {
+    "source": "classical_pediment",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     8.1092,
+     0.08534999999999998
+    ],
+    "size": [
+     10.2432,
+     1.9400000000000004,
+     1.1019
+    ]
+   },
+   {
+    "source": "hipped_slate_roof",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     7.76,
+     -5.5096
+    ],
+    "size": [
+     15.2096,
+     1.8624,
+     9.4672
+    ]
+   },
+   {
+    "source": "rooftop_civic_cupola",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     10.67,
+     -5.509600000000001
+    ],
+    "size": [
+     2.6384,
+     3.9575999999999993,
+     2.6384
+    ]
+   },
+   {
+    "source": "tapered_boiler_chimney",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -6.0527999999999995,
+     8.8076,
+     -9.622399999999999
+    ],
+    "size": [
+     1.0864000000000003,
+     3.9576000000000002,
+     1.0863999999999994
+    ]
+   },
+   {
+    "source": "front_steps_and_cheeks",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     1.2804,
+     0.8148
+    ],
+    "size": [
+     5.1216,
+     2.5608,
+     1.0088
+    ]
+   }
+  ]
+ },
+ "lot_node": null,
+ "triangles_visible": 2428,
+ "source": "codex/post-office model-info.json, flattened per state by tools/landmarks/intake.py"
+}

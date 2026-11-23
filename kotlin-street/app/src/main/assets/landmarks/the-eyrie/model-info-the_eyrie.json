@@ -1,0 +1,13 @@
+{
+ "name": "The Eyrie",
+ "state": "landmark_glb_the_eyrie",
+ "file": "the-eyrie.glb",
+ "doors": [],
+ "collision": {
+  "use_the_walls": true,
+  "notes": "Open-air terraces. Use the granite geometry for abutments and screen walls. Verify stair traversal in game."
+ },
+ "lot_node": null,
+ "triangles_visible": 8392,
+ "source": "codex/the-eyrie model-info.json, flattened per state by tools/landmarks/intake.py"
+}

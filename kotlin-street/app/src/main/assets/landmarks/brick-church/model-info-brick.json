@@ -1,0 +1,857 @@
+{
+  "name": "Town Church",
+  "variant": "brick",
+  "file": "brick-church.glb",
+  "design_years": [
+    1880,
+    1925
+  ],
+  "typical_use_years": [
+    1950,
+    2030
+  ],
+  "units": "metres",
+  "axes": "glTF Y up, +Z entrance/front",
+  "origin": "Grade at the middle of the projecting front porch edge. Two alternative designs, not a historical replacement chain.",
+  "nave_footprint_m": [
+    13.968,
+    29.9536
+  ],
+  "total_building_depth_m": 44.232,
+  "spire_height_m": 30.108800000000002,
+  "floor_m": 0.6208,
+  "triangles_visible": 9328,
+  "triangles_per_part": {
+    "nave": 5264,
+    "parish_hall": 620,
+    "corner_steeple": 2910,
+    "lot": 534
+  },
+  "prop_triangles": {
+    "paths": 40,
+    "church_sign": 50,
+    "garden_bed_0": 58,
+    "garden_bed_1": 58,
+    "garden_bench": 48,
+    "church_tree_0": 88,
+    "church_tree_1": 88,
+    "service_bin_0": 24,
+    "service_bin_1": 24
+  },
+  "materials": [
+    "detail_bronze",
+    "detail_metal",
+    "detail_wood",
+    "glass_windows",
+    "glow_lamps",
+    "ground_grass",
+    "ground_paving",
+    "roof_slate",
+    "sign_name",
+    "wall_brick",
+    "wall_interior",
+    "wall_stone"
+  ],
+  "doors": [
+    {
+      "node": "door_main",
+      "position": [
+        0.0,
+        0.6208,
+        0.26384
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "width_m": 1.8624,
+      "height_m": 2.4832,
+      "floor_m": 0.6208,
+      "external": true,
+      "open": true
+    },
+    {
+      "node": "door_back",
+      "position": [
+        3.4144,
+        0.6208,
+        -44.57344
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ],
+      "width_m": 1.552,
+      "height_m": 2.6384,
+      "floor_m": 0.6208,
+      "external": true,
+      "open": true
+    },
+    {
+      "node": "door_hall",
+      "position": [
+        6.859840000000001,
+        0.6208,
+        -35.696
+      ],
+      "outward": [
+        1,
+        0,
+        0
+      ],
+      "width_m": 1.552,
+      "height_m": 2.6384,
+      "floor_m": 0.6208,
+      "external": true,
+      "open": true
+    }
+  ],
+  "windows": [
+    {
+      "source_label": "Pointed nave glass",
+      "part_node": "nave__glass_windows",
+      "key": "lancet",
+      "width_art": 32,
+      "height_art": 68,
+      "bottom_art": 30,
+      "profile": "pointed",
+      "area_m2": 11.476919284640514
+    },
+    {
+      "source_label": "Pointed nave glass.001",
+      "part_node": "nave__glass_windows",
+      "key": "lancet",
+      "width_art": 32,
+      "height_art": 68,
+      "bottom_art": 30,
+      "profile": "pointed",
+      "area_m2": 11.476919284640514
+    },
+    {
+      "source_label": "Pointed nave glass.002",
+      "part_node": "nave__glass_windows",
+      "key": "lancet",
+      "width_art": 32,
+      "height_art": 68,
+      "bottom_art": 30,
+      "profile": "pointed",
+      "area_m2": 11.476919284640514
+    },
+    {
+      "source_label": "Pointed nave glass.003",
+      "part_node": "nave__glass_windows",
+      "key": "lancet",
+      "width_art": 32,
+      "height_art": 68,
+      "bottom_art": 30,
+      "profile": "pointed",
+      "area_m2": 11.476919284640514
+    },
+    {
+      "source_label": "Pointed nave glass.004",
+      "part_node": "nave__glass_windows",
+      "key": "lancet",
+      "width_art": 32,
+      "height_art": 68,
+      "bottom_art": 30,
+      "profile": "pointed",
+      "area_m2": 11.476919284640514
+    },
+    {
+      "source_label": "Pointed nave glass.005",
+      "part_node": "nave__glass_windows",
+      "key": "lancet",
+      "width_art": 32,
+      "height_art": 68,
+      "bottom_art": 30,
+      "profile": "pointed",
+      "area_m2": 11.476919284640514
+    },
+    {
+      "source_label": "Pointed nave glass.006",
+      "part_node": "nave__glass_windows",
+      "key": "lancet",
+      "width_art": 32,
+      "height_art": 68,
+      "bottom_art": 30,
+      "profile": "pointed",
+      "area_m2": 11.476919284640514
+    },
+    {
+      "source_label": "Pointed nave glass.007",
+      "part_node": "nave__glass_windows",
+      "key": "lancet",
+      "width_art": 32,
+      "height_art": 68,
+      "bottom_art": 30,
+      "profile": "pointed",
+      "area_m2": 11.476919284640514
+    },
+    {
+      "source_label": "Pointed nave glass.008",
+      "part_node": "nave__glass_windows",
+      "key": "lancet",
+      "width_art": 32,
+      "height_art": 68,
+      "bottom_art": 30,
+      "profile": "pointed",
+      "area_m2": 11.476919284640514
+    },
+    {
+      "source_label": "Pointed nave glass.009",
+      "part_node": "nave__glass_windows",
+      "key": "lancet",
+      "width_art": 32,
+      "height_art": 68,
+      "bottom_art": 30,
+      "profile": "pointed",
+      "area_m2": 11.476919284640514
+    },
+    {
+      "source_label": "Pointed nave glass.010",
+      "part_node": "nave__glass_windows",
+      "key": "lancet",
+      "width_art": 32,
+      "height_art": 68,
+      "bottom_art": 30,
+      "profile": "pointed",
+      "area_m2": 11.476919284640514
+    },
+    {
+      "source_label": "Front arched glass",
+      "part_node": "nave__glass_windows",
+      "key": "front_lancet",
+      "width_art": 16,
+      "height_art": 28,
+      "bottom_art": 84,
+      "profile": "pointed",
+      "area_m2": 2.2911408611601285
+    },
+    {
+      "source_label": "Front arched glass.001",
+      "part_node": "nave__glass_windows",
+      "key": "front_lancet",
+      "width_art": 16,
+      "height_art": 28,
+      "bottom_art": 84,
+      "profile": "pointed",
+      "area_m2": 2.2911408611601285
+    },
+    {
+      "source_label": "Front arched glass.002",
+      "part_node": "nave__glass_windows",
+      "key": "front_lancet",
+      "width_art": 16,
+      "height_art": 28,
+      "bottom_art": 84,
+      "profile": "pointed",
+      "area_m2": 2.2911408611601285
+    },
+    {
+      "source_label": "Hall side window",
+      "part_node": "parish_hall__glass_windows",
+      "key": "hall",
+      "width_art": 28,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.721059840000001
+    },
+    {
+      "source_label": "Hall side window.001",
+      "part_node": "parish_hall__glass_windows",
+      "key": "hall",
+      "width_art": 28,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.721059840000001
+    },
+    {
+      "source_label": "Hall side window.002",
+      "part_node": "parish_hall__glass_windows",
+      "key": "hall",
+      "width_art": 28,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.721059840000001
+    },
+    {
+      "source_label": "Hall rear window",
+      "part_node": "parish_hall__glass_windows",
+      "key": "hall",
+      "width_art": 28,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.721059840000001
+    },
+    {
+      "source_label": "Tower lancet",
+      "part_node": "corner_steeple__glass_windows",
+      "key": "lancet",
+      "width_art": 32,
+      "height_art": 68,
+      "bottom_art": 30,
+      "profile": "pointed",
+      "area_m2": 11.476919284640514
+    },
+    {
+      "source_label": "Tower lancet.001",
+      "part_node": "corner_steeple__glass_windows",
+      "key": "lancet",
+      "width_art": 32,
+      "height_art": 68,
+      "bottom_art": 112,
+      "profile": "pointed",
+      "area_m2": 11.476919284640514
+    },
+    {
+      "source_label": "Tower lancet.002",
+      "part_node": "corner_steeple__glass_windows",
+      "key": "lancet",
+      "width_art": 32,
+      "height_art": 68,
+      "bottom_art": 30,
+      "profile": "pointed",
+      "area_m2": 11.476919284640514
+    },
+    {
+      "source_label": "Tower lancet.003",
+      "part_node": "corner_steeple__glass_windows",
+      "key": "lancet",
+      "width_art": 32,
+      "height_art": 68,
+      "bottom_art": 112,
+      "profile": "pointed",
+      "area_m2": 11.476919284640514
+    },
+    {
+      "source_label": "Tower lancet.004",
+      "part_node": "corner_steeple__glass_windows",
+      "key": "lancet",
+      "width_art": 32,
+      "height_art": 68,
+      "bottom_art": 30,
+      "profile": "pointed",
+      "area_m2": 11.476919284640514
+    },
+    {
+      "source_label": "Tower lancet.005",
+      "part_node": "corner_steeple__glass_windows",
+      "key": "lancet",
+      "width_art": 32,
+      "height_art": 68,
+      "bottom_art": 112,
+      "profile": "pointed",
+      "area_m2": 11.476919284640514
+    }
+  ],
+  "rooms": [
+    {
+      "id": "nave",
+      "floor_m": 0.6208,
+      "notes": "Unfurnished nave, centre aisle finish, raised chancel and open rear link. Game supplies pews and loose furnishings."
+    },
+    {
+      "id": "parish_hall",
+      "floor_m": 0.6208,
+      "notes": "Rear room shell, its own open outside entry and a fixed serving counter in the brick variant."
+    },
+    {
+      "id": "corner_tower",
+      "notes": "Upper belfry is architectural detail only; no stair access or ringing behavior is implemented."
+    }
+  ],
+  "chancel": {
+    "rise_m": 0.4656,
+    "width_m": 8.6912,
+    "steps": 3,
+    "clear_side_link_x_m": 5.2768
+  },
+  "collision": {
+    "node": "collision",
+    "render": false,
+    "coordinate_frame": "glTF metres, Y up/+Z front",
+    "boxes_gltf_y_up": [
+      {
+        "source": "Raised chancel",
+        "center": [
+          0.0,
+          0.8536,
+          -28.7896
+        ],
+        "size": [
+          8.6912,
+          0.4656,
+          6.3632
+        ],
+        "support_floor_m": 0.6208,
+        "attachment": "nave",
+        "group": "structure"
+      },
+      {
+        "source": "Buttress",
+        "center": [
+          -7.527200000000001,
+          4.0352,
+          -8.536
+        ],
+        "size": [
+          1.2416,
+          8.0704,
+          1.0864
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "nave",
+        "group": "structure"
+      },
+      {
+        "source": "Buttress",
+        "center": [
+          -7.527200000000001,
+          4.0352,
+          -13.192
+        ],
+        "size": [
+          1.2416,
+          8.0704,
+          1.0864
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "nave",
+        "group": "structure"
+      },
+      {
+        "source": "Buttress",
+        "center": [
+          -7.527200000000001,
+          4.0352,
+          -17.848
+        ],
+        "size": [
+          1.2416,
+          8.0704,
+          1.0864
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "nave",
+        "group": "structure"
+      },
+      {
+        "source": "Buttress",
+        "center": [
+          -7.527200000000001,
+          4.0352,
+          -22.504
+        ],
+        "size": [
+          1.2416,
+          8.0704,
+          1.0864
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "nave",
+        "group": "structure"
+      },
+      {
+        "source": "Buttress",
+        "center": [
+          -7.527200000000001,
+          4.0352,
+          -27.16
+        ],
+        "size": [
+          1.2416,
+          8.0704,
+          1.0864
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "nave",
+        "group": "structure"
+      },
+      {
+        "source": "Buttress",
+        "center": [
+          -7.527200000000001,
+          4.0352,
+          -31.660800000000002
+        ],
+        "size": [
+          1.2416,
+          8.0704,
+          1.0864
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "nave",
+        "group": "structure"
+      },
+      {
+        "source": "Buttress",
+        "center": [
+          7.527200000000001,
+          4.0352,
+          -3.7248
+        ],
+        "size": [
+          1.2416,
+          8.0704,
+          1.0864
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "nave",
+        "group": "structure"
+      },
+      {
+        "source": "Buttress",
+        "center": [
+          7.527200000000001,
+          4.0352,
+          -8.536
+        ],
+        "size": [
+          1.2416,
+          8.0704,
+          1.0864
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "nave",
+        "group": "structure"
+      },
+      {
+        "source": "Buttress",
+        "center": [
+          7.527200000000001,
+          4.0352,
+          -13.192
+        ],
+        "size": [
+          1.2416,
+          8.0704,
+          1.0864
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "nave",
+        "group": "structure"
+      },
+      {
+        "source": "Buttress",
+        "center": [
+          7.527200000000001,
+          4.0352,
+          -17.848
+        ],
+        "size": [
+          1.2416,
+          8.0704,
+          1.0864
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "nave",
+        "group": "structure"
+      },
+      {
+        "source": "Buttress",
+        "center": [
+          7.527200000000001,
+          4.0352,
+          -22.504
+        ],
+        "size": [
+          1.2416,
+          8.0704,
+          1.0864
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "nave",
+        "group": "structure"
+      },
+      {
+        "source": "Buttress",
+        "center": [
+          7.527200000000001,
+          4.0352,
+          -27.16
+        ],
+        "size": [
+          1.2416,
+          8.0704,
+          1.0864
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "nave",
+        "group": "structure"
+      },
+      {
+        "source": "Buttress",
+        "center": [
+          7.527200000000001,
+          4.0352,
+          -31.660800000000002
+        ],
+        "size": [
+          1.2416,
+          8.0704,
+          1.0864
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "nave",
+        "group": "structure"
+      },
+      {
+        "source": "Fixed serving counter",
+        "center": [
+          -5.6648000000000005,
+          1.0476,
+          -41.4384
+        ],
+        "size": [
+          1.3968,
+          0.8536,
+          4.8112
+        ],
+        "support_floor_m": 0.6208,
+        "attachment": "parish_hall",
+        "group": "structure"
+      },
+      {
+        "source": "Downpipe",
+        "center": [
+          -6.782240000000001,
+          2.4056,
+          -44.0768
+        ],
+        "size": [
+          0.0776,
+          4.8112,
+          0.0776
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "parish_hall",
+        "group": "structure"
+      },
+      {
+        "source": "Downpipe",
+        "center": [
+          6.782240000000001,
+          2.4056,
+          -44.0768
+        ],
+        "size": [
+          0.0776,
+          4.8112,
+          0.0776
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "parish_hall",
+        "group": "structure"
+      },
+      {
+        "source": "Downpipe",
+        "center": [
+          -7.247840000000001,
+          4.4232000000000005,
+          -32.2816
+        ],
+        "size": [
+          0.0776,
+          8.846400000000001,
+          0.0776
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "nave",
+        "group": "structure"
+      },
+      {
+        "source": "Downpipe",
+        "center": [
+          7.247840000000001,
+          4.4232000000000005,
+          -32.2816
+        ],
+        "size": [
+          0.0776,
+          8.846400000000001,
+          0.0776
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "nave",
+        "group": "structure"
+      },
+      {
+        "source": "Sign board",
+        "center": [
+          12.7264,
+          1.6296,
+          2.716
+        ],
+        "size": [
+          2.9488000000000003,
+          3.2592,
+          0.4656
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "church_sign",
+        "group": "lot"
+      },
+      {
+        "source": "Garden bed",
+        "center": [
+          -14.1232,
+          0.776,
+          -19.400000000000002
+        ],
+        "size": [
+          3.2592,
+          1.552,
+          2.3280000000000003
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "garden_bed_0",
+        "group": "lot"
+      },
+      {
+        "source": "Garden bed",
+        "center": [
+          -14.1232,
+          0.776,
+          -27.936
+        ],
+        "size": [
+          3.2592,
+          1.552,
+          2.3280000000000003
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "garden_bed_1",
+        "group": "lot"
+      },
+      {
+        "source": "Bench",
+        "center": [
+          -12.2608,
+          0.5432,
+          -23.28
+        ],
+        "size": [
+          1.7072,
+          1.0864,
+          0.6208
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "garden_bench",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk column",
+        "center": [
+          -12.8816,
+          4.074,
+          1.1640000000000001
+        ],
+        "size": [
+          0.4074,
+          8.148,
+          0.4074
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "church_tree_0",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk column",
+        "center": [
+          23.28,
+          4.8888,
+          -40.352000000000004
+        ],
+        "size": [
+          0.48888,
+          9.7776,
+          0.48888
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "church_tree_1",
+        "group": "lot"
+      },
+      {
+        "source": "Service bin",
+        "center": [
+          -4.1904,
+          0.5044,
+          -45.1632
+        ],
+        "size": [
+          0.6984,
+          1.0088,
+          0.6984
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "service_bin_0",
+        "group": "lot"
+      },
+      {
+        "source": "Service bin",
+        "center": [
+          -3.104,
+          0.5044,
+          -45.1632
+        ],
+        "size": [
+          0.6984,
+          1.0088,
+          0.6984
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "service_bin_1",
+        "group": "lot"
+      }
+    ],
+    "use_the_walls": true,
+    "notes": "Walls, floors, real steps and architectural shells supply collision. Supplementary boxes cover buttresses, raised chancel/counter, sign, planters, bench, bins, downpipes and full-height tree-trunk columns. Do not apply the legacy Blender rotation."
+  },
+  "sign_name": {
+    "node": "sign_name",
+    "material": "sign_name",
+    "texture": "textures/signs.png",
+    "rect_art": [
+      0,
+      0,
+      32,
+      20
+    ],
+    "text": "TOWN / CHURCH",
+    "notes": "One modest, non-emissive roadside name region. Repaint per town using the 3x5 pixel alphabet; no real congregation or denomination."
+  },
+  "lot_node": "lot",
+  "lot_bounds_gltf_m": {
+    "x": [
+      -16.684,
+      30.264
+    ],
+    "z": [
+      -47.724000000000004,
+      6.984
+    ]
+  },
+  "parking_bays": 8,
+  "non_window_emissive_area_m2": 3.4107248640000005,
+  "pixel_grid": {
+    "metres_per_texel": 0.0388,
+    "texels_per_art_pixel": 2
+  },
+  "swatches_used": [
+    "brick_red",
+    "roof_slate",
+    "wall_stucco_red",
+    "asphalt_worn"
+  ],
+  "runtime_handoff": [
+    "Alternative visual designs selected by real town facts; no residents, services, named graves, congregation history or scheduled construction is created.",
+    "All exterior entrances stay open. The game supplies pews, loose furnishings, occupants and interactions.",
+    "Read boxes_gltf_y_up directly; the legacy collision parser needs an adapter without rotating from Blender a second time.",
+    "Ground navigation, collisions, analytic lights, pane-only emission masking, lot selection and per-town sign repainting remain game integration work.",
+    "The country bell is fixed geometry with no ringing or animation; upper tower/belfry access is not modeled."
+  ],
+  "licence": "Shared LimeZu swatches are Timerpg-only; retain original credit. Supplemental art and all geometry original.",
+  "renders": "Actual Blender desktop renders, not Filament/S25 captures."
+}

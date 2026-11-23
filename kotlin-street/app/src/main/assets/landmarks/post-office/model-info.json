@@ -1,0 +1,868 @@
+{
+  "name": "Small-Town WPA Post Office (1938 Federal Building / 1988 Modernized Branch)",
+  "kind": "civic_glb_post_office",
+  "role": "post_office",
+  "room": "postal_lobby",
+  "built_year": 1938,
+  "era": {
+    "from": 1938,
+    "to": 2026,
+    "built": 1938
+  },
+  "texel_size_m": 0.0388,
+  "art_pixel_m": 0.0776,
+  "interior_features": {
+    "wpa_mural": {
+      "file": "textures/wpa_mural.png",
+      "title": "The Mail Unites Farm, Rail, and Town (1938)",
+      "dimensions_m": [
+        9.9328,
+        2.7936
+      ],
+      "wall_location_gltf_m": [
+        0.0,
+        3.9576,
+        -6.4253
+      ]
+    },
+    "teller_counter_z_m": -6.4796,
+    "po_box_bank_wall": "West lobby wall"
+  },
+  "footprint_m": {
+    "lot_width": 26.6944,
+    "lot_depth": 24.5216,
+    "building_width": 16.7616,
+    "building_depth": 11.1744,
+    "front_plaza_depth": 6.208,
+    "height_cornice": 6.8288,
+    "height_pediment": 9.0792,
+    "height_cupola_finial": 12.6488
+  },
+  "doors": {
+    "door_main": {
+      "translation_gltf": [
+        0.0,
+        0.0,
+        1.3968
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    "door_back": {
+      "translation_gltf": [
+        0.0,
+        0.0,
+        -12.5712
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ]
+    }
+  },
+  "swatches_used": [
+    {
+      "id": "brick_red",
+      "file": "brick_red.png",
+      "size": [
+        60,
+        48
+      ],
+      "role": "1938 WPA red-brick main building walls, side wings, and tapered boiler chimney"
+    },
+    {
+      "id": "roof_slate",
+      "file": "roof_slate.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Classical hipped slate roof and octagonal rooftop cupola roof"
+    },
+    {
+      "id": "ballast",
+      "file": "ballast.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Recessed rear flat tar-and-gravel roof terrace behind parapet"
+    },
+    {
+      "id": "roof_membrane_grey",
+      "file": "roof_membrane_grey.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Flashing, cupola trim, and 1988 extended loading-dock canopy deck"
+    },
+    {
+      "id": "asphalt_worn",
+      "file": "asphalt_worn.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "East postal truck drive and rear mail loading yard asphalt"
+    },
+    {
+      "id": "pavement",
+      "file": "pavement.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Front civic plaza, sidewalks, accessibility ramp, loading dock, and clean lobby floor"
+    }
+  ],
+  "states": [
+    {
+      "id": "1938",
+      "year": 1938,
+      "title": "U.S. Post Office \u2014 1938 WPA Federal Building",
+      "file": "post-office-1938.glb",
+      "era": {
+        "from": 1938,
+        "to": 1977,
+        "built": 1938
+      },
+      "summary": "Classical 1938 WPA red-brick and Indiana limestone small-town federal post office with four fluted limestone pilasters, triangular pediment ('U.S. POST OFFICE' / '1938'), hipped slate roof with louvered civic cupola, tapered boiler chimney, clean interior lobby shell featuring a full-width 1930s painted WPA mural above the walnut-and-brass teller counter, brass P.O. boxes, bronze globe entrance lanterns, olive-green corner mailbox, flagpole, and rear covered mail loading dock.",
+      "triangles": {
+        "visible": 2186,
+        "collision": 168,
+        "by_node": {
+          "structure": 1542,
+          "lot": 44,
+          "parking_lot": 12,
+          "rear_service": 326,
+          "curb_props": 262,
+          "collision": 168
+        }
+      },
+      "materials": [
+        {
+          "name": "wall_brick",
+          "file": "brick_red.png",
+          "emissive_file": null,
+          "size": [
+            60,
+            48
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "wall_stone",
+          "file": "stone_trim.png",
+          "emissive_file": null,
+          "size": [
+            64,
+            64
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "roof_slate",
+          "file": "roof_slate.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "roof_gravel",
+          "file": "ballast.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "roof_cap",
+          "file": "roof_membrane_grey.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "ground_asphalt",
+          "file": "asphalt_worn.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "ground_pavement",
+          "file": "pavement.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "glass_windows",
+          "file": "glass_1938.png",
+          "emissive_file": null,
+          "size": [
+            64,
+            64
+          ],
+          "alpha": "BLEND",
+          "emissive": false
+        },
+        {
+          "name": "sign_civic",
+          "file": "signs_1938.png",
+          "emissive_file": null,
+          "size": [
+            256,
+            128
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "detail_post",
+          "file": "details_1938.png",
+          "emissive_file": null,
+          "size": [
+            256,
+            256
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "mural_wpa",
+          "file": "wpa_mural.png",
+          "emissive_file": null,
+          "size": [
+            256,
+            72
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "glow_lamps",
+          "file": "glow_base_1938.png",
+          "emissive_file": "glow_mask_1938.png",
+          "size": [
+            256,
+            64
+          ],
+          "alpha": "OPAQUE",
+          "emissive": true
+        }
+      ],
+      "collision": {
+        "coordinate_note": "Full-height glTF Y-up boxes in metres from ground y=0 to cupola finial top.",
+        "boxes_gltf_y_up": [
+          {
+            "label": "rear_fence",
+            "min_gltf_m": [
+              -12.416,
+              0.0,
+              -18.3136
+            ],
+            "max_gltf_m": [
+              12.416,
+              1.2416,
+              -18.0032
+            ]
+          },
+          {
+            "label": "flagpole",
+            "min_gltf_m": [
+              -11.4072,
+              0.0,
+              3.8024
+            ],
+            "max_gltf_m": [
+              -10.6312,
+              10.3208,
+              4.5784
+            ]
+          },
+          {
+            "label": "west_planter",
+            "min_gltf_m": [
+              -8.0704,
+              0.0,
+              0.1552
+            ],
+            "max_gltf_m": [
+              -2.9488,
+              1.164,
+              1.552
+            ]
+          },
+          {
+            "label": "east_planter",
+            "min_gltf_m": [
+              2.9488,
+              0.0,
+              0.1552
+            ],
+            "max_gltf_m": [
+              8.0704,
+              1.164,
+              1.552
+            ]
+          },
+          {
+            "label": "mailbox_1938",
+            "min_gltf_m": [
+              6.0528,
+              0.0,
+              4.4232
+            ],
+            "max_gltf_m": [
+              6.984,
+              1.7072,
+              5.1992
+            ]
+          },
+          {
+            "label": "plaza_bench",
+            "min_gltf_m": [
+              -7.4496,
+              0.0,
+              3.4144
+            ],
+            "max_gltf_m": [
+              -4.9664,
+              1.0088,
+              4.0352
+            ]
+          },
+          {
+            "label": "rear_mail_crates",
+            "min_gltf_m": [
+              -11.1744,
+              0.0,
+              -17.072
+            ],
+            "max_gltf_m": [
+              -9.312,
+              1.0864,
+              -15.6752
+            ]
+          },
+          {
+            "label": "rear_loading_dock",
+            "min_gltf_m": [
+              -1.8624,
+              0.0,
+              -12.2608
+            ],
+            "max_gltf_m": [
+              5.5872,
+              4.3456,
+              -11.1744
+            ]
+          },
+          {
+            "label": "post_office_main_body",
+            "min_gltf_m": [
+              -8.3808,
+              0.0,
+              -11.1744
+            ],
+            "max_gltf_m": [
+              8.3808,
+              7.4496,
+              0.3104
+            ]
+          },
+          {
+            "label": "classical_pediment",
+            "min_gltf_m": [
+              -5.1216,
+              7.1392,
+              -0.4656
+            ],
+            "max_gltf_m": [
+              5.1216,
+              9.0792,
+              0.6363
+            ]
+          },
+          {
+            "label": "hipped_slate_roof",
+            "min_gltf_m": [
+              -7.6048,
+              6.8288,
+              -10.2432
+            ],
+            "max_gltf_m": [
+              7.6048,
+              8.6912,
+              -0.776
+            ]
+          },
+          {
+            "label": "rooftop_civic_cupola",
+            "min_gltf_m": [
+              -1.3192,
+              8.6912,
+              -6.8288
+            ],
+            "max_gltf_m": [
+              1.3192,
+              12.6488,
+              -4.1904
+            ]
+          },
+          {
+            "label": "tapered_boiler_chimney",
+            "min_gltf_m": [
+              -6.596,
+              6.8288,
+              -10.1656
+            ],
+            "max_gltf_m": [
+              -5.5096,
+              10.7864,
+              -9.0792
+            ]
+          },
+          {
+            "label": "front_steps_and_cheeks",
+            "min_gltf_m": [
+              -2.5608,
+              0.0,
+              0.3104
+            ],
+            "max_gltf_m": [
+              2.5608,
+              2.5608,
+              1.3192
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "1988",
+      "year": 1988,
+      "title": "U.S. Post Office \u2014 1988 Modernized Historic Branch",
+      "file": "post-office-1988.glb",
+      "era": {
+        "from": 1978,
+        "to": 2026,
+        "built": 1938,
+        "renovated": 1978
+      },
+      "summary": "Renovated historic WPA post office sharing the exact 1938 brick-and-limestone shell, lot, doors, and preserved interior 1938 WPA mural, upgraded with an East concrete accessibility ramp and handrails, bronze-aluminum glass vestibule doors, twin royal-blue curbside collection boxes, a modest backlit sidewalk monument sign, expanded rear mail-truck loading canopy with yellow safety bollards, and rooftop HVAC units.",
+      "triangles": {
+        "visible": 2428,
+        "collision": 216,
+        "by_node": {
+          "structure": 1712,
+          "lot": 34,
+          "parking_lot": 12,
+          "rear_service": 382,
+          "curb_props": 288,
+          "collision": 216
+        }
+      },
+      "materials": [
+        {
+          "name": "wall_brick",
+          "file": "brick_red.png",
+          "emissive_file": null,
+          "size": [
+            60,
+            48
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "wall_stone",
+          "file": "stone_trim.png",
+          "emissive_file": null,
+          "size": [
+            64,
+            64
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "roof_slate",
+          "file": "roof_slate.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "roof_gravel",
+          "file": "ballast.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "roof_cap",
+          "file": "roof_membrane_grey.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "ground_asphalt",
+          "file": "asphalt_worn.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "ground_pavement",
+          "file": "pavement.png",
+          "emissive_file": null,
+          "size": [
+            32,
+            32
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "glass_windows",
+          "file": "glass_1988.png",
+          "emissive_file": null,
+          "size": [
+            64,
+            64
+          ],
+          "alpha": "BLEND",
+          "emissive": false
+        },
+        {
+          "name": "sign_civic",
+          "file": "signs_1988.png",
+          "emissive_file": null,
+          "size": [
+            256,
+            128
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "detail_post",
+          "file": "details_1988.png",
+          "emissive_file": null,
+          "size": [
+            256,
+            256
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "mural_wpa",
+          "file": "wpa_mural.png",
+          "emissive_file": null,
+          "size": [
+            256,
+            72
+          ],
+          "alpha": "OPAQUE",
+          "emissive": false
+        },
+        {
+          "name": "glow_lamps",
+          "file": "glow_base_1988.png",
+          "emissive_file": "glow_mask_1988.png",
+          "size": [
+            256,
+            64
+          ],
+          "alpha": "OPAQUE",
+          "emissive": true
+        }
+      ],
+      "collision": {
+        "coordinate_note": "Full-height glTF Y-up boxes in metres from ground y=0 to cupola finial top.",
+        "boxes_gltf_y_up": [
+          {
+            "label": "rear_fence",
+            "min_gltf_m": [
+              -12.416,
+              0.0,
+              -18.3136
+            ],
+            "max_gltf_m": [
+              12.416,
+              1.2416,
+              -18.0032
+            ]
+          },
+          {
+            "label": "flagpole",
+            "min_gltf_m": [
+              -11.4072,
+              0.0,
+              3.8024
+            ],
+            "max_gltf_m": [
+              -10.6312,
+              10.3208,
+              4.5784
+            ]
+          },
+          {
+            "label": "west_planter",
+            "min_gltf_m": [
+              -8.0704,
+              0.0,
+              0.1552
+            ],
+            "max_gltf_m": [
+              -2.9488,
+              1.164,
+              1.552
+            ]
+          },
+          {
+            "label": "collection_box_64",
+            "min_gltf_m": [
+              4.5008,
+              0.0,
+              4.4232
+            ],
+            "max_gltf_m": [
+              5.432,
+              1.7848,
+              5.1992
+            ]
+          },
+          {
+            "label": "collection_box_84",
+            "min_gltf_m": [
+              6.0528,
+              0.0,
+              4.4232
+            ],
+            "max_gltf_m": [
+              6.984,
+              1.7848,
+              5.1992
+            ]
+          },
+          {
+            "label": "monument_sign_1988",
+            "min_gltf_m": [
+              -7.2168,
+              0.0,
+              3.7248
+            ],
+            "max_gltf_m": [
+              -3.3368,
+              1.8624,
+              4.3456
+            ]
+          },
+          {
+            "label": "dock_bollard_14",
+            "min_gltf_m": [
+              0.9312,
+              0.0,
+              -12.7264
+            ],
+            "max_gltf_m": [
+              1.2416,
+              1.0864,
+              -12.416
+            ]
+          },
+          {
+            "label": "dock_bollard_70",
+            "min_gltf_m": [
+              5.2768,
+              0.0,
+              -12.7264
+            ],
+            "max_gltf_m": [
+              5.5872,
+              1.0864,
+              -12.416
+            ]
+          },
+          {
+            "label": "rear_utility_bin",
+            "min_gltf_m": [
+              -11.7176,
+              0.0,
+              -17.3048
+            ],
+            "max_gltf_m": [
+              -9.3896,
+              1.6296,
+              -15.4424
+            ]
+          },
+          {
+            "label": "accessibility_ramp",
+            "min_gltf_m": [
+              2.5608,
+              0.0,
+              0.3104
+            ],
+            "max_gltf_m": [
+              8.0704,
+              1.6296,
+              1.3968
+            ]
+          },
+          {
+            "label": "rear_loading_canopy_1988",
+            "min_gltf_m": [
+              -2.0176,
+              0.0,
+              -13.0368
+            ],
+            "max_gltf_m": [
+              5.7424,
+              4.4232,
+              -11.1744
+            ]
+          },
+          {
+            "label": "rooftop_hvac_1988",
+            "min_gltf_m": [
+              4.3456,
+              6.8288,
+              -10.3984
+            ],
+            "max_gltf_m": [
+              7.4496,
+              7.9152,
+              -8.8464
+            ]
+          },
+          {
+            "label": "post_office_main_body",
+            "min_gltf_m": [
+              -8.3808,
+              0.0,
+              -11.1744
+            ],
+            "max_gltf_m": [
+              8.3808,
+              7.4496,
+              0.3104
+            ]
+          },
+          {
+            "label": "classical_pediment",
+            "min_gltf_m": [
+              -5.1216,
+              7.1392,
+              -0.4656
+            ],
+            "max_gltf_m": [
+              5.1216,
+              9.0792,
+              0.6363
+            ]
+          },
+          {
+            "label": "hipped_slate_roof",
+            "min_gltf_m": [
+              -7.6048,
+              6.8288,
+              -10.2432
+            ],
+            "max_gltf_m": [
+              7.6048,
+              8.6912,
+              -0.776
+            ]
+          },
+          {
+            "label": "rooftop_civic_cupola",
+            "min_gltf_m": [
+              -1.3192,
+              8.6912,
+              -6.8288
+            ],
+            "max_gltf_m": [
+              1.3192,
+              12.6488,
+              -4.1904
+            ]
+          },
+          {
+            "label": "tapered_boiler_chimney",
+            "min_gltf_m": [
+              -6.596,
+              6.8288,
+              -10.1656
+            ],
+            "max_gltf_m": [
+              -5.5096,
+              10.7864,
+              -9.0792
+            ]
+          },
+          {
+            "label": "front_steps_and_cheeks",
+            "min_gltf_m": [
+              -2.5608,
+              0.0,
+              0.3104
+            ],
+            "max_gltf_m": [
+              2.5608,
+              2.5608,
+              1.3192
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

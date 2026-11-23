@@ -68,7 +68,7 @@ internal class TownLandmark(
         job = pool.submit(java.util.concurrent.Callable {
             val lm = LandmarkKit.build(GlbFile.read(bytes()), spec, year, seed, hide = hide, info = info(), clockHours = clockHours())
             val m = lm.model
-            val a = frameOf((m.footprint[0] + m.footprint[2]) / 2f, lm.front)
+            val a = frameOf(spec.centre?.let { it * LandmarkKit.UNITS_PER_METRE } ?: ((m.footprint[0] + m.footprint[2]) / 2f), lm.front)
             // the building: its walls, roofs and glass (not the lot's ground, the signs on poles or the props)
             val b = floatArrayOf(Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE, 0f)
             for ((n, p) in lm.names.zip(m.parts)) if (n.startsWith("wall_") || n.startsWith("roof_") || n.startsWith("glass_")) {

@@ -3,7 +3,7 @@
 Landmarks modelled by hand to the contract in `docs/CHATGPT_MODEL_GUIDE.md` (glTF 2.0 binary, metres, Y up, entrance
 +Z, materials named by role, door nodes, a collision-only mesh, an optional `lot` group) are read and built by the
 engine like the code-built cinema and stores, and drawn through the same lit material. Status (2026-11-19): fourteen
-models (and the funeral home, "The funeral home" below, the fifteenth; the strip centre in four states, "Reel Time Video", the sixteenth to nineteenth files); the generated towns place them (branch wf-place: "In the town" below), desktop renders only, not yet on the S25.
+models (and the funeral home, "The funeral home" below, the fifteenth; the strip centre in four states, "Reel Time Video", the sixteenth to nineteenth files); the generated towns place them (branch wf-place: "In the town" below), desktop renders only, not yet on the S25. Status (2026-11-22): the intake job added fifteen more models in thirty-one files ("The intake models" below).
 
 ## The models (app/src/main/assets/landmarks/)
 
@@ -178,6 +178,65 @@ materials and collision) and the catalogue points at them.
   sign and the 2020 ghost are fine but the CELL FIX banner is crisp and rigid (not strapped); nothing shows the strip before the store (a 1981-83 state, all
   bays for lease, would give the plot an honest first state); the 2020 ghost shows only "TIME VIDEO" (the banner hides REEL, and overhangs the old frame by 3 m).
 - Left: the engine builds the export's year only (gamma 2025 shows Cell Fix); no interior; the sign names of the neighbour bays are the model's.
+
+## The intake models (2026-11-22, branch wf-intake)
+
+Fifteen accepted models from docs/queue/INTAKE.md, brought in through our loader (the contributors' branches were not merged: the .glb files and
+model-info files were copied with `git show origin/codex/<branch>:prototypes/<name>/...`, for the Rex only `prototypes/beach-blvd-rex/`; their sources, renders and
+.blend files stay on the branches). Placed in the capital (gamma, `CAPITAL_SEED`) only: TOWN_PLAN.md "The intake models in the capital".
+
+| kind (landmark_glb_...) | model (states) | lot (m) | triangles | from |
+|---|---|---|---:|---|
+| `public_library_1912`, `_1970s` | Carnegie library, 1912; the 1970s wing and a flat roof | 18.6 x 27.3; 23.3 x 36.6 | 5,410; 6,450 | `codex/public-library` |
+| `corner_drugstore_family`, `_retail`, `_closed`, `_cafe` | corner drugstore with a soda fountain: family store, retail, shut, reused as a cafe | 15.8 x 27.5 | 5,222; 3,352; 3,448; 5,222 | `codex/corner-drugstore` |
+| `small_town_bank_1920s`, `_drive_through` | Town State Bank; the drive-through lane | 16.8 x 23.6; 26.2 x 23.6 | 3,119; 3,749 | `codex/small-town-bank` |
+| `brick_church`, `country_church` | brick Gothic church with a parish hall; white clapboard country church | 46.9 x 54.7; 31.0 x 32.6 | 9,328; 4,794 | `codex/brick-church` |
+| `lincoln_high_school_1925`, `_1955`, `_1975`, `_2000` | Lincoln High campus through time (far silhouette `school-far.glb`, 246 triangles) | 232.8 x 159.9 | 7,779; 12,501; 13,741; 13,511 | `codex/lincoln-high-school` |
+| `carhop_drive_in_original`, `_closed`, `_restored` | Milo's Drive-In; boarded up; restored as Milo's Diner | 43.5 x 34.5 | 2,594; 2,920; 3,478 | `codex/carhop-drive-in` |
+| `fire_station_1924`, `_1988` | Engine Co. No. 2 (hose tower); the 1988 station (radio mast) | 28.0 x 25.5 | 2,174; 1,594 | `codex/fire-station` |
+| `post_office_1938`, `_1988` | WPA post office; the 1988 branch | 26.7 x 24.5 | 2,186; 2,428 | `codex/post-office` |
+| `highway_rest_area` | Pine Bend rest area (1970s) | 82.0 x 66.0 | 7,228 | `codex/highway-rest-area` |
+| `lantern_pine_lodge` | log lodge in a pine clearing | 34.0 x 29.0 | 9,191 | `codex/lantern-pine-lodge` |
+| `the_eyrie` | The Eyrie, the wings monument (113 m) | 198.0 x 160.0 | 8,392 | `codex/the-eyrie` |
+| `union_arch` | Union Arch | 43.0 x 36.0 | 4,648 | `codex/union-arch` |
+| `night_keeper` | The Night Keeper, a 34 m giant carrying a lantern pavilion | 62.0 x 50.0 | 8,023 | `codex/night-keeper` |
+| `beach_blvd_rex` | the Beach Blvd Rex, a roadside dinosaur | 9.6 x 11.4 | 2,988 | `codex/beach-blvd-rex` (prototypes/ only) |
+| `great_meridian_1926`, `_1941`, `_1976`, `_2000` | The Great Meridian (r2, 106 m; far silhouette `great-meridian-far.glb`, 330 triangles; the 5,042-triangle `great-meridian-mid.glb` is shipped but not used: the loader has one far model) | 120.0 x 120.1 | 28,203; 27,833; 28,297; 29,017 | `codex/great-meridian-monument` |
+
+- **The data step is a script**: `python3 tools/landmarks/intake.py [--write]` (with `tools/landmarks/glbinfo.py`, a .glb reader) lists every model (a table in the
+  script says which info file and key each state comes from, its years, role and name), measures each .glb (lot = the bounds of everything drawn, x and z; triangles; doors),
+  writes the per-state `model-info-<state>.json` next to the model in the loader's shape, and appends the catalogue entries (`landmarks.json` keeps its hand-written layout;
+  the script refuses to run twice) and the generator's lines for `glbLandmarks.ts` (written to `$TS_OUT`). The contributors' infos come in four shapes (a state list, one file
+  per state, `states` as a dict with per-state extras, a fire station and post office with boxes as `min_gltf_m`/`max_gltf_m` and doors as a dict): all become one flat file
+  with `doors[]` (with `external`) and `collision.boxes_gltf_y_up` (centre, size). The Rex's, the rest area's and the lodge's boxes are Blender Z-up lists (`boxes_blender_z_up`):
+  turned as before.
+- **A chain of states shares one building place**: a state's lot is its own bounds, the chain's plot (`footprint.plot`, TS `plot`: `glbLandmarkTiles` uses it) is the biggest
+  state's, and the catalogue's `centre` (metres, model x) is the biggest state's middle: `TownLandmark` puts that on the slot's middle (not each state's own), so the bank's
+  1920s building does not slide 4.7 m when the drive-through lane is added, nor the library when its wing is. Eras are the years each state may begin (the generator draws it).
+- **Against the guide** (docs/CHATGPT_MODEL_GUIDE.md), what was found and what was done:
+  - *Boxes in the wrong axes for our reader*: the loader read only Blender Z-up lists and converted them; the intake infos are mostly glTF Y-up lists
+    (`boxes_gltf_y_up`) and would have been turned twice. `LandmarkKit.collisionTags` now reads `boxes_gltf_y_up` as it is (the Rex's two lists in both axes are checked
+    against each other in `theIntakeBoxesAreReadInTheirOwnAxes`); `name` is read as `source` for the rest area and lodge.
+  - *The Eyrie, the arch and the Night Keeper list no boxes* ("use the walls", and no `collision` node): their walk boxes come from the drawn parts alone (the loader's cuts at knee to head
+    height); a test pins at least four.
+  - *Closed doors*: none of the fifteen has door panels or gate boxes (their entrances are open); `door_panel_*` was checked in every file. The school's 2000 info marks `door_main`
+    internal (a security vestibule): it is an entrance here (`door_security`, `door_access` too) and the classrooms' `door_room_*` stay inner; the carhop's `door_prep_inside` and the Great
+    Meridian's stair, gallery, lift and rotunda doors are marked inner. The corner drugstore's `door_main` cuts its corner (faces out at 45 degrees; the scale test allows it).
+  - *A door blocked by a box*: the Great Meridian's 1926 dedication stand (a 9 m timber platform, 2.3 m high) stands exactly on `door_main`. `LandmarkKit.clearDoors` now keeps every
+    entrance's standing place clear: a box across it (listed or drawn) is cut in two with a 2.4 m opening; nothing of the earlier models needed it.
+  - *Pane-only emission*: the glass pictures' emission masks were measured (lit texels on see-through texels): the bank's mask lights 112 texels (0.9%) of mullions, and the lodge's
+    `glass_lodge` (an opaque picture) has an emissive picture that is solid amber, so its bars would glow. `LandmarkKit.glass` now cuts a mask to the see-through texels when it lies
+    nine tenths on them (the funeral home's door art stays as it was) and, for an opaque picture, drops its darkest eighth (the frame); `theIntakeGlassGlowsOnlyItsPanes` pins it.
+    Left: the rest area's clerestory and the Night Keeper's story panels copy their base picture as the emissive one (no mask): the pane rule applies; the fire station's, post office's
+    and Great Meridian's glass has no emissive picture (all see-through texels light).
+  - *Sunken ground*: the Rex's asphalt lies at -2 cm under its 4 cm pavement and the Great Meridian's pool at 0 (and 62 cm of basin below): the loader's lift and flush water cover both
+    (the library's basement, y -1.4, is under the ground, not drawn ground). A thin slab laid at the ground (the Rex's asphalt, whose underside is under it) passes the scale test by its top.
+  - *Sizes*: the Great Meridian draws 28-29k triangles (the guide's landmark ceiling is about 12,000; the model uses instancing) and the school 13.7k; the Eyrie is 198 x 160 m and
+    the campus 233 x 160 m, which fit no block of the planned town: the capital's grounds (TOWN_PLAN.md). Lots read from the bounds are the models' own, not the info's `lot_bounds`.
+  - *Names*: the signs are painted ("PUBLIC LIBRARY", "TOWN STATE BANK", "CORNER DRUGSTORE" with a CAFE blade, "LINCOLN HIGH SCHOOL", "MILO'S DRIVE-IN" / "DINER"): no per-town name
+    variants yet (the infos' `binding` notes say repaint per town: a later `make_variants.py` job, as the funeral home's).
+- **Not done**: interiors (rooms behind the doors: the interiors job's); the Great Meridian's elevator and observation decks and its animated parts (`armillary`, beacon, lift car: Gemini's
+  LandmarkAnimation branch will bind them; the loader's per-frame loop is untouched here); the Eyrie's bronze wings are static.
 
 ## The loader (shared/src/filament/kotlin/scene3d/)
 

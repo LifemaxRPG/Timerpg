@@ -1,0 +1,1854 @@
+{
+ "name": "The Great Meridian",
+ "state": "landmark_glb_great_meridian_1926",
+ "file": "great-meridian-1926.glb",
+ "doors": [
+  {
+   "node": "door_main",
+   "position": [
+    0.0,
+    0.1552,
+    -28.712
+   ],
+   "external": true
+  },
+  {
+   "node": "door_rotunda_south",
+   "position": [
+    0.0,
+    6.5184,
+    -42.6024
+   ],
+   "external": false
+  },
+  {
+   "node": "door_north",
+   "position": [
+    0.0,
+    6.5184,
+    -77.3672
+   ],
+   "external": false
+  },
+  {
+   "node": "door_east",
+   "position": [
+    17.3824,
+    6.5184,
+    -59.9848
+   ],
+   "external": false
+  },
+  {
+   "node": "door_west",
+   "position": [
+    -17.3824,
+    6.5184,
+    -59.9848
+   ],
+   "external": false
+  },
+  {
+   "node": "door_hall_west",
+   "position": [
+    -7.4496,
+    6.5184,
+    -47.5688
+   ],
+   "external": false
+  },
+  {
+   "node": "door_hall_east",
+   "position": [
+    7.4496,
+    6.5184,
+    -47.5688
+   ],
+   "external": false
+  },
+  {
+   "node": "door_observatory_lift",
+   "position": [
+    -7.4496,
+    6.5184,
+    -72.4008
+   ],
+   "external": false
+  },
+  {
+   "node": "door_cornice_gallery",
+   "position": [
+    -11.7952,
+    24.056,
+    -68.9864
+   ],
+   "external": false
+  },
+  {
+   "node": "door_sky_deck",
+   "position": [
+    -11.7952,
+    58.0448,
+    -68.9864
+   ],
+   "external": false
+  },
+  {
+   "node": "door_lantern_chamber",
+   "position": [
+    -4.656,
+    60.0624,
+    -58.1224
+   ],
+   "external": false
+  }
+ ],
+ "collision": {
+  "boxes_gltf_y_up": [
+   {
+    "source": "grand_reflecting_pool_water",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     0.2522,
+     -17.6152
+    ],
+    "size": [
+     14.8992,
+     0.5044,
+     18.4688
+    ]
+   },
+   {
+    "source": "reflecting_pool_exedra_0",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     5.8056,
+     0.776,
+     -5.2084
+    ],
+    "size": [
+     1.6173,
+     1.552,
+     1.9367
+    ]
+   },
+   {
+    "source": "reflecting_pool_exedra_1",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     5.0141,
+     0.776,
+     -3.791
+    ],
+    "size": [
+     1.8564,
+     1.552,
+     1.9688
+    ]
+   },
+   {
+    "source": "reflecting_pool_exedra_2",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     3.8755,
+     0.776,
+     -2.6376
+    ],
+    "size": [
+     1.9669,
+     1.552,
+     1.8647
+    ]
+   },
+   {
+    "source": "reflecting_pool_exedra_3",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     2.4685,
+     0.776,
+     -1.8281
+    ],
+    "size": [
+     1.9413,
+     1.552,
+     1.6314
+    ]
+   },
+   {
+    "source": "reflecting_pool_exedra_4",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     0.8906,
+     0.776,
+     -1.4186
+    ],
+    "size": [
+     1.7812,
+     1.552,
+     1.2852
+    ]
+   },
+   {
+    "source": "reflecting_pool_exedra_5",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -0.8906,
+     0.776,
+     -1.4186
+    ],
+    "size": [
+     1.7812,
+     1.552,
+     1.2852
+    ]
+   },
+   {
+    "source": "reflecting_pool_exedra_6",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -2.4685,
+     0.776,
+     -1.8281
+    ],
+    "size": [
+     1.9413,
+     1.552,
+     1.6314
+    ]
+   },
+   {
+    "source": "reflecting_pool_exedra_7",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -3.8755,
+     0.776,
+     -2.6376
+    ],
+    "size": [
+     1.9669,
+     1.552,
+     1.8647
+    ]
+   },
+   {
+    "source": "reflecting_pool_exedra_8",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -5.0141,
+     0.776,
+     -3.791
+    ],
+    "size": [
+     1.8564,
+     1.552,
+     1.9688
+    ]
+   },
+   {
+    "source": "reflecting_pool_exedra_9",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -5.8056,
+     0.776,
+     -5.2084
+    ],
+    "size": [
+     1.6173,
+     1.552,
+     1.9367
+    ]
+   },
+   {
+    "source": "exedra_dedication_wall",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     0.9506,
+     -0.776
+    ],
+    "size": [
+     18.9344,
+     1.9012,
+     0.6208
+    ]
+   },
+   {
+    "source": "perimeter_wall_s_-773",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -38.1404,
+     0.5432,
+     -0.388
+    ],
+    "size": [
+     43.6888,
+     1.0864,
+     0.776
+    ]
+   },
+   {
+    "source": "perimeter_wall_n_-773",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -38.1404,
+     0.5432,
+     -119.5816
+    ],
+    "size": [
+     43.6888,
+     1.0864,
+     0.776
+    ]
+   },
+   {
+    "source": "perimeter_wall_w_-773",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -59.5968,
+     0.5432,
+     -98.1252
+    ],
+    "size": [
+     0.776,
+     1.0864,
+     43.6888
+    ]
+   },
+   {
+    "source": "perimeter_wall_e_-773",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     59.5968,
+     0.5432,
+     -98.1252
+    ],
+    "size": [
+     0.776,
+     1.0864,
+     43.6888
+    ]
+   },
+   {
+    "source": "perimeter_wall_s_210",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     38.1404,
+     0.5432,
+     -0.388
+    ],
+    "size": [
+     43.6888,
+     1.0864,
+     0.776
+    ]
+   },
+   {
+    "source": "perimeter_wall_n_210",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     38.1404,
+     0.5432,
+     -119.5816
+    ],
+    "size": [
+     43.6888,
+     1.0864,
+     0.776
+    ]
+   },
+   {
+    "source": "perimeter_wall_w_210",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -59.5968,
+     0.5432,
+     -21.8444
+    ],
+    "size": [
+     0.776,
+     1.0864,
+     43.6888
+    ]
+   },
+   {
+    "source": "perimeter_wall_e_210",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     59.5968,
+     0.5432,
+     -21.8444
+    ],
+    "size": [
+     0.776,
+     1.0864,
+     43.6888
+    ]
+   },
+   {
+    "source": "entry_gate_pier_-214",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -16.6064,
+     1.5132,
+     -0.6208
+    ],
+    "size": [
+     1.8624,
+     3.0264,
+     1.2416
+    ]
+   },
+   {
+    "source": "entry_gate_pier_214",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     16.6064,
+     1.5132,
+     -0.6208
+    ],
+    "size": [
+     1.8624,
+     3.0264,
+     1.2416
+    ]
+   },
+   {
+    "source": "acropolis_tier1",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     1.0864,
+     -60.7608
+    ],
+    "size": [
+     55.872,
+     2.1728,
+     54.32
+    ]
+   },
+   {
+    "source": "acropolis_tier2",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     3.2592,
+     -60.4504
+    ],
+    "size": [
+     48.4224,
+     2.1728,
+     47.4912
+    ]
+   },
+   {
+    "source": "acropolis_tier3",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     5.432,
+     -59.9848
+    ],
+    "size": [
+     40.9728,
+     2.1728,
+     40.9728
+    ]
+   },
+   {
+    "source": "stair_s_0",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     0.3049,
+     -30.5899
+    ],
+    "size": [
+     14.5888,
+     0.6097,
+     1.1174
+    ]
+   },
+   {
+    "source": "stair_s_2",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     0.7594,
+     -31.7074
+    ],
+    "size": [
+     14.5888,
+     1.5187,
+     1.1174
+    ]
+   },
+   {
+    "source": "stair_s_4",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     1.2139,
+     -32.8248
+    ],
+    "size": [
+     14.5888,
+     2.4278,
+     1.1174
+    ]
+   },
+   {
+    "source": "stair_s_6",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     1.6684,
+     -34.4854
+    ],
+    "size": [
+     14.5888,
+     3.3368,
+     2.2038
+    ]
+   },
+   {
+    "source": "stair_s_8",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     2.1229,
+     -36.1461
+    ],
+    "size": [
+     14.5888,
+     4.2458,
+     1.1174
+    ]
+   },
+   {
+    "source": "stair_s_10",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     2.5774,
+     -37.2635
+    ],
+    "size": [
+     14.5888,
+     5.1549,
+     1.1174
+    ]
+   },
+   {
+    "source": "stair_s_12",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     3.0319,
+     -38.381
+    ],
+    "size": [
+     14.5888,
+     6.0639,
+     1.1174
+    ]
+   },
+   {
+    "source": "stair_cheek_s_-1",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -8.148,
+     3.492,
+     -34.7338
+    ],
+    "size": [
+     1.7072,
+     6.984,
+     9.5293
+    ]
+   },
+   {
+    "source": "stair_cheek_s_1",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     8.148,
+     3.492,
+     -34.7338
+    ],
+    "size": [
+     1.7072,
+     6.984,
+     9.5293
+    ]
+   },
+   {
+    "source": "stair_n_0",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     0.3427,
+     -89.3797
+    ],
+    "size": [
+     12.416,
+     0.6855,
+     1.3037
+    ]
+   },
+   {
+    "source": "stair_n_2",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     0.873,
+     -88.076
+    ],
+    "size": [
+     12.416,
+     1.746,
+     1.3037
+    ]
+   },
+   {
+    "source": "stair_n_4",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     1.4033,
+     -86.7723
+    ],
+    "size": [
+     12.416,
+     2.8065,
+     1.3037
+    ]
+   },
+   {
+    "source": "stair_n_6",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     1.9335,
+     -84.3822
+    ],
+    "size": [
+     12.416,
+     3.8671,
+     1.3037
+    ]
+   },
+   {
+    "source": "stair_n_8",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     2.4638,
+     -83.0786
+    ],
+    "size": [
+     12.416,
+     4.9276,
+     1.3037
+    ]
+   },
+   {
+    "source": "stair_n_10",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     2.9941,
+     -81.7749
+    ],
+    "size": [
+     12.416,
+     5.9881,
+     1.3037
+    ]
+   },
+   {
+    "source": "stair_cheek_n_-1",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -6.8288,
+     3.492,
+     -84.9254
+    ],
+    "size": [
+     1.2416,
+     6.984,
+     8.9085
+    ]
+   },
+   {
+    "source": "stair_cheek_n_1",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     6.8288,
+     3.492,
+     -84.9254
+    ],
+    "size": [
+     1.2416,
+     6.984,
+     8.9085
+    ]
+   },
+   {
+    "source": "stair_e_0",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     29.3949,
+     0.3427,
+     -59.9848
+    ],
+    "size": [
+     1.3037,
+     0.6855,
+     12.416
+    ]
+   },
+   {
+    "source": "stair_e_2",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     28.0912,
+     0.873,
+     -59.9848
+    ],
+    "size": [
+     1.3037,
+     1.746,
+     12.416
+    ]
+   },
+   {
+    "source": "stair_e_4",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     26.7875,
+     1.4033,
+     -59.9848
+    ],
+    "size": [
+     1.3037,
+     2.8065,
+     12.416
+    ]
+   },
+   {
+    "source": "stair_e_6",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     24.3974,
+     1.9335,
+     -59.9848
+    ],
+    "size": [
+     1.3037,
+     3.8671,
+     12.416
+    ]
+   },
+   {
+    "source": "stair_e_8",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     23.0938,
+     2.4638,
+     -59.9848
+    ],
+    "size": [
+     1.3037,
+     4.9276,
+     12.416
+    ]
+   },
+   {
+    "source": "stair_e_10",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     21.7901,
+     2.9941,
+     -59.9848
+    ],
+    "size": [
+     1.3037,
+     5.9881,
+     12.416
+    ]
+   },
+   {
+    "source": "stair_cheek_e_-1",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     24.9406,
+     3.492,
+     -66.8136
+    ],
+    "size": [
+     8.9085,
+     6.984,
+     1.2416
+    ]
+   },
+   {
+    "source": "stair_cheek_e_1",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     24.9406,
+     3.492,
+     -53.156
+    ],
+    "size": [
+     8.9085,
+     6.984,
+     1.2416
+    ]
+   },
+   {
+    "source": "stair_w_0",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -29.3949,
+     0.3427,
+     -59.9848
+    ],
+    "size": [
+     1.3037,
+     0.6855,
+     12.416
+    ]
+   },
+   {
+    "source": "stair_w_2",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -28.0912,
+     0.873,
+     -59.9848
+    ],
+    "size": [
+     1.3037,
+     1.746,
+     12.416
+    ]
+   },
+   {
+    "source": "stair_w_4",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -26.7875,
+     1.4033,
+     -59.9848
+    ],
+    "size": [
+     1.3037,
+     2.8065,
+     12.416
+    ]
+   },
+   {
+    "source": "stair_w_6",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -24.3974,
+     1.9335,
+     -59.9848
+    ],
+    "size": [
+     1.3037,
+     3.8671,
+     12.416
+    ]
+   },
+   {
+    "source": "stair_w_8",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -23.0938,
+     2.4638,
+     -59.9848
+    ],
+    "size": [
+     1.3037,
+     4.9276,
+     12.416
+    ]
+   },
+   {
+    "source": "stair_w_10",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -21.7901,
+     2.9941,
+     -59.9848
+    ],
+    "size": [
+     1.3037,
+     5.9881,
+     12.416
+    ]
+   },
+   {
+    "source": "stair_cheek_w_-1",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -24.9406,
+     3.492,
+     -66.8136
+    ],
+    "size": [
+     8.9085,
+     6.984,
+     1.2416
+    ]
+   },
+   {
+    "source": "stair_cheek_w_1",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -24.9406,
+     3.492,
+     -53.156
+    ],
+    "size": [
+     8.9085,
+     6.984,
+     1.2416
+    ]
+   },
+   {
+    "source": "accessibility_ramp_east",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     29.9536,
+     3.7248,
+     -45.2408
+    ],
+    "size": [
+     4.0352,
+     7.4496,
+     13.968
+    ]
+   },
+   {
+    "source": "arch_block_corner_wn",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -12.416,
+     15.2872,
+     -72.4008
+    ],
+    "size": [
+     9.9328,
+     17.5376,
+     9.9328
+    ]
+   },
+   {
+    "source": "arch_block_corner_ws",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -12.416,
+     15.2872,
+     -47.5688
+    ],
+    "size": [
+     9.9328,
+     17.5376,
+     9.9328
+    ]
+   },
+   {
+    "source": "arch_block_corner_en",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     12.416,
+     15.2872,
+     -72.4008
+    ],
+    "size": [
+     9.9328,
+     17.5376,
+     9.9328
+    ]
+   },
+   {
+    "source": "arch_block_corner_es",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     12.416,
+     15.2872,
+     -47.5688
+    ],
+    "size": [
+     9.9328,
+     17.5376,
+     9.9328
+    ]
+   },
+   {
+    "source": "arch_lintel_z_1",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     21.728,
+     -47.5688
+    ],
+    "size": [
+     14.8992,
+     4.656,
+     9.9328
+    ]
+   },
+   {
+    "source": "arch_lintel_z_-1",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     21.728,
+     -72.4008
+    ],
+    "size": [
+     14.8992,
+     4.656,
+     9.9328
+    ]
+   },
+   {
+    "source": "arch_lintel_x_1",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     12.416,
+     21.728,
+     -59.9848
+    ],
+    "size": [
+     9.9328,
+     4.656,
+     14.8992
+    ]
+   },
+   {
+    "source": "arch_lintel_x_-1",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -12.416,
+     21.728,
+     -59.9848
+    ],
+    "size": [
+     9.9328,
+     4.656,
+     14.8992
+    ]
+   },
+   {
+    "source": "bronze_door_open_w",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -7.2478,
+     9.0016,
+     -44.1544
+    ],
+    "size": [
+     0.4346,
+     4.9664,
+     2.1728
+    ]
+   },
+   {
+    "source": "bronze_door_open_e",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     7.2478,
+     9.0016,
+     -44.1544
+    ],
+    "size": [
+     0.4346,
+     4.9664,
+     2.1728
+    ]
+   },
+   {
+    "source": "cornice_railing_s",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     24.638,
+     -42.6024
+    ],
+    "size": [
+     35.0752,
+     1.164,
+     0.3104
+    ]
+   },
+   {
+    "source": "cornice_railing_n",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     24.638,
+     -77.3672
+    ],
+    "size": [
+     35.0752,
+     1.164,
+     0.3104
+    ]
+   },
+   {
+    "source": "cornice_railing_w",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -17.3824,
+     24.638,
+     -59.9848
+    ],
+    "size": [
+     0.3104,
+     1.164,
+     35.0752
+    ]
+   },
+   {
+    "source": "cornice_railing_e",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     17.3824,
+     24.638,
+     -59.9848
+    ],
+    "size": [
+     0.3104,
+     1.164,
+     35.0752
+    ]
+   },
+   {
+    "source": "guardian_statue_industry",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -16.296,
+     48.6552,
+     -76.2808
+    ],
+    "size": [
+     4.656,
+     10.3984,
+     4.656
+    ]
+   },
+   {
+    "source": "cathedral_pier_wn",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -12.1056,
+     41.0504,
+     -72.0904
+    ],
+    "size": [
+     6.208,
+     33.9888,
+     6.208
+    ]
+   },
+   {
+    "source": "guardian_statue_defense",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -16.296,
+     48.6552,
+     -43.6888
+    ],
+    "size": [
+     4.656,
+     10.3984,
+     4.656
+    ]
+   },
+   {
+    "source": "cathedral_pier_ws",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -12.1056,
+     41.0504,
+     -47.8792
+    ],
+    "size": [
+     6.208,
+     33.9888,
+     6.208
+    ]
+   },
+   {
+    "source": "guardian_statue_harvest",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     16.296,
+     48.6552,
+     -76.2808
+    ],
+    "size": [
+     4.656,
+     10.3984,
+     4.656
+    ]
+   },
+   {
+    "source": "cathedral_pier_en",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     12.1056,
+     41.0504,
+     -72.0904
+    ],
+    "size": [
+     6.208,
+     33.9888,
+     6.208
+    ]
+   },
+   {
+    "source": "guardian_statue_learning",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     16.296,
+     48.6552,
+     -43.6888
+    ],
+    "size": [
+     4.656,
+     10.3984,
+     4.656
+    ]
+   },
+   {
+    "source": "cathedral_pier_es",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     12.1056,
+     41.0504,
+     -47.8792
+    ],
+    "size": [
+     6.208,
+     33.9888,
+     6.208
+    ]
+   },
+   {
+    "source": "nw_elevator_cage",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -11.7952,
+     32.2816,
+     -71.78
+    ],
+    "size": [
+     1.8624,
+     51.5264,
+     1.8624
+    ]
+   },
+   {
+    "source": "nw_stair_north",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -11.7952,
+     32.2816,
+     -73.138
+    ],
+    "size": [
+     3.5696,
+     51.5264,
+     0.8536
+    ]
+   },
+   {
+    "source": "nw_stair_south",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -11.7952,
+     32.2816,
+     -70.422
+    ],
+    "size": [
+     3.5696,
+     51.5264,
+     0.8536
+    ]
+   },
+   {
+    "source": "deck_railing_s",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     58.6656,
+     -45.5512
+    ],
+    "size": [
+     28.8672,
+     1.2416,
+     0.4656
+    ]
+   },
+   {
+    "source": "deck_railing_n",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     58.6656,
+     -74.4184
+    ],
+    "size": [
+     28.8672,
+     1.2416,
+     0.4656
+    ]
+   },
+   {
+    "source": "deck_railing_w",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -14.4336,
+     58.6656,
+     -59.9848
+    ],
+    "size": [
+     0.4656,
+     1.2416,
+     28.8672
+    ]
+   },
+   {
+    "source": "deck_railing_e",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     14.4336,
+     58.6656,
+     -59.9848
+    ],
+    "size": [
+     0.4656,
+     1.2416,
+     28.8672
+    ]
+   },
+   {
+    "source": "octagonal_lantern_3tier",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     67.0464,
+     -59.9848
+    ],
+    "size": [
+     13.0368,
+     18.0032,
+     13.0368
+    ]
+   },
+   {
+    "source": "visitor_center_pavilion",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -44.7752,
+     2.6772,
+     -14.2784
+    ],
+    "size": [
+     16.9168,
+     5.3544,
+     11.1744
+    ]
+   },
+   {
+    "source": "eternal_brazier_1",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -8.148,
+     8.3032,
+     -37.7912
+    ],
+    "size": [
+     1.8624,
+     2.6384,
+     1.8624
+    ]
+   },
+   {
+    "source": "eternal_brazier_2",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     8.148,
+     8.3032,
+     -37.7912
+    ],
+    "size": [
+     1.8624,
+     2.6384,
+     1.8624
+    ]
+   },
+   {
+    "source": "eternal_brazier_3",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -8.148,
+     3.9576,
+     -31.1176
+    ],
+    "size": [
+     1.8624,
+     2.6384,
+     1.8624
+    ]
+   },
+   {
+    "source": "eternal_brazier_4",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     8.148,
+     3.9576,
+     -31.1176
+    ],
+    "size": [
+     1.8624,
+     2.6384,
+     1.8624
+    ]
+   },
+   {
+    "source": "civic_flagpole_01",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -13.0368,
+     7.1392,
+     -26.5392
+    ],
+    "size": [
+     1.0864,
+     14.2784,
+     1.0864
+    ]
+   },
+   {
+    "source": "civic_flagpole_02",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -13.0368,
+     7.1392,
+     -22.9696
+    ],
+    "size": [
+     1.0864,
+     14.2784,
+     1.0864
+    ]
+   },
+   {
+    "source": "civic_flagpole_03",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -13.0368,
+     7.1392,
+     -19.4
+    ],
+    "size": [
+     1.0864,
+     14.2784,
+     1.0864
+    ]
+   },
+   {
+    "source": "civic_flagpole_04",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -13.0368,
+     7.1392,
+     -15.8304
+    ],
+    "size": [
+     1.0864,
+     14.2784,
+     1.0864
+    ]
+   },
+   {
+    "source": "civic_flagpole_05",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -13.0368,
+     7.1392,
+     -12.2608
+    ],
+    "size": [
+     1.0864,
+     14.2784,
+     1.0864
+    ]
+   },
+   {
+    "source": "civic_flagpole_06",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -13.0368,
+     7.1392,
+     -8.6912
+    ],
+    "size": [
+     1.0864,
+     14.2784,
+     1.0864
+    ]
+   },
+   {
+    "source": "civic_flagpole_07",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     13.0368,
+     7.1392,
+     -26.5392
+    ],
+    "size": [
+     1.0864,
+     14.2784,
+     1.0864
+    ]
+   },
+   {
+    "source": "civic_flagpole_08",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     13.0368,
+     7.1392,
+     -22.9696
+    ],
+    "size": [
+     1.0864,
+     14.2784,
+     1.0864
+    ]
+   },
+   {
+    "source": "civic_flagpole_09",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     13.0368,
+     7.1392,
+     -19.4
+    ],
+    "size": [
+     1.0864,
+     14.2784,
+     1.0864
+    ]
+   },
+   {
+    "source": "civic_flagpole_10",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     13.0368,
+     7.1392,
+     -15.8304
+    ],
+    "size": [
+     1.0864,
+     14.2784,
+     1.0864
+    ]
+   },
+   {
+    "source": "civic_flagpole_11",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     13.0368,
+     7.1392,
+     -12.2608
+    ],
+    "size": [
+     1.0864,
+     14.2784,
+     1.0864
+    ]
+   },
+   {
+    "source": "civic_flagpole_12",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     13.0368,
+     7.1392,
+     -8.6912
+    ],
+    "size": [
+     1.0864,
+     14.2784,
+     1.0864
+    ]
+   },
+   {
+    "source": "bike_rack_2000",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -34.144,
+     0.5432,
+     -13.3472
+    ],
+    "size": [
+     3.7248,
+     1.0864,
+     0.9312
+    ]
+   },
+   {
+    "source": "tree_01",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -48.112,
+     3.7248,
+     -32.592
+    ],
+    "size": [
+     0.9312,
+     7.4496,
+     0.9312
+    ]
+   },
+   {
+    "source": "tree_02",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -27.936,
+     3.7248,
+     -32.592
+    ],
+    "size": [
+     0.9312,
+     7.4496,
+     0.9312
+    ]
+   },
+   {
+    "source": "tree_03",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     27.936,
+     3.7248,
+     -32.592
+    ],
+    "size": [
+     0.9312,
+     7.4496,
+     0.9312
+    ]
+   },
+   {
+    "source": "tree_04",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     48.112,
+     3.7248,
+     -32.592
+    ],
+    "size": [
+     0.9312,
+     7.4496,
+     0.9312
+    ]
+   },
+   {
+    "source": "tree_05",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -48.112,
+     3.7248,
+     -92.5768
+    ],
+    "size": [
+     0.9312,
+     7.4496,
+     0.9312
+    ]
+   },
+   {
+    "source": "tree_06",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -27.936,
+     3.7248,
+     -92.5768
+    ],
+    "size": [
+     0.9312,
+     7.4496,
+     0.9312
+    ]
+   },
+   {
+    "source": "tree_07",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     27.936,
+     3.7248,
+     -92.5768
+    ],
+    "size": [
+     0.9312,
+     7.4496,
+     0.9312
+    ]
+   },
+   {
+    "source": "tree_08",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     48.112,
+     3.7248,
+     -92.5768
+    ],
+    "size": [
+     0.9312,
+     7.4496,
+     0.9312
+    ]
+   },
+   {
+    "source": "dedication_stand_1926",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     1.164,
+     -28.8478
+    ],
+    "size": [
+     9.312,
+     2.328,
+     2.8324
+    ]
+   }
+  ],
+  "use_the_walls": true
+ },
+ "lot_node": null,
+ "triangles_visible": 28203,
+ "source": "codex/great-meridian-monument model-info.json, flattened per state by tools/landmarks/intake.py"
+}
