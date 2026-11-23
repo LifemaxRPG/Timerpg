@@ -34,6 +34,9 @@ android {
         versionName = "0.1.$commitCount ($commitSha)"
         // the commit, for screenshots and crash reports
         buildConfigField("String", "GIT_SHA", "\"$commitSha\"")
+        // the owner's build (every build made from this repository so far): the playtest recorder keeps their NPC
+        // conversations by default ("Record my conversations", docs/PLAYTEST.md); owner.build=false in local.properties for others
+        buildConfigField("boolean", "OWNER_BUILD", (localProps.getProperty("owner.build")?.trim() ?: "true").toBoolean().toString())
         // where the app looks for a newer build (tools/publish-apk.sh puts it there)
         buildConfigField("String", "UPDATE_URL", "\"https://raw.githubusercontent.com/lifemaxrpg/timerpg/apk/update.json\"")
         // The model runs on 64-bit ARM phones only.

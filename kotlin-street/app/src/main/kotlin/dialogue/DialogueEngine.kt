@@ -940,7 +940,7 @@ class DialogueEngine private constructor(private val app: Context) {
         synchronized(recent) { recent.addLast(w); while (recent.size > 8) recent.removeFirst() }
     }
 
-    private fun shareWords() = app.getSharedPreferences("night", Context.MODE_PRIVATE).getBoolean("shareWords", false)
+    private fun shareWords() = app.getSharedPreferences("night", Context.MODE_PRIVATE).getBoolean("shareWords", com.timerpg.street.BuildConfig.OWNER_BUILD)
 
     /** "main model on the NPU": the model loaded now and its device; empty when none is. */
     fun modelNow(): String {
@@ -1376,6 +1376,7 @@ class DialogueEngine private constructor(private val app: Context) {
         if (m != null) com.timerpg.street.shot.Crumbs.add("dialogue model: ${role.name.lowercase()} on ${listOf("CPU", "GPU", "NPU").getOrElse(native.runsOn) { "?" }} " +
             "in ${b.stats.loadMs} ms with ${com.timerpg.street.llm.Ram.freeMb(app)} MB free after: weights %.0f MB mapped + %.0f copied, KV %.0f (%s), state %.0f, compute %.0f; context ${contextFor(role)}"
                 .format(java.util.Locale.US, m[0], m[1], m[2], if (native.kvQ8Used) "8-bit" else "16-bit", m[3], m[4]))
+        runCatching { com.timerpg.street.play.PlayLog.spanDone("model.load", b.stats.loadMs.toDouble(), "${role.name.lowercase()} on ${listOf("CPU", "GPU", "NPU").getOrElse(native?.runsOn ?: 0) { "?" }}") }
         _status.update { it.copy(role = role, workMb = loadedWork shr 20, kvQ8 = native?.kvQ8Used == true) }
         // the light model answers in play but does not write the bank ahead: the main one does that (overnight, or in
         // play when it is the one that fits); asked-for lines are not held by this

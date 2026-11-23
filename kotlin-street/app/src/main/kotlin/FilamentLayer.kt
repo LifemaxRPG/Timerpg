@@ -313,6 +313,8 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             }
             if (!townMode) street = FilamentStreet(e, mats)
             FilamentStats.loadMs = (System.nanoTime() - t0) / 1e6f
+            com.timerpg.street.play.PlayLog.spanDone("filament.start", FilamentStats.loadMs.toDouble())
+            com.timerpg.street.play.PlayLog.phase("filament.start")
             ui.isOpaque = false
             ui.renderCallback = object : UiHelper.RendererCallback {
                 override fun onNativeWindowChanged(surface: Surface) {
@@ -366,6 +368,15 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             val got = r.getFrameInfoHistory(history)
             val g = if (got > 0 && history[0].gpuFrameDuration > 0) history[0].gpuFrameDuration / 1e6f else -1f
             FilamentStats.add(cpu, g)
+            // the playtest recorder's second (play/PlayLog: fixed arrays, nothing allocated; before FrameSpikes clears FrameWork)
+            run {
+                val fw = com.lifemax.rpg.feature.habits.presentation.scene.FrameWork
+                val ts = town?.stats
+                val moving = com.lifemax.rpg.feature.habits.presentation.scene.GameState.inMotion || com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.moving
+                com.timerpg.street.play.PlayLog.playing = townMode && TownSession.ready
+                com.timerpg.street.play.PlayLog.frame(t0, cpu, g, if (got > 0) history[0].frameId.toLong() else -1L, moving,
+                    ts?.draws ?: -1, ts?.triangles ?: -1, ts?.visible ?: -1, fw.ns, fw.uploads, fw.bytes)
+            }
             // the frame-spike profiler: this frame's parts, the GPU's frames, the collections (the town only)
             if (townMode) {
                 val gs = com.lifemax.rpg.feature.habits.presentation.scene.GameState
@@ -376,6 +387,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             // loading screen; the rest of its build has a mark of its own, townBuilding)
             if ((!townMode || TownSession.ready) && ++good == StreetRenderer.GOOD_FRAMES) {
                 StreetRenderer.starting(ctx, false); com.timerpg.street.shot.Crumbs.add("Filament drawing")
+                com.timerpg.street.play.PlayLog.phase("filament.drawing")
             }
         } catch (t: Throwable) {
             // a report with the whole stack (it waits on the phone until a token can send it), and the real reason shown
@@ -454,6 +466,8 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
                     ft.batches.maxOfOrNull { it.second } ?: 0f, ft.prepareMs, ft.slowestPrepare.first, ft.slowestPrepare.second, n, texels / 1e6, shared)
             FilamentStats.townBuilt = built
             TownSession.built = true
+            com.timerpg.street.play.PlayLog.spanDone("town.build", (ft.groundMs + ft.buildingsMs).toDouble(), built)
+            com.timerpg.street.play.PlayLog.phase("town.built", data.town.seed)
             com.timerpg.street.shot.Crumbs.add(built)
             com.timerpg.street.shot.Crumbs.add("town built, biggest textures: " + ft.biggestTextures(10))
             com.timerpg.street.shot.Crumbs.add("town built, ${w}x$h: " + ft.gpuEstimate(w, h).line())

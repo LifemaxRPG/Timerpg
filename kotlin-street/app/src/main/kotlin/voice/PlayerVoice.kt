@@ -54,7 +54,7 @@ class PlayerVoice(private val ctx: Context) {
 
     /** What one utterance took: [by] who wrote it down, [afterEndMs] from the end of speech to the text, [loadMs] the
      *  speech model's load first (0: it was loaded), [audioMs] how long the player spoke (0: unknown). */
-    data class Heard(val by: String, val afterEndMs: Long, val loadMs: Long = 0, val audioMs: Long = 0) {
+    data class Heard(val by: String, val afterEndMs: Long, val loadMs: Long = 0, val audioMs: Long = 0, val confidence: Float = Float.NaN) {
         fun label(): String = "heard %.1f s after you stopped (%s%s)".format(java.util.Locale.US, afterEndMs / 1000.0, by,
             if (loadMs > 0) ", loaded first in %.1f s".format(java.util.Locale.US, loadMs / 1000.0) else "")
     }
@@ -239,10 +239,16 @@ class PlayerVoice(private val ctx: Context) {
 
     private fun ourName() = "our speech model, ${if (sizeNow == AsrSize.SMALL) "small" else "large"}"
 
-    private fun heardBy(h: Heard) {
+    private fun heardBy(h0: Heard) {
+        // (the phone's recognizer gives a confidence with its results; ours does not yet)
+        val h = if (h0.confidence.isNaN() && h0.by.startsWith("the phone") && !phoneConfidence.isNaN()) h0.copy(confidence = phoneConfidence) else h0
+        phoneConfidence = Float.NaN
         lastHeardInfo = h
         lastHeard = h.label()
+        com.timerpg.street.play.PlayLog.asr(h.by, h.afterEndMs, h.audioMs, h.confidence)
     }
+    /** The phone recognizer's confidence in its last result (NaN: none given). */
+    private var phoneConfidence = Float.NaN
 
     // ---- the phone's own recognizer, hold to talk (main thread)
     private var phoneSession: SpeechRecognizer? = null
@@ -268,7 +274,7 @@ class PlayerVoice(private val ctx: Context) {
         val r = onDevice() ?: run { problem = "The phone's on-device speech recognition could not start."; return }
         phoneSession = r; phoneResult = null; phoneDone = false; phoneWant = null
         r.setRecognitionListener(object : RecognitionListener {
-            override fun onResults(b: Bundle?) { finishPhone(b?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull(), null) }
+            override fun onResults(b: Bundle?) { phoneConfidence = b?.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES)?.firstOrNull()?.takeIf { it >= 0f } ?: Float.NaN; finishPhone(b?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull(), null) }
             override fun onError(error: Int) { finishPhone(null, if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) "" else "The phone's speech recognition failed (${errorName(error)}).") }
             override fun onRmsChanged(rmsdB: Float) { level = ((rmsdB + 2f) / 12f).coerceIn(0f, 1f) }
             override fun onReadyForSpeech(p: Bundle?) {}
@@ -530,6 +536,7 @@ class PlayerVoice(private val ctx: Context) {
         override fun onResults(b: Bundle?) {
             loopActive = false; writing = 0; hearing = false
             val t = b?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.trim().orEmpty()
+            phoneConfidence = b?.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES)?.firstOrNull()?.takeIf { it >= 0f } ?: Float.NaN
             loopErrors = 0
             val had = lastPartial
             lastPartial = ""
