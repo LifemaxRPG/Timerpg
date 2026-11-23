@@ -24,6 +24,11 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     val bySize = java.util.concurrent.ConcurrentHashMap<String, Int>()
     /** What this set's owner has put on the GPU: these textures (with their mipmaps), and the buffers its users count in. */
     val gpu = GpuBytes()
+    init {
+        // (ASTC where the GPU reads it and the quality setting asks for it: [TownQuality.astc])
+        useAstc = TownQuality.astc && Texture.isTextureFormatSupported(engine, Texture.InternalFormat.SRGB8_ALPHA8_ASTC_4x4) &&
+            Texture.isTextureFormatSupported(engine, Texture.InternalFormat.RGBA_ASTC_4x4)
+    }
     val white: Texture = solid(0xFFFFFFFF.toInt())
     val black: Texture = solid(0x00000000)
 
@@ -107,7 +112,11 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
      * 1, which reads exactly as an opaque or clear alpha does: a mask with no blue and no own-colour light needs two
      * channels ([RG8]), one with no glass either one ([R8]), the same pixels on screen for a half or a quarter of the bytes.
      */
-    enum class Fmt(val bytes: Int, val pixels: Texture.Format) { RGBA8(4, Texture.Format.RGBA), RG8(2, Texture.Format.RG), R8(1, Texture.Format.R) }
+    enum class Fmt(val bytes: Int, val pixels: Texture.Format) {
+        RGBA8(4, Texture.Format.RGBA), RG8(2, Texture.Format.RG), R8(1, Texture.Format.R),
+        /** ASTC 4x4 ([Astc]): a byte a texel, its mip levels (if any) encoded with it; never updated. */
+        ASTC(1, Texture.Format.RGBA),
+    }
     /** The format of each texture made here that is not RGBA ([update] writes it in that format). */
     private val fmts = java.util.IdentityHashMap<Texture, Fmt>()
 
@@ -119,7 +128,9 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     private fun build(buf: ByteBuffer, w: Int, h: Int, linear: Boolean, mips: Boolean, fmt: Fmt = Fmt.RGBA8): Texture {
         madeCount++; texels += w.toLong() * h
         bySize.merge("${w}x$h", 1, Int::plus)
+        if (fmt == Fmt.ASTC) return buildAstc(buf, w, h, linear, mips)
         val format = when (fmt) {
+            Fmt.ASTC -> error("ASTC")
             Fmt.R8 -> Texture.InternalFormat.R8
             Fmt.RG8 -> Texture.InternalFormat.RG8
             Fmt.RGBA8 -> if (srgb && !linear) Texture.InternalFormat.SRGB8_A8 else Texture.InternalFormat.RGBA8
@@ -138,6 +149,27 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
         GpuAccount.add(t, w, h, if (fmt == Fmt.RGBA8 && srgb && !linear) "SRGB8_A8" else fmt.name, levels, bytes)
         GpuAccount.study(buf, w, h, if (fmt == Fmt.RGBA8 && srgb && !linear) "SRGB8_A8" else fmt.name)
         com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.bytes += w.toLong() * h * fmt.bytes
+        return t
+    }
+
+    /** An ASTC 4x4 texture from [buf] ([Astc.encodeChain]: every level, level 0 first). */
+    private fun buildAstc(buf: ByteBuffer, w: Int, h: Int, linear: Boolean, mips: Boolean): Texture {
+        val levels = if (mips) levelsOf(w, h) else 1
+        val s = srgb && !linear
+        val t = Texture.Builder().width(w).height(h).levels(levels).sampler(Texture.Sampler.SAMPLER_2D)
+            .format(if (s) Texture.InternalFormat.SRGB8_ALPHA8_ASTC_4x4 else Texture.InternalFormat.RGBA_ASTC_4x4).usage(Texture.Usage.DEFAULT).build(engine)
+        val type = if (s) Texture.CompressedType.SRGB8_ALPHA8_ASTC_4x4 else Texture.CompressedType.RGBA_ASTC_4x4
+        var off = 0
+        for (l in 0 until levels) {
+            val n = Astc.levelBytes(maxOf(1, w shr l), maxOf(1, h shr l))
+            val slice = buf.duplicate().also { it.position(off); it.limit(off + n) }.slice().order(ByteOrder.nativeOrder())
+            t.setImage(engine, l, Texture.PixelBufferDescriptor(slice, type, n))
+            off += n
+        }
+        made += t
+        gpu.textures.addAndGet(off.toLong())
+        GpuAccount.add(t, w, h, if (s) "SRGB_ASTC_4x4" else "ASTC_4x4", levels, off.toLong())
+        com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.bytes += off
         return t
     }
 
@@ -168,8 +200,22 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
          * Packs [px] for [make] (any thread: no engine call): [mips] for a picture never updated, which is then shared by
          * its content.
          */
-        fun prepare(px: IntArray, w: Int, h: Int, linear: Boolean = false, mips: Boolean = false): Prepared =
-            Prepared(pack(px, w, h), w, h, linear, if (mips) ContentKey(w, h, linear, px.contentHashCode(), hash64(px)) else null)
+        fun prepare(px: IntArray, w: Int, h: Int, linear: Boolean = false, mips: Boolean = false): Prepared {
+            if (!mips) return Prepared(pack(px, w, h), w, h, linear, null)
+            val key = ContentKey(w, h, linear, px.contentHashCode(), hash64(px))
+            // (a picture never updated, on a GPU that reads ASTC: encoded here, with its mip levels, on the caller's thread)
+            if (useAstc) return Prepared(Astc.encodeChain(px, w, h, levelsOf(w, h), srgb = !linear), w, h, linear, key, Fmt.ASTC)
+            return Prepared(pack(px, w, h), w, h, linear, key)
+        }
+
+        /** A full mip chain's levels for [w] x [h]. */
+        fun levelsOf(w: Int, h: Int): Int = 32 - Integer.numberOfLeadingZeros(maxOf(w, h))
+
+        /**
+         * Whether pictures are made ASTC 4x4 ([Astc]; [TownQuality.astc] and a GPU that reads it): set when the town's
+         * textures are made, before anything is prepared for them.
+         */
+        @Volatile var useAstc = false
 
         /**
          * [px] packed for [make] as a picture never updated, shared by its content, but without mipmaps: for one only ever
@@ -179,7 +225,10 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
             // (a linear picture without mipmaps is a mask: only the channels it uses, or none at all)
             val fmt = if (linear) maskFormat(px) else Fmt.RGBA8
             if (fmt == null) return Prepared(EMPTY, w, h, linear, null, Fmt.R8, empty = true)
-            return Prepared(pack(px, w, h, fmt), w, h, linear, ContentKey(w, h, linear, px.contentHashCode(), hash64(px), mips = false), fmt)
+            val key = ContentKey(w, h, linear, px.contentHashCode(), hash64(px), mips = false)
+            // (a mask stored exactly in ASTC, every block of it one or two colours: a byte a texel, the same values)
+            if (useAstc && fmt != Fmt.R8 && Astc.exact(px, w, h)) return Prepared(Astc.encodeChain(px, w, h, 1, srgb = false), w, h, linear, key, Fmt.ASTC)
+            return Prepared(pack(px, w, h, fmt), w, h, linear, key, fmt)
         }
 
         private val EMPTY: ByteBuffer = ByteBuffer.allocate(0)

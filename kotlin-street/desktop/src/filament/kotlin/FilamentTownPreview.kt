@@ -51,6 +51,7 @@ fun renderFilamentTown(out: String) {
     watchMemory()
     // the GPU quality settings to render with (-Djvm="-DshadowMap=2048 -Dcascades=4"; the app's defaults otherwise)
     System.getProperty("shadowMap")?.toIntOrNull()?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.shadowMap = it }
+    com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astc = System.getProperty("astc") != "0"
     System.getProperty("cascades")?.toIntOrNull()?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.cascades = it }
     val dir = File(out, "filament-town").also { it.mkdirs() }
     val townDir = System.getProperty("town")?.let { File(it) } ?: File("../build-town/gamma")
