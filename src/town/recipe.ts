@@ -50,6 +50,10 @@ export interface TownRecipe {
   /** Founding families, singles and businesses (src/sim/worldgen.ts; the default town is 22, 8, 8), and the growth: a
    * multiplier on the newcomers a year and the businesses the town supports (src/sim/simulate.ts; a town 1). */
   people: { families: number; singles: number; businesses: number; growth: number };
+  /** Highways v2: the year an expressway or a highway bypass took the through traffic off Main Street (the old way
+   * through becomes the business route and its trade declines), and the town's interchange (its strip grows). */
+  bypassed?: { year: number; by: string };
+  interchange?: { year: number; km: number };
   /** The roads in (filled once the plan's size is known: the baker plans, then places, then sets these). */
   entries?: RecipeEntry[];
 }
@@ -73,3 +77,18 @@ export const PEOPLE: Record<TownRank, TownRecipe['people']> = {
 };
 /** The plat's size class by rank. */
 export const SIZE: Record<TownRank, RecipeSize> = { hamlet: 'H', village: 'V', town: 'S', major: 'M', hub: 'L' };
+
+/**
+ * The passing trade on a town's Main Street in [year] (1 the usual): a bypassed Main Street loses it over 15 years after
+ * the bypass opens (to 0.6: the classic decline, shops closing and standing empty), a town with an interchange within
+ * 4 km gains on its strip from the interchange's year (to 1.3 over 10 years). Read by the simulation's business rules
+ * (src/sim/simulate.ts: fewer businesses supported, more failing).
+ */
+export function tradeOf(seed: string, year: number): number {
+  const r = RECIPES.get(seed);
+  if (!r) return 1;
+  let t = 1;
+  if (r.bypassed && year > r.bypassed.year) t -= 0.4 * Math.min(1, (year - r.bypassed.year) / 15);
+  if (r.interchange && r.interchange.km <= 4 && year > r.interchange.year) t += 0.3 * Math.min(1, (year - r.interchange.year) / 10) * (r.bypassed ? 0.5 : 1);
+  return t;
+}

@@ -185,6 +185,8 @@ export function baseRecipe(s: Site, water: TownRecipe['water'] = waterGuess(s)):
   return {
     seed: p.seed, place: p.id, name: p.name, rank, size: SIZE[rank], type: archetypeFor(p), ...(p.setting ? { setting: p.setting as TownRecipe['setting'] } : {}),
     ...(p.ore ? { ore: p.ore } : {}), water, rail: s.station, countySeat, founded: p.founded, people: PEOPLE[rank],
+    ...(s.roads?.bypassed ? { bypassed: { year: s.roads.bypassed.year, by: s.roads.bypassed.by } } : {}),
+    ...(s.roads?.interchange ? { interchange: { year: s.roads.interchange.year, km: s.roads.interchange.km } } : {}),
   };
 }
 
@@ -315,7 +317,10 @@ export function placeTown(s: Site, plan: TownPlan, flipX: boolean): Placed {
   const centre: [number, number] = wr ? wr.at : onRoad ? onRoad.at : [0, 0];
   const ways = roadWays(s, 1500, centre);
   // the busiest way out (highways first), for the strip's end
-  const best = [...ways].sort((a, b) => b.w - a.w || Math.atan2(a.dir[1], a.dir[0]) - Math.atan2(b.dir[1], b.dir[0]))[0];
+  let best: { dir: [number, number]; w: number } | undefined = [...ways].sort((a, b) => b.w - a.w || Math.atan2(a.dir[1], a.dir[0]) - Math.atan2(b.dir[1], b.dir[0]))[0];
+  // (a town with an interchange turns its strip towards it: the strip grows along the road out to the exit)
+  const ic = s.roads?.interchange;
+  if (ic && ic.km <= 4) { const dx = ic.at[0] - centre[0], dz = ic.at[1] - centre[1], l = Math.hypot(dx, dz); if (l > 100) best = { dir: [dx / l, dz / l], w: 9 }; }
   // the axis Main Street runs along (degrees; it and its opposite are the two choices)
   /** The main axis of some ways (doubled angles averaged, so opposite ways agree). */
   const axisOf = (ws: { dir: [number, number]; w: number }[]): number => {
@@ -330,6 +335,14 @@ export function placeTown(s: Site, plan: TownPlan, flipX: boolean): Placed {
     const own = roadWays(s, 600, centre).filter((w) => w.id === onRoad.id);
     axis = own.length ? axisOf(own) : degOf(onRoad.dir[0], onRoad.dir[1]);
   } else axis = ways.length ? axisOf(ways) : 0;
+  // on a slope (over 6% across 500 m round the town's point) a mountain place's Main Street runs along the contour, the
+  // way a hill village's street does: its houses on the terrace above and below it, not up and down the fall line
+  {
+    const e = (x: number, z: number): number => gridAt(s, 'elev', centre[0] + x, centre[1] + z);
+    const gx = (e(500, 0) - e(-500, 0)) / 1000, gz = (e(0, 500) - e(0, -500)) / 1000;
+    const steep = Math.hypot(gx, gz);
+    if (!wr && steep > 0.06 && (s.place.setting || s.place.kind === 'hamlet' || s.place.rank === 'small')) axis = degOf(gx, gz) + 90;
+  }
   let deg: number;
   if (best) {
     const dots = [axis, axis + 180].map((a) => { const [x, z] = rotFwd(strip[0], strip[1], a); return x * best.dir[0] + z * best.dir[1]; });
@@ -425,6 +438,18 @@ function edgeHits(a: [number, number], b: [number, number], g: ReturnType<typeof
   if (dy !== 0) { cross('N', (g.y0 - a[1]) / dy); cross('S', (g.y1 - a[1]) / dy); }
   if (dx !== 0) { cross('W', (g.x0 - a[0]) / dx); cross('E', (g.x1 - a[0]) / dx); }
   return out;
+}
+
+/** The town's ground on the planet: its axis-aligned box in atlas cell units (x unwrapped near the place). */
+export function boundsOf(s: Site, plan: TownPlan, f: Frame): [number, number, number, number] {
+  const g = groundOf(plan);
+  let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
+  for (const [px, py] of [[g.x0, g.y0], [g.x1, g.y0], [g.x0, g.y1], [g.x1, g.y1]] as const) {
+    const [x, z] = toWorld(f, px, py);
+    x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z);
+  }
+  const r = (v: number): number => Math.round(v * 1e4) / 1e4;
+  return [r(s.place.x + x0 / CELL_M), r(s.place.z + z0 / CELL_M), r(s.place.x + x1 / CELL_M), r(s.place.z + z1 / CELL_M)];
 }
 
 /** The ground under the built town (skeleton heights, m): mean, lowest, highest, and the relief (highest less lowest). */

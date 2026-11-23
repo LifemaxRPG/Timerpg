@@ -50,7 +50,7 @@ def main():
         box(l['rect'], fill=(200, 120, 90))
     if g.get('plaza'): box(g['plaza']['rect'], fill=(210, 200, 170))
     # the world's vectors through the town's frame
-    col = {'river': (40, 220, 255), 'highway': (255, 60, 60), 'county': (255, 150, 60), 'rail': (20, 20, 20)}
+    col = {'river': (40, 220, 255), 'highway': (255, 60, 60), 'county': (255, 150, 60), 'rail': (20, 20, 20), 'expressway': (0, 140, 140), 'local': (200, 170, 120)}
     for p in site['polys']:
         pts = [T(*to_plan(row['frame'], x, z)) for x, z in p['pts']]
         d.line(pts, fill=col[p['kind']], width=2)

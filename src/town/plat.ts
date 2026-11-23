@@ -171,7 +171,9 @@ export function platTown(seed: string): Plat {
     if (riverSide > 0) { coreW = far; coreE = 1 + other; } else { coreW = 1 + other; coreE = far; }
   }
   const westCols = small ? 1 : size === 'M' ? jit(1, 2, 'westCols') : jit(2, 3, 'westCols');
-  const stripCols = tiny || size === 'V' ? 1 : size === 'S' ? 2 : size === 'M' ? jit(2, 3, 'stripCols') : 3;
+  // (an interchange near a town grows its strip a block longer towards it: motels, gas stations, fast food)
+  const ix = recipeOf(seed)?.interchange;
+  const stripCols = (tiny || size === 'V' ? 1 : size === 'S' ? 2 : size === 'M' ? jit(2, 3, 'stripCols') : 3) + (ix && ix.km <= 4 && !tiny ? 1 : 0);
   const edgeW = needs.superstore !== undefined ? jit(146, 154, 'edgeW') : needs.supermarket !== undefined ? jit(98, 106, 'edgeW') : jit(70, 84, 'edgeW');
   const cols: Col[] = [];
   for (let i = westCols - 1; i >= 1; i--) cols.push({ kind: 'outer', w: jit(44, 50, 'cw', 'o', i) });

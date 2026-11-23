@@ -8,6 +8,15 @@
 // Measured on alpha (tools/towns-density.ts): see TOWNS_EVERYWHERE.md for the nearest-neighbour spacing and the drive
 // and rail times between places by rank.
 
+/**
+ * THE SETTING, one knob per rank (1 = the world as generated up to 2026-11-23): a multiplier on that rank's spacing (2
+ * spreads them twice as far apart, so about a quarter as many; 0.7 about twice as many). `town` spaces every town
+ * (major towns, towns and villages are drawn from one spacing, then ranked by the shares in DENSITY.rank: raise
+ * `rank.town` for fewer villages and more towns); `mountain` the alpine villages, pass hamlets and mining towns;
+ * `hamlet` the hamlets along the roads.
+ */
+export const SPACING = { hub: 1, town: 1, mountain: 1, hamlet: 1 };
+
 export const DENSITY = {
   /** Hubs (hand-made cities): km between any two on a continent; ports among themselves. */
   hub: { sepKm: 70, portSepKm: 120 },

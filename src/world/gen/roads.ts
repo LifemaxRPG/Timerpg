@@ -1,4 +1,4 @@
-import { DENSITY } from './density';
+import { DENSITY, SPACING } from './density';
 import { B, type Climate } from './climate';
 import { CELL_KM, CELL_M, H, Heap, N, N8, W, distKm, nb, wrapDx, wrapX } from './grid';
 import { RIVER_FLOW, type Hydro } from './hydro';
@@ -277,21 +277,21 @@ export function makeRoads(t: Terrain, cl: Climate, h: Hydro, bio: Uint8Array, hu
       for (let d = -4; d <= 4 && top; d++) if (d && t.elev[cs[q + d]!]! > e) top = false;
       if (!top || e - t.elev[cs[q - 4]!]! < 150 || e - t.elev[cs[q + 4]!]! < 150) continue;
       const x = (c % W) + 0.5, z = ((c / W) | 0) + 0.5;
-      if (near(x, z, DENSITY.hamlet.clearKm)) continue;
+      if (near(x, z, DENSITY.hamlet.clearKm * SPACING.hamlet)) continue;
       hamlets.push({ id: `m:${hamlets.length}`, kind: 'hamlet', type: 'hamlet', rank: 'small', x, z, cell: c, mass: t.mass[c]!, seed: `${seed}/m/${hamlets.length}`, name: '', founded: 0, coastal: false, setting: 'pass' });
       addB(x, z);
     }
   }
   for (const r of roads) {
-    let next = DENSITY.hamlet.everyKm + DENSITY.hamlet.spreadKm * hashU(hh, hashStr(r.id));
+    let next = SPACING.hamlet * DENSITY.hamlet.everyKm + SPACING.hamlet * DENSITY.hamlet.spreadKm * hashU(hh, hashStr(r.id));
     let run = 0;
     for (let q = 1; q < r.cells.length; q++) {
       const a = r.cells[q - 1]!, c = r.cells[q]!;
       run += Math.hypot(wrapDx((c % W) - (a % W)), ((c / W) | 0) - ((a / W) | 0)) * CELL_KM;
       if (run < next) continue;
       const x = (c % W) + 0.5, z = ((c / W) | 0) + 0.5;
-      if (!t.land[c] || h.lake[c] || bio[c] === B.glacier || bio[c] === B.ice || near(x, z, DENSITY.hamlet.clearKm)) continue;
-      run = 0; next = DENSITY.hamlet.everyKm + DENSITY.hamlet.spreadKm * hashU(hh, c);
+      if (!t.land[c] || h.lake[c] || bio[c] === B.glacier || bio[c] === B.ice || near(x, z, DENSITY.hamlet.clearKm * SPACING.hamlet)) continue;
+      run = 0; next = SPACING.hamlet * DENSITY.hamlet.everyKm + SPACING.hamlet * DENSITY.hamlet.spreadKm * hashU(hh, c);
       hamlets.push({ id: `m:${hamlets.length}`, kind: 'hamlet', type: 'hamlet', rank: 'small', x, z, cell: c, mass: t.mass[c]!, seed: `${seed}/m/${hamlets.length}`, name: '', founded: 0, coastal: h.coast[c]! > 0, ...(t.mount[c]! > 400 && t.elev[c]! > 1100 ? { setting: 'alpine' as const } : {}) });
       addB(x, z);
     }

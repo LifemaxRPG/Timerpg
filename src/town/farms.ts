@@ -228,13 +228,25 @@ export function planFarms(plan: TownPlan): FarmPlan {
     const horiz = e.side === 'N' || e.side === 'S';
     const near = roads.filter((r) => r.kind === 'spoke' && r.side === e.side).map((r) => ({ r, at: horiz ? r.b[0] : r.b[1] }))
       .sort((a, b) => Math.abs(a.at - e.at) - Math.abs(b.at - e.at))[0];
-    if (near && Math.abs(near.at - e.at) <= ENTRY_SNAP) { entries.push({ kind: e.kind, road: e.road, side: e.side, worldAt: e.at, at: near.at, spoke: near.r.id }); continue; }
-    // (laid out from the section road round the town, which joins every road out: on the section road's span)
+    // (exactly where the world's road crosses the edge, a tenth of a tile: the world road never bends to the town)
+    const at = Math.round(e.at * 10) / 10;
+    if (near && Math.abs(near.at - at) < 0.05) { entries.push({ kind: e.kind, road: e.road, side: e.side, worldAt: e.at, at: near.at, spoke: near.r.id }); continue; }
+    const ringPt = (v: number): [number, number] => e.side === 'N' ? [v, -PERIM] : e.side === 'S' ? [v, H + PERIM] : e.side === 'W' ? [-PERIM, v] : [W + PERIM, v];
     const lim = horiz ? [-PERIM + 2, W + PERIM - 2] : [-PERIM + 2, H + PERIM - 2];
-    const at = Math.round(Math.max(lim[0]!, Math.min(lim[1]!, e.at)));
-    const from: [number, number] = e.side === 'N' ? [at, -PERIM] : e.side === 'S' ? [at, H + PERIM] : e.side === 'W' ? [-PERIM, at] : [W + PERIM, at];
+    if (near && Math.abs(near.at - at) <= ENTRY_SNAP && at >= lim[0]! && at <= lim[1]! && !near.r.id.startsWith('entry:')) {
+      // a country road of the town's own a little off: it runs out to the section road, and the road in leaves the section
+      // road where the world's road is (the jog at a section line the country roads of a surveyed land have)
+      near.r.b = ringPt(horiz ? near.r.a[0] : near.r.a[1]);
+    }
+    // (laid out from the section road round the town, which joins every road out; a crossing past the section road's
+    // span, near a corner, runs in on a slant to its end)
+    const inner = Math.max(lim[0]!, Math.min(lim[1]!, at));
+    const from: [number, number] = ringPt(at);
+    const edge: [number, number] = e.side === 'N' ? [at, -RING] : e.side === 'S' ? [at, H + RING] : e.side === 'W' ? [-RING, at] : [W + RING, at];
     const id = `entry:${e.side}${k}`;
-    roads.push({ id, kind: 'spoke', side: e.side, root: -1, a: from, b: outer(e.side, from) });
+    // (past the section road's corner: the section road runs on along its line to meet it; every road stays straight)
+    if (inner !== at) roads.push({ id: `${id}:ring`, kind: 'ring', side: e.side, root: -1, a: ringPt(inner), b: from });
+    roads.push({ id, kind: 'spoke', side: e.side, root: -1, a: from, b: edge });
     entries.push({ kind: e.kind, road: e.road, side: e.side, worldAt: e.at, at, spoke: id });
   }
   // bridges where a country road crosses the river past the map

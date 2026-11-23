@@ -3,6 +3,7 @@
 //
 //   npx tsx kotlin-street/tools/towns-bake.ts [--world alpha] [--out kotlin-street/build-towns/<world>] [--jobs N]
 //       [--sample 30 | --places t:12,m:40 | --all] [--keep] [--resume]
+//   npx tsx kotlin-street/tools/towns-bake.ts --unpack <out>/towns/<id>.ttwn <dir>   (a town as a folder, for -Dtown=<dir>)
 //
 // The main process generates the world once (src/world/gen, ~20 s), writes each chosen place's site (tools/towns-site.ts:
 // its facts, the rivers, roads and rail near it, the height round it) and runs a pool of workers (one process per town,
@@ -25,6 +26,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { deflateRawSync, gunzipSync, gzipSync, inflateRawSync } from 'node:zlib';
 import { useRecipe, SIZE, PEOPLE, type TownRecipe } from '../../src/town/recipe';
+import { baseRecipe } from './towns-site';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '../..');
@@ -78,6 +80,8 @@ export interface Row {
   frame?: { deg: number; plan: [number, number]; world: [number, number] };
   /** The town's ground in its own frame: plan tiles (the plan and the farm ring). */
   ground?: { x0: number; y0: number; x1: number; y1: number };
+  /** The town's ground on the planet: its axis-aligned box (atlas cell units, x unwrapped near [at]) for streaming. */
+  bounds?: [number, number, number, number];
   /** The built town's size (m, plan x by plan y). */
   sizeM?: [number, number];
   water?: string; river?: { id: string; offM: number } | null; rail?: boolean; countySeat?: boolean; shiftM?: number;
@@ -90,8 +94,8 @@ export interface Row {
   problems?: string[];
 }
 
-async function bakeOne(sitePath: string, out: string): Promise<void> {
-  const { baseRecipe, placeTown, entriesOf, groundOf, groundStats } = await import('./towns-site');
+export async function bakeOne(sitePath: string, out: string): Promise<void> {
+  const { baseRecipe, placeTown, entriesOf, groundOf, groundStats, boundsOf } = await import('./towns-site');
   const { planTown } = await import('../../src/town/plan');
   const { platTown } = await import('../../src/town/plat');
   const s = JSON.parse(readFileSync(sitePath, 'utf8')) as import('./towns-site').Site;
@@ -182,7 +186,7 @@ async function bakeOne(sitePath: string, out: string): Promise<void> {
   if (!argv.includes('--keep')) rmSync(join(dir, 'buildings'), { recursive: true, force: true });
   const row: Row = {
     id: s.place.id, name: s.place.name, rank: recipe.rank, type: recipe.type, ...(recipe.setting ? { setting: recipe.setting } : {}), ...(recipe.ore ? { ore: recipe.ore } : {}),
-    seed: recipe.seed, at: [s.place.x, s.place.z], frame: placed.frame, ground: groundOf(plan),
+    seed: recipe.seed, at: [s.place.x, s.place.z], frame: placed.frame, ground: groundOf(plan), bounds: boundsOf(s, plan, placed.frame),
     sizeM: [Math.round(plan.width * 2.1), Math.round(plan.height * 2.1)], water: recipe.water, river: placed.river, rail: recipe.rail, countySeat: recipe.countySeat,
     shiftM: placed.shiftM, height, entries: fp.entries,
     counts: { buildings: street.shops.length, lots: street.graph.lots.length, people: dlg.npcs?.length ?? 0, rooms, pictures: pics.length },
@@ -221,8 +225,31 @@ export function sampleOf(sites: import('./towns-site').Site[], startMass: number
     const m = Math.max(1, Math.round(k * scale));
     for (let i = 0; out.length < 1e9 && i < m; i++) { const s = (i % 2 === 0 ? a : b)[Math.floor(i / 2)] ?? (i % 2 === 0 ? b : a)[Math.floor(i / 2)]; if (s && !out.includes(s.place.id)) out.push(s.place.id); }
   }
+  // (and a bypassed town and an interchange town, the Highways v2 cases: on either continent)
+  for (const ok of [(s: import('./towns-site').Site) => !!s.roads?.bypassed && s.place.kind === 'town', (s: import('./towns-site').Site) => !s.roads?.bypassed && (s.roads?.interchange?.km ?? 99) <= 3 && s.place.kind === 'town']) {
+    const c = pool.filter(ok).sort((a, b) => (key(a) < key(b) ? -1 : 1))[0];
+    if (c && !out.includes(c.place.id)) out.push(c.place.id);
+  }
   return out;
 }
+
+/** The manifest's rows, one per place in the world's order: a hand-made town's folder (tools/towns-handmade.json), a
+ * baked town's row (rows/<id>.json), else the place's recipe (not baked yet). */
+export function manifestRows(sites: import('./towns-site').Site[], out: string, handmade: Record<string, { dir: string; seed: string }>): Row[] {
+  const rows: Row[] = [];
+  for (const s of sites) {
+    const id = s.place.id;
+    const hm = handmade[id];
+    if (hm) { rows.push({ id, name: s.place.name, rank: 'hub', type: s.place.type, seed: hm.seed, at: [s.place.x, s.place.z], handmade: hm.dir }); continue; }
+    const f = join(out, 'rows', `${fileId(id)}.json`);
+    if (existsSync(f)) { rows.push(JSON.parse(readFileSync(f, 'utf8')) as Row); continue; }
+    const r = baseRecipe(s);
+    rows.push({ id, name: s.place.name, rank: r.rank, type: r.type, ...(r.setting ? { setting: r.setting } : {}), seed: r.seed, at: [s.place.x, s.place.z], water: r.water, rail: r.rail, countySeat: r.countySeat });
+  }
+  return rows;
+}
+/** The hand-made towns (place id -> its folder and seed). */
+export const handmadeTowns = (): Record<string, { dir: string; seed: string; note?: string }> => JSON.parse(readFileSync(join(here, 'towns-handmade.json'), 'utf8'));
 
 async function main(): Promise<void> {
   const world = flag('--world') ?? 'alpha';
@@ -232,7 +259,7 @@ async function main(): Promise<void> {
   const t0 = Date.now();
   const { generateWorld } = await import('../../src/world/gen/world');
   const { worldPaths } = await import('../../src/world/gen/paths');
-  const { sitesOf, baseRecipe } = await import('./towns-site');
+  const { sitesOf } = await import('./towns-site');
   // (the sites are cached in the output folder: --fresh makes the world again)
   const cache = join(out, 'sites.json.gz');
   let sites: import('./towns-site').Site[], startMass: number;
@@ -244,7 +271,7 @@ async function main(): Promise<void> {
     writeFileSync(cache, gzipSync(JSON.stringify({ sites, startMass })));
   }
   console.error(`world ${world}: ${sites.length} places, ${((Date.now() - t0) / 1000).toFixed(1)} s`);
-  const handmade = JSON.parse(readFileSync(join(here, 'towns-handmade.json'), 'utf8')) as Record<string, { dir: string; seed: string; note?: string }>;
+  const handmade = handmadeTowns();
   const byId = new Map(sites.map((s) => [s.place.id, s]));
   let chosen: string[];
   if (argv.includes('--all')) chosen = sites.map((s) => s.place.id);
@@ -277,16 +304,7 @@ async function main(): Promise<void> {
     for (let i = 0; i < Math.min(jobs, todo.length); i++) run();
   });
   // ---- the manifest: every place
-  const rows: Row[] = [];
-  for (const s of sites) {
-    const id = s.place.id;
-    const hm = handmade[id];
-    if (hm) { rows.push({ id, name: s.place.name, rank: 'hub', type: s.place.type, seed: hm.seed, at: [s.place.x, s.place.z], handmade: hm.dir }); continue; }
-    const f = join(out, 'rows', `${fileId(id)}.json`);
-    if (existsSync(f)) { rows.push(JSON.parse(readFileSync(f, 'utf8')) as Row); continue; }
-    const r = baseRecipe(s);
-    rows.push({ id, name: s.place.name, rank: r.rank, type: r.type, ...(r.setting ? { setting: r.setting } : {}), seed: r.seed, at: [s.place.x, s.place.z], water: r.water, rail: r.rail, countySeat: r.countySeat });
-  }
+  const rows = manifestRows(sites, out, handmade);
   const manifest = { version: 1, world, pack: PACK_VERSION, places: rows.length, baked: rows.filter((r) => r.file).length, handmade: rows.filter((r) => r.handmade).length, towns: rows };
   writeFileSync(join(out, 'manifest.json'), JSON.stringify(manifest));
   writeFileSync(join(out, 'summary.json'), JSON.stringify(summarize(rows, out, sites.length), null, 1));
@@ -329,5 +347,14 @@ function summarize(rows: Row[], out: string, places: number): object {
   };
 }
 
-if (argv[0] === '--one') bakeOne(argv[1]!, argv[2]!).catch((e) => { console.error(e); process.exit(1); });
+/** A pack's files into a folder (the layout of assets/town/gamma: street.json, dialogue.json, interiors.json,
+ * buildings/), for the desktop preview: gradle :desktop:preview -Dmode=filament-town -Dtown=<dir>. */
+function unpackTo(file: string, dir: string): void {
+  const { files } = unpack(readFileSync(file));
+  for (const [p, b] of files) { mkdirSync(dirname(join(dir, p)), { recursive: true }); writeFileSync(join(dir, p), b); }
+  console.error(`${files.size} files into ${dir}`);
+}
+
+if (argv[0] === '--unpack') unpackTo(argv[1]!, argv[2]!);
+else if (argv[0] === '--one') bakeOne(argv[1]!, argv[2]!).catch((e) => { console.error(e); process.exit(1); });
 else if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main().catch((e) => { console.error(e); process.exit(1); });

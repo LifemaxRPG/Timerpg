@@ -119,7 +119,7 @@ tasks.register<JavaExec>("preview") {
     // the crossroads and the seam test: where along the mouth, which screen, which way round, the whole sequence, a name
     for (k in listOf("at", "size", "dir", "seq", "tag", "shots", "spot", "houses", "shops"))
         System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
-    for (k in listOf("turn", "rest", "sky", "look", "eye", "back", "w")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    for (k in listOf("turn", "rest", "sky", "look", "eye", "back", "w", "yaw")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // the street props' preview: which half (lineup, street) and which rows of the town
     for (k in listOf("props", "rows")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // the yards' preview: which half (lineup, real)

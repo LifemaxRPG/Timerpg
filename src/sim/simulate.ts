@@ -1,4 +1,4 @@
-import { recipeOf } from '../town/recipe';
+import { recipeOf, tradeOf } from '../town/recipe';
 import { advanceSettlement } from '../town/properties';
 import { archetypeOf, pickShop } from './archetype';
 import { runScenarios } from './scenarios';
@@ -132,7 +132,8 @@ function economy(c: Ctx): void {
   for (const b of openBusinesses(w)) {
     const owner = b.owner ? w.people[b.owner] : undefined;
     const skill = owner ? (owner.traits.diligence - 0.5) * 0.08 : 0;
-    const growth = -0.06 + rand(seed, y, 'biz', b.id) * 0.26 + skill;
+    // (a bypassed Main Street's lost passing trade: tradeOf below 1 for a world place's town, src/town/recipe.ts)
+    const growth = -0.06 + rand(seed, y, 'biz', b.id) * 0.26 + skill - Math.max(0, 1 - tradeOf(seed, y)) * 0.25;
     const profit = b.capital * growth;
     if (profit >= 0) {
       b.capital += profit * 0.6;
@@ -221,7 +222,7 @@ function foundings(c: Ctx): void {
   const seed = w.seed;
   const open = openBusinesses(w);
   // Town business capacity grows with the calendar, not with headcount (see births()).
-  const capacity = Math.round((8 + Math.floor((y - 1950) / 6)) * archetypeOf(seed).commerce * (recipeOf(seed)?.people.growth ?? 1));
+  const capacity = Math.round((8 + Math.floor((y - 1950) / 6)) * archetypeOf(seed).commerce * (recipeOf(seed)?.people.growth ?? 1) * tradeOf(seed, y));
   if (open.length >= capacity) return;
   const owners = new Set(open.map((b) => b.owner));
   for (const p of living(w)) {
