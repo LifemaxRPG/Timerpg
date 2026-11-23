@@ -779,3 +779,20 @@ Airports and aircraft exist, but **flying is hard.** It must never cheapen cross
     - getting legal later (papers, a sponsor, a forger) is its own goal.
     For the opening journey to the capital, the player chooses: a slow, legal passport where it's obtainable, or an
     illegal crossing. Liners and airlines check papers.
+
+## Travel: open decisions and the passport-per-era insight (the owner, 2026-11-23)
+
+- **The new opening (agreed in direction, details to workshop):**
+  - the player starts in the present day, on another continent, with a real passport;
+  - an urgent letter or call from the professor; they fly to the capital;
+  - the professor is gone, leaving the time machine and a letter;
+  - in the past, the modern passport is useless (its dates alone would get you arrested), so crossing continents
+    there means era papers: forged, through connections, or an illegal crossing. None of it is scripted.
+  - Replaces "spawn far away and trek to the capital".
+- **A passport only works in its own era.** Even with papers for one era, every other era is its own world again:
+  - each continent in each decade is a different place to explore;
+  - the seas come back into play every time you time travel.
+  This is what keeps flying from ending exploration.
+- **Open: skipping passenger rides.** The leading idea is no full skip. A ride can be sped up as a cinematic time-lapse
+  (good shots, day and night passing), which drops back to normal speed when something happens; the full trip time
+  passes in the game. Driving and piloting are never skipped. The owner is still deciding.
