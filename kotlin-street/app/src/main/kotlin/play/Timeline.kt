@@ -13,7 +13,7 @@ object Timeline {
         j.begin().str("k", "s").long("t", tMs)
         j.int("f", sec.frames)
         if (sec.moving > 0) j.int("mv", sec.moving)
-        j.pcts("ft", sec.frame).pcts("cpu", sec.cpu).pcts("gpu", sec.gpu)
+        j.pcts("ft", sec.frame, 2).pcts("cpu", sec.cpu, 2).pcts("gpu", sec.gpu, 2)
         if (sec.spikes > 0) j.int("spk", sec.spikes)
         j.intIfKnown("dr", sec.draws).intIfKnown("tri", sec.triangles).intIfKnown("triMax", sec.trianglesMax).intIfKnown("bv", sec.visible)
         if (sec.frames > 0) j.named("parts", PART_NAMES, sec.partMs, 0.05f)
