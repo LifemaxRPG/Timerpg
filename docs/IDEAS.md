@@ -699,3 +699,32 @@ Give NPCs and companions a **large library of scripted actions**, and let the on
 - **Companions** get the richest version: they plan alongside the player ("I'll keep the guard talking while you
   go round the back"), act on their own judgement when the player is busy, and follow their own traits (the
   professor plans cleverly; a reckless friend improvises).
+
+### A plan language: compose anything from small parts (the owner's idea, 2026-11-23)
+
+Instead of a fixed menu of actions, the model writes **plans in a small, strict language**: a few dozen primitive verbs
+that combine freely, so almost anything a person could do can be expressed, and nothing impossible can run.
+- **The player speaks plainly; the model compiles it.** "Keep the guard busy, and when I signal, open the back gate
+  and bring the van round" becomes a plan in the language. The engine runs it step by step.
+- **The shape** (draft):
+  ```
+  plan  := step ( "then" step | "while" step )*
+  step  := verb target? ("with" item)? manner? ("until" cond)? ("if" cond)?
+  verb  := go | follow | wait | watch | hide | talk | ask | tell | lie | distract | signal | take | give | put | use
+         | open | close | lock | unlock | carry | drive | buy | sell | steal | attack | restrain | flee | call | write
+  target:= person:<id> | place:<id> | item:<id> | vehicle:<id> | "player" | nearest(<kind>) | "here"
+  manner:= quietly | quickly | carefully | politely | rudely | as(<role>)
+  cond  := sees(x) | at(place) | time(hh:mm) | heard(signal) | has(item) | alone | done(step)
+  ```
+- **Bulletproof by three layers:**
+  1. **Syntax:** a grammar (llama.cpp GBNF) makes the model's output always parse; it can't write anything else.
+  2. **Names:** every target must be a real id from the facts the model was given. It can't invent a person, a key or
+     a door.
+  3. **The world:** the engine checks each step's preconditions when it runs: is the door locked, do they have the
+     key, can they see the guard. A failed step reports back ("can't: door locked") and the model replans. The
+     companion's own traits can still refuse ("I'm not hurting anyone").
+- **Expressive by composition.** Plans compose distractions, sequences, waits for signals, conditions, roles
+  ("as(delivery man)"), and errands across town. That covers plans nobody scripted. The same language drives every
+  NPC's model-made decisions, and it doubles as a test harness for the AI's behaviour.
+- **The cost stays low:** a plan is a short line of tokens, made once per instruction and re-made only when a step
+  fails, so it fits the NPU's budget.
