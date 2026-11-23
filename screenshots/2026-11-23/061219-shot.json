@@ -1,0 +1,392 @@
+{
+  "kind": "screenshot",
+  "time": "2026-11-23T06:12:19.109-0500",
+  "epochMs": 1795432339109,
+  "note": null,
+  "app": {
+    "versionName": "0.1.642 (363e624)",
+    "versionCode": 642,
+    "git": "363e624",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "image": {
+    "file": "061219-shot.png",
+    "format": "png",
+    "scale": 1,
+    "width": 2340,
+    "height": 1080,
+    "bytes": 2848586,
+    "captured": "PixelCopy of the window"
+  },
+  "screen": {
+    "widthPx": 2244,
+    "heightPx": 1038,
+    "density": 2.8125,
+    "densityDpi": 450
+  },
+  "device": {
+    "ramFreeMb": 1221,
+    "ramTotalMb": 11113,
+    "lowMemory": false,
+    "gamePssMb": 3030,
+    "thermalStatus": 2,
+    "thermalHeadroom10s": 0.95512253
+  },
+  "game": {
+    "renderer": "Filament",
+    "camera": "medium",
+    "view": "open",
+    "orbit": {
+      "yaw": -18.550837,
+      "pitch": 10.349528,
+      "dist": 420,
+      "pulled": 420,
+      "goalYaw": -18.550837,
+      "goalPitch": 10.349528,
+      "goalDist": 420,
+      "tx": 35898.8,
+      "tz": 13398.128,
+      "line": "camera open yaw -18.6 pitch 10.3 dist 420 (pulled to 420) at (35899, 13398)"
+    },
+    "rendererError": "The town crashed while it was being built last time: on the crossroads (Filament) instead",
+    "town": "eta · Commuter suburb · 2025",
+    "walkableTown": {
+      "seed": "gamma",
+      "loading": false,
+      "ready": true,
+      "progress": 1,
+      "error": null,
+      "loadMs": 2339.7598,
+      "firstViewMs": 52506.035,
+      "built": "town built: ground 52504 ms (workers 52496), buildings 1355 ms here (slowest b164 15.5 ms, largest batch 20.7 ms), 40748 ms on workers (slowest b281 521 ms); textures 2505, 430.3M texels, 14990 shared",
+      "memory": {
+        "when": "town built",
+        "graphicsMb": 2177,
+        "nativeMb": 181,
+        "javaMb": 114,
+        "codeMb": 14,
+        "totalPssMb": 2807
+      },
+      "row": "15L",
+      "street": "Park Avenue",
+      "neighbourhood": "Oak Heights",
+      "x": 190.69922,
+      "lane": -23.363073,
+      "wx": 35898.8,
+      "wz": 13398.128,
+      "heading": 2.8161635,
+      "front": null,
+      "transit": null,
+      "liveRows": [
+        "15L",
+        "2L",
+        "16L",
+        "13L",
+        "15R",
+        "2R",
+        "13R",
+        "16R"
+      ],
+      "people": 4,
+      "talkTo": null,
+      "walk": "open",
+      "open": {
+        "door": null,
+        "yard": null,
+        "speed": 0,
+        "blocked": 0,
+        "cameraYaw": -0.32377318,
+        "hx": 0.31971535,
+        "hz": 0.94751364
+      }
+    },
+    "street": {
+      "index": 0,
+      "name": "Main Street",
+      "nearestBuilding": 0,
+      "building": "Singh's Doctor's Office",
+      "owner": "Henry Singh",
+      "atCorner": false,
+      "edge": 0
+    },
+    "player": {
+      "x": 190.69922,
+      "lane": -23.363073,
+      "street": 0,
+      "dir": 1,
+      "walking": false,
+      "running": false,
+      "viewMiddle": 465.3393
+    },
+    "turn": {
+      "active": false,
+      "forward": true,
+      "p": 0,
+      "yaw": 0,
+      "ease": 0,
+      "blocked": false
+    },
+    "inRoom": false,
+    "room": null,
+    "doorFade": false,
+    "time": {
+      "hour": 17.6,
+      "clock": "17:36",
+      "season": "summer",
+      "weather": "Clear"
+    },
+    "frames": {
+      "compose": "Frames: 33.3 ms (30 fps) · p95 33.3 ms · 0.0% late · display 60 Hz",
+      "filament": "Filament: CPU 23.4 ms (p95 25.8) · GPU 27.4 ms (p95 30.3) · start 1191 ms, street 3409 ms",
+      "spikes": "spikes: 336 of 340 frames (moving 337) over 20 ms by green 336, render 336, gpu 336, HUD 336, people 172, gc 2, uploads 2, stores 1; GPU over 16.7 ms in 339 of 339 frames (worst 38.5); gc 2 (43 ms); worst: 37 ms: ours 33.8 (render 12.8, green 8.6, people 4.2, stores 3.8, yards 2.3, occlude 0.6, buildings 0.6, build 0.4, step 0.3), gpu 34.4, gc 1 22 ms, HUD x1 | 33 ms: ours 25.0 (render 10.8, green 4.5, people 3.8, yards 2.0, stores 1.6, buildings 0.7, occlude 0.7, build 0.3), gpu 29.6, HUD x1 | 32 ms: ours 28.3 (render 12.9, green 4.4, people 3.8, yards 2.1, buildings 1.7, stores 1.6, occlude 0.8, build 0.4, step 0.4), gpu 32.9, HUD x1"
+    },
+    "ai": {
+      "state": "READY",
+      "detail": "Ready: the light model answers in play. Lines ahead of time are written by the main model (overnight, or when it fits).",
+      "runsOn": "NPU",
+      "modelMb": 2463,
+      "role": "live",
+      "forceBank": false,
+      "gpuNote": "The light model answers on the NPU in play (about twice the GPU's speed on the S25 Ultra); the GPU setting applies to the main model.",
+      "lane": null,
+      "linesWritten": 18,
+      "builtIn": 0,
+      "queued": 765,
+      "paused": "light model loaded, memory",
+      "working": null,
+      "pregenOff": null,
+      "prefillTokPerSec": 0,
+      "genTokPerSec": 0,
+      "firstTokenMs": 0,
+      "loadInfo": null
+    },
+    "conversation": null,
+    "voices": {
+      "enabled": false,
+      "speaking": false,
+      "only": 2,
+      "timing": null
+    },
+    "mic": {
+      "always": true,
+      "granted": false,
+      "listening": false,
+      "state": "IDLE"
+    },
+    "panels": {
+      "aiPanel": false,
+      "crashShown": false,
+      "tuningNpu": false
+    }
+  },
+  "diagnostics": {
+    "breadcrumbs": {
+      "thisRun": [
+        "11-23 06:11:25.244 memory: Resident: dialogue 2851 MB (live, copied, work 387 MB, 8-bit KV) · game PSS 2918 MB (Java 71, native 166, graphics 2300, code 16, other 34, system 327) · 1657 MB free",
+        "11-23 06:11:31.856 row 85R: Fern Road, Old Town at (34197, 7738); camera open yaw 172.7 pitch 12.9 dist 420 (pulled to 483) at (34193, 7728)",
+        "11-23 06:11:31.975 row 88R: Granary Road, Old Town at (34215, 7774); camera open yaw 170.6 pitch 12.9 dist 420 (pulled to 483) at (34210, 7764)",
+        "11-23 06:11:32.266 row 85L: Fern Road, Old Town at (34271, 7861); camera open yaw 164.7 pitch 12.9 dist 420 (pulled to 483) at (34265, 7852)",
+        "11-23 06:11:33.778 frames 10 s: frame p50 33.3 ms, p95 33.3, max 49.9; 340 frames, 261 refreshes dropped (60 Hz); Filament 340 frames, CPU 24.8/26.4/31.0 ms, GPU 29.3/31.2/34.4 ms (p50/p95/max); thermal 2, headroom 0.95; 1654 MB free; AI READY (held while moving: 0 lines, 0 s in all); standing on 85L",
+        "11-23 06:11:33.778 frame spikes 10 s: spikes: 340 of 340 frames (moving 340) over 20 ms by green 340, render 340, gpu 340, HUD 340, uploads 3, yards 1, stores 1, gc 1; GPU over 16.7 ms in 340 of 340 frames (worst 34.4); gc 1 (26 ms); worst: 38 ms: ours 30.5 (render 13.5, stores 5.6, green 4.9, people 2.1, yards 1.9, occlude 0.7, far 0.5, build 0.3, step 0.3), gpu 29.9, gc 1 26 ms, HUD x1 | 37 ms: ours 30.2 (render 12.7, green 4.5, yards 3.3, stores 2.1, occlude 1.9, people 1.9, buildings 1.1, cards 0.8, build 0.6, far 0.6, step 0.5), gpu 29.8, up 2 people sheets 0.3 MB, HUD x1 | 34 ms: ours 30.4 (render 12.7, green 8.8, people 2.4, yards 2.0, stores 2.0, occlude 0.7, buildings 0.6, far 0.4, build 0.4), gpu 31.2, HUD x1",
+        "11-23 06:11:37.263 row 59L: Ivy Street, Old Town at (35815, 8117); camera open yaw 100.0 pitch 12.9 dist 420 (pulled to 483) at (35801, 8108)",
+        "11-23 06:11:38.860 row 59R: Ivy Street, Old Town at (36096, 8535); camera open yaw 140.8 pitch 12.9 dist 420 (pulled to 483) at (36095, 8525)",
+        "11-23 06:11:39.840 row 59L: Ivy Street, Old Town at (36081, 8846); camera open yaw 168.4 pitch 12.9 dist 420 (pulled to 483) at (36084, 8836)",
+        "11-23 06:11:41.809 row 58R: Main Street, Old Town at (36075, 9529); camera open yaw 178.6 pitch 12.9 dist 420 (pulled to 483) at (36075, 9517)",
+        "11-23 06:11:42.167 row 36L: Ivy Street, Old Town at (36078, 9661); camera open yaw 178.6 pitch 12.9 dist 420 (pulled to 483) at (36078, 9655)",
+        "11-23 06:11:42.231 row 58L: Main Street, Old Town at (36078, 9686); camera open yaw 178.6 pitch 12.9 dist 420 (pulled to 483) at (36078, 9674)",
+        "11-23 06:11:42.563 row 36L: Ivy Street, Old Town at (36081, 9815); camera open yaw 178.6 pitch 12.9 dist 420 (pulled to 483) at (36081, 9802)",
+        "11-23 06:11:43.808 frames 10 s: frame p50 33.3 ms, p95 33.3, max 49.9; 329 frames, 274 refreshes dropped (60 Hz); Filament 329 frames, CPU 26.2/28.6/39.5 ms, GPU 30.9/40.1/52.5 ms (p50/p95/max); thermal 2, headroom 0.95; 1456 MB free; AI READY (held while moving: 0 lines, 0 s in all); standing on 36L",
+        "11-23 06:11:43.808 frame spikes 10 s: spikes: 312 of 329 frames (moving 329) over 20 ms by green 312, render 312, gpu 312, HUD 312, people 75, uploads 11, yards 5, step 1, gc 1; GPU over 16.7 ms in 312 of 312 frames (worst 52.5); gc 1 (26 ms); worst: 65 ms: ours 24.5 (render 13.1, green 4.1, yards 1.9, people 1.5, stores 1.4, buildings 1.1, occlude 0.6), gpu 44.6, HUD x1 | 48 ms: ours 39.7 (render 14.0, yards 9.5, green 5.8, people 4.2, stores 2.1, build 1.2, buildings 1.0, occlude 0.8, step 0.5), gpu 34.4, HUD x1 | 47 ms: ours 38.6 (render 13.3, green 8.0, people 4.1, yards 3.8, stores 3.0, build 2.6, occlude 1.4, buildings 1.3, step 0.5, far 0.4), gpu 32.4, HUD x1",
+        "11-23 06:11:43.996 memory low: 1399 MB free (Android's threshold 216 MB)",
+        "11-23 06:11:44.073 row 36R: Ivy Street, Old Town at (36095, 10435); camera open yaw 178.7 pitch 12.9 dist 420 (pulled to 483) at (36095, 10421)",
+        "11-23 06:11:45.917 row 36L: Ivy Street, Old Town at (36083, 11258); camera open yaw -178.5 pitch 12.9 dist 420 (pulled to 483) at (36086, 11244)",
+        "11-23 06:11:46.072 row 35R: Queen Street, Old Town at (36067, 11325); camera open yaw -176.9 pitch 12.9 dist 420 (pulled to 483) at (36072, 11311)",
+        "11-23 06:11:46.245 row 36L: Ivy Street, Old Town at (36043, 11404); camera open yaw -174.6 pitch 12.9 dist 420 (pulled to 483) at (36049, 11390)",
+        "11-23 06:11:46.395 row 16L: Ivy Street, Old Town at (36020, 11467); camera open yaw -172.5 pitch 12.9 dist 420 (pulled to 483) at (36026, 11454)",
+        "11-23 06:11:47.852 row 16R: Ivy Street, Old Town at (35674, 11916); camera open yaw -147.3 pitch 12.9 dist 420 (pulled to 483) at (35685, 11907)",
+        "11-23 06:11:48.864 row 35R: Queen Street, Old Town at (35317, 12194); camera open yaw -134.2 pitch 12.9 dist 420 (pulled to 483) at (35329, 12185)",
+        "11-23 06:11:49.393 row 15L: Park Avenue, Oak Heights at (35148, 12359); camera open yaw -134.0 pitch 12.9 dist 420 (pulled to 483) at (35157, 12349)",
+        "11-23 06:11:52.497 car: out",
+        "11-23 06:11:53.814 frames 10 s: frame p50 33.3 ms, p95 33.3, max 183.1; 327 frames, 274 refreshes dropped (60 Hz); Filament 327 frames, CPU 25.2/27.1/183.2 ms, GPU 28.9/31.9/33.8 ms (p50/p95/max); thermal 2, headroom 0.96; 1319 MB free; AI READY (held while moving: 0 lines, 0 s in all); walking on 15L",
+        "11-23 06:11:53.814 frame spikes 10 s: spikes: 327 of 327 frames (moving 327) over 20 ms by green 327, render 327, gpu 327, HUD 327, people 215, uploads 16, night 2, gc 2, step 1, yards 1, stores 1; GPU over 16.7 ms in 327 of 327 frames (worst 33.8); gc 2 (46 ms); worst: 187 ms: ours 183.1 (night 159.3, render 12.4, green 4.4, yards 1.9, people 1.5, stores 1.5, occlude 0.7, buildings 0.7, build 0.3), gpu 31.4, HUD x1 | 83 ms: ours 75.4 (night 50.9, render 12.3, green 4.5, yards 2.0, stores 1.8, people 1.4, buildings 0.9, occlude 0.7, build 0.4, step 0.3), gpu 29.7, HUD x1 | 78 ms: ours 66.0 (step 42.3, render 10.9, green 4.3, people 3.1, yards 2.0, stores 1.4, occlude 0.7, buildings 0.6, build 0.4), gpu 28.0, HUD x3",
+        "11-23 06:11:54.674 row 15R: Park Avenue, Oak Heights at (35196, 12898); camera open yaw -160.8 pitch 12.0 dist 420 (pulled to 428) at (35194, 12894)",
+        "11-23 06:12:00.803 row 15L: Park Avenue, Oak Heights at (34960, 13270); camera open yaw -116.7 pitch 15.7 dist 420 (pulled to 420) at (34962, 13265)",
+        "11-23 06:12:03.831 frames 10 s: frame p50 33.3 ms, p95 33.3, max 49.9; 322 frames, 280 refreshes dropped (60 Hz); Filament 322 frames, CPU 26.7/27.8/50.5 ms, GPU 31.3/34.9/43.8 ms (p50/p95/max); thermal 2, headroom 0.97; 1295 MB free; AI READY (held while moving: 0 lines, 0 s in all); standing on 15L",
+        "11-23 06:12:03.832 frame spikes 10 s: spikes: 316 of 322 frames (moving 320) over 20 ms by green 316, people 316, render 316, gpu 316, HUD 316, uploads 14, yards 4, stores 1, gc 1; GPU over 16.7 ms in 318 of 318 frames (worst 43.8); gc 1 (22 ms); worst: 58 ms: ours 50.6 (render 23.8, green 8.0, people 7.2, yards 3.9, stores 2.7, buildings 1.5, occlude 1.4, far 0.7, step 0.7, build 0.6), gpu 30.6, HUD x1 | 55 ms: ours 47.0 (render 19.2, people 8.7, green 8.1, yards 3.9, stores 2.5, buildings 1.3, step 0.9, far 0.8, occlude 0.7, build 0.7), gpu 32.6, HUD x1 | 53 ms: ours 44.9 (render 19.4, green 7.4, people 6.9, yards 3.6, stores 2.6, buildings 1.5, occlude 1.4, step 0.7, build 0.6, far 0.5), gpu 32.0, HUD x1",
+        "11-23 06:12:08.287 row 15R: Park Avenue, Oak Heights at (35427, 13254); camera open yaw 38.7 pitch 10.0 dist 420 (pulled to 420) at (35423, 13256)",
+        "11-23 06:12:12.285 row 16L: Ivy Street, Oak Heights at (35978, 13219); camera open yaw 9.6 pitch 10.7 dist 420 (pulled to 420) at (35976, 13216)",
+        "11-23 06:12:12.866 row 2L: Ivy Street, Oak Heights at (36027, 13290); camera open yaw -1.5 pitch 11.8 dist 420 (pulled to 420) at (36026, 13286)",
+        "11-23 06:12:13.859 frames 10 s: frame p50 33.3 ms, p95 33.3, max 33.3; 340 frames, 263 refreshes dropped (60 Hz); Filament 340 frames, CPU 25.1/27.3/33.7 ms, GPU 29.1/32.7/38.5 ms (p50/p95/max); thermal 2, headroom 0.96; 1287 MB free; AI READY (held while moving: 0 lines, 0 s in all); walking on 2L",
+        "11-23 06:12:13.859 frame spikes 10 s: spikes: 336 of 340 frames (moving 337) over 20 ms by green 336, render 336, gpu 336, HUD 336, people 172, gc 2, uploads 2, stores 1; GPU over 16.7 ms in 339 of 339 frames (worst 38.5); gc 2 (43 ms); worst: 37 ms: ours 33.8 (render 12.8, green 8.6, people 4.2, stores 3.8, yards 2.3, occlude 0.6, buildings 0.6, build 0.4, step 0.3), gpu 34.4, gc 1 22 ms, HUD x1 | 33 ms: ours 25.0 (render 10.8, green 4.5, people 3.8, yards 2.0, stores 1.6, buildings 0.7, occlude 0.7, build 0.3), gpu 29.6, HUD x1 | 32 ms: ours 28.3 (render 12.9, green 4.4, people 3.8, yards 2.1, buildings 1.7, stores 1.6, occlude 0.8, build 0.4, step 0.4), gpu 32.9, HUD x1",
+        "11-23 06:12:16.980 row 15L: Park Avenue, Oak Heights at (35908, 13432); camera open yaw -18.6 pitch 10.3 dist 420 (pulled to 420) at (35910, 13437)",
+        "11-23 06:12:23.863 frames 10 s: frame p50 33.3 ms, p95 33.3, max 66.6; 364 frames, 237 refreshes dropped (60 Hz); Filament 364 frames, CPU 23.2/25.5/31.6 ms, GPU 27.0/30.2/33.4 ms (p50/p95/max); thermal 2, headroom 0.96; 1252 MB free; AI READY (held while moving: 0 lines, 0 s in all); standing on 15L",
+        "11-23 06:12:23.863 frame spikes 10 s: spikes: 153 of 364 frames (moving 153) over 20 ms by green 153, render 153, gpu 153, HUD 153, uploads 6; GPU over 16.7 ms in 364 of 364 frames (worst 34.7); gc 1 (22 ms); worst: 31 ms: ours 27.5 (render 11.1, green 7.7, yards 2.1, people 1.8, stores 1.8, buildings 1.1, occlude 0.7, far 0.5, build 0.3), gpu 29.2, HUD x1 | 31 ms: ours 23.2 (render 10.9, green 4.2, yards 1.9, people 1.8, stores 1.8, buildings 0.7, occlude 0.7, far 0.5, build 0.3), gpu 27.9, HUD x1 | 31 ms: ours 25.3 (render 12.5, green 4.4, yards 1.9, people 1.8, stores 1.8, buildings 0.9, occlude 0.7, far 0.4, step 0.4, build 0.3), gpu 30.5, up 1 tree cells 0.0 MB, HUD x1",
+        "11-23 06:12:26.493 row 2L: Ivy Street, Oak Heights at (35910, 13451); camera open yaw -18.6 pitch 10.3 dist 420 (pulled to 420) at (35909, 13447)"
+      ],
+      "previousRun": [
+        "11-23 06:05:34.230 start: build 0.1.638 (3b2b6b2)",
+        "11-23 06:05:34.246 playtest session 060534-638",
+        "11-23 06:05:34.319 renderer: Filament",
+        "11-23 06:05:34.344 resume",
+        "11-23 06:05:34.606 Filament start",
+        "11-23 06:05:34.949 player themes: 3 (0 frequent), 3 follow-ups",
+        "11-23 06:05:37.011 town load start: gamma",
+        "11-23 06:05:37.017 mic off",
+        "11-23 06:05:37.017 street view",
+        "11-23 06:05:37.017 street 0: Main Street",
+        "11-23 06:05:37.017 dialogue model: WAITING",
+        "11-23 06:05:37.017 voices off",
+        "11-23 06:05:37.017 no conversation",
+        "11-23 06:05:37.017 AI panel closed",
+        "11-23 06:05:37.034 dialogue model: WAITING",
+        "11-23 06:05:38.189 rail: 281 links, 225 towns, station p",
+        "11-23 06:05:38.742 town collision: 31538 shapes, 553 ms",
+        "11-23 06:05:38.748 town landmark models: 32 placed",
+        "11-23 06:05:38.752 town farms: 51 farms, 104 fields, 8 roads",
+        "11-23 06:05:38.752 world: not loaded (FileNotFoundException: world/alpha/skeleton.twsk.gz)",
+        "11-23 06:05:38.795 town gamma 2025: spawned on 60L (Main Street) at x 956, lane 7.0; open world",
+        "11-23 06:05:38.884 cars: northcairn-1956 at street:60:0:4:-1, rowanvale-1970 at drive:b1:parkingPad, tallmere-1972 at street:60:0:7:-1, fenmere-1938 at drive:b0:parkingPad, alderwick-1928 at street:60:0:1:1",
+        "11-23 06:05:38.967 town: back where the player stood, (15440, 9551), row 76R at x 5873, lane -7.7650943",
+        "11-23 06:05:38.967 town load end: gamma, 262 rows, 324 buildings, 1747 ms",
+        "11-23 06:05:38.976 town scene: building gamma; Java heap limit 512 MB, 74 MB used",
+        "11-23 06:05:39.838 row 76R: Main Street, Oak Gardens at (15440, 9551); camera open yaw -168.2 pitch 24.0 dist 420 (pulled to 420) at (15441, 9552)",
+        "11-23 06:05:47.442 trim memory 20",
+        "11-23 06:05:47.450 pause",
+        "11-23 06:06:07.105 memory: Resident: no model · game PSS 571 MB (Java 1, native 1, graphics 222, code 20, other 8, system 316) · 2313 MB free"
+      ],
+      "writer": [
+        "11-23 06:05:34.507 writer (job) not started: the game is open",
+        "11-23 06:05:47.558 writer: start (service), battery 19% plugged in, thermal 1, 2138 MB free"
+      ],
+      "writerPrevious": [
+        "11-23 02:16:32.308 writer mode: opened",
+        "11-23 02:16:32.368 writer: stop (writer): the game was opened (it writes its own lines)",
+        "11-23 02:16:32.771 writer: start (service), battery 27% plugged in, thermal 1, 1431 MB free",
+        "11-23 02:16:33.817 memory low: 1338 MB free (Android's threshold 216 MB)",
+        "11-23 02:16:47.322 memory fine: 5933 MB free (Android's threshold 216 MB)",
+        "11-23 02:17:10.595 writer: stop (service): the game was opened (it writes its own lines)",
+        "11-23 02:18:03.911 writer: start (service), battery 27% plugged in, thermal 2, 1428 MB free",
+        "11-23 02:18:06.867 memory low: 1388 MB free (Android's threshold 216 MB)",
+        "11-23 02:18:42.896 memory fine: 1862 MB free (Android's threshold 216 MB)",
+        "11-23 02:20:36.982 memory low: 1405 MB free (Android's threshold 216 MB)",
+        "11-23 02:20:51.990 memory fine: 5399 MB free (Android's threshold 216 MB)",
+        "11-23 02:20:54.094 writer: 5401 MB free before the load (Android's threshold 216 MB); the main model's NPU copy needs 6617 MB, the light one's 3751 MB",
+        "11-23 02:20:55.066 player themes: 3 (0 frequent), 3 follow-ups",
+        "11-23 02:20:55.120 dialogue model: loading the bank model with 5243 MB free",
+        "11-23 02:20:55.120 dialogue model: the light model on the NPU, not the GPU of the device setting",
+        "11-23 02:20:55.128 dialogue model: trying the bank model's NPU copy with 5243 MB free, 6617 MB needed: 1514 MB counted beyond the free memory: Android found 1514 MB beyond its free count in the last 1 measured load",
+        "11-23 02:21:02.501 memory critical: 641 MB free (Android's threshold 216 MB)",
+        "11-23 02:21:03.043 npu gate: failed with 5243 MB free, 6617 needed (cancelled)",
+        "11-23 02:21:03.045 dialogue model: the NPU could not load it (cancelled): trying the GPU",
+        "11-23 02:21:04.001 memory fine: 5490 MB free (Android's threshold 216 MB)",
+        "11-23 02:21:14.511 memory low: 878 MB free (Android's threshold 216 MB)"
+      ]
+    },
+    "reports": {
+      "pending": {
+        "crashes": 0,
+        "night": 0,
+        "npu": 0,
+        "play": 0,
+        "talk": 0,
+        "trace": 1,
+        "recording": 1
+      },
+      "uploads": {
+        "lastError": null,
+        "lastOk": {
+          "kind": "play",
+          "path": "play/2026-11-23/060534-638.jsonl.gz",
+          "code": 201,
+          "what": "sent",
+          "time": "2026-11-23T06:05:48.724-0500",
+          "minutesAgo": 6
+        },
+        "lastSkip": {
+          "kind": "play",
+          "path": "",
+          "code": 0,
+          "what": "not allowed now (Wi-Fi no, charging no): needs Wi-Fi or charging",
+          "time": "2026-11-23T05:14:11.156-0500",
+          "minutesAgo": 58
+        },
+        "lastByKind": {
+          "play": null,
+          "talk": null,
+          "trace": null,
+          "crashes": null,
+          "night": null,
+          "npu": null
+        }
+      }
+    },
+    "recorder": {
+      "initialised": true,
+      "threadAlive": true,
+      "foreground": true,
+      "session": "060618-642",
+      "part": 1,
+      "seconds": 371,
+      "file": "open-play~2026-11-23~060618-642.jsonl.gz",
+      "fileBytes": 45948,
+      "fileLines": 552,
+      "recordTalk": true,
+      "ownerBuild": true
+    },
+    "uploadGate": {
+      "wifi": false,
+      "networkError": null,
+      "charging": true,
+      "playAllowed": true,
+      "traceAllowed": false,
+      "hasToken": true
+    },
+    "writer": {
+      "status": {
+        "how": "job",
+        "running": false,
+        "state": "not-started",
+        "reason": "the game is open",
+        "secondsAgo": 370,
+        "stale": false,
+        "lines": 0,
+        "variants": 0,
+        "rejected": 0,
+        "timedOut": 0,
+        "failed": 0,
+        "model": ""
+      },
+      "lastRun": "Sat 05:52-05:53: 0 lines + 0 variants (0.0/h), 0.0 tok/s, 0 cool-downs, 0 hot pauses; the system ended the job (its time was up, or a condition changed)",
+      "enabled": true,
+      "unrestricted": false
+    },
+    "power": {
+      "plugged": "wireless",
+      "charging": true,
+      "battery": 17
+    }
+  },
+  "annotations": {
+    "note": "Drawn by the player on the screenshot; coordinates are pixels of the original image (2340 x 1080), origin top left. An arrow points at its \"to\" end.",
+    "imageWidth": 2340,
+    "imageHeight": 1080,
+    "markedImage": "061219-shot.png",
+    "rawImage": "061219-shot-raw.png",
+    "marks": [
+      {
+        "type": "arrow",
+        "color": "red",
+        "from": {
+          "x": 1532,
+          "y": 255
+        },
+        "to": {
+          "x": 1098,
+          "y": 364
+        }
+      }
+    ]
+  }
+}
