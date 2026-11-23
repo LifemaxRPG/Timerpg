@@ -58,3 +58,39 @@ real townspeople.
 - **By era:** 1880s circuit courts, mid-century trials, and modern trials with DNA and camera footage.
 - **Performance:** a trial is a set piece. Lines are pre-generated while the player waits in jail (arrest to
   arraignment) and only follow-ups are live.
+
+## Building your own structures (the owner's idea, 2026-11-23)
+
+The player can build real structures, in a grounded way:
+- **Land first.** Buy a plot through a land office or a realtor (the price follows the era, the town and the
+  location), or rent one. The deed, zoning and building permits follow the era: no permit in 1890, inspections
+  later. Building without one is a crime the town can notice.
+- **Materials are real goods.** Buy lumber, nails, brick, cement, roofing, glass and pipe at the hardware store or the
+  lumber yard at era prices, carry what fits (by hand, a cart, a truck bed), or order a delivery to your address,
+  which arrives on a schedule by truck (or wagon, earlier). Stealing materials from a building site is possible, with
+  the usual consequences.
+- **Building takes work and time:**
+  - foundations;
+  - framing;
+  - walls;
+  - roof;
+  - windows;
+  - finish.
+  Placed piece by piece on a grid that matches our pixel-art kit, in the same style as the town's buildings. Hire
+  workers, or friends who owe you a favour, to go faster. Skill improves with practice.
+- **Weathering through time.** Built in 1925 and visited in 2025, it has weathered by its materials and upkeep:
+  - paint peels;
+  - roofs sag;
+  - wood greys;
+  - vines climb;
+  - an empty house is broken into, or squatted;
+  - or someone bought it at a tax sale and changed it.
+  Time travel makes this a mechanic, not just a look: build something in the past to have it in the future, or come
+  back to find out what history did to it.
+- **The world treats it like any building:**
+  - it appears in the town's records;
+  - neighbours have opinions;
+  - it can be a home, a shop (a business for the money system), or a hideout (with the crime system's risks);
+  - it can burn, be robbed, or be inherited.
+- **Fits:** the money system (land and materials cost real money), the crime system (permits, theft, hideouts), the
+  town plan (free plots are part of the capital's adaptable layout), and the 3D building kit we already have.
