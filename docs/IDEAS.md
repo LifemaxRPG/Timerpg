@@ -741,3 +741,10 @@ When a business changes hands across the decades, the new sign is painted over t
 previous owner's lettering (8-12% of its ink) shows through on weathered boards. Real small-town brick walls show
 these "ghost signs", so the century of town history becomes something the player can spot walking down Main Street.
 Proposed by Jeff in his G006 delivery.
+
+## Plans feed the crime system (Jeff's idea, from G007, 2026-11-23)
+
+Each executed plan step knows its verb, manner (`quietly`, `rudely`), role (`as(delivery man)`) and target. Passed into
+the crime system's `recordCrime()`, a quiet theft is less conspicuous, and a disguise changes what witnesses remember in
+the police description ("a delivery man walked out the back"). Disguises, distractions and gossip interlock with no
+special-case scripting. Proposed by Jeff in his G007 delivery.

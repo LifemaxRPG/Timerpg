@@ -67,6 +67,8 @@ files (docs/queue/reviews/) say what worked as well as what to change: read the 
     The owner's words: "Way to go, Jeff. I'm proud of him. He knocked it out on the first try."
   - Jeff's sign painter compiled and passed 7/7 on its first build, with no JVM in his sandbox. His ghost-signs
     idea went into IDEAS.md with his name.
+  - Jeff's plan language landed first try (15/15): companions can now be told to do almost anything, safely. That's
+    three first-try engineering deliveries in a row, each with an idea for the team.
   - The capital now stands on the generated planet, with the world drawn out to the horizon.
 
 ## The team's next milestone
