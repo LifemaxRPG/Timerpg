@@ -469,3 +469,27 @@ Fifteen hand-made models went into gamma, the capital and test city (LANDMARKS_G
   now has only the clock tower beside the plaza in the capital.
 - **Export**: gamma's `street.json` (321 shops, 25 hand-made models), buildings, dialogue, interiors, rail.json and the Kotlin fixtures (`town-gamma.json`, `rail-checks.json`,
   `stores-gamma-years.json`) are re-exported; the plan's shift moved every lot, so the building files changed (2,197 files).
+
+### The third intake in the capital (2026-11-23)
+
+Three more models went into gamma (LANDMARKS_GLB.md "The third intake"; docs/queue/INTAKE.md C001-C003), each on a plot of the ledger (`glb:five_and_dime`, `glb:grain_elevator`, `glb:baseball_park`; `glbPlotOf`
+strips the state suffix), the capital's alone like the monuments (`INTAKE_STATES`; the other towns keep their ledgers):
+
+- **The five and dime** (`glb:five_and_dime`, 9 x 15 tiles, chain `shops` before 1928): mid-block in the street wall of Main Street's core, north side, in the second block out from the civic block (col 3, x 745; the
+  first block, col 1, is the start view's wall and keeps its shops: the spawn test needs two). Reserved with pad 0 (its brick party walls meet the shops either side) before the grounds' reserved plot, so the
+  ledger's last entries are still the `future:*` plots. Years in gamma: Marlow Dime 1928, Marlow Variety 1970, Dollar Cove 2000, for lease from 2020 (the vacancy drawn 2010-20); at 2025 the shop stands empty.
+- **The grain elevator** (`glb:grain_elevator`, 16 x 58 tiles, fronting the town side of the rail column): its 1950 state is 71 m (58 tiles) of bins along the track and the rail column's blocks are 36-42
+  tiles long with no street between them, so the two blocks at the column's far end (rows 1 and 2, no street between) are made **one block of 82 tiles** (plat.ts, the capital only, as the edge's big block is made).
+  The elevator sits at its depot end (`near`), the feed mill and the works where they were. Years: timber 1933 (the first opening drawn 1925-35, never before the town's founding), concrete bins 1950, the co-op 1990.
+  **Its siding** (rail.ts, the capital only): a second siding, `kind: 'siding'`, laid along the plot's back between the plot and the main track (3.5 tiles off the plot, 4.5 off the track), leaving the main track
+  by an 8-tile lead towards the depot; it is checked like every track (clear of lots, streets and the plot's own clearance, else not laid). The model's `rail_siding` reference (z -28.5, x -27..47) is its rear edge.
+- **The ballpark** (`glb:baseball_park`, 117 x 74 tiles, chain `field` before 1938): a **third south block of the grounds column** (80 tiles deep, `GROUNDS.south` is now [30, 80, 80]), behind the school: the grounds were
+  full (the Eyrie leaves 36 tiles of its block, the campus 8, the rest 5 or 6) and no block of the plan is 117 x 74 but the edge's, which holds the superstore. It fronts the street between it and the campus, so its
+  gravel lot (the gate end) is on that street; the grounds' reserved landmark plot is untouched. Years: the wooden park 1938 (drawn 1935-40), lights 1950, steel bleachers 1960, the renovation 2000.
+- **The plan grew**: the ballpark's block stands past the plan's old top, so the plan is now 965 x 382 tiles (was 965 x 307), the centre (789, 219) (was (789, 144)): everything moved 75 tiles down the canvas, the
+  river channel runs to the new top and bottom (plat.ts: past the grounds too), and the world's pins for the capital (src/world/gen/hubs.ts `GAMMA_PINS`, `GAMMA_PLAN_TILES`) moved with it (the highways' and rail's y +75,
+  the south river pin 382) and **the world skeleton was baked again** (`content/world/alpha/skeleton.twsk.gz`; `kotlin-street/tools/bake-world.ts`, 19 s) and its Kotlin fixture re-exported (`world-fixture.ts`).
+  The river pin north now stands 460 m from the hub's centre (302 m before): `WorldSkeletonTest` looks for the river within 0.6 cells of the centre (was 0.3).
+- **Export**: gamma's `street.json` (322 shops, 28 hand-made models), buildings, dialogue, interiors, rail.json (two sidings now) and the fixtures (`town-gamma.json`, `stores-gamma-years.json`, `rail-checks.json`
+  unchanged) re-exported with `tools/build-town.sh gamma 2025` and the exporters; the buildings' files are the same count (2,197) with new pictures.
+- **Left**: five reserved plots are still free (`future:civic:1`, `:2`, `future:landmark:1`, `:2`, `:3`); the siding is drawn from the track data only (no loading spout or yard: the model draws none).

@@ -3,7 +3,7 @@
 Landmarks modelled by hand to the contract in `docs/CHATGPT_MODEL_GUIDE.md` (glTF 2.0 binary, metres, Y up, entrance
 +Z, materials named by role, door nodes, a collision-only mesh, an optional `lot` group) are read and built by the
 engine like the code-built cinema and stores, and drawn through the same lit material. Status (2026-11-19): fourteen
-models (and the funeral home, "The funeral home" below, the fifteenth; the strip centre in four states, "Reel Time Video", the sixteenth to nineteenth files); the generated towns place them (branch wf-place: "In the town" below), desktop renders only, not yet on the S25. Status (2026-11-22): the intake job added fifteen more models in thirty-one files ("The intake models" below).
+models (and the funeral home, "The funeral home" below, the fifteenth; the strip centre in four states, "Reel Time Video", the sixteenth to nineteenth files); the generated towns place them (branch wf-place: "In the town" below), desktop renders only, not yet on the S25. Status (2026-11-22): the intake job added fifteen more models in thirty-one files ("The intake models" below); the third intake (2026-11-23) three more in eleven states ("The third intake").
 
 ## The models (app/src/main/assets/landmarks/)
 
@@ -237,6 +237,38 @@ model-info files were copied with `git show origin/codex/<branch>:prototypes/<na
     variants yet (the infos' `binding` notes say repaint per town: a later `make_variants.py` job, as the funeral home's).
 - **Not done**: interiors (rooms behind the doors: the interiors job's); the Great Meridian's elevator and observation decks and its animated parts (`armillary`, beacon, lift car: Gemini's
   LandmarkAnimation branch will bind them; the loader's per-frame loop is untouched here); the Eyrie's bronze wings are static.
+
+## The third intake (2026-11-23, C001-C003)
+
+Three accepted models from docs/queue/INTAKE.md, brought in the same way as the fifteen above (files copied with `git show origin/codex/<branch>:prototypes/<name>/...`, no merge; sources, renders and
+.blend files stay on the branches): the Marlow Five and Dime, the Lark Bend grain elevator and the Alder Bend Ballpark, eleven states in thirty-three .glb files (near, mid and far each). Placed in the
+capital only: TOWN_PLAN.md "The third intake in the capital".
+
+| kind (landmark_glb_...) | model (states) | lot (m) | triangles near / mid / far | from |
+|---|---|---|---|---|
+| `five_and_dime_1925`, `_1970`, `_2000`, `_closed` | Marlow Dime (1925-69), Marlow Variety (1970-99), Dollar Cove (2000-), for lease (vacant); a 10 x 28 m street-wall shop, party walls, a stockroom door at the back | 10.0 x 31.4 | 2,782 / 1,762 / 1,052; 2,792 / 1,772 / 1,064; 2,796 / 1,776 / 1,068; 2,050 / 1,702 / 1,078 | `codex/C001-five-and-dime` |
+| `grain_elevator_1925`, `_1950`, `_1990` | Lark Bend elevator: timber (1925-49), the concrete bins added (1950-89), the co-op (1990-); the siding along its back | 48.0 x 32.7; 71.0 x 32.8; 71.0 x 32.8 | 920 / 800 / 792; 3,228 / 2,076 / 1,472; 2,920 / 1,768 / 1,172 | `codex/C002-grain-elevator` |
+| `baseball_park_1935`, `_1950`, `_1960`, `_2000` | Alder Bend Ballpark: the wooden park (1935-49), the lights (1950-59), steel bleachers (1960-99), the aluminium renovation (2000-); a 600-seat grandstand, a ball field, a gravel lot at the gate | 144.3 x 155.2 | 6,519 / 4,023 / 3,375; 7,015 / 4,519 / 3,871 (1950, 1960 and 2000 alike) | `codex/C003-baseball-park` |
+
+- **Data**: `python3 tools/landmarks/intake.py --write --only=five-and-dime,grain-elevator,baseball-park` (the script's new `--only` runs just those folders; its rows are a third, table-driven set) wrote the
+  per-state `model-info-<state>.json` and the catalogue entries. The infos came in a fifth shape: a `states` list whose entries hold `models` (near, mid, far), the near one with the doors under `anchors`
+  (the shop), `doors` (the elevator) or `door_nodes_gltf_m` (the park) and the boxes under `collision_boxes_gltf_m` (the shop, the park) or `colliders` (the elevator): all flattened to the loader's
+  `doors[]` + `collision.boxes_gltf_y_up`. Lots are the near model's bounds (everything drawn).
+- **Years**: each state's years are the model-info's own (the catalogue's `era`): shop 1925-69 / 1970-99 / 2000- and, with no years of its own, the vacant state from the 2010s (the simulation closes Dollar Cove 2010-20);
+  elevator 1925-49 / 1950-89 / 1990-; park 1935-49 / 1950-59 / 1960-99 / 2000-.
+- **The distant models**: every state has its own `far` (and a `mid`) file; the catalogue's `far` is each state's (not one shared silhouette as the school's and the Great Meridian's), the loader draws it past
+  `TownLandmark.LOD`. They are 1,000-3,900 triangles, not the few hundred of a silhouette (the contributors' LOD ceiling is "about a third of near"): the ballpark's far model draws 3,871 triangles. The `mid` files are shipped and
+  catalogued (`mid`, a key the loader does not read: one far model only, as for the Great Meridian) but not drawn.
+- **Chains**: the elevator's states differ in width (48 m of timber; 71 m with the concrete bins), so the chain shares one plot (the 1950 state's, 71 x 32.8 m: `plot`) and the biggest state's middle (`centre`, 10.5 m); the
+  shop's and the park's states have one bounds each.
+- **The ballpark's gravel**: its `ground_gravel` picture (32 x 32, blue-grey 139,139,158 with white flecks) read almost white under the town's light. `python3 tools/landmarks/reskin_gravel.py` replaces it, in all twelve
+  files, with the town's own yard gravel: the picture the general store's yard is paved with (`StoreGrounds.GRAVEL`: 32 x 32 texels in four warm tones, 8A8070 / B0A690 / 6A6458 / 9E9480, drawn by `Paint.Rnd(7)`, here reproduced
+  bit for bit). The grid needed no change: the model's UVs lay one 32-texel picture over 1.2416 m, which is 0.0388 m a texel (measured on the lot's quad: 72 m is 57.99 UV units). The picture is baked into the .glb (the new PNG appended
+  to the bin chunk, the image's bufferView pointed at it; nothing else moves) rather than done through the catalogue's `swatches` (there is no gravel swatch in the atlas: `ballast` is the roof's tar and gravel). `theBallparksGravelIsOurOwnAndNotWhite` pins it.
+- **Against the guide**: no closed door panels (the entrances are open); no `door_` marked inner; collision boxes read as they come (glTF Y-up, all `building` group but the shop's pavement and yard, `lot`: 12 in the shop, 51 in the elevator);
+  the elevator's `rail_siding` (a centreline at z -28.5, x -27..47, the timber spout at -16 and the concrete one at 35) is not drawn by the model: the game lays the track (TOWN_PLAN.md: the capital's rail adds a siding along the plot's back).
+  The scale test's height limit for the elevator's role is 50 m (the model is 44.7 m); the ballpark is 17.4 m.
+- **Measured** (desktop, software GL, not the S25): the town's memory check with them in (gamma, whole town cold start, 320 MB heap): held peak 161 MB (live 133 + direct 58; 160 before, budget 256), 84,514 triangles in the far view; the renders were desktop contact sheets (Filament, software GL); triangles above are the near models', counted by `glbinfo.py`.
 
 ## The loader (shared/src/filament/kotlin/scene3d/)
 

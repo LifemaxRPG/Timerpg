@@ -20,7 +20,7 @@ class LandmarkGlbTest {
     private val U = LandmarkKit.UNITS_PER_METRE
 
     /** The roles of the intake models (docs/queue/INTAKE.md) whose doors may stand back from the lot's front. */
-    private val INTAKE_ROLES = setOf("monument", "roadside_attraction", "rest_area", "lodge", "church", "school", "library", "bank", "drugstore", "carhop", "fire_station", "post_office")
+    private val INTAKE_ROLES = setOf("monument", "roadside_attraction", "rest_area", "lodge", "church", "school", "library", "bank", "drugstore", "carhop", "fire_station", "post_office", "five_and_dime", "grain_elevator", "ballpark")
 
     private fun build(s: LandmarkSpec, year: Int = s.built, keepLot: Boolean = true) =
         LandmarkKit.build(GlbFile.read(File(root, s.file).readBytes()), s, year, 7, keepLot, info = s.info?.let { File(root, it).readText() })
@@ -61,7 +61,7 @@ class LandmarkGlbTest {
             // a storey is 3-8 m (no model 21 times too big or small): a figure is 36 units
             // (the courthouse's clock tower and spire: 38 m)
             // (the monuments: the Great Meridian's spire is 106 m, the Eyrie's wings 113 m; the school's tower 21 m, the Night Keeper 34 m)
-            chk("${s.kind} height ${m.height / U} m", m.height / U in 3f..(if (s.kind.endsWith("water_tower")) 30f else if (s.role == "courthouse") 40f else if (s.role == "monument") 120f else if (s.role == "roadside_attraction" || s.role == "church") 36f else 22f))
+            chk("${s.kind} height ${m.height / U} m", m.height / U in 3f..(if (s.kind.endsWith("water_tower")) 30f else if (s.role == "courthouse") 40f else if (s.role == "monument") 120f else if (s.role == "grain_elevator") 50f else if (s.role == "roadside_attraction" || s.role == "church") 36f else 22f))
             // the collision mesh is never drawn (no part carries its boxes' name)
             chk("${s.kind} draws its collision mesh", lm.names.none { it == "collision" })
             // windows lit by role, signs glowing (a water tower has no glass, only its beacon, and no door)
@@ -319,7 +319,10 @@ class LandmarkGlbTest {
         "lincoln_high_school_1925", "lincoln_high_school_1955", "lincoln_high_school_1975", "lincoln_high_school_2000",
         "carhop_drive_in_original", "carhop_drive_in_closed", "carhop_drive_in_restored", "fire_station_1924", "fire_station_1988", "post_office_1938", "post_office_1988",
         "highway_rest_area", "lantern_pine_lodge", "the_eyrie", "union_arch", "night_keeper", "beach_blvd_rex",
-        "great_meridian_1926", "great_meridian_1941", "great_meridian_1976", "great_meridian_2000")
+        "great_meridian_1926", "great_meridian_1941", "great_meridian_1976", "great_meridian_2000",
+        // the third intake (C001-C003)
+        "five_and_dime_1925", "five_and_dime_1970", "five_and_dime_2000", "five_and_dime_closed", "grain_elevator_1925", "grain_elevator_1950", "grain_elevator_1990",
+        "baseball_park_1935", "baseball_park_1950", "baseball_park_1960", "baseball_park_2000")
 
     @Test fun theIntakeModelsAreInTheCatalogue() {
         for (k in INTAKE) assertTrue("$k listed", specs.any { it.kind == "landmark_glb_$k" })
@@ -393,5 +396,47 @@ class LandmarkGlbTest {
         // the Rex's asphalt strip lies under its pavement: after the lift nothing of its ground is below the town's
         val lm = build(specs.first { it.kind.endsWith("beach_blvd_rex") })
         for ((n, p) in lm.names.zip(lm.model.parts)) if (n.startsWith("ground_")) assertTrue("$n ${p.mesh.bounds[4]}", p.mesh.bounds[4] >= LandmarkKit.GROUND - .05f)
+    }
+
+    // ------------------------------------------------------------------------------------------------ the third intake (C001-C003, 2026-11-23)
+    private val THIRD = mapOf(
+        "five_and_dime" to listOf("1925", "1970", "2000", "closed"), "grain_elevator" to listOf("1925", "1950", "1990"), "baseball_park" to listOf("1935", "1950", "1960", "2000"))
+
+    @Test fun theThirdIntakeHasItsStatesYearsAndDistantModels() {
+        for ((m, states) in THIRD) {
+            val c = states.map { st -> specs.first { it.kind == "landmark_glb_${m}_$st" } }
+            // every state has a distant model (a real file that builds, doors and all) and a mid one shipped beside it (the loader has one far model: the mid is not used)
+            for (s in c) {
+                assertTrue("${s.kind} far", s.far != null && File(root, s.far!!).isFile)
+                val far = LandmarkKit.build(GlbFile.read(File(root, s.far!!).readBytes()), s, s.built, 7, true, info = s.info?.let { File(root, it).readText() })
+                assertTrue("${s.kind} far has parts", far.model.parts.isNotEmpty())
+                assertTrue("${s.kind} far keeps its main door", far.doors.any { it.name == "door_main" })
+                assertTrue("${s.kind} mid shipped", File(root, s.file.replace(".glb", "-mid.glb")).isFile)
+            }
+            // the years run on from one state to the next (the model-info's ranges)
+            c.zipWithNext().forEach { (a, b) -> assertTrue("${a.kind} -> ${b.kind}", b.from >= a.from) }
+        }
+        // the elevator's chain differs in width (48 m of timber, then 71 m with the concrete bins): one building place, the biggest state's middle
+        val el = THIRD.getValue("grain_elevator").map { st -> specs.first { it.kind == "landmark_glb_grain_elevator_$st" } }
+        assertEquals(1, el.map { it.centre }.distinct().size); assertTrue(el[0].centre != null)
+        // the five and dime: the dime store to 1969, the variety store 1970-99, Dollar Cove from 2000 (the closed state is the 2010s on)
+        assertEquals(listOf(1925, 1970, 2000), THIRD.getValue("five_and_dime").take(3).map { st -> specs.first { it.kind == "landmark_glb_five_and_dime_$st" }.from })
+        // the ballpark's lights 1950, steel bleachers 1960, aluminium renovation 2000; the elevator's concrete bins 1950, the co-op 1990
+        assertEquals(listOf(1935, 1950, 1960, 2000), THIRD.getValue("baseball_park").map { st -> specs.first { it.kind == "landmark_glb_baseball_park_$st" }.from })
+        assertEquals(listOf(1925, 1950, 1990), el.map { it.from })
+    }
+
+    @Test fun theBallparksGravelIsOurOwnAndNotWhite() {
+        // the contributor's ground_gravel (139,139,158 with white flecks) read almost white: every level of every state now carries the town's yard gravel
+        // (StoreGrounds.GRAVEL: four warm tones on the 0.0388 m texel grid, a 32 x 32 picture over 1.2416 m; tools/landmarks/reskin_gravel.py)
+        val warm = setOf(0xFF8A8070.toInt(), 0xFFB0A690.toInt(), 0xFF6A6458.toInt(), 0xFF9E9480.toInt())
+        for (st in listOf("1935", "1950", "1960", "2000")) for (suffix in listOf("", "-mid", "-far")) {
+            val glb = GlbFile.read(File(root, "baseball-park/alder-bend-$st$suffix.glb").readBytes())
+            val img = glb.image(glb.materials.first { it.name == "ground_gravel" }.baseImage)
+            assertEquals("$st$suffix gravel is 32 x 32", 32, img.w); assertEquals(32, img.h)
+            assertTrue("$st$suffix gravel uses the town's four tones", img.px.all { it in warm })
+        }
+        // and the lot's ground is drawn from it
+        assertTrue(build(specs.first { it.kind.endsWith("baseball_park_2000") }).names.any { it == "ground_gravel" })
     }
 }

@@ -1,0 +1,1017 @@
+{
+ "name": "Alder Bend Ballpark",
+ "state": "landmark_glb_baseball_park_1950",
+ "file": "alder-bend-1950.glb",
+ "doors": [
+  {
+   "node": "door_main",
+   "position": [
+    0,
+    0.09,
+    0.34
+   ],
+   "external": true
+  },
+  {
+   "node": "door_tickets",
+   "position": [
+    -10.369,
+    0.09,
+    -2.09
+   ],
+   "external": true
+  },
+  {
+   "node": "door_concessions",
+   "position": [
+    14.187,
+    0.09,
+    -2.09
+   ],
+   "external": true
+  }
+ ],
+ "collision": {
+  "coordinate_note": "glTF Y-up metres, from the contributor info (near model)",
+  "boxes_gltf_y_up": [
+   {
+    "source": "Foul pole",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -72.0,
+     3.5639999999999996,
+     -99.0
+    ],
+    "size": [
+     0.1699999999999875,
+     7.072,
+     0.1699999999999875
+    ]
+   },
+   {
+    "source": "Foul pole",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     72.0,
+     3.5639999999999996,
+     -99.0
+    ],
+    "size": [
+     0.1699999999999875,
+     7.072,
+     0.1699999999999875
+    ]
+   },
+   {
+    "source": "Entry brick boundary",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -10.15,
+     0.9025,
+     -0.11
+    ],
+    "size": [
+     15.7,
+     1.7550000000000001,
+     0.3
+    ]
+   },
+   {
+    "source": "Entry brick boundary",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     10.15,
+     0.9025,
+     -0.11
+    ],
+    "size": [
+     15.7,
+     1.7550000000000001,
+     0.3
+    ]
+   },
+   {
+    "source": "Gate post",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -2.45,
+     1.89,
+     -0.06000000000000001
+    ],
+    "size": [
+     0.3200000000000003,
+     3.72,
+     0.44000000000000006
+    ]
+   },
+   {
+    "source": "Gate post",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     2.45,
+     1.89,
+     -0.06000000000000001
+    ],
+    "size": [
+     0.3200000000000003,
+     3.72,
+     0.44000000000000006
+    ]
+   },
+   {
+    "source": "Marquee outer pillar",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -8.92,
+     1.6849999999999998,
+     -0.125
+    ],
+    "size": [
+     0.46000000000000085,
+     3.19,
+     0.47
+    ]
+   },
+   {
+    "source": "Marquee outer pillar",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     8.92,
+     1.6849999999999998,
+     -0.125
+    ],
+    "size": [
+     0.46000000000000085,
+     3.19,
+     0.47
+    ]
+   },
+   {
+    "source": "Ticket booth front with fixed glazing",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -12.7395,
+     1.6199999999999999,
+     -2.49
+    ],
+    "size": [
+     3.421000000000001,
+     3.06,
+     0.18000000000000016
+    ]
+   },
+   {
+    "source": "Ticket booth front with fixed glazing",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -9.4295,
+     1.6199999999999999,
+     -2.49
+    ],
+    "size": [
+     0.5589999999999993,
+     3.06,
+     0.18000000000000016
+    ]
+   },
+   {
+    "source": "Ticket booth side wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -14.360000000000001,
+     1.6199999999999999,
+     -4.75
+    ],
+    "size": [
+     0.17999999999999972,
+     3.06,
+     4.34
+    ]
+   },
+   {
+    "source": "Ticket booth side wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -9.24,
+     1.6199999999999999,
+     -4.75
+    ],
+    "size": [
+     0.17999999999999972,
+     3.06,
+     4.34
+    ]
+   },
+   {
+    "source": "Ticket booth back wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -11.8,
+     1.6199999999999999,
+     -7.01
+    ],
+    "size": [
+     5.300000000000001,
+     3.06,
+     0.17999999999999972
+    ]
+   },
+   {
+    "source": "Ticket booth counter",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -13.670000000000002,
+     0.56,
+     -5.2299999999999995
+    ],
+    "size": [
+     1.0600000000000005,
+     0.9400000000000001,
+     3.26
+    ]
+   },
+   {
+    "source": "Concession stand front with fixed glazing",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     10.7385,
+     1.6199999999999999,
+     -2.49
+    ],
+    "size": [
+     5.576999999999999,
+     3.06,
+     0.18000000000000016
+    ]
+   },
+   {
+    "source": "Concession stand front with fixed glazing",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     15.4485,
+     1.6199999999999999,
+     -2.49
+    ],
+    "size": [
+     1.2030000000000012,
+     3.06,
+     0.18000000000000016
+    ]
+   },
+   {
+    "source": "Concession stand side wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     8.040000000000001,
+     1.6199999999999999,
+     -5.4
+    ],
+    "size": [
+     0.1800000000000006,
+     3.06,
+     5.640000000000001
+    ]
+   },
+   {
+    "source": "Concession stand side wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     15.96,
+     1.6199999999999999,
+     -5.4
+    ],
+    "size": [
+     0.17999999999999972,
+     3.06,
+     5.640000000000001
+    ]
+   },
+   {
+    "source": "Concession stand back wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     12.0,
+     1.6199999999999999,
+     -8.31
+    ],
+    "size": [
+     8.100000000000001,
+     3.06,
+     0.17999999999999972
+    ]
+   },
+   {
+    "source": "Concession stand counter",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     8.73,
+     0.56,
+     -5.88
+    ],
+    "size": [
+     1.0600000000000005,
+     0.9400000000000001,
+     4.5600000000000005
+    ]
+   },
+   {
+    "source": "Grandstand split rear wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -10.3,
+     1.835,
+     -8.795
+    ],
+    "size": [
+     15.4,
+     3.49,
+     0.25
+    ]
+   },
+   {
+    "source": "Grandstand split rear wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     10.3,
+     1.835,
+     -8.795
+    ],
+    "size": [
+     15.4,
+     3.49,
+     0.25
+    ]
+   },
+   {
+    "source": "Grandstand side support",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -17.85,
+     4.195,
+     -9.125
+    ],
+    "size": [
+     0.28000000000000114,
+     8.21,
+     0.4499999999999993
+    ]
+   },
+   {
+    "source": "Grandstand side support",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -11.0,
+     4.195,
+     -9.125
+    ],
+    "size": [
+     0.28000000000000114,
+     8.21,
+     0.4499999999999993
+    ]
+   },
+   {
+    "source": "Grandstand side support",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     11.0,
+     4.195,
+     -9.125
+    ],
+    "size": [
+     0.28000000000000114,
+     8.21,
+     0.4499999999999993
+    ]
+   },
+   {
+    "source": "Grandstand side support",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     17.85,
+     4.195,
+     -9.125
+    ],
+    "size": [
+     0.28000000000000114,
+     8.21,
+     0.4499999999999993
+    ]
+   },
+   {
+    "source": "Field-side canopy column",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -17.35,
+     4.045,
+     -19.15
+    ],
+    "size": [
+     0.28000000000000114,
+     7.91,
+     0.33999999999999986
+    ]
+   },
+   {
+    "source": "Field-side canopy column",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -5.64,
+     4.045,
+     -19.15
+    ],
+    "size": [
+     0.27999999999999936,
+     7.91,
+     0.33999999999999986
+    ]
+   },
+   {
+    "source": "Field-side canopy column",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     5.64,
+     4.045,
+     -19.15
+    ],
+    "size": [
+     0.27999999999999936,
+     7.91,
+     0.33999999999999986
+    ]
+   },
+   {
+    "source": "Field-side canopy column",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     17.35,
+     4.045,
+     -19.15
+    ],
+    "size": [
+     0.28000000000000114,
+     7.91,
+     0.33999999999999986
+    ]
+   },
+   {
+    "source": "Seating bank 1",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -12.129999999999999,
+     1.9,
+     -14.755
+    ],
+    "size": [
+     9.6,
+     3.62,
+     7.41
+    ]
+   },
+   {
+    "source": "Seating bank 2",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     1.9,
+     -14.755
+    ],
+    "size": [
+     9.6,
+     3.62,
+     7.41
+    ]
+   },
+   {
+    "source": "Seating bank 3",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     12.129999999999999,
+     1.9,
+     -14.755
+    ],
+    "size": [
+     9.6,
+     3.62,
+     7.41
+    ]
+   },
+   {
+    "source": "Backstop screen",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     3.114,
+     -20.595
+    ],
+    "size": [
+     15.48,
+     6.172000000000001,
+     0.19000000000000128
+    ]
+   },
+   {
+    "source": "Secondary bleachers",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -28.5,
+     1.258,
+     -33.3
+    ],
+    "size": [
+     4.399999999999999,
+     2.4640000000000004,
+     16.2
+    ]
+   },
+   {
+    "source": "Dugout rear wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -18.9,
+     1.285,
+     -21.655
+    ],
+    "size": [
+     9.159999999999998,
+     2.39,
+     0.2699999999999996
+    ]
+   },
+   {
+    "source": "Dugout return",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -23.365,
+     1.285,
+     -23.67
+    ],
+    "size": [
+     0.22999999999999687,
+     2.39,
+     3.7600000000000016
+    ]
+   },
+   {
+    "source": "Dugout return",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -14.434999999999999,
+     1.285,
+     -23.67
+    ],
+    "size": [
+     0.23000000000000043,
+     2.39,
+     3.7600000000000016
+    ]
+   },
+   {
+    "source": "Dugout bench",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -18.9,
+     0.33499999999999996,
+     -22.34
+    ],
+    "size": [
+     8.240000000000002,
+     0.49,
+     0.5600000000000023
+    ]
+   },
+   {
+    "source": "Secondary bleachers",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     28.5,
+     1.258,
+     -33.3
+    ],
+    "size": [
+     4.399999999999999,
+     2.4640000000000004,
+     16.2
+    ]
+   },
+   {
+    "source": "Dugout rear wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     18.9,
+     1.285,
+     -21.655
+    ],
+    "size": [
+     9.159999999999998,
+     2.39,
+     0.2699999999999996
+    ]
+   },
+   {
+    "source": "Dugout return",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     14.434999999999999,
+     1.285,
+     -23.67
+    ],
+    "size": [
+     0.23000000000000043,
+     2.39,
+     3.7600000000000016
+    ]
+   },
+   {
+    "source": "Dugout return",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     23.365,
+     1.285,
+     -23.67
+    ],
+    "size": [
+     0.22999999999999687,
+     2.39,
+     3.7600000000000016
+    ]
+   },
+   {
+    "source": "Dugout bench",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     18.9,
+     0.33499999999999996,
+     -22.34
+    ],
+    "size": [
+     8.240000000000002,
+     0.49,
+     0.5600000000000023
+    ]
+   },
+   {
+    "source": "Stepped outfield fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -72.0,
+     1.319,
+     -108.0
+    ],
+    "size": [
+     0.22999999999998977,
+     2.582,
+     18.22999999999999
+    ]
+   },
+   {
+    "source": "Stepped outfield fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -66.0,
+     1.319,
+     -117.0
+    ],
+    "size": [
+     12.229999999999997,
+     2.582,
+     0.22999999999998977
+    ]
+   },
+   {
+    "source": "Stepped outfield fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -60.0,
+     1.319,
+     -123.0
+    ],
+    "size": [
+     0.23000000000000398,
+     2.582,
+     12.230000000000004
+    ]
+   },
+   {
+    "source": "Stepped outfield fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -51.5,
+     1.319,
+     -129.0
+    ],
+    "size": [
+     17.230000000000004,
+     2.582,
+     0.2300000000000182
+    ]
+   },
+   {
+    "source": "Stepped outfield fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -43.0,
+     1.319,
+     -133.0
+    ],
+    "size": [
+     0.23000000000000398,
+     2.582,
+     8.230000000000018
+    ]
+   },
+   {
+    "source": "Stepped outfield fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -33.0,
+     1.319,
+     -137.0
+    ],
+    "size": [
+     20.23,
+     2.582,
+     0.2300000000000182
+    ]
+   },
+   {
+    "source": "Stepped outfield fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -23.0,
+     1.319,
+     -141.0
+    ],
+    "size": [
+     0.22999999999999687,
+     2.582,
+     8.230000000000018
+    ]
+   },
+   {
+    "source": "Stepped outfield fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     1.319,
+     -145.0
+    ],
+    "size": [
+     46.23,
+     2.582,
+     0.2300000000000182
+    ]
+   },
+   {
+    "source": "Stepped outfield fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     23.0,
+     1.319,
+     -141.0
+    ],
+    "size": [
+     0.22999999999999687,
+     2.582,
+     8.230000000000018
+    ]
+   },
+   {
+    "source": "Stepped outfield fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     33.0,
+     1.319,
+     -137.0
+    ],
+    "size": [
+     20.23,
+     2.582,
+     0.2300000000000182
+    ]
+   },
+   {
+    "source": "Stepped outfield fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     43.0,
+     1.319,
+     -133.0
+    ],
+    "size": [
+     0.23000000000000398,
+     2.582,
+     8.230000000000018
+    ]
+   },
+   {
+    "source": "Stepped outfield fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     51.5,
+     1.319,
+     -129.0
+    ],
+    "size": [
+     17.230000000000004,
+     2.582,
+     0.2300000000000182
+    ]
+   },
+   {
+    "source": "Stepped outfield fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     60.0,
+     1.319,
+     -123.0
+    ],
+    "size": [
+     0.23000000000000398,
+     2.582,
+     12.230000000000004
+    ]
+   },
+   {
+    "source": "Stepped outfield fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     66.0,
+     1.319,
+     -117.0
+    ],
+    "size": [
+     12.229999999999997,
+     2.582,
+     0.22999999999998977
+    ]
+   },
+   {
+    "source": "Stepped outfield fence",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     72.0,
+     1.319,
+     -108.0
+    ],
+    "size": [
+     0.22999999999998977,
+     2.582,
+     18.22999999999999
+    ]
+   },
+   {
+    "source": "Scoreboard upright",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     11.150624,
+     3.4147999999999996,
+     -144.05
+    ],
+    "size": [
+     0.3200000000000003,
+     6.7736,
+     0.4000000000000057
+    ]
+   },
+   {
+    "source": "Scoreboard upright",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     19.649376,
+     3.4147999999999996,
+     -144.05
+    ],
+    "size": [
+     0.3200000000000003,
+     6.7736,
+     0.4000000000000057
+    ]
+   },
+   {
+    "source": "Flood mast",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -43.0,
+     8.7,
+     -50.0
+    ],
+    "size": [
+     0.9200000000000017,
+     17.4,
+     0.9200000000000017
+    ]
+   },
+   {
+    "source": "Flood mast",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     43.0,
+     8.7,
+     -50.0
+    ],
+    "size": [
+     0.9200000000000017,
+     17.4,
+     0.9200000000000017
+    ]
+   },
+   {
+    "source": "Flood mast",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -62.0,
+     8.7,
+     -110.0
+    ],
+    "size": [
+     0.9200000000000017,
+     17.4,
+     0.9199999999999875
+    ]
+   },
+   {
+    "source": "Flood mast",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     62.0,
+     8.7,
+     -110.0
+    ],
+    "size": [
+     0.9200000000000017,
+     17.4,
+     0.9199999999999875
+    ]
+   }
+  ]
+ },
+ "lot_node": null,
+ "triangles_visible": 7015,
+ "source": "codex/baseball-park model-info.json, flattened per state by tools/landmarks/intake.py"
+}

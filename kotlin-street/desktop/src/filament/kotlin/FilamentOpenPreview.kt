@@ -396,6 +396,11 @@ fun renderFilamentOpen(out: String) {
         view("${n}_night", pf[0], pf[1], xx, xz, fwd + 20f, 12f, 600f + (lot[2] - lot[0]) * .5f, night, "$kind at night")
         // (the funeral home: the street at a person's height close in, day and night, and its sign, a low double-faced board at
         // x 5.6..9.3 m whose front face is at z 1.56 m, seen by the player standing before it)
+        // (a street-wall shop: the sidewalk before its facade, the neighbours either side in the frame)
+        if (kind.startsWith("five_and_dime")) {
+            val pw = at(xm, zf + 50f)
+            view("${n}_wall_13h", pw[0], pw[1], xx, xz, fwd, 5f, 230f, 13f, "$kind, from the Main Street sidewalk before its facade")
+        }
         if (kind == "funeral_home") {
             val u = com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkKit.UNITS_PER_METRE
             val ps = at(xm, zf + 60f); val sg = at(11.4f * u, 4.2f * u)

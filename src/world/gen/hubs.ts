@@ -31,22 +31,23 @@ export interface HubSpec {
 }
 
 const T = 2.1; // metres a tile
-// gamma (planTown('gamma'), plan v2: 965 x 307 tiles, centre (789, 144)); pins read from the plan and checked by
+// gamma (planTown('gamma'), plan v2: 965 x 382 tiles, centre (789, 219); the third intake's ballpark block grew the plan 75 tiles at the top, every
+// y below moved by 75 and the world was baked again); pins read from the plan and checked by
 // src/world/gen/gen.test.ts against planTown and townRail: the river column at x 706 runs north-south through the
-// town; Main Street's ends (x 14 and 951, its middle line y 142: the road's y 141 and its 2 tiles) are where the highways
+// town; Main Street's ends (x 14 and 951, its middle line y 217: the road's y 216 and its 2 tiles) are where the highways
 // leave west and east; the main line's portals
-// are on the farm ring's edge, east (1063, 49.5) and west (-99, 40.2).
-const G = { cx: 789, cy: 144 };
+// are on the farm ring's edge, east (1063, 124.5) and west (-99, 115.2).
+const G = { cx: 789, cy: 219 };
 const gp = (kind: PinKind, name: string, x: number, y: number, ox: number, oz: number): Pin => ({ kind, name, dx: Math.round((x - G.cx) * T), dz: Math.round((y - G.cy) * T), ox, oz });
 export const GAMMA_PINS: Pin[] = [
   gp('river', 'river north', 708, 0, 0, -1),
-  gp('river', 'river south', 705, 307, 0, 1),
-  gp('highway', 'west', 14, 142, -1, 0),
-  gp('highway', 'east', 951, 142, 1, 0),
-  gp('rail', 'west', -99, 40.2, -1, 0),
-  gp('rail', 'east', 1063, 49.5, 1, 0),
+  gp('river', 'river south', 705, 382, 0, 1),
+  gp('highway', 'west', 14, 217, -1, 0),
+  gp('highway', 'east', 951, 217, 1, 0),
+  gp('rail', 'west', -99, 115.2, -1, 0),
+  gp('rail', 'east', 1063, 124.5, 1, 0),
 ];
-export const GAMMA_PLAN_TILES = { w: 965, h: 307, cx: G.cx, cy: G.cy, ring: 100 };
+export const GAMMA_PLAN_TILES = { w: 965, h: 382, cx: G.cx, cy: G.cy, ring: 100 };
 
 /** A hub not yet authored: a generic 3 km pad with highway and rail pins on all four sides (and a waterfront for ports). */
 function generic(key: string, type: HubType, launch: boolean): HubSpec {

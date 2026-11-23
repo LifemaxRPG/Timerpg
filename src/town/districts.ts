@@ -272,6 +272,8 @@ function fill(p: Plat): Districts {
       const riverAt = mill && p.river ? p.river.column.map((c) => ({ x: c.x + c.w / 2, y: c.y + c.h / 2 })).sort((a, q) => Math.abs(a.x - cx) - Math.abs(q.x - cx))[0] : undefined;
       reserve('glb:foundry', chainOf(works), [...byRiver, ...towardStrip, ...awayStrip], () => [townFace], [tiles('landmark_glb_foundry_factory')], 'near', { pad: 2, ...(riverAt ? { toward: riverAt } : {}) });
     }
+    // the Lark Bend grain elevator on the siding by the depot (the third intake): fronting the town side, its back to the track where the siding runs
+    if (plotChain('grain_elevator').length) reserve('glb:grain_elevator', chainOf(plotChain('grain_elevator')), [...awayStrip, ...towardStrip], () => [townFace], [tiles('landmark_glb_grain_elevator_1950')], 'near', { pad: 2 });
     // the farm town's water tower beside the elevator
     if (p.type === 'farm' && has('water_tower').length) reserve('glb:water_tower', chainOf(has('water_tower')), [...awayStrip, ...towardStrip], () => [townFace], [tiles('landmark_glb_water_tower')], 'near', { pad: 2 });
   }
@@ -319,6 +321,8 @@ function fill(p: Plat): Districts {
   if (plotChain('brick_church').length) reserve('glb:brick_church', chainOf(plotChain('brick_church'), 'woods'), byNear(blocksOf(['old', 'westmain'])), toSquare, [tiles('landmark_glb_brick_church')], 'strip', { pad: 2 });
   if (plotChain('country_church').length) reserve('glb:country_church', chainOf(plotChain('country_church'), 'field'), [...byNear(blocksOf(['late', 'postwar', 'heights', 'old'])).reverse()], toSquare, [tiles('landmark_glb_country_church')], 'far', { pad: 2 });
   if (plotChain('carhop_drive_in').length) reserve('glb:carhop_drive_in', chainOf(plotChain('carhop_drive_in')), [...stripN, ...stripS], (b) => [mainFace(b)], [tiles('landmark_glb_carhop_drive_in_original')], 'core', { pad: 2 });
+  // ---- the third intake's five and dime (before the grounds' reserved plot and the other future plots, which stay last in the ledger): mid-block in a street wall on Main Street's core blocks (south side, beside the bank in the block nearest the civic block's strip side, where the shops stand; the north side's first block is the start view's street wall; its party walls meet the shops beside it)
+  if (plotChain('five_and_dime').length) reserve('glb:five_and_dime', chainOf(plotChain('five_and_dime'), 'shops'), [...nearCivic(south, 1), ...nearCivic(north, 1).slice(1), ...nearCivic(north, 1).slice(0, 1), ...nearCivic(north, -1), ...south], (b) => [mainFace(b)], [tiles('landmark_glb_five_and_dime_1925')], 'mid', { pad: 0 });
   {
     const gb = (row: number): Block | undefined => blocksOf('grounds', row)[0];
     const onG = (id: string, m: string, row: number, pos: Parameters<typeof positions>[3], first?: GlbLandmarkKind): void => {
@@ -336,6 +340,8 @@ function fill(p: Plat): Districts {
     onG('glb:union_arch', 'union_arch', 0, 'far');
     onG('glb:beach_blvd_rex', 'beach_blvd_rex', 0, 'mid');
     onG('glb:lincoln_high_school', 'lincoln_high_school', 1, 'mid');
+    // (the ballpark behind the school, in the grounds' third south block: its gravel lot on the street between them)
+    onG('glb:baseball_park', 'baseball_park', 2, 'mid');
     // (one more reserved landmark plot for what comes next, between the Rex and the Night Keeper)
     if (gb(0)) reserve('future:landmark:3', [{ use: 'reserved', from: 0 }], [gb(0)], (b) => [mainFace(b)], [[30, 20]], 'near', { pad: 1 });
   }

@@ -89,6 +89,10 @@ const LOT_TYPE: Record<GlbLandmarkKind, GlbLotType> = {
   landmark_glb_highway_rest_area: 'edge', landmark_glb_lantern_pine_lodge: 'edge', landmark_glb_the_eyrie: 'edge', landmark_glb_union_arch: 'edge',
   landmark_glb_night_keeper: 'edge', landmark_glb_beach_blvd_rex: 'edge',
   landmark_glb_great_meridian_1926: 'edge', landmark_glb_great_meridian_1941: 'edge', landmark_glb_great_meridian_1976: 'edge', landmark_glb_great_meridian_2000: 'edge',
+  // the third intake: the five and dime mid-block downtown, the elevator on the rail side, the ballpark on the grounds
+  landmark_glb_five_and_dime_1925: 'downtown', landmark_glb_five_and_dime_1970: 'downtown', landmark_glb_five_and_dime_2000: 'downtown', landmark_glb_five_and_dime_closed: 'downtown',
+  landmark_glb_grain_elevator_1925: 'edge', landmark_glb_grain_elevator_1950: 'edge', landmark_glb_grain_elevator_1990: 'edge',
+  landmark_glb_baseball_park_1935: 'edge', landmark_glb_baseball_park_1950: 'edge', landmark_glb_baseball_park_1960: 'edge', landmark_glb_baseball_park_2000: 'edge',
 };
 /** Street-wall buildings: at the pavement in a block face of the old core, never beside a strip of car parks. */
 const WALL: ReadonlySet<GlbLandmarkKind> = new Set(['landmark_glb_gazette_office']);
@@ -115,6 +119,10 @@ export const INTAKE_STATES: Record<string, readonly GlbLandmarkKind[]> = {
   night_keeper: ['landmark_glb_night_keeper'],
   beach_blvd_rex: ['landmark_glb_beach_blvd_rex'],
   great_meridian: ['landmark_glb_great_meridian_1926', 'landmark_glb_great_meridian_1941', 'landmark_glb_great_meridian_1976', 'landmark_glb_great_meridian_2000'],
+  // the third intake (C001-C003): the capital's alone, like the monuments, until other hubs are authored
+  five_and_dime: ['landmark_glb_five_and_dime_1925', 'landmark_glb_five_and_dime_1970', 'landmark_glb_five_and_dime_2000', 'landmark_glb_five_and_dime_closed'],
+  grain_elevator: ['landmark_glb_grain_elevator_1925', 'landmark_glb_grain_elevator_1950', 'landmark_glb_grain_elevator_1990'],
+  baseball_park: ['landmark_glb_baseball_park_1935', 'landmark_glb_baseball_park_1950', 'landmark_glb_baseball_park_1960', 'landmark_glb_baseball_park_2000'],
 };
 const INTAKE_KINDS: ReadonlySet<GlbLandmarkKind> = new Set(Object.values(INTAKE_STATES).flat());
 /** Towns of these sizes (inhabitants at the peak) earn the ordinary intake models; the capital has every one. */
@@ -412,6 +420,12 @@ export function glbTenures(seed: string): GlbTenure[] {
     add('landmark_glb_night_keeper', { opened: yr(1930, 1938, 'open', 'keeper') });
     add('landmark_glb_beach_blvd_rex', { opened: yr(1964, 1972, 'open', 'rex') });
     states(INTAKE_STATES.great_meridian!, [yr(1926, 1930, 'open', 'meridian'), yr(1941, 1945, 'war', 'meridian'), yr(1976, 1980, 'worn', 'meridian'), yr(2000, 2004, 'restored', 'meridian')]);
+    // the third intake. The states' years are the models' own (model-info.json: the dime store 1925-69, the variety store 1970-99, Dollar Cove from 2000,
+    // for lease from the 2010s; the timber elevator 1925-49, the concrete bins 1950, the co-op 1990; the wooden park 1935-49, lights 1950, steel bleachers 1960, the
+    // renovation 2000); only the first opening is drawn (never before the town's founding), and the vacancy
+    states(INTAKE_STATES.five_and_dime!, [Math.max(yr(1925, 1930, 'open', 'dime'), Math.min(1930, founded + 6)), 1970, 2000, yr(2010, 2020, 'lease', 'dime')]);
+    states(INTAKE_STATES.grain_elevator!, [Math.max(yr(1925, 1935, 'open', 'elevator'), Math.min(1935, founded + 6)), 1950, 1990]);
+    states(INTAKE_STATES.baseball_park!, [Math.max(yr(1935, 1940, 'open', 'park'), Math.min(1940, founded + 6)), 1950, 1960, 2000]);
   }
   // the county seat's courthouse on its square: built 1885-1905, modernised in the 1950s (the annex), neglected from the
   // 1970s (the clock stopped), restored about 2000; four states on one plot (src/town/plat.ts isCountySeat)

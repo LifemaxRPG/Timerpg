@@ -24,11 +24,7 @@ them in the capital city. It runs after the town plan merges (`wf-town-plan`), b
 
 ## New from the queue (waiting for the next intake)
 
-| ID | Branch | What | Where in the capital |
-|---|---|---|---|
-| C001 | codex/C001-five-and-dime | Marlow Five and Dime, 4 states (1925 dime, 1970 variety, 2000 Dollar Cove, vacant) | downtown Main Street, mid-block in a street wall |
-| C002 | codex/C002-grain-elevator | Lark Bend grain elevator: 1925 timber, 1950 + concrete bins, 1990 co-op; rail siding reference in model-info | rail side, by the depot siding (also farm towns) |
-| C003 | codex/C003-baseball-park | Alder Bend Ballpark: 1935 wooden park, 1950 lights, 1960 steel bleachers, 2000 renovation (note: the gravel lot reads very white; re-skin it with our gravel swatch at intake) | edge of old town or the grounds district, with its gravel lot on a street |
+Nothing waits at the moment. C001, C002 and C003 went in on 2026-11-23 (see "Done" below).
 
 Coastal and port set: these wait for the coastal hub and the ocean, so they aren't placed in the capital yet:
 - codex/copperwake (the ships);
@@ -46,3 +42,15 @@ Coastal and port set: these wait for the coastal hub and the ocean, so they aren
 
 Every table row except the courthouse (imported by the town plan) is in the game and placed in the capital: kotlin-street/docs/LANDMARKS_GLB.md "The intake models",
 kotlin-street/docs/TOWN_PLAN.md "The intake models in the capital". The coastal and port set still waits.
+
+## Done: the third intake (2026-11-23, branch worktree-agent-a25e28c96190038b4)
+
+C001, C002 and C003 are in the game and placed in the capital (kotlin-street/docs/LANDMARKS_GLB.md "The third intake",
+kotlin-street/docs/TOWN_PLAN.md "The third intake in the capital"). Files copied with `git show origin/codex/<branch>:prototypes/<name>/...`, no merges.
+
+| ID | Branch | Where it went in the capital |
+|---|---|---|
+| C001 | codex/C001-five-and-dime | `glb:five_and_dime`: Main Street's core, mid-block in the street wall (north side), 9 x 15 tiles; dime store 1925, variety 1970, Dollar Cove 2000, for lease from the 2010s |
+| C002 | codex/C002-grain-elevator | `glb:grain_elevator`: the rail column's far end (two blocks made one, 82 tiles), 16 x 58 tiles facing the town side, its own siding along its back; timber 1925, concrete bins 1950, co-op 1990 |
+| C003 | codex/C003-baseball-park | `glb:baseball_park`: a third south block of the grounds column behind the school, 117 x 74 tiles, its gravel lot on the street; wooden park 1935, lights 1950, steel bleachers 1960, renovation 2000; gravel re-skinned with the town's yard gravel |
+
