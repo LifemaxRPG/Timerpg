@@ -847,3 +847,33 @@ Land must be visible from a realistic distance, not only when you're on top of i
   3 km low-ground haze (W4 open problem 3) first.
 - **Gameplay hooks:** a spyglass and binoculars (a long lens, already tested in the W4 views), a lookout calling "land
   ho", and charts.
+
+## Grand mountains (the owner's request, 2026-11-23; for W5b)
+
+Today every range's crest is drawn between 1,500 and 3,200 m (`terrain.ts`, `maxh`), so no mountain feels grand. The
+owner wants some mountains at a realistic, huge scale that you can climb, with mountain villages, and smaller
+mountains as well.
+
+- **Ranges by class.** Most ranges stay modest (1,000-3,000 m hills and mountains). A few, where plates collide hard
+  (the strongest convergence, ideally where two continents meet), become **great ranges**: crests of 4,500-7,000 m,
+  80-150 km wide, with deep valleys, glaciers and snowfields, and passes at 2,000-3,500 m. Aim for 1-2 great ranges on
+  the planet, and several middle ranges per continent.
+- **Real mountain structure:**
+  - long ridgelines with distinct peaks;
+  - U-shaped glacial valleys and V-shaped river valleys;
+  - cirques and lakes high up;
+  - scree fans;
+  - a timberline (pines, then bare rock, then snow), set by the climate model (latitude and continentality).
+  - The low-poly cliff rule still holds: faceted rock only where it's steep.
+- **Climbable.** The player can hike up: trails and switchbacks to summits, scrambles over rock, and huts. A real
+  climb takes a real-feeling amount of time. Later, with Jolt: climbing on steep rock, and falls with consequences.
+- **Mountain villages.** The small-town placer allows alpine hamlets and villages in high valleys and on passes:
+  terraced pastures, a chapel, a guesthouse, and a switchback road or a cog railway. Mining towns appear where the
+  geology says ore.
+- **Seen from far.** Great ranges dominate the skyline from 100+ km (the sea-view and impostor rules in "Seeing land
+  from the sea" apply on land too), and their snow catches the dawn and dusk light.
+- **Rendering:**
+  - rock and cliffs in chunkier pixels with visible facets (not fine noise);
+  - snow caps;
+  - tree lines;
+  - stronger slope lighting so ridges read in 3D.
