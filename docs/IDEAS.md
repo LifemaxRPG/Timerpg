@@ -476,5 +476,9 @@ changes by rules for its type, its owner and its era.
   The additions **reuse the model's own materials** (our models name materials by role: `wall_*`, `roof_*`,
   `glass_*`, `trim_*`), so a new room is built from the same brick, roof and window textures as the hand-made body and
   doesn't read as added. The base model carries the craft; the variations give each copy its own history.
-  What ChatGPT makes then shifts slowly toward era kit pieces that fit onto existing models (additions, storefront
-  swaps, sign boards), alongside new whole models.
+  The additions are **assembled by the game from a toolkit of parts**, not pre-made rooms. The toolkit holds:
+  - wall segments (plain, with a window, with a door);
+  - roof segments by pitch and form (gable, hip, flat with parapet, shed);
+  - corners, foundations, steps and porches, awnings, sign boards, trims, chimneys.
+  Each part takes the base model's own materials, so any addition can be built in any shape. ChatGPT's later work
+  includes these toolkit parts per era, alongside new whole models.
