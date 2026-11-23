@@ -52,7 +52,7 @@ save / load                       <--> one JSON string
 | `src/sim/` (people, schedules) | baked into the dialogue and town exports: in the game |
 | `src/crime/`, `src/plan/` | tested; run on the phone through the JS bridge (QuickJS-ng, SimJs.kt) |
 | `src/police/` (G009) | merged; the facade uses its own compact copy until G012 switches it to `src/police/` |
-| `src/loop/` (G011) | merged and bundled (`TimerpgSim`, and `simCall` for SimJs's one-argument calls); the game doesn't call it yet |
+| `src/loop/` (G011) | in the game: `LoopSession` (app) starts it with the capital and calls `act`, `advance`, `attitude`, `policeView`, `spotted`, `arrest`, `save`/`load` (shared/src/main/kotlin/loop; kotlin-street/docs/LOOP.md, "Wired into the game") |
 | `src/court/` (G010) | on hold until the loop plays; a fine or a night in a cell stands in |
 
 ## Who consumes what next
