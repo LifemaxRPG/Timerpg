@@ -73,7 +73,11 @@ allocated per frame, about 50 ns a frame on the desktop JVM). A low-priority thr
 (the percentiles sorted in a scratch array, the line built in a reused builder: 0 bytes allocated a second in the test),
 asks the game screen's provider where the player is and what they do, and appends the line; every 30 s the lines go to
 disk as one gzip member. A session is the game in front; it survives trips out under 5 minutes, and a killed process's
-file is closed as it was at the next start (each member is whole). The 🔖 button (beside 📷, shown with "Screenshots to
+file is closed as it was at the next start (each member is whole). Each trip out of sight closes the session's current
+*part* and sends it at once (a `partEnd` line with the seconds so far and the patterns so far); coming back within the
+5 minutes goes on in the same session in a new part (`<id>-p2`, `-p3`..., first line `part`). Before 2026-11-23 a
+session was closed and sent only 5 minutes after the game left the screen, when Android had already frozen the cached
+process (Android 14+) or Writer mode had closed it: the timeline went up at the next start, if ever. The 🔖 button (beside 📷, shown with "Screenshots to
 Claude" on) marks the moment, asks for a system trace and opens the screenshot sheet for a note.
 
 **Files** (the reports folder on the phone, sent to the `reports` branch; names with `~` for `/`; `open-` while written):
@@ -118,8 +122,12 @@ Claude" on) marks the moment, asks for a system trace and opens the screenshot s
   while moving in the town (5 minutes apart at least). The trace starts when asked: it shows what follows a spike, not
   the spike itself. At most 6 wait, each under 25 MB gzipped.
 
-**Uploads:** on each start and at each session's end, with the token: `play/` and `talk/` on Wi-Fi or while charging,
+**Uploads:** on each start, each time the game leaves the screen (the part just closed) and at each session's end, with
+the token: `play/` and `talk/` on Wi-Fi or while charging,
 `trace/` only on Wi-Fi and charging; at most 60 of each kind wait on the phone. No token or credential is written.
+Every upload's last success, last failure (path, HTTP code, GitHub's words) and last skip (no token, offline, not on
+Wi-Fi or charging) are kept (`shot/UploadLog`) and go in the screenshot JSON's `diagnostics.reports`, with the files
+waiting by kind. Writer mode gives the game's last part up to 10 s to go up before it closes the game's process.
 
 **Measured (desktop JVM, the unit tests; not the S25):** a synthetic hour of 120 Hz play is about 300 KB, 84 bytes a
 second compressed (the budget is 1 KB/s; real sessions add events, settings and account lines); the per-frame path

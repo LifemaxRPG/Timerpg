@@ -32,7 +32,17 @@ object PlayUploads {
         Traces.prune(dir)
     }
 
-    /** Sends what may go now (quietly; each file deleted once it is in the repository; stops at the first failure). */
+    /** The timeline and conversation files that may go now and have not yet ([com.timerpg.street.night.NightSession]
+     *  gives their upload a moment before it closes the game's process). */
+    fun waiting(ctx: Context): Int {
+        val dir = com.timerpg.street.shot.Reports.dir(ctx)
+        val p = Probes(ctx.applicationContext)
+        if (!allowed(Kind.PLAY, p.wifi(), p.chargingNow())) return 0
+        return pending(dir, Kind.PLAY).size + pending(dir, Kind.TALK).size
+    }
+
+    /** Sends what may go now (each file deleted once it is in the repository; stops at the first failure, which
+     *  [com.timerpg.street.shot.UploadLog] keeps). */
     fun send(ctx: Context) {
         val app = ctx.applicationContext
         val dir = com.timerpg.street.shot.Reports.dir(app)
@@ -43,7 +53,12 @@ object PlayUploads {
             val probes = Probes(app)
             val wifi = probes.wifi(); val charging = probes.chargingNow()
             for (kind in Kind.values()) {
-                if (!allowed(kind, wifi, charging)) continue
+                if (!allowed(kind, wifi, charging)) {
+                    if (pending(dir, kind).isNotEmpty()) com.timerpg.street.shot.UploadLog.skipped(app, kind.prefix.removeSuffix("~"),
+                        "not allowed now (Wi-Fi ${if (wifi) "yes" else "no"}, charging ${if (charging) "yes" else "no"}): " +
+                            if (kind == Kind.TRACE) "traces need both" else "needs Wi-Fi or charging")
+                    continue
+                }
                 for (f in pending(dir, kind)) {
                     val path = com.timerpg.street.shot.Reports.remotePath(f)
                     val bytes = runCatching { f.readBytes() }.getOrNull() ?: continue

@@ -1983,6 +1983,13 @@ private fun NightPanel(s: AiStatus, engine: DialogueEngine) {
     s.night?.let { Text("Now: ${it.label}", 12.sp) }
     val last = remember(tick) { nw.lastSummary(ctx) }
     Text("Last run: " + (last ?: "none yet"), 12.sp, color = DIM)
+    // the writer's own word on why it is or is not writing (its process keeps it: a run with no line says why)
+    remember(tick) { nw.status(ctx) }?.let { st ->
+        Text(st.line(System.currentTimeMillis()), 12.sp, color = if (st.state == "writing" || st.state == "stopped") DIM else Color(0xFFFFC27A))
+    }
+    remember(tick) { com.timerpg.street.shot.UploadLog.entry(ctx, "lastError") }?.let { e ->
+        Text("Last upload error: ${e.path} (${e.what})", 12.sp, color = Color(0xFFFFC27A))
+    }
     // what the player's conversations taught it (counts and labels; the words stay on the phone)
     val steer = engine.steer
     if (steer.themes.isNotEmpty())

@@ -88,6 +88,13 @@ class WriterLoop(
         return s
     }
 
+    /** Why it is or is not writing after the last [tick], in plain words ([WriterWhy]); [lastRejected]: the check's last
+     *  verdict, if the engine has one. */
+    fun why(lastRejected: String? = null): WriterWhy {
+        val st = engine.state
+        return WriterWhy.of(step, st, engine.detail, if (st == ModelState.READY) engine.held() else null, engine.count(), engine.left(), writingMs, lastRejected)
+    }
+
     /** The estimated time to write the [left] lines at this session's pace (ms), or null before there is a pace. */
     fun etaMs(now: Long): Long? = etaMs(engine.left(), engine.count().let { it.lines + it.variants }, now - start, writingMs)
 

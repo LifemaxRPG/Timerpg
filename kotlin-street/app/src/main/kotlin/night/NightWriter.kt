@@ -149,6 +149,8 @@ object NightWriter {
     } catch (e: Exception) {
         // Android 12+: ForegroundServiceStartNotAllowedException (an IllegalStateException) from the background
         Crumbs.add("overnight writer: the service may not start from here (${e.javaClass.simpleName})")
+        saveStatus(ctx, WriterStatus(System.currentTimeMillis(), if (writer) "writer" else "service", false, "not-started",
+            "Android did not let the writer's service start (${e.javaClass.simpleName}): battery use not Unrestricted?"))
         false
     }
 
@@ -271,4 +273,18 @@ object NightWriter {
     fun lastSummary(ctx: Context): String? = prefs(ctx).getString("lastLine", null)
 
     internal fun saveLast(ctx: Context, json: String, line: String) { prefs(ctx).edit().putString("last", json).putString("lastLine", line).apply() }
+
+    // ---- the writer's state, across processes
+
+    /** Keeps [s] (the writer's process writes it every change and at least once a minute; the game's reads it). */
+    fun saveStatus(ctx: Context, s: WriterStatus) { runCatching { prefs(ctx).edit().putString("status", s.json()).apply() } }
+
+    /** A writer that did not start or stopped at once (no session, no report): its reason kept all the same. */
+    fun noteNotStarted(ctx: Context, how: String, reason: String) {
+        Crumbs.add("writer ($how) not started: $reason")
+        saveStatus(ctx, WriterStatus(System.currentTimeMillis(), how, false, "not-started", reason))
+    }
+
+    /** The writer's last word on itself (null if it never ran on this build). */
+    fun status(ctx: Context): WriterStatus? = WriterStatus.parse(runCatching { prefs(ctx).getString("status", null) }.getOrNull())
 }

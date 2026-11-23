@@ -182,6 +182,19 @@ little live generation. Writer mode does the same on demand, from its own screen
   not hold the writing (only real pressure unloads the model; the writer loads it again with the hold lifted); the loop
   counts time held by the engine apart from writing time; the report names the hold, the engine's state at the end, and
   says when not a single token was generated.
+- **Why it writes nothing, said on screen** (after the owner's Writer mode run of 2026-11-23: minutes, no line, no
+  report reached GitHub): every tick `WriterWhy` names the reason it is not writing (waiting for the charger, resting
+  for heat, loading, the model failed to load or was let go, held by the engine, counting the lines, every line timed
+  out, failed or was turned down by the check, or ready with no token generated for 3 minutes). Writer mode's screen
+  shows it under the phase ("Not writing: ..."), the notification carries it, and the writer's process keeps it
+  (`WriterStatus` in the "night" preferences) for the game's AI panel and the screenshot JSON (`diagnostics.writer`,
+  stale after 2 minutes without a word). Lines given up for taking over 2 minutes and lines the model failed on were
+  counted nowhere (0 lines, 0 turned down): they are counted now (`timedOut`, `failed`, `lastFailure`, in the report
+  too). A writer that does not start (Android refused the service, the job's conditions) says so too. Every run that
+  reaches the model writes its report (a short one too), before it lets go of `writer.lock`; the game, opened, waits
+  for that lock and sends the report (the writer's own process is cached and frozen moments after it stops, so its
+  upload may never finish). Writer mode no longer stops at once ("the game was opened") while the game's screen is
+  still leaving the front: it waits up to 10 s for that.
 - **Its own process** (":writer": NightService, NightJob, WriterActivity): no town, Filament, voices, speech or memory
   model. It closes the game's process when that sits out of sight (Writer mode at once; overnight after 10 minutes out
   of sight unless there is room beside it already), marked so the game's next start does not report it as a crash. The

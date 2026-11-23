@@ -44,6 +44,10 @@ object NightReport {
         val lines: Int = 0,
         val variants: Int = 0,
         val rejected: Int = 0,
+        /** Lines given up for taking too long, lines the model failed on, and the last such failure in words. */
+        val timedOut: Int = 0,
+        val failed: Int = 0,
+        val lastFailure: String? = null,
         val genTokens: Long = 0,
         val genMs: Long = 0,
         val prefillTokens: Long = 0,
@@ -117,7 +121,11 @@ object NightReport {
         if (r.heldMs >= min) why += "${d(r.heldMs)} with the model ready but held by the engine (${r.heldBy ?: "?"})"
         if (r.written == 0 && r.writingMs >= min) why += "${d(r.writingMs)} of writing time without finishing a line" +
             (if (r.genTokens == 0L) " (the model generated no token at all: the engine never started a line; at the end it was ${r.engineAtEnd ?: "not known"})" else "") +
-            (if (r.rejected > 0) " (${r.rejected} turned down by the check${r.lastRejected?.let { ", the last: $it" } ?: ""})" else "") + (if (r.runsOn == "CPU") ", on the CPU" else "")
+            (if (r.rejected > 0) " (${r.rejected} turned down by the check${r.lastRejected?.let { ", the last: $it" } ?: ""})" else "") +
+            (if (r.timedOut > 0) " (${r.timedOut} took too long and were given up)" else "") +
+            (if (r.failed > 0) " (the model failed on ${r.failed})" else "") +
+            (if (r.timedOut + r.failed > 0) r.lastFailure?.let { ": $it" }.orEmpty() else "") + (if (r.runsOn == "CPU") ", on the CPU" else "")
+        else if (r.written > 0 && r.timedOut + r.failed > 0) why += "${r.timedOut} lines took too long, the model failed on ${r.failed}" + r.lastFailure?.let { " (the last: $it)" }.orEmpty()
         return buildString {
             append(head)
             if (why.isNotEmpty()) append(if (r.written > 0) "; " else ": ").append(why.joinToString("; "))
@@ -145,6 +153,7 @@ object NightReport {
         "app" to app,
         "written" to linkedMapOf(
             "lines" to r.lines, "variants" to r.variants, "rejected" to r.rejected,
+            "timedOut" to r.timedOut, "failed" to r.failed, "lastFailure" to r.lastFailure,
             "linesPerHour" to r1(r.linesPerHour), "linesPerWritingHour" to r1(r.linesPerWritingHour),
         ),
         "speed" to linkedMapOf(
