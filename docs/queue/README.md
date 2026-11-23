@@ -68,7 +68,10 @@ Don't guess numbers you can't see: write "not visible" for those.
   (`kotlin-street/app/src/main/assets/`, `src/`, `kotlin-street/shared/`, `kotlin-street/tools/`). Claude brings
   models into the game.
 - **Engineering:** change only the files the task names; add new files where it says. Run the tests it lists and
-  paste their summary in `DELIVERY.md`.
+  paste their summary in `DELIVERY.md`. **Don't build heavy toolchains from source** (Filament, the Android SDK or
+  NDK, llama.cpp) just to run tests. If your environment can't run them in a few minutes, deliver the code change with
+  your reasoning, write "tests not run here: <why>" in DELIVERY.md, and Claude runs the full suite on the build
+  server. Your time and the owner's usage are better spent on the code.
 - **Never:**
   - merge branches into each other;
   - force-push;
