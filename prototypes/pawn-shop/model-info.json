@@ -1,0 +1,2316 @@
+{
+  "name": "Latch & Lyre",
+  "naming": "owner",
+  "meters_per_texel": 0.0388,
+  "texels_per_art_pixel": 2,
+  "front_gltf": "+Z",
+  "origin": "ground at midpoint of front brick piers",
+  "shared_swatches": {
+    "wall_brick": "brick_red",
+    "floor_plank": "plank_horizontal",
+    "ground_paving": "pavement"
+  },
+  "states": {
+    "1920": {
+      "era": [
+        1920,
+        1959
+      ],
+      "footprint_m": [
+        7.8,
+        14.0
+      ],
+      "height_m": 4.92,
+      "lot_bounds_gltf_m": [
+        [
+          -5.25,
+          0,
+          -16.65
+        ],
+        [
+          5.25,
+          0.052,
+          2.9
+        ]
+      ],
+      "doors": {
+        "door_main": {
+          "position_gltf_m": [
+            0,
+            0,
+            -0.44
+          ],
+          "external": true,
+          "facing": "+Z"
+        },
+        "door_back": {
+          "position_gltf_m": [
+            2.24,
+            0,
+            -14.16
+          ],
+          "external": true,
+          "facing": "-Z"
+        },
+        "door_store": {
+          "position_gltf_m": [
+            2.24,
+            0,
+            -9.01
+          ],
+          "external": false,
+          "facing": "-Z"
+        }
+      },
+      "anchors": {
+        "counter_clerk": [
+          0,
+          0.044,
+          -8.52
+        ],
+        "counter_customer": [
+          0,
+          0.044,
+          -6.88
+        ]
+      },
+      "features": {
+        "display_window_west": {
+          "node": "display_window_west",
+          "position_gltf_m": [
+            0,
+            0,
+            0
+          ]
+        },
+        "display_window_east": {
+          "node": "display_window_east",
+          "position_gltf_m": [
+            0,
+            0,
+            0
+          ]
+        },
+        "safe": {
+          "node": "safe",
+          "position_gltf_m": [
+            -2.65,
+            0.044,
+            -12.9
+          ]
+        },
+        "display_west": {
+          "node": "display_west",
+          "position_gltf_m": [
+            -3.36,
+            0.044,
+            -3.2
+          ],
+          "stock_surfaces_gltf_m": [
+            [
+              -3.36,
+              0.276,
+              -3.2
+            ],
+            [
+              -3.36,
+              0.816,
+              -3.2
+            ],
+            [
+              -3.36,
+              1.346,
+              -3.2
+            ],
+            [
+              -3.36,
+              1.876,
+              -3.2
+            ]
+          ]
+        },
+        "display_east": {
+          "node": "display_east",
+          "position_gltf_m": [
+            3.34,
+            0.044,
+            -4.48
+          ],
+          "stock_surfaces_gltf_m": [
+            [
+              3.34,
+              0.276,
+              -4.48
+            ],
+            [
+              3.34,
+              0.816,
+              -4.48
+            ],
+            [
+              3.34,
+              1.346,
+              -4.48
+            ],
+            [
+              3.34,
+              1.876,
+              -4.48
+            ]
+          ]
+        },
+        "display_stockroom": {
+          "node": "display_stockroom",
+          "position_gltf_m": [
+            3.3,
+            0.044,
+            -11.8
+          ],
+          "stock_surfaces_gltf_m": [
+            [
+              3.3,
+              0.276,
+              -11.8
+            ],
+            [
+              3.3,
+              0.816,
+              -11.8
+            ],
+            [
+              3.3,
+              1.346,
+              -11.8
+            ],
+            [
+              3.3,
+              1.876,
+              -11.8
+            ]
+          ]
+        },
+        "display_jewellery": {
+          "node": "display_jewellery",
+          "position_gltf_m": [
+            1.49,
+            0.044,
+            -3.71
+          ],
+          "stock_surfaces_gltf_m": [
+            [
+              1.49,
+              0.714,
+              -3.71
+            ]
+          ]
+        },
+        "display_feature": {
+          "node": "display_feature",
+          "position_gltf_m": [
+            -1.46,
+            0.044,
+            -3.44
+          ],
+          "stock_surfaces_gltf_m": [
+            [
+              -1.46,
+              0.904,
+              -3.44
+            ]
+          ]
+        }
+      },
+      "collision_boxes": [
+        {
+          "name": "West party wall",
+          "center_gltf_m": [
+            -3.765,
+            2.085,
+            -6.885
+          ],
+          "size_gltf_m": [
+            0.27,
+            4.17,
+            13.77
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "East party wall",
+          "center_gltf_m": [
+            3.765,
+            2.085,
+            -6.885
+          ],
+          "size_gltf_m": [
+            0.27,
+            4.17,
+            13.77
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Rear brick wall",
+          "center_gltf_m": [
+            -1.135,
+            2.107,
+            -13.885
+          ],
+          "size_gltf_m": [
+            5.53,
+            4.126,
+            0.23
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Rear brick wall",
+          "center_gltf_m": [
+            3.37,
+            2.085,
+            -13.885
+          ],
+          "size_gltf_m": [
+            1.06,
+            4.17,
+            0.23
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Full brick shopfront pier",
+          "center_gltf_m": [
+            -3.595,
+            2.09,
+            -0.14
+          ],
+          "size_gltf_m": [
+            0.59,
+            4.18,
+            0.28
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Full brick shopfront pier",
+          "center_gltf_m": [
+            3.595,
+            2.09,
+            -0.14
+          ],
+          "size_gltf_m": [
+            0.59,
+            4.18,
+            0.28
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Fixed display bulkhead",
+          "center_gltf_m": [
+            -2.06,
+            0.315,
+            -0.13
+          ],
+          "size_gltf_m": [
+            2.48,
+            0.63,
+            0.19
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Display glazing",
+          "center_gltf_m": [
+            -2.06,
+            1.89,
+            -0.143
+          ],
+          "size_gltf_m": [
+            2.48,
+            2.52,
+            0.158
+          ],
+          "group": "building",
+          "attachment": "display_window_west"
+        },
+        {
+          "name": "Fixed display plinth",
+          "center_gltf_m": [
+            -2.06,
+            0.252,
+            -0.695
+          ],
+          "size_gltf_m": [
+            2.1,
+            0.416,
+            0.75
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Fixed display bulkhead",
+          "center_gltf_m": [
+            2.06,
+            0.315,
+            -0.13
+          ],
+          "size_gltf_m": [
+            2.48,
+            0.63,
+            0.19
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Display glazing",
+          "center_gltf_m": [
+            2.06,
+            1.89,
+            -0.143
+          ],
+          "size_gltf_m": [
+            2.48,
+            2.52,
+            0.158
+          ],
+          "group": "building",
+          "attachment": "display_window_east"
+        },
+        {
+          "name": "Fixed display plinth",
+          "center_gltf_m": [
+            2.06,
+            0.252,
+            -0.695
+          ],
+          "size_gltf_m": [
+            2.1,
+            0.416,
+            0.75
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Recess return",
+          "center_gltf_m": [
+            -0.82,
+            1.612,
+            -0.41
+          ],
+          "size_gltf_m": [
+            0.098,
+            3.136,
+            0.54
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Recess return",
+          "center_gltf_m": [
+            0.82,
+            1.612,
+            -0.41
+          ],
+          "size_gltf_m": [
+            0.098,
+            3.136,
+            0.54
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Recessed doorway head",
+          "center_gltf_m": [
+            -0.785,
+            1.682,
+            -0.715
+          ],
+          "size_gltf_m": [
+            0.07,
+            3.276,
+            0.15
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Recessed doorway head",
+          "center_gltf_m": [
+            0.785,
+            1.66,
+            -0.715
+          ],
+          "size_gltf_m": [
+            0.07,
+            3.32,
+            0.15
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Alley bin",
+          "center_gltf_m": [
+            -2.58,
+            0.443,
+            -14.59
+          ],
+          "size_gltf_m": [
+            0.54,
+            0.834,
+            0.64
+          ],
+          "group": "lot",
+          "attachment": "lot"
+        },
+        {
+          "name": "Alley bin",
+          "center_gltf_m": [
+            -1.8,
+            0.443,
+            -14.59
+          ],
+          "size_gltf_m": [
+            0.54,
+            0.834,
+            0.64
+          ],
+          "group": "lot",
+          "attachment": "lot"
+        },
+        {
+          "name": "Clerk counter",
+          "center_gltf_m": [
+            -0.43,
+            0.639,
+            -7.8085
+          ],
+          "size_gltf_m": [
+            3.78,
+            1.19,
+            0.803
+          ],
+          "group": "building",
+          "attachment": "counter"
+        },
+        {
+          "name": "Clerk office partition",
+          "center_gltf_m": [
+            -3.095,
+            2.012,
+            -9.26
+          ],
+          "size_gltf_m": [
+            1.07,
+            3.936,
+            0.16
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Clerk office partition",
+          "center_gltf_m": [
+            0.085,
+            2.012,
+            -9.26
+          ],
+          "size_gltf_m": [
+            3.09,
+            3.936,
+            0.16
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Clerk office partition",
+          "center_gltf_m": [
+            3.235,
+            1.99,
+            -9.26
+          ],
+          "size_gltf_m": [
+            0.79,
+            3.98,
+            0.16
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Office and stock divider",
+          "center_gltf_m": [
+            0.17,
+            1.99,
+            -11.555
+          ],
+          "size_gltf_m": [
+            0.14,
+            3.98,
+            4.43
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Safe",
+          "center_gltf_m": [
+            -2.65,
+            0.704,
+            -12.884
+          ],
+          "size_gltf_m": [
+            1.06,
+            1.32,
+            0.772
+          ],
+          "group": "building",
+          "attachment": "safe"
+        },
+        {
+          "name": "display_west",
+          "center_gltf_m": [
+            -3.363,
+            1.059,
+            -3.2
+          ],
+          "size_gltf_m": [
+            0.496,
+            2.03,
+            3.942
+          ],
+          "group": "building",
+          "attachment": "display_west"
+        },
+        {
+          "name": "display_east",
+          "center_gltf_m": [
+            3.337,
+            1.059,
+            -4.48
+          ],
+          "size_gltf_m": [
+            0.496,
+            2.03,
+            3.862
+          ],
+          "group": "building",
+          "attachment": "display_east"
+        },
+        {
+          "name": "display_stockroom",
+          "center_gltf_m": [
+            3.297,
+            1.059,
+            -11.8
+          ],
+          "size_gltf_m": [
+            0.496,
+            2.03,
+            2.972
+          ],
+          "group": "building",
+          "attachment": "display_stockroom"
+        },
+        {
+          "name": "Jewellery cabinet",
+          "center_gltf_m": [
+            1.49,
+            0.5985,
+            -3.71
+          ],
+          "size_gltf_m": [
+            0.98,
+            1.109,
+            2.2
+          ],
+          "group": "building",
+          "attachment": "display_jewellery"
+        },
+        {
+          "name": "Central display",
+          "center_gltf_m": [
+            -1.46,
+            0.474,
+            -3.44
+          ],
+          "size_gltf_m": [
+            1.04,
+            0.86,
+            1.58
+          ],
+          "group": "building",
+          "attachment": "display_feature"
+        }
+      ],
+      "signs": [
+        {
+          "id": "sign_name",
+          "node": "sign_name",
+          "texture": "signs.png",
+          "rect": [
+            0,
+            0,
+            160,
+            28
+          ],
+          "lines": 1,
+          "maxChars": 12,
+          "face": "small-town-block",
+          "glow": false,
+          "ink": "#efd8a1",
+          "paper": "#2d514d"
+        }
+      ],
+      "models": {
+        "near": {
+          "file": "latch-and-lyre-1920.glb",
+          "triangles": 3530,
+          "materials": [
+            "detail_antique_brass",
+            "detail_ironwork",
+            "detail_storefront",
+            "floor_plank",
+            "glass_display",
+            "glass_inner",
+            "glow_lamp",
+            "ground_paving",
+            "roof_membrane",
+            "sign_paint",
+            "wall_brick",
+            "wall_cast_stone"
+          ]
+        },
+        "mid": {
+          "file": "latch-and-lyre-1920-mid.glb",
+          "triangles": 1698,
+          "materials": [
+            "detail_antique_brass",
+            "detail_ironwork",
+            "detail_storefront",
+            "floor_plank",
+            "glass_display",
+            "glass_inner",
+            "glow_lamp",
+            "ground_paving",
+            "roof_membrane",
+            "sign_paint",
+            "wall_brick",
+            "wall_cast_stone"
+          ]
+        },
+        "far": {
+          "file": "latch-and-lyre-1920-far.glb",
+          "triangles": 762,
+          "materials": [
+            "detail_antique_brass",
+            "detail_ironwork",
+            "detail_storefront",
+            "floor_plank",
+            "glass_display",
+            "glow_lamp",
+            "ground_paving",
+            "roof_membrane",
+            "sign_paint",
+            "wall_brick",
+            "wall_cast_stone"
+          ]
+        }
+      }
+    },
+    "1960": {
+      "era": [
+        1960,
+        1999
+      ],
+      "footprint_m": [
+        7.8,
+        14.0
+      ],
+      "height_m": 5.07,
+      "lot_bounds_gltf_m": [
+        [
+          -5.25,
+          0,
+          -16.65
+        ],
+        [
+          5.25,
+          0.052,
+          2.9
+        ]
+      ],
+      "doors": {
+        "door_main": {
+          "position_gltf_m": [
+            0,
+            0,
+            -0.44
+          ],
+          "external": true,
+          "facing": "+Z"
+        },
+        "door_back": {
+          "position_gltf_m": [
+            2.24,
+            0,
+            -14.16
+          ],
+          "external": true,
+          "facing": "-Z"
+        },
+        "door_store": {
+          "position_gltf_m": [
+            2.24,
+            0,
+            -9.01
+          ],
+          "external": false,
+          "facing": "-Z"
+        }
+      },
+      "anchors": {
+        "counter_clerk": [
+          0,
+          0.044,
+          -8.52
+        ],
+        "counter_customer": [
+          0,
+          0.044,
+          -6.88
+        ]
+      },
+      "features": {
+        "display_window_west": {
+          "node": "display_window_west",
+          "position_gltf_m": [
+            0,
+            0,
+            0
+          ]
+        },
+        "display_window_east": {
+          "node": "display_window_east",
+          "position_gltf_m": [
+            0,
+            0,
+            0
+          ]
+        },
+        "window_bars_west": {
+          "node": "window_bars_west",
+          "position_gltf_m": [
+            -1.97,
+            0.6,
+            0.03
+          ]
+        },
+        "window_bars_east": {
+          "node": "window_bars_east",
+          "position_gltf_m": [
+            1.97,
+            0.6,
+            0.03
+          ]
+        },
+        "entry_buzzer": {
+          "node": "entry_buzzer",
+          "position_gltf_m": [
+            0.81,
+            1.37,
+            -0.567
+          ]
+        },
+        "safe": {
+          "node": "safe",
+          "position_gltf_m": [
+            -2.65,
+            0.044,
+            -12.9
+          ]
+        },
+        "display_west": {
+          "node": "display_west",
+          "position_gltf_m": [
+            -3.36,
+            0.044,
+            -3.2
+          ],
+          "stock_surfaces_gltf_m": [
+            [
+              -3.36,
+              0.276,
+              -3.2
+            ],
+            [
+              -3.36,
+              0.816,
+              -3.2
+            ],
+            [
+              -3.36,
+              1.346,
+              -3.2
+            ],
+            [
+              -3.36,
+              1.876,
+              -3.2
+            ]
+          ]
+        },
+        "display_east": {
+          "node": "display_east",
+          "position_gltf_m": [
+            3.34,
+            0.044,
+            -4.48
+          ],
+          "stock_surfaces_gltf_m": [
+            [
+              3.34,
+              0.276,
+              -4.48
+            ],
+            [
+              3.34,
+              0.816,
+              -4.48
+            ],
+            [
+              3.34,
+              1.346,
+              -4.48
+            ],
+            [
+              3.34,
+              1.876,
+              -4.48
+            ]
+          ]
+        },
+        "display_stockroom": {
+          "node": "display_stockroom",
+          "position_gltf_m": [
+            3.3,
+            0.044,
+            -11.8
+          ],
+          "stock_surfaces_gltf_m": [
+            [
+              3.3,
+              0.276,
+              -11.8
+            ],
+            [
+              3.3,
+              0.816,
+              -11.8
+            ],
+            [
+              3.3,
+              1.346,
+              -11.8
+            ],
+            [
+              3.3,
+              1.876,
+              -11.8
+            ]
+          ]
+        },
+        "display_jewellery": {
+          "node": "display_jewellery",
+          "position_gltf_m": [
+            1.49,
+            0.044,
+            -3.71
+          ],
+          "stock_surfaces_gltf_m": [
+            [
+              1.49,
+              0.714,
+              -3.71
+            ]
+          ]
+        },
+        "display_feature": {
+          "node": "display_feature",
+          "position_gltf_m": [
+            -1.46,
+            0.044,
+            -3.44
+          ],
+          "stock_surfaces_gltf_m": [
+            [
+              -1.46,
+              0.904,
+              -3.44
+            ]
+          ]
+        }
+      },
+      "collision_boxes": [
+        {
+          "name": "West party wall",
+          "center_gltf_m": [
+            -3.765,
+            2.085,
+            -6.885
+          ],
+          "size_gltf_m": [
+            0.27,
+            4.17,
+            13.77
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "East party wall",
+          "center_gltf_m": [
+            3.765,
+            2.085,
+            -6.885
+          ],
+          "size_gltf_m": [
+            0.27,
+            4.17,
+            13.77
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Rear brick wall",
+          "center_gltf_m": [
+            -1.135,
+            2.107,
+            -13.885
+          ],
+          "size_gltf_m": [
+            5.53,
+            4.126,
+            0.23
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Rear brick wall",
+          "center_gltf_m": [
+            3.37,
+            2.085,
+            -13.885
+          ],
+          "size_gltf_m": [
+            1.06,
+            4.17,
+            0.23
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Full brick shopfront pier",
+          "center_gltf_m": [
+            -3.595,
+            2.09,
+            -0.14
+          ],
+          "size_gltf_m": [
+            0.59,
+            4.18,
+            0.28
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Full brick shopfront pier",
+          "center_gltf_m": [
+            3.595,
+            2.09,
+            -0.14
+          ],
+          "size_gltf_m": [
+            0.59,
+            4.18,
+            0.28
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Fixed display bulkhead",
+          "center_gltf_m": [
+            -2.06,
+            0.315,
+            -0.13
+          ],
+          "size_gltf_m": [
+            2.48,
+            0.63,
+            0.19
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Display glazing",
+          "center_gltf_m": [
+            -2.06,
+            1.89,
+            -0.143
+          ],
+          "size_gltf_m": [
+            2.48,
+            2.52,
+            0.158
+          ],
+          "group": "building",
+          "attachment": "display_window_west"
+        },
+        {
+          "name": "Fixed display plinth",
+          "center_gltf_m": [
+            -2.06,
+            0.252,
+            -0.695
+          ],
+          "size_gltf_m": [
+            2.1,
+            0.416,
+            0.75
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Fixed display bulkhead",
+          "center_gltf_m": [
+            2.06,
+            0.315,
+            -0.13
+          ],
+          "size_gltf_m": [
+            2.48,
+            0.63,
+            0.19
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Display glazing",
+          "center_gltf_m": [
+            2.06,
+            1.89,
+            -0.143
+          ],
+          "size_gltf_m": [
+            2.48,
+            2.52,
+            0.158
+          ],
+          "group": "building",
+          "attachment": "display_window_east"
+        },
+        {
+          "name": "Fixed display plinth",
+          "center_gltf_m": [
+            2.06,
+            0.252,
+            -0.695
+          ],
+          "size_gltf_m": [
+            2.1,
+            0.416,
+            0.75
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Recess return",
+          "center_gltf_m": [
+            -0.82,
+            1.612,
+            -0.41
+          ],
+          "size_gltf_m": [
+            0.098,
+            3.136,
+            0.54
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Recess return",
+          "center_gltf_m": [
+            0.82,
+            1.612,
+            -0.41
+          ],
+          "size_gltf_m": [
+            0.098,
+            3.136,
+            0.54
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Recessed doorway head",
+          "center_gltf_m": [
+            -0.785,
+            1.682,
+            -0.715
+          ],
+          "size_gltf_m": [
+            0.07,
+            3.276,
+            0.15
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Recessed doorway head",
+          "center_gltf_m": [
+            0.785,
+            1.66,
+            -0.715
+          ],
+          "size_gltf_m": [
+            0.07,
+            3.32,
+            0.15
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Fixed window bars",
+          "center_gltf_m": [
+            -1.97,
+            1.87,
+            0.03
+          ],
+          "size_gltf_m": [
+            2.36,
+            2.54,
+            0.074
+          ],
+          "group": "building",
+          "attachment": "window_bars_west"
+        },
+        {
+          "name": "Fixed window bars",
+          "center_gltf_m": [
+            1.97,
+            1.87,
+            0.03
+          ],
+          "size_gltf_m": [
+            2.36,
+            2.54,
+            0.074
+          ],
+          "group": "building",
+          "attachment": "window_bars_east"
+        },
+        {
+          "name": "Alley bin",
+          "center_gltf_m": [
+            -2.58,
+            0.443,
+            -14.59
+          ],
+          "size_gltf_m": [
+            0.54,
+            0.834,
+            0.64
+          ],
+          "group": "lot",
+          "attachment": "lot"
+        },
+        {
+          "name": "Alley bin",
+          "center_gltf_m": [
+            -1.8,
+            0.443,
+            -14.59
+          ],
+          "size_gltf_m": [
+            0.54,
+            0.834,
+            0.64
+          ],
+          "group": "lot",
+          "attachment": "lot"
+        },
+        {
+          "name": "Clerk counter",
+          "center_gltf_m": [
+            -0.43,
+            0.639,
+            -7.8085
+          ],
+          "size_gltf_m": [
+            3.78,
+            1.19,
+            0.803
+          ],
+          "group": "building",
+          "attachment": "counter"
+        },
+        {
+          "name": "Clerk office partition",
+          "center_gltf_m": [
+            -3.095,
+            2.012,
+            -9.26
+          ],
+          "size_gltf_m": [
+            1.07,
+            3.936,
+            0.16
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Clerk office partition",
+          "center_gltf_m": [
+            0.085,
+            2.012,
+            -9.26
+          ],
+          "size_gltf_m": [
+            3.09,
+            3.936,
+            0.16
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Clerk office partition",
+          "center_gltf_m": [
+            3.235,
+            1.99,
+            -9.26
+          ],
+          "size_gltf_m": [
+            0.79,
+            3.98,
+            0.16
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Office and stock divider",
+          "center_gltf_m": [
+            0.17,
+            1.99,
+            -11.555
+          ],
+          "size_gltf_m": [
+            0.14,
+            3.98,
+            4.43
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Safe",
+          "center_gltf_m": [
+            -2.65,
+            0.704,
+            -12.884
+          ],
+          "size_gltf_m": [
+            1.06,
+            1.32,
+            0.772
+          ],
+          "group": "building",
+          "attachment": "safe"
+        },
+        {
+          "name": "display_west",
+          "center_gltf_m": [
+            -3.363,
+            1.059,
+            -3.2
+          ],
+          "size_gltf_m": [
+            0.496,
+            2.03,
+            3.942
+          ],
+          "group": "building",
+          "attachment": "display_west"
+        },
+        {
+          "name": "display_east",
+          "center_gltf_m": [
+            3.337,
+            1.059,
+            -4.48
+          ],
+          "size_gltf_m": [
+            0.496,
+            2.03,
+            3.862
+          ],
+          "group": "building",
+          "attachment": "display_east"
+        },
+        {
+          "name": "display_stockroom",
+          "center_gltf_m": [
+            3.297,
+            1.059,
+            -11.8
+          ],
+          "size_gltf_m": [
+            0.496,
+            2.03,
+            2.972
+          ],
+          "group": "building",
+          "attachment": "display_stockroom"
+        },
+        {
+          "name": "Jewellery cabinet",
+          "center_gltf_m": [
+            1.49,
+            0.5985,
+            -3.71
+          ],
+          "size_gltf_m": [
+            0.98,
+            1.109,
+            2.2
+          ],
+          "group": "building",
+          "attachment": "display_jewellery"
+        },
+        {
+          "name": "Central display",
+          "center_gltf_m": [
+            -1.46,
+            0.474,
+            -3.44
+          ],
+          "size_gltf_m": [
+            1.04,
+            0.86,
+            1.58
+          ],
+          "group": "building",
+          "attachment": "display_feature"
+        }
+      ],
+      "signs": [
+        {
+          "id": "sign_name",
+          "node": "sign_name",
+          "texture": "signs.png",
+          "rect": [
+            0,
+            36,
+            160,
+            28
+          ],
+          "lines": 1,
+          "maxChars": 12,
+          "face": "small-town-block",
+          "glow": false,
+          "ink": "#ffe1ae",
+          "paper": "#694a34"
+        }
+      ],
+      "models": {
+        "near": {
+          "file": "latch-and-lyre-1960.glb",
+          "triangles": 2794,
+          "materials": [
+            "detail_antique_brass",
+            "detail_ironwork",
+            "detail_storefront",
+            "floor_plank",
+            "glass_display",
+            "glass_inner",
+            "glow_lamp",
+            "ground_paving",
+            "roof_membrane",
+            "sign_paint",
+            "wall_brick",
+            "wall_cast_stone"
+          ]
+        },
+        "mid": {
+          "file": "latch-and-lyre-1960-mid.glb",
+          "triangles": 1410,
+          "materials": [
+            "detail_antique_brass",
+            "detail_ironwork",
+            "detail_storefront",
+            "floor_plank",
+            "glass_display",
+            "glass_inner",
+            "glow_lamp",
+            "ground_paving",
+            "roof_membrane",
+            "sign_paint",
+            "wall_brick",
+            "wall_cast_stone"
+          ]
+        },
+        "far": {
+          "file": "latch-and-lyre-1960-far.glb",
+          "triangles": 678,
+          "materials": [
+            "detail_ironwork",
+            "detail_storefront",
+            "floor_plank",
+            "glass_display",
+            "glow_lamp",
+            "ground_paving",
+            "roof_membrane",
+            "sign_paint",
+            "wall_brick",
+            "wall_cast_stone"
+          ]
+        }
+      }
+    },
+    "2000": {
+      "era": [
+        2000,
+        null
+      ],
+      "footprint_m": [
+        7.8,
+        14.0
+      ],
+      "height_m": 5.22,
+      "lot_bounds_gltf_m": [
+        [
+          -5.25,
+          0,
+          -16.65
+        ],
+        [
+          5.25,
+          0.052,
+          2.9
+        ]
+      ],
+      "doors": {
+        "door_main": {
+          "position_gltf_m": [
+            0,
+            0,
+            -0.44
+          ],
+          "external": true,
+          "facing": "+Z"
+        },
+        "door_back": {
+          "position_gltf_m": [
+            2.24,
+            0,
+            -14.16
+          ],
+          "external": true,
+          "facing": "-Z"
+        },
+        "door_store": {
+          "position_gltf_m": [
+            2.24,
+            0,
+            -9.01
+          ],
+          "external": false,
+          "facing": "-Z"
+        }
+      },
+      "anchors": {
+        "counter_clerk": [
+          0,
+          0.044,
+          -8.52
+        ],
+        "counter_customer": [
+          0,
+          0.044,
+          -6.88
+        ]
+      },
+      "features": {
+        "display_window_west": {
+          "node": "display_window_west",
+          "position_gltf_m": [
+            0,
+            0,
+            0
+          ]
+        },
+        "display_window_east": {
+          "node": "display_window_east",
+          "position_gltf_m": [
+            0,
+            0,
+            0
+          ]
+        },
+        "window_bars_west": {
+          "node": "window_bars_west",
+          "position_gltf_m": [
+            -1.97,
+            0.6,
+            0.03
+          ]
+        },
+        "window_bars_east": {
+          "node": "window_bars_east",
+          "position_gltf_m": [
+            1.97,
+            0.6,
+            0.03
+          ]
+        },
+        "entry_buzzer": {
+          "node": "entry_buzzer",
+          "position_gltf_m": [
+            0.81,
+            1.37,
+            -0.567
+          ]
+        },
+        "safe": {
+          "node": "safe",
+          "position_gltf_m": [
+            -2.65,
+            0.044,
+            -12.9
+          ]
+        },
+        "display_west": {
+          "node": "display_west",
+          "position_gltf_m": [
+            -3.36,
+            0.044,
+            -3.2
+          ],
+          "stock_surfaces_gltf_m": [
+            [
+              -3.36,
+              0.276,
+              -3.2
+            ],
+            [
+              -3.36,
+              0.816,
+              -3.2
+            ],
+            [
+              -3.36,
+              1.346,
+              -3.2
+            ],
+            [
+              -3.36,
+              1.876,
+              -3.2
+            ]
+          ]
+        },
+        "display_east": {
+          "node": "display_east",
+          "position_gltf_m": [
+            3.34,
+            0.044,
+            -4.48
+          ],
+          "stock_surfaces_gltf_m": [
+            [
+              3.34,
+              0.276,
+              -4.48
+            ],
+            [
+              3.34,
+              0.816,
+              -4.48
+            ],
+            [
+              3.34,
+              1.346,
+              -4.48
+            ],
+            [
+              3.34,
+              1.876,
+              -4.48
+            ]
+          ]
+        },
+        "display_stockroom": {
+          "node": "display_stockroom",
+          "position_gltf_m": [
+            3.3,
+            0.044,
+            -11.8
+          ],
+          "stock_surfaces_gltf_m": [
+            [
+              3.3,
+              0.276,
+              -11.8
+            ],
+            [
+              3.3,
+              0.816,
+              -11.8
+            ],
+            [
+              3.3,
+              1.346,
+              -11.8
+            ],
+            [
+              3.3,
+              1.876,
+              -11.8
+            ]
+          ]
+        },
+        "display_jewellery": {
+          "node": "display_jewellery",
+          "position_gltf_m": [
+            1.49,
+            0.044,
+            -3.71
+          ],
+          "stock_surfaces_gltf_m": [
+            [
+              1.49,
+              0.714,
+              -3.71
+            ]
+          ]
+        },
+        "display_feature": {
+          "node": "display_feature",
+          "position_gltf_m": [
+            -1.46,
+            0.044,
+            -3.44
+          ],
+          "stock_surfaces_gltf_m": [
+            [
+              -1.46,
+              0.904,
+              -3.44
+            ]
+          ]
+        },
+        "cctv_1": {
+          "node": "cctv_1",
+          "position_gltf_m": [
+            -0.95,
+            2.85,
+            -0.72
+          ]
+        },
+        "cctv_2": {
+          "node": "cctv_2",
+          "position_gltf_m": [
+            1.19,
+            3.17,
+            -7.34
+          ]
+        },
+        "cctv_3": {
+          "node": "cctv_3",
+          "position_gltf_m": [
+            2.81,
+            2.82,
+            -14.04
+          ]
+        },
+        "bulletproof_window": {
+          "node": "counter",
+          "position_gltf_m": [
+            0,
+            1.9,
+            -7.8
+          ]
+        }
+      },
+      "collision_boxes": [
+        {
+          "name": "West party wall",
+          "center_gltf_m": [
+            -3.765,
+            2.085,
+            -6.885
+          ],
+          "size_gltf_m": [
+            0.27,
+            4.17,
+            13.77
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "East party wall",
+          "center_gltf_m": [
+            3.765,
+            2.085,
+            -6.885
+          ],
+          "size_gltf_m": [
+            0.27,
+            4.17,
+            13.77
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Rear brick wall",
+          "center_gltf_m": [
+            -1.135,
+            2.107,
+            -13.885
+          ],
+          "size_gltf_m": [
+            5.53,
+            4.126,
+            0.23
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Rear brick wall",
+          "center_gltf_m": [
+            3.37,
+            2.085,
+            -13.885
+          ],
+          "size_gltf_m": [
+            1.06,
+            4.17,
+            0.23
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Full brick shopfront pier",
+          "center_gltf_m": [
+            -3.595,
+            2.09,
+            -0.14
+          ],
+          "size_gltf_m": [
+            0.59,
+            4.18,
+            0.28
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Full brick shopfront pier",
+          "center_gltf_m": [
+            3.595,
+            2.09,
+            -0.14
+          ],
+          "size_gltf_m": [
+            0.59,
+            4.18,
+            0.28
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Fixed display bulkhead",
+          "center_gltf_m": [
+            -2.06,
+            0.315,
+            -0.13
+          ],
+          "size_gltf_m": [
+            2.48,
+            0.63,
+            0.19
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Display glazing",
+          "center_gltf_m": [
+            -2.06,
+            1.89,
+            -0.143
+          ],
+          "size_gltf_m": [
+            2.48,
+            2.52,
+            0.158
+          ],
+          "group": "building",
+          "attachment": "display_window_west"
+        },
+        {
+          "name": "Fixed display plinth",
+          "center_gltf_m": [
+            -2.06,
+            0.252,
+            -0.695
+          ],
+          "size_gltf_m": [
+            2.1,
+            0.416,
+            0.75
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Fixed display bulkhead",
+          "center_gltf_m": [
+            2.06,
+            0.315,
+            -0.13
+          ],
+          "size_gltf_m": [
+            2.48,
+            0.63,
+            0.19
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Display glazing",
+          "center_gltf_m": [
+            2.06,
+            1.89,
+            -0.143
+          ],
+          "size_gltf_m": [
+            2.48,
+            2.52,
+            0.158
+          ],
+          "group": "building",
+          "attachment": "display_window_east"
+        },
+        {
+          "name": "Fixed display plinth",
+          "center_gltf_m": [
+            2.06,
+            0.252,
+            -0.695
+          ],
+          "size_gltf_m": [
+            2.1,
+            0.416,
+            0.75
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Recess return",
+          "center_gltf_m": [
+            -0.82,
+            1.612,
+            -0.41
+          ],
+          "size_gltf_m": [
+            0.098,
+            3.136,
+            0.54
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Recess return",
+          "center_gltf_m": [
+            0.82,
+            1.612,
+            -0.41
+          ],
+          "size_gltf_m": [
+            0.098,
+            3.136,
+            0.54
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Recessed doorway head",
+          "center_gltf_m": [
+            -0.785,
+            1.682,
+            -0.715
+          ],
+          "size_gltf_m": [
+            0.07,
+            3.276,
+            0.15
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Recessed doorway head",
+          "center_gltf_m": [
+            0.785,
+            1.66,
+            -0.715
+          ],
+          "size_gltf_m": [
+            0.07,
+            3.32,
+            0.15
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Fixed window bars",
+          "center_gltf_m": [
+            -1.97,
+            1.87,
+            0.03
+          ],
+          "size_gltf_m": [
+            2.36,
+            2.54,
+            0.074
+          ],
+          "group": "building",
+          "attachment": "window_bars_west"
+        },
+        {
+          "name": "Fixed window bars",
+          "center_gltf_m": [
+            1.97,
+            1.87,
+            0.03
+          ],
+          "size_gltf_m": [
+            2.36,
+            2.54,
+            0.074
+          ],
+          "group": "building",
+          "attachment": "window_bars_east"
+        },
+        {
+          "name": "Alley bin",
+          "center_gltf_m": [
+            -2.58,
+            0.443,
+            -14.59
+          ],
+          "size_gltf_m": [
+            0.54,
+            0.834,
+            0.64
+          ],
+          "group": "lot",
+          "attachment": "lot"
+        },
+        {
+          "name": "Alley bin",
+          "center_gltf_m": [
+            -1.8,
+            0.443,
+            -14.59
+          ],
+          "size_gltf_m": [
+            0.54,
+            0.834,
+            0.64
+          ],
+          "group": "lot",
+          "attachment": "lot"
+        },
+        {
+          "name": "Clerk counter",
+          "center_gltf_m": [
+            -0.43,
+            0.639,
+            -7.8085
+          ],
+          "size_gltf_m": [
+            3.78,
+            1.19,
+            0.803
+          ],
+          "group": "building",
+          "attachment": "counter"
+        },
+        {
+          "name": "Clerk office partition",
+          "center_gltf_m": [
+            -3.095,
+            2.012,
+            -9.26
+          ],
+          "size_gltf_m": [
+            1.07,
+            3.936,
+            0.16
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Clerk office partition",
+          "center_gltf_m": [
+            0.085,
+            2.012,
+            -9.26
+          ],
+          "size_gltf_m": [
+            3.09,
+            3.936,
+            0.16
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Clerk office partition",
+          "center_gltf_m": [
+            3.235,
+            1.99,
+            -9.26
+          ],
+          "size_gltf_m": [
+            0.79,
+            3.98,
+            0.16
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Office and stock divider",
+          "center_gltf_m": [
+            0.17,
+            1.99,
+            -11.555
+          ],
+          "size_gltf_m": [
+            0.14,
+            3.98,
+            4.43
+          ],
+          "group": "building",
+          "attachment": ""
+        },
+        {
+          "name": "Safe",
+          "center_gltf_m": [
+            -2.65,
+            0.704,
+            -12.884
+          ],
+          "size_gltf_m": [
+            1.06,
+            1.32,
+            0.772
+          ],
+          "group": "building",
+          "attachment": "safe"
+        },
+        {
+          "name": "display_west",
+          "center_gltf_m": [
+            -3.363,
+            1.059,
+            -3.2
+          ],
+          "size_gltf_m": [
+            0.496,
+            2.03,
+            3.942
+          ],
+          "group": "building",
+          "attachment": "display_west"
+        },
+        {
+          "name": "display_east",
+          "center_gltf_m": [
+            3.337,
+            1.059,
+            -4.48
+          ],
+          "size_gltf_m": [
+            0.496,
+            2.03,
+            3.862
+          ],
+          "group": "building",
+          "attachment": "display_east"
+        },
+        {
+          "name": "display_stockroom",
+          "center_gltf_m": [
+            3.297,
+            1.059,
+            -11.8
+          ],
+          "size_gltf_m": [
+            0.496,
+            2.03,
+            2.972
+          ],
+          "group": "building",
+          "attachment": "display_stockroom"
+        },
+        {
+          "name": "Jewellery cabinet",
+          "center_gltf_m": [
+            1.49,
+            0.5985,
+            -3.71
+          ],
+          "size_gltf_m": [
+            0.98,
+            1.109,
+            2.2
+          ],
+          "group": "building",
+          "attachment": "display_jewellery"
+        },
+        {
+          "name": "Central display",
+          "center_gltf_m": [
+            -1.46,
+            0.474,
+            -3.44
+          ],
+          "size_gltf_m": [
+            1.04,
+            0.86,
+            1.58
+          ],
+          "group": "building",
+          "attachment": "display_feature"
+        }
+      ],
+      "signs": [
+        {
+          "id": "sign_name",
+          "node": "sign_name",
+          "texture": "signs.png",
+          "rect": [
+            0,
+            72,
+            160,
+            28
+          ],
+          "lines": 1,
+          "maxChars": 12,
+          "face": "small-town-block",
+          "glow": false,
+          "ink": "#f2dbb9",
+          "paper": "#363c40"
+        }
+      ],
+      "models": {
+        "near": {
+          "file": "latch-and-lyre-2000.glb",
+          "triangles": 3154,
+          "materials": [
+            "detail_antique_brass",
+            "detail_ironwork",
+            "detail_storefront",
+            "floor_plank",
+            "glass_display",
+            "glass_inner",
+            "glow_lamp",
+            "ground_paving",
+            "roof_membrane",
+            "sign_paint",
+            "wall_brick",
+            "wall_cast_stone"
+          ]
+        },
+        "mid": {
+          "file": "latch-and-lyre-2000-mid.glb",
+          "triangles": 1578,
+          "materials": [
+            "detail_antique_brass",
+            "detail_ironwork",
+            "detail_storefront",
+            "floor_plank",
+            "glass_display",
+            "glass_inner",
+            "glow_lamp",
+            "ground_paving",
+            "roof_membrane",
+            "sign_paint",
+            "wall_brick",
+            "wall_cast_stone"
+          ]
+        },
+        "far": {
+          "file": "latch-and-lyre-2000-far.glb",
+          "triangles": 664,
+          "materials": [
+            "detail_ironwork",
+            "detail_storefront",
+            "floor_plank",
+            "glass_display",
+            "glow_lamp",
+            "ground_paving",
+            "roof_membrane",
+            "sign_paint",
+            "wall_brick",
+            "wall_cast_stone"
+          ]
+        }
+      }
+    }
+  }
+}

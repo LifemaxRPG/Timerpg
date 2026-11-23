@@ -1,0 +1,56 @@
+{
+  "1920": {
+    "near": {
+      "visible_triangles": 3530,
+      "visible_materials": 12,
+      "collision_triangles": 348,
+      "collision_boxes": 29
+    },
+    "mid": {
+      "visible_triangles": 1698,
+      "visible_materials": 12,
+      "collision_triangles": 0
+    },
+    "far": {
+      "visible_triangles": 762,
+      "visible_materials": 11,
+      "collision_triangles": 0
+    }
+  },
+  "1960": {
+    "near": {
+      "visible_triangles": 2794,
+      "visible_materials": 12,
+      "collision_triangles": 372,
+      "collision_boxes": 31
+    },
+    "mid": {
+      "visible_triangles": 1410,
+      "visible_materials": 12,
+      "collision_triangles": 0
+    },
+    "far": {
+      "visible_triangles": 678,
+      "visible_materials": 10,
+      "collision_triangles": 0
+    }
+  },
+  "2000": {
+    "near": {
+      "visible_triangles": 3154,
+      "visible_materials": 12,
+      "collision_triangles": 372,
+      "collision_boxes": 31
+    },
+    "mid": {
+      "visible_triangles": 1578,
+      "visible_materials": 12,
+      "collision_triangles": 0
+    },
+    "far": {
+      "visible_triangles": 664,
+      "visible_materials": 10,
+      "collision_triangles": 0
+    }
+  }
+}
