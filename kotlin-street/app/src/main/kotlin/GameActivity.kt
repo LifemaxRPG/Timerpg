@@ -73,6 +73,9 @@ class GameActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         // the game's recent events for crash reports (last run's moved aside first), then the crash handler
         AppInit.basics(applicationContext)
+        // the playtest recorder (docs/PLAYTEST.md): the session's timeline, its cold start by phase
+        com.timerpg.street.play.PlayLog.init(applicationContext)
+        com.timerpg.street.play.PlayLog.phase("activity.create")
         com.timerpg.street.shot.Crumbs.add("start: build ${BuildConfig.VERSION_NAME}")
         AndroidFx.install()
         // the game takes over from the overnight writer (it lets go of a model it loaded: the town is built first)
@@ -141,6 +144,7 @@ class GameActivity : ComponentActivity() {
         memoryListener = onMemory
         com.timerpg.street.llm.MemoryWatch.listeners += onMemory
         setContent { GameScreen(engine, v, s) }
+        com.timerpg.street.play.PlayLog.phase("activity.content")
     }
 
     /** The whole screen: no system bars (a swipe shows them for a moment), drawn into the camera cutout, never dimming. */
@@ -198,6 +202,13 @@ class GameActivity : ComponentActivity() {
             return true
         }
         return super.dispatchKeyEvent(event)
+    }
+
+    override fun dispatchTouchEvent(ev: android.view.MotionEvent): Boolean {
+        // touch-down to the next frame (the playtest recorder samples one every 2 s)
+        if (ev.actionMasked == android.view.MotionEvent.ACTION_DOWN || ev.actionMasked == android.view.MotionEvent.ACTION_POINTER_DOWN)
+            com.timerpg.street.play.PlayLog.touch()
+        return super.dispatchTouchEvent(ev)
     }
 
     override fun dispatchGenericMotionEvent(ev: android.view.MotionEvent): Boolean {
@@ -261,11 +272,13 @@ class GameActivity : ComponentActivity() {
         super.onStart()
         com.timerpg.street.night.NightWriter.gameOpened()
         dialogue?.onForeground(true)
+        com.timerpg.street.play.PlayLog.foreground(true)
         sound?.start()
     }
 
     override fun onStop() {
         dialogue?.onForeground(false)
+        com.timerpg.street.play.PlayLog.foreground(false)
         // out of sight: on the charger the overnight writer starts now (allowed while the game was just in front),
         // otherwise at the next charge
         com.timerpg.street.night.NightWriter.gameClosed(applicationContext)
@@ -277,6 +290,7 @@ class GameActivity : ComponentActivity() {
         super.onTrimMemory(level)
         com.timerpg.street.shot.Crumbs.add("trim memory $level")
         dialogue?.onTrimMemory(level)
+        com.timerpg.street.play.PlayLog.trim(level)
     }
 
     override fun onDestroy() {
@@ -777,6 +791,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     // so a left thumb landing higher on the very edge and pushing right to walk is a back swipe: it must not end the game
     // ---- "send screenshot to Claude": the camera button hides, the window is captured, then the sheet asks for a note
     var shooting by remember { mutableStateOf(false) }
+    // "mark this" (the playtest recorder): the moment marked in the timeline with a system trace, then the screenshot's sheet
+    var marking by remember { mutableStateOf(false) }
     var shot by remember { mutableStateOf<com.timerpg.street.shot.PendingShot?>(null) }
     LaunchedEffect(shooting) {
         if (!shooting) return@LaunchedEffect
@@ -935,6 +951,56 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     androidx.compose.runtime.DisposableEffect(Unit) {
         com.timerpg.street.shot.GameSnapshot.provider = { snapshot() }
         onDispose { com.timerpg.street.shot.GameSnapshot.provider = null }
+    }
+    // the playtest recorder's second: where the player is, what they do, the camera (read once a second on its thread)
+    val playState by rememberUpdatedState<(com.timerpg.street.play.PlayState) -> Unit> { s ->
+        val A = com.timerpg.street.play.Activity
+        val w = if (townMode) townPlay.walk else null
+        s.town = if (townMode) StreetRenderer.town else null
+        s.street = if (townMode) townStreet else street.name
+        s.hood = if (townMode) townHood else null
+        if (w != null) {
+            s.wx = w.wx; s.wz = w.wz
+            townData?.world?.let { site -> val p = site.world(w.wx, w.wz); s.worldX = p.x; s.worldZ = p.z }
+        }
+        s.year = townData?.town?.year ?: 0
+        s.hour = hour
+        if (townMode && StreetRenderer.view == StreetRenderer.OPEN) com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.let { c ->
+            s.camDist = c.dist; s.camPitch = c.pitch; s.camYaw = c.yaw
+            s.camHeight = (c.dist * kotlin.math.sin(Math.toRadians(c.pitch.toDouble()))).toFloat()
+        }
+        s.activity = when {
+            StreetRenderer.paused -> A.PAUSED
+            townMode && !TownSession.ready -> A.LOADING
+            talk != null -> A.TALK
+            inside != null -> A.INSIDE
+            aiPanel || shot != null || ticketOpen -> A.MENU
+            w?.transit != null || RailTrip.ride != null -> A.TRAIN
+            GameState.riding -> A.RIDE
+            GameState.walking -> A.WALK
+            else -> A.STAND
+        }
+        s.people = if (townMode) townPlay.figureCount else -1
+        s.talkingTo = talk?.npc?.id
+        s.room = inside?.id
+        s.ai = com.timerpg.street.llm.AiLane.current
+        s.aiQueue = ai.queued
+    }
+    val playSettings by rememberUpdatedState<() -> Map<String, Any?>> {
+        val q = com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality
+        linkedMapOf("app" to com.timerpg.street.shot.DeviceFacts.app(),
+            "renderer" to if (StreetRenderer.filament) "Filament" else "classic", "view" to StreetRenderer.view, "town" to StreetRenderer.town,
+            "resolution" to if (q.resolution == q.RES_AUTO) "auto" else q.resolution, "shadowMap" to q.shadowMap, "cascades" to q.cascades,
+            "astc" to StreetRenderer.astc, "grabWorld" to StreetRenderer.grabWorld, "bikeFollow" to StreetRenderer.bikeFollow,
+            "displayHz" to FrameStats.display, "ai" to linkedMapOf("role" to ai.role?.name?.lowercase(), "runsOn" to listOf("CPU", "GPU", "NPU").getOrNull(ai.runsOn),
+                "modelMb" to ai.modelMb, "npuTuned" to NpuTune.chosen(ctx), "pregenOff" to ai.pregenOff),
+            "voices" to linkedMapOf("enabled" to voices.enabled, "only" to voices.only, "xnnpack" to voices.xnnpack),
+            "mic" to linkedMapOf("always" to micAlways), "recordTalk" to com.timerpg.street.play.PlayLog.recordTalk(ctx))
+    }
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        com.timerpg.street.play.PlayLog.state = { s -> playState(s) }
+        com.timerpg.street.play.PlayLog.settings = { playSettings() }
+        onDispose { com.timerpg.street.play.PlayLog.state = null; com.timerpg.street.play.PlayLog.settings = null }
     }
     // the events crash reports keep (rare ones: never per frame)
     LaunchedEffect(inside?.id) { com.timerpg.street.shot.Crumbs.add(inside?.let { "room: ${it.title}" } ?: "street view") }
@@ -1135,10 +1201,17 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     .pointerInput(Unit) { awaitEachGesture { awaitFirstDown(); waitForUpOrCancellation()?.let { shooting = true } } },
                 contentAlignment = Alignment.Center,
             ) { Text("📷", 16.sp) }
+            Box(
+                Modifier.align(Alignment.TopEnd).padding(top = 136.dp, end = 12.dp).size(38.dp).background(Color(0x66101420), CircleShape)
+                    .pointerInput(Unit) { awaitEachGesture { awaitFirstDown(); waitForUpOrCancellation()?.let { com.timerpg.street.play.PlayLog.mark(); marking = true; shooting = true } } },
+                contentAlignment = Alignment.Center,
+            ) { Text("🔖", 16.sp) }
         }
         shot?.let { s -> com.timerpg.street.shot.ShotSheet(s, ears, onSend = { note, marks ->
+            if (marking) com.timerpg.street.play.PlayLog.markNote(note)
+            marking = false
             com.timerpg.street.shot.ShotUploader.sendShot(ctx, s.bmp, note, s.at, s.how, s.game, marks); shot = null
-        }, onCancel = { shot = null }) }
+        }, onCancel = { marking = false; shot = null }) }
         // the top left, one column so nothing overlaps (drawn last, so the AI panel is on top): where the player is (kept
         // clear of the time bar in the middle: narrower, on two lines), then the dialogue AI's state at a glance (tap for
         // the model file and the speed numbers) and, in the open world, "Behind me" (out of the way of the right thumb's
@@ -1172,10 +1245,37 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
     var line by mutableStateOf<Line?>(null)
     private var request: DialogueEngine.Request? = null
 
+    /** The exchange under way, for the playtest recorder's conversation log (play/TalkTurn). */
+    private var turn: com.timerpg.street.play.TalkTurn? = null
+
+    private fun beginTurn(input: String, words: String): com.timerpg.street.play.TalkTurn {
+        turn?.let { old -> if (!old.written) { old.why = "asked again before the reply"; old.finish(); com.timerpg.street.play.PlayLog.talk(old) } }
+        return com.timerpg.street.play.TalkTurn(npc.id, npc.name, input, words).also { it.building = npc.buildingName; turn = it }
+    }
+
+    private fun finishTurn(tt: com.timerpg.street.play.TalkTurn, l: Line, engine: DialogueEngine) {
+        if (tt.written) return
+        val i = l.info
+        tt.reply = l.text
+        tt.source = com.timerpg.street.play.TalkTurn.sourceOf(i?.source ?: if (l.ai) "live" else "template")
+        tt.model = i?.model
+        if (i != null && i.source != "ready" && (i.firstTokenMs > 0 || i.restMs > 0)) {
+            tt.unit = listOf("CPU", "GPU", "NPU").getOrNull(engine.status.value.runsOn)
+            tt.waitMs = i.waitMs; tt.firstTokenMs = i.waitMs + i.firstTokenMs; tt.lastTokenMs = i.waitMs + i.firstTokenMs + i.restMs
+            tt.tokens = i.tokens
+        }
+        tt.tries = i?.tries ?: 0
+        tt.valid = when { i?.source == "live" -> true; i?.why?.contains("check") == true -> false; else -> null }
+        tt.why = i?.why
+        tt.finish()
+        com.timerpg.street.play.PlayLog.talk(tt)
+    }
+
     fun ask(engine: DialogueEngine, t: Topic, voices: com.timerpg.street.voice.NpcVoiceService? = null) {
         request?.close()
         topic = t
         said = null
+        val tt = beginTurn("topic", t.label).also { it.intent = t.intent; it.topic = t.label; it.sheet = "${npc.id}/${t.intent}" }
         // a line is spoken once it is final (the model's when it has passed the check, else the game's own)
         var spoken: String? = null
         var early = false
@@ -1186,6 +1286,7 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
                 spoken = l.text; voices?.say(npc, l.text)
                 // the player's log (counts only): what they ask, and whether a line written ahead answered it
                 engine.record(npc, t.intent, if (r?.ready == true) "ready" else if (l.ai) "live" else "template")
+                finishTurn(tt, l, engine)
             }
         }
         val req = engine.ask(npc, t) { line = it; heard(it) }
@@ -1247,6 +1348,8 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
         if (echo != null) voices?.sayEcho(npc, echo)
         val heardBy = heardNote
         val heardHow = heardInfo
+        val tt = beginTurn(if (heardHow != null || heardBy != null) "spoken" else "typed", text)
+        heardHow?.let { h -> tt.asrBy = h.by; tt.asrMs = h.afterEndMs; tt.asrAudioMs = h.audioMs; tt.asrConfidence = h.confidence }
         var early = false
         var asked: DialogueEngine.Request? = null
         var askedTopic: Topic? = null
@@ -1279,11 +1382,14 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
             val intent = askedTopic?.intent ?: ""
             memory?.remember(npc.id, text, l.text, d?.town ?: "", d?.year ?: 0, intent, how, vec)
             engine.record(npc, intent, how)
+            tt.intent = intent; tt.topic = askedTopic?.label; tt.sheet = "${npc.id}/$intent"
+            finishTurn(tt, l, engine)
         }
         fun go(remembered: List<String>, v: FloatArray?) {
             if (said != text) return   // something else was asked meanwhile
             tAsk = android.os.SystemClock.elapsedRealtime()
             vec = v
+            tt.memories = remembered.size
             val (tp, r) = engine.askFree(npc, text, remembered, v) { line = it; heard(it) } ?: return
             asked = r; askedTopic = tp
             topic = tp
@@ -1297,6 +1403,9 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
     }
 
     fun close(voices: com.timerpg.street.voice.NpcVoiceService? = null) {
+        // walked away before the reply was final: the exchange is logged as such
+        turn?.let { tt -> if (!tt.written) { tt.walkedAway = true; tt.reply = line?.text?.takeIf { line?.ai == true }; tt.finish(); com.timerpg.street.play.PlayLog.talk(tt) } }
+        turn = null
         request?.close()
         request = null
         voices?.stop()
@@ -1889,6 +1998,9 @@ private fun NightPanel(s: AiStatus, engine: DialogueEngine) {
             Chip("Show its notification", false) { act.requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 41) }
     }
     Chip("Night reports: " + if (words) "with my words" else "counts only", words) { words = !words; nw.setShareWords(ctx, words) }
+    // the playtest recorder's conversation log (talk/ on the reports branch: docs/PLAYTEST.md; on by default in the owner's builds)
+    var talkRec by remember { mutableStateOf(com.timerpg.street.play.PlayLog.recordTalk(ctx)) }
+    Chip("Record my conversations: " + if (talkRec) "on" else "off", talkRec) { talkRec = !talkRec; com.timerpg.street.play.PlayLog.setRecordTalk(ctx, talkRec) }
 }
 
 private val LEFT_KEYS = setOf(android.view.KeyEvent.KEYCODE_DPAD_LEFT, android.view.KeyEvent.KEYCODE_A)

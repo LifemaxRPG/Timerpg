@@ -286,6 +286,20 @@ object ShotUploader {
         }
     }
 
+    /** Runs [block] on the upload thread (the playtest recorder's uploads: play.PlayUploads). */
+    fun onWorker(block: () -> Unit) = worker.execute { runCatching(block) }
+
+    /** Puts one file at [path] on the reports branch (call on the upload thread). True once it is in the repository. */
+    fun putReport(ctx: Context, path: String, bytes: ByteArray, message: String): Boolean {
+        val token = ShotSettings.token(ctx.applicationContext) ?: return false
+        if (!online(ctx)) return false
+        val dot = path.indexOf('.', path.lastIndexOf('/'))
+        val (r, _) = put(token, ShotRequests.REPORT_BRANCH, path, bytes, message) { k ->
+            if (dot < 0) "$path-${k + 1}" else path.substring(0, dot) + "-${k + 1}" + path.substring(dot)
+        }
+        return ok(r.code)
+    }
+
     /** On each start, in the background: Android's record of how the last runs ended, then any reports sent. */
     fun onLaunch(ctx: Context, filamentDied: Boolean) {
         val app = ctx.applicationContext
@@ -295,6 +309,8 @@ object ShotUploader {
             Reports.prune(app)
             if (ShotSettings.hasToken && ShotSettings.autoReports) sendReports(app)
             if (ShotSettings.hasToken) sendNight(app)
+            // the playtest recorder's timelines, conversations and traces (on Wi-Fi or charging; traces on both)
+            if (ShotSettings.hasToken) com.timerpg.street.play.PlayUploads.send(app)
         }
     }
 }

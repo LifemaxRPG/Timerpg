@@ -101,6 +101,7 @@ object TownSession {
             android.os.Handler(android.os.Looper.getMainLooper()).post {
                 if (wanted != seed) return@post
                 loadMs = (System.nanoTime() - startedAt) / 1e6f
+                com.timerpg.street.play.PlayLog.spanDone("town.read", loadMs.toDouble(), seed)
                 loaded = d
                 val w = TownPlay.start(d.town, d.collision, d.yards)
                 // where the player was last time in this town (the world position), if anywhere
@@ -170,6 +171,9 @@ object TownSession {
         firstViewMs = ms
         ready = true
         com.timerpg.street.shot.Crumbs.add("town first view ready: %.0f ms to build, %.0f ms since load start".format(java.util.Locale.US, ms, (System.nanoTime() - startedAt) / 1e6f))
+        com.timerpg.street.play.PlayLog.spanDone("town.firstView", ms.toDouble(), wanted)
+        com.timerpg.street.play.PlayLog.spanDone("town.loadToView", (System.nanoTime() - startedAt) / 1e6, wanted)
+        com.timerpg.street.play.PlayLog.phase("town.firstView", wanted)
     }
 
     /** The Filament layer went (a renderer switch, a crash): the next one builds the scene again behind the loading screen. */

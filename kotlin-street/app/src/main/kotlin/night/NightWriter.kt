@@ -66,7 +66,7 @@ object NightWriter {
     fun setWriterScreenOn(ctx: Context, on: Boolean) { prefs(ctx).edit().putBoolean("writerScreenOn", on).apply() }
 
     /** The owner's choice to send their own words in night reports (off: counts and theme labels only). */
-    fun shareWords(ctx: Context): Boolean = prefs(ctx).getBoolean("shareWords", false)
+    fun shareWords(ctx: Context): Boolean = prefs(ctx).getBoolean("shareWords", com.timerpg.street.BuildConfig.OWNER_BUILD)
     fun setShareWords(ctx: Context, on: Boolean) { prefs(ctx).edit().putBoolean("shareWords", on).apply() }
 
     /** The town the game plays (as the renderer's settings say, read without starting the renderer). */

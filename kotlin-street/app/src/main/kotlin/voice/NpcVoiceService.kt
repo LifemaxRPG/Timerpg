@@ -192,6 +192,7 @@ class NpcVoiceService(private val ctx: Context) {
                 v.engine.name.lowercase().replaceFirstChar { it.uppercase() }, first / 1000.0,
                 if (wasLoaded) "" else " (the voice model loaded first)", audio, made / 1000.0)
             main.post { lastTiming = note }
+            com.timerpg.street.play.PlayLog.tts(npc.id, v.engine.name.lowercase(), first, audio, made, !wasLoaded)
         }
     }
 
