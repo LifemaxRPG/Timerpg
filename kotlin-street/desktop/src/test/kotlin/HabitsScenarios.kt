@@ -1,36 +1,14 @@
 package com.lifemax.rpg.feature.habits
 
-import com.lifemax.rpg.core.data.PAGE_TOKENS
-import com.lifemax.rpg.feature.habits.data.LocalHabitsRepository
-import com.lifemax.rpg.feature.habits.domain.HabitsLoad
 import com.lifemax.rpg.feature.habits.domain.HabitsProjection
+import com.lifemax.rpg.feature.habits.domain.LapseBlock
+import com.lifemax.rpg.feature.habits.domain.LapseFrame
+import com.lifemax.rpg.feature.habits.domain.LapseStack
 import com.lifemax.rpg.feature.habits.domain.HabitsRules
 import com.lifemax.rpg.feature.habits.domain.HabitsSave
-import com.lifemax.rpg.feature.habits.domain.HabitsStorage
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import org.json.JSONObject
-
-/**
- * The habits file's stand-in for tests: it keeps the save in memory, and can be told to fail a
- * write.
- */
-class MemoryHabitsStorage(
-    var stored: HabitsSave = HabitsSave(),
-    private val opened: HabitsLoad? = null,
-) : HabitsStorage {
-    var failing = false
-    var writes = 0
-
-    override fun load(): HabitsLoad = opened ?: HabitsLoad.Ready(stored)
-
-    override fun save(save: HabitsSave): Boolean {
-        if (failing) return false
-        stored = save
-        writes++
-        return true
-    }
-}
 
 /** A clock a test sets: 2026-03-02 14:00 UTC until moved. */
 class TestClock(
@@ -83,7 +61,7 @@ object HabitsScenarios {
             .put("className", "Scholar")
             .put(
                 "tokens",
-                tokens ?: JSONObject().also { t -> PAGE_TOKENS.forEach { t.put(it, 0xFF000000L) } },
+                tokens ?: JSONObject(),
             )
             .put("light", light)
 
@@ -294,19 +272,49 @@ object HabitsScenarios {
             else -> error("No scenario $name")
         }
 
-    /** A repository over [storage] at [clock], with the page's surroundings in. */
-    fun repository(
-        storage: HabitsStorage,
-        clock: TestClock = TestClock(),
-        surroundings: JSONObject = surroundings(),
-    ): LocalHabitsRepository =
-        LocalHabitsRepository(storage, clock).apply { accept(surroundings, true) }
-
-    /** What the screen draws for scenario [name]. */
+    /** What the screen draws for scenario [name] (the rules' own day, with the time-lapse frames a week apart). */
     fun projection(
         name: String,
         clock: TestClock = TestClock(),
         surroundings: JSONObject = surroundings(),
-    ): HabitsProjection =
-        repository(MemoryHabitsStorage(save(name)), clock, surroundings).state.value!!
+    ): HabitsProjection {
+        val save = save(name)
+        val today = clock.today
+        val day = HabitsRules.day(save, today)
+        val rules = HabitsRules.RULES
+        val lapse =
+            (1..rules.weeks).map { w ->
+                val d = HabitsRules.addDays(today, -7 * w)
+                LapseFrame(
+                    w,
+                    d,
+                    HabitsRules.day(save, today, d).stacks.map { st ->
+                        LapseStack(
+                            st.id,
+                            st.blocks.map {
+                                LapseBlock(it.id, it.size, it.reps, it.material, it.left, it.cleared)
+                            },
+                        )
+                    },
+                )
+            }
+        return HabitsProjection(
+            day = today,
+            hour = clock.now.hour + clock.now.minute / 60f,
+            who = day.who,
+            whoHint = "",
+            rough = day.rough,
+            built = day.built,
+            due = day.due,
+            reducedMotion = surroundings.optBoolean("reducedMotion"),
+            haptics = null,
+            problem = "",
+            limits = HabitsRules.LIMITS,
+            rules = rules,
+            stacks = day.stacks,
+            lapse = lapse,
+            tokens = emptyMap(),
+            light = surroundings.optBoolean("light"),
+        )
+    }
 }
