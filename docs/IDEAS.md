@@ -467,3 +467,14 @@ changes by rules for its type, its owner and its era.
 - **The player's buildings follow the same rules** (above), so they fit the town's own.
 - **Already in the game, in small form:** stores with era states, Main Street through the decades, weathering and
   vacant states, abandoned versions. This system unifies them.
+- **Refined (the owner's decision, 2026-11-23): always start from a hand-made model.** Every building is one of our
+  hand-made models plus variations, never a from-scratch rule building. The rules only add to and adjust it:
+  - an addition: a room, a wing, a second storey, a garage, a drive-through;
+  - remodelled parts: an awning, a new sign, new windows, cladding;
+  - conversions;
+  - weathering.
+  The additions **reuse the model's own materials** (our models name materials by role: `wall_*`, `roof_*`,
+  `glass_*`, `trim_*`), so a new room is built from the same brick, roof and window textures as the hand-made body and
+  doesn't read as added. The base model carries the craft; the variations give each copy its own history.
+  What ChatGPT makes then shifts slowly toward era kit pieces that fit onto existing models (additions, storefront
+  swaps, sign boards), alongside new whole models.
