@@ -95,3 +95,4 @@ row per accepted or revised delivery here, so we can compare cost per finished i
 | C009 police station | ChatGPT (Codex) | model, 3 states + LODs | see DELIVERY.md | 1 | accepted first try |
 | C010 pawn shop | ChatGPT (Codex) | model, 3 states + LODs | see DELIVERY.md | 1 | accepted first try |
 | C017 sports car | ChatGPT/Sam (Codex) | 2 vehicles + LODs | see DELIVERY.md | 1 | accepted first try |
+| G008 evidence and forensics | Gemini/Jeff (AI Studio Build) | engineering, extends G005 | not visible | 1 | accepted first try; 19/19 |

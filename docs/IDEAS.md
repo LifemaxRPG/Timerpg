@@ -796,3 +796,12 @@ Airports and aircraft exist, but **flying is hard.** It must never cheapen cross
 - **Open: skipping passenger rides.** The leading idea is no full skip. A ride can be sped up as a cinematic time-lapse
   (good shots, day and night passing), which drops back to normal speed when something happens; the full trip time
   passes in the game. Driving and piloting are never skipped. The owner is still deciding.
+
+## Forensics follow-ups (Jeff's ideas, from G008, 2026-11-23)
+
+- **Lab turnaround by era:** matches come back after a delay (weeks for mailed 1930s print cards, days for early DNA,
+  a day for modern automated matching), giving a culprit a real window to flee or destroy other evidence.
+- **Cold-case breakthroughs as news:** when an old case is matched years later, or an "impossible" print turns up
+  (before someone's birth), the newspaper and the town's gossip pick it up.
+- **Wrongful arrest and exoneration:** when a witness names one person and DNA or prints match another, the trial
+  system can produce mistaken-identity convictions overturned decades later.
