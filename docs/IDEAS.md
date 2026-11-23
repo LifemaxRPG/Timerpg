@@ -584,3 +584,31 @@ way you would in life:
   - Options weighed and not recommended:
     - a "fixed point" rule (every attempt to save him fails): it fights our systemic, changeable world;
     - a rule that the machine can't reach before its own first run: it would cut off the eras the game is about.
+
+## The time-travel rules: travellers are unanchored (the owner's idea, 2026-11-23)
+
+Replaces the "go back and save him" recommendation above, which was too close to a familiar film.
+- **Rule 1: a traveller is unanchored.** Once you travel, you step outside history. Your body, your memories and what
+  you carry persist through any change. Changes to the past never erase or rewrite *you*.
+- **Rule 2: everything else is anchored.** The world, its people, their memories, records and buildings re-form around
+  every change. (This is literally how our simulation works: the world is the seed plus interventions, and the player
+  is outside it.) It's why someone you got a code from in the future doesn't remember giving it to you.
+- **Rule 3: you can erase your anchored self.** If a traveller kills their own younger self, every record and memory
+  of their life vanishes from history. They go on existing, unanchored, with no past: no birth record, no family who
+  knows them, no fingerprints on file, nobody who remembers them.
+- **What happened to the professor:** he did exactly that. He went back, killed himself as a child, and wiped himself
+  from history (why is the mystery). That answers "why not go back and find him before he died": in the timeline that
+  exists now, there is no younger professor to find. The only one was the unanchored man moving through time, and he
+  left traces only where he chose to.
+  - **On arrival,** the address and the lab exist (he built them as an unanchored man), but the town has no record of
+    him.
+  - **If he's found dead,** it's an unknown man the police can't identify, because he doesn't exist on paper.
+  - **His letter, his work and the machine** are the only proof he lived.
+- **Gameplay from the rules:**
+  - **The player is unanchored too,** from their first jump. Their memories outlast every change they cause.
+  - **Erasing yourself is possible, but drastic.** A player with no history has no legal identity: no bank account,
+    no record, no fingerprints on file (useful for crime), but no job references, no family, and no one who remembers
+    them.
+  - **Unanchored people can find each other across time,** through traces such as letters, caches and odd records.
+- **Prior art:** self-erasure has been touched on in fiction, but rarely as a playable rule. The details here are our
+  own.
