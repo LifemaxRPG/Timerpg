@@ -46,7 +46,8 @@ internal class TownLandmark(
     private val lamps = CinemaLights(engine, scene)
     private var animator: LandmarkAnimator? = null
     private var lastSeconds = 0.0
-    private class Built(val far: List<CinemaLayer.Packed>?, val front: Float, val parts: List<CinemaLayer.Packed>, val animated: LandmarkAnimator.PackedSet?, val at: FloatArray, val box: FloatArray, val body: FloatArray, val lights: List<CinemaLight>, val solids: FloatArray, val doors: List<LandmarkDoor>, val triangles: Int)
+    private class Built(val far: List<CinemaLayer.Packed>?, val front: Float, val parts: List<CinemaLayer.Packed>, val animated: LandmarkAnimator.PackedSet?, val at: FloatArray, val box: FloatArray, val body: FloatArray, val lights: List<CinemaLight>, val solids: FloatArray, val doors: List<LandmarkDoor>, val triangles: Int,
+                        val levels: com.lifemax.rpg.feature.habits.domain.LevelField?)
     private var job: java.util.concurrent.Future<Built>? = null
     private var at: FloatArray = frameOf(0f, 0f)
     var done = false; private set
@@ -61,6 +62,8 @@ internal class TownLandmark(
     var triangles = 0; private set
     var solidCount = 0; private set
     var doorCount = 0; private set
+    /** The bytes its height field holds (WalkLevels.kt), once built. */
+    var levelBytes = 0L; private set
     /** The lot's front edge (model z) and its footprint (x0, z0, x1, z1, height), once built. */
     var front = 0f; private set
     var lot: FloatArray? = null; private set
@@ -84,7 +87,9 @@ internal class TownLandmark(
             // (the distant silhouette in the same frame: it shares the model's origin)
             val far = farBytes?.invoke()?.takeIf { it.isNotEmpty() }?.let { fb -> CinemaLayer.pack(LandmarkKit.build(GlbFile.read(fb), spec, year, seed, hide = hide).model, a) }
             val totalTris = m.triangles + lm.animated.sumOf { it.triangles }
-            Built(far, lm.front, CinemaLayer.pack(m, a), LandmarkAnimator.pack(lm, a), a, fp, if (b[0] < b[2]) b else fp, m.lights, StoreSolids.world(lm.solids, a), lm.doors, totalTris)
+            Built(far, lm.front, CinemaLayer.pack(m, a), LandmarkAnimator.pack(lm, a), a, fp, if (b[0] < b[2]) b else fp, m.lights, StoreSolids.world(lm.solids, a), lm.doors, totalTris,
+                // (its steps, terraces and plaza as heights in the town's frame: the walk climbs them)
+                lm.levels?.build(a))
         })
     }
 
@@ -112,8 +117,11 @@ internal class TownLandmark(
         r = sqrt((fp[2] - fp[0]) * (fp[2] - fp[0]) + (fp[3] - fp[1]) * (fp[3] - fp[1]) + fp[4] * fp[4]) / 2f
         body = b.body; front = b.front; lot = b.box
         triangles = b.triangles; solidCount = b.solids.size / 6; doorCount = b.doors.size
+        levelBytes = b.levels?.bytes ?: 0L
         collision?.let { col ->
-            col.setExtra(KEY + sprite, b.solids, SolidKind.BUILDING, sprite)
+            // (with its heights in a field the walk on foot takes them from there: the outlines are for the cars and people)
+            col.setLevels(KEY + sprite, b.levels)
+            col.setExtra(KEY + sprite, b.solids, SolidKind.BUILDING, sprite, if (b.levels != null) TownCollision.STEPPED else null)
             col.setExtraDoors(KEY + sprite, b.doors.map { d ->
                 val wx = at[0] + at[2] * d.x + at[4] * d.z; val wz = at[1] + at[3] * d.x + at[5] * d.z
                 val ox = at[2] * d.outX + at[4] * d.outZ; val oz = at[3] * d.outX + at[5] * d.outZ
@@ -156,6 +164,14 @@ internal class TownLandmark(
         return t0
     }
 
+    /** Whether world ([x], [z]) is on its lot (its footprint), once built. */
+    fun under(x: Float, z: Float): Boolean {
+        val l = lot ?: return false
+        val a = at
+        val lx = (x - a[0]) * a[2] + (z - a[1]) * a[3]; val lz = (x - a[0]) * a[4] + (z - a[1]) * a[5]
+        return lx >= l[0] && lx <= l[2] && lz >= l[1] && lz <= l[3]
+    }
+
     /** Triggers any swinging bells on this landmark for [swings] cycles, easing to rest afterwards. */
     fun ringBells(nowSeconds: Double = lastSeconds, swings: Int = 5) {
         animator?.ringBells(nowSeconds, swings)
@@ -194,7 +210,7 @@ internal class TownLandmark(
 
     fun destroy() {
         job?.cancel(true); layer.destroy(); farLayer?.destroy(); lamps.destroy()
-        collision?.setExtra(KEY + sprite, null); collision?.setExtraDoors(KEY + sprite, null)
+        collision?.setExtra(KEY + sprite, null); collision?.setExtraDoors(KEY + sprite, null); collision?.setLevels(KEY + sprite, null)
     }
 
     companion object {

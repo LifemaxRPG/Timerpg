@@ -37,10 +37,10 @@ internal object SeeThrough {
      * cone widening from nothing over [EASE_SECONDS] and closing again over as long once they are clear ([dt] the
      * frame's step). 0.1.385 had it always on: every tree and post walked past dithered away (054003).
      */
-    fun aim(px: Float, pz: Float, ex: Float, ey: Float, ez: Float, hidden: Boolean = true, dt: Float = 0f) {
+    fun aim(px: Float, pz: Float, ex: Float, ey: Float, ez: Float, hidden: Boolean = true, dt: Float = 0f, feet: Float = 0f) {
         val goal = if (hidden || always) 1f else 0f
         open = if (!ease || dt <= 0f) goal else if (open < goal) kotlin.math.min(goal, open + dt / EASE_SECONDS) else kotlin.math.max(goal, open - dt / EASE_SECONDS)
-        val py = MIDDLE
+        val py = MIDDLE + feet
         val len = kotlin.math.sqrt((px - ex) * (px - ex) + (py - ey) * (py - ey) + (pz - ez) * (pz - ez))
         a[0] = ex; a[1] = ey; a[2] = ez; a[3] = if (len <= SHORT + 1f) 0f else 1f - SHORT / len
         // (eased smoothly: an iris opening round the player)

@@ -9,6 +9,7 @@ import com.lifemax.rpg.feature.habits.domain.TownDoor
 import com.lifemax.rpg.feature.habits.domain.TownDoors
 import com.lifemax.rpg.feature.habits.domain.TownYard
 import com.lifemax.rpg.feature.habits.domain.TownYards
+import com.lifemax.rpg.feature.habits.domain.WalkHeight
 import kotlin.math.abs
 import kotlin.math.atan
 import kotlin.math.atan2
@@ -42,6 +43,17 @@ class OpenWalk(
         private set
     override var wz = 0f
         private set
+    /**
+     * The player's feet above the town's ground (street units): 0 on the ground, a step's or a terrace's top on a
+     * landmark's height field ([TownCollision.floorAt]); falling when they walked off an edge. The truth the walk climbs by.
+     */
+    var wy = 0f
+        private set
+    /** [wy] eased for the eye (the figure and the camera): a step climbed is a quick rise, not a jump. */
+    var shownY = 0f
+        private set
+    /** How fast the feet fall (street units a second, down negative). */
+    private var vy = 0f
 
     /** In a car (docs/VEHICLES.md): [step] does not walk, the car sets the place ([carry]) until the player gets out ([release]). */
     var carried = false
@@ -56,6 +68,7 @@ class OpenWalk(
         carriedSpeed = speed
         val moved = x != wx || z != wz
         wx = x; wz = z
+        wy = 0f; shownY = 0f; vy = 0f
         val l = hypot(dx, dz)
         if (l > 1e-6f) { hx = dx / l; hz = dz / l }
         GameState.motion.vx = 0f; GameState.motion.vy = 0f
@@ -151,8 +164,10 @@ class OpenWalk(
      * there (never inside anything), and stops their legs.
      */
     fun placeAt(px: Float, pz: Float, dx: Float = hx, dz: Float = hz) {
-        collision.nearestClear(px, pz, radius, out)
+        collision.nearestClear(px, pz, radius, out, foot = !riding)
         wx = out[0]; wz = out[1]
+        // (on a landmark's steps or terrace: on its top; never inside it)
+        wy = if (riding) 0f else collision.settle(wx, wz, 0f, RADIUS); shownY = wy; vy = 0f
         val l = hypot(dx, dz)
         if (l > 1e-6f) { hx = dx / l; hz = dz / l }
         GameState.motion.vx = 0f; GameState.motion.vy = 0f
@@ -179,7 +194,7 @@ class OpenWalk(
      * Whether a walker can stand at ([px], [pz]) and walk away from it: clear of everything and not shut in
      * ([TownCollision.boxedIn]).
      */
-    fun standable(px: Float, pz: Float): Boolean = !collision.boxedIn(px, pz, RADIUS)
+    fun standable(px: Float, pz: Float): Boolean = !collision.boxedIn(px, pz, RADIUS, foot = true)
 
     /**
      * Puts the player on safe ground if where they stand is not ([standable]: inside something, or shut in where no way
@@ -221,11 +236,13 @@ class OpenWalk(
         if (v == extrasSeen) return
         extrasSeen = v
         if (sincePlaced < SETTLE) { if (rescue() != null) return }
-        if (collision.blocked(wx, wz, radius) && collision.nearestClear(wx, wz, radius, out, step = 2f, reach = 400f)) {
+        if (collision.blocked(wx, wz, radius, foot = !riding) && collision.nearestClear(wx, wz, radius, out, step = 2f, reach = 400f, foot = !riding)) {
             wx = out[0]; wz = out[1]
             derive(force = true)
             aim()
         }
+        // (a height field came in under or round the player: onto its top, never inside it)
+        if (!riding) { val y = collision.settle(wx, wz, wy, RADIUS); if (y > wy) { wy = y; vy = 0f } }
     }
 
     /** Takes over from the street view's walk (the AI panel's view switch): where it stands, the way it heads (on foot). */
@@ -238,6 +255,8 @@ class OpenWalk(
      */
     fun mount(): Boolean {
         if (riding) return true
+        // (the bike rides the town's ground: not on a landmark's terrace or steps)
+        if (wy > WalkHeight.RISE) return false
         if (!collision.nearestClear(wx, wz, BikeState.RADIUS, out, step = 2f, reach = BikeState.MOUNT_REACH)) return false
         val cx = out[0]; val cz = out[1]
         if (hypot(cx - wx, cz - wz) > BikeState.MOUNT_REACH) return false
@@ -272,8 +291,9 @@ class OpenWalk(
         GameState.riding = false
         bike.stop()
         GameState.motion.vx = 0f; GameState.motion.vy = 0f
-        collision.nearestClear(wx, wz, RADIUS, out)
+        collision.nearestClear(wx, wz, RADIUS, out, foot = true)
         wx = out[0]; wz = out[1]
+        wy = collision.settle(wx, wz, 0f, RADIUS); shownY = wy; vy = 0f
         aim()
     }
 
@@ -289,6 +309,9 @@ class OpenWalk(
         val x0 = wx; val z0 = wz
         if (riding) stepRide(dt, mx, my) else stepFoot(dt, mx, my)
         if (sincePlaced < SETTLE) sincePlaced += hypot(wx - x0, wz - z0)
+        // (the figure and the camera follow the feet's height eased: up a step in a blink, never a jump)
+        shownY = if (riding || dt <= 0f) wy else shownY + (wy - shownY) * (1f - exp(-dt / STEP_EASE))
+        if (abs(wy - shownY) < .01f) shownY = wy
     }
 
     private fun stepFoot(dt: Float, mx: Float, my: Float) {
@@ -303,7 +326,9 @@ class OpenWalk(
         val ax = m.vx * t; val az = m.vy * t
         var walked = 0f
         if (ax != 0f || az != 0f) {
-            val share = collision.move(wx, wz, ax, az, RADIUS, out)
+            val share = collision.move(wx, wz, ax, az, RADIUS, out, foot = true)
+            // (then the heights: up steps, along terraces' walls, off edges)
+            if (collision.levels.isNotEmpty()) levelMove(out[0], out[1])
             val dx = out[0] - wx; val dz = out[1] - wz
             walked = sqrt(dx * dx + dz * dz)
             wx = out[0]; wz = out[1]
@@ -313,6 +338,7 @@ class OpenWalk(
             if (t > 0f && walked < asked * .999f) { m.vx = dx / t; m.vy = dz / t }
             if (share <= 0f && walked < 1e-3f) { m.vx = 0f; m.vy = 0f }
         } else blockedShare = 0f
+        fall(t)
         // facing: towards where they walk (or are pushed, if a wall holds them), quickly
         val wantX: Float; val wantZ: Float
         val sp = hypot(m.vx, m.vy)
@@ -341,6 +367,74 @@ class OpenWalk(
         yard = yardAt(wx, wz)
         GameState.surface = surfaceAt(wx, wz, yard)
         if (walked > 0f) aim()
+    }
+
+    // ------------------------------------------------------------------ heights
+
+    /** Whether the feet were on something last step (not in the air): a step down is then followed, not fallen. */
+    private var grounded = true
+
+    /**
+     * Walks from the player's place towards ([tx], [tz]) (where the flat outlines let them go) over the height fields
+     * ([TownCollision.levels]) in short steps: each step's way must be clear between a riser's height and the head
+     * ([TownCollision.levelBlocked]; else along one axis, sliding along a terrace's wall, else it stops there); the feet
+     * go up onto what they reach (a step up to [WalkHeight.RISE]) and down a step with it while on the ground; off a
+     * higher edge they are in the air ([fall]). Where it ends into [out]. Allocates nothing.
+     */
+    private fun levelMove(tx: Float, tz: Float) {
+        val dx = tx - wx; val dz = tz - wz
+        val len = hypot(dx, dz)
+        var cx = wx; var cz = wz
+        val n = kotlin.math.max(1, kotlin.math.ceil(len / LEVEL_STEP).toInt())
+        val sx = dx / n; val sz = dz / n
+        for (k in 0 until n) {
+            var px = cx + sx; var pz = cz + sz
+            var f = standAt(px, pz)
+            if (f.isNaN()) {
+                // (sliding: the step's part along each axis alone, if that is clear of both kinds)
+                f = if (sx != 0f && !collision.blocked(cx + sx, cz, RADIUS, foot = true)) standAt(cx + sx, cz) else Float.NaN
+                if (!f.isNaN()) pz = cz
+                else {
+                    f = if (sz != 0f && !collision.blocked(cx, cz + sz, RADIUS, foot = true)) standAt(cx, cz + sz) else Float.NaN
+                    if (!f.isNaN()) px = cx else break
+                }
+            }
+            cx = px; cz = pz
+            if (f >= wy) { wy = f; vy = 0f; grounded = true }
+            else if (grounded && wy - f <= WalkHeight.RISE) wy = f
+            else grounded = false
+        }
+        out[0] = cx; out[1] = cz
+    }
+
+    /**
+     * Where the feet would be at ([x], [z]) (the floor there, up to a step above the feet now), or NaN if something stands
+     * in the way at that height (a step up is tried first, then the way checked from it, as one does climbing a stair).
+     */
+    private fun standAt(x: Float, z: Float): Float {
+        val f = footFloor(x, z, wy)
+        return if (collision.levelBlocked(x, z, kotlin.math.max(wy, f), RADIUS)) Float.NaN else f
+    }
+
+    /** The floor under the player's feet: the highest of the middle's and four points half way to the edge (an edge stood on holds). */
+    private fun footFloor(x: Float, z: Float, feet: Float): Float {
+        val h = RADIUS * .5f
+        var f = collision.floorAt(x, z, feet)
+        f = kotlin.math.max(f, collision.floorAt(x + h, z, feet)); f = kotlin.math.max(f, collision.floorAt(x - h, z, feet))
+        f = kotlin.math.max(f, collision.floorAt(x, z + h, feet)); f = kotlin.math.max(f, collision.floorAt(x, z - h, feet))
+        return f
+    }
+
+    /** [t] s of the feet's height: on the floor, or falling to it (walked off a terrace's edge). */
+    private fun fall(t: Float) {
+        if (wy == 0f && vy == 0f && collision.levels.isEmpty()) return
+        val f = footFloor(wx, wz, wy)
+        if (wy <= f + .01f) { wy = f; vy = 0f; grounded = true; return }
+        if (grounded && wy - f <= WalkHeight.RISE) { wy = f; vy = 0f; return }
+        grounded = false
+        vy -= WalkHeight.GRAVITY * t
+        wy += vy * t
+        if (wy <= f) { wy = f; vy = 0f; grounded = true }
     }
 
     // ------------------------------------------------------------------ riding
@@ -653,6 +747,10 @@ class OpenWalk(
     companion object {
         /** The player's feet on the ground: a circle this wide (street units; the figure is 36 tall, its shoulders ~14 across). */
         const val RADIUS = 5f
+        /** The walk over the height fields goes in steps this long (street units: under a step's tread). */
+        const val LEVEL_STEP = 2f
+        /** How quickly the figure and the camera follow the feet up or down a step (s). */
+        const val STEP_EASE = .07f
         /** How quickly the player turns to face where they walk (s). */
         const val TURN_TIME = .06f
         /** A building line the player stands behind (in its lots) counts this much further for "which street am I on". */

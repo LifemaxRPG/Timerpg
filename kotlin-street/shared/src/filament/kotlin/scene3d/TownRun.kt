@@ -93,6 +93,8 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
     }
 
     private var lastSeconds = Float.NaN
+    /** The camera's height over the town's ground it follows the player at (their feet's, eased: [CAM_RISE]). */
+    private var camY = 0f
 
     /**
      * The open world's camera this frame: [OrbitCamera] eased by the clock's step (only the player's own input), following
@@ -119,6 +121,10 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
         if (ow != null && ow.riding) c.ride(dt, heading, ow.bike.speed) else if (ow != null && ow.carried) c.ride(dt, heading, ow.carriedSpeed) else c.onFoot(dt)
         c.step(dt)
         c.follow(walk.wx, walk.wz)
+        // (up a landmark's steps the camera rises with the player, eased a little more than the figure: no bob a step)
+        val feet = ow?.shownY ?: 0f
+        camY = if (dt == 0f) feet else camY + (feet - camY) * (1f - kotlin.math.exp(-dt / CAM_RISE))
+        val eye = OrbitCamera.EYE + camY
         // (on the bike the camera stands a little further back, eased: a zoom out the player's own zoom rides on, never a turn)
         val riding = (walk as? com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk)?.riding == true
         // (further back still in a car: it is longer than the bike, and faster)
@@ -127,9 +133,9 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
         val dist = c.dist * (1f + OrbitCamera.RIDE_BACK * c.rideBack)
         // (the open walk's stick pushes relative to where the camera looks; the walk never turns the camera)
         (walk as? com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk)?.cameraYaw = c.yawRad
-        val want = TownFrame.orbit(walk.wx, OrbitCamera.EYE, walk.wz, c.yaw, c.pitch, dist, w, h, OrbitCamera.FOV_Y)
+        val want = TownFrame.orbit(walk.wx, eye, walk.wz, c.yaw, c.pitch, dist, w, h, OrbitCamera.FOV_Y)
         val o0 = System.nanoTime()
-        town.occlude(walk.wx, OrbitCamera.EYE, walk.wz, want.ex, want.ey, want.ez)
+        town.occlude(walk.wx, OrbitCamera.EYE + feet, walk.wz, want.ex, want.ey, want.ez, feet = feet)
         val fit = if (c.pullIn && town.eyeInside < 1f) (town.eyeInside * dist - PULL_MARGIN).coerceIn(min(PULL_MIN, dist), dist) else dist
         town.fadeBetween(fit / dist)
         com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.add(com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.OCCLUDE, System.nanoTime() - o0)
@@ -138,9 +144,9 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
         // (no pull: the camera stands where the player put it, their own zoom unlagged)
         c.pulled = if (dt == 0f || !c.pullIn) fit else c.pulled + (fit - c.pulled) * (1f - kotlin.math.exp(-dt / tau))
         if (c.pulled > dist) c.pulled = dist
-        val p = if (abs(c.pulled - dist) < .5f) want else TownFrame.orbit(walk.wx, OrbitCamera.EYE, walk.wz, c.yaw, c.pitch, c.pulled, w, h, OrbitCamera.FOV_Y)
+        val p = if (abs(c.pulled - dist) < .5f) want else TownFrame.orbit(walk.wx, eye, walk.wz, c.yaw, c.pitch, c.pulled, w, h, OrbitCamera.FOV_Y)
         // (whatever is left between the eye and the player, merged trees too, is cut in a cone by the material)
-        SeeThrough.aim(walk.wx, walk.wz, p.ex, p.ey, p.ez, town.hidden, dt)
+        SeeThrough.aim(walk.wx, walk.wz, p.ex, p.ey, p.ez, town.hidden, dt, feet)
         c.lensPx = p.fl
         // (the horizon: where a level line from the eye falls; above the screen's top when looking well down)
         c.horizonY = p.cy - p.fl * (-p.fy) / hypot(p.fx, p.fz).coerceAtLeast(1e-4f)
@@ -160,6 +166,8 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
         const val RIDE_EASE = .8f
         /** In a car the camera stands this many bike-steps back ([OrbitCamera.RIDE_BACK] each): a little further than on foot. */
         const val CAR_BACK = .5f
+        /** Seconds the camera takes to follow the player's feet up or down (a step, a terrace). */
+        const val CAM_RISE = .18f
 
         /** The first view waits for the buildings this near the player (street units): the street in view and the next blocks. */
         const val READY_RADIUS = 1800f

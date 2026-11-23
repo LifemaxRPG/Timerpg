@@ -158,8 +158,8 @@ internal class TownPeople(
             val w = 32f * k; val h = 64f * k
             val left = -16f * k
             // facing the camera: across its right, towards it
-            place(c.e, f.x, f.z, pose.rx, pose.rz, -pose.groundX, -pose.groundZ, left, w, h)
-            place(c.proxy, f.x, f.z, px, pz, -pz, px, left, w, h)
+            place(c.e, f.x, f.y, f.z, pose.rx, pose.rz, -pose.groundX, -pose.groundZ, left, w, h)
+            place(c.proxy, f.x, f.y, f.z, px, pz, -pz, px, left, w, h)
             c.mi.setParameter("albedo", tex, nearest)
             c.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
             c.mi.setParameter("uvRect", u0, v0, du, dv)
@@ -227,13 +227,13 @@ internal class TownPeople(
     }
 
     /** Places card [e] standing at ([x], [z]): its picture across ([ax], [az]), facing ([nx], [nz]), [w] x [h], its left edge [left] from the feet. */
-    private fun place(e: Int, x: Float, z: Float, ax: Float, az: Float, nx: Float, nz: Float, left: Float, w: Float, h: Float) {
+    private fun place(e: Int, x: Float, y: Float, z: Float, ax: Float, az: Float, nx: Float, nz: Float, left: Float, w: Float, h: Float) {
         val tm = engine.transformManager
         xf[0] = ax * w; xf[1] = 0f; xf[2] = az * w; xf[3] = 0f
         xf[4] = 0f; xf[5] = h; xf[6] = 0f; xf[7] = 0f
         xf[8] = nx; xf[9] = 0f; xf[10] = nz; xf[11] = 0f
         // (the sheet's feet are on its bottom pixel row: the card stands on the ground)
-        xf[12] = x + ax * left; xf[13] = 0f; xf[14] = z + az * left; xf[15] = 1f
+        xf[12] = x + ax * left; xf[13] = y; xf[14] = z + az * left; xf[15] = 1f
         tm.setTransform(tm.getInstance(e), xf)
     }
 

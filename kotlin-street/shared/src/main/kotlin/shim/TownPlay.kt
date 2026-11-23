@@ -23,6 +23,8 @@ import kotlin.math.hypot
  */
 class TownFigure {
     var x = 0f
+    /** Feet above the town's ground (the player's on a landmark's steps; everyone else 0). */
+    var y = 0f
     var z = 0f
     var dx = 1f
     var dz = 0f
@@ -431,8 +433,8 @@ object TownPlay {
     }
 
     /** A head [TalkRange.HEAD_PIXELS] sprite pixels over the feet at world ([x], [z]), on the screen as last drawn. */
-    fun headOnScreen(x: Float, z: Float): androidx.compose.ui.geometry.Offset? =
-        projector?.invoke(x, TalkRange.HEAD_PIXELS * SpriteArt.PIXEL, z)
+    fun headOnScreen(x: Float, z: Float, feet: Float = 0f): androidx.compose.ui.geometry.Offset? =
+        projector?.invoke(x, feet + TalkRange.HEAD_PIXELS * SpriteArt.PIXEL, z)
 
     /** The head of the person to talk to at [sprite], on the screen. */
     fun keeperHead(sprite: String): androidx.compose.ui.geometry.Offset? {
@@ -443,7 +445,7 @@ object TownPlay {
     }
 
     /** The player's head, on the screen. */
-    fun playerHead(): androidx.compose.ui.geometry.Offset? { val w = walk ?: return null; return headOnScreen(w.wx, w.wz) }
+    fun playerHead(): androidx.compose.ui.geometry.Offset? { val w = walk ?: return null; return headOnScreen(w.wx, w.wz, (w as? OpenWalk)?.shownY ?: 0f) }
 
     // ------------------------------------------------------------------ the people drawn
 
@@ -451,7 +453,7 @@ object TownPlay {
 
     private fun next(): TownFigure {
         if (figureCount == figures.size) figures += TownFigure()
-        return figures[figureCount++].also { it.keeper = null; it.me = false; it.facing = 0; it.bike = null; it.folk = -1; it.who = -1 }
+        return figures[figureCount++].also { it.keeper = null; it.me = false; it.y = 0f; it.facing = 0; it.bike = null; it.folk = -1; it.who = -1 }
     }
 
     /**
@@ -534,7 +536,7 @@ object TownPlay {
         if (w is OpenWalk && w.carried) return figureCount
         val me = next()
         me.me = true
-        me.x = w.wx; me.z = w.wz
+        me.x = w.wx; me.z = w.wz; me.y = (w as? OpenWalk)?.shownY ?: 0f
         val moving = GameState.walking || w.transit != null
         val a = w.row.alongAt(w.x.coerceIn(0f, w.row.length))
         // on the pavement the player faces along the row by their direction; through a transit, the way they walk; in the

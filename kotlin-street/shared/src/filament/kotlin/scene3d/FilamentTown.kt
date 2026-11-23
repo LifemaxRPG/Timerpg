@@ -588,7 +588,7 @@ class FilamentTown(
     }
     private val landmarkOut = IntArray(3)
     /** The landmark models as built (for previews and tests): sprite, kind, triangles, solid shapes, doors, whether drawn. */
-    val landmarkReport: List<String> get() = (landmarkDraws + listOfNotNull(depotDraw)).map { "${it.sprite} ${it.spec.kind}: ${if (it.done) "${it.triangles} triangles, ${it.solidCount} solid shapes, ${it.doorCount} doors" else "building"}${if (it.closed) ", closed" else ""}${if (it.shown) ", shown" else ""}" }
+    val landmarkReport: List<String> get() = (landmarkDraws + listOfNotNull(depotDraw)).map { "${it.sprite} ${it.spec.kind}: ${if (it.done) "${it.triangles} triangles, ${it.solidCount} solid shapes, ${it.doorCount} doors, heights %.1f MB".format(it.levelBytes / 1048576.0) else "building"}${if (it.closed) ", closed" else ""}${if (it.shown) ", shown" else ""}" }
     /** The frame (origin x, z; x axis; z axis) of the landmark model in slot [sprite] ("rail-depot": the depot's), once built. */
     fun landmarkFrame(sprite: String): FloatArray? = (landmarkDraws + listOfNotNull(depotDraw)).firstOrNull { it.sprite == sprite && it.done }?.frame
     /** The lot of the landmark model in slot [sprite] in its frame (x0, z0, x1, z1, height), once built. */
@@ -1489,7 +1489,7 @@ class FilamentTown(
      * in the way begins (a share of the way, 1: nothing); [eyeInside] is where that line enters a building the camera
      * itself would stand in (kept [pad] off its walls and roof; 1: none). Allocates nothing.
      */
-    fun occlude(tx: Float, ty: Float, tz: Float, ex: Float, ey: Float, ez: Float, pad: Float = 12f): Float {
+    fun occlude(tx: Float, ty: Float, tz: Float, ex: Float, ey: Float, ez: Float, pad: Float = 12f, feet: Float = 0f): Float {
         var first = 1f
         eyeInside = 1f
         var blocked = false
@@ -1581,6 +1581,9 @@ class FilamentTown(
             lm.occT = Float.MAX_VALUE
             val tc = lm.inWay(st[0], st[1], st[2], ex, ey, ez, EYE_CLEAR)
             val th = lm.inWay(st[6], st[7], st[8], ex, ey, ez, 0f)
+            // (the player up on its steps or terrace: it is the ground they stand on, never cut away whole (they would
+            // float over the grass); what of it hides them, the see-through cone cuts)
+            if (feet > com.lifemax.rpg.feature.habits.domain.WalkHeight.RISE && lm.under(tx, tz)) { if (tc <= 1f) blocked = true; continue }
             if (tc <= 0f) lm.occT = .999f
             else if (tc <= 1f && th <= 1f) { lm.occT = max(tc, th); blocked = true; if (tc < first) first = tc }
         }

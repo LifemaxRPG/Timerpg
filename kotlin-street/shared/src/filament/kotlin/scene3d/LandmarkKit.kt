@@ -224,6 +224,8 @@ class LandmarkModel(
      * materials' bounds). What the open world's camera cuts away when it stands in the way ([TownLandmark.inWay]).
      */
     val body: FloatArray? = null,
+    /** The heights a walker stands on, gathered in the frame, to be made in the town's frame ([LevelField.Builder.build]). */
+    val levels: com.lifemax.rpg.feature.habits.domain.LevelField.Builder? = null,
 )
 
 object LandmarkKit {
@@ -501,7 +503,14 @@ object LandmarkKit {
         // the inside not filled (the boxes keep their doorways), glass left out (doors stand open in the boxes).
         // Animated parts are excluded from static collision here (TODO: add dynamic lift-car collision when the lift
         // carries the player).
-        val solids = solidsOf(colTris, tags, keepLot, hidden, lift) + drawnSolids(parts.zip(names).filter { (_, n) ->
+        // the heights a walker stands on (WalkLevels.kt): every drawn part but glass, the water as a pool's wall, and the
+        // collision boxes with their heights (not the flights of steps the info boxes as one block: the drawn steps are there)
+        val levels = com.lifemax.rpg.feature.habits.domain.LevelField.Builder()
+        for ((p, n) in parts.zip(names)) {
+            if (n.startsWith("glass_") || n.startsWith("glow_ground")) continue
+            levels.addMesh(p.mesh.pos, p.mesh.idx, water = n.startsWith("water_"))
+        }
+        val solids = solidsOf(colTris, tags, keepLot, hidden, lift, levels) + drawnSolids(parts.zip(names).filter { (_, n) ->
             !n.startsWith("ground_") && !n.startsWith("floor_") && !n.startsWith("roof_") && !n.startsWith("glass_") }.map { it.first }, fx0, fz0, fx1, fz1)
         // (empty nodes only: a door's panel group, `door_panel_*`, is geometry, not an entrance)
         // (a door the info file marks `"external": false` joins two rooms: no entrance from the street, the interiors job's)
@@ -513,7 +522,7 @@ object LandmarkKit {
         }
         val m = CinemaModel(CinemaEra.of(year), parts, floatArrayOf(fx0, fz0, fx1, fz1), top, spec.buildingW * U, spec.buildingD * U, lights)
         return LandmarkModel(spec, m, clearDoors(solids, doors), doors, front, names, animated,
-            body = if (body[0] < body[2] && body[1] < body[3]) body.also { it[4] += lift } else null)
+            body = if (body[0] < body[2] && body[1] < body[3]) body.also { it[4] += lift } else null, levels = levels)
     }
 
     /**
@@ -884,7 +893,8 @@ object LandmarkKit {
      * [HEAD] above the ground), as x0, z0, x1, z1 in the frame; a lot box is dropped without the lot, a box attached to a
      * hidden node with it.
      */
-    private fun solidsOf(tris: List<FloatArray>, tags: List<BoxTag>, keepLot: Boolean, hidden: Set<String>, lift: Float): FloatArray {
+    private fun solidsOf(tris: List<FloatArray>, tags: List<BoxTag>, keepLot: Boolean, hidden: Set<String>, lift: Float,
+                         levels: com.lifemax.rpg.feature.habits.domain.LevelField.Builder? = null): FloatArray {
         val U = UNITS_PER_METRE
         // the info file's boxes when it lists them with sizes (the mesh's boxes touch at their corners, so lumps of
         // triangles cannot tell two walls meeting at a corner from one box)
@@ -892,6 +902,7 @@ object LandmarkKit {
             val out = ArrayList<Float>()
             for (t in tags) {
                 if (!keepLot && t.group == "lot" || t.attachment in hidden || t.walkOn) continue
+                levels?.addBox((t.x - t.sx / 2f) * U, (t.z - t.sz / 2f) * U, (t.x + t.sx / 2f) * U, (t.z + t.sz / 2f) * U, (t.y - t.sy / 2f) * U + lift, (t.y + t.sy / 2f) * U + lift)
                 if ((t.y - t.sy / 2f) * U > HEAD || (t.y + t.sy / 2f) * U < STEP) continue
                 out += (t.x - t.sx / 2f) * U; out += (t.z - t.sz / 2f) * U; out += (t.x + t.sx / 2f) * U; out += (t.z + t.sz / 2f) * U
             }
@@ -921,6 +932,7 @@ object LandmarkKit {
                 ?.takeIf { abs(it.x - cx) < .08f && abs(it.y - cy) < .08f && abs(it.z - cz) < .08f }
             if (tag != null && !keepLot && tag.group == "lot") continue
             if (tag != null && tag.attachment in hidden) continue
+            if (tag?.walkOn != true) levels?.addBox(b[0], b[2], b[3], b[5], b[1], b[4])
             out += b[0]; out += b[2]; out += b[3]; out += b[5]
         }
         return out.toFloatArray()

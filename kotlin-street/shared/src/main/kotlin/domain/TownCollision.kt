@@ -118,6 +118,70 @@ class TownCollision private constructor(
         return false
     }
 
+    // ------------------------------------------------------------------ heights (WalkLevels.kt)
+
+    /** The models' height fields ([setLevels]), swapped in whole. */
+    @Volatile var levels: Array<LevelField> = emptyArray(); private set
+    private val levelSets = LinkedHashMap<String, LevelField>()
+
+    /**
+     * Sets the height field kept under [key] (null removes it): a landmark's steps, terraces and plaza, once its model is
+     * up. Its flat outlines should be set as [STEPPED] (the walk on foot then leaves them to the field). Any thread.
+     */
+    fun setLevels(key: String, field: LevelField?) {
+        synchronized(levelSets) {
+            if (field == null) { if (levelSets.remove(key) == null) return } else levelSets[key] = field
+            levels = levelSets.values.toTypedArray()
+            extraVersion++
+        }
+    }
+
+    /**
+     * What a walker whose feet are at [feet] stands on at ([x], [z]): the highest top of a height field there no more than
+     * [WalkHeight.RISE] above the feet (a step up), or the town's ground (0) if none is higher. Allocates nothing.
+     */
+    fun floorAt(x: Float, z: Float, feet: Float): Float {
+        var best = 0f
+        val ls = levels
+        val below = feet + WalkHeight.RISE
+        for (f in ls) { val t = f.top(x, z, below); if (!t.isNaN() && t > best) best = t }
+        return best
+    }
+
+    /**
+     * Whether something of a height field stands in the way of a walker of [radius] at ([x], [z]) whose feet are at [feet]:
+     * solid between a step's height ([WalkHeight.RISE]) and the head ([WalkHeight.HEAD]) above the feet, at the middle or
+     * round the edge (eight points just inside it). Allocates nothing.
+     */
+    fun levelBlocked(x: Float, z: Float, feet: Float, radius: Float): Boolean {
+        val ls = levels
+        if (ls.isEmpty()) return false
+        val y0 = feet + WalkHeight.RISE; val y1 = feet + WalkHeight.HEAD
+        val r = radius * .85f
+        for (f in ls) {
+            if (x + radius < f.wx0 || x - radius > f.wx1 || z + radius < f.wz0 || z - radius > f.wz1) continue
+            if (f.hits(x, z, y0, y1)) return true
+            for (k in 0 until 8) if (f.hits(x + RING_X[k] * r, z + RING_Z[k] * r, y0, y1)) return true
+        }
+        return false
+    }
+
+    /**
+     * Where a walker put down at ([x], [z]) with its feet near [feet] stands: the floor there, or if it would stand in
+     * something (a terrace it was put inside), the lowest top above where it is clear. Allocates nothing.
+     */
+    fun settle(x: Float, z: Float, feet: Float, radius: Float): Float {
+        var y = floorAt(x, z, feet)
+        var guard = 0
+        while (levelBlocked(x, z, y, radius) && guard++ < 64) {
+            var next = Float.NaN
+            for (f in levels) { val t = f.topAbove(x, z, y + .01f); if (!t.isNaN() && (next.isNaN() || t < next)) next = t }
+            if (next.isNaN()) break
+            y = next
+        }
+        return y
+    }
+
     /**
      * Counts the changes to the shapes added since ([setExtra]): a walk that placed its player before a landmark, a store
      * or the farms were up looks again when it changes ([com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk]).
@@ -177,7 +241,7 @@ class TownCollision private constructor(
     private val seen = IntArray(type.size)
     private var stamp = 0
 
-    private inline fun forNear(x0: Float, z0: Float, x1: Float, z1: Float, f: (Int) -> Boolean) {
+    private inline fun forNear(x0: Float, z0: Float, x1: Float, z1: Float, foot: Boolean = false, f: (Int) -> Boolean) {
         val c0 = ((x0 - minX) / cell).toInt().coerceIn(0, cols - 1)
         val c1 = ((x1 - minX) / cell).toInt().coerceIn(0, cols - 1)
         val r0 = ((z0 - minZ) / cell).toInt().coerceIn(0, rows - 1)
@@ -207,6 +271,8 @@ class TownCollision private constructor(
                 val i = ex.cellItems[j]
                 if (ex.seen[i] == ex.stamp) continue
                 ex.seen[i] = ex.stamp
+                // (a model's outlines whose heights a [LevelField] holds: the walk on foot asks the field instead)
+                if (foot && ex.details[i] === STEPPED) continue
                 if (f(n + i)) return
             }
         }
@@ -273,11 +339,11 @@ class TownCollision private constructor(
     }
 
     /** True if a circle of [radius] at ([x], [z]) overlaps anything solid (or leaves the world). */
-    fun blocked(x: Float, z: Float, radius: Float): Boolean {
+    fun blocked(x: Float, z: Float, radius: Float, foot: Boolean = false): Boolean {
         if (x - radius < minX || z - radius < minZ || x + radius > maxX || z + radius > maxZ) return true
         var hit = false
         val r = radius - EPS
-        forNear(x - radius, z - radius, x + radius, z + radius) { i -> if (distance(i, x, z, null) < r) { hit = true; true } else false }
+        forNear(x - radius, z - radius, x + radius, z + radius, foot) { i -> if (distance(i, x, z, null) < r) { hit = true; true } else false }
         return hit
     }
 
@@ -304,11 +370,11 @@ class TownCollision private constructor(
      * Pushes a circle of [radius] at ([x], [z]) out of whatever it overlaps (a few rounds, for corners between shapes);
      * the place into [out] (x, z). Returns true if it ends clear.
      */
-    fun resolve(x: Float, z: Float, radius: Float, out: FloatArray): Boolean {
+    fun resolve(x: Float, z: Float, radius: Float, out: FloatArray, foot: Boolean = false): Boolean {
         var px = x; var pz = z
         for (round in 0 until 6) {
             var moved = false
-            forNear(px - radius, pz - radius, px + radius, pz + radius) { i ->
+            forNear(px - radius, pz - radius, px + radius, pz + radius, foot) { i ->
                 val d = distance(i, px, pz, push)
                 if (d < radius - EPS) {
                     val by = radius - d
@@ -322,7 +388,7 @@ class TownCollision private constructor(
             if (!moved) break
         }
         out[0] = px; out[1] = pz
-        return !blocked(px, pz, radius)
+        return !blocked(px, pz, radius, foot)
     }
 
     /**
@@ -330,20 +396,20 @@ class TownCollision private constructor(
      * at most half its radius so nothing thin is passed through; where it ends into [out] (x, z). A walker that starts
      * clear never ends inside anything. Returns the share of the asked move that was really made along it (0..1).
      */
-    fun move(x: Float, z: Float, dx: Float, dz: Float, radius: Float, out: FloatArray): Float {
+    fun move(x: Float, z: Float, dx: Float, dz: Float, radius: Float, out: FloatArray, foot: Boolean = false): Float {
         val len = hypot(dx, dz)
         if (len < 1e-6f) { out[0] = x; out[1] = z; return 1f }
         val n = max(1, ceil(len / (radius * .5f)).toInt())
         val sx = dx / n; val sz = dz / n
         var cx = x; var cz = z
-        val startClear = !blocked(x, z, radius)
+        val startClear = !blocked(x, z, radius, foot)
         for (k in 0 until n) {
-            val ok = resolve(cx + sx, cz + sz, radius, scratch)
+            val ok = resolve(cx + sx, cz + sz, radius, scratch, foot)
             var nx = scratch[0]; var nz = scratch[1]
             if (startClear && !ok) {
                 // caught in a corner the push could not settle: try each axis alone, else stay put
-                if (resolve(cx + sx, cz, radius, scratch)) { nx = scratch[0]; nz = scratch[1] }
-                else if (resolve(cx, cz + sz, radius, scratch)) { nx = scratch[0]; nz = scratch[1] }
+                if (resolve(cx + sx, cz, radius, scratch, foot)) { nx = scratch[0]; nz = scratch[1] }
+                else if (resolve(cx, cz + sz, radius, scratch, foot)) { nx = scratch[0]; nz = scratch[1] }
                 else { nx = cx; nz = cz }
             }
             // never pushed back further than the step itself (a push out of a corner can throw a circle sideways)
@@ -353,7 +419,7 @@ class TownCollision private constructor(
             if (jl > most && startClear) {
                 val f = most / jl
                 val tx = cx + jx * f; val tz = cz + jz * f
-                if (!blocked(tx, tz, radius)) { nx = tx; nz = tz } else { nx = cx; nz = cz }
+                if (!blocked(tx, tz, radius, foot)) { nx = tx; nz = tz } else { nx = cx; nz = cz }
             }
             cx = nx; cz = nz
         }
@@ -366,8 +432,8 @@ class TownCollision private constructor(
      * The clear spot nearest ([x], [z]) for a circle of [radius] (itself if it is clear), searched outward in rings of
      * [step] up to [reach]; into [out]. Returns false if none was found (out is then the start).
      */
-    fun nearestClear(x: Float, z: Float, radius: Float, out: FloatArray, step: Float = 4f, reach: Float = 2000f): Boolean {
-        if (!blocked(x, z, radius)) { out[0] = x; out[1] = z; return true }
+    fun nearestClear(x: Float, z: Float, radius: Float, out: FloatArray, step: Float = 4f, reach: Float = 2000f, foot: Boolean = false): Boolean {
+        if (!blocked(x, z, radius, foot)) { out[0] = x; out[1] = z; return true }
         var ring = 1
         while (ring * step <= reach) {
             val r = ring * step
@@ -376,7 +442,7 @@ class TownCollision private constructor(
             for (k in 0 until n) {
                 val a = 2f * PI.toFloat() * k / n
                 val px = x + cos(a) * r; val pz = z + sin(a) * r
-                if (!blocked(px, pz, radius)) { out[0] = px; out[1] = pz; best = 0f; break }
+                if (!blocked(px, pz, radius, foot)) { out[0] = px; out[1] = pz; best = 0f; break }
             }
             if (best == 0f) return true
             ring++
@@ -392,8 +458,8 @@ class TownCollision private constructor(
      * at most a few tens of thousands of [blocked] queries; allocates its own working arrays: for rare checks (a restored
      * position, solids added round a player just placed), not every frame.
      */
-    fun boxedIn(x: Float, z: Float, radius: Float, escape: Float = ESCAPE, step: Float = 8f): Boolean {
-        if (blocked(x, z, radius)) return true
+    fun boxedIn(x: Float, z: Float, radius: Float, escape: Float = ESCAPE, step: Float = 8f, foot: Boolean = false): Boolean {
+        if (blocked(x, z, radius, foot)) return true
         val half = ceil(escape / step).toInt() + 1
         val n = half * 2 + 1
         val seen = java.util.BitSet(n * n)
@@ -413,7 +479,7 @@ class TownCollision private constructor(
                 if (seen[j]) continue
                 seen.set(j)
                 val px = x + (nc - half) * step; val pz = z + (nr - half) * step
-                if (blocked(px, pz, radius)) continue
+                if (blocked(px, pz, radius, foot)) continue
                 val dx = px - x; val dz = pz - z
                 if (dx * dx + dz * dz >= e2) return false
                 q[t++] = j
@@ -424,6 +490,10 @@ class TownCollision private constructor(
 
     companion object {
         private const val EPS = .01f
+        /** The detail of a model's flat outlines whose heights a [LevelField] holds ([setLevels]): the walk on foot skips them. */
+        const val STEPPED = "stepped"
+        private val RING_X = FloatArray(8) { cos(it * PI.toFloat() / 4f) }
+        private val RING_Z = FloatArray(8) { sin(it * PI.toFloat() / 4f) }
         /**
          * How far a walker must be able to get from a spot for it not to count as shut in ([boxedIn], street units: past
          * the biggest fenced ground a lot has, a landmark's sports field, from its far corner).

@@ -310,6 +310,62 @@ fun renderFilamentOpen(out: String) {
         // (every landmark model up first: their solids and their cut are what such a spot is about)
         while (!ft.landmarkReport.all { !it.contains(": building") }) { run.build(a[0], a[1], 8f); Thread.sleep(1) }
         view("at_spot", a[0], a[1], 1f, 0f, a[2], a[3], a[4], a.getOrElse(5) { 17.6f }, "the spot asked for (-Dat)")
+        // (-DlevelProbe=dx,dz,len: the height fields' spans every 2 units from the spot along (dx, dz), into levels.txt)
+        System.getProperty("levelProbe")?.split(",")?.mapNotNull { it.trim().toFloatOrNull() }?.takeIf { it.size == 3 }?.let { q ->
+            val sb = StringBuilder()
+            var d = 0f
+            while (d <= q[2]) {
+                val x = a[0] + q[0] * d; val z = a[1] + q[1] * d
+                sb.appendLine("%6.1f (%.1f, %.1f) floor@0 %.1f: %s".format(d, x, z, collision.floorAt(x, z, 0f), collision.levels.mapNotNull { it.describe(x, z) }.joinToString(" | ")))
+                d += 2f
+            }
+            File(dir, "levels.txt").writeText(sb.toString())
+        }
+        // (-Dseq=frames,every,hx,hz[,camYawRate]: then play on from there as the app does, frame by frame at 60 Hz (no
+        // unbudgeted prepare), the stick pushing the player towards world (hx, hz) (0,0: standing), the camera turned by
+        // camYawRate degrees a second; every [every]th frame saved as seq_NNN.png, to see what changes between frames)
+        System.getProperty("seq")?.split(",")?.mapNotNull { it.trim().toFloatOrNull() }?.takeIf { it.size >= 4 }?.let { q ->
+            val hour = a.getOrElse(5) { 17.6f }
+            val frames = q[0].toInt(); val every = q[1].toInt().coerceAtLeast(1)
+            val ux = q[2]; val uz = q[3]; val yawRate = q.getOrElse(4) { 0f }
+            val dt = 1f / 60f
+            if (System.getProperty("seqNoShadow") != null) ft.view.isShadowingEnabled = false
+            ft.sheetsOnWorker = true
+            com.lifemax.rpg.feature.habits.presentation.scene3d.SeeThrough.ease = true
+            val log = StringBuilder()
+            for (f in 0 until frames) {
+                val fx = OrbitCamera.fx; val fz = OrbitCamera.fz
+                GameState.moveX = ux * -fz + uz * fx
+                GameState.moveLane = -(ux * fx + uz * fz)
+                if (yawRate != 0f) OrbitCamera.set(OrbitCamera.yaw + yawRate * dt, OrbitCamera.pitch, OrbitCamera.dist)
+                TownPlay.step(dt)
+                run.build(walk.wx, walk.wz, 4f)
+                run.draw(walk, w.toFloat(), h.toFloat(), hour, clock, sheets)
+                // (-DseqScales=1,.9,.8: the drawing resolution frame by frame, as the automatic resolution moves it)
+                System.getProperty("seqScales")?.split(",")?.mapNotNull { it.trim().toFloatOrNull() }?.takeIf { it.isNotEmpty() }?.let { sc ->
+                    val k = sc[f % sc.size]
+                    ft.view.dynamicResolutionOptions = com.google.android.filament.View.DynamicResolutionOptions().apply {
+                        enabled = k < 1f; minScale = k; maxScale = k; quality = com.google.android.filament.View.QualityLevel.HIGH; sharpness = .9f; homogeneousScaling = true }
+                }
+                if (f % every == 0) {
+                    val stage = stageSky(hour, w, h)
+                    shooter.save(File(dir, "seq_%03d.png".format(f)), w, h, hour, emptyList(), skyRow = skyRow(hour, h), skyImg = stage)
+                    log.appendLine("seq_%03d player (%.1f, %.1f, y %.1f) %s".format(f, walk.wx, walk.wz, walk.wy, OrbitCamera.describe()))
+                }
+                clock += dt
+            }
+            GameState.moveX = 0f; GameState.moveLane = 0f
+            // (-DseqViews=yaw:pitch:dist;...: where the walk ended, from other sides, as seq_view_N.png)
+            System.getProperty("seqViews")?.split(";")?.forEachIndexed { k, v ->
+                val q2 = v.split(":").mapNotNull { it.trim().toFloatOrNull() }
+                if (q2.size < 3) return@forEachIndexed
+                OrbitCamera.set(q2[0], q2[1], q2[2])
+                repeat(20) { TownPlay.step(dt); run.build(walk.wx, walk.wz, 4f); run.draw(walk, w.toFloat(), h.toFloat(), hour, clock, sheets); clock += dt }
+                shooter.save(File(dir, "seq_view_$k.png"), w, h, hour, emptyList(), skyRow = skyRow(hour, h), skyImg = stageSky(hour, w, h))
+                log.appendLine("seq_view_$k player (%.1f, %.1f, y %.1f) %s".format(walk.wx, walk.wz, walk.wy, OrbitCamera.describe()))
+            }
+            File(dir, "seq.txt").writeText(log.toString())
+        }
     }
     // --- downtown: the tallest building with nobody in it (a tower behind the main street, else the town hall), from the
     // pavement in front of its block, at the camera's usual height, zoomed out, at night, and from across town (its far box
