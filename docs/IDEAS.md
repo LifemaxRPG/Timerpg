@@ -410,3 +410,30 @@ Modern eras fill with chains, and the simulation can show one being born and spr
   You never see the traits as numbers. You judge people the way you would in life: by talking to them (the
   dialogue), their reputation and references, how they did at past jobs, and what the town says about them. Picking
   the right person is the skill, and time travel is where you find out if you were right.
+
+### Your building design evolves on its own (the owner's idea, 2026-11-23)
+
+The player designs their business building with the building system, and its design lives on and changes through the
+decades, keeping its character, the way real buildings get remodelled.
+- **How it's possible:** a player's building is stored as a design, not a frozen mesh. The design records:
+  - the massing: footprint, floors, roof form;
+  - the facade rhythm: bays, door and window placement;
+  - the materials and palette;
+  - its **signature elements**: the unusual things that make it yours, such as a corner turret, a round window, an
+    odd roof, a particular sign shape, a tiled pattern, the logo.
+  The kit draws it from those parts in our pixel-art style, as it draws everything else.
+- **Era rules remodel it.** When the business remodels, which depends on its owner, money and success, each era's style
+  rules rewrite the ordinary parts:
+  - plate glass and a metal awning in the 1950s;
+  - a neon or backlit sign;
+  - 1970s cladding and earth tones;
+  - 1990s stucco and a plastic sign;
+  - a 2010s "modern farmhouse" or industrial refit.
+  The signature elements are kept and restyled: the 1925 turret survives the 1950s remodel with a neon band, and the
+  logo is redrawn in each era's style.
+- **The manager and the money decide.** A struggling business never remodels and just weathers. A thriving one
+  remodels often. A chain standardises the design and copies it to every branch, so your 1925 storefront becomes the
+  chain's recognisable shape across the continent. A later owner can tear it down, preserve it as historic, or let it
+  decay.
+- **The player can step back in.** Visit any year to see what it became, remodel it yourself, or protect the
+  original look.
