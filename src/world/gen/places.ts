@@ -45,7 +45,7 @@ export interface SiteFields {
   seaFrac: Float32Array;
   valley: Uint8Array;
   mainDonor: Int32Array;
-  /** Flow at the top 3% of river cells (the planet's largest rivers). */
+  /** Flow at the top 5% of river cells (the planet's largest rivers). */
   bigFlow: number;
 }
 
@@ -74,7 +74,7 @@ export function siteFields(t: Terrain, cl: Climate, h: Hydro, bio: Uint8Array, c
   const rf: number[] = [];
   for (let c = 0; c < N; c++) if (t.land[c] && !h.lake[c] && h.flow[c]! >= RIVER_FLOW) rf.push(h.flow[c]!);
   rf.sort((a, b) => a - b);
-  return { usable, fertile, flat, seaFrac, valley, mainDonor, bigFlow: rf[Math.floor(rf.length * 0.97)] ?? Infinity };
+  return { usable, fertile, flat, seaFrac, valley, mainDonor, bigFlow: rf[Math.floor(rf.length * 0.95)] ?? Infinity };
 }
 
 const temperate = (T: number): number => Math.exp(-((T - 13) / 6) * ((T - 13) / 6));
@@ -119,7 +119,7 @@ export function hubRule(type: HubType, t: Terrain, cl: Climate, h: Hydro, f: Sit
       return deepNear(t, c) ? { ok: true, why: '' } : no('no deep water close in');
     case 'river city':
       if (h.flow[c]! < f.bigFlow || e > 400 || t.distSea[c]! < 8 || f.flat[c]! > 25) return no('not on a big river, low and flat');
-      if (h.steady[c]! < 0.12) return no('the river runs dry part of the year');
+      if (h.steady[c]! < 0.08) return no('the river runs dry part of the year');
       return { ok: true, why: '' };
     case 'mountain town':
       if (e < 800 || e > 2000 || !f.valley[c]) return no('not a high valley');
@@ -247,12 +247,12 @@ export function placeHubs(t: Terrain, cl: Climate, h: Hydro, f: SiteFields, coun
     // the capital's continent holds the capital and about three launch hubs (the port first); the rest on the neighbour
     const first = spec.type === 'port' || onStart < 3 ? capMass : nb2;
     const second = first === capMass ? nb2 : capMass;
-    const p = place(spec, first) ?? place(spec, second);
+    const p = place(spec, first) ?? place(spec, second) ?? others.reduce<Place | null>((got, o) => got ?? (o.id !== first && o.id !== second ? place(spec, o.id) : null), null);
     if (p && p.mass === capMass) onStart++;
   }
   let n = hubs.length;
   for (const m of conts) if (!hubs.some((q) => q.mass === m.id && q.type === 'port')) place(laterHub(n++, 'port'), m.id);
-  const cyc: HubType[] = ['port', 'river city', 'mountain town', 'mill town', 'farm town'];
+  const cyc: HubType[] = ['river city', 'farm town', 'mountain town', 'mill town', 'port'];
   for (let k = 0; hubs.length < count && k < 120; k++) place(laterHub(n++, cyc[Math.floor(k / conts.length) % cyc.length]!), conts[k % conts.length]!.id);
   return { hubs, startMass: capMass, neighbourMass: nb2 };
 }

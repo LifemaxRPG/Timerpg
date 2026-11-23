@@ -6,10 +6,15 @@ import { stream } from './noise';
 // words) with the usual endings, nature words with a second word, Port and Mount for harbours and mountain towns.
 // A blocklist keeps out well-known real towns the patterns could make; invented roots make most names new words.
 
-const ONSET = ['B', 'Br', 'C', 'Ch', 'Cl', 'D', 'Dr', 'F', 'Fr', 'G', 'Gr', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Pr', 'Qu', 'R', 'S', 'Sh', 'St', 'T', 'Tr', 'Th', 'V', 'W', 'Wh', 'Y'] as const;
-const VOWEL = ['a', 'e', 'i', 'o', 'u', 'ay', 'ea', 'ee', 'oa', 'ar', 'or', 'er', 'ul', 'el', 'an', 'al'] as const;
-const CODA = ['ck', 'd', 'g', 'l', 'll', 'm', 'n', 'nd', 'nt', 'r', 'rd', 'rk', 'rl', 'rn', 'rt', 's', 'ss', 't', 'x', 'ld', 'sk', 'mb', 'wn', 'th', 'ck', 'v'] as const;
-const LINK = ['', '', '', 'a', 'e', 'i', 'o', 'er', 'en', 'ing', 'ly', 'es'] as const;
+// (first syllables of old settler surnames and English place words, and a joining syllable: Selwick, Talbury, Kinmore)
+const ROOT = [
+  'Ab', 'Ald', 'Ash', 'Ard', 'Bal', 'Bel', 'Bex', 'Bram', 'Bran', 'Brin', 'Cal', 'Carr', 'Chal', 'Cor', 'Dal', 'Dun', 'Dor', 'El',
+  'Ev', 'Fal', 'Fen', 'Gar', 'Gil', 'Glen', 'Hal', 'Har', 'Hol', 'Hux', 'Ing', 'Kel', 'Kin', 'Lan', 'Lor', 'Lyn', 'Mal', 'Mar',
+  'Mel', 'Nor', 'Ost', 'Pem', 'Pen', 'Quen', 'Ral', 'Ren', 'Ros', 'Sel', 'Stan', 'Sut', 'Tal', 'Tam', 'Tor', 'Ul', 'Ver', 'Wal',
+  'Wel', 'Wex', 'Wyn', 'Yar', 'Thur', 'Cran', 'Dex', 'Fox', 'Garn', 'Hesk', 'Kers', 'Lud', 'Mor', 'Nesb', 'Orl', 'Pres',
+  'Rad', 'Sax', 'Tem', 'Ux', 'Wend', 'Brack', 'Cold', 'Elk', 'Hart', 'Hen', 'Lock', 'Mill', 'Oak', 'Red', 'Wick', 'Yell',
+] as const;
+const JOIN = ['', '', '', '', '', 'er', 'en', 'ing', 'ar', 'el', 'ow', 'ey', 'is', 'an', 'ock', 'ford', 'ham', 'ley'] as const;
 const ENDING = [
   'ton', 'ville', 'burg', 'ford', 'field', 'dale', 'wood', 'haven', 'mont', 'stead', 'crest', 'view', 'ridge', 'vale', 'bury',
   'ham', 'brook', 'well', 'worth', 'ley', 'by', 'mouth', 'boro', 'more', 'land', 'shire', 'gate', 'port', 'wick', 'combe',
@@ -56,8 +61,8 @@ export type NameStyle = 'capital' | 'port' | 'mountain' | 'river' | 'mill' | 'fa
 
 function root(r: () => number): string {
   const pick = <T,>(a: readonly T[]): T => a[Math.floor(r() * a.length)]!;
-  const one = pick(ONSET) + pick(VOWEL) + pick(CODA);
-  return r() < 0.3 ? one + pick(LINK) : one;
+  const a = pick(ROOT), j = pick(JOIN);
+  return a + (a.endsWith(j.slice(0, 1)) ? '' : j);
 }
 
 /** One candidate name for a place of [style], try [n] of key [key]. */
@@ -65,17 +70,19 @@ export function candidateName(seed: string, key: string, style: NameStyle, n: nu
   const r = stream(seed, 'name', key, n);
   const pick = <T,>(a: readonly T[]): T => a[Math.floor(r() * a.length)]!;
   const s = r();
-  const rt = root(r);
+  const rt0 = root(r);
+  const rt = rt0;
+  const glue = (e: string): string => (/(ford|ham|ley)$/.test(rt0) ? rt0 : rt0 + e);
   const word = r() < 0.55 ? rt : pick(NATURE);
   const ending = pick(ENDING.filter((e) => !word.toLowerCase().endsWith(e.slice(0, 2))));
   let name: string;
-  if (style === 'hamlet') name = s < 0.55 ? `${word} ${pick(HAMLET_SECOND)}` : s < 0.8 ? rt + ending : `${rt}'s ${pick(['Corner', 'Store', 'Mill', 'Crossing'])}`;
+  if (style === 'hamlet') name = s < 0.55 ? `${word} ${pick(HAMLET_SECOND)}` : s < 0.8 ? glue(ending) : `${rt}'s ${pick(['Corner', 'Store', 'Mill', 'Crossing'])}`;
   else if ((style === 'port' || style === 'harbor') && s < 0.45) name = `Port ${s < 0.25 ? rt : word}`;
   else if ((style === 'mountain' || style === 'mining') && s < 0.4) name = `Mount ${word}`;
   else if ((style === 'mill' || style === 'river') && s < 0.35) name = `${word} ${pick(['Falls', 'Rapids', 'Mills', 'Ferry', 'Bend', 'Fork'])}`;
-  else if (s < 0.68) name = rt + ending;
+  else if (s < 0.68) name = glue(ending);
   else if (s < 0.93) name = `${word} ${pick(SECOND)}`;
-  else name = `${pick(COMPASS)} ${rt + ending}`;
+  else name = `${pick(COMPASS)} ${glue(ending)}`;
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
