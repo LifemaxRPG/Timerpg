@@ -897,7 +897,8 @@ export function makeHighways(t: Terrain, h: Hydro, places: readonly Place[], roa
   const nextFree = (mass: number, base: number, odd: boolean): number => {
     const used = pennant.get(mass)!;
     for (let hh = odd ? 1 : 2; hh <= 9; hh += 2) { const n = hh * 100 + base; if (!used.has(n)) { used.add(n); return n; } }
-    let n = 1000 + base; while (used.has(n)) n += 100; used.add(n); return n;
+    // (more than five on one trunk: on into four digits, the hundreds keeping their parity)
+    for (let k = 1; ; k++) for (let hh = odd ? 1 : 2; hh <= 9; hh += 2) { const n = k * 1000 + hh * 100 + base; if (!used.has(n)) { used.add(n); return n; } }
   };
   for (const [n, R] of rings) {
     const legs = edges.map((e, ei) => ({ e, ei })).filter(({ e, ei }) => e.line && (e.a === n || e.b === n) && ends.get(ei));

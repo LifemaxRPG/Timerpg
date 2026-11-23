@@ -343,10 +343,10 @@ internal class WorldFar(
         val plan = plan!!
         val cols = WorldFarPlan.LINE_COLOURS
         val by = LinkedHashMap<Long?, Tris>()
-        // (drawn in order: county roads, highways, rail, then the rivers over all)
-        for (kind in intArrayOf(WorldFarPlan.COUNTY, WorldFarPlan.HIGHWAY, WorldFarPlan.RAIL, WorldFarPlan.RIVER)) for (l in plan.lines) {
+        // (drawn in order: county roads, highways, expressways, rail, then the rivers over all)
+        for (kind in intArrayOf(WorldFarPlan.COUNTY, WorldFarPlan.HIGHWAY, WorldFarPlan.EXPRESSWAY, WorldFarPlan.RAIL, WorldFarPlan.RIVER)) for (l in plan.lines) {
             if (l.kind != kind) continue
-            val lift = when (kind) { WorldFarPlan.RIVER -> 2.0; WorldFarPlan.RAIL -> 3.5; WorldFarPlan.HIGHWAY -> 3.0; else -> 2.5 }
+            val lift = when (kind) { WorldFarPlan.RIVER -> 2.0; WorldFarPlan.RAIL -> 3.5; WorldFarPlan.HIGHWAY -> 3.0; WorldFarPlan.EXPRESSWAY -> 3.2; else -> 2.5 }
             ribbon(by, plan, l, kind + .5f, lift, mid)
         }
         // (no mip levels: a level's texel would be two lines' colours mixed)

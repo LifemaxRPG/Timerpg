@@ -1,6 +1,6 @@
 {
  "seed": "alpha",
- "version": 3,
+ "version": 4,
  "hashStr": [
   [
    "",
@@ -5258,5 +5258,1618 @@
    "slope": 0.9966562755689161,
    "raw": 406.05696829643523
   }
- ]
+ ],
+ "highways": {
+  "counts": {
+   "segs": 3059,
+   "interchanges": 635,
+   "routes": 337,
+   "sites": 646,
+   "towns": 272
+  },
+  "segs": [
+   {
+    "id": "o:hw:0.0",
+    "kind": "original",
+    "built": 1840,
+    "path": [
+     [
+      850.5,
+      366.8020839691162
+     ],
+     [
+      850.5,
+      367.3020839691162
+     ],
+     [
+      850.625,
+      367.5520839691162
+     ],
+     [
+      850.5,
+      367.8020839691162
+     ],
+     [
+      850.375,
+      368.0520839691162
+     ],
+     [
+      850.5,
+      368.3020839691162
+     ],
+     [
+      850.625,
+      368.5520839691162
+     ],
+     [
+      850.75,
+      368.8020839691162
+     ],
+     [
+      850.875,
+      369.0520839691162
+     ],
+     [
+      851,
+      369.3020839691162
+     ],
+     [
+      851.125,
+      369.5520839691162
+     ],
+     [
+      851,
+      369.8020839691162
+     ],
+     [
+      851.125,
+      370.0520839691162
+     ],
+     [
+      851,
+      370.3020839691162
+     ],
+     [
+      851.125,
+      370.5520839691162
+     ],
+     [
+      851.25,
+      370.8020839691162
+     ],
+     [
+      851.125,
+      371.0520839691162
+     ],
+     [
+      851,
+      371.3020839691162
+     ],
+     [
+      850.875,
+      371.5520839691162
+     ],
+     [
+      850.75,
+      371.8020839691162
+     ],
+     [
+      850.875,
+      372.0520839691162
+     ],
+     [
+      850.75,
+      372.3020839691162
+     ],
+     [
+      850.875,
+      372.5520839691162
+     ],
+     [
+      851,
+      372.8020839691162
+     ],
+     [
+      851.125,
+      373.0520839691162
+     ],
+     [
+      851.25,
+      373.3020839691162
+     ],
+     [
+      851.375,
+      373.5520839691162
+     ],
+     [
+      851.5,
+      373.8020839691162
+     ],
+     [
+      851.625,
+      374.0520839691162
+     ],
+     [
+      851.75,
+      374.3020839691162
+     ],
+     [
+      851.875,
+      374.5520839691162
+     ],
+     [
+      852,
+      374.8020839691162
+     ],
+     [
+      852.125,
+      375.0520839691162
+     ],
+     [
+      852.25,
+      375.3020839691162
+     ],
+     [
+      852.375,
+      375.5520839691162
+     ],
+     [
+      852.5,
+      375.8020839691162
+     ],
+     [
+      852.625,
+      376.0520839691162
+     ],
+     [
+      852.5,
+      376.3020839691162
+     ],
+     [
+      852.375,
+      376.5520839691162
+     ],
+     [
+      852.25,
+      376.6770839691162
+     ],
+     [
+      852.125,
+      376.8020839691162
+     ],
+     [
+      852,
+      376.9270839691162
+     ],
+     [
+      851.875,
+      377.0520839691162
+     ],
+     [
+      851.75,
+      377.1770839691162
+     ],
+     [
+      851.625,
+      377.3020839691162
+     ],
+     [
+      851.5,
+      377.4270839691162
+     ],
+     [
+      851.375,
+      377.5520839691162
+     ],
+     [
+      851.25,
+      377.6770839691162
+     ],
+     [
+      851.125,
+      377.8020839691162
+     ],
+     [
+      851,
+      377.9270839691162
+     ],
+     [
+      850.875,
+      378.0520839691162
+     ],
+     [
+      850.75,
+      378.1770839691162
+     ],
+     [
+      850.625,
+      378.3020839691162
+     ],
+     [
+      850.5,
+      378.4270839691162
+     ],
+     [
+      850.5,
+      378.5520839691162
+     ]
+    ],
+    "at": {
+     "1900": {
+      "cls": "track",
+      "surface": "track",
+      "lanes": 1,
+      "divided": false,
+      "number": null
+     },
+     "1930": {
+      "cls": "highway",
+      "surface": "paved",
+      "lanes": 2,
+      "divided": false,
+      "number": "N128"
+     },
+     "1960": {
+      "cls": "highway",
+      "surface": "paved",
+      "lanes": 4,
+      "divided": true,
+      "number": "N128"
+     },
+     "1990": {
+      "cls": "highway",
+      "surface": "paved",
+      "lanes": 4,
+      "divided": true,
+      "number": "N128"
+     },
+     "2020": {
+      "cls": "highway",
+      "surface": "paved",
+      "lanes": 4,
+      "divided": true,
+      "number": "N128"
+     }
+    }
+   },
+   {
+    "id": "r:hw:0.54",
+    "kind": "realignment",
+    "built": 1933,
+    "path": [
+     [
+      850.5,
+      378.5520839691162
+     ],
+     [
+      850.5,
+      378.77323722839355
+     ],
+     [
+      850.5,
+      378.9943904876709
+     ],
+     [
+      850.5,
+      379.2155456542969
+     ],
+     [
+      850.5,
+      379.4366989135742
+     ],
+     [
+      850.5,
+      379.65785217285156
+     ],
+     [
+      850.5,
+      379.87900733947754
+     ],
+     [
+      850.5,
+      380.1001605987549
+     ],
+     [
+      850.5,
+      380.3213138580322
+     ],
+     [
+      850.5,
+      380.54246711730957
+     ],
+     [
+      850.5,
+      380.76362228393555
+     ],
+     [
+      850.5,
+      380.9847755432129
+     ],
+     [
+      850.5,
+      381.20592880249023
+     ],
+     [
+      850.5,
+      381.4270839691162
+     ]
+    ],
+    "at": {
+     "1900": null,
+     "1930": null,
+     "1960": {
+      "cls": "highway",
+      "surface": "paved",
+      "lanes": 4,
+      "divided": true,
+      "number": "N128"
+     },
+     "1990": {
+      "cls": "highway",
+      "surface": "paved",
+      "lanes": 4,
+      "divided": true,
+      "number": "N128"
+     },
+     "2020": {
+      "cls": "highway",
+      "surface": "paved",
+      "lanes": 4,
+      "divided": true,
+      "number": "N128"
+     }
+    }
+   },
+   {
+    "id": "b:hw:42.309",
+    "kind": "bypass",
+    "built": 1968,
+    "path": [
+     [
+      849,
+      671.25
+     ],
+     [
+      848.9867057800293,
+      671.0381317138672
+     ],
+     [
+      849.0391273498535,
+      670.8618984222412
+     ],
+     [
+      849.0707340240479,
+      670.6807689666748
+     ],
+     [
+      849.0810985565186,
+      670.4971961975098
+     ],
+     [
+      849.0700817108154,
+      670.3136596679688
+     ],
+     [
+      849.0378341674805,
+      670.1326446533203
+     ],
+     [
+      848.9847869873047,
+      669.9565982818604
+     ],
+     [
+      848.9116630554199,
+      669.787899017334
+     ],
+     [
+      848.8194484710693,
+      669.6288299560547
+     ],
+     [
+      848.7093887329102,
+      669.4815406799316
+     ],
+     [
+      848.5829753875732,
+      669.3480262756348
+     ],
+     [
+      848.4419174194336,
+      669.2300891876221
+     ],
+     [
+      848.2881202697754,
+      669.1293258666992
+     ],
+     [
+      848.1236667633057,
+      669.04709815979
+     ],
+     [
+      847.950777053833,
+      668.9845199584961
+     ],
+     [
+      847.7717933654785,
+      668.9424343109131
+     ],
+     [
+      847.5891342163086,
+      668.9214134216309
+     ],
+     [
+      847.4052677154541,
+      668.9217395782471
+     ],
+     [
+      847.2226829528809,
+      668.9434089660645
+     ],
+     [
+      847.0438499450684,
+      668.9861278533936
+     ],
+     [
+      846.8711833953857,
+      669.0493202209473
+     ],
+     [
+      846.7070217132568,
+      669.1321296691895
+     ],
+     [
+      846.5535831451416,
+      669.2334384918213
+     ],
+     [
+      846.4129447937012,
+      669.3518753051758
+     ],
+     [
+      846.2870063781738,
+      669.4858379364014
+     ],
+     [
+      846.1774711608887,
+      669.6335144042969
+     ],
+     [
+      846,
+      669.75
+     ]
+    ],
+    "at": {
+     "1900": null,
+     "1930": null,
+     "1960": null,
+     "1990": {
+      "cls": "highway",
+      "surface": "paved",
+      "lanes": 4,
+      "divided": false,
+      "number": "N64B"
+     },
+     "2020": {
+      "cls": "highway",
+      "surface": "paved",
+      "lanes": 4,
+      "divided": false,
+      "number": "N64B"
+     }
+    }
+   },
+   {
+    "id": "xe:0.0",
+    "kind": "expressway",
+    "built": 1960,
+    "path": [
+     [
+      850.5,
+      369.6852684020996
+     ],
+     [
+      850.2576637268066,
+      378.6516971588135
+     ],
+     [
+      850.2583999633789,
+      378.76407623291016
+     ],
+     [
+      850.266674041748,
+      378.8761520385742
+     ],
+     [
+      850.28244972229,
+      378.98741912841797
+     ],
+     [
+      850.3056526184082,
+      379.09737968444824
+     ],
+     [
+      850.336181640625,
+      379.20553398132324
+     ],
+     [
+      850.912919998169,
+      381.01416397094727
+     ]
+    ],
+    "at": {
+     "1900": null,
+     "1930": null,
+     "1960": {
+      "cls": "expressway",
+      "surface": "concrete",
+      "lanes": 4,
+      "divided": true,
+      "number": "P25"
+     },
+     "1990": {
+      "cls": "expressway",
+      "surface": "concrete",
+      "lanes": 6,
+      "divided": true,
+      "number": "P25"
+     },
+     "2020": {
+      "cls": "expressway",
+      "surface": "concrete",
+      "lanes": 6,
+      "divided": true,
+      "number": "P25"
+     }
+    }
+   },
+   {
+    "id": "xb:155.0",
+    "kind": "beltway",
+    "built": 1965,
+    "path": [
+     [
+      897.5890064239502,
+      263.5
+     ],
+     [
+      897.2900142669678,
+      264.78525733947754
+     ]
+    ],
+    "at": {
+     "1900": null,
+     "1930": null,
+     "1960": null,
+     "1990": {
+      "cls": "expressway",
+      "surface": "concrete",
+      "lanes": 6,
+      "divided": true,
+      "number": "P239"
+     },
+     "2020": {
+      "cls": "expressway",
+      "surface": "concrete",
+      "lanes": 6,
+      "divided": true,
+      "number": "P239"
+     }
+    }
+   },
+   {
+    "id": "xr:78.0",
+    "kind": "radial",
+    "built": 1957,
+    "path": [
+     [
+      894.9074096679688,
+      263.4978446960449
+     ],
+     [
+      895.5,
+      263.5
+     ],
+     [
+      896.5,
+      263.5
+     ],
+     [
+      897.5,
+      263.5
+     ],
+     [
+      898.5,
+      263.5
+     ],
+     [
+      899.5,
+      263.5
+     ],
+     [
+      899.5585842132568,
+      263.5
+     ],
+     [
+      897.5890064239502,
+      263.5
+     ]
+    ],
+    "at": {
+     "1900": null,
+     "1930": null,
+     "1960": {
+      "cls": "expressway",
+      "surface": "concrete",
+      "lanes": 4,
+      "divided": true,
+      "number": "P151"
+     },
+     "1990": {
+      "cls": "expressway",
+      "surface": "concrete",
+      "lanes": 6,
+      "divided": true,
+      "number": "P151"
+     },
+     "2020": {
+      "cls": "expressway",
+      "surface": "concrete",
+      "lanes": 6,
+      "divided": true,
+      "number": "P151"
+     }
+    }
+   },
+   {
+    "id": "xc:1187",
+    "kind": "connector",
+    "built": 1975,
+    "path": [
+     [
+      1639.1568870544434,
+      289.11205101013184
+     ],
+     [
+      1640.5,
+      288.5
+     ]
+    ],
+    "at": {
+     "1900": null,
+     "1930": null,
+     "1960": null,
+     "1990": {
+      "cls": "highway",
+      "surface": "paved",
+      "lanes": 2,
+      "divided": false,
+      "number": null
+     },
+     "2020": {
+      "cls": "highway",
+      "surface": "paved",
+      "lanes": 2,
+      "divided": false,
+      "number": null
+     }
+    }
+   },
+   {
+    "id": "f:i:167.r",
+    "kind": "frontage",
+    "built": 1969,
+    "path": [
+     [
+      817.0250949859619,
+      194.4259204864502
+     ],
+     [
+      816.0278129577637,
+      196.4228916168213
+     ]
+    ],
+    "at": {
+     "1900": null,
+     "1930": null,
+     "1960": null,
+     "1990": {
+      "cls": "frontage",
+      "surface": "paved",
+      "lanes": 2,
+      "divided": false,
+      "number": null
+     },
+     "2020": {
+      "cls": "frontage",
+      "surface": "paved",
+      "lanes": 2,
+      "divided": false,
+      "number": null
+     }
+    }
+   },
+   {
+    "id": "o:hw:7.184",
+    "kind": "original",
+    "built": 1840,
+    "path": [
+     [
+      870.875,
+      301
+     ],
+     [
+      870.75,
+      301.25
+     ],
+     [
+      870.5,
+      301.375
+     ],
+     [
+      870.375,
+      301.625
+     ],
+     [
+      870.125,
+      301.75
+     ],
+     [
+      870,
+      302
+     ],
+     [
+      869.75,
+      302.125
+     ],
+     [
+      869.5,
+      302.25
+     ],
+     [
+      869.375,
+      302.25
+     ],
+     [
+      869.25,
+      302.25
+     ],
+     [
+      869,
+      302.375
+     ],
+     [
+      868.875,
+      302.375
+     ],
+     [
+      868.625,
+      302.5
+     ],
+     [
+      868.5,
+      302.5
+     ],
+     [
+      868.375,
+      302.75
+     ],
+     [
+      868.5,
+      303
+     ],
+     [
+      868.5,
+      303.125
+     ],
+     [
+      868.5,
+      303.25
+     ],
+     [
+      868.5,
+      303.5
+     ]
+    ],
+    "at": {
+     "1900": {
+      "cls": "track",
+      "surface": "track",
+      "lanes": 1,
+      "divided": false,
+      "number": null
+     },
+     "1930": {
+      "cls": "highway",
+      "surface": "paved",
+      "lanes": 2,
+      "divided": false,
+      "number": "N128"
+     },
+     "1960": {
+      "cls": "local",
+      "surface": "paved",
+      "lanes": 2,
+      "divided": false,
+      "number": null
+     },
+     "1990": {
+      "cls": "abandoned",
+      "lanes": 0,
+      "number": null
+     },
+     "2020": null
+    }
+   },
+   {
+    "id": "o:hw:0.54",
+    "kind": "original",
+    "built": 1840,
+    "path": [
+     [
+      850.5,
+      378.5520839691162
+     ],
+     [
+      850.625,
+      378.8020839691162
+     ],
+     [
+      850.75,
+      379.0520839691162
+     ],
+     [
+      850.875,
+      379.3020839691162
+     ],
+     [
+      851,
+      379.5520839691162
+     ],
+     [
+      851.125,
+      379.8020839691162
+     ],
+     [
+      851.25,
+      380.0520839691162
+     ],
+     [
+      851.375,
+      380.3020839691162
+     ],
+     [
+      851.25,
+      380.5520839691162
+     ],
+     [
+      851.125,
+      380.8020839691162
+     ],
+     [
+      851,
+      380.9270839691162
+     ],
+     [
+      850.875,
+      381.0520839691162
+     ],
+     [
+      850.75,
+      381.1770839691162
+     ],
+     [
+      850.625,
+      381.3020839691162
+     ],
+     [
+      850.5,
+      381.4270839691162
+     ]
+    ],
+    "at": {
+     "1900": {
+      "cls": "track",
+      "surface": "track",
+      "lanes": 1,
+      "divided": false,
+      "number": null
+     },
+     "1930": {
+      "cls": "highway",
+      "surface": "paved",
+      "lanes": 2,
+      "divided": false,
+      "number": "N128"
+     },
+     "1960": {
+      "cls": "local",
+      "surface": "paved",
+      "lanes": 2,
+      "divided": false,
+      "number": null
+     },
+     "1990": {
+      "cls": "local",
+      "surface": "paved",
+      "lanes": 2,
+      "divided": false,
+      "number": null
+     },
+     "2020": {
+      "cls": "local",
+      "surface": "paved",
+      "lanes": 2,
+      "divided": false,
+      "number": null
+     }
+    }
+   },
+   {
+    "id": "xe:0.0",
+    "kind": "expressway",
+    "built": 1960,
+    "path": [
+     [
+      850.5,
+      369.6852684020996
+     ],
+     [
+      850.2576637268066,
+      378.6516971588135
+     ],
+     [
+      850.2583999633789,
+      378.76407623291016
+     ],
+     [
+      850.266674041748,
+      378.8761520385742
+     ],
+     [
+      850.28244972229,
+      378.98741912841797
+     ],
+     [
+      850.3056526184082,
+      379.09737968444824
+     ],
+     [
+      850.336181640625,
+      379.20553398132324
+     ],
+     [
+      850.912919998169,
+      381.01416397094727
+     ]
+    ],
+    "at": {
+     "1900": null,
+     "1930": null,
+     "1960": {
+      "cls": "expressway",
+      "surface": "concrete",
+      "lanes": 4,
+      "divided": true,
+      "number": "P25"
+     },
+     "1990": {
+      "cls": "expressway",
+      "surface": "concrete",
+      "lanes": 6,
+      "divided": true,
+      "number": "P25"
+     },
+     "2020": {
+      "cls": "expressway",
+      "surface": "concrete",
+      "lanes": 6,
+      "divided": true,
+      "number": "P25"
+     }
+    }
+   }
+  ],
+  "interchanges": [
+   {
+    "id": "i:0",
+    "kind": "system",
+    "type": "directional",
+    "year": 1972,
+    "x": 850.5,
+    "z": 369.685,
+    "mass": 1,
+    "segs": [
+     "xe:0.0",
+     "xr:87.0",
+     "xb:217.0",
+     "xb:218.0"
+    ],
+    "exits": {
+     "P25": "245",
+     "P625": "7",
+     "P725": "2"
+    }
+   },
+   {
+    "id": "i:1",
+    "kind": "terminal",
+    "type": "trumpet",
+    "year": 1960,
+    "x": 852.303,
+    "z": 385.374,
+    "mass": 1,
+    "segs": [
+     "xe:0.1"
+    ],
+    "road": "hw:0",
+    "place": "t:184",
+    "exits": {
+     "P25": "262"
+    }
+   },
+   {
+    "id": "i:2",
+    "kind": "system",
+    "type": "directional",
+    "year": 1974,
+    "x": 807.5,
+    "z": 258.315,
+    "mass": 1,
+    "segs": [
+     "xe:1.0",
+     "xr:80.0",
+     "xb:172.0",
+     "xb:173.0"
+    ],
+    "exits": {
+     "P25": "130A",
+     "P225": "4",
+     "P125": "2"
+    }
+   },
+   {
+    "id": "i:3",
+    "kind": "system",
+    "type": "directional",
+    "year": 1967,
+    "x": 866.315,
+    "z": 192.5,
+    "mass": 1,
+    "segs": [
+     "xe:3.0",
+     "xr:83.0",
+     "xb:189.0",
+     "xb:190.0"
+    ],
+    "exits": {
+     "P25": "1",
+     "P425": "14",
+     "P525": "2"
+    }
+   },
+   {
+    "id": "i:4",
+    "kind": "system",
+    "type": "cloverleaf",
+    "year": 1965,
+    "x": 897.589,
+    "z": 263.5,
+    "mass": 1,
+    "segs": [
+     "xe:4.0",
+     "xr:78.0",
+     "xb:155.0",
+     "xb:170.0"
+    ],
+    "exits": {
+     "P51": "75",
+     "P239": "1",
+     "P151": "7"
+    }
+   },
+   {
+    "id": "i:5",
+    "kind": "system",
+    "type": "directional",
+    "year": 1969,
+    "x": 940.315,
+    "z": 304.5,
+    "mass": 1,
+    "segs": [
+     "xe:4.7",
+     "xe:10.0",
+     "xr:85.0",
+     "xb:205.0",
+     "xb:206.0"
+    ],
+    "exits": {
+     "P51": "144",
+     "P52": "174",
+     "P251": "14",
+     "P551": "2"
+    }
+   }
+  ],
+  "routes": [
+   {
+    "id": "P25@1",
+    "system": "pennant",
+    "n": 25,
+    "kind": "trunk",
+    "dir": "NS",
+    "designation": "P25",
+    "mass": 1,
+    "from": 1957,
+    "places": [
+     "h:launch/river city",
+     "t:15",
+     "t:551",
+     "h:launch/port",
+     "h:later/23",
+     "t:184"
+    ]
+   },
+   {
+    "id": "P51@1",
+    "system": "pennant",
+    "n": 51,
+    "kind": "trunk",
+    "dir": "NS",
+    "designation": "P51",
+    "mass": 1,
+    "from": 1957,
+    "places": [
+     "h:launch/river city",
+     "h:capital",
+     "h:launch/mountain town"
+    ]
+   },
+   {
+    "id": "P39@1",
+    "system": "pennant",
+    "n": 39,
+    "kind": "trunk",
+    "dir": "NS",
+    "designation": "P39",
+    "mass": 1,
+    "from": 1958,
+    "places": [
+     "h:capital",
+     "h:later/23"
+    ]
+   },
+   {
+    "id": "P52@1",
+    "system": "pennant",
+    "n": 52,
+    "kind": "trunk",
+    "dir": "EW",
+    "designation": "P52",
+    "mass": 1,
+    "from": 1960,
+    "places": [
+     "h:later/23",
+     "h:launch/mountain town",
+     "t:871"
+    ]
+   },
+   {
+    "id": "P44@1",
+    "system": "pennant",
+    "n": 44,
+    "kind": "trunk",
+    "dir": "EW",
+    "designation": "P44",
+    "mass": 1,
+    "from": 1957,
+    "places": [
+     "h:launch/port",
+     "h:capital"
+    ]
+   },
+   {
+    "id": "P239@1",
+    "system": "pennant",
+    "n": 239,
+    "kind": "loop",
+    "dir": "ring",
+    "designation": "P239",
+    "mass": 1,
+    "parent": "P39@1",
+    "from": 1965,
+    "places": [
+     "h:capital"
+    ]
+   },
+   {
+    "id": "P151@1",
+    "system": "pennant",
+    "n": 151,
+    "kind": "spur",
+    "dir": "NS",
+    "designation": "P151",
+    "mass": 1,
+    "parent": "P51@1",
+    "from": 1957,
+    "places": [
+     "h:capital"
+    ]
+   },
+   {
+    "id": "P139@1",
+    "system": "pennant",
+    "n": 139,
+    "kind": "spur",
+    "dir": "NS",
+    "designation": "P139",
+    "mass": 1,
+    "parent": "P39@1",
+    "from": 1957,
+    "places": [
+     "h:capital"
+    ]
+   },
+   {
+    "id": "P225@1",
+    "system": "pennant",
+    "n": 225,
+    "kind": "loop",
+    "dir": "ring",
+    "designation": "P225",
+    "mass": 1,
+    "parent": "P25@1",
+    "from": 1974,
+    "places": [
+     "h:launch/port"
+    ]
+   },
+   {
+    "id": "P125@1",
+    "system": "pennant",
+    "n": 125,
+    "kind": "spur",
+    "dir": "NS",
+    "designation": "P125",
+    "mass": 1,
+    "parent": "P25@1",
+    "from": 1964,
+    "places": [
+     "h:launch/port"
+    ]
+   },
+   {
+    "id": "P144@1",
+    "system": "pennant",
+    "n": 144,
+    "kind": "spur",
+    "dir": "EW",
+    "designation": "P144",
+    "mass": 1,
+    "parent": "P44@1",
+    "from": 1957,
+    "places": [
+     "h:launch/port"
+    ]
+   },
+   {
+    "id": "P325@1",
+    "system": "pennant",
+    "n": 325,
+    "kind": "spur",
+    "dir": "NS",
+    "designation": "P325",
+    "mass": 1,
+    "parent": "P25@1",
+    "from": 1957,
+    "places": [
+     "h:launch/port"
+    ]
+   },
+   {
+    "id": "P425@1",
+    "system": "pennant",
+    "n": 425,
+    "kind": "loop",
+    "dir": "ring",
+    "designation": "P425",
+    "mass": 1,
+    "parent": "P25@1",
+    "from": 1966,
+    "places": [
+     "h:launch/river city"
+    ]
+   },
+   {
+    "id": "P525@1",
+    "system": "pennant",
+    "n": 525,
+    "kind": "spur",
+    "dir": "NS",
+    "designation": "P525",
+    "mass": 1,
+    "parent": "P25@1",
+    "from": 1967,
+    "places": [
+     "h:launch/river city"
+    ]
+   },
+   {
+    "id": "P351@1",
+    "system": "pennant",
+    "n": 351,
+    "kind": "spur",
+    "dir": "NS",
+    "designation": "P351",
+    "mass": 1,
+    "parent": "P51@1",
+    "from": 1959,
+    "places": [
+     "h:launch/river city"
+    ]
+   },
+   {
+    "id": "P251@1",
+    "system": "pennant",
+    "n": 251,
+    "kind": "loop",
+    "dir": "ring",
+    "designation": "P251",
+    "mass": 1,
+    "parent": "P51@1",
+    "from": 1969,
+    "places": [
+     "h:launch/mountain town"
+    ]
+   },
+   {
+    "id": "P551@1",
+    "system": "pennant",
+    "n": 551,
+    "kind": "spur",
+    "dir": "NS",
+    "designation": "P551",
+    "mass": 1,
+    "parent": "P51@1",
+    "from": 1957,
+    "places": [
+     "h:launch/mountain town"
+    ]
+   },
+   {
+    "id": "P152@1",
+    "system": "pennant",
+    "n": 152,
+    "kind": "spur",
+    "dir": "EW",
+    "designation": "P152",
+    "mass": 1,
+    "parent": "P52@1",
+    "from": 1964,
+    "places": [
+     "h:launch/mountain town"
+    ]
+   },
+   {
+    "id": "P625@1",
+    "system": "pennant",
+    "n": 625,
+    "kind": "loop",
+    "dir": "ring",
+    "designation": "P625",
+    "mass": 1,
+    "parent": "P25@1",
+    "from": 1972,
+    "places": [
+     "h:later/23"
+    ]
+   },
+   {
+    "id": "P725@1",
+    "system": "pennant",
+    "n": 725,
+    "kind": "spur",
+    "dir": "NS",
+    "designation": "P725",
+    "mass": 1,
+    "parent": "P25@1",
+    "from": 1960,
+    "places": [
+     "h:later/23"
+    ]
+   },
+   {
+    "id": "P925@1",
+    "system": "pennant",
+    "n": 925,
+    "kind": "spur",
+    "dir": "NS",
+    "designation": "P925",
+    "mass": 1,
+    "parent": "P25@1",
+    "from": 1957,
+    "places": [
+     "h:later/23"
+    ]
+   },
+   {
+    "id": "P352@1",
+    "system": "pennant",
+    "n": 352,
+    "kind": "spur",
+    "dir": "EW",
+    "designation": "P352",
+    "mass": 1,
+    "parent": "P52@1",
+    "from": 1960,
+    "places": [
+     "h:later/23"
+    ]
+   },
+   {
+    "id": "N128@1",
+    "system": "national",
+    "n": 128,
+    "kind": "trunk",
+    "dir": "EW",
+    "designation": "N128",
+    "mass": 1,
+    "from": 1927,
+    "places": [
+     "t:184",
+     "h:later/23",
+     "h:capital",
+     "h:launch/mountain town"
+    ]
+   },
+   {
+    "id": "N39@1",
+    "system": "national",
+    "n": 39,
+    "kind": "trunk",
+    "dir": "NS",
+    "designation": "N39",
+    "mass": 1,
+    "from": 1927,
+    "places": [
+     "t:551",
+     "h:launch/port",
+     "h:later/23"
+    ]
+   },
+   {
+    "id": "N31@1",
+    "system": "national",
+    "n": 31,
+    "kind": "trunk",
+    "dir": "NS",
+    "designation": "N31",
+    "mass": 1,
+    "from": 1927,
+    "places": [
+     "t:15",
+     "t:551"
+    ]
+   },
+   {
+    "id": "N56@1",
+    "system": "national",
+    "n": 56,
+    "kind": "trunk",
+    "dir": "EW",
+    "designation": "N56",
+    "mass": 1,
+    "from": 1927,
+    "places": [
+     "t:15",
+     "h:launch/river city",
+     "h:capital"
+    ]
+   },
+   {
+    "id": "N86@1",
+    "system": "national",
+    "n": 86,
+    "kind": "trunk",
+    "dir": "EW",
+    "designation": "N86",
+    "mass": 1,
+    "from": 1927,
+    "places": [
+     "h:capital",
+     "h:launch/port"
+    ]
+   },
+   {
+    "id": "N132@1",
+    "system": "national",
+    "n": 132,
+    "kind": "trunk",
+    "dir": "EW",
+    "designation": "N132",
+    "mass": 1,
+    "from": 1927,
+    "places": [
+     "h:launch/mountain town",
+     "h:later/23"
+    ]
+   },
+   {
+    "id": "N161@1",
+    "system": "national",
+    "n": 161,
+    "kind": "trunk",
+    "dir": "NS",
+    "designation": "N161",
+    "mass": 1,
+    "from": 1927,
+    "places": [
+     "h:launch/mountain town",
+     "t:871"
+    ]
+   },
+   {
+    "id": "N46@1",
+    "system": "national",
+    "n": 46,
+    "kind": "trunk",
+    "dir": "EW",
+    "designation": "N46",
+    "mass": 1,
+    "from": 1927,
+    "places": [
+     "h:launch/river city",
+     "t:871"
+    ]
+   },
+   {
+    "id": "N39B@1",
+    "system": "national",
+    "n": 39,
+    "kind": "business",
+    "dir": "NS",
+    "designation": "N39B",
+    "mass": 1,
+    "parent": "N39@1",
+    "from": 1970,
+    "places": []
+   },
+   {
+    "id": "N128B@1",
+    "system": "national",
+    "n": 128,
+    "kind": "business",
+    "dir": "EW",
+    "designation": "N128B",
+    "mass": 1,
+    "parent": "N128@1",
+    "from": 1970,
+    "places": []
+   },
+   {
+    "id": "N86B@1",
+    "system": "national",
+    "n": 86,
+    "kind": "business",
+    "dir": "EW",
+    "designation": "N86B",
+    "mass": 1,
+    "parent": "N86@1",
+    "from": 1970,
+    "places": []
+   },
+   {
+    "id": "N132B@1",
+    "system": "national",
+    "n": 132,
+    "kind": "business",
+    "dir": "EW",
+    "designation": "N132B",
+    "mass": 1,
+    "parent": "N132@1",
+    "from": 1970,
+    "places": []
+   }
+  ],
+  "bypassed": 60
+ }
 }

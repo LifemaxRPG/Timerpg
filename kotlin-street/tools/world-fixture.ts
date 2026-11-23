@@ -42,7 +42,28 @@ const fixture = {
   roads: json.roads.slice(0, 5).map((r: any) => ({ id: r.id, path: path(r.path) })),
   rail: json.railLines.filter((l: any) => l.stations.includes(cap.id)).map((l: any) => ({ id: l.id, path: path(l.path) })),
   near: nearSamples(),
+  highways: highwaySamples(),
 };
+// version 4 (Highways v2): the counts, one segment of each kind (and an abandoned piece, a renumbered one) with its state in
+// five years and its path, interchanges with exits, the capital's continent's routes, the bypassed towns
+function highwaySamples() {
+  const hw = json.highways;
+  const kinds = ['original', 'realignment', 'bypass', 'expressway', 'beltway', 'radial', 'connector', 'frontage'];
+  const pick = [...kinds.map((k) => hw.segs.find((q: any) => q.kind === k)), hw.segs.find((q: any) => q.gone !== undefined), hw.segs.find((q: any) => q.kind === 'original' && q.number.length > 2), hw.segs.find((q: any) => q.kind === 'expressway' && q.lanes.length > 1)].filter(Boolean);
+  const valueAt = (st: [number, unknown][], y: number): unknown => { let v: unknown = null; for (const [yy, x] of st) { if (yy <= y) v = x; else break; } return v; };
+  const at = (q: any, y: number): unknown => {
+    if (y < q.built) return null;
+    if (q.gone !== undefined && y >= q.gone) return y >= q.gone + 25 ? null : { cls: 'abandoned', lanes: 0, number: null };
+    return { cls: valueAt(q.cls, y), surface: valueAt(q.surface, y), lanes: valueAt(q.lanes, y), divided: q.divided !== undefined && y >= q.divided, number: valueAt(q.number, y) };
+  };
+  return {
+    counts: { segs: hw.segs.length, interchanges: hw.interchanges.length, routes: hw.routes.length, sites: hw.sites.length, towns: hw.towns.length },
+    segs: pick.map((q: any) => ({ id: q.id, kind: q.kind, built: q.built, path: path(q.path), at: Object.fromEntries([1900, 1930, 1960, 1990, 2020].map((y) => [y, at(q, y)])) })),
+    interchanges: hw.interchanges.filter((q: any) => Object.keys(q.exits).length).slice(0, 6),
+    routes: hw.routes.filter((r: any) => r.mass === cap.mass),
+    bypassed: hw.towns.filter((t: any) => t.bypassed).length,
+  };
+}
 // W5a: the near terrain's heights (src/world/gen/near.ts) at tile indices round the capital (a tile is 2.1 m; cells
 // are tile * 2.1 / 1075.2), and at the steepest of a few hundred points within 8 km (a cliff, to test the terracing)
 function nearSamples() {

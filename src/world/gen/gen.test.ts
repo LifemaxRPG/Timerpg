@@ -18,6 +18,7 @@ import { TIERS, WONDER_PARAMS } from './wonders';
 import { MAX_GRADE, countSwitchbacks } from './winding';
 import { CAPITAL_GREAT_KM } from './places';
 import { NearTerrain } from './near';
+import { EARTH_M, SYSTEM_FROM, SYSTEM_TO, XGRADE, networkAt, profileOf, segAt } from './highways';
 
 // The world skeleton (WORLD_GEN.md phases W1-W3) on one seed, generated once (about 20 s), plus a second run for determinism.
 const SEED = 'alpha';
@@ -27,12 +28,16 @@ beforeAll(() => { w = generateWorld(SEED); }, 240_000);
 const fnv = (a: ArrayLike<number>): number => { let h = 2166136261; for (let i = 0; i < a.length; i++) { h ^= Math.round((a[i]! as number) * 1000) | 0; h = Math.imul(h, 16777619); } return h >>> 0; };
 const factsOf = (x: World): string => JSON.stringify({
   e: fnv(x.terrain.elev), t: fnv(x.climate.tempM), r: fnv(x.climate.rainM), f: fnv(x.hydro.flow), k: fnv(x.climate.koppen),
-  p: x.places.map((p) => [p.id, p.name, p.x, p.z, p.founded, p.type, p.rank]), roads: x.roads.map((r) => [r.id, r.cells.length, r.built, r.paved, r.expressway]),
+  p: x.places.map((p) => [p.id, p.name, p.x, p.z, p.founded, p.type, p.rank]), roads: x.roads.map((r) => [r.id, r.cells.length, r.built, r.paved]),
   rail: x.rail.links.map((l) => [l.id, l.a, l.b, l.built, l.passengerEnd, l.abandoned]), sea: x.sea.routes.map((r) => [r.id, r.a, r.b, r.km, r.hours]), dams: x.dams.map((d) => [d.cell, d.year]),
   wx: x.weather.regions.slice(0, 400),
   ranges: x.terrain.ranges.map((r) => [r.id, r.cls, r.peakM]),
   wonders: x.wonders.map((q) => [q.id, q.tier, q.name, q.x, q.z, JSON.stringify(q.params)]),
   paths: x.roads.map((r) => [r.km, r.maxGrade, r.switchbacks, r.path?.length]),
+  hwy: fnv(x.highways.segs.flatMap((s) => [s.path.length, s.built, s.gone ?? 0, s.km, ...s.lanes.flat().map(Number), ...s.cls.map(([y]) => y), ...s.path.flat()])),
+  hwyIds: x.highways.segs.map((s) => s.id + JSON.stringify(s.number)).join(),
+  ics: x.highways.interchanges.map((q) => [q.id, q.kind, q.type, q.year, q.x, q.z, JSON.stringify(q.exits)]),
+  sites: x.highways.sites.map((q) => [q.kind, q.x, q.z, q.from, q.to]),
 });
 
 describe('determinism', () => {
@@ -288,7 +293,7 @@ describe('W3 links', () => {
   }, 120_000);
   it('keeps history by year: roads paved and rebuilt, rail opening and closing, dams, growth', () => {
     expect(w.roads.filter((r) => r.cls === 'highway').every((r) => r.paved <= 1938 && r.built < r.paved)).toBe(true);
-    expect(w.roads.some((r) => r.expressway !== undefined && r.expressway >= 1956)).toBe(true);
+    expect(w.highways.segs.some((s) => s.kind === 'expressway' && s.built >= 1956)).toBe(true);
     expect(w.rail.links.filter((l) => l.kind === 'main').every((l) => l.abandoned === undefined)).toBe(true);
     expect(w.rail.links.some((l) => l.kind === 'branch' && l.abandoned !== undefined)).toBe(true);
     for (const d of w.dams) { expect(d.year).toBeGreaterThanOrEqual(1930); expect(d.year).toBeLessThanOrEqual(1970); }
@@ -310,6 +315,17 @@ describe('the baked skeleton', () => {
     expect(ws.length).toBe(w.wonders.length);
     ws.forEach((q, k) => { expect(q.id).toBe(w.wonders[k]!.id); expect(q.params).toEqual(w.wonders[k]!.params); });
     expect((back.json.places as { setting?: string }[]).filter((p) => p.setting).length).toBe(w.places.filter((p) => p.setting).length);
+    // version 4: Highways v2; an old road's piece is its stretch of the road's own points
+    const hb = back.json.highways as { segs: { id: string; kind: string; path: [number, number] }[]; interchanges: unknown[]; routes: unknown[] };
+    expect(hb.segs.length).toBe(w.highways.segs.length);
+    expect(hb.interchanges.length).toBe(w.highways.interchanges.length);
+    expect(hb.routes.length).toBe(w.highways.routes.length);
+    const pts = back.section('pts') as Int32Array;
+    for (const [k, s] of hb.segs.entries()) if (k % 97 === 0) {
+      const src = w.highways.segs[k]!;
+      expect(s.path[1]).toBe(src.path.length);
+      expect(Math.abs(pts[s.path[0] * 2]! / PTS_SCALE - src.path[0]![0])).toBeLessThan(1e-5);
+    }
   });
 });
 
@@ -529,5 +545,135 @@ describe('winding roads (WORLD_GEN.md 5)', () => {
     const county = w.roads.filter((r) => r.cls === 'county');
     const joined = county.filter((r) => (counts.get(key(...r.path!.at(-1)!)) ?? 0) >= 2).length;
     expect(joined / county.length).toBeGreaterThan(0.95);
+  });
+});
+
+describe('Highways v2 (WORLD_GEN.md "Highways that evolve")', () => {
+  let nt: NearTerrain | undefined;
+  const height = (x: number, z: number): number => (nt ??= new NearTerrain(SEED, Int16Array.from(w.terrain.elev, (e) => Math.round(e)))).height(x, z);
+  it('connects every hub by expressway in 1990 (one network per landmass with two hubs or major towns or more)', () => {
+    const hw = w.highways;
+    const nodes = new Map<number, number>();
+    for (const p of w.places) if (p.kind === 'hub' || (p.kind === 'town' && p.rank === 'major')) nodes.set(p.mass, (nodes.get(p.mass) ?? 0) + 1);
+    // union-find over the limited-access roads open in 1990: a road joins all its junctions and ends
+    const parent = new Map<number, number>();
+    const find = (c: number): number => { let r = c; while (parent.get(r) !== undefined && parent.get(r) !== r) r = parent.get(r)!; return r; };
+    const join = (a: number, b: number): void => { const ra = find(a), rb = find(b); if (!parent.has(ra)) parent.set(ra, ra); if (!parent.has(rb)) parent.set(rb, rb); if (ra !== rb) parent.set(ra, rb); };
+    const xr = hw.links.filter((r) => r.limited && r.built <= 1990);
+    for (const r of xr) for (const c of [...r.junctions!, r.cells.at(-1)!]) join(r.cells[0]!, c);
+    let checked = 0;
+    for (const [mass, n] of nodes) {
+      if (n < 2) continue;
+      const hubs = w.hubs.filter((p) => p.mass === mass);
+      if (!hubs.length) continue;
+      const comps = hubs.map((p) => new Set(xr.flatMap((r) => r.cells.filter((c) => Math.hypot(wrapDx((c % W) + 0.5 - p.x), Math.floor(c / W) + 0.5 - p.z) * CELL_KM < 8)).map(find)));
+      for (const c of comps) expect(c.size).toBeGreaterThan(0);
+      const common = [...comps[0]!].filter((c) => comps.every((s) => s.has(c)));
+      expect(common.length, `mass ${mass}`).toBeGreaterThan(0);
+      checked += hubs.length;
+      // and the drive between two hubs there takes the expressway
+      if (hubs.length >= 2) { const d = w.roadGraph.drive(hubs[0]!.id, hubs[1]!.id, 1990)!; expect(d.roads.some((id) => id.startsWith('x:'))).toBe(true); }
+    }
+    expect(checked).toBeGreaterThan(5);
+  });
+  it('builds the expressways in stages, 1956-1985, the busiest corridors first', () => {
+    const xs = w.highways.segs.filter((s) => s.kind === 'expressway' || s.kind === 'radial' || s.kind === 'beltway');
+    for (const s of xs) { expect(s.built).toBeGreaterThanOrEqual(SYSTEM_FROM); expect(s.built).toBeLessThanOrEqual(SYSTEM_TO); }
+    const km = (y: number): number => xs.filter((s) => s.built <= y).reduce((a, s) => a + s.km, 0);
+    expect(km(1960)).toBeGreaterThan(0);
+    expect(km(1960)).toBeLessThan(km(1970));
+    expect(km(1970)).toBeLessThan(km(1985));
+    // the capital's corridors are among the first
+    const cap = w.hubs[0]!;
+    const first = Math.min(...w.highways.routes.filter((r) => r.system === 'pennant' && r.kind === 'trunk' && r.places.includes(cap.id)).map((r) => r.from));
+    expect(first).toBeLessThanOrEqual(1960);
+    expect(xs.some((s) => s.built >= 1975)).toBe(true);
+  });
+  it('keeps the expressways\' cut-and-filled profiles under 5%, marking every cut, fill, tunnel and viaduct, and bridges every river', () => {
+    let km = 0, tunnelKm = 0;
+    for (const s of w.highways.segs) {
+      if (s.kind !== 'expressway' && s.kind !== 'radial' && s.kind !== 'beltway') continue;
+      expect(s.maxGrade).toBeLessThanOrEqual(XGRADE + 1e-6);
+      const p = profileOf(s.path, XGRADE, height);
+      for (let i = 1; i < p.s.length; i++) expect(Math.abs(p.z[i]! - p.z[i - 1]!) / (p.s[i]! - p.s[i - 1]!)).toBeLessThanOrEqual(XGRADE + 1e-9);
+      for (let i = 0; i < p.s.length; i++) if (Math.abs(p.ground[i]! - p.z[i]!) > EARTH_M + 0.5) expect(s.structures.some((q) => q.from - 0.06 <= p.s[i]! / 1000 && p.s[i]! / 1000 <= q.to + 0.06), s.id).toBe(true);
+      km += s.km; tunnelKm += s.structures.filter((q) => q.kind === 'tunnel').reduce((a, q) => a + q.to - q.from, 0);
+      for (const c of s.crossings) { expect(c.bridge).toBe(s.built); expect(c.ford).toBeUndefined(); }
+    }
+    expect(tunnelKm / km).toBeLessThan(0.02);
+  });
+  it('gives every bypassed town its interchange within a few km', () => {
+    const by = [...w.highways.towns.values()].filter((q) => q.bypassed);
+    expect(by.length).toBeGreaterThan(10);
+    expect(by.some((q) => q.bypassed!.by === 'expressway')).toBe(true);
+    const ics = new Map(w.highways.interchanges.map((q) => [q.id, q]));
+    for (const q of by) {
+      const ic = ics.get(q.interchange!)!, p = w.byId.get(q.place)!;
+      expect(ic, q.place).toBeDefined();
+      expect(Math.hypot(wrapDx(ic.x - p.x), ic.z - p.z) * CELL_KM).toBeLessThan(6.5);
+      expect(q.mainStreet).toBeDefined();
+    }
+  });
+  it('never takes lanes away, and gives every segment its life by year', () => {
+    for (const s of w.highways.segs) {
+      for (let i = 1; i < s.lanes.length; i++) { expect(s.lanes[i]![1]).toBeGreaterThanOrEqual(s.lanes[i - 1]![1]); expect(s.lanes[i]![0]).toBeGreaterThanOrEqual(s.lanes[i - 1]![0]); }
+      for (const st of [s.cls, s.surface, s.number]) for (let i = 1; i < st.length; i++) expect(st[i]![0]).toBeGreaterThanOrEqual(st[i - 1]![0]);
+      expect(segAt(s, s.built - 1)).toBeNull();
+      expect(segAt(s, s.built)).not.toBeNull();
+    }
+    // each old road's pieces tile its line
+    for (const r of w.roads) {
+      const ps = w.highways.segs.filter((s) => s.kind === 'original' && s.road === r.id).sort((a, b) => a.range![0] - b.range![0]);
+      expect(ps[0]!.range![0]).toBe(0);
+      expect(ps.at(-1)!.range![1]).toBe(r.path!.length - 1);
+      for (let i = 1; i < ps.length; i++) expect(ps[i]!.range![0]).toBe(ps[i - 1]!.range![1]);
+    }
+    const y1900 = networkAt(w.highways, 1900), y1935 = networkAt(w.highways, 1935), y1990 = networkAt(w.highways, 1990);
+    expect(y1900.some((q) => q.state.cls === 'track')).toBe(true);
+    expect(y1900.some((q) => q.state.cls === 'expressway')).toBe(false);
+    expect(y1935.some((q) => q.seg.kind === 'realignment')).toBe(true);
+    expect(y1990.some((q) => q.state.cls === 'local')).toBe(true);
+    expect(y1990.some((q) => q.state.number?.endsWith('B'))).toBe(true);
+    expect(w.highways.segs.some((s) => s.gone !== undefined)).toBe(true);
+    // decommissioned highways: county roads from the 1970s
+    expect(w.highways.segs.some((s) => s.kind === 'original' && s.cls.some(([y, c]) => c === 'county' && y >= 1970) && s.cls.some(([, c]) => c === 'highway'))).toBe(true);
+  });
+  it('numbers routes uniquely per landmass: north-south odd, east-west even, loops on even hundreds, spurs on odd', () => {
+    const seen = new Set<string>();
+    for (const r of w.highways.routes) {
+      const key = `${r.system}|${r.mass}|${r.designation}`;
+      expect(seen.has(key), key).toBe(false);
+      seen.add(key);
+      if (r.kind === 'trunk') expect(r.n % 2, r.designation).toBe(r.dir === 'NS' ? 1 : 0);
+      if (r.kind === 'loop' || r.kind === 'spur') {
+        const parent = w.highways.routes.find((q) => q.id === r.parent)!;
+        expect(r.n % 100).toBe(parent.n % 100);
+        expect(Math.floor(r.n / 100) % 2).toBe(r.kind === 'loop' ? 0 : 1);
+      }
+      if (r.kind === 'business') expect(r.designation).toBe(`${w.highways.routes.find((q) => q.id === r.parent)!.designation}B`);
+    }
+    // in order across the landmass: north-south trunks rise west to east
+    const cap = w.hubs[0]!;
+    const ns = w.highways.routes.filter((r) => r.system === 'national' && r.kind === 'trunk' && r.mass === cap.mass && r.dir === 'NS');
+    const mx = (r: (typeof ns)[number]): number => r.places.reduce((a, id) => a + wrapDx(w.byId.get(id)!.x - cap.x), 0) / r.places.length;
+    const sorted = [...ns].sort((a, b) => a.n - b.n);
+    for (let i = 1; i < sorted.length; i++) expect(mx(sorted[i]!)).toBeGreaterThanOrEqual(mx(sorted[i - 1]!) - 1e-9);
+    expect(w.highways.interchanges.filter((q) => Object.keys(q.exits).length).length).toBeGreaterThan(50);
+  });
+  it('leaves the capital\'s plan alone: no expressway inside its pad, its radials join the highways from its pins', () => {
+    const cap = w.hubs[0]!;
+    const hw2 = cap.hub!.padM.w / 2, hh = cap.hub!.padM.h / 2;
+    for (const s of w.highways.segs) if (s.kind !== 'original') for (const [x, z] of s.path) expect(Math.abs(wrapDx(x - cap.x)) * CELL_M < hw2 && Math.abs(z - cap.z) * CELL_M < hh).toBe(false);
+    const radials = w.highways.segs.filter((s) => s.kind === 'radial' && Math.hypot(wrapDx(s.path[0]![0] - cap.x), s.path[0]![1] - cap.z) * CELL_KM < 6);
+    expect(radials.length).toBeGreaterThan(0);
+    for (const s of radials) { const r = w.roads.find((q) => q.id === s.road)!; expect(r.a === cap.id || r.b === cap.id).toBe(true); }
+    // the roadside: rest areas with the Pine Bend model, truck stops with Cedar Relay's
+    expect(w.highways.sites.some((q) => q.kind === 'rest area' && q.models.some((m) => m.id === 'landmark_glb_highway_rest_area'))).toBe(true);
+    expect(w.highways.sites.some((q) => q.kind === 'truck stop' && q.models.some((m) => m.id === 'landmark_glb_truck_stop_1960'))).toBe(true);
+    // drives get quicker: 1930, 1960, 1990
+    const hubs = w.hubs.filter((p) => p.mass === cap.mass);
+    const t = (y: number): number => hubs.slice(1).reduce((a, p) => a + w.roadGraph.drive(cap.id, p.id, y)!.min, 0);
+    expect(t(1960)).toBeLessThan(t(1930));
+    expect(t(1990)).toBeLessThanOrEqual(t(1960));
   });
 });
