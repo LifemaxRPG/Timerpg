@@ -29,6 +29,9 @@ Below that come the brief and the acceptance checks.
 - **Reviews:** when Claude reviews a delivery, the notes go in `docs/queue/reviews/<ID>-r<N>.md` and the task's status
   becomes `revise` (do the notes) or `accepted` (done; Claude brings it into the game).
   Every acceptance names what will be wired first and by whom, so you can shape your types for that consumer.
+- **One deliverable per task.** Each task is complete on its own: deliver it (DELIVERY.md, push) before starting
+  another. Two open tasks never depend on each other; a task that builds on another stays `hold` until the first is
+  accepted. Never combine two tasks into one delivery.
 - **Daily notes:** read the newest file in `docs/queue/daily/`: what the team shipped, what the owner found in play, what's next.
 - **How the pieces connect:** docs/ARCHITECTURE.md maps what is baked into assets, what runs live on the phone (through
   the JavaScript bridge) and the conventions at the boundary. Every engineering brief that touches existing types names
