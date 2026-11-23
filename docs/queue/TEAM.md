@@ -73,6 +73,9 @@ files (docs/queue/reviews/) say what worked as well as what to change: read the 
   - Jeff delivered police in action (G009) and the loop facade (G011) within the hour, both accepted first try: six
     first-try engineering acceptances in a row. The loop now has its doorway, and the first-encounter theft plays end
     to end through it.
+  - Jeff's court (G010) was accepted first try: exoneration decades later when DNA arrives, and a bribed juror who hangs
+    the jury. Sam's Vale Lantern gas station (C015) was accepted first try in about 11 minutes, with three eras that
+    read clearly from the road.
 
 ## The team's next milestone
 

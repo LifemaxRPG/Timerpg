@@ -29,6 +29,7 @@ C001-C006, C009 and C010 are in (see "Done" below), except the C006 truck stop, 
 | ID | Branch | What | Where in the capital |
 |---|---|---|---|
 | C007 | codex/C007-mini-golf | Thimble Trails Mini Golf, 3 eras, winding course with creek, pipe hole, golf-ball finale; statue pad for the Rex | roadside on the edge of town with the Beach Blvd Rex on its pad (needs a roadside plot like C006) |
+| C015 | codex/C015-gas-station | Vale Lantern Fuel, 3 eras (shingled cottage with gravity pumps 1925, enamel two-bay service station 1945, self-serve canopy with six pumps and LED prices 1975); pump handles and standing points, bay doors, cashier anchors, repaintable price boards | on the highway into the capital (the drive in), and along the expressways later; one in the capital's loop blocks as a robbery and refuelling spot |
 
 Coastal and port set: these wait for the coastal hub and the ocean, so they aren't placed in the capital yet:
 - codex/copperwake (the ships);

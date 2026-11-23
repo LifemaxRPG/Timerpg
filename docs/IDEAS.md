@@ -833,3 +833,9 @@ Big events don't fade; they settle into a town's history:
   crossings and checks papers. Escaping to the next town becomes a tense stealth or bribe challenge, not a free sprint.
 - **Shift handoff briefings:** the day officer tells the swing officer about the hot spot and the latest sighting when
   the shift changes. That gives visible continuity across shifts, without telepathy in the eras before radio.
+
+## The alibi before birth (Jeff's idea, from G010, 2026-11-23)
+
+A time traveller tried in 2015 for a 1955 fingerprint: the defence can argue the print belongs to someone born in 1995,
+which is impossible. The trial already carries G008's `impossibleTimeline` flag. The court has to weigh evidence that
+can't be true and yet matches, and the player can turn that against the prosecution, or be caught by it.

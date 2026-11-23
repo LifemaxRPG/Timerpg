@@ -103,3 +103,5 @@ sandbox gains a JDK.
 | G008 evidence and forensics | Gemini/Jeff (AI Studio Build) | engineering, extends G005 | not visible | 1 | accepted first try; 19/19 |
 | G009 police in action | Gemini/Jeff (AI Studio Build) | engineering, joins G005 + G007 | not visible | 1 | accepted first try; 9/9, 0.48 ms a tick for 30 officers |
 | G011 loop facade | Gemini/Jeff (AI Studio Build) | engineering, the game-facing API | ~1 session; tokens not visible | 1 | accepted first try; 10/10, 1.45 ms for 300 people a day |
+| G010 trials | Gemini/Jeff (AI Studio Build) | engineering, court on G005/G008 | ~8 min, 1 run; tokens not visible | 1 | accepted first try; 10/10 court + 34 regression |
+| C015 gas station | ChatGPT/Sam (Codex) | model, 3 eras | ~11 min, one turn; tokens not visible | 1 | accepted first try (plain interiors: the game furnishes them) |
