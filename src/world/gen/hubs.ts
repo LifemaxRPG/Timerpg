@@ -76,3 +76,6 @@ export const LAUNCH: HubSpec[] = [
 export const laterHub = (n: number, type: HubType): HubSpec => generic(`later/${n}`, type, false);
 /** Hubs in all at the planet's full build-out (WORLD_GEN.md: 20-25). */
 export const HUB_COUNT = 22;
+
+/** The planet's world seed (the baked one; kotlin-street/tools/bake-world.ts). */
+export const PLANET_SEED = 'alpha';

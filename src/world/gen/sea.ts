@@ -47,20 +47,23 @@ export interface SeaRoute {
 export interface SeaNet { ports: Place[]; landings: Place[]; routes: SeaRoute[]; harbour: Map<string, number> }
 
 /** Sailings a week each way on [r] in [year] (0: none that year), and the kind of ship. */
-export function sailingsPerWeek(r: SeaRoute, year: number): { perWeek: number; ship: 'liner' | 'steamer' | 'ferry' | 'car ferry' | 'cruise ship' | null } {
+export type Ship = 'liner' | 'steamer' | 'ferry' | 'car ferry' | 'cruise ship' | 'freighter';
+/** (When the liners and steamers stop, a route never goes dead: a car ferry takes over the short ones, and a weekly
+ * freighter that carries a few passengers the long ones, as the cargo lines did; cruise ships come on some from the 1980s.) */
+export function sailingsPerWeek(r: SeaRoute, year: number): { perWeek: number; ship: Ship | null } {
   if (year < r.opened) return { perWeek: 0, ship: null };
   switch (r.kind) {
     case 'ferry': return { perWeek: year < 1960 ? 7 : 14, ship: year < 1955 ? 'ferry' : 'car ferry' };
     case 'coastal':
       if (r.ends === undefined || year < r.ends) return { perWeek: year < 1950 ? 3 : 2, ship: 'steamer' };
-      return r.km < 400 ? { perWeek: 7, ship: 'car ferry' } : r.cruise !== undefined && year >= r.cruise ? { perWeek: 1, ship: 'cruise ship' } : { perWeek: 0, ship: null };
+      return r.km < 400 ? { perWeek: 7, ship: 'car ferry' } : r.cruise !== undefined && year >= r.cruise ? { perWeek: 1, ship: 'cruise ship' } : { perWeek: 1, ship: 'freighter' };
     case 'round':
       if (r.ends === undefined || year < r.ends) return { perWeek: 0.5, ship: 'liner' };
-      return r.cruise !== undefined && year >= r.cruise ? { perWeek: 0.25, ship: 'cruise ship' } : { perWeek: 0, ship: null };
+      return r.cruise !== undefined && year >= r.cruise ? { perWeek: 0.5, ship: 'cruise ship' } : { perWeek: 0.5, ship: 'freighter' };
     default:
       if (r.ends === undefined || year < r.ends) return { perWeek: year < 1950 ? 2 : year <= 1960 ? 3 : 1, ship: 'liner' };
       if (r.km < 450) return { perWeek: 7, ship: 'car ferry' };
-      return r.cruise !== undefined && year >= r.cruise ? { perWeek: 1, ship: 'cruise ship' } : { perWeek: 0, ship: null };
+      return r.cruise !== undefined && year >= r.cruise ? { perWeek: 1, ship: 'cruise ship' } : { perWeek: 1, ship: 'freighter' };
   }
 }
 
