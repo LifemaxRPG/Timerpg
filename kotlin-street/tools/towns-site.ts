@@ -312,9 +312,14 @@ export function placeTown(s: Site, plan: TownPlan, flipX: boolean): Placed {
   // a town grows from its road: a town not on a river stands on the road nearest its point (a hamlet up to 3 km off, the
   // skeleton's place being a cell's middle and the road's drawn line winding round the hills; a town 1.5 km), Main
   // Street along it
-  const road = wr ? null : nearestRoad(s);
+  // a railroad town is laid along its railroad: the plan's rail band (or a T plan's rail column) on the world's line
+  // through the station, the depot on the world's track (the industry by the rail, the town's grid square to it)
+  const band = plan.v2?.railBand ?? null;
+  const wrail = !wr && band ? nearestOf(s, [0, 0], (k) => k === 'rail') : null;
+  const onRail = wrail && wrail.d < 2000 ? wrail : null;
+  const road = wr || onRail ? null : nearestRoad(s);
   const onRoad = road && road.d < (s.place.kind === 'hamlet' ? 3000 : 1500) ? road : null;
-  const centre: [number, number] = wr ? wr.at : onRoad ? onRoad.at : [0, 0];
+  const centre: [number, number] = wr ? wr.at : onRail ? onRail.at : onRoad ? onRoad.at : [0, 0];
   const ways = roadWays(s, 1500, centre);
   // the busiest way out (highways first), for the strip's end
   let best: { dir: [number, number]; w: number } | undefined = [...ways].sort((a, b) => b.w - a.w || Math.atan2(a.dir[1], a.dir[0]) - Math.atan2(b.dir[1], b.dir[0]))[0];
@@ -329,8 +334,29 @@ export function placeTown(s: Site, plan: TownPlan, flipX: boolean): Placed {
     return (Math.atan2(cz, cx) * 90) / Math.PI;
   };
   let axis: number;
-  if (wr) axis = degOf(wr.dir[0], wr.dir[1]) - 90; // (the plan's river runs down plan y: plan east is the river's way turned back a quarter)
-  else if (onRoad) {
+  /** A line's own way through the town: where it leaves a 600 m circle round [c], both ways. */
+  const ownWays = (id: string, c: [number, number]): { dir: [number, number]; w: number }[] => {
+    const own: { dir: [number, number]; w: number }[] = [];
+    for (const r of s.polys) {
+      if (r.id !== id) continue;
+      for (let i = 1; i < r.pts.length; i++) {
+        const a = r.pts[i - 1]!, b = r.pts[i]!, da = Math.hypot(a[0] - c[0], a[1] - c[1]), db = Math.hypot(b[0] - c[0], b[1] - c[1]);
+        if ((da < 600) === (db < 600)) continue;
+        const q = da < 600 ? b : a, l = Math.hypot(q[0] - c[0], q[1] - c[1]) || 1;
+        own.push({ dir: [(q[0] - c[0]) / l, (q[1] - c[1]) / l], w: 1 });
+      }
+    }
+    return own;
+  };
+  // (the plan's river runs down plan y: plan east is the river's way turned back a quarter; its way through the town,
+  // not the direction of the one short piece nearest the town's point)
+  if (wr) { const own = ownWays(wr.id, centre); axis = (own.length ? axisOf(own) : degOf(wr.dir[0], wr.dir[1])) - 90; }
+  else if (onRail) {
+    const own = ownWays(onRail.id, centre);
+    const along = own.length ? axisOf(own) : degOf(onRail.dir[0], onRail.dir[1]);
+    // (a parallel plan's track runs along plan x, a T plan's down plan y)
+    axis = band!.horizontal ? along : along - 90;
+  } else if (onRoad) {
     // the road's own way through the town: where it leaves a 600 m circle round the town's point, both ways
     const own = roadWays(s, 600, centre).filter((w) => w.id === onRoad.id);
     axis = own.length ? axisOf(own) : degOf(onRoad.dir[0], onRoad.dir[1]);
@@ -341,7 +367,7 @@ export function placeTown(s: Site, plan: TownPlan, flipX: boolean): Placed {
     const e = (x: number, z: number): number => gridAt(s, 'elev', centre[0] + x, centre[1] + z);
     const gx = (e(500, 0) - e(-500, 0)) / 1000, gz = (e(0, 500) - e(0, -500)) / 1000;
     const steep = Math.hypot(gx, gz);
-    if (!wr && steep > 0.06 && (s.place.setting || s.place.kind === 'hamlet' || s.place.rank === 'small')) axis = degOf(gx, gz) + 90;
+    if (!wr && !onRail && steep > 0.06 && (s.place.setting || s.place.kind === 'hamlet' || s.place.rank === 'small')) axis = degOf(gx, gz) + 90;
   }
   let deg: number;
   if (best) {
@@ -354,7 +380,7 @@ export function placeTown(s: Site, plan: TownPlan, flipX: boolean): Placed {
   const inner: [number, number][] = [];
   for (let i = 0; i <= 8; i++) for (let j = 0; j <= 8; j++) inner.push([(W * i) / 8, (H * j) / 8]);
   // (the anchor: the river's middle on Main Street's line, or the civic block's front on Main Street's middle line)
-  const anchorPlan: [number, number] = wr ? [riverX!, plan.mainY + 1] : [plan.center.x, plan.mainY + 1];
+  const anchorPlan: [number, number] = wr ? [riverX!, plan.mainY + 1] : onRail ? (band!.horizontal ? [plan.center.x, band!.track] : [band!.track, plan.mainY + 1]) : [plan.center.x, plan.mainY + 1];
   const ok = (f: Frame): string | null => {
     for (const [px, py] of inner) {
       const [x, z] = toWorld(f, px, py);
@@ -386,6 +412,8 @@ export function placeTown(s: Site, plan: TownPlan, flipX: boolean): Placed {
       const f: Frame = { deg, plan: anchorPlan, world: [base[0] + dx, base[1] + dz] };
       // (along a river, the town slides down its course: its anchor stays on the river)
       if (wr) { const nr = nearestRiver(s, f.world); if (!nr || nr.id !== wr.id) continue; f.world = nr.at; }
+      // (a railroad town slides along its line)
+      else if (onRail) { const nr = nearestOf(s, f.world, (k) => k === 'rail'); if (!nr || nr.id !== onRail.id) continue; f.world = nr.at; }
       if (!ok(f)) { frame = f; shift = Math.hypot(f.world[0] - base[0], f.world[1] - base[1]); found = true; break; }
     }
     if (!found) problems.push(`no site clear of ${why} within 1.8 km`);

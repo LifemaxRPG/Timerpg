@@ -201,7 +201,7 @@ fun renderFilamentTown(out: String) {
     run {
         val span = maxOf(tb[2] - tb[0], (tb[3] - tb[1]) * aw / ah.toFloat())
         val yaw = System.getProperty("yaw")?.toFloatOrNull() ?: 20f
-        shoot("fit_top", TownFrame.aerial(mx, mz, 0f, 89f, span * 0.8f, 45f, aw.toFloat(), ah.toFloat()), 13f)
+        shoot("fit_top", TownFrame.aerial(mx, mz, 0f, 89f, span * 0.95f, 45f, aw.toFloat(), ah.toFloat()), 13f)
         shoot("fit_oblique", TownFrame.aerial(mx, mz, yaw, 40f, span * 0.75f, 45f, aw.toFloat(), ah.toFloat()), 15f)
         shoot("fit_low", TownFrame.aerial(mx, mz, yaw + 150f, 22f, span * 0.45f, 45f, aw.toFloat(), ah.toFloat()), 16f)
     }

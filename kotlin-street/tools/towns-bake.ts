@@ -26,7 +26,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { deflateRawSync, gunzipSync, gzipSync, inflateRawSync } from 'node:zlib';
 import { useRecipe, SIZE, PEOPLE, type TownRecipe } from '../../src/town/recipe';
-import { baseRecipe } from './towns-site';
+import { baseRecipe, waterGuess } from './towns-site';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '../..');
@@ -226,8 +226,9 @@ export function sampleOf(sites: import('./towns-site').Site[], startMass: number
     for (let i = 0; out.length < 1e9 && i < m; i++) { const s = (i % 2 === 0 ? a : b)[Math.floor(i / 2)] ?? (i % 2 === 0 ? b : a)[Math.floor(i / 2)]; if (s && !out.includes(s.place.id)) out.push(s.place.id); }
   }
   // (and a bypassed town and an interchange town, the Highways v2 cases: on either continent)
-  for (const ok of [(s: import('./towns-site').Site) => !!s.roads?.bypassed && s.place.kind === 'town', (s: import('./towns-site').Site) => !s.roads?.bypassed && (s.roads?.interchange?.km ?? 99) <= 3 && s.place.kind === 'town']) {
-    const c = pool.filter(ok).sort((a, b) => (key(a) < key(b) ? -1 : 1))[0];
+  // (and a river town)
+  for (const ok of [(s: import('./towns-site').Site) => s.place.kind === 'town' && s.place.rank !== 'small' && waterGuess(s) === 'river', (s: import('./towns-site').Site) => !!s.roads?.bypassed && s.place.kind === 'town', (s: import('./towns-site').Site) => !s.roads?.bypassed && (s.roads?.interchange?.km ?? 99) <= 3 && s.place.kind === 'town']) {
+    const c = pool.filter((q) => ok(q) && !out.includes(q.place.id)).sort((a, b) => (key(a) < key(b) ? -1 : 1))[0];
     if (c && !out.includes(c.place.id)) out.push(c.place.id);
   }
   return out;
