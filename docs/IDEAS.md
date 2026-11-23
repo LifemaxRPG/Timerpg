@@ -671,3 +671,31 @@ Replaces the "go back and save him" recommendation above, which was too close to
     - he spots anachronisms and reads the timeline's changes;
     - he knows the science of each era (what can be built, invented or patented early);
     - he sizes up risks (how long a cache spot will last, what evidence a plan leaves).
+
+## NPC actions: a scripted library, chosen by the model (the owner's idea, 2026-11-23)
+
+Give NPCs and companions a **large library of scripted actions**, and let the on-device model (on the NPU) decide
+**which, when and how**.
+- **Actions are game code.** Each has preconditions, effects and an animation:
+  - go somewhere, follow, wait, hide;
+  - buy, sell, steal, give, lend;
+  - call the police, warn someone, lie to someone, gossip;
+  - open a door, pick a lock, drive, fight, flee;
+  - help the player, refuse, bargain, keep watch.
+  The game checks the preconditions and applies the effects, so the model can never do something impossible.
+  This grows from what already exists: the simulation's interventions (`src/sim/types.ts`: kill, matchmake, sabotage,
+  fund, warn, gift, ...) and the dialogue's grounded facts.
+- **The model chooses.** At a decision moment (something changed, someone spoke, a plan step ended, never every
+  frame), the model gets the NPC's traits, goals, what they know and see, and the actions open to them. It returns a
+  short structured choice: action, target, manner. Constrained output (llama.cpp grammars) keeps it to valid JSON
+  from the list, short and fast on the NPU.
+- **Who gets the model and who gets rules:**
+  - **Companions and NPCs near the player** in tense or interesting moments (a witness deciding whether to report, a
+    guard, a negotiation) get the model.
+  - **Everyone else** uses fast rule-based utility scores, which are deterministic and cost nothing. This is the
+    simulation level of detail again.
+- **The world stays consistent.** A model's choice is stored as an intervention the moment it's made, so it's
+  permanent, survives saves, and replays the same after time travel. Only new moments ask the model again.
+- **Companions** get the richest version: they plan alongside the player ("I'll keep the guard talking while you
+  go round the back"), act on their own judgement when the player is busy, and follow their own traits (the
+  professor plans cleverly; a reckless friend improvises).
