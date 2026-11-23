@@ -437,3 +437,33 @@ decades, keeping its character, the way real buildings get remodelled.
   decay.
 - **The player can step back in.** Visit any year to see what it became, remodel it yourself, or protect the
   original look.
+
+### Every building is a design that lives through time (the owner's idea, 2026-11-23)
+
+Generalise the above to the whole world: **every building is a design with a life story**, not a fixed model, and it
+changes by rules for its type, its owner and its era.
+- **A design per building:**
+  - its type: house, shop, bank, church, factory, diner, motel, apartment block;
+  - its massing, facade rhythm, materials and palette;
+  - its signature elements (a bay window, a corner tower, a sign shape), from the seed and the town's culture.
+  Each type has a **style grammar**: what a 1910 bank, a 1955 bank and a 1990 bank look like, and how one becomes the
+  next. Procedural architecture tools in the industry work this way (shape grammars); ours output our pixel-art kit.
+- **A life story from the simulation:**
+  - built (by era style);
+  - lived in;
+  - **remodelled** when an owner has the money and the will (era rules rewrite the ordinary parts, signature elements
+    kept and restyled);
+  - **extended** when the business grows (a wing, a second storey, a drive-through);
+  - **converted** when the use changes (a church becomes apartments, a bank a restaurant, a gas station a taco stand,
+    keeping its old shape);
+  - **weathered** when nobody cares for it;
+  - **burned, condemned or demolished;**
+  - **preserved** if the town values it.
+  The growth model, the business simulation and the owners' traits drive all of it, so a street's look is the
+  sum of its history.
+- **Hand-made models are the authored anchors.** Their era states, made by ChatGPT and Gemini, are curated designs.
+  Unique ones (landmarks) keep their states as made; standard ones can be extended by the same rules between and
+  after their states.
+- **The player's buildings follow the same rules** (above), so they fit the town's own.
+- **Already in the game, in small form:** stores with era states, Main Street through the decades, weathering and
+  vacant states, abandoned versions. This system unifies them.
