@@ -69,7 +69,7 @@ class TownPlayTest {
         assertEquals(seed, town.seed)
         assertTrue("yards shipped", TownYards.parse(json).yards.isNotEmpty())
         val sprites = town.rows.flatMap { r -> r.buildings.map { it.sprite } }.toSet()
-        assertEquals(114, sprites.size)
+        assertEquals(322, sprites.size)
         // the movie theater (graph.cinema) stands as one of them, drawn by code (CinemaKit): no art files, a bill to show
         val cinema = root.getJSONObject("graph").getJSONObject("cinema")
         val cinemaSprite = root.getJSONObject("graph").getJSONArray("landmarks").let { a -> (0 until a.length()).map { a.getJSONObject(it) } }
@@ -103,11 +103,12 @@ class TownPlayTest {
             assertTrue("art $p", File("../app/src/main/assets/town/art/$p").exists())
     }
 
-    @Test fun spawnsOnTheCivicAvenueAndWalks() {
+    @Test fun spawnsOnMainStreetAndWalks() {
         val w = TownPlay.start(town)
         assertTrue(TownPlay.active)
         assertEquals(town.spawn.row, w.row.id)
-        assertEquals(town.civicName ?: "Civic Avenue", TownPlay.streetName())
+        // (the capital's spawn is on Main Street, row 60L, since the frontage-by-block-face plan: TownMapTest pins it)
+        assertEquals("Main Street", TownPlay.streetName())
         assertNotNull(TownPlay.hoodName())
         assertTrue(events.first().startsWith("town gamma 2025: spawned on ${town.spawn.row}"))
         // along the row
