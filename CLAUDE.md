@@ -19,6 +19,18 @@ Elite for Galaxy: 8 fast Oryon cores, no little cores; Adreno 830 GPU; Hexagon N
   voices, high-resolution assets. When several good options exist, use them together for more variety (e.g. voices from
   both Kokoro and Supertonic) rather than picking one to save space.
 
+## Direction (the owner's decision, 2026-11-23)
+
+Timerpg is now aimed at being **the best open-world RPG ever made**, competing with the likes of GTA 6 on depth of
+mechanics rather than photoreal graphics (our stylized pixel-art look frees effort for systems). Time travel stays, as
+one major feature rather than the whole premise:
+- The player **spawns on a random continent**, sometimes in or near the capital, sometimes very far away.
+- **The time machine is always in the capital**, kept by a professor who lives there. Reaching the capital is an
+  early goal for anyone who wants to time travel.
+- **Money: legit and nefarious ways** to earn it (jobs and businesses; crime, with law, police and consequences).
+- Everything else (the living simulated world, NPC dialogue on-device, eras, towns, travel by road, rail and sea)
+  serves an open world the player is free to live in.
+
 ## Decisions so far
 
 - **Renderer: Filament** (the owner's decision, 2026-11-18). The game is drawn by Filament
