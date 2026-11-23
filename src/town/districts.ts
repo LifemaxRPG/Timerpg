@@ -321,9 +321,8 @@ function fill(p: Plat): Districts {
   if (plotChain('brick_church').length) reserve('glb:brick_church', chainOf(plotChain('brick_church'), 'woods'), byNear(blocksOf(['old', 'westmain'])), toSquare, [tiles('landmark_glb_brick_church')], 'strip', { pad: 2 });
   if (plotChain('country_church').length) reserve('glb:country_church', chainOf(plotChain('country_church'), 'field'), [...byNear(blocksOf(['late', 'postwar', 'heights', 'old'])).reverse()], toSquare, [tiles('landmark_glb_country_church')], 'far', { pad: 2 });
   if (plotChain('carhop_drive_in').length) reserve('glb:carhop_drive_in', chainOf(plotChain('carhop_drive_in')), [...stripN, ...stripS], (b) => [mainFace(b)], [tiles('landmark_glb_carhop_drive_in_original')], 'core', { pad: 2 });
-  // ---- the third intake's five and dime (before the grounds' reserved plot and the other future plots, which stay last in the ledger): mid-block in a street wall on Main Street's core blocks (north side,
-  // the second block out from the civic block: the first is the start view's street wall; its party walls meet the shops beside it)
-  if (plotChain('five_and_dime').length) reserve('glb:five_and_dime', chainOf(plotChain('five_and_dime'), 'shops'), [...nearCivic(north, 1).slice(1), ...nearCivic(north, 1).slice(0, 1), ...nearCivic(north, -1), ...south], (b) => [mainFace(b)], [tiles('landmark_glb_five_and_dime_1925')], 'mid', { pad: 0 });
+  // ---- the third intake's five and dime (before the grounds' reserved plot and the other future plots, which stay last in the ledger): mid-block in a street wall on Main Street's core blocks (south side, beside the bank in the block nearest the civic block's strip side, where the shops stand; the north side's first block is the start view's street wall; its party walls meet the shops beside it)
+  if (plotChain('five_and_dime').length) reserve('glb:five_and_dime', chainOf(plotChain('five_and_dime'), 'shops'), [...nearCivic(south, 1), ...nearCivic(north, 1).slice(1), ...nearCivic(north, 1).slice(0, 1), ...nearCivic(north, -1), ...south], (b) => [mainFace(b)], [tiles('landmark_glb_five_and_dime_1925')], 'mid', { pad: 0 });
   {
     const gb = (row: number): Block | undefined => blocksOf('grounds', row)[0];
     const onG = (id: string, m: string, row: number, pos: Parameters<typeof positions>[3], first?: GlbLandmarkKind): void => {
