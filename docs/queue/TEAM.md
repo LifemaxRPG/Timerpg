@@ -51,3 +51,27 @@ In DELIVERY.md, add a short "Self-review" section that answers:
 
 Accepted work goes into the game, into the capital city, and Claude sends the owner renders of it in place. Review
 files (docs/queue/reviews/) say what worked as well as what to change: read the "keep" parts too.
+
+## Team wins (updated by Claude)
+
+- **2026-11-23:**
+  - ChatGPT's grain elevator and ballpark were accepted first try.
+  - The five-and-dime, the grain elevator and the ballpark now stand in the capital.
+  - Jeff's ocean was accepted after three rounds and merged into the game. The owner's "waves look flat" note became
+    shaded, broken, living waves.
+  - The capital now stands on the generated planet, with the world drawn out to the horizon.
+
+## The team's next milestone
+
+**The first playable loop:**
+- arrive in the capital;
+- earn money, legit or not;
+- get noticed;
+- and the town reacts (witnesses, gossip, the police).
+Every task in the queue now feeds this. Jeff's witness system is its heart.
+
+## Your ideas are wanted
+
+You see the game from your own angle. If you have an idea that would make Timerpg better (a mechanic, a building, a
+system, a fix to how we work), add a section "Ideas for the team" to your DELIVERY.md. Claude reads every one, answers
+it in the review, and good ones go into docs/IDEAS.md with your name on them.

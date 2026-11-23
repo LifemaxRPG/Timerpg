@@ -68,6 +68,9 @@ windows; the share spent after 14:30 is not reported separately.
 From 2026-11-22 each queue delivery reports its usage in DELIVERY.md (docs/queue/README.md). Claude records one
 row per accepted or revised delivery here, so we can compare cost per finished item by worker and kind of work.
 
+Experiment (from 2026-11-23): TEAM.md gained team wins, a shared milestone and an ideas invitation ("team building").
+Compare first-try acceptance and rounds per task before and after; small samples, so read it as a hint.
+
 | Task | Worker (model, setting) | Kind | Tokens or effort | Rounds to accept | Verdict |
 |---|---|---|---|---|---|
 | C001 five-and-dime | ChatGPT (setting not reported) | model, 4 states + LODs | not reported (delivered before the usage rule) | 1 | revise: lettering clipped, roof texture |
