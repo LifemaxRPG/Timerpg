@@ -7,17 +7,9 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "demo": "tsx scripts/demo.ts",
-    "dev": "vite --host",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview",
-    "assets": "node scripts/extract-assets.mjs",
-    "android:sync": "vite build && cap sync android",
-    "android:open": "cap open android",
-    "build:single": "node scripts/build-single.mjs"
+    "assets": "node scripts/extract-assets.mjs"
   },
   "devDependencies": {
-    "@capacitor/android": "^6.2.3",
-    "@capacitor/cli": "^6.2.3",
     "@types/adm-zip": "^0.5.8",
     "@types/node": "^22.20.5",
     "@types/pngjs": "^6.0.5",
@@ -29,8 +21,6 @@
     "vitest": "^2.1.0"
   },
   "dependencies": {
-    "@capacitor/core": "^6.2.3",
-    "@wllama/wllama": "^2.3.7",
-    "phaser": "^3.88.2"
+    "@wllama/wllama": "^2.3.7"
   }
 }
