@@ -171,3 +171,45 @@ The player can read a "town ledger" saying why it's growing or shrinking.
 
 This drives the world's own history too: which towns grew into cities, which emptied out. It is what a player's
 settlement competes against.
+
+## Government, elections and running for office (the owner's idea, 2026-11-23)
+
+The simulation already elects mayors by public standing (`src/sim`: `World.mayor`, `Person.reputation`). This grows
+it into real government at every level, with real NPC voters, and lets the player climb it, all the way to president,
+realistically.
+- **Offices by level:**
+  - town council and mayor;
+  - county sheriff, judge and commissioners;
+  - state legislature and governor;
+  - national legislature and president.
+  Terms, term limits and eligibility (age, residency, citizenship) follow each era's rules in our fictional country's
+  history. Who may vote widens over the century, as it really did.
+- **NPCs really vote.** Each voter decides from:
+  - their traits and interests: job, wealth, faith, family;
+  - the issues: taxes, jobs, crime, the town's growth factors;
+  - what they know and believe about the candidates: gossip, newspapers, speeches they heard, favours, scandals;
+  - their relationships (family and friends vote alike, a feud votes against).
+  Turnout depends on the weather, the stakes and the effort to get out the vote.
+- **Campaigning is gameplay:**
+  - money from donors (and what they expect back);
+  - endorsements;
+  - speeches and debates spoken by voice, with the language model voicing rivals and moderators while game logic
+    scores the result;
+  - door-to-door canvassing;
+  - newspaper coverage by era (radio, then TV ads, then the internet);
+  - opposition research.
+  Start small: a council seat, then mayor, then up. A higher office needs the base, the money and the record from the
+  ones below.
+- **Office has power with consequences.** The player's laws change the simulation:
+  - taxes, police funding, zoning;
+  - building a rail line or a road;
+  - corruption.
+  The growth model then rewards or punishes the town, and voters remember.
+- **Dirty politics are crimes.** Bribery, vote buying, fraud and blackmail all exist, and run through the witness,
+  gossip and evidence systems: journalists, rivals and prosecutors dig, and scandals end careers or lead to trials.
+- **Time travel as an edge, with risks:**
+  - knowing what's coming: a bank failure, a flood, a war, an industry's rise;
+  - investing ahead;
+  - taking credit for being "right";
+  - planting allies in the past, or building a family name over generations.
+  Too-perfect foresight draws suspicion, and changing the past can change who your voters are.
