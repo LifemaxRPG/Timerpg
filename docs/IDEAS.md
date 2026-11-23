@@ -359,3 +359,29 @@ layered, and each one is also gameplay:
    A soft limit, never a game over.
 
 In-game time is the cost, not real-time cooldowns. The player waits by living in the world, not by staring at a timer.
+
+## Chains that grow across the century (the owner's idea, 2026-11-23)
+
+Modern eras fill with chains, and the simulation can show one being born and spreading.
+- **A chain starts as one business,** with an owner, in a town, at a time: a diner, a burger stand, a five-and-dime, a
+  motel, a gas station. The growth model and the business simulation decide whether it succeeds, from its town, its
+  owner's traits, its era's demand, and luck from the seed.
+- **Successful ones expand:**
+  - first to nearby towns along the roads and rail;
+  - then by franchise across the continent;
+  - and in later eras overseas, by the sea and air routes.
+  Each new branch takes a lot in its town, sometimes replacing a local business (the Main Street story).
+- **Chain identity.** One made-up name, one logo, one sign style and one building design (a standard model, painted
+  with the chain's name rather than an owner's), changing by decade: the 1950s stand, the 1970s remodel, the 2000s
+  redesign.
+- **Visible history:**
+  - the original first location becomes a landmark, sometimes with a plaque;
+  - old branches close and become other businesses, keeping the shape of the chain's old building;
+  - chains also fail, merge or get bought.
+- **Time travel:**
+  - see a chain's founder in their first year;
+  - invest early, or work there;
+  - buy the franchise rights in a new region;
+  - or stop it (or start your own) and watch the map change.
+- **Fits:** the growth model, the sign painter (chain names on standard models), the money system (investing, owning
+  franchises), and Main Street through the decades.
