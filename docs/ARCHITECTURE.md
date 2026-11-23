@@ -51,8 +51,8 @@ save / load                       <--> one JSON string
 | `src/world/gen/`, `src/town/` | baked into assets: in the game |
 | `src/sim/` (people, schedules) | baked into the dialogue and town exports: in the game |
 | `src/crime/`, `src/plan/` | tested; run on the phone through the JS bridge (QuickJS-ng, SimJs.kt) |
-| `src/police/` (G009) | in review or in progress; joins the bundle through `src/loop/` |
-| `src/loop/` (G011) | next: the facade the game calls |
+| `src/police/` (G009) | merged; the facade uses its own compact copy until G012 switches it to `src/police/` |
+| `src/loop/` (G011) | merged and bundled (`TimerpgSim`, and `simCall` for SimJs's one-argument calls); the game doesn't call it yet |
 | `src/court/` (G010) | on hold until the loop plays; a fine or a night in a cell stands in |
 
 ## Who consumes what next
