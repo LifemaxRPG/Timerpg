@@ -815,3 +815,14 @@ agree and differ from town to town:
 - a longtime resident explaining why the store closed.
 Returning to the same street in another year and recognising it is where the art and the simulation give the town a
 memory.
+
+## Institutional memory: rumour into legend (Jeff's idea, from the team survey, 2026-11-23)
+
+Big events don't fade; they settle into a town's history:
+- Newspapers, court transcripts, mugshot books and gossip are kept, and the big ones (unsolved crimes, famous trials,
+  time-travel anomalies) crystallise into local history and folklore.
+- Rob the First National Bank in 1925 and vanish, then walk back into that town in 1975, and the teller's grandson tells
+  stories about "the red-coated ghost of '25". A framed Gazette clipping hangs on the tavern wall; a retired detective's
+  son still keeps the old folder.
+- It joins the witness memory (G005), evidence (G008), police (G009), trials (G010) and the Gazette (G004), and pairs with
+  Sam's address history and Jeff's ghost signs: the town remembers the player as well as its shops.

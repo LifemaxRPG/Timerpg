@@ -68,6 +68,11 @@ windows; the share spent after 14:30 is not reported separately.
 From 2026-11-22 each queue delivery reports its usage in DELIVERY.md (docs/queue/README.md). Claude records one
 row per accepted or revised delivery here, so we can compare cost per finished item by worker and kind of work.
 
+Assignment by strength (2026-11-23, from the record and Jeff's own survey): Gemini gets TypeScript systems work, where
+it can run Vitest and tsc itself (G005-G008: four first-try acceptances). Its Kotlin/Filament tasks (G002, G006) were
+built blind, without a JVM, Gradle or Filament in its sandbox, and took more rounds; those stay with Claude unless its
+sandbox gains a JDK.
+
 | Task | Worker (model, setting) | Kind | Tokens or effort | Rounds to accept | Verdict |
 |---|---|---|---|---|---|
 | C001 five-and-dime | ChatGPT (setting not reported) | model, 4 states + LODs | not reported (delivered before the usage rule) | 1 | revise: lettering clipped, roof texture |
