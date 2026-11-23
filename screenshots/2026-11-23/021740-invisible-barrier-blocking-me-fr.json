@@ -1,0 +1,178 @@
+{
+  "kind": "screenshot",
+  "time": "2026-11-23T02:17:40.842-0500",
+  "epochMs": 1795418260842,
+  "note": "invisible barrier blocking me from going closer to buildings",
+  "app": {
+    "versionName": "0.1.598 (f481ffa)",
+    "versionCode": 598,
+    "git": "f481ffa",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "image": {
+    "file": "021740-invisible-barrier-blocking-me-fr.png",
+    "format": "png",
+    "scale": 1,
+    "width": 2340,
+    "height": 1080,
+    "bytes": 2808097,
+    "captured": "PixelCopy of the window"
+  },
+  "screen": {
+    "widthPx": 2244,
+    "heightPx": 1038,
+    "density": 2.8125,
+    "densityDpi": 450
+  },
+  "device": {
+    "ramFreeMb": 1925,
+    "ramTotalMb": 11113,
+    "lowMemory": false,
+    "gamePssMb": 3236,
+    "thermalStatus": 2,
+    "thermalHeadroom10s": 0.9210794
+  },
+  "game": {
+    "renderer": "Filament",
+    "camera": "medium",
+    "view": "open",
+    "orbit": {
+      "yaw": -166.85884,
+      "pitch": 10,
+      "dist": 420,
+      "pulled": 420,
+      "goalYaw": -166.85884,
+      "goalPitch": 10,
+      "goalDist": 420,
+      "tx": 7545.787,
+      "tz": 7177.1426,
+      "line": "camera open yaw -166.9 pitch 10.0 dist 420 (pulled to 420) at (7546, 7177)"
+    },
+    "rendererError": null,
+    "town": "eta · Commuter suburb · 2025",
+    "walkableTown": {
+      "seed": "gamma",
+      "loading": false,
+      "ready": true,
+      "progress": 1,
+      "error": null,
+      "loadMs": 1778.7308,
+      "firstViewMs": 22201.932,
+      "built": "town built: ground 22201 ms (workers 22181), buildings 350 ms here (slowest b207 5.5 ms, largest batch 12.5 ms), 12136 ms on workers (slowest b281 203 ms); textures 2483, 429.3M texels, 14624 shared",
+      "memory": {
+        "when": "town built",
+        "graphicsMb": 2138,
+        "nativeMb": 275,
+        "javaMb": 79,
+        "codeMb": 34,
+        "totalPssMb": 2668
+      },
+      "row": "129L",
+      "street": "Juniper Way",
+      "neighbourhood": "Oak Gardens",
+      "x": 2021.2266,
+      "lane": 512.30945,
+      "wx": 7546.2734,
+      "wz": 7177.1426,
+      "heading": 1.5707964,
+      "front": null,
+      "transit": null,
+      "liveRows": [
+        "129L",
+        "129R"
+      ],
+      "people": 2,
+      "talkTo": null,
+      "walk": "open",
+      "open": {
+        "door": null,
+        "yard": null,
+        "speed": 29.217714,
+        "blocked": 0.15236866,
+        "cameraYaw": -2.9122362,
+        "hx": 1,
+        "hz": 3.0270497E-18
+      }
+    },
+    "street": {
+      "index": 0,
+      "name": "Main Street",
+      "nearestBuilding": -1,
+      "building": null,
+      "owner": null,
+      "atCorner": false,
+      "edge": 0
+    },
+    "player": {
+      "x": 2021.2266,
+      "lane": 512.30945,
+      "street": 0,
+      "dir": -1,
+      "walking": true,
+      "running": true,
+      "viewMiddle": 0
+    },
+    "turn": {
+      "active": false,
+      "forward": true,
+      "p": 0,
+      "yaw": 0,
+      "ease": 0,
+      "blocked": false
+    },
+    "inRoom": false,
+    "room": null,
+    "doorFade": false,
+    "time": {
+      "hour": 17.6,
+      "clock": "17:36",
+      "season": "summer",
+      "weather": "Clear"
+    },
+    "frames": {
+      "compose": "Frames: 16.6 ms (60 fps) · p95 49.9 ms · 26.5% late · display 60 Hz",
+      "filament": "Filament: CPU 17.9 ms (p95 38.8) · GPU 17.7 ms (p95 29.5) · start 455 ms, street 1145 ms",
+      "spikes": "spikes: 97 of 598 frames (moving 598) over 20 ms by render 97, HUD 97, gc 19, green 15, yards 2, stores 1; GPU over 16.7 ms in 0 of 0 frames (worst 0.0); gc 34 (833 ms); worst: 30 ms: ours 24.5 (render 10.9, yards 6.6, green 4.7, occlude 1.0, stores 1.0), gpu 15.8, gc 1 16 ms, HUD x1 | 29 ms: ours 22.0 (render 12.7, green 4.7, yards 1.9, occlude 1.0, build 0.7, stores 0.7), gpu 15.8, up  0.0 MB, HUD x1 | 28 ms: ours 18.9 (render 11.6, green 4.1, occlude 1.0, yards 0.8, stores 0.7, build 0.3), gpu 15.8, up  0.0 MB, HUD x1"
+    },
+    "ai": {
+      "state": "LOADING",
+      "detail": "Loading the model (2463 MB)…",
+      "runsOn": "CPU",
+      "modelMb": 2463,
+      "role": null,
+      "forceBank": false,
+      "gpuNote": null,
+      "lane": "dialogue",
+      "linesWritten": 18,
+      "builtIn": 0,
+      "queued": 765,
+      "paused": "",
+      "working": null,
+      "pregenOff": null,
+      "prefillTokPerSec": 0,
+      "genTokPerSec": 0,
+      "firstTokenMs": 0,
+      "loadInfo": null
+    },
+    "conversation": null,
+    "voices": {
+      "enabled": false,
+      "speaking": false,
+      "only": 2,
+      "timing": null
+    },
+    "mic": {
+      "always": true,
+      "granted": false,
+      "listening": false,
+      "state": "IDLE"
+    },
+    "panels": {
+      "aiPanel": false,
+      "crashShown": false,
+      "tuningNpu": false
+    }
+  }
+}
