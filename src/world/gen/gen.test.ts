@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { CR, KOPPEN, koppenGroup } from './climate';
-import { CELL_KM, H, N, W, latOf, wrapDx } from './grid';
+import { CELL_KM, CELL_M, H, N, W, latOf, wrapDx } from './grid';
 import { CAPITAL_NAME, GAMMA_PINS, GAMMA_PLAN_TILES, LAUNCH } from './hubs';
 import { undrained } from './hydro';
 import { isRealTownName } from './names';
@@ -8,7 +8,8 @@ import { HUB_SEP, PORT_SEP, hubRule, placeHubs, type Place } from './places';
 import { sailingsPerWeek } from './sea';
 import { isTrip, planTrip } from './travel';
 import { generateWorld, type World } from './world';
-import { decodeSkeleton, encodeSkeleton } from './bake';
+import { PTS_SCALE, decodeSkeleton, encodeSkeleton } from './bake';
+import { worldPaths, type Pt } from './paths';
 import { linksOf, planRoute, stationOf, type Route } from '../rail';
 
 // The world skeleton (WORLD_GEN.md phases W1-W3) on one seed, generated once (about 20 s), plus a second run for determinism.
@@ -273,5 +274,43 @@ describe('the baked skeleton', () => {
     for (let c = 0; c < N; c += 997) expect(Math.abs(back.elev[c]! - Math.round(w.terrain.elev[c]!))).toBeLessThanOrEqual(1);
     expect(back.roads.length).toBe(w.roads.length);
     expect(back.railLinks.length).toBe(w.rail.links.length);
+  });
+});
+
+describe('W4 paths: the vectors meet the hubs at their pins', () => {
+  it('the capital\'s highways and rail start exactly on its pins, its river is bent through its river pins', () => {
+    const P = worldPaths(w);
+    const cap = w.hubs[0]!;
+    const on = (p: Pt, kind: string): boolean => cap.pins!.some((q) => q.kind === kind && Math.hypot(wrapDx(p[0] - q.x), p[1] - q.z) * CELL_M < 0.01);
+    let roads = 0, lines = 0;
+    w.roads.forEach((r, k) => {
+      if (r.a === cap.id) { expect(on(P.roads[k]![0]!, 'highway'), r.id).toBe(true); roads++; }
+      if (r.b === cap.id) { expect(on(P.roads[k]!.at(-1)!, 'highway'), r.id).toBe(true); roads++; }
+    });
+    w.rail.lines.forEach((l, k) => {
+      if (l.cells[0] === cap.cell) { expect(on(P.rail[k]![0]!, 'rail'), l.id).toBe(true); lines++; }
+      if (l.cells.at(-1) === cap.cell) { expect(on(P.rail[k]!.at(-1)!, 'rail'), l.id).toBe(true); lines++; }
+    });
+    expect(roads).toBeGreaterThan(0);
+    expect(lines).toBeGreaterThan(0);
+    const pin = cap.pins!.find((q) => q.name.startsWith('river in'))!, pout = cap.pins!.find((q) => q.name.startsWith('river out'))!;
+    const k = w.hydro.rivers.findIndex((r) => r.cells.includes(cap.cell));
+    const path = P.rivers[k]!;
+    const i = path.findIndex((p) => Math.hypot(wrapDx(p[0] - pin.x), p[1] - pin.z) * CELL_M < 0.01);
+    expect(i).toBeGreaterThan(0);
+    expect(Math.hypot(wrapDx(path[i + 1]![0] - pout.x), path[i + 1]![1] - pout.z) * CELL_M).toBeLessThan(0.01);
+    // nothing of any river inside the plan except the pins themselves
+    const pw = (GAMMA_PLAN_TILES.w * 2.1) / 2, ph = (GAMMA_PLAN_TILES.h * 2.1) / 2;
+    for (const line of P.rivers) for (const p of line) {
+      const dx = wrapDx(p[0] - cap.x) * CELL_M, dz = (p[1] - cap.z) * CELL_M;
+      const pinned = Math.hypot(wrapDx(p[0] - pin.x), p[1] - pin.z) * CELL_M < 0.01 || Math.hypot(wrapDx(p[0] - pout.x), p[1] - pout.z) * CELL_M < 0.01;
+      if (!pinned) expect(Math.abs(dx - (pin.x - cap.x) * CELL_M) < pw && Math.abs(dz) < ph - 1).toBe(false);
+    }
+    // the baked paths are the same (fixed point: 2 mm)
+    const back = decodeSkeleton(encodeSkeleton(w));
+    const pts = back.section('pts') as Int32Array;
+    const rv = (back.json.rivers as { path: [number, number] }[])[k]!.path;
+    expect(rv[1]).toBe(path.length);
+    expect(Math.abs(pts[(rv[0] + i) * 2]! / PTS_SCALE - pin.x) * CELL_M).toBeLessThan(0.003);
   });
 });
