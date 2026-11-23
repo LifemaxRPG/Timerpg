@@ -401,3 +401,12 @@ Modern eras fill with chains, and the simulation can show one being born and spr
   plaque all follow from the simulation.
 - **Shady businesses too.** A business can be a front: laundering money, fencing goods, a speakeasy in the 1920s.
   These run through the crime and evidence systems like everything else.
+- **Who you leave in charge decides it** (the owner's point). A manager's traits (the simulation already has
+  diligence, ambition and charm per person; add honesty and judgment) drive how the business does while you're away:
+  - a competent, ambitious manager can grow it into a chain;
+  - a careless one runs it into the ground;
+  - a dishonest one skims the till;
+  - a very ambitious one might buy you out, or leave and open a rival across the street.
+  You never see the traits as numbers. You judge people the way you would in life: by talking to them (the
+  dialogue), their reputation and references, how they did at past jobs, and what the town says about them. Picking
+  the right person is the skill, and time travel is where you find out if you were right.
