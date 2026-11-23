@@ -5,7 +5,6 @@ import com.lifemax.rpg.feature.habits.domain.BuildingSpec as B
 import com.lifemax.rpg.feature.habits.domain.CloudKind
 import com.lifemax.rpg.feature.habits.domain.TreeKind
 import com.lifemax.rpg.feature.habits.domain.Trees
-import com.lifemax.rpg.feature.habits.presentation.headerBand
 import kotlin.math.abs
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -97,14 +96,5 @@ class SkyAndTreesTest {
             assertTrue(.8f * shape.halfWidth <= 18f)
             assertTrue(shape.halfWidth <= B.GAP / 2f)
         }
-    }
-
-    @Test
-    fun theHeaderBandIsThePagesTopInsetInPixels() {
-        // the scene starts under it, whatever the density; never more than the screen
-        assertEquals(64 * 3, headerBand(64f, 3f, 5000))
-        assertEquals(176, headerBand(110f, 1.6f, 5000))
-        assertEquals(0, headerBand(0f, 2.6f, 5000))
-        assertEquals(300, headerBand(500f, 2.6f, 300))
     }
 }

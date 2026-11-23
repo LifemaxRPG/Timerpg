@@ -1,5 +1,31 @@
 package com.lifemax.rpg.feature.habits.domain
 
+/** The part of the day an anchor belongs to: what is offered first follows the clock. */
+enum class DayPart {
+    MORNING,
+    DAY,
+    EVENING,
+    NIGHT,
+}
+
+/** What kind of moment an anchor is, so the habits that fit it can be offered first. */
+enum class Spot {
+    WAKE,
+    WASH,
+    MEAL,
+    COMMUTE,
+    WORK,
+    BREAK,
+    HOME,
+    EVENING,
+    BED,
+    EXERCISE,
+    PETS,
+    KIDS,
+    WEEKEND,
+}
+
+
 /**
  * A common habit with its three sizes already named: [name] is the normal one, [small] the
  * two-minute one, [stretch] the big one. [fits] are the moments it suits best (offered first on a
