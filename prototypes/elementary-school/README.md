@@ -5,11 +5,11 @@ Two original schools for Timerpg with separate state assets. Each state comes wi
 | GLB prefix | Years and state |
 | --- | --- |
 | mill-branch-active | About 1890–1950, in use |
-| mill-branch-abandoned | After the school closes, with weathered clapboard, boarded sashes and unlit windows |
-| westmeadow-1955 | 1955–1989, brick elementary campus as built |
-| westmeadow-1990 | 1990 onward, glazed secure vestibule and two portable classrooms |
+| mill-branch-abandoned | After the school closes, with peeling clapboard, broken and boarded sashes, roof openings, missing bell and unlit windows |
+| westmeadow-1955 | 1955–1989, brick campus with a tar-and-gravel roof, steel playground and dirt ball field |
+| westmeadow-1990 | 1990 onward, projecting canopy, marquee, patched roof, fenced playground and two portable classrooms |
 
-Mill Branch is a one-room white clapboard school with an open belfry, woodstove, slate, pair of outhouses and a hand pump. Westmeadow has ribbon windows, a classroom wing and a gym-lunchroom with a fixed service counter and half court. The campus lot has a bus loop, a flagpole, bicycle racks, swings, a slide, overhead bars and a four-square court.
+Mill Branch is a one-room white clapboard school with an open belfry, woodstove, slate, pair of outhouses and a hand pump. Westmeadow has ribbon windows, a classroom wing and a gym-lunchroom with a fixed service counter and half court. The campus lot has a bus loop, a flagpole, bicycle racks, swings, a slide, overhead bars and a four-square court. The later campus has a locker-lined hallway, classroom vision panes and a molded play tower beside the retained swings.
 
 ## Put the schools in town
 

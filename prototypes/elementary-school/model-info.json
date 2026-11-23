@@ -214,7 +214,7 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -418,7 +418,7 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -622,7 +622,7 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -682,7 +682,7 @@
         {
           "file": "mill-branch-abandoned.glb",
           "lod": "near",
-          "triangles_visible": 1692,
+          "triangles_visible": 1690,
           "door_nodes_gltf_m": {
             "door_main": [
               0,
@@ -817,16 +817,16 @@
               "attachment": "lot"
             },
             {
-              "name": "Outhouse",
+              "name": "Leaning outhouse and overhanging door",
               "center_gltf_m": [
-                -8.88,
-                1.287,
-                -18.47
+                -8.705,
+                1.512,
+                -18.215
               ],
               "size_gltf_m": [
-                1.3999999999999986,
-                2.526,
-                1.7399999999999984
+                1.87,
+                2.976,
+                2.509999999999998
               ],
               "group": "lot",
               "attachment": "lot"
@@ -852,11 +852,11 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
-                0,
+                204,
                 232,
                 26
               ],
@@ -886,7 +886,7 @@
         {
           "file": "mill-branch-abandoned-mid.glb",
           "lod": "mid",
-          "triangles_visible": 1424,
+          "triangles_visible": 1542,
           "door_nodes_gltf_m": {
             "door_main": [
               0,
@@ -1021,16 +1021,16 @@
               "attachment": "lot"
             },
             {
-              "name": "Outhouse",
+              "name": "Leaning outhouse and overhanging door",
               "center_gltf_m": [
-                -8.88,
-                1.287,
-                -18.47
+                -8.705,
+                1.512,
+                -18.215
               ],
               "size_gltf_m": [
-                1.3999999999999986,
-                2.526,
-                1.7399999999999984
+                1.87,
+                2.976,
+                2.509999999999998
               ],
               "group": "lot",
               "attachment": "lot"
@@ -1056,11 +1056,11 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
-                0,
+                204,
                 232,
                 26
               ],
@@ -1090,7 +1090,7 @@
         {
           "file": "mill-branch-abandoned-far.glb",
           "lod": "far",
-          "triangles_visible": 1128,
+          "triangles_visible": 1288,
           "door_nodes_gltf_m": {
             "door_main": [
               0,
@@ -1225,16 +1225,16 @@
               "attachment": "lot"
             },
             {
-              "name": "Outhouse",
+              "name": "Leaning outhouse and overhanging door",
               "center_gltf_m": [
-                -8.88,
-                1.287,
-                -18.47
+                -8.705,
+                1.512,
+                -18.215
               ],
               "size_gltf_m": [
-                1.3999999999999986,
-                2.526,
-                1.7399999999999984
+                1.87,
+                2.976,
+                2.509999999999998
               ],
               "group": "lot",
               "attachment": "lot"
@@ -1260,11 +1260,11 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
-                0,
+                204,
                 232,
                 26
               ],
@@ -1320,7 +1320,7 @@
         {
           "file": "westmeadow-1955.glb",
           "lod": "near",
-          "triangles_visible": 3066,
+          "triangles_visible": 2472,
           "door_nodes_gltf_m": {
             "door_main": [
               0,
@@ -1790,7 +1790,7 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -1810,7 +1810,7 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -1844,7 +1844,7 @@
         {
           "file": "westmeadow-1955-mid.glb",
           "lod": "mid",
-          "triangles_visible": 2780,
+          "triangles_visible": 2304,
           "door_nodes_gltf_m": {
             "door_main": [
               0,
@@ -2314,7 +2314,7 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -2334,7 +2334,7 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -2368,7 +2368,7 @@
         {
           "file": "westmeadow-1955-far.glb",
           "lod": "far",
-          "triangles_visible": 2356,
+          "triangles_visible": 2024,
           "door_nodes_gltf_m": {
             "door_main": [
               0,
@@ -2838,7 +2838,7 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -2858,7 +2858,7 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -2918,7 +2918,7 @@
         {
           "file": "westmeadow-1990.glb",
           "lod": "near",
-          "triangles_visible": 3878,
+          "triangles_visible": 3752,
           "door_nodes_gltf_m": {
             "door_main": [
               0,
@@ -3076,6 +3076,66 @@
               ],
               "group": "building",
               "attachment": ""
+            },
+            {
+              "name": "Canopy support column",
+              "center_gltf_m": [
+                -7.77,
+                1.6685,
+                2.8600000000000003
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                3.283,
+                0.26000000000000023
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Canopy support column",
+              "center_gltf_m": [
+                7.77,
+                1.6685,
+                2.8600000000000003
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                3.283,
+                0.26000000000000023
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Marquee support post",
+              "center_gltf_m": [
+                -10.52,
+                1.1385,
+                5.22
+              ],
+              "size_gltf_m": [
+                0.14000000000000057,
+                2.223,
+                0.16000000000000014
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Marquee support post",
+              "center_gltf_m": [
+                -7.46,
+                1.1385,
+                5.22
+              ],
+              "size_gltf_m": [
+                0.14000000000000057,
+                2.223,
+                0.16000000000000014
+              ],
+              "group": "lot",
+              "attachment": "lot"
             },
             {
               "name": "Secure inner control line",
@@ -3273,6 +3333,171 @@
               "attachment": ""
             },
             {
+              "name": "Hall rear wall",
+              "center_gltf_m": [
+                -16.55,
+                1.7,
+                -21.235
+              ],
+              "size_gltf_m": [
+                12.100000000000001,
+                3.14,
+                0.1700000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall rear wall",
+              "center_gltf_m": [
+                0.4500000000000002,
+                1.7,
+                -21.235
+              ],
+              "size_gltf_m": [
+                16.700000000000003,
+                3.14,
+                0.1700000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall rear wall",
+              "center_gltf_m": [
+                14.2,
+                1.7,
+                -21.235
+              ],
+              "size_gltf_m": [
+                6.399999999999999,
+                3.14,
+                0.1700000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall built-in locker bank",
+              "center_gltf_m": [
+                -18.61,
+                1.16,
+                -15.46
+              ],
+              "size_gltf_m": [
+                4.960000000000001,
+                2.06,
+                0.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall built-in locker bank",
+              "center_gltf_m": [
+                -8.35,
+                1.16,
+                -15.46
+              ],
+              "size_gltf_m": [
+                4.96,
+                2.06,
+                0.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall built-in locker bank",
+              "center_gltf_m": [
+                -15.52,
+                1.16,
+                -21.03
+              ],
+              "size_gltf_m": [
+                4.960000000000001,
+                2.06,
+                0.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall built-in locker bank",
+              "center_gltf_m": [
+                -4.42,
+                1.16,
+                -21.03
+              ],
+              "size_gltf_m": [
+                4.960000000000001,
+                2.06,
+                0.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed classroom door leaf",
+              "center_gltf_m": [
+                -22.810000000000002,
+                1.325,
+                -15.145
+              ],
+              "size_gltf_m": [
+                0.620000000000001,
+                2.39,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed classroom door leaf",
+              "center_gltf_m": [
+                -12.690000000000001,
+                1.325,
+                -15.145
+              ],
+              "size_gltf_m": [
+                0.6199999999999992,
+                2.39,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed classroom door leaf",
+              "center_gltf_m": [
+                11.0,
+                1.325,
+                -15.145
+              ],
+              "size_gltf_m": [
+                0.6199999999999992,
+                2.39,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed classroom door leaf",
+              "center_gltf_m": [
+                20.9,
+                1.325,
+                -15.145
+              ],
+              "size_gltf_m": [
+                0.620000000000001,
+                2.39,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
               "name": "Gym west side",
               "center_gltf_m": [
                 12.120000000000001,
@@ -3438,6 +3663,96 @@
               "attachment": "lot"
             },
             {
+              "name": "Molded play tower",
+              "center_gltf_m": [
+                48.685,
+                2.051,
+                -24.14
+              ],
+              "size_gltf_m": [
+                6.329999999999998,
+                3.978,
+                3.6400000000000006
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Chain-link perimeter",
+              "center_gltf_m": [
+                34.55,
+                0.8135,
+                -11.31
+              ],
+              "size_gltf_m": [
+                7.039999999999999,
+                1.5730000000000002,
+                0.14000000000000057
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Chain-link perimeter",
+              "center_gltf_m": [
+                46.6,
+                0.8135,
+                -11.31
+              ],
+              "size_gltf_m": [
+                10.939999999999998,
+                1.5730000000000002,
+                0.14000000000000057
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Chain-link perimeter",
+              "center_gltf_m": [
+                52.0,
+                0.8135,
+                -26.865000000000002
+              ],
+              "size_gltf_m": [
+                0.14000000000000057,
+                1.5730000000000002,
+                31.25
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Chain-link perimeter",
+              "center_gltf_m": [
+                41.55,
+                0.8135,
+                -42.42
+              ],
+              "size_gltf_m": [
+                21.04,
+                1.5730000000000002,
+                0.14000000000000057
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Chain-link perimeter",
+              "center_gltf_m": [
+                31.1,
+                0.8135,
+                -26.865000000000002
+              ],
+              "size_gltf_m": [
+                0.14000000000000057,
+                1.5730000000000002,
+                31.25
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
               "name": "Portable front",
               "center_gltf_m": [
                 -22.405,
@@ -3593,27 +3908,67 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
-                30,
+                234,
                 450,
                 48
               ],
               "bottom_left_gltf_m": [
                 -8.73,
-                3.34,
-                0.074
+                4.33,
+                0.276
               ],
               "width_m": 17.46,
               "height_m": 1.8624
+            },
+            "sign_marquee": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                288,
+                172,
+                28
+              ],
+              "bottom_left_gltf_m": [
+                -12.3368,
+                1.57,
+                5.358
+              ],
+              "width_m": 6.6736,
+              "height_m": 1.0864
+            },
+            "sign_bulletin": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                380,
+                76,
+                36
+              ],
+              "bottom_left_gltf_m": [
+                -0.8244000000000001,
+                1.21,
+                -21.137
+              ],
+              "width_m": 2.9488000000000003,
+              "height_m": 1.3968
             },
             "sign_gym": {
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -3633,7 +3988,7 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -3653,7 +4008,7 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -3671,6 +4026,7 @@
             }
           },
           "materials": [
+            "detail_chain_link",
             "detail_light_trim",
             "detail_painted_timber",
             "floor_school",
@@ -3680,14 +4036,13 @@
             "roof_finish",
             "sign_paint",
             "trim_and_slate",
-            "wall_brick",
-            "wall_clapboard"
+            "wall_brick"
           ]
         },
         {
           "file": "westmeadow-1990-mid.glb",
           "lod": "mid",
-          "triangles_visible": 3544,
+          "triangles_visible": 3548,
           "door_nodes_gltf_m": {
             "door_main": [
               0,
@@ -3845,6 +4200,66 @@
               ],
               "group": "building",
               "attachment": ""
+            },
+            {
+              "name": "Canopy support column",
+              "center_gltf_m": [
+                -7.77,
+                1.6685,
+                2.8600000000000003
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                3.283,
+                0.26000000000000023
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Canopy support column",
+              "center_gltf_m": [
+                7.77,
+                1.6685,
+                2.8600000000000003
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                3.283,
+                0.26000000000000023
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Marquee support post",
+              "center_gltf_m": [
+                -10.52,
+                1.1385,
+                5.22
+              ],
+              "size_gltf_m": [
+                0.14000000000000057,
+                2.223,
+                0.16000000000000014
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Marquee support post",
+              "center_gltf_m": [
+                -7.46,
+                1.1385,
+                5.22
+              ],
+              "size_gltf_m": [
+                0.14000000000000057,
+                2.223,
+                0.16000000000000014
+              ],
+              "group": "lot",
+              "attachment": "lot"
             },
             {
               "name": "Secure inner control line",
@@ -4042,6 +4457,171 @@
               "attachment": ""
             },
             {
+              "name": "Hall rear wall",
+              "center_gltf_m": [
+                -16.55,
+                1.7,
+                -21.235
+              ],
+              "size_gltf_m": [
+                12.100000000000001,
+                3.14,
+                0.1700000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall rear wall",
+              "center_gltf_m": [
+                0.4500000000000002,
+                1.7,
+                -21.235
+              ],
+              "size_gltf_m": [
+                16.700000000000003,
+                3.14,
+                0.1700000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall rear wall",
+              "center_gltf_m": [
+                14.2,
+                1.7,
+                -21.235
+              ],
+              "size_gltf_m": [
+                6.399999999999999,
+                3.14,
+                0.1700000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall built-in locker bank",
+              "center_gltf_m": [
+                -18.61,
+                1.16,
+                -15.46
+              ],
+              "size_gltf_m": [
+                4.960000000000001,
+                2.06,
+                0.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall built-in locker bank",
+              "center_gltf_m": [
+                -8.35,
+                1.16,
+                -15.46
+              ],
+              "size_gltf_m": [
+                4.96,
+                2.06,
+                0.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall built-in locker bank",
+              "center_gltf_m": [
+                -15.52,
+                1.16,
+                -21.03
+              ],
+              "size_gltf_m": [
+                4.960000000000001,
+                2.06,
+                0.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall built-in locker bank",
+              "center_gltf_m": [
+                -4.42,
+                1.16,
+                -21.03
+              ],
+              "size_gltf_m": [
+                4.960000000000001,
+                2.06,
+                0.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed classroom door leaf",
+              "center_gltf_m": [
+                -22.810000000000002,
+                1.325,
+                -15.145
+              ],
+              "size_gltf_m": [
+                0.620000000000001,
+                2.39,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed classroom door leaf",
+              "center_gltf_m": [
+                -12.690000000000001,
+                1.325,
+                -15.145
+              ],
+              "size_gltf_m": [
+                0.6199999999999992,
+                2.39,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed classroom door leaf",
+              "center_gltf_m": [
+                11.0,
+                1.325,
+                -15.145
+              ],
+              "size_gltf_m": [
+                0.6199999999999992,
+                2.39,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed classroom door leaf",
+              "center_gltf_m": [
+                20.9,
+                1.325,
+                -15.145
+              ],
+              "size_gltf_m": [
+                0.620000000000001,
+                2.39,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
               "name": "Gym west side",
               "center_gltf_m": [
                 12.120000000000001,
@@ -4207,6 +4787,96 @@
               "attachment": "lot"
             },
             {
+              "name": "Molded play tower",
+              "center_gltf_m": [
+                48.685,
+                2.051,
+                -24.14
+              ],
+              "size_gltf_m": [
+                6.329999999999998,
+                3.978,
+                3.6400000000000006
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Chain-link perimeter",
+              "center_gltf_m": [
+                34.55,
+                0.8135,
+                -11.31
+              ],
+              "size_gltf_m": [
+                7.039999999999999,
+                1.5730000000000002,
+                0.14000000000000057
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Chain-link perimeter",
+              "center_gltf_m": [
+                46.6,
+                0.8135,
+                -11.31
+              ],
+              "size_gltf_m": [
+                10.939999999999998,
+                1.5730000000000002,
+                0.14000000000000057
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Chain-link perimeter",
+              "center_gltf_m": [
+                52.0,
+                0.8135,
+                -26.865000000000002
+              ],
+              "size_gltf_m": [
+                0.14000000000000057,
+                1.5730000000000002,
+                31.25
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Chain-link perimeter",
+              "center_gltf_m": [
+                41.55,
+                0.8135,
+                -42.42
+              ],
+              "size_gltf_m": [
+                21.04,
+                1.5730000000000002,
+                0.14000000000000057
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Chain-link perimeter",
+              "center_gltf_m": [
+                31.1,
+                0.8135,
+                -26.865000000000002
+              ],
+              "size_gltf_m": [
+                0.14000000000000057,
+                1.5730000000000002,
+                31.25
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
               "name": "Portable front",
               "center_gltf_m": [
                 -22.405,
@@ -4362,27 +5032,67 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
-                30,
+                234,
                 450,
                 48
               ],
               "bottom_left_gltf_m": [
                 -8.73,
-                3.34,
-                0.074
+                4.33,
+                0.276
               ],
               "width_m": 17.46,
               "height_m": 1.8624
+            },
+            "sign_marquee": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                288,
+                172,
+                28
+              ],
+              "bottom_left_gltf_m": [
+                -12.3368,
+                1.57,
+                5.358
+              ],
+              "width_m": 6.6736,
+              "height_m": 1.0864
+            },
+            "sign_bulletin": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                380,
+                76,
+                36
+              ],
+              "bottom_left_gltf_m": [
+                -0.8244000000000001,
+                1.21,
+                -21.137
+              ],
+              "width_m": 2.9488000000000003,
+              "height_m": 1.3968
             },
             "sign_gym": {
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -4402,7 +5112,7 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -4422,7 +5132,7 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -4440,6 +5150,7 @@
             }
           },
           "materials": [
+            "detail_chain_link",
             "detail_light_trim",
             "detail_painted_timber",
             "floor_school",
@@ -4449,14 +5160,13 @@
             "roof_finish",
             "sign_paint",
             "trim_and_slate",
-            "wall_brick",
-            "wall_clapboard"
+            "wall_brick"
           ]
         },
         {
           "file": "westmeadow-1990-far.glb",
           "lod": "far",
-          "triangles_visible": 2976,
+          "triangles_visible": 3056,
           "door_nodes_gltf_m": {
             "door_main": [
               0,
@@ -4614,6 +5324,66 @@
               ],
               "group": "building",
               "attachment": ""
+            },
+            {
+              "name": "Canopy support column",
+              "center_gltf_m": [
+                -7.77,
+                1.6685,
+                2.8600000000000003
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                3.283,
+                0.26000000000000023
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Canopy support column",
+              "center_gltf_m": [
+                7.77,
+                1.6685,
+                2.8600000000000003
+              ],
+              "size_gltf_m": [
+                0.2400000000000002,
+                3.283,
+                0.26000000000000023
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Marquee support post",
+              "center_gltf_m": [
+                -10.52,
+                1.1385,
+                5.22
+              ],
+              "size_gltf_m": [
+                0.14000000000000057,
+                2.223,
+                0.16000000000000014
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Marquee support post",
+              "center_gltf_m": [
+                -7.46,
+                1.1385,
+                5.22
+              ],
+              "size_gltf_m": [
+                0.14000000000000057,
+                2.223,
+                0.16000000000000014
+              ],
+              "group": "lot",
+              "attachment": "lot"
             },
             {
               "name": "Secure inner control line",
@@ -4811,6 +5581,171 @@
               "attachment": ""
             },
             {
+              "name": "Hall rear wall",
+              "center_gltf_m": [
+                -16.55,
+                1.7,
+                -21.235
+              ],
+              "size_gltf_m": [
+                12.100000000000001,
+                3.14,
+                0.1700000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall rear wall",
+              "center_gltf_m": [
+                0.4500000000000002,
+                1.7,
+                -21.235
+              ],
+              "size_gltf_m": [
+                16.700000000000003,
+                3.14,
+                0.1700000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall rear wall",
+              "center_gltf_m": [
+                14.2,
+                1.7,
+                -21.235
+              ],
+              "size_gltf_m": [
+                6.399999999999999,
+                3.14,
+                0.1700000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall built-in locker bank",
+              "center_gltf_m": [
+                -18.61,
+                1.16,
+                -15.46
+              ],
+              "size_gltf_m": [
+                4.960000000000001,
+                2.06,
+                0.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall built-in locker bank",
+              "center_gltf_m": [
+                -8.35,
+                1.16,
+                -15.46
+              ],
+              "size_gltf_m": [
+                4.96,
+                2.06,
+                0.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall built-in locker bank",
+              "center_gltf_m": [
+                -15.52,
+                1.16,
+                -21.03
+              ],
+              "size_gltf_m": [
+                4.960000000000001,
+                2.06,
+                0.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Hall built-in locker bank",
+              "center_gltf_m": [
+                -4.42,
+                1.16,
+                -21.03
+              ],
+              "size_gltf_m": [
+                4.960000000000001,
+                2.06,
+                0.1999999999999993
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed classroom door leaf",
+              "center_gltf_m": [
+                -22.810000000000002,
+                1.325,
+                -15.145
+              ],
+              "size_gltf_m": [
+                0.620000000000001,
+                2.39,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed classroom door leaf",
+              "center_gltf_m": [
+                -12.690000000000001,
+                1.325,
+                -15.145
+              ],
+              "size_gltf_m": [
+                0.6199999999999992,
+                2.39,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed classroom door leaf",
+              "center_gltf_m": [
+                11.0,
+                1.325,
+                -15.145
+              ],
+              "size_gltf_m": [
+                0.6199999999999992,
+                2.39,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed classroom door leaf",
+              "center_gltf_m": [
+                20.9,
+                1.325,
+                -15.145
+              ],
+              "size_gltf_m": [
+                0.620000000000001,
+                2.39,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
               "name": "Gym west side",
               "center_gltf_m": [
                 12.120000000000001,
@@ -4976,6 +5911,96 @@
               "attachment": "lot"
             },
             {
+              "name": "Molded play tower",
+              "center_gltf_m": [
+                48.685,
+                2.051,
+                -24.14
+              ],
+              "size_gltf_m": [
+                6.329999999999998,
+                3.978,
+                3.6400000000000006
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Chain-link perimeter",
+              "center_gltf_m": [
+                34.55,
+                0.8135,
+                -11.31
+              ],
+              "size_gltf_m": [
+                7.039999999999999,
+                1.5730000000000002,
+                0.14000000000000057
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Chain-link perimeter",
+              "center_gltf_m": [
+                46.6,
+                0.8135,
+                -11.31
+              ],
+              "size_gltf_m": [
+                10.939999999999998,
+                1.5730000000000002,
+                0.14000000000000057
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Chain-link perimeter",
+              "center_gltf_m": [
+                52.0,
+                0.8135,
+                -26.865000000000002
+              ],
+              "size_gltf_m": [
+                0.14000000000000057,
+                1.5730000000000002,
+                31.25
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Chain-link perimeter",
+              "center_gltf_m": [
+                41.55,
+                0.8135,
+                -42.42
+              ],
+              "size_gltf_m": [
+                21.04,
+                1.5730000000000002,
+                0.14000000000000057
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Chain-link perimeter",
+              "center_gltf_m": [
+                31.1,
+                0.8135,
+                -26.865000000000002
+              ],
+              "size_gltf_m": [
+                0.14000000000000057,
+                1.5730000000000002,
+                31.25
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
               "name": "Portable front",
               "center_gltf_m": [
                 -22.405,
@@ -5131,27 +6156,67 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
-                30,
+                234,
                 450,
                 48
               ],
               "bottom_left_gltf_m": [
                 -8.73,
-                3.34,
-                0.074
+                4.33,
+                0.276
               ],
               "width_m": 17.46,
               "height_m": 1.8624
+            },
+            "sign_marquee": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                288,
+                172,
+                28
+              ],
+              "bottom_left_gltf_m": [
+                -12.3368,
+                1.57,
+                5.358
+              ],
+              "width_m": 6.6736,
+              "height_m": 1.0864
+            },
+            "sign_bulletin": {
+              "texture": "signs.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                380,
+                76,
+                36
+              ],
+              "bottom_left_gltf_m": [
+                -0.8244000000000001,
+                1.21,
+                -21.137
+              ],
+              "width_m": 2.9488000000000003,
+              "height_m": 1.3968
             },
             "sign_gym": {
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -5171,7 +6236,7 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -5191,7 +6256,7 @@
               "texture": "signs.png",
               "atlas_size_texels": [
                 512,
-                256
+                512
               ],
               "rect_texels": [
                 0,
@@ -5209,6 +6274,7 @@
             }
           },
           "materials": [
+            "detail_chain_link",
             "detail_light_trim",
             "detail_painted_timber",
             "floor_school",
@@ -5218,8 +6284,7 @@
             "roof_finish",
             "sign_paint",
             "trim_and_slate",
-            "wall_brick",
-            "wall_clapboard"
+            "wall_brick"
           ]
         }
       ]

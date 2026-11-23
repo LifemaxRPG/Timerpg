@@ -22,65 +22,65 @@
   },
   {
     "file": "mill-branch-abandoned.glb",
-    "triangles": 1692,
+    "triangles": 1690,
     "materials": 12,
     "boxes": 10,
     "max_uv_error_m": 2.9296874970441422e-06
   },
   {
     "file": "mill-branch-abandoned-mid.glb",
-    "triangles": 1424,
+    "triangles": 1542,
     "materials": 12,
     "boxes": 10,
     "max_uv_error_m": 2.9296874970441422e-06
   },
   {
     "file": "mill-branch-abandoned-far.glb",
-    "triangles": 1128,
+    "triangles": 1288,
     "materials": 12,
     "boxes": 10,
     "max_uv_error_m": 2.9296874970441422e-06
   },
   {
     "file": "westmeadow-1955.glb",
-    "triangles": 3066,
+    "triangles": 2472,
     "materials": 12,
     "boxes": 30,
     "max_uv_error_m": 3.677368162868788e-06
   },
   {
     "file": "westmeadow-1955-mid.glb",
-    "triangles": 2780,
+    "triangles": 2304,
     "materials": 12,
     "boxes": 30,
     "max_uv_error_m": 3.677368162868788e-06
   },
   {
     "file": "westmeadow-1955-far.glb",
-    "triangles": 2356,
+    "triangles": 2024,
     "materials": 12,
     "boxes": 30,
     "max_uv_error_m": 3.677368162868788e-06
   },
   {
     "file": "westmeadow-1990.glb",
-    "triangles": 3878,
+    "triangles": 3752,
     "materials": 12,
-    "boxes": 43,
-    "max_uv_error_m": 3.677368162868788e-06
+    "boxes": 64,
+    "max_uv_error_m": 6.595097863382193e-06
   },
   {
     "file": "westmeadow-1990-mid.glb",
-    "triangles": 3544,
+    "triangles": 3548,
     "materials": 12,
-    "boxes": 43,
-    "max_uv_error_m": 3.677368162868788e-06
+    "boxes": 64,
+    "max_uv_error_m": 6.595097863382193e-06
   },
   {
     "file": "westmeadow-1990-far.glb",
-    "triangles": 2976,
+    "triangles": 3056,
     "materials": 12,
-    "boxes": 43,
-    "max_uv_error_m": 3.677368162868788e-06
+    "boxes": 64,
+    "max_uv_error_m": 6.595097863382193e-06
   }
 ]

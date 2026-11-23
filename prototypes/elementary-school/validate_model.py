@@ -55,13 +55,17 @@ for state in meta["states"]:
         assert not mask[:,:2].any() and not mask[:,-2:].any()
         assert all(m["name"]=="glass_school" for m in doc["materials"] if "emissiveTexture" in m)
         assert "sign_name" in names
+        assert ("belfry_bell" in names) == (rural and not closed)
+        assert ("sign_marquee" in names) == modern and ("sign_bulletin" in names) == modern
+        assert ("detail_chain_link" in {m["name"] for m in doc["materials"]}) == modern
+        assert asset["triangles_visible"] <= 3878
         assert ("sign_gym" in names)==(not rural)
         assert ("sign_portable_a" in names)==modern and ("sign_portable_b" in names)==modern
         assert set(asset["sign_panels"]).issubset(names)
         for index, node_id in enumerate(doc["nodes"][names["collision"]]["children"]):
             node = doc["nodes"][node_id]
             assert node["name"] == f"collider_{index:02d}" and node["extras"]["collision_only"]
-        assert len(asset["collision_boxes_gltf_m"]) == len(doc["nodes"][names["collision"]]["children"]) <= 48
+        assert len(asset["collision_boxes_gltf_m"]) == len(doc["nodes"][names["collision"]]["children"]) <= 65
 
         for name, position in all_doors.items():
             transform = world[names[name]]

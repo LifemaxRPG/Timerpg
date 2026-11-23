@@ -18,7 +18,7 @@ for ob in bpy.data.objects:
 
 scene=bpy.context.scene
 scene.render.engine="CYCLES"
-scene.cycles.samples=9
+scene.cycles.samples=8
 scene.cycles.use_denoising=False
 scene.cycles.max_bounces=3
 scene.render.resolution_x=790
@@ -57,6 +57,11 @@ entry=lamp("Preview porch wash","AREA",(2.1,-3.1,4.48),(0,0,1.75),3.0)
 entry.color=(1,.76,.44)
 vestibule=lamp("Preview vestibule ceiling wash","AREA",(0,1.65,3.52),(.2,2.6,.9),2.6)
 vestibule.color=(.89,.94,1)
+hall=[]
+for x in (-15.5,-7.5,1.8,11.5):
+    light=lamp("Preview corridor ceiling bounce","AREA",(x,18.2,3.11),(x+.9,18.4,1.03),2.1)
+    light.color=(.91,.95,1)
+    hall.append(light)
 
 bpy.ops.mesh.primitive_plane_add(size=360,location=(0,7,-.02))
 base=bpy.context.object
@@ -84,9 +89,9 @@ else:
         "night":((46,-79,59),(8.3,8.2,2.55),98),
         "rear":((-65,83,55),(9,14,2.5),102),
         "above":((10.5,10,125),(10.5,10,0),103),
-        "eye":((10,-14,1.71),(0,1.0,3.23),0),
-        "yard":((48,9.45,1.76),(40,23.7,1.83),0),
-        "interior":(((1.20,.67,1.71),(-.32,4.38,1.72),0) if modern else ((15.0,27.0,1.72),(20.9,38.7,2.53),0)),
+        "eye":(((6.8,-20.8,1.71),(-1.9,.05,3.13),0) if modern else ((10,-14,1.71),(0,1.0,3.23),0)),
+        "yard":((48,13.31,1.76),(43,23.6,2.05),0) if modern else ((48,9.45,1.76),(40,23.7,1.83),0),
+        "interior":(((-13.05,18.72,1.72),(1.1,19.46,1.64),0) if modern else ((15.0,27.0,1.72),(20.9,38.7,2.53),0)),
     }
 only=os.environ.get("SCHOOL_VIEWS","").split(",")
 (ROOT/"renders").mkdir(exist_ok=True)
@@ -94,6 +99,7 @@ for label,(at,target,width) in views.items():
     if only!=[""] and label not in only:
         continue
     night=label=="night"
+    scene.cycles.samples=26 if modern and label=="interior" else 8
     sun.energy=.24 if night else 2.60
     sun.color=(.56,.72,1) if night else (1,.93,.78)
     sky.inputs[0].default_value=(.22,.39,.67,1) if night else (.73,.82,.95,1)
@@ -102,7 +108,9 @@ for label,(at,target,width) in views.items():
     back.inputs[1].default_value=.85
     fill.energy=(310 if rural else 910) if label=="interior" else 0
     entry.energy=460 if night and not closed else 0
-    vestibule.energy=345 if modern and label=="interior" else 0
+    vestibule.energy=140 if modern and label=="interior" else 0
+    for light in hall:
+        light.energy=470 if modern and label=="interior" else 0
     panes=bpy.data.materials["glass_school"]
     panes.node_tree.nodes.get("Principled BSDF").inputs["Emission Strength"].default_value=.95 if night else .04
     camera.location=at
