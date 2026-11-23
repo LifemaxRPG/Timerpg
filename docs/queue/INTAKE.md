@@ -24,13 +24,11 @@ them in the capital city. It runs after the town plan merges (`wf-town-plan`), b
 
 ## New from the queue (waiting for the next intake)
 
-C001-C006 are in (see "Done" below), except the C006 truck stop, catalogued but not placed (it needs a roadside plot outside the plan). Waiting:
+C001-C006, C009 and C010 are in (see "Done" below), except the C006 truck stop, catalogued but not placed (it needs a roadside plot outside the plan). Waiting:
 
 | ID | Branch | What | Where in the capital |
 |---|---|---|---|
 | C007 | codex/C007-mini-golf | Thimble Trails Mini Golf, 3 eras, winding course with creek, pipe hole, golf-ball finale; statue pad for the Rex | roadside on the edge of town with the Beach Blvd Rex on its pad (needs a roadside plot like C006) |
-| C009 | codex/C009-police-station | Briarford Police Station & Town Jail, 3 eras (1900 brick station + jail, 1940 dispatch/booking/garage, 1980 glass entry + sally port); cell doors, bunks, window bars as nodes | civic district of the capital, near the courthouse |
-| C010 | codex/C010-pawn-shop | Latch & Lyre pawn shop, 3 eras (brass balls and LOANS, neon PAWN and bars, LED WE BUY GOLD); counter anchors, safe, display zones | a side street off Main Street |
 
 Coastal and port set: these wait for the coastal hub and the ocean, so they aren't placed in the capital yet:
 - codex/copperwake (the ships);
@@ -48,6 +46,17 @@ Coastal and port set: these wait for the coastal hub and the ocean, so they aren
 
 Every table row except the courthouse (imported by the town plan) is in the game and placed in the capital: kotlin-street/docs/LANDMARKS_GLB.md "The intake models",
 kotlin-street/docs/TOWN_PLAN.md "The intake models in the capital". The coastal and port set still waits.
+
+## Done: the fifth intake (2026-11-23, branch ccr-52e43ebb-xnmj2e)
+
+C009 and C010 are in the game and placed in the capital (kotlin-street/docs/LANDMARKS_GLB.md "The fifth intake", kotlin-street/docs/TOWN_PLAN.md "The fifth intake in the capital"). Files copied with
+`git show origin/codex/<branch>:prototypes/<name>/...`, no merges. Both belong to the first playable loop (kotlin-street/docs/LOOP.md): reachable on foot from Main Street and the general store, their doors on a street.
+Their named nodes (cell doors, bunks, window bars, front desk, booking and fingerprint spots; counter anchors, safe, display zones) are kept in each state's flat `model-info-<kind>.json` under `named`.
+
+| ID | Branch | Where it went in the capital |
+|---|---|---|
+| C009 | codex/C009-police-station | `glb:police_station`: the civic district, where the sprite police station stood (it replaces it, as the post office and fire station replaced theirs): the civic block's south face behind the plaza, beside the post office, 22 x 15 tiles; brick station and jail 1900, dispatch / booking / garage 1940, glass entry and sally port 1980 |
+| C010 | codex/C010-pawn-shop | `glb:pawn_shop`: a street-wall shop on the cross street just east of the general store (a side street off Main Street, seven tiles from it), 10 x 9 tiles, door on the cross street; brass balls and LOANS 1920, neon and bars 1960, LED WE BUY GOLD 2000 |
 
 ## Done: the third intake (2026-11-23, branch worktree-agent-a25e28c96190038b4)
 

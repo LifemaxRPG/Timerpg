@@ -1,0 +1,656 @@
+{
+ "name": "Latch & Lyre",
+ "state": "landmark_glb_pawn_shop_1920",
+ "file": "latch-and-lyre-1920.glb",
+ "doors": [
+  {
+   "node": "door_main",
+   "position": [
+    0,
+    0,
+    -0.44
+   ],
+   "external": true
+  },
+  {
+   "node": "door_back",
+   "position": [
+    2.24,
+    0,
+    -14.16
+   ],
+   "external": true
+  },
+  {
+   "node": "door_store",
+   "position": [
+    2.24,
+    0,
+    -9.01
+   ],
+   "external": false
+  }
+ ],
+ "collision": {
+  "coordinate_note": "glTF Y-up metres, from the contributor info (near model)",
+  "boxes_gltf_y_up": [
+   {
+    "source": "West party wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -3.765,
+     2.085,
+     -6.885
+    ],
+    "size": [
+     0.27,
+     4.17,
+     13.77
+    ]
+   },
+   {
+    "source": "East party wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     3.765,
+     2.085,
+     -6.885
+    ],
+    "size": [
+     0.27,
+     4.17,
+     13.77
+    ]
+   },
+   {
+    "source": "Rear brick wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -1.135,
+     2.107,
+     -13.885
+    ],
+    "size": [
+     5.53,
+     4.126,
+     0.23
+    ]
+   },
+   {
+    "source": "Rear brick wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     3.37,
+     2.085,
+     -13.885
+    ],
+    "size": [
+     1.06,
+     4.17,
+     0.23
+    ]
+   },
+   {
+    "source": "Full brick shopfront pier",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -3.595,
+     2.09,
+     -0.14
+    ],
+    "size": [
+     0.59,
+     4.18,
+     0.28
+    ]
+   },
+   {
+    "source": "Full brick shopfront pier",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     3.595,
+     2.09,
+     -0.14
+    ],
+    "size": [
+     0.59,
+     4.18,
+     0.28
+    ]
+   },
+   {
+    "source": "Fixed display bulkhead",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -2.06,
+     0.315,
+     -0.13
+    ],
+    "size": [
+     2.48,
+     0.63,
+     0.19
+    ]
+   },
+   {
+    "source": "Display glazing",
+    "group": "structure",
+    "attachment": "display_window_west",
+    "center": [
+     -2.06,
+     1.89,
+     -0.143
+    ],
+    "size": [
+     2.48,
+     2.52,
+     0.158
+    ]
+   },
+   {
+    "source": "Fixed display plinth",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -2.06,
+     0.252,
+     -0.695
+    ],
+    "size": [
+     2.1,
+     0.416,
+     0.75
+    ]
+   },
+   {
+    "source": "Fixed display bulkhead",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     2.06,
+     0.315,
+     -0.13
+    ],
+    "size": [
+     2.48,
+     0.63,
+     0.19
+    ]
+   },
+   {
+    "source": "Display glazing",
+    "group": "structure",
+    "attachment": "display_window_east",
+    "center": [
+     2.06,
+     1.89,
+     -0.143
+    ],
+    "size": [
+     2.48,
+     2.52,
+     0.158
+    ]
+   },
+   {
+    "source": "Fixed display plinth",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     2.06,
+     0.252,
+     -0.695
+    ],
+    "size": [
+     2.1,
+     0.416,
+     0.75
+    ]
+   },
+   {
+    "source": "Recess return",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -0.82,
+     1.612,
+     -0.41
+    ],
+    "size": [
+     0.098,
+     3.136,
+     0.54
+    ]
+   },
+   {
+    "source": "Recess return",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.82,
+     1.612,
+     -0.41
+    ],
+    "size": [
+     0.098,
+     3.136,
+     0.54
+    ]
+   },
+   {
+    "source": "Recessed doorway head",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -0.785,
+     1.682,
+     -0.715
+    ],
+    "size": [
+     0.07,
+     3.276,
+     0.15
+    ]
+   },
+   {
+    "source": "Recessed doorway head",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.785,
+     1.66,
+     -0.715
+    ],
+    "size": [
+     0.07,
+     3.32,
+     0.15
+    ]
+   },
+   {
+    "source": "Alley bin",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     -2.58,
+     0.443,
+     -14.59
+    ],
+    "size": [
+     0.54,
+     0.834,
+     0.64
+    ]
+   },
+   {
+    "source": "Alley bin",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     -1.8,
+     0.443,
+     -14.59
+    ],
+    "size": [
+     0.54,
+     0.834,
+     0.64
+    ]
+   },
+   {
+    "source": "Clerk counter",
+    "group": "structure",
+    "attachment": "counter",
+    "center": [
+     -0.43,
+     0.639,
+     -7.8085
+    ],
+    "size": [
+     3.78,
+     1.19,
+     0.803
+    ]
+   },
+   {
+    "source": "Clerk office partition",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -3.095,
+     2.012,
+     -9.26
+    ],
+    "size": [
+     1.07,
+     3.936,
+     0.16
+    ]
+   },
+   {
+    "source": "Clerk office partition",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.085,
+     2.012,
+     -9.26
+    ],
+    "size": [
+     3.09,
+     3.936,
+     0.16
+    ]
+   },
+   {
+    "source": "Clerk office partition",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     3.235,
+     1.99,
+     -9.26
+    ],
+    "size": [
+     0.79,
+     3.98,
+     0.16
+    ]
+   },
+   {
+    "source": "Office and stock divider",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.17,
+     1.99,
+     -11.555
+    ],
+    "size": [
+     0.14,
+     3.98,
+     4.43
+    ]
+   },
+   {
+    "source": "Safe",
+    "group": "structure",
+    "attachment": "safe",
+    "center": [
+     -2.65,
+     0.704,
+     -12.884
+    ],
+    "size": [
+     1.06,
+     1.32,
+     0.772
+    ]
+   },
+   {
+    "source": "display_west",
+    "group": "structure",
+    "attachment": "display_west",
+    "center": [
+     -3.363,
+     1.059,
+     -3.2
+    ],
+    "size": [
+     0.496,
+     2.03,
+     3.942
+    ]
+   },
+   {
+    "source": "display_east",
+    "group": "structure",
+    "attachment": "display_east",
+    "center": [
+     3.337,
+     1.059,
+     -4.48
+    ],
+    "size": [
+     0.496,
+     2.03,
+     3.862
+    ]
+   },
+   {
+    "source": "display_stockroom",
+    "group": "structure",
+    "attachment": "display_stockroom",
+    "center": [
+     3.297,
+     1.059,
+     -11.8
+    ],
+    "size": [
+     0.496,
+     2.03,
+     2.972
+    ]
+   },
+   {
+    "source": "Jewellery cabinet",
+    "group": "structure",
+    "attachment": "display_jewellery",
+    "center": [
+     1.49,
+     0.5985,
+     -3.71
+    ],
+    "size": [
+     0.98,
+     1.109,
+     2.2
+    ]
+   },
+   {
+    "source": "Central display",
+    "group": "structure",
+    "attachment": "display_feature",
+    "center": [
+     -1.46,
+     0.474,
+     -3.44
+    ],
+    "size": [
+     1.04,
+     0.86,
+     1.58
+    ]
+   }
+  ]
+ },
+ "lot_node": null,
+ "named": {
+  "anchors": {
+   "counter_clerk": [
+    0,
+    0.044,
+    -8.52
+   ],
+   "counter_customer": [
+    0,
+    0.044,
+    -6.88
+   ]
+  },
+  "features": {
+   "display_window_west": {
+    "node": "display_window_west",
+    "position_gltf_m": [
+     0,
+     0,
+     0
+    ]
+   },
+   "display_window_east": {
+    "node": "display_window_east",
+    "position_gltf_m": [
+     0,
+     0,
+     0
+    ]
+   },
+   "safe": {
+    "node": "safe",
+    "position_gltf_m": [
+     -2.65,
+     0.044,
+     -12.9
+    ]
+   },
+   "display_west": {
+    "node": "display_west",
+    "position_gltf_m": [
+     -3.36,
+     0.044,
+     -3.2
+    ],
+    "stock_surfaces_gltf_m": [
+     [
+      -3.36,
+      0.276,
+      -3.2
+     ],
+     [
+      -3.36,
+      0.816,
+      -3.2
+     ],
+     [
+      -3.36,
+      1.346,
+      -3.2
+     ],
+     [
+      -3.36,
+      1.876,
+      -3.2
+     ]
+    ]
+   },
+   "display_east": {
+    "node": "display_east",
+    "position_gltf_m": [
+     3.34,
+     0.044,
+     -4.48
+    ],
+    "stock_surfaces_gltf_m": [
+     [
+      3.34,
+      0.276,
+      -4.48
+     ],
+     [
+      3.34,
+      0.816,
+      -4.48
+     ],
+     [
+      3.34,
+      1.346,
+      -4.48
+     ],
+     [
+      3.34,
+      1.876,
+      -4.48
+     ]
+    ]
+   },
+   "display_stockroom": {
+    "node": "display_stockroom",
+    "position_gltf_m": [
+     3.3,
+     0.044,
+     -11.8
+    ],
+    "stock_surfaces_gltf_m": [
+     [
+      3.3,
+      0.276,
+      -11.8
+     ],
+     [
+      3.3,
+      0.816,
+      -11.8
+     ],
+     [
+      3.3,
+      1.346,
+      -11.8
+     ],
+     [
+      3.3,
+      1.876,
+      -11.8
+     ]
+    ]
+   },
+   "display_jewellery": {
+    "node": "display_jewellery",
+    "position_gltf_m": [
+     1.49,
+     0.044,
+     -3.71
+    ],
+    "stock_surfaces_gltf_m": [
+     [
+      1.49,
+      0.714,
+      -3.71
+     ]
+    ]
+   },
+   "display_feature": {
+    "node": "display_feature",
+    "position_gltf_m": [
+     -1.46,
+     0.044,
+     -3.44
+    ],
+    "stock_surfaces_gltf_m": [
+     [
+      -1.46,
+      0.904,
+      -3.44
+     ]
+    ]
+   }
+  },
+  "signs": [
+   {
+    "id": "sign_name",
+    "node": "sign_name",
+    "texture": "signs.png",
+    "rect": [
+     0,
+     0,
+     160,
+     28
+    ],
+    "lines": 1,
+    "maxChars": 12,
+    "face": "small-town-block",
+    "glow": false,
+    "ink": "#efd8a1",
+    "paper": "#2d514d"
+   }
+  ]
+ },
+ "triangles_visible": 3530,
+ "source": "codex/pawn-shop model-info.json, flattened per state by tools/landmarks/intake.py"
+}

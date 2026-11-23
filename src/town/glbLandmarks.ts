@@ -85,7 +85,13 @@ export type GlbLandmarkKind =
   | 'landmark_glb_salon_1980'
   | 'landmark_glb_salon_2010'
   | 'landmark_glb_truck_stop_1960'
-  | 'landmark_glb_truck_stop_1990';
+  | 'landmark_glb_truck_stop_1990'
+  | 'landmark_glb_police_station_1900'
+  | 'landmark_glb_police_station_1940'
+  | 'landmark_glb_police_station_1980'
+  | 'landmark_glb_pawn_shop_1920'
+  | 'landmark_glb_pawn_shop_1960'
+  | 'landmark_glb_pawn_shop_2000';
 
 export interface GlbLandmarkSpec {
   name: string;
@@ -93,7 +99,8 @@ export interface GlbLandmarkSpec {
   role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot' | 'laundromat' | 'factory' | 'funeral_home' | 'video_store' | 'phone_repair' | 'courthouse' | 'radio_station'
     | 'library' | 'drugstore' | 'bank' | 'church' | 'school' | 'carhop' | 'fire_station' | 'post_office' | 'rest_area' | 'lodge' | 'monument' | 'roadside_attraction'
     | 'five_and_dime' | 'grain_elevator' | 'ballpark'
-    | 'elementary_school' | 'barber' | 'salon' | 'truck_stop';
+    | 'elementary_school' | 'barber' | 'salon' | 'truck_stop'
+    | 'police_station' | 'pawn_shop';
   /** The design's years: built from..to (it may stand long after, as the simulation decides), and its sample year. */
   era: { from: number; to: number; built: number };
   /** The lot, metres: width along the street, depth back from it; the building's walls. */
@@ -221,6 +228,14 @@ export const GLB_LANDMARKS: Record<GlbLandmarkKind, GlbLandmarkSpec> = {
   landmark_glb_salon_2010: { name: "Lilac Nail Room", role: 'salon', era: { from: 2010, to: 2040, built: 2012 }, lot: [6.04, 22.1], building: [6, 18], plot: [6.06, 22.1] },
   landmark_glb_truck_stop_1960: { name: "Cedar Relay", role: 'truck_stop', era: { from: 1960, to: 1989, built: 1962 }, lot: [127.0, 144.0], building: [127, 144], plot: [127.0, 144.0] },
   landmark_glb_truck_stop_1990: { name: "Relay Travel Center", role: 'truck_stop', era: { from: 1990, to: 2040, built: 1992 }, lot: [127.0, 144.0], building: [127, 144], plot: [127.0, 144.0] },
+  // ---- the fifth intake (C009, C010, 2026-11-23): Briarford Police Station & Town Jail (1900 brick station and jail, 1940 dispatch / booking / garage, 1980 glass entry and sally port; the lot
+  // holds the station and its yard) and the Latch & Lyre pawn shop (1920 brass balls and LOANS, 1960 neon and bars, 2000 LED WE BUY GOLD), a 7.8 x 14 m street-wall shop with its pavement
+  landmark_glb_police_station_1900: { name: "Briarford Police Station", role: 'police_station', era: { from: 1900, to: 1939, built: 1905 }, lot: [26.7, 30.0], building: [14.9, 19.03], plot: [26.7, 30.0] },
+  landmark_glb_police_station_1940: { name: "Briarford Police Station", role: 'police_station', era: { from: 1940, to: 1979, built: 1945 }, lot: [26.7, 30.0], building: [20.73, 19.03], plot: [26.7, 30.0] },
+  landmark_glb_police_station_1980: { name: "Briarford Police Station", role: 'police_station', era: { from: 1980, to: 2040, built: 1985 }, lot: [26.7, 30.0], building: [20.73, 21.52], plot: [26.7, 30.0] },
+  landmark_glb_pawn_shop_1920: { name: "Latch & Lyre", role: 'pawn_shop', era: { from: 1920, to: 1959, built: 1925 }, lot: [10.5, 19.55], building: [7.8, 14.0], plot: [10.5, 19.55] },
+  landmark_glb_pawn_shop_1960: { name: "Latch & Lyre", role: 'pawn_shop', era: { from: 1960, to: 1999, built: 1965 }, lot: [10.5, 19.55], building: [7.8, 14.0], plot: [10.5, 19.55] },
+  landmark_glb_pawn_shop_2000: { name: "Latch & Lyre", role: 'pawn_shop', era: { from: 2000, to: 2040, built: 2005 }, lot: [10.5, 19.55], building: [7.8, 14.0], plot: [10.5, 19.55] },
   landmark_glb_reel_time_video_2020: { name: 'Cell Fix', role: 'phone_repair', era: { from: 2009, to: 2015, built: 2013 }, lot: [36.01, 28.56], building: [32.28, 11.17] },
 };
 export const GLB_LANDMARK_KINDS = Object.keys(GLB_LANDMARKS) as GlbLandmarkKind[];

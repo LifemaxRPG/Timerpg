@@ -1,0 +1,1075 @@
+{
+ "name": "Briarford Police Station",
+ "state": "landmark_glb_police_station_1940",
+ "file": "briarford-1940.glb",
+ "doors": [
+  {
+   "node": "door_main",
+   "position": [
+    0,
+    0,
+    0.19
+   ],
+   "external": true
+  },
+  {
+   "node": "door_back",
+   "position": [
+    0,
+    0.045,
+    -19.16
+   ],
+   "external": true
+  },
+  {
+   "node": "door_staff",
+   "position": [
+    7.61,
+    0.045,
+    -8.78
+   ],
+   "external": true
+  },
+  {
+   "node": "door_jail",
+   "position": [
+    0,
+    0.045,
+    -9.56
+   ],
+   "external": false
+  },
+  {
+   "node": "door_garage",
+   "position": [
+    10.43,
+    0.045,
+    -19.34
+   ],
+   "external": true
+  }
+ ],
+ "collision": {
+  "coordinate_note": "glTF Y-up metres, from the contributor info (near model)",
+  "boxes_gltf_y_up": [
+   {
+    "source": "Public facade",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -4.285,
+     1.83,
+     -0.155
+    ],
+    "size": [
+     6.33,
+     3.66,
+     0.31
+    ]
+   },
+   {
+    "source": "Public facade",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     4.285,
+     1.83,
+     -0.155
+    ],
+    "size": [
+     6.33,
+     3.66,
+     0.31
+    ]
+   },
+   {
+    "source": "Station flank 0",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -7.3,
+     1.83,
+     -5.015
+    ],
+    "size": [
+     0.3,
+     3.66,
+     9.41
+    ]
+   },
+   {
+    "source": "Station flank 1",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     7.3,
+     1.83,
+     -4.245
+    ],
+    "size": [
+     0.3,
+     3.66,
+     7.87
+    ]
+   },
+   {
+    "source": "Station flank 1",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     7.3,
+     1.83,
+     -9.55
+    ],
+    "size": [
+     0.3,
+     3.66,
+     0.34
+    ]
+   },
+   {
+    "source": "Return behind office",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -4.275,
+     1.83,
+     -9.86
+    ],
+    "size": [
+     6.35,
+     3.66,
+     0.28
+    ]
+   },
+   {
+    "source": "Return behind office",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     4.275,
+     1.83,
+     -9.86
+    ],
+    "size": [
+     6.35,
+     3.66,
+     0.28
+    ]
+   },
+   {
+    "source": "Lobby dividing wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -2.17,
+     1.8025,
+     -3.635
+    ],
+    "size": [
+     0.17,
+     3.515,
+     1.19
+    ]
+   },
+   {
+    "source": "Lobby dividing wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -2.17,
+     1.8025,
+     -6.385
+    ],
+    "size": [
+     0.17,
+     3.515,
+     2.03
+    ]
+   },
+   {
+    "source": "Lobby dividing wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -2.17,
+     1.8025,
+     -9.15
+    ],
+    "size": [
+     0.17,
+     3.515,
+     1.14
+    ]
+   },
+   {
+    "source": "Lobby dividing wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     2.17,
+     1.8025,
+     -3.635
+    ],
+    "size": [
+     0.17,
+     3.515,
+     1.19
+    ]
+   },
+   {
+    "source": "Lobby dividing wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     2.17,
+     1.8025,
+     -6.385
+    ],
+    "size": [
+     0.17,
+     3.515,
+     2.03
+    ]
+   },
+   {
+    "source": "Lobby dividing wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     2.17,
+     1.8025,
+     -9.15
+    ],
+    "size": [
+     0.17,
+     3.515,
+     1.14
+    ]
+   },
+   {
+    "source": "Chief room division",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -4.7025,
+     1.8025,
+     -6.38
+    ],
+    "size": [
+     4.895,
+     3.515,
+     0.16
+    ]
+   },
+   {
+    "source": "East room division",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     4.7025,
+     1.8025,
+     -6.38
+    ],
+    "size": [
+     4.895,
+     3.515,
+     0.16
+    ]
+   },
+   {
+    "source": "Sergeant counter",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -0.03,
+     0.6425,
+     -4.145
+    ],
+    "size": [
+     3.86,
+     1.195,
+     0.99
+    ]
+   },
+   {
+    "source": "Chief fixed writing shelf",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -5.805,
+     0.4175,
+     -5.925
+    ],
+    "size": [
+     2.67,
+     0.745,
+     0.69
+    ]
+   },
+   {
+    "source": "Fingerprint counter",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     6.37,
+     0.5375,
+     -7.09
+    ],
+    "size": [
+     1.5,
+     0.985,
+     0.78
+    ]
+   },
+   {
+    "source": "Booking camera stand",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     4.55,
+     0.7425,
+     -7.575
+    ],
+    "size": [
+     0.6,
+     1.395,
+     0.59
+    ]
+   },
+   {
+    "source": "Interview table",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     4.7,
+     0.4275,
+     -3.84
+    ],
+    "size": [
+     1.3,
+     0.765,
+     0.76
+    ]
+   },
+   {
+    "source": "Jail flank",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -5.465,
+     1.8,
+     -14.39
+    ],
+    "size": [
+     0.27,
+     3.6,
+     8.78
+    ]
+   },
+   {
+    "source": "Jail flank",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     5.465,
+     1.8,
+     -14.39
+    ],
+    "size": [
+     0.27,
+     3.6,
+     8.78
+    ]
+   },
+   {
+    "source": "Jail rear wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -3.11,
+     1.8,
+     -18.905
+    ],
+    "size": [
+     4.98,
+     3.6,
+     0.25
+    ]
+   },
+   {
+    "source": "Jail rear wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     3.11,
+     1.8,
+     -18.905
+    ],
+    "size": [
+     4.98,
+     3.6,
+     0.25
+    ]
+   },
+   {
+    "source": "Cell masonry partition",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -2.765,
+     1.7325,
+     -16.065
+    ],
+    "size": [
+     0.15,
+     3.375,
+     5.43
+    ]
+   },
+   {
+    "source": "Fixed cell bars",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -4.965,
+     1.3275,
+     -13.425
+    ],
+    "size": [
+     0.73,
+     2.565,
+     0.17
+    ]
+   },
+   {
+    "source": "Fixed cell bars",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -3.205,
+     1.3275,
+     -13.425
+    ],
+    "size": [
+     0.73,
+     2.565,
+     0.17
+    ]
+   },
+   {
+    "source": "Cell bunk",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -4.96,
+     0.3125,
+     -17.13
+    ],
+    "size": [
+     0.64,
+     0.535,
+     2.06
+    ]
+   },
+   {
+    "source": "Secure passage side",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -0.815,
+     1.7325,
+     -16.08
+    ],
+    "size": [
+     0.15,
+     3.375,
+     5.4
+    ]
+   },
+   {
+    "source": "Fixed cell bars",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -2.4975,
+     1.3275,
+     -13.425
+    ],
+    "size": [
+     0.385,
+     2.565,
+     0.17
+    ]
+   },
+   {
+    "source": "Fixed cell bars",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -1.0825,
+     1.3275,
+     -13.425
+    ],
+    "size": [
+     0.385,
+     2.565,
+     0.17
+    ]
+   },
+   {
+    "source": "Cell bunk",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -1.26,
+     0.3125,
+     -17.13
+    ],
+    "size": [
+     0.64,
+     0.535,
+     2.06
+    ]
+   },
+   {
+    "source": "Cell masonry partition",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     2.765,
+     1.7325,
+     -16.065
+    ],
+    "size": [
+     0.15,
+     3.375,
+     5.43
+    ]
+   },
+   {
+    "source": "Secure passage side",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.815,
+     1.7325,
+     -16.08
+    ],
+    "size": [
+     0.15,
+     3.375,
+     5.4
+    ]
+   },
+   {
+    "source": "Fixed cell bars",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     1.0825,
+     1.3275,
+     -13.425
+    ],
+    "size": [
+     0.385,
+     2.565,
+     0.17
+    ]
+   },
+   {
+    "source": "Fixed cell bars",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     2.4975,
+     1.3275,
+     -13.425
+    ],
+    "size": [
+     0.385,
+     2.565,
+     0.17
+    ]
+   },
+   {
+    "source": "Cell bunk",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     1.26,
+     0.3125,
+     -17.13
+    ],
+    "size": [
+     0.64,
+     0.535,
+     2.06
+    ]
+   },
+   {
+    "source": "Fixed cell bars",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     3.205,
+     1.3275,
+     -13.425
+    ],
+    "size": [
+     0.73,
+     2.565,
+     0.17
+    ]
+   },
+   {
+    "source": "Fixed cell bars",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     4.965,
+     1.3275,
+     -13.425
+    ],
+    "size": [
+     0.73,
+     2.565,
+     0.17
+    ]
+   },
+   {
+    "source": "Cell bunk",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     4.96,
+     0.3125,
+     -17.13
+    ],
+    "size": [
+     0.64,
+     0.535,
+     2.06
+    ]
+   },
+   {
+    "source": "Garage west",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     8.03,
+     1.82,
+     -14.25
+    ],
+    "size": [
+     0.26,
+     3.64,
+     9.06
+    ]
+   },
+   {
+    "source": "Garage east",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     13.15,
+     1.82,
+     -14.25
+    ],
+    "size": [
+     0.26,
+     3.64,
+     9.06
+    ]
+   },
+   {
+    "source": "Garage head",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     8.2,
+     1.82,
+     -9.59
+    ],
+    "size": [
+     0.6,
+     3.64,
+     0.26
+    ]
+   },
+   {
+    "source": "Garage head",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     11.49,
+     1.82,
+     -9.59
+    ],
+    "size": [
+     3.58,
+     3.64,
+     0.26
+    ]
+   },
+   {
+    "source": "Garage rear",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     8.16,
+     1.82,
+     -18.905
+    ],
+    "size": [
+     0.52,
+     3.64,
+     0.25
+    ]
+   },
+   {
+    "source": "Garage rear",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     12.915,
+     1.82,
+     -18.905
+    ],
+    "size": [
+     0.73,
+     3.64,
+     0.25
+    ]
+   },
+   {
+    "source": "Low masonry yard wall",
+    "group": "lot",
+    "attachment": "yard_fence",
+    "center": [
+     -8.58,
+     0.76,
+     -18.95
+    ],
+    "size": [
+     0.14,
+     1.46,
+     9.9
+    ]
+   },
+   {
+    "source": "Low masonry yard wall",
+    "group": "lot",
+    "attachment": "yard_fence",
+    "center": [
+     -1.525,
+     0.76,
+     -23.83
+    ],
+    "size": [
+     14.25,
+     1.46,
+     0.14
+    ]
+   },
+   {
+    "source": "Service refuse bin",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -6.63,
+     0.405,
+     -19.9
+    ],
+    "size": [
+     0.4,
+     0.75,
+     0.46
+    ]
+   },
+   {
+    "source": "Service refuse bin",
+    "group": "lot",
+    "attachment": "structure",
+    "center": [
+     -7.09,
+     0.405,
+     -19.9
+    ],
+    "size": [
+     0.4,
+     0.75,
+     0.46
+    ]
+   }
+  ]
+ },
+ "lot_node": null,
+ "named": {
+  "front_gltf": "+Z",
+  "anchors": {
+   "front_desk_officer": [
+    0,
+    0.045,
+    -5.18
+   ],
+   "booking_spot": [
+    4.47,
+    0.045,
+    -9.18
+   ],
+   "fingerprint_spot": [
+    6.43,
+    0.045,
+    -7.82
+   ],
+   "interview_chair": [
+    4.7,
+    0.045,
+    -4.76
+   ],
+   "cell_bunk_1": [
+    -4.96,
+    0.57,
+    -17.13
+   ],
+   "cell_bunk_2": [
+    -1.26,
+    0.57,
+    -17.13
+   ],
+   "cell_bunk_3": [
+    1.26,
+    0.57,
+    -17.13
+   ],
+   "cell_bunk_4": [
+    4.96,
+    0.57,
+    -17.13
+   ],
+   "car_spot_1": [
+    8.78,
+    0.029,
+    -22.15
+   ],
+   "car_spot_2": [
+    11.72,
+    0.029,
+    -22.15
+   ],
+   "garage_car_spot": [
+    10.55,
+    0.045,
+    -15.1
+   ]
+  },
+  "cells": [
+   {
+    "id": 1,
+    "floor_node": "cell_floor_1",
+    "door_node": "cell_door_1",
+    "bunk_anchor": "cell_bunk_1",
+    "window_bars_node": "cell_window_bars_1",
+    "room_min_gltf_m": [
+     -5.33,
+     0.045,
+     -18.78
+    ],
+    "room_max_gltf_m": [
+     -2.84,
+     3.42,
+     -13.5
+    ],
+    "closed_box_gltf_m": {
+     "center": [
+      -4.085,
+      1.16,
+      -13.39
+     ],
+     "size": [
+      1.03,
+      2.23,
+      0.12
+     ]
+    }
+   },
+   {
+    "id": 2,
+    "floor_node": "cell_floor_2",
+    "door_node": "cell_door_2",
+    "bunk_anchor": "cell_bunk_2",
+    "window_bars_node": "cell_window_bars_2",
+    "room_min_gltf_m": [
+     -2.69,
+     0.045,
+     -18.78
+    ],
+    "room_max_gltf_m": [
+     -0.89,
+     3.42,
+     -13.5
+    ],
+    "closed_box_gltf_m": {
+     "center": [
+      -1.79,
+      1.16,
+      -13.39
+     ],
+     "size": [
+      1.03,
+      2.23,
+      0.12
+     ]
+    }
+   },
+   {
+    "id": 3,
+    "floor_node": "cell_floor_3",
+    "door_node": "cell_door_3",
+    "bunk_anchor": "cell_bunk_3",
+    "window_bars_node": "cell_window_bars_3",
+    "room_min_gltf_m": [
+     0.89,
+     0.045,
+     -18.78
+    ],
+    "room_max_gltf_m": [
+     2.69,
+     3.42,
+     -13.5
+    ],
+    "closed_box_gltf_m": {
+     "center": [
+      1.79,
+      1.16,
+      -13.39
+     ],
+     "size": [
+      1.03,
+      2.23,
+      0.12
+     ]
+    }
+   },
+   {
+    "id": 4,
+    "floor_node": "cell_floor_4",
+    "door_node": "cell_door_4",
+    "bunk_anchor": "cell_bunk_4",
+    "window_bars_node": "cell_window_bars_4",
+    "room_min_gltf_m": [
+     2.84,
+     0.045,
+     -18.78
+    ],
+    "room_max_gltf_m": [
+     5.33,
+     3.42,
+     -13.5
+    ],
+    "closed_box_gltf_m": {
+     "center": [
+      4.085,
+      1.16,
+      -13.39
+     ],
+     "size": [
+      1.03,
+      2.23,
+      0.12
+     ]
+    }
+   }
+  ],
+  "features": {
+   "one_way_window": {
+    "position": [
+     4.7,
+     1.77,
+     -6.38
+    ],
+    "note": "Read as reflective fixed glass; one-way visibility is a runtime role."
+   },
+   "jail_iron_door": {
+    "node": "jail_iron_door",
+    "closed_box_gltf_m": {
+     "center": [
+      -0.01,
+      1.2,
+      -9.87
+     ],
+     "size": [
+      2.18,
+      2.31,
+      0.13
+     ]
+    }
+   },
+   "roof_hatch": {
+    "node": "roof_hatch",
+    "position": [
+     -0.51,
+     3.78,
+     -15.54
+    ]
+   },
+   "rear_vent_1": {
+    "node": "rear_vent_1",
+    "position": [
+     -4.72,
+     2.1,
+     -19.046
+    ]
+   },
+   "rear_vent_2": {
+    "node": "rear_vent_2",
+    "position": [
+     -1.47,
+     2.1,
+     -19.046
+    ]
+   },
+   "rear_vent_3": {
+    "node": "rear_vent_3",
+    "position": [
+     1.47,
+     2.1,
+     -19.046
+    ]
+   },
+   "rear_vent_4": {
+    "node": "rear_vent_4",
+    "position": [
+     4.72,
+     2.1,
+     -19.046
+    ]
+   },
+   "yard_fence": {
+    "node": "yard_fence"
+   }
+  },
+  "signs": [
+   {
+    "id": "sign_name",
+    "node": "sign_name",
+    "texture": "signs.png",
+    "rect": [
+     0,
+     0,
+     188,
+     26
+    ],
+    "lines": 1,
+    "maxChars": 14,
+    "face": "civic-block",
+    "ink": "#e2cfa2",
+    "paper": "#343e49",
+    "glow": false
+   }
+  ]
+ },
+ "triangles_visible": 4744,
+ "source": "codex/police-station model-info.json, flattened per state by tools/landmarks/intake.py"
+}

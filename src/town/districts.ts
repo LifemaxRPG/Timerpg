@@ -182,6 +182,8 @@ function fill(p: Plat): Districts {
     if (civicKinds.includes('clocktower')) reserve('landmark:clocktower', lm('clocktower'), [...behind, ...byNear(blocksOf('old'))], (b) => [mainFace(b), back(mainFace(b))], [spec('clocktower')], 'near');
   } else if (civicKinds.includes('fire')) reserve('landmark:fire', lm('fire'), [civic, ...behind], (b) => (b === civic ? [back(mf)] : [p.flipY ? 'N' : 'S', p.flipY ? 'S' : 'N']), [spec('fire')], 'near');
   if (civicKinds.includes('school')) reserve('landmark:school', lm('school'), [...behind, ...byNear(blocksOf('old'))], (b) => [back(mainFace(b)), mainFace(b)], [spec('school')], 'near');
+  // (the capital's police station is a model, the fifth intake's C009 (docs/queue/INTAKE.md): where the sprite one stood, the civic block's back face or the blocks behind the square)
+  if (replaced.has('police')) reserve('glb:police_station', chainOf(plotChain('police_station'), 'woods'), [...(p.countySeat ? [] : [civic]), ...behind, ...byNear(blocksOf('old'))], (b) => (b === civic ? [back(mf)] : [mainFace(b), back(mainFace(b))]), [tiles('landmark_glb_police_station_1900')], 'far');
   if (civicKinds.includes('police')) reserve('landmark:police', lm('police'), [...(p.countySeat ? [] : [civic]), ...behind, ...byNear(blocksOf('old'))], (b) => (b === civic ? [back(mf)] : [mainFace(b), back(mainFace(b))]), [spec('police')], 'far');
 
   // ---- the core
@@ -196,7 +198,7 @@ function fill(p: Plat): Districts {
   // a county seat's hotel faces the square; any other's is on Main Street beside the civic block
   if (civicKinds.includes('hotel')) reserve('landmark:hotel', lm('hotel', [{ use: 'shops', from: 0 }, { use: 'hotel', from: 0 }]), [...nearCivic(north, -1), ...nearCivic(north, 1), ...south], (b) => [mainFace(b)], [spec('hotel')], 'near');
   // the general store: the core's south side, west of the civic block, mid-block
-  reserve('landmark:generalstore', [{ use: 'generalstore', from: 0 }], [...nearCivic(south, -1), ...south], (b) => [mainFace(b)], STORE_SIZES.generalstore.map(([w, h]) => [w, h]), 'mid');
+  const store = reserve('landmark:generalstore', [{ use: 'generalstore', from: 0 }], [...nearCivic(south, -1), ...south], (b) => [mainFace(b)], STORE_SIZES.generalstore.map(([w, h]) => [w, h]), 'mid');
   // the market (1950s-60s): the core's last block on the strip side, at its strip end
   if (needs.market !== undefined) {
     const last = [...nearCivic(south, 1)].reverse();
@@ -335,6 +337,15 @@ function fill(p: Plat): Districts {
       for (const m of ['barber', 'salon']) {
         if (plotChain(m).length) reserve(`glb:${m}`, chainOf(plotChain(m), 'shops'), [dimeBlock, ...nearCivic(north, 1), ...nearCivic(south, 1), ...nearCivic(north, -1), ...south], (b) => [mainFace(b)], [tiles(`landmark_glb_${m}_1940` as GlbLandmarkKind)], 'near', { pad: 0, toward: near });
       }
+    }
+    // the fifth intake's pawn shop (C010): a street-wall shop on a CROSS street off Main Street (the side face of a core block, its door on that street), in the core block nearest the general store
+    // so it is a short walk from Main Street and the store (docs/LOOP.md); party walls are not needed here, a pad of one tile keeps the neighbouring lots' yards off its pavement
+    if (plotChain('pawn_shop').length) {
+      const sc = store ? { x: store.x + store.w / 2, y: store.y + store.h / 2 } : { x: cx, y: cy };
+      const nearStore = [...north, ...south].sort((a, b) => Math.hypot(a.x + a.w / 2 - sc.x, a.y + a.h / 2 - sc.y) - Math.hypot(b.x + b.w / 2 - sc.x, b.y + b.h / 2 - sc.y));
+      // (not on the rail column's edge, where the cross street runs along the elevator's and the mill's yards: the shop belongs among the shops)
+      const offRail = nearStore.filter((b) => !band || (band.horizontal ? true : Math.abs(b.x + b.w / 2 - band.track) > 30));
+      reserve('glb:pawn_shop', chainOf(plotChain('pawn_shop'), 'shops'), offRail, () => ['W', 'E'], [tiles('landmark_glb_pawn_shop_1920')], 'near', { pad: 1, toward: sc });
     }
     if (plotChain('westmeadow').length) reserve('glb:westmeadow', chainOf(plotChain('westmeadow'), 'field'), byNear(blocksOf(['late', 'postwar', 'heights'])), toSquare, [tiles('landmark_glb_westmeadow_1955')], 'near', { pad: 2 });
   }

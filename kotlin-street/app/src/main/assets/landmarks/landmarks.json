@@ -905,6 +905,84 @@
       "far": "truck-stop/cedar-relay-1990-far.glb",
       "mid": "truck-stop/cedar-relay-1990-mid.glb",
       "centre": -0.5
+    },
+    {
+      "kind": "landmark_glb_police_station_1900",
+      "name": "Briarford Police Station",
+      "role": "police_station",
+      "room": "station",
+      "file": "police-station/briarford-1900.glb",
+      "info": "police-station/model-info-police_station_1900.json",
+      "era": {"from": 1900, "to": 1939, "built": 1905},
+      "footprint": {"lot": [26.7, 30.0], "building": [14.9, 19.03], "plot": [26.7, 30.0]},
+      "far": "police-station/briarford-1900-far.glb",
+      "mid": "police-station/briarford-1900-mid.glb",
+      "centre": 1.65
+    },
+    {
+      "kind": "landmark_glb_police_station_1940",
+      "name": "Briarford Police Station",
+      "role": "police_station",
+      "room": "station",
+      "file": "police-station/briarford-1940.glb",
+      "info": "police-station/model-info-police_station_1940.json",
+      "era": {"from": 1940, "to": 1979, "built": 1945},
+      "footprint": {"lot": [26.7, 30.0], "building": [20.73, 19.03], "plot": [26.7, 30.0]},
+      "far": "police-station/briarford-1940-far.glb",
+      "mid": "police-station/briarford-1940-mid.glb",
+      "centre": 1.65
+    },
+    {
+      "kind": "landmark_glb_police_station_1980",
+      "name": "Briarford Police Station",
+      "role": "police_station",
+      "room": "station",
+      "file": "police-station/briarford-1980.glb",
+      "info": "police-station/model-info-police_station_1980.json",
+      "era": {"from": 1980, "to": 2040, "built": 1985},
+      "footprint": {"lot": [26.7, 30.0], "building": [20.73, 21.52], "plot": [26.7, 30.0]},
+      "far": "police-station/briarford-1980-far.glb",
+      "mid": "police-station/briarford-1980-mid.glb",
+      "centre": 1.65
+    },
+    {
+      "kind": "landmark_glb_pawn_shop_1920",
+      "name": "Latch & Lyre",
+      "role": "pawn_shop",
+      "room": "shelves",
+      "file": "pawn-shop/latch-and-lyre-1920.glb",
+      "info": "pawn-shop/model-info-pawn_shop_1920.json",
+      "era": {"from": 1920, "to": 1959, "built": 1925},
+      "footprint": {"lot": [10.5, 19.55], "building": [7.8, 14.0], "plot": [10.5, 19.55]},
+      "far": "pawn-shop/latch-and-lyre-1920-far.glb",
+      "mid": "pawn-shop/latch-and-lyre-1920-mid.glb",
+      "centre": 0.0
+    },
+    {
+      "kind": "landmark_glb_pawn_shop_1960",
+      "name": "Latch & Lyre",
+      "role": "pawn_shop",
+      "room": "shelves",
+      "file": "pawn-shop/latch-and-lyre-1960.glb",
+      "info": "pawn-shop/model-info-pawn_shop_1960.json",
+      "era": {"from": 1960, "to": 1999, "built": 1965},
+      "footprint": {"lot": [10.5, 19.55], "building": [7.8, 14.0], "plot": [10.5, 19.55]},
+      "far": "pawn-shop/latch-and-lyre-1960-far.glb",
+      "mid": "pawn-shop/latch-and-lyre-1960-mid.glb",
+      "centre": 0.0
+    },
+    {
+      "kind": "landmark_glb_pawn_shop_2000",
+      "name": "Latch & Lyre",
+      "role": "pawn_shop",
+      "room": "shelves",
+      "file": "pawn-shop/latch-and-lyre-2000.glb",
+      "info": "pawn-shop/model-info-pawn_shop_2000.json",
+      "era": {"from": 2000, "to": 2040, "built": 2005},
+      "footprint": {"lot": [10.5, 19.55], "building": [7.8, 14.0], "plot": [10.5, 19.55]},
+      "far": "pawn-shop/latch-and-lyre-2000-far.glb",
+      "mid": "pawn-shop/latch-and-lyre-2000-mid.glb",
+      "centre": 0.0
     }
   ]
 }

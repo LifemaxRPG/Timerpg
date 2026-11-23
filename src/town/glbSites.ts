@@ -99,6 +99,9 @@ const LOT_TYPE: Record<GlbLandmarkKind, GlbLotType> = {
   landmark_glb_barber_1940: 'downtown', landmark_glb_barber_1980: 'downtown', landmark_glb_barber_2010: 'downtown',
   landmark_glb_salon_1940: 'downtown', landmark_glb_salon_1980: 'downtown', landmark_glb_salon_2010: 'downtown',
   landmark_glb_truck_stop_1960: 'highway', landmark_glb_truck_stop_1990: 'highway',
+  // the fifth intake: the police station in the civic district, the pawn shop in a cross street's wall off Main Street
+  landmark_glb_police_station_1900: 'civic', landmark_glb_police_station_1940: 'civic', landmark_glb_police_station_1980: 'civic',
+  landmark_glb_pawn_shop_1920: 'downtown', landmark_glb_pawn_shop_1960: 'downtown', landmark_glb_pawn_shop_2000: 'downtown',
 };
 /** Street-wall buildings: at the pavement in a block face of the old core, never beside a strip of car parks. */
 const WALL: ReadonlySet<GlbLandmarkKind> = new Set(['landmark_glb_gazette_office']);
@@ -134,6 +137,9 @@ export const INTAKE_STATES: Record<string, readonly GlbLandmarkKind[]> = {
   mill_branch: ['landmark_glb_mill_branch_active', 'landmark_glb_mill_branch_abandoned'],
   barber: ['landmark_glb_barber_1940', 'landmark_glb_barber_1980', 'landmark_glb_barber_2010'],
   salon: ['landmark_glb_salon_1940', 'landmark_glb_salon_1980', 'landmark_glb_salon_2010'],
+  // the fifth intake (C009, C010): the capital's alone
+  police_station: ['landmark_glb_police_station_1900', 'landmark_glb_police_station_1940', 'landmark_glb_police_station_1980'],
+  pawn_shop: ['landmark_glb_pawn_shop_1920', 'landmark_glb_pawn_shop_1960', 'landmark_glb_pawn_shop_2000'],
 };
 /** Catalogued models with no plot in the capital's plan yet (docs/queue/INTAKE.md C006): no tenures, so the ledger never asks for a plot. */
 export const CATALOGUED_ONLY: readonly GlbLandmarkKind[] = ['landmark_glb_truck_stop_1960', 'landmark_glb_truck_stop_1990'];
@@ -148,7 +154,7 @@ export const LIBRARY_PEOPLE = 3000, BANK_PEOPLE = 2000, DRUGSTORE_PEOPLE = 1500,
  */
 export const INTAKE_FOR_OTHERS = false;
 /** The civic landmarks (code-built sprites) the capital's models replace: their plots are the models'. */
-export const REPLACED_LANDMARKS: Record<string, 'post' | 'fire' | 'school'> = { post_office: 'post', fire_station: 'fire', lincoln_high_school: 'school' };
+export const REPLACED_LANDMARKS: Record<string, 'post' | 'fire' | 'school' | 'police'> = { post_office: 'post', fire_station: 'fire', lincoln_high_school: 'school', police_station: 'police' };
 
 /** Towns of this many inhabitants (at the peak) have the strip centre. */
 export const VIDEO_PEOPLE = 2500;
@@ -446,6 +452,10 @@ export function glbTenures(seed: string): GlbTenure[] {
     states(INTAKE_STATES.mill_branch!, [Math.max(yr(1890, 1900, 'open', 'millbranch'), Math.min(1900, founded + 2)), yr(1948, 1955, 'closed', 'millbranch')]);
     states(INTAKE_STATES.barber!, [yr(1940, 1944, 'open', 'barber'), 1980, 2010]);
     states(INTAKE_STATES.salon!, [yr(1940, 1946, 'open', 'salon'), 1980, 2010]);
+    // the fifth intake: the police station (the 1900 brick station and jail, never before the founding; the radio-era dispatch, booking and garage 1938-44; the glass entry and sally port 1978-86;
+    // it replaces the sprite police station) and the Latch & Lyre pawn shop (1920 brass and LOANS, the 1960 neon and bars, the 2000 LED sign)
+    states(INTAKE_STATES.police_station!, [Math.max(yr(1900, 1910, 'open', 'police'), Math.min(1910, founded + 5)), yr(1938, 1944, 'radio', 'police'), yr(1978, 1986, 'glass', 'police')]);
+    states(INTAKE_STATES.pawn_shop!, [Math.max(yr(1920, 1926, 'open', 'pawn'), Math.min(1926, founded + 8)), 1960, 2000]);
   }
   // the county seat's courthouse on its square: built 1885-1905, modernised in the 1950s (the annex), neglected from the
   // 1970s (the clock stopped), restored about 2000; four states on one plot (src/town/plat.ts isCountySeat)

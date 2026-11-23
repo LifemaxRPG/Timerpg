@@ -88,6 +88,13 @@ for who, nmz in {'barber': ('Mercer Barber', 'Mercer Hair Co.', 'Mercer Barber C
 for st, (a, b, c, nm) in {'1960': (1960, 1989, 1962, 'Cedar Relay'), '1990': (1990, 2040, 1992, 'Relay Travel Center')}.items():
     add(f'landmark_glb_truck_stop_{st}', 'truck-stop', f'cedar-relay-{st}.glb', ('model-info.json', 'c3', st), nm, 'truck_stop', (a, b, c), far=f'truck-stop/cedar-relay-{st}-far.glb', mid=f'truck-stop/cedar-relay-{st}-mid.glb')
 
+# ---- the fifth intake (C009, C010, 2026-11-23): a `states` dict keyed by year (not a list); doors, anchors, cells, features and the collision boxes sit on the state itself;
+# the named nodes (cell doors, counter anchors, safe, display zones) are kept in each flat info under `named` for the game to read
+for st, (a, b, c) in {'1900': (1900, 1939, 1905), '1940': (1940, 1979, 1945), '1980': (1980, 2040, 1985)}.items():
+    add(f'landmark_glb_police_station_{st}', 'police-station', f'briarford-{st}.glb', ('model-info.json', 'c4', st), 'Briarford Police Station', 'police_station', (a, b, c), room='station', far=f'police-station/briarford-{st}-far.glb', mid=f'police-station/briarford-{st}-mid.glb')
+for st, (a, b, c, nm) in {'1920': (1920, 1959, 1925, 'Latch & Lyre'), '1960': (1960, 1999, 1965, 'Latch & Lyre'), '2000': (2000, 2040, 2005, 'Latch & Lyre')}.items():
+    add(f'landmark_glb_pawn_shop_{st}', 'pawn-shop', f'latch-and-lyre-{st}.glb', ('model-info.json', 'c4', st), nm, 'pawn_shop', (a, b, c), room='shelves', far=f'pawn-shop/latch-and-lyre-{st}-far.glb', mid=f'pawn-shop/latch-and-lyre-{st}-mid.glb')
+
 INTERNAL = {  # doors the info marks (or the glb names) as joining rooms: no entrance from the street
     'carhop': {'door_prep_inside'},
     'monument': {'door_hall_west', 'door_hall_east', 'door_observatory_lift', 'door_cornice_gallery', 'door_sky_deck', 'door_lantern_chamber', 'door_rotunda_south', 'door_north', 'door_east', 'door_west'},
@@ -111,6 +118,14 @@ def state_info(s):
                   'center': b['center_gltf_m'], 'size': b['size_gltf_m']} for b in bx]
         return {'name': j.get('name') or st.get('name') or st.get('title'), 'doors': [{'node': k, 'position': v, 'external': True} for k, v in ds.items()], 'collision': {'coordinate_note': 'glTF Y-up metres, from the contributor info (near model)', 'boxes_gltf_y_up': boxes},
                 'footprint_m': st.get('footprint_m') or j.get('footprint_m') or ([round(m['footprint_x_m'][1] - m['footprint_x_m'][0], 2), 28.8] if m.get('footprint_x_m') else None)}
+    if how == 'c4':
+        st = j['states'][key]
+        ds = [{'node': k, 'position': v.get('position') or v.get('position_gltf_m'), 'external': bool(v.get('external', True))} for k, v in st['doors'].items()]
+        bx = [{'source': b.get('name', 'box'), 'group': 'lot' if b.get('group') == 'lot' else 'structure', 'attachment': b.get('attachment') or 'structure',
+               'center': b['center_gltf_m'], 'size': b['size_gltf_m']} for b in st['collision_boxes']]
+        named = {k: st[k] for k in ('front_gltf', 'anchors', 'cells', 'features', 'signs') if k in st}
+        return {'name': j['name'], 'doors': ds, 'collision': {'coordinate_note': 'glTF Y-up metres, from the contributor info (near model)', 'boxes_gltf_y_up': bx}, 'named': named,
+                'footprint_m': st.get('footprint_m')}
     if how == 'gm':
         st = j['states'][key]
         base = j['collision']['boxes_gltf_y_up']
@@ -164,7 +179,7 @@ def main(write):
             for d in doors:
                 if d['node'].startswith('door_room'): d['external'] = False
         flat = {'name': s['name'], 'state': s['kind'], 'file': s['glb'], 'doors': doors, 'collision': coll,
-                'lot_node': j.get('lot_node'), 'triangles_visible': s['tris'], 'source': f"codex/{s['slug']} {s['info'][0]}, flattened per state by tools/landmarks/intake.py"}
+                'lot_node': j.get('lot_node'), **({'named': j['named']} if j.get('named') else {}), 'triangles_visible': s['tris'], 'source': f"codex/{s['slug']} {s['info'][0]}, flattened per state by tools/landmarks/intake.py"}
         out = f"{A}/{s['slug']}/model-info-{s['kind'].split('landmark_glb_')[1]}.json"
         if write: json.dump(flat, open(out, 'w'), indent=1)
         e = {'kind': s['kind'], 'name': s['name'], 'role': s['role'], 'room': s['room'], 'file': f"{s['slug']}/{s['glb']}", 'info': f"{s['slug']}/model-info-{s['kind'].split('landmark_glb_')[1]}.json",

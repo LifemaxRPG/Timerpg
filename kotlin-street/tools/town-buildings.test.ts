@@ -27,10 +27,10 @@ describe('town buildings', () => {
       // (src/town/stores.ts: the general store and the market take main-street plots, the plan grows for the rest), and again
       // for the planned town (src/town/plat.ts: the crossroads are Main Street and the civic avenue of the platted town), and
       // again for the downtown that straddles its river, the town square and the core's side-street shops, and again for the capital's
-      // intake models and grounds column (gamma only: the plan is 200 tiles wider), and again for the third intake (a third south block of grounds, the rail column's far end made one block, the elevator's siding) and again for the fourth intake (the barber and the salon in the street wall, Westmeadow in a late block, Mill Branch on the grounds; gamma only)
+      // intake models and grounds column (gamma only: the plan is 200 tiles wider), and again for the fifth intake (the police station, the pawn shop), and again for the third intake (a third south block of grounds, the rail column's far end made one block, the elevator's siding) and again for the fourth intake (the barber and the salon in the street wall, Westmeadow in a late block, Mill Branch on the grounds; gamma only)
       vale: 'b2ed05d85e9adc16376257fd9ef8c12cd0e132958ebafaf1581bf9a07ecb4b30',
       alpha: 'cb6a1db217a8e14bac76e89373be662fbfe76b3817a1500a145554e437436cdb',
-      gamma: 'bf0072356fba157f0b6a8e4b0b8fc0fbfa637e5a7a2d8134206e2dd094b14e2d',
+      gamma: 'c2e985c72163732fa8c4df2dc3ef5998aa6790d286ccaaae1e34f3f02744c389',
     };
     for (const [seed, h] of Object.entries(before)) expect(sha(streetJson(seed)), seed).toBe(h);
   });

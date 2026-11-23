@@ -20,7 +20,7 @@ class LandmarkGlbTest {
     private val U = LandmarkKit.UNITS_PER_METRE
 
     /** The roles of the intake models (docs/queue/INTAKE.md) whose doors may stand back from the lot's front. */
-    private val INTAKE_ROLES = setOf("monument", "roadside_attraction", "rest_area", "lodge", "church", "school", "library", "bank", "drugstore", "carhop", "fire_station", "post_office", "five_and_dime", "grain_elevator", "ballpark", "elementary_school", "truck_stop")
+    private val INTAKE_ROLES = setOf("monument", "roadside_attraction", "rest_area", "lodge", "church", "school", "library", "bank", "drugstore", "carhop", "fire_station", "post_office", "five_and_dime", "grain_elevator", "ballpark", "elementary_school", "truck_stop", "police_station", "pawn_shop")
 
     private fun build(s: LandmarkSpec, year: Int = s.built, keepLot: Boolean = true) =
         LandmarkKit.build(GlbFile.read(File(root, s.file).readBytes()), s, year, 7, keepLot, info = s.info?.let { File(root, it).readText() })
@@ -325,7 +325,9 @@ class LandmarkGlbTest {
         "baseball_park_1935", "baseball_park_1950", "baseball_park_1960", "baseball_park_2000",
         // the fourth intake (C004-C006)
         "mill_branch_active", "mill_branch_abandoned", "westmeadow_1955", "westmeadow_1990", "barber_1940", "barber_1980", "barber_2010", "salon_1940", "salon_1980", "salon_2010",
-        "truck_stop_1960", "truck_stop_1990")
+        "truck_stop_1960", "truck_stop_1990",
+        // the fifth intake (C009, C010)
+        "police_station_1900", "police_station_1940", "police_station_1980", "pawn_shop_1920", "pawn_shop_1960", "pawn_shop_2000")
 
     @Test fun theIntakeModelsAreInTheCatalogue() {
         for (k in INTAKE) assertTrue("$k listed", specs.any { it.kind == "landmark_glb_$k" })
@@ -483,5 +485,32 @@ class LandmarkGlbTest {
             }
         }
         for (st in listOf("1940", "1980", "2010")) assertTrue("salons have no pole", build(specs.first { it.kind == "landmark_glb_salon_$st" }).animated.none { it.nodeName == "barber_pole" })
+    }
+
+    // ------------------------------------------------------------------------------------------------ the fifth intake (C009, C010, 2026-11-23)
+    private val FIFTH = mapOf("police_station" to listOf("1900", "1940", "1980"), "pawn_shop" to listOf("1920", "1960", "2000"))
+
+    @Test fun theFifthIntakeHasItsStatesYearsDistantModelsAndNamedNodes() {
+        for ((m, states) in FIFTH) {
+            val c = states.map { st -> specs.first { it.kind == "landmark_glb_${m}_$st" } }
+            for (s in c) {
+                assertTrue("${s.kind} far", s.far != null && File(root, s.far!!).isFile)
+                val far = LandmarkKit.build(GlbFile.read(File(root, s.far!!).readBytes()), s, s.built, 7, true, info = s.info?.let { File(root, it).readText() })
+                assertTrue("${s.kind} far has parts", far.model.parts.isNotEmpty())
+                assertTrue("${s.kind} far keeps its main door", far.doors.any { it.name == "door_main" })
+                assertTrue("${s.kind} mid shipped", File(root, s.file.replace(".glb", "-mid.glb")).isFile)
+                // the game reads the named nodes (cell doors, bunks, counter anchors, safe, display zones) from the flat info's `named`
+                val named = org.json.JSONObject(File(root, s.info!!).readText()).optJSONObject("named")
+                assertTrue("${s.kind} keeps its named nodes", named != null && named.has("anchors") && named.has("features"))
+                val glb = String(File(root, s.file).readBytes(), Charsets.ISO_8859_1)
+                if (m == "police_station") for (n in listOf("cell_door_1", "cell_door_4", "cell_bunk_1", "cell_window_bars_1", "door_jail", "front_desk_officer")) assertTrue("${s.kind} node $n", glb.contains("\"$n\"") || named!!.toString().contains(n))
+                else for (n in listOf("safe", "display_west", "counter_clerk", "counter_customer")) assertTrue("${s.kind} node $n", glb.contains("\"$n\"") || named!!.toString().contains(n))
+            }
+            c.zipWithNext().forEach { (a, b) -> assertTrue("${a.kind} -> ${b.kind}", b.from >= a.from) }
+        }
+        assertEquals(listOf(1900, 1940, 1980), listOf("1900", "1940", "1980").map { st -> specs.first { it.kind == "landmark_glb_police_station_$st" }.from })
+        assertEquals(listOf(1920, 1960, 2000), listOf("1920", "1960", "2000").map { st -> specs.first { it.kind == "landmark_glb_pawn_shop_$st" }.from })
+        // the station's four cells and the shop's street door are real collision to walk round
+        for (st in listOf("1900", "1940", "1980")) assertTrue(build(specs.first { it.kind == "landmark_glb_police_station_$st" }).solids.size / 4 >= 8)
     }
 }

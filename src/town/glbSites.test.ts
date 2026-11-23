@@ -291,6 +291,14 @@ describe('hand-made landmark models in the towns', () => {
     expect(res.find((q) => q.id === 'glb:mill_branch')!.district).toBe('grounds');
     expect([plan.width, plan.height]).toEqual([965, 382]);
     expect(res.some((q) => q.id.includes('truck_stop'))).toBe(false);
+    // the fifth intake (C009, C010): the police station replaces the sprite one, in the civic district; the pawn shop is on a cross street (a side face) of a core block, near the general store
+    expect(res.find((q) => q.id === 'glb:police_station')!.district).toBe('civic');
+    expect(res.some((q) => q.id === 'landmark:police')).toBe(false);
+    expect(plan.landmarks.some((l) => l.id === 'police')).toBe(false);
+    const pawn = res.find((q) => q.id === 'glb:pawn_shop')!, gs = res.find((q) => q.id === 'landmark:generalstore')!;
+    expect(pawn.district).toBe('core');
+    expect(['E', 'W']).toContain(pawn.face);
+    expect(Math.hypot(pawn.x - gs.x, pawn.y - gs.y), 'the pawn shop is a short walk from the general store').toBeLessThan(25);
     // (the other towns keep their ledgers: INTAKE_FOR_OTHERS is off)
     for (const seed of ['eta', 'orbit', 'quartz']) expect(glbTenures(seed).some((t) => Object.values(INTAKE_STATES).flat().includes(t.kind)), seed).toBe(false);
   }, 60000);

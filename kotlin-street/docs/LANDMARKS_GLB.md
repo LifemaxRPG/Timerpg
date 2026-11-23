@@ -3,7 +3,7 @@
 Landmarks modelled by hand to the contract in `docs/CHATGPT_MODEL_GUIDE.md` (glTF 2.0 binary, metres, Y up, entrance
 +Z, materials named by role, door nodes, a collision-only mesh, an optional `lot` group) are read and built by the
 engine like the code-built cinema and stores, and drawn through the same lit material. Status (2026-11-19): fourteen
-models (and the funeral home, "The funeral home" below, the fifteenth; the strip centre in four states, "Reel Time Video", the sixteenth to nineteenth files); the generated towns place them (branch wf-place: "In the town" below), desktop renders only, not yet on the S25. Status (2026-11-22): the intake job added fifteen more models in thirty-one files ("The intake models" below); the third intake (2026-11-23) three more in eleven states ("The third intake").
+models (and the funeral home, "The funeral home" below, the fifteenth; the strip centre in four states, "Reel Time Video", the sixteenth to nineteenth files); the generated towns place them (branch wf-place: "In the town" below), desktop renders only, not yet on the S25. Status (2026-11-22): the intake job added fifteen more models in thirty-one files ("The intake models" below); the third intake (2026-11-23) three more in eleven states ("The third intake"); the fifth intake (2026-11-23) the police station and the pawn shop in six states ("The fifth intake").
 
 ## The models (app/src/main/assets/landmarks/)
 
@@ -295,6 +295,29 @@ shipped and catalogued, not drawn). Folders `elementary-school/`, `barbershop/`,
 - **The truck stop is catalogued and not placed** (`glbSites.ts` `CATALOGUED_ONLY`: no tenures, so the ledger never asks for a plot; `glbSites.test.ts` skips these two kinds in "place every model"): TOWN_PLAN.md "The fourth intake in the capital".
 - **Measured** (desktop, software GL, not the S25): the town's memory check with the new models in (gamma, whole town cold start, 320 MB heap): peak used 199 MB, live after GC 125 MB, direct buffers 74 MB, held (live + direct) peak 177 MB (budget 256; 161 MB after the third intake); the renders are desktop
   Filament renders on software GL. Triangles above are the near models', counted by `glbinfo.py` through intake.py.
+
+## The fifth intake (2026-11-23, C009-C010)
+
+Two more accepted models from docs/queue/INTAKE.md, brought in as before (files copied with `git show origin/codex/<branch>:prototypes/<name>/...`, no merge; sources, renders and .blend files stay on the branches): six states in eighteen .glb files (near, mid, far each; the mid files are
+shipped and catalogued, not drawn). Folders `police-station/` and `pawn-shop/` under app/src/main/assets/landmarks/. Placed in the capital only: TOWN_PLAN.md "The fifth intake in the capital". Both are part of the first playable loop (docs/LOOP.md).
+
+| kind (landmark_glb_...) | model (states) | lot (m) | triangles near / mid / far | from |
+|---|---|---|---|---|
+| `police_station_1900`, `_1940`, `_1980` | Briarford Police Station & Town Jail: the 1900 brick station with limestone trim and the low rear jail block (1900-39); the radio era adds a mast, interview and booking rooms and a squad garage (1940-79); the glass vestibule, records shelving, CCTV, the sally port into the cells and a fenced yard (1980-) | 26.7 x 30.0 (station 14.9 / 20.7 m wide, 19-21.5 m deep, the rest the yard and pavement) | 4,444 / 2,376 / 1,572; 4,744 / 2,684 / 1,832; 6,080 / 3,506 / 2,520 | `codex/C009-police-station` |
+| `pawn_shop_1920`, `_1960`, `_2000` | Latch & Lyre: brass balls and LOANS (1920-59), neon PAWN, window bars and a buzzer (1960-99), LED WE BUY GOLD and bulletproof glass (2000-); a 7.8 x 14 m street-wall shop with party walls, a stockroom and a back door | 10.5 x 19.55 | 3,530 / 1,698 / 762; 2,794 / 1,410 / 678; 3,154 / 1,578 / 664 | `codex/C010-pawn-shop` |
+
+- **Data**: `python3 tools/landmarks/intake.py --write --only=police-station,pawn-shop` (a fifth table-driven set of rows, the `c4` info shape: a `states` dict keyed by year, the doors, anchors, cells, features and `collision_boxes` on each state itself) wrote the per-state
+  `model-info-<kind>.json` and the catalogue entries. The flat info keeps the contributor's **named nodes** under `named` (below) for the game to read; the doors and the collision boxes are flattened to the loader's `doors[]` + `collision.boxes_gltf_y_up`.
+- **Years**: each state's years are the model-info's own (the catalogue's `era`): station 1900-39 / 1940-79 / 1980-; shop 1920-59 / 1960-99 / 2000-. The ledger draws them in the capital (TOWN_PLAN.md). The station stands from the town's first years (1900-10, never before the founding).
+- **Named nodes the game will use** (all in glTF metres, Y up, the model's own frame: x along the street, +z towards the street, the front lot edge z 4.5 m (station) / 2.9 m (shop); in each state's flat `model-info-<kind>.json`, `named`, and as nodes of the .glb):
+  - *Police station*: doors `door_main` (public, z 0.19 m; 1980: z 2.67 m, in the glass vestibule), `door_back`, `door_staff` (1940-), `door_garage` (1940-), `door_sally_inner` (1980); `door_jail` (internal: the jail transfer door, `features.jail_iron_door` has the closed pose's collision box). Anchors: `front_desk_officer`, `booking_spot`, `fingerprint_spot`, `interview_chair` (1940-), `records_room` (1980), `cell_bunk_1`..`4`, `car_spot_1`, `car_spot_2`, `garage_car_spot` (1980).
+    `cells[1..4]`: `cell_floor_n`, `cell_door_n` (hinge pivot, with `closed_box_gltf_m` for the collision when shut), `cell_bunk_n`, `cell_window_bars_n`, the room's min / max box. Features: `one_way_window`, `roof_hatch`, `rear_vent_1..4`, `cctv_1..4`, `yard_gate`, `yard_fence`, `wanted_paper_1/2` (repaintable rectangles on `signs.png`).
+  - *Pawn shop*: doors `door_main` (street), `door_back`, `door_store` (internal, to the stockroom). Anchors `counter_clerk` and `counter_customer`; features `safe`, `display_west`, `display_east`, `display_stockroom`, `display_jewellery`, `display_feature` (each with `stock_surfaces_gltf_m` shelf heights), `display_window_west` / `_east`, `window_bars_west` / `_east`, `entry_buzzer`, `bulletproof_window`, `cctv_1..3`.
+  Those are data and nodes only: the game's use of them (booking, cells, the clerk's counter, robbing the safe) is the loop's job (docs/LOOP.md).
+- **The distant models**: each state has its own `far` (and a `mid`); the loader draws `far` past `TownLandmark.LOD`.
+- **Against the guide**: no closed door panels; the doors are external but `door_jail`, `door_store` and `door_sally_inner`, which the model-info marks internal; collision boxes read as they come (the station's 45 / 50 / 62, the shop's 29 / 31 / 31 boxes, all `building` group).
+  The scale test treats `police_station` and `pawn_shop` as intake roles (the front door may stand back from the lot's front).
+- **Measured** (desktop, software GL, not the S25): triangles above are the near models', counted by `glbinfo.py` through intake.py; the renders are desktop Filament renders.
 
 ## The loader (shared/src/filament/kotlin/scene3d/)
 
