@@ -75,8 +75,9 @@ sandbox gains a JDK.
 
 Gemini's daily limit (2026-11-23, reported by the owner): Jeff ran out of usage about 30 minutes into G012, after
 delivering G009, G011 and G010 that day (three engineering systems, all accepted first try). No G012 work in progress
-reached origin, so the task restarts from its brief when his usage resets. Plan about three tasks of that size per day
-for him, and keep each brief one session long.
+reached origin, so the task restarts from its brief when his usage resets. He works one task through and pushes once,
+at the end (the owner's observation): he doesn't push work in progress. So a task must be small enough to finish before
+his limit; G012 was trimmed to the one-police swap plus the wiring fixes. Plan about three tasks of that size per day.
 
 | Task | Worker (model, setting) | Kind | Tokens or effort | Rounds to accept | Verdict |
 |---|---|---|---|---|---|
