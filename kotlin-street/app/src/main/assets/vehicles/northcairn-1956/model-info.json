@@ -1,0 +1,1446 @@
+{
+ "task": "C011",
+ "format": "glTF metres, +Y up, +Z forward, +X vehicle left",
+ "origin": "Ground below the axle midpoint",
+ "texel_m": 0.0388,
+ "vehicle": {
+  "name": "Northcairn Terrace",
+  "key": "northcairn-1956",
+  "years": [
+   1955,
+   1957
+  ],
+  "estimated_mass_kg": 1685,
+  "estimated_top_speed_kmh": 153,
+  "wheel_radius_m": 0.361,
+  "wheelbase_m": 3.06,
+  "track_m": 1.59,
+  "suggested_lod_m": {
+   "mid": 38,
+   "far": 95
+  },
+  "collision_boxes": [
+   {
+    "center_gltf_m": [
+     0,
+     0.6575,
+     0
+    ],
+    "size_gltf_m": [
+     1.5962999999999998,
+     0.7149999999999999,
+     4.2672
+    ]
+   },
+   {
+    "center_gltf_m": [
+     0,
+     1.2774999999999999,
+     -0.51
+    ],
+    "size_gltf_m": [
+     1.4272799999999999,
+     0.5250000000000001,
+     1.65
+    ]
+   }
+  ],
+  "paint": {
+   "preset_body_colours": [
+    "#38666d",
+    "#984d43",
+    "#4b617e",
+    "#596e4b",
+    "#707276",
+    "#754256"
+   ],
+   "stock_secondary": "#d2c4a5",
+   "masks": {
+    "primary": "textures/northcairn-1956-primary-mask.png",
+    "secondary": "textures/northcairn-1956-secondary-mask.png"
+   },
+   "badge": {
+    "node": "badge_plate",
+    "material": "hardware_and_trim",
+    "atlas_texels": 256,
+    "center_texels": [
+     103,
+     216
+    ]
+   }
+  },
+  "lods": [
+   {
+    "file": "northcairn-1956.glb",
+    "lod": "near",
+    "triangles": 2820,
+    "bounds_gltf_m": [
+     [
+      -1.025844,
+      1.025844
+     ],
+     [
+      0.0,
+      1.54
+     ],
+     [
+      -2.727,
+      2.646
+     ]
+    ],
+    "materials": [
+     "glass_vehicle",
+     "glow_lamps",
+     "hardware_and_trim",
+     "interior_and_rubber",
+     "paint_primary",
+     "paint_secondary"
+    ],
+    "nodes": {
+     "hood": {
+      "center_gltf_m": [
+       0.0,
+       1.04,
+       0.73
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "trunk": {
+      "center_gltf_m": [
+       0.0,
+       1.003425,
+       -1.61
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "door_front_l": {
+      "center_gltf_m": [
+       0.923976,
+       0.493,
+       0.71
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_rear_l": {
+      "center_gltf_m": [
+       0.923976,
+       0.493,
+       -0.402
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_front_r": {
+      "center_gltf_m": [
+       -0.923976,
+       0.493,
+       0.71
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_rear_r": {
+      "center_gltf_m": [
+       -0.923976,
+       0.493,
+       -0.402
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "steer_fl": {
+      "center_gltf_m": [
+       0.795,
+       0.361,
+       1.53
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "center_gltf_m": [
+       0.795,
+       0.361,
+       1.53
+      ],
+      "parent": "steer_fl",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "center_gltf_m": [
+       -0.795,
+       0.361,
+       1.53
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "center_gltf_m": [
+       -0.795,
+       0.361,
+       1.53
+      ],
+      "parent": "steer_fr",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "center_gltf_m": [
+       0.795,
+       0.361,
+       -1.53
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "center_gltf_m": [
+       -0.795,
+       0.361,
+       -1.53
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "seat_driver": {
+      "center_gltf_m": [
+       0.346,
+       0.661,
+       -0.204
+      ],
+      "parent": "northcairn-1956"
+     },
+     "seat_passenger": {
+      "center_gltf_m": [
+       -0.346,
+       0.661,
+       -0.204
+      ],
+      "parent": "northcairn-1956"
+     },
+     "seat_rear_left": {
+      "center_gltf_m": [
+       0.336,
+       0.661,
+       -1.147
+      ],
+      "parent": "northcairn-1956"
+     },
+     "seat_rear_right": {
+      "center_gltf_m": [
+       -0.336,
+       0.661,
+       -1.147
+      ],
+      "parent": "northcairn-1956"
+     },
+     "steering_wheel": {
+      "center_gltf_m": [
+       0.34,
+       0.982,
+       0.476
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "exit_left": {
+      "center_gltf_m": [
+       1.509,
+       0.0,
+       0.014
+      ],
+      "parent": "northcairn-1956"
+     },
+     "exit_right": {
+      "center_gltf_m": [
+       -1.509,
+       0.0,
+       0.014
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_head_l": {
+      "center_gltf_m": [
+       0.704,
+       0.856,
+       2.53
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_tail_l": {
+      "center_gltf_m": [
+       0.805,
+       0.939,
+       -2.594
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_brake_l": {
+      "center_gltf_m": [
+       0.805,
+       0.83,
+       -2.599
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_turn_front_l": {
+      "center_gltf_m": [
+       0.704,
+       0.561,
+       2.493
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_turn_rear_l": {
+      "center_gltf_m": [
+       0.888,
+       0.861,
+       -2.598
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_reverse_l": {
+      "center_gltf_m": [
+       0.48,
+       0.681,
+       -2.591
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_head_r": {
+      "center_gltf_m": [
+       -0.704,
+       0.856,
+       2.53
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_tail_r": {
+      "center_gltf_m": [
+       -0.805,
+       0.939,
+       -2.594
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_brake_r": {
+      "center_gltf_m": [
+       -0.805,
+       0.83,
+       -2.599
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_turn_front_r": {
+      "center_gltf_m": [
+       -0.704,
+       0.561,
+       2.493
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_turn_rear_r": {
+      "center_gltf_m": [
+       -0.888,
+       0.861,
+       -2.598
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_reverse_r": {
+      "center_gltf_m": [
+       -0.48,
+       0.681,
+       -2.591
+      ],
+      "parent": "northcairn-1956"
+     }
+    },
+    "door_preview_degrees": {
+     "door_front_l": -66,
+     "door_rear_l": -66,
+     "door_front_r": 66,
+     "door_rear_r": 66
+    },
+    "lamps": {
+     "light_head_l": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_l": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_head_r": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_r": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     }
+    }
+   },
+   {
+    "file": "northcairn-1956-mid.glb",
+    "lod": "mid",
+    "triangles": 1090,
+    "bounds_gltf_m": [
+     [
+      -1.0235,
+      1.0235
+     ],
+     [
+      0.0,
+      1.54
+     ],
+     [
+      -2.727,
+      2.646
+     ]
+    ],
+    "materials": [
+     "glass_vehicle",
+     "glow_lamps",
+     "hardware_and_trim",
+     "interior_and_rubber",
+     "paint_primary",
+     "paint_secondary"
+    ],
+    "nodes": {
+     "hood": {
+      "center_gltf_m": [
+       0.0,
+       1.04,
+       0.73
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "trunk": {
+      "center_gltf_m": [
+       0.0,
+       1.003425,
+       -1.61
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "door_front_l": {
+      "center_gltf_m": [
+       0.923976,
+       0.493,
+       0.71
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_rear_l": {
+      "center_gltf_m": [
+       0.923976,
+       0.493,
+       -0.402
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_front_r": {
+      "center_gltf_m": [
+       -0.923976,
+       0.493,
+       0.71
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_rear_r": {
+      "center_gltf_m": [
+       -0.923976,
+       0.493,
+       -0.402
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "steer_fl": {
+      "center_gltf_m": [
+       0.795,
+       0.361,
+       1.53
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "center_gltf_m": [
+       0.795,
+       0.361,
+       1.53
+      ],
+      "parent": "steer_fl",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "center_gltf_m": [
+       -0.795,
+       0.361,
+       1.53
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "center_gltf_m": [
+       -0.795,
+       0.361,
+       1.53
+      ],
+      "parent": "steer_fr",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "center_gltf_m": [
+       0.795,
+       0.361,
+       -1.53
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "center_gltf_m": [
+       -0.795,
+       0.361,
+       -1.53
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "seat_driver": {
+      "center_gltf_m": [
+       0.346,
+       0.661,
+       -0.204
+      ],
+      "parent": "northcairn-1956"
+     },
+     "seat_passenger": {
+      "center_gltf_m": [
+       -0.346,
+       0.661,
+       -0.204
+      ],
+      "parent": "northcairn-1956"
+     },
+     "seat_rear_left": {
+      "center_gltf_m": [
+       0.336,
+       0.661,
+       -1.147
+      ],
+      "parent": "northcairn-1956"
+     },
+     "seat_rear_right": {
+      "center_gltf_m": [
+       -0.336,
+       0.661,
+       -1.147
+      ],
+      "parent": "northcairn-1956"
+     },
+     "steering_wheel": {
+      "center_gltf_m": [
+       0.34,
+       0.982,
+       0.476
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "exit_left": {
+      "center_gltf_m": [
+       1.509,
+       0.0,
+       0.014
+      ],
+      "parent": "northcairn-1956"
+     },
+     "exit_right": {
+      "center_gltf_m": [
+       -1.509,
+       0.0,
+       0.014
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_head_l": {
+      "center_gltf_m": [
+       0.704,
+       0.856,
+       2.53
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_tail_l": {
+      "center_gltf_m": [
+       0.805,
+       0.939,
+       -2.594
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_brake_l": {
+      "center_gltf_m": [
+       0.805,
+       0.83,
+       -2.599
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_turn_front_l": {
+      "center_gltf_m": [
+       0.704,
+       0.561,
+       2.493
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_turn_rear_l": {
+      "center_gltf_m": [
+       0.888,
+       0.861,
+       -2.598
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_reverse_l": {
+      "center_gltf_m": [
+       0.48,
+       0.681,
+       -2.591
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_head_r": {
+      "center_gltf_m": [
+       -0.704,
+       0.856,
+       2.53
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_tail_r": {
+      "center_gltf_m": [
+       -0.805,
+       0.939,
+       -2.594
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_brake_r": {
+      "center_gltf_m": [
+       -0.805,
+       0.83,
+       -2.599
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_turn_front_r": {
+      "center_gltf_m": [
+       -0.704,
+       0.561,
+       2.493
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_turn_rear_r": {
+      "center_gltf_m": [
+       -0.888,
+       0.861,
+       -2.598
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_reverse_r": {
+      "center_gltf_m": [
+       -0.48,
+       0.681,
+       -2.591
+      ],
+      "parent": "northcairn-1956"
+     }
+    },
+    "door_preview_degrees": {
+     "door_front_l": -66,
+     "door_rear_l": -66,
+     "door_front_r": 66,
+     "door_rear_r": 66
+    },
+    "lamps": {
+     "light_head_l": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_l": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_head_r": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_r": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     }
+    }
+   },
+   {
+    "file": "northcairn-1956-far.glb",
+    "lod": "far",
+    "triangles": 136,
+    "bounds_gltf_m": [
+     [
+      -0.939,
+      0.939
+     ],
+     [
+      0.0,
+      1.54
+     ],
+     [
+      -2.56,
+      2.48
+     ]
+    ],
+    "materials": [
+     "interior_and_rubber",
+     "paint_primary",
+     "paint_secondary"
+    ],
+    "nodes": {
+     "door_front_l": {
+      "center_gltf_m": [
+       0.923976,
+       0.493,
+       0.71
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_rear_l": {
+      "center_gltf_m": [
+       0.923976,
+       0.493,
+       -0.402
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_front_r": {
+      "center_gltf_m": [
+       -0.923976,
+       0.493,
+       0.71
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_rear_r": {
+      "center_gltf_m": [
+       -0.923976,
+       0.493,
+       -0.402
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "steer_fl": {
+      "center_gltf_m": [
+       0.795,
+       0.361,
+       1.53
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "center_gltf_m": [
+       0.795,
+       0.361,
+       1.53
+      ],
+      "parent": "steer_fl",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "center_gltf_m": [
+       -0.795,
+       0.361,
+       1.53
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "center_gltf_m": [
+       -0.795,
+       0.361,
+       1.53
+      ],
+      "parent": "steer_fr",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "center_gltf_m": [
+       0.795,
+       0.361,
+       -1.53
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "center_gltf_m": [
+       -0.795,
+       0.361,
+       -1.53
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "seat_driver": {
+      "center_gltf_m": [
+       0.346,
+       0.661,
+       -0.204
+      ],
+      "parent": "northcairn-1956"
+     },
+     "seat_passenger": {
+      "center_gltf_m": [
+       -0.346,
+       0.661,
+       -0.204
+      ],
+      "parent": "northcairn-1956"
+     },
+     "seat_rear_left": {
+      "center_gltf_m": [
+       0.336,
+       0.661,
+       -1.147
+      ],
+      "parent": "northcairn-1956"
+     },
+     "seat_rear_right": {
+      "center_gltf_m": [
+       -0.336,
+       0.661,
+       -1.147
+      ],
+      "parent": "northcairn-1956"
+     },
+     "steering_wheel": {
+      "center_gltf_m": [
+       0.34,
+       0.982,
+       0.476
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "hood": {
+      "center_gltf_m": [
+       0.0,
+       1.04,
+       0.73
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "trunk": {
+      "center_gltf_m": [
+       0.0,
+       1.003425,
+       -1.61
+      ],
+      "parent": "northcairn-1956",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "exit_left": {
+      "center_gltf_m": [
+       1.509,
+       0.0,
+       0.014
+      ],
+      "parent": "northcairn-1956"
+     },
+     "exit_right": {
+      "center_gltf_m": [
+       -1.509,
+       0.0,
+       0.014
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_head_l": {
+      "center_gltf_m": [
+       0.704,
+       0.856,
+       2.53
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_tail_l": {
+      "center_gltf_m": [
+       0.805,
+       0.939,
+       -2.594
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_brake_l": {
+      "center_gltf_m": [
+       0.805,
+       0.83,
+       -2.599
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_turn_front_l": {
+      "center_gltf_m": [
+       0.704,
+       0.561,
+       2.493
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_turn_rear_l": {
+      "center_gltf_m": [
+       0.888,
+       0.861,
+       -2.598
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_reverse_l": {
+      "center_gltf_m": [
+       0.48,
+       0.681,
+       -2.591
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_head_r": {
+      "center_gltf_m": [
+       -0.704,
+       0.856,
+       2.53
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_tail_r": {
+      "center_gltf_m": [
+       -0.805,
+       0.939,
+       -2.594
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_brake_r": {
+      "center_gltf_m": [
+       -0.805,
+       0.83,
+       -2.599
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_turn_front_r": {
+      "center_gltf_m": [
+       -0.704,
+       0.561,
+       2.493
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_turn_rear_r": {
+      "center_gltf_m": [
+       -0.888,
+       0.861,
+       -2.598
+      ],
+      "parent": "northcairn-1956"
+     },
+     "light_reverse_r": {
+      "center_gltf_m": [
+       -0.48,
+       0.681,
+       -2.591
+      ],
+      "parent": "northcairn-1956"
+     }
+    },
+    "door_preview_degrees": {
+     "door_front_l": -66,
+     "door_rear_l": -66,
+     "door_front_r": 66,
+     "door_rear_r": 66
+    },
+    "lamps": {
+     "light_head_l": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_l": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_head_r": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_r": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     }
+    }
+   }
+  ]
+ }
+}

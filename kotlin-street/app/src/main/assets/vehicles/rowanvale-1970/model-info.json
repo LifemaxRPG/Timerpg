@@ -1,0 +1,1374 @@
+{
+ "task": "C012",
+ "format": "glTF metres, +Y up, +Z forward, +X vehicle left",
+ "origin": "Ground below the axle midpoint",
+ "texel_m": 0.0388,
+ "vehicle": {
+  "name": "Rowanvale Sprint",
+  "key": "rowanvale-1970",
+  "years": [
+   1968,
+   1974
+  ],
+  "estimated_mass_kg": 1575,
+  "estimated_top_speed_kmh": 192,
+  "wheel_radius_m": 0.357,
+  "wheelbase_m": 2.86,
+  "track_m": 1.585,
+  "suggested_lod_m": {
+   "mid": 38,
+   "far": 95
+  },
+  "optional_livery_nodes": [
+   "stripe_hood",
+   "stripe_trunk"
+  ],
+  "collision_boxes": [
+   {
+    "center_gltf_m": [
+     0,
+     0.597,
+     0
+    ],
+    "size_gltf_m": [
+     1.6756199999999999,
+     0.634,
+     4.2252
+    ]
+   },
+   {
+    "center_gltf_m": [
+     0,
+     1.119,
+     -0.51
+    ],
+    "size_gltf_m": [
+     1.46376,
+     0.41000000000000003,
+     1.65
+    ]
+   }
+  ],
+  "paint": {
+   "preset_body_colours": [
+    "#a46a39",
+    "#805442",
+    "#395e63",
+    "#555762",
+    "#576746",
+    "#9a8d6d"
+   ],
+   "stock_secondary": "#e6d7b0",
+   "masks": {
+    "primary": "textures/rowanvale-1970-primary-mask.png",
+    "secondary": "textures/rowanvale-1970-secondary-mask.png"
+   },
+   "badge": {
+    "node": "badge_plate",
+    "material": "hardware_and_trim",
+    "atlas_texels": 256,
+    "center_texels": [
+     103,
+     216
+    ]
+   }
+  },
+  "lods": [
+   {
+    "file": "rowanvale-1970.glb",
+    "lod": "near",
+    "triangles": 2362,
+    "bounds_gltf_m": [
+     [
+      -1.043844,
+      1.043844
+     ],
+     [
+      0.0,
+      1.324
+     ],
+     [
+      -2.6795,
+      2.5855
+     ]
+    ],
+    "materials": [
+     "glass_vehicle",
+     "glow_lamps",
+     "hardware_and_trim",
+     "interior_and_rubber",
+     "paint_primary",
+     "paint_secondary"
+    ],
+    "nodes": {
+     "hood": {
+      "center_gltf_m": [
+       0.0,
+       0.983,
+       0.503
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "trunk": {
+      "center_gltf_m": [
+       0.0,
+       0.968015,
+       -1.51
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "door_front_l": {
+      "center_gltf_m": [
+       0.947592,
+       0.457,
+       0.493
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_front_r": {
+      "center_gltf_m": [
+       -0.947592,
+       0.457,
+       0.493
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "steer_fl": {
+      "center_gltf_m": [
+       0.7925,
+       0.357,
+       1.43
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "center_gltf_m": [
+       0.7925,
+       0.357,
+       1.43
+      ],
+      "parent": "steer_fl",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "center_gltf_m": [
+       -0.7925,
+       0.357,
+       1.43
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "center_gltf_m": [
+       -0.7925,
+       0.357,
+       1.43
+      ],
+      "parent": "steer_fr",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "center_gltf_m": [
+       0.7925,
+       0.357,
+       -1.43
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "center_gltf_m": [
+       -0.7925,
+       0.357,
+       -1.43
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "seat_driver": {
+      "center_gltf_m": [
+       0.346,
+       0.559,
+       -0.204
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "seat_passenger": {
+      "center_gltf_m": [
+       -0.346,
+       0.559,
+       -0.204
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "seat_rear_left": {
+      "center_gltf_m": [
+       0.336,
+       0.559,
+       -1.027
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "seat_rear_right": {
+      "center_gltf_m": [
+       -0.336,
+       0.559,
+       -1.027
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "steering_wheel": {
+      "center_gltf_m": [
+       0.34,
+       0.881,
+       0.209
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "exit_left": {
+      "center_gltf_m": [
+       1.533,
+       0.0,
+       0.014
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "exit_right": {
+      "center_gltf_m": [
+       -1.533,
+       0.0,
+       0.014
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_head_l": {
+      "center_gltf_m": [
+       0.645,
+       0.747,
+       2.476
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_tail_l": {
+      "center_gltf_m": [
+       0.705,
+       0.714,
+       -2.546
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_brake_l": {
+      "center_gltf_m": [
+       0.705,
+       0.597,
+       -2.55
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_turn_front_l": {
+      "center_gltf_m": [
+       0.645,
+       0.534,
+       2.457
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_turn_rear_l": {
+      "center_gltf_m": [
+       0.5076,
+       0.568,
+       -2.552
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_reverse_l": {
+      "center_gltf_m": [
+       0.3807,
+       0.591,
+       -2.556
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_head_r": {
+      "center_gltf_m": [
+       -0.645,
+       0.747,
+       2.476
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_tail_r": {
+      "center_gltf_m": [
+       -0.705,
+       0.714,
+       -2.546
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_brake_r": {
+      "center_gltf_m": [
+       -0.705,
+       0.597,
+       -2.55
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_turn_front_r": {
+      "center_gltf_m": [
+       -0.645,
+       0.534,
+       2.457
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_turn_rear_r": {
+      "center_gltf_m": [
+       -0.5076,
+       0.568,
+       -2.552
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_reverse_r": {
+      "center_gltf_m": [
+       -0.3807,
+       0.591,
+       -2.556
+      ],
+      "parent": "rowanvale-1970"
+     }
+    },
+    "door_preview_degrees": {
+     "door_front_l": -66,
+     "door_front_r": 66
+    },
+    "cargo_preview_degrees": {
+     "trunk": 59
+    },
+    "lamps": {
+     "light_head_l": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_l": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_head_r": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_r": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     }
+    }
+   },
+   {
+    "file": "rowanvale-1970-mid.glb",
+    "lod": "mid",
+    "triangles": 884,
+    "bounds_gltf_m": [
+     [
+      -1.0415,
+      1.0415
+     ],
+     [
+      0.0,
+      1.324
+     ],
+     [
+      -2.6795,
+      2.5855
+     ]
+    ],
+    "materials": [
+     "glass_vehicle",
+     "glow_lamps",
+     "hardware_and_trim",
+     "interior_and_rubber",
+     "paint_primary",
+     "paint_secondary"
+    ],
+    "nodes": {
+     "hood": {
+      "center_gltf_m": [
+       0.0,
+       0.983,
+       0.503
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "trunk": {
+      "center_gltf_m": [
+       0.0,
+       0.968015,
+       -1.51
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "door_front_l": {
+      "center_gltf_m": [
+       0.947592,
+       0.457,
+       0.493
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_front_r": {
+      "center_gltf_m": [
+       -0.947592,
+       0.457,
+       0.493
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "steer_fl": {
+      "center_gltf_m": [
+       0.7925,
+       0.357,
+       1.43
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "center_gltf_m": [
+       0.7925,
+       0.357,
+       1.43
+      ],
+      "parent": "steer_fl",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "center_gltf_m": [
+       -0.7925,
+       0.357,
+       1.43
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "center_gltf_m": [
+       -0.7925,
+       0.357,
+       1.43
+      ],
+      "parent": "steer_fr",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "center_gltf_m": [
+       0.7925,
+       0.357,
+       -1.43
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "center_gltf_m": [
+       -0.7925,
+       0.357,
+       -1.43
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "seat_driver": {
+      "center_gltf_m": [
+       0.346,
+       0.559,
+       -0.204
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "seat_passenger": {
+      "center_gltf_m": [
+       -0.346,
+       0.559,
+       -0.204
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "seat_rear_left": {
+      "center_gltf_m": [
+       0.336,
+       0.559,
+       -1.027
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "seat_rear_right": {
+      "center_gltf_m": [
+       -0.336,
+       0.559,
+       -1.027
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "steering_wheel": {
+      "center_gltf_m": [
+       0.34,
+       0.881,
+       0.209
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "exit_left": {
+      "center_gltf_m": [
+       1.533,
+       0.0,
+       0.014
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "exit_right": {
+      "center_gltf_m": [
+       -1.533,
+       0.0,
+       0.014
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_head_l": {
+      "center_gltf_m": [
+       0.645,
+       0.747,
+       2.476
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_tail_l": {
+      "center_gltf_m": [
+       0.705,
+       0.714,
+       -2.546
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_brake_l": {
+      "center_gltf_m": [
+       0.705,
+       0.597,
+       -2.55
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_turn_front_l": {
+      "center_gltf_m": [
+       0.645,
+       0.534,
+       2.457
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_turn_rear_l": {
+      "center_gltf_m": [
+       0.5076,
+       0.568,
+       -2.552
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_reverse_l": {
+      "center_gltf_m": [
+       0.3807,
+       0.591,
+       -2.556
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_head_r": {
+      "center_gltf_m": [
+       -0.645,
+       0.747,
+       2.476
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_tail_r": {
+      "center_gltf_m": [
+       -0.705,
+       0.714,
+       -2.546
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_brake_r": {
+      "center_gltf_m": [
+       -0.705,
+       0.597,
+       -2.55
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_turn_front_r": {
+      "center_gltf_m": [
+       -0.645,
+       0.534,
+       2.457
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_turn_rear_r": {
+      "center_gltf_m": [
+       -0.5076,
+       0.568,
+       -2.552
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_reverse_r": {
+      "center_gltf_m": [
+       -0.3807,
+       0.591,
+       -2.556
+      ],
+      "parent": "rowanvale-1970"
+     }
+    },
+    "door_preview_degrees": {
+     "door_front_l": -66,
+     "door_front_r": 66
+    },
+    "cargo_preview_degrees": {
+     "trunk": 59
+    },
+    "lamps": {
+     "light_head_l": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_l": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_head_r": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_r": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     }
+    }
+   },
+   {
+    "file": "rowanvale-1970-far.glb",
+    "lod": "far",
+    "triangles": 120,
+    "bounds_gltf_m": [
+     [
+      -0.963,
+      0.963
+     ],
+     [
+      0.0,
+      1.324
+     ],
+     [
+      -2.495,
+      2.421
+     ]
+    ],
+    "materials": [
+     "interior_and_rubber",
+     "paint_primary"
+    ],
+    "nodes": {
+     "door_front_l": {
+      "center_gltf_m": [
+       0.947592,
+       0.457,
+       0.493
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_front_r": {
+      "center_gltf_m": [
+       -0.947592,
+       0.457,
+       0.493
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "steer_fl": {
+      "center_gltf_m": [
+       0.7925,
+       0.357,
+       1.43
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "center_gltf_m": [
+       0.7925,
+       0.357,
+       1.43
+      ],
+      "parent": "steer_fl",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "center_gltf_m": [
+       -0.7925,
+       0.357,
+       1.43
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "center_gltf_m": [
+       -0.7925,
+       0.357,
+       1.43
+      ],
+      "parent": "steer_fr",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "center_gltf_m": [
+       0.7925,
+       0.357,
+       -1.43
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "center_gltf_m": [
+       -0.7925,
+       0.357,
+       -1.43
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "seat_driver": {
+      "center_gltf_m": [
+       0.346,
+       0.559,
+       -0.204
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "seat_passenger": {
+      "center_gltf_m": [
+       -0.346,
+       0.559,
+       -0.204
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "seat_rear_left": {
+      "center_gltf_m": [
+       0.336,
+       0.559,
+       -1.027
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "seat_rear_right": {
+      "center_gltf_m": [
+       -0.336,
+       0.559,
+       -1.027
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "steering_wheel": {
+      "center_gltf_m": [
+       0.34,
+       0.881,
+       0.209
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "hood": {
+      "center_gltf_m": [
+       0.0,
+       0.983,
+       0.503
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "trunk": {
+      "center_gltf_m": [
+       0.0,
+       0.968015,
+       -1.51
+      ],
+      "parent": "rowanvale-1970",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "exit_left": {
+      "center_gltf_m": [
+       1.533,
+       0.0,
+       0.014
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "exit_right": {
+      "center_gltf_m": [
+       -1.533,
+       0.0,
+       0.014
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_head_l": {
+      "center_gltf_m": [
+       0.645,
+       0.747,
+       2.476
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_tail_l": {
+      "center_gltf_m": [
+       0.705,
+       0.714,
+       -2.546
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_brake_l": {
+      "center_gltf_m": [
+       0.705,
+       0.597,
+       -2.55
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_turn_front_l": {
+      "center_gltf_m": [
+       0.645,
+       0.534,
+       2.457
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_turn_rear_l": {
+      "center_gltf_m": [
+       0.5076,
+       0.568,
+       -2.552
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_reverse_l": {
+      "center_gltf_m": [
+       0.3807,
+       0.591,
+       -2.556
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_head_r": {
+      "center_gltf_m": [
+       -0.645,
+       0.747,
+       2.476
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_tail_r": {
+      "center_gltf_m": [
+       -0.705,
+       0.714,
+       -2.546
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_brake_r": {
+      "center_gltf_m": [
+       -0.705,
+       0.597,
+       -2.55
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_turn_front_r": {
+      "center_gltf_m": [
+       -0.645,
+       0.534,
+       2.457
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_turn_rear_r": {
+      "center_gltf_m": [
+       -0.5076,
+       0.568,
+       -2.552
+      ],
+      "parent": "rowanvale-1970"
+     },
+     "light_reverse_r": {
+      "center_gltf_m": [
+       -0.3807,
+       0.591,
+       -2.556
+      ],
+      "parent": "rowanvale-1970"
+     }
+    },
+    "door_preview_degrees": {
+     "door_front_l": -66,
+     "door_front_r": 66
+    },
+    "cargo_preview_degrees": {
+     "trunk": 59
+    },
+    "lamps": {
+     "light_head_l": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_l": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_head_r": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_r": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     }
+    }
+   }
+  ]
+ }
+}

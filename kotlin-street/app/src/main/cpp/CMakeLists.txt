@@ -135,6 +135,9 @@ if (ANDROID)
         endif()
     endforeach()
 
+    # the game's physics (Jolt: cars now, more later), its own library (docs/VEHICLES.md)
+    add_subdirectory(physics)
+
     add_library(timerpg_llm SHARED llm_jni.cpp)
     target_link_libraries(timerpg_llm PRIVATE llm_core log)
     # Building the JNI library builds the kernels it loads at run time.

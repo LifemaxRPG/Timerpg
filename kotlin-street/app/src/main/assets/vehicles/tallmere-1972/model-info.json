@@ -1,0 +1,1359 @@
+{
+ "task": "C012",
+ "format": "glTF metres, +Y up, +Z forward, +X vehicle left",
+ "origin": "Ground below the axle midpoint",
+ "texel_m": 0.0388,
+ "vehicle": {
+  "name": "Tallmere 72 Pickup",
+  "key": "tallmere-1972",
+  "years": [
+   1968,
+   1976
+  ],
+  "estimated_mass_kg": 1780,
+  "estimated_top_speed_kmh": 153,
+  "wheel_radius_m": 0.391,
+  "wheelbase_m": 3.23,
+  "track_m": 1.648,
+  "suggested_lod_m": {
+   "mid": 38,
+   "far": 95
+  },
+  "optional_livery_nodes": [],
+  "collision_boxes": [
+   {
+    "center_gltf_m": [
+     0,
+     0.71,
+     0.83
+    ],
+    "size_gltf_m": [
+     1.75864,
+     0.82,
+     3.09
+    ]
+   },
+   {
+    "center_gltf_m": [
+     0,
+     1.482,
+     -0.042
+    ],
+    "size_gltf_m": [
+     1.59068,
+     0.674,
+     1.5
+    ]
+   },
+   {
+    "center_gltf_m": [
+     0,
+     0.486,
+     -1.748
+    ],
+    "size_gltf_m": [
+     1.75864,
+     0.398,
+     1.82
+    ]
+   },
+   {
+    "center_gltf_m": [
+     -0.919,
+     0.833,
+     -1.751
+    ],
+    "size_gltf_m": [
+     0.143,
+     0.44,
+     1.815
+    ]
+   },
+   {
+    "center_gltf_m": [
+     0.919,
+     0.833,
+     -1.751
+    ],
+    "size_gltf_m": [
+     0.143,
+     0.44,
+     1.815
+    ]
+   }
+  ],
+  "paint": {
+   "preset_body_colours": [
+    "#7c563b",
+    "#4c6151",
+    "#565a77",
+    "#ae9d76",
+    "#81514f"
+   ],
+   "stock_secondary": "#cfbf96",
+   "masks": {
+    "primary": "textures/tallmere-1972-primary-mask.png",
+    "secondary": "textures/tallmere-1972-secondary-mask.png"
+   },
+   "badge": {
+    "node": "badge_plate",
+    "material": "hardware_and_trim",
+    "atlas_texels": 256,
+    "center_texels": [
+     103,
+     216
+    ]
+   }
+  },
+  "lods": [
+   {
+    "file": "tallmere-1972.glb",
+    "lod": "near",
+    "triangles": 2300,
+    "bounds_gltf_m": [
+     [
+      -1.067344,
+      1.067344
+     ],
+     [
+      0.0,
+      1.85
+     ],
+     [
+      -2.8745,
+      2.5695
+     ]
+    ],
+    "materials": [
+     "glass_vehicle",
+     "glow_lamps",
+     "hardware_and_trim",
+     "interior_and_rubber",
+     "paint_primary",
+     "paint_secondary"
+    ],
+    "nodes": {
+     "hood": {
+      "center_gltf_m": [
+       0.0,
+       1.225,
+       0.762
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "door_front_l": {
+      "center_gltf_m": [
+       0.972192,
+       0.635,
+       0.73
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_front_r": {
+      "center_gltf_m": [
+       -0.972192,
+       0.635,
+       0.73
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "tailgate": {
+      "center_gltf_m": [
+       0.0,
+       0.665,
+       -2.661
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fl": {
+      "center_gltf_m": [
+       0.824,
+       0.391,
+       1.615
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "center_gltf_m": [
+       0.824,
+       0.391,
+       1.615
+      ],
+      "parent": "steer_fl",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "center_gltf_m": [
+       -0.824,
+       0.391,
+       1.615
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "center_gltf_m": [
+       -0.824,
+       0.391,
+       1.615
+      ],
+      "parent": "steer_fr",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "center_gltf_m": [
+       0.824,
+       0.391,
+       -1.615
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "center_gltf_m": [
+       -0.824,
+       0.391,
+       -1.615
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "seat_driver": {
+      "center_gltf_m": [
+       0.346,
+       0.803,
+       -0.078
+      ],
+      "parent": "tallmere-1972"
+     },
+     "seat_passenger": {
+      "center_gltf_m": [
+       -0.346,
+       0.803,
+       -0.078
+      ],
+      "parent": "tallmere-1972"
+     },
+     "steering_wheel": {
+      "center_gltf_m": [
+       0.34,
+       1.112,
+       0.456
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "exit_left": {
+      "center_gltf_m": [
+       1.558,
+       0.0,
+       0.014
+      ],
+      "parent": "tallmere-1972"
+     },
+     "exit_right": {
+      "center_gltf_m": [
+       -1.558,
+       0.0,
+       0.014
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_head_l": {
+      "center_gltf_m": [
+       0.71,
+       0.938,
+       2.46
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_tail_l": {
+      "center_gltf_m": [
+       0.861,
+       0.818,
+       -2.741
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_brake_l": {
+      "center_gltf_m": [
+       0.861,
+       0.701,
+       -2.745
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_turn_front_l": {
+      "center_gltf_m": [
+       0.71,
+       0.725,
+       2.441
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_turn_rear_l": {
+      "center_gltf_m": [
+       0.61992,
+       0.672,
+       -2.747
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_reverse_l": {
+      "center_gltf_m": [
+       0.46494,
+       0.695,
+       -2.751
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_head_r": {
+      "center_gltf_m": [
+       -0.71,
+       0.938,
+       2.46
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_tail_r": {
+      "center_gltf_m": [
+       -0.861,
+       0.818,
+       -2.741
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_brake_r": {
+      "center_gltf_m": [
+       -0.861,
+       0.701,
+       -2.745
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_turn_front_r": {
+      "center_gltf_m": [
+       -0.71,
+       0.725,
+       2.441
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_turn_rear_r": {
+      "center_gltf_m": [
+       -0.61992,
+       0.672,
+       -2.747
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_reverse_r": {
+      "center_gltf_m": [
+       -0.46494,
+       0.695,
+       -2.751
+      ],
+      "parent": "tallmere-1972"
+     }
+    },
+    "door_preview_degrees": {
+     "door_front_l": -66,
+     "door_front_r": 66
+    },
+    "cargo_preview_degrees": {
+     "tailgate": -88
+    },
+    "lamps": {
+     "light_head_l": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_l": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_head_r": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_r": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     }
+    }
+   },
+   {
+    "file": "tallmere-1972-mid.glb",
+    "lod": "mid",
+    "triangles": 878,
+    "bounds_gltf_m": [
+     [
+      -1.065,
+      1.065
+     ],
+     [
+      0.0,
+      1.85
+     ],
+     [
+      -2.8745,
+      2.5695
+     ]
+    ],
+    "materials": [
+     "glass_vehicle",
+     "glow_lamps",
+     "hardware_and_trim",
+     "interior_and_rubber",
+     "paint_primary",
+     "paint_secondary"
+    ],
+    "nodes": {
+     "hood": {
+      "center_gltf_m": [
+       0.0,
+       1.225,
+       0.762
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "door_front_l": {
+      "center_gltf_m": [
+       0.972192,
+       0.635,
+       0.73
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_front_r": {
+      "center_gltf_m": [
+       -0.972192,
+       0.635,
+       0.73
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "tailgate": {
+      "center_gltf_m": [
+       0.0,
+       0.665,
+       -2.661
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fl": {
+      "center_gltf_m": [
+       0.824,
+       0.391,
+       1.615
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "center_gltf_m": [
+       0.824,
+       0.391,
+       1.615
+      ],
+      "parent": "steer_fl",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "center_gltf_m": [
+       -0.824,
+       0.391,
+       1.615
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "center_gltf_m": [
+       -0.824,
+       0.391,
+       1.615
+      ],
+      "parent": "steer_fr",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "center_gltf_m": [
+       0.824,
+       0.391,
+       -1.615
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "center_gltf_m": [
+       -0.824,
+       0.391,
+       -1.615
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "seat_driver": {
+      "center_gltf_m": [
+       0.346,
+       0.803,
+       -0.078
+      ],
+      "parent": "tallmere-1972"
+     },
+     "seat_passenger": {
+      "center_gltf_m": [
+       -0.346,
+       0.803,
+       -0.078
+      ],
+      "parent": "tallmere-1972"
+     },
+     "steering_wheel": {
+      "center_gltf_m": [
+       0.34,
+       1.112,
+       0.456
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "exit_left": {
+      "center_gltf_m": [
+       1.558,
+       0.0,
+       0.014
+      ],
+      "parent": "tallmere-1972"
+     },
+     "exit_right": {
+      "center_gltf_m": [
+       -1.558,
+       0.0,
+       0.014
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_head_l": {
+      "center_gltf_m": [
+       0.71,
+       0.938,
+       2.46
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_tail_l": {
+      "center_gltf_m": [
+       0.861,
+       0.818,
+       -2.741
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_brake_l": {
+      "center_gltf_m": [
+       0.861,
+       0.701,
+       -2.745
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_turn_front_l": {
+      "center_gltf_m": [
+       0.71,
+       0.725,
+       2.441
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_turn_rear_l": {
+      "center_gltf_m": [
+       0.61992,
+       0.672,
+       -2.747
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_reverse_l": {
+      "center_gltf_m": [
+       0.46494,
+       0.695,
+       -2.751
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_head_r": {
+      "center_gltf_m": [
+       -0.71,
+       0.938,
+       2.46
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_tail_r": {
+      "center_gltf_m": [
+       -0.861,
+       0.818,
+       -2.741
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_brake_r": {
+      "center_gltf_m": [
+       -0.861,
+       0.701,
+       -2.745
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_turn_front_r": {
+      "center_gltf_m": [
+       -0.71,
+       0.725,
+       2.441
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_turn_rear_r": {
+      "center_gltf_m": [
+       -0.61992,
+       0.672,
+       -2.747
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_reverse_r": {
+      "center_gltf_m": [
+       -0.46494,
+       0.695,
+       -2.751
+      ],
+      "parent": "tallmere-1972"
+     }
+    },
+    "door_preview_degrees": {
+     "door_front_l": -66,
+     "door_front_r": 66
+    },
+    "cargo_preview_degrees": {
+     "tailgate": -88
+    },
+    "lamps": {
+     "light_head_l": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_l": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_head_r": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_r": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     }
+    }
+   },
+   {
+    "file": "tallmere-1972-far.glb",
+    "lod": "far",
+    "triangles": 134,
+    "bounds_gltf_m": [
+     [
+      -0.988,
+      0.988
+     ],
+     [
+      0.0,
+      1.85
+     ],
+     [
+      -2.69,
+      2.405
+     ]
+    ],
+    "materials": [
+     "interior_and_rubber",
+     "paint_primary",
+     "paint_secondary"
+    ],
+    "nodes": {
+     "door_front_l": {
+      "center_gltf_m": [
+       0.972192,
+       0.635,
+       0.73
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_front_r": {
+      "center_gltf_m": [
+       -0.972192,
+       0.635,
+       0.73
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "steer_fl": {
+      "center_gltf_m": [
+       0.824,
+       0.391,
+       1.615
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "center_gltf_m": [
+       0.824,
+       0.391,
+       1.615
+      ],
+      "parent": "steer_fl",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "center_gltf_m": [
+       -0.824,
+       0.391,
+       1.615
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "center_gltf_m": [
+       -0.824,
+       0.391,
+       1.615
+      ],
+      "parent": "steer_fr",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "center_gltf_m": [
+       0.824,
+       0.391,
+       -1.615
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "center_gltf_m": [
+       -0.824,
+       0.391,
+       -1.615
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "seat_driver": {
+      "center_gltf_m": [
+       0.346,
+       0.803,
+       -0.078
+      ],
+      "parent": "tallmere-1972"
+     },
+     "seat_passenger": {
+      "center_gltf_m": [
+       -0.346,
+       0.803,
+       -0.078
+      ],
+      "parent": "tallmere-1972"
+     },
+     "steering_wheel": {
+      "center_gltf_m": [
+       0.34,
+       1.112,
+       0.456
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "hood": {
+      "center_gltf_m": [
+       0.0,
+       1.225,
+       0.762
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "tailgate": {
+      "center_gltf_m": [
+       0.0,
+       0.665,
+       -2.661
+      ],
+      "parent": "tallmere-1972",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "exit_left": {
+      "center_gltf_m": [
+       1.558,
+       0.0,
+       0.014
+      ],
+      "parent": "tallmere-1972"
+     },
+     "exit_right": {
+      "center_gltf_m": [
+       -1.558,
+       0.0,
+       0.014
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_head_l": {
+      "center_gltf_m": [
+       0.71,
+       0.938,
+       2.46
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_tail_l": {
+      "center_gltf_m": [
+       0.861,
+       0.818,
+       -2.741
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_brake_l": {
+      "center_gltf_m": [
+       0.861,
+       0.701,
+       -2.745
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_turn_front_l": {
+      "center_gltf_m": [
+       0.71,
+       0.725,
+       2.441
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_turn_rear_l": {
+      "center_gltf_m": [
+       0.61992,
+       0.672,
+       -2.747
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_reverse_l": {
+      "center_gltf_m": [
+       0.46494,
+       0.695,
+       -2.751
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_head_r": {
+      "center_gltf_m": [
+       -0.71,
+       0.938,
+       2.46
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_tail_r": {
+      "center_gltf_m": [
+       -0.861,
+       0.818,
+       -2.741
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_brake_r": {
+      "center_gltf_m": [
+       -0.861,
+       0.701,
+       -2.745
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_turn_front_r": {
+      "center_gltf_m": [
+       -0.71,
+       0.725,
+       2.441
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_turn_rear_r": {
+      "center_gltf_m": [
+       -0.61992,
+       0.672,
+       -2.747
+      ],
+      "parent": "tallmere-1972"
+     },
+     "light_reverse_r": {
+      "center_gltf_m": [
+       -0.46494,
+       0.695,
+       -2.751
+      ],
+      "parent": "tallmere-1972"
+     }
+    },
+    "door_preview_degrees": {
+     "door_front_l": -66,
+     "door_front_r": 66
+    },
+    "cargo_preview_degrees": {
+     "tailgate": -88
+    },
+    "lamps": {
+     "light_head_l": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_l": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_l": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_head_r": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_turn_front_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_turn_rear_r": {
+      "role": "turn",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_reverse_r": {
+      "role": "reverse",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     }
+    }
+   }
+  ]
+ }
+}

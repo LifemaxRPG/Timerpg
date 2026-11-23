@@ -1,0 +1,1099 @@
+{
+ "task": "C011",
+ "format": "glTF metres, +Y up, +Z forward, +X vehicle left",
+ "origin": "Ground below the axle midpoint",
+ "texel_m": 0.0388,
+ "vehicle": {
+  "name": "Alderwick Six",
+  "key": "alderwick-1928",
+  "years": [
+   1927,
+   1930
+  ],
+  "estimated_mass_kg": 1280,
+  "estimated_top_speed_kmh": 103,
+  "wheel_radius_m": 0.388,
+  "wheelbase_m": 2.78,
+  "track_m": 1.41,
+  "suggested_lod_m": {
+   "mid": 38,
+   "far": 95
+  },
+  "collision_boxes": [
+   {
+    "center_gltf_m": [
+     0,
+     0.7175,
+     0
+    ],
+    "size_gltf_m": [
+     1.1831999999999998,
+     0.835,
+     3.7967999999999993
+    ]
+   },
+   {
+    "center_gltf_m": [
+     0,
+     1.5125,
+     -0.51
+    ],
+    "size_gltf_m": [
+     1.05792,
+     0.7549999999999999,
+     1.65
+    ]
+   }
+  ],
+  "paint": {
+   "preset_body_colours": [
+    "#353d51",
+    "#2e4138",
+    "#484754",
+    "#5a3a34",
+    "#323333"
+   ],
+   "stock_secondary": "#343934",
+   "masks": {
+    "primary": "textures/alderwick-1928-primary-mask.png",
+    "secondary": "textures/alderwick-1928-secondary-mask.png"
+   },
+   "badge": {
+    "node": "badge_plate",
+    "material": "hardware_and_trim",
+    "atlas_texels": 256,
+    "center_texels": [
+     103,
+     216
+    ]
+   }
+  },
+  "lods": [
+   {
+    "file": "alderwick-1928.glb",
+    "lod": "near",
+    "triangles": 2896,
+    "bounds_gltf_m": [
+     [
+      -0.9195,
+      0.9195
+     ],
+     [
+      0.0,
+      1.89
+     ],
+     [
+      -2.2375,
+      2.145
+     ]
+    ],
+    "materials": [
+     "glass_vehicle",
+     "glow_lamps",
+     "hardware_and_trim",
+     "interior_and_rubber",
+     "paint_primary",
+     "paint_secondary"
+    ],
+    "nodes": {
+     "hood": {
+      "center_gltf_m": [
+       0.0,
+       1.19,
+       0.61
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "door_front_l": {
+      "center_gltf_m": [
+       0.684864,
+       0.633,
+       0.57
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_rear_l": {
+      "center_gltf_m": [
+       0.684864,
+       0.633,
+       -0.47
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_front_r": {
+      "center_gltf_m": [
+       -0.684864,
+       0.633,
+       0.57
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_rear_r": {
+      "center_gltf_m": [
+       -0.684864,
+       0.633,
+       -0.47
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "steer_fl": {
+      "center_gltf_m": [
+       0.705,
+       0.388,
+       1.39
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "center_gltf_m": [
+       0.705,
+       0.388,
+       1.39
+      ],
+      "parent": "steer_fl",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "center_gltf_m": [
+       -0.705,
+       0.388,
+       1.39
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "center_gltf_m": [
+       -0.705,
+       0.388,
+       1.39
+      ],
+      "parent": "steer_fr",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "center_gltf_m": [
+       0.705,
+       0.388,
+       -1.39
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "center_gltf_m": [
+       -0.705,
+       0.388,
+       -1.39
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "seat_driver": {
+      "center_gltf_m": [
+       0.346,
+       0.801,
+       -0.204
+      ],
+      "parent": "alderwick-1928"
+     },
+     "seat_passenger": {
+      "center_gltf_m": [
+       -0.346,
+       0.801,
+       -0.204
+      ],
+      "parent": "alderwick-1928"
+     },
+     "seat_rear_left": {
+      "center_gltf_m": [
+       0.336,
+       0.801,
+       -1.147
+      ],
+      "parent": "alderwick-1928"
+     },
+     "seat_rear_right": {
+      "center_gltf_m": [
+       -0.336,
+       0.801,
+       -1.147
+      ],
+      "parent": "alderwick-1928"
+     },
+     "steering_wheel": {
+      "center_gltf_m": [
+       0.34,
+       1.102,
+       0.286
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "exit_left": {
+      "center_gltf_m": [
+       1.266,
+       0.0,
+       0.014
+      ],
+      "parent": "alderwick-1928"
+     },
+     "exit_right": {
+      "center_gltf_m": [
+       -1.266,
+       0.0,
+       0.014
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_head_l": {
+      "center_gltf_m": [
+       0.609,
+       0.93,
+       2.04
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_tail_l": {
+      "center_gltf_m": [
+       0.578,
+       0.734,
+       -2.035
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_brake_l": {
+      "center_gltf_m": [
+       0.578,
+       0.625,
+       -2.04
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_head_r": {
+      "center_gltf_m": [
+       -0.609,
+       0.93,
+       2.04
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_tail_r": {
+      "center_gltf_m": [
+       -0.578,
+       0.734,
+       -2.035
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_brake_r": {
+      "center_gltf_m": [
+       -0.578,
+       0.625,
+       -2.04
+      ],
+      "parent": "alderwick-1928"
+     }
+    },
+    "door_preview_degrees": {
+     "door_front_l": -66,
+     "door_rear_l": -66,
+     "door_front_r": 66,
+     "door_rear_r": 66
+    },
+    "lamps": {
+     "light_head_l": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_head_r": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     }
+    }
+   },
+   {
+    "file": "alderwick-1928-mid.glb",
+    "lod": "mid",
+    "triangles": 898,
+    "bounds_gltf_m": [
+     [
+      -0.9155,
+      0.9155
+     ],
+     [
+      0.0,
+      1.89
+     ],
+     [
+      -2.2015,
+      2.145
+     ]
+    ],
+    "materials": [
+     "glass_vehicle",
+     "glow_lamps",
+     "hardware_and_trim",
+     "interior_and_rubber",
+     "paint_primary",
+     "paint_secondary"
+    ],
+    "nodes": {
+     "hood": {
+      "center_gltf_m": [
+       0.0,
+       1.19,
+       0.61
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "door_front_l": {
+      "center_gltf_m": [
+       0.684864,
+       0.633,
+       0.57
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_rear_l": {
+      "center_gltf_m": [
+       0.684864,
+       0.633,
+       -0.47
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_front_r": {
+      "center_gltf_m": [
+       -0.684864,
+       0.633,
+       0.57
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_rear_r": {
+      "center_gltf_m": [
+       -0.684864,
+       0.633,
+       -0.47
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "steer_fl": {
+      "center_gltf_m": [
+       0.705,
+       0.388,
+       1.39
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "center_gltf_m": [
+       0.705,
+       0.388,
+       1.39
+      ],
+      "parent": "steer_fl",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "center_gltf_m": [
+       -0.705,
+       0.388,
+       1.39
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "center_gltf_m": [
+       -0.705,
+       0.388,
+       1.39
+      ],
+      "parent": "steer_fr",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "center_gltf_m": [
+       0.705,
+       0.388,
+       -1.39
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "center_gltf_m": [
+       -0.705,
+       0.388,
+       -1.39
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "seat_driver": {
+      "center_gltf_m": [
+       0.346,
+       0.801,
+       -0.204
+      ],
+      "parent": "alderwick-1928"
+     },
+     "seat_passenger": {
+      "center_gltf_m": [
+       -0.346,
+       0.801,
+       -0.204
+      ],
+      "parent": "alderwick-1928"
+     },
+     "seat_rear_left": {
+      "center_gltf_m": [
+       0.336,
+       0.801,
+       -1.147
+      ],
+      "parent": "alderwick-1928"
+     },
+     "seat_rear_right": {
+      "center_gltf_m": [
+       -0.336,
+       0.801,
+       -1.147
+      ],
+      "parent": "alderwick-1928"
+     },
+     "steering_wheel": {
+      "center_gltf_m": [
+       0.34,
+       1.102,
+       0.286
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "exit_left": {
+      "center_gltf_m": [
+       1.266,
+       0.0,
+       0.014
+      ],
+      "parent": "alderwick-1928"
+     },
+     "exit_right": {
+      "center_gltf_m": [
+       -1.266,
+       0.0,
+       0.014
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_head_l": {
+      "center_gltf_m": [
+       0.609,
+       0.93,
+       2.04
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_tail_l": {
+      "center_gltf_m": [
+       0.578,
+       0.734,
+       -2.035
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_brake_l": {
+      "center_gltf_m": [
+       0.578,
+       0.625,
+       -2.04
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_head_r": {
+      "center_gltf_m": [
+       -0.609,
+       0.93,
+       2.04
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_tail_r": {
+      "center_gltf_m": [
+       -0.578,
+       0.734,
+       -2.035
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_brake_r": {
+      "center_gltf_m": [
+       -0.578,
+       0.625,
+       -2.04
+      ],
+      "parent": "alderwick-1928"
+     }
+    },
+    "door_preview_degrees": {
+     "door_front_l": -66,
+     "door_rear_l": -66,
+     "door_front_r": 66,
+     "door_rear_r": 66
+    },
+    "lamps": {
+     "light_head_l": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_head_r": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     }
+    }
+   },
+   {
+    "file": "alderwick-1928-far.glb",
+    "lod": "far",
+    "triangles": 140,
+    "bounds_gltf_m": [
+     [
+      -0.7775,
+      0.7775
+     ],
+     [
+      0.0,
+      1.89
+     ],
+     [
+      -2.1935,
+      1.99
+     ]
+    ],
+    "materials": [
+     "interior_and_rubber",
+     "paint_primary"
+    ],
+    "nodes": {
+     "door_front_l": {
+      "center_gltf_m": [
+       0.684864,
+       0.633,
+       0.57
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_rear_l": {
+      "center_gltf_m": [
+       0.684864,
+       0.633,
+       -0.47
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_front_r": {
+      "center_gltf_m": [
+       -0.684864,
+       0.633,
+       0.57
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_rear_r": {
+      "center_gltf_m": [
+       -0.684864,
+       0.633,
+       -0.47
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "steer_fl": {
+      "center_gltf_m": [
+       0.705,
+       0.388,
+       1.39
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "center_gltf_m": [
+       0.705,
+       0.388,
+       1.39
+      ],
+      "parent": "steer_fl",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "center_gltf_m": [
+       -0.705,
+       0.388,
+       1.39
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "center_gltf_m": [
+       -0.705,
+       0.388,
+       1.39
+      ],
+      "parent": "steer_fr",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "center_gltf_m": [
+       0.705,
+       0.388,
+       -1.39
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "center_gltf_m": [
+       -0.705,
+       0.388,
+       -1.39
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "seat_driver": {
+      "center_gltf_m": [
+       0.346,
+       0.801,
+       -0.204
+      ],
+      "parent": "alderwick-1928"
+     },
+     "seat_passenger": {
+      "center_gltf_m": [
+       -0.346,
+       0.801,
+       -0.204
+      ],
+      "parent": "alderwick-1928"
+     },
+     "seat_rear_left": {
+      "center_gltf_m": [
+       0.336,
+       0.801,
+       -1.147
+      ],
+      "parent": "alderwick-1928"
+     },
+     "seat_rear_right": {
+      "center_gltf_m": [
+       -0.336,
+       0.801,
+       -1.147
+      ],
+      "parent": "alderwick-1928"
+     },
+     "steering_wheel": {
+      "center_gltf_m": [
+       0.34,
+       1.102,
+       0.286
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "hood": {
+      "center_gltf_m": [
+       0.0,
+       1.19,
+       0.61
+      ],
+      "parent": "alderwick-1928",
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "exit_left": {
+      "center_gltf_m": [
+       1.266,
+       0.0,
+       0.014
+      ],
+      "parent": "alderwick-1928"
+     },
+     "exit_right": {
+      "center_gltf_m": [
+       -1.266,
+       0.0,
+       0.014
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_head_l": {
+      "center_gltf_m": [
+       0.609,
+       0.93,
+       2.04
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_tail_l": {
+      "center_gltf_m": [
+       0.578,
+       0.734,
+       -2.035
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_brake_l": {
+      "center_gltf_m": [
+       0.578,
+       0.625,
+       -2.04
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_head_r": {
+      "center_gltf_m": [
+       -0.609,
+       0.93,
+       2.04
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_tail_r": {
+      "center_gltf_m": [
+       -0.578,
+       0.734,
+       -2.035
+      ],
+      "parent": "alderwick-1928"
+     },
+     "light_brake_r": {
+      "center_gltf_m": [
+       -0.578,
+       0.625,
+       -2.04
+      ],
+      "parent": "alderwick-1928"
+     }
+    },
+    "door_preview_degrees": {
+     "door_front_l": -66,
+     "door_rear_l": -66,
+     "door_front_r": 66,
+     "door_rear_r": 66
+    },
+    "lamps": {
+     "light_head_l": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_head_r": {
+      "role": "head",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       1
+      ]
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "lens_material": "glow_lamps",
+      "facing_gltf": [
+       0,
+       0,
+       -1
+      ]
+     }
+    }
+   }
+  ]
+ }
+}

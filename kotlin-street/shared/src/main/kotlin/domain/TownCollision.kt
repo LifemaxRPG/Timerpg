@@ -167,6 +167,25 @@ class TownCollision private constructor(
     }
 
     /**
+     * Each shape touching the rectangle ([x0], [z0]) to ([x1], [z1]): [f] gets its index (an added shape's, past [size],
+     * stands only until the next [setExtra]), kind, owner, whether it is a circle, and its six numbers in [tmp] (as
+     * [shape]). For the physics' streamed colliders (docs/VEHICLES.md); one thread at a time, as the other queries.
+     */
+    fun forEachNear(x0: Float, z0: Float, x1: Float, z1: Float, tmp: FloatArray, f: (index: Int, kind: SolidKind, owner: String?, circle: Boolean, data: FloatArray) -> Unit) {
+        forNear(x0, z0, x1, z1) { i ->
+            if (i >= size) {
+                val ex = q!!; val k = i - size
+                System.arraycopy(ex.data, k * 6, tmp, 0, 6)
+                f(i, ex.kinds[k], ex.owners[k], ex.type[k].toInt() == 1, tmp)
+            } else {
+                System.arraycopy(data, i * 6, tmp, 0, 6)
+                f(i, kinds[i], owners[i], type[i].toInt() == 1, tmp)
+            }
+            false
+        }
+    }
+
+    /**
      * The signed distance from ([x], [z]) to shape [i]'s edge (negative inside), and in [push] (if given) the unit
      * direction out of it from there.
      */
