@@ -870,6 +870,10 @@ mountains as well.
 - **Mountain villages.** The small-town placer allows alpine hamlets and villages in high valleys and on passes:
   terraced pastures, a chapel, a guesthouse, and a switchback road or a cog railway. Mining towns appear where the
   geology says ore.
+- **The capital stays on gentle land** (the owner's decision, 2026-11-23). Its region is relatively flat but not flat:
+  rolling hills, a few steeper knolls, and country roads that wind round the hills rather than running dead straight.
+  No great range is near it; the grand mountains are a different region you travel to. Later, gentle grades inside
+  the town itself (streets that climb a little) are a possible town-plan change. They are not part of W5b.
 - **Seen from far.** Great ranges dominate the skyline from 100+ km (the sea-view and impostor rules in "Seeing land
   from the sea" apply on land too), and their snow catches the dawn and dusk light.
 - **Rendering:**
