@@ -25,6 +25,8 @@ object TownQuality {
      * RGBA8, every pixel as drawn): 0 makes every picture ASTC (near: the blocks of three or more colours approximated).
      */
     @Volatile var astcExact = 0.0
+    /** Masks in only the channels they use (R8, RG8, none at all; the same pixels): off, every mask RGBA8 as before (to measure). */
+    @Volatile var maskFormats = true
     /**
      * Where the encoded ASTC pictures are kept from start to start (the app's cache folder; null: none, every picture
      * encoded at every start). Keyed by the pictures' content, so a changed picture is simply encoded again.

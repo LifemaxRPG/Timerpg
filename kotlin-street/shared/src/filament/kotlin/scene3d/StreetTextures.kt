@@ -267,6 +267,7 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
          * (reads as the plain black mask).
          */
         fun maskFormat(px: IntArray): Fmt? {
+            if (!TownQuality.maskFormats) return Fmt.RGBA8
             var g = false; var b = false; var r = false
             for (c in px) {
                 val a = c ushr 24

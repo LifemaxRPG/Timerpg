@@ -941,7 +941,7 @@ internal object FilamentModels {
          */
         private val maskFmt: StreetTextures.Fmt by lazy(LazyThreadSafetyMode.NONE) {
             val signs = seeds.size - 1
-            if (glowOwn != null || (0 until glowRuns.size step 3).any { glowRuns[it + 2] == signs }) StreetTextures.Fmt.RGBA8 else StreetTextures.Fmt.RG8
+            if (!TownQuality.maskFormats || glowOwn != null || (0 until glowRuns.size step 3).any { glowRuns[it + 2] == signs }) StreetTextures.Fmt.RGBA8 else StreetTextures.Fmt.RG8
         }
 
         init {

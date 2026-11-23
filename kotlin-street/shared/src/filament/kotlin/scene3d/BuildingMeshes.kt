@@ -557,7 +557,7 @@ internal class BuildingMeshes(
          * The mask's channels: red and green only (half the bytes, the same on screen) unless the emissive picture lights
          * a pixel, which marks it blue (a lit display in its own colours).
          */
-        private val maskFmt: StreetTextures.Fmt get() = if (egE.any { it.toInt() != 0 }) StreetTextures.Fmt.RGBA8 else StreetTextures.Fmt.RG8
+        private val maskFmt: StreetTextures.Fmt get() = if (!TownQuality.maskFormats || egE.any { it.toInt() != 0 }) StreetTextures.Fmt.RGBA8 else StreetTextures.Fmt.RG8
 
         init {
             val art = StreetTextures.argb(sb.front)
