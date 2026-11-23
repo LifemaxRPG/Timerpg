@@ -14,7 +14,7 @@ import kotlin.math.floor
  * app needs (by default height, flags, biome, flow, landmass, crop and snowline: [DEFAULT_GRIDS]; the monthly climate stays on disk until
  * something asks for it) and every vector and fact of the JSON header: places with the hubs' pins, roads, rail lines,
  * rivers with their true paths (hub ends on their pins, the capital's river bent through its river pins: paths.ts), sea
- * routes, lakes, and (version 3) the natural wonders with their parameters. Engine-agnostic: no Filament, no Android.
+ * routes, lakes, (version 3) the natural wonders with their parameters, and (version 4) Highways v2 ([highways]). Engine-agnostic: no Filament, no Android.
  *
  * Positions are in atlas cell units (x east, wrapping at [W]; z south) as the TypeScript keeps them; [Planet] turns them
  * into metres ([WorldPos]).
@@ -35,6 +35,9 @@ class WorldSkeleton private constructor(
     val gridBytes: Long,
     /** An estimate of what the vectors and facts take on the heap (twice their JSON's bytes). */
     val factsBytes: Long,
+    /** Highways v2 (version 4; null in older skeletons): every road segment's life by year, the expressways, the
+     * interchanges, the route numbers, the roadside. */
+    val highways: WorldHighways? = null,
 ) {
     class Pin(val kind: String, val name: String, val x: Double, val z: Double, val ox: Int, val oz: Int, val dxM: Double, val dzM: Double)
     /** A hub's authored plan's frame: its size and centre in tiles, its farm ring (tiles) and the tile's metres. */
@@ -183,7 +186,8 @@ class WorldSkeleton private constructor(
                 Wonder(o.getString("id"), o.getString("kind"), o.getString("tier"), o.getString("name"), o.getDouble("x"), o.getDouble("z"), o.optInt("mass"),
                     o.optDouble("extentKm", 0.0), o.optString("fame"), o.optJSONObject("params")?.let { paramsOf(it) } ?: emptyMap())
             } } ?: emptyList()
-            return WorldSkeleton(json.getString("seed"), version, places, roads, rail, rivers, sea, wonders, grids, pts, held, len * 2L)
+            val highways = json.optJSONObject("highways")?.let { WorldHighways.parse(it) }
+            return WorldSkeleton(json.getString("seed"), version, places, roads, rail, rivers, sea, wonders, grids, pts, held, len * 2L, highways)
         }
 
         private fun valueOf(v: Any?): Any = when (v) {

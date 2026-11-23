@@ -1,5 +1,6 @@
 import { makeBiomes, makeClimate, makeCrops, type Climate } from './climate';
 import { blur, N } from './grid';
+import { makeHighways, type Highways } from './highways';
 import { growthFacts, makeDams, type Dam, type GrowthFacts } from './history';
 import { CAPITAL_NAME, HUB_COUNT } from './hubs';
 import { RIVER_FLOW, makeHydro, type Hydro } from './hydro';
@@ -37,7 +38,11 @@ export interface World {
   places: Place[];
   byId: Map<string, Place>;
   byName: Map<string, Place>;
+  /** The old network (highways and county roads, roads.ts and winding.ts). */
   roads: Road[];
+  /** Highways v2 (highways.ts): every segment's life by year, the expressways, interchanges, numbers, the roadside. */
+  highways: Highways;
+  /** The road graph over the old roads and the expressways (and their connectors). */
   roadGraph: RoadGraph;
   rail: RailNet;
   /** The skeleton's network for src/world/rail.ts (history, stations, timetables, planRoute). */
@@ -92,6 +97,8 @@ export function generateWorld(seed: string, opts: { hubs?: number } = {}): World
   const places = [...hubs, ...towns, ...hamlets];
   const wonders = makeWonders(terrain, climate, hydro, biome, weather, fields, places, reg);
   lap('wonders');
+  const highways = makeHighways(terrain, hydro, places, rd.roads);
+  lap('highways');
   const byId = new Map(places.map((p) => [p.id, p]));
   const byName = new Map(places.map((p) => [p.name.toLowerCase(), p]));
   const railWorld: RailWorld = { seed };
@@ -99,12 +106,12 @@ export function generateWorld(seed: string, opts: { hubs?: number } = {}): World
   lap('rail');
   const sea = makeSea(terrain, places, hubs); lap('sea');
   const dams = makeDams(terrain, hydro, fields, places);
-  const roadGraph = new RoadGraph(rd.roads, places);
+  const roadGraph = new RoadGraph([...rd.roads, ...highways.links], places);
   railWorld.graph = skeletonRail(seed, rail, places, roadGraph);
-  const growth = new Map(places.map((p) => [p.id, growthFacts(p, rd.roads, rail.links, hubs, dams)]));
+  const growth = new Map(places.map((p) => [p.id, growthFacts(p, rd.roads, rail.links, hubs, dams, highways.towns.get(p.id))]));
   const tags = new Map(places.map((p) => [p.id, climateTags(climate, weather, p.cell, p.x, p.z)]));
   lap('history');
-  return { seed, terrain, climate, hydro, biome, crop, weather, fields, hubs, towns, hamlets, wonders, places, byId, byName, roads: rd.roads, roadGraph, rail, railWorld, sea, dams, growth, tags, startMass: hp.startMass, winding, timing };
+  return { seed, terrain, climate, hydro, biome, crop, weather, fields, hubs, towns, hamlets, wonders, places, byId, byName, roads: rd.roads, highways, roadGraph, rail, railWorld, sea, dams, growth, tags, startMass: hp.startMass, winding, timing };
 }
 
 const cache = new Map<string, World>();

@@ -62,6 +62,51 @@ class WorldSkeletonTest {
         }
     }
 
+    @Test fun highwaysV2AreTheBakes() {
+        // version 4: every segment's life by year (each kind's state in five years and its path), the interchanges with
+        // their exits, the route numbers, the bypassed towns
+        val f = fixture.getJSONObject("highways")
+        val hw = sk.highways ?: error("no highways in the skeleton")
+        val c = f.getJSONObject("counts")
+        assertEquals(c.getInt("segs"), hw.segs.size); assertEquals(c.getInt("interchanges"), hw.interchanges.size)
+        assertEquals(c.getInt("routes"), hw.routes.size); assertEquals(c.getInt("sites"), hw.sites.size); assertEquals(c.getInt("towns"), hw.towns.size)
+        val segs = arr(f, "segs")
+        assertTrue(segs.length() >= 8)
+        for (i in 0 until segs.length()) {
+            val e = segs.getJSONObject(i); val s = hw.seg(e.getString("id")) ?: error("no segment ${e.getString("id")}")
+            assertEquals(e.getString("kind"), s.kind); assertEquals(e.getInt("built"), s.built)
+            val p = arr(e, "path"); val got = sk.points(s.path)
+            assertEquals(p.length() * 2, got.size)
+            for (k in 0 until p.length()) { assertEquals(p.getJSONArray(k).getDouble(0), got[k * 2], 1e-12); assertEquals(p.getJSONArray(k).getDouble(1), got[k * 2 + 1], 1e-12) }
+            val at = e.getJSONObject("at")
+            for (y in at.keys()) {
+                val st = s.at(y.toInt())
+                if (at.isNull(y)) { assertEquals("${s.id} $y", null, st); continue }
+                val q = at.getJSONObject(y)
+                assertEquals("${s.id} $y", q.getString("cls"), st!!.cls); assertEquals("${s.id} $y", q.getInt("lanes"), st.lanes)
+                assertEquals("${s.id} $y", if (q.isNull("number")) null else q.getString("number"), st.number)
+                if (q.has("surface")) { assertEquals(q.getString("surface"), st.surface); assertEquals(q.getBoolean("divided"), st.divided) }
+            }
+        }
+        assertTrue(hw.segs.any { it.expressway && it.lanes.values.size > 1 })
+        val ics = arr(f, "interchanges")
+        for (i in 0 until ics.length()) {
+            val e = ics.getJSONObject(i); val q = hw.interchanges.first { it.id == e.getString("id") }
+            assertEquals(e.getString("kind"), q.kind); assertEquals(e.getString("type"), q.type); assertEquals(e.getInt("year"), q.year)
+            assertEquals(e.getDouble("x"), q.x, 0.0); assertEquals(e.getDouble("z"), q.z, 0.0)
+            val ex = e.getJSONObject("exits"); assertEquals(ex.length(), q.exits.size); for (k in ex.keys()) assertEquals(ex.getString(k), q.exits[k])
+        }
+        val routes = arr(f, "routes")
+        for (i in 0 until routes.length()) {
+            val e = routes.getJSONObject(i); val r = hw.route(e.getString("id")) ?: error("no route ${e.getString("id")}")
+            assertEquals(e.getString("designation"), r.designation); assertEquals(e.getString("dir"), r.dir); assertEquals(e.getInt("from"), r.from); assertEquals(e.getString("kind"), r.kind)
+        }
+        assertEquals(f.getInt("bypassed"), hw.towns.count { it.bypassYear != null })
+        // the far view draws the expressways as their own ribbons in 1990, none in 1930
+        assertTrue(WorldFarPlan(sk, site.origin.origin, site.frame, 1990).lines.any { it.kind == WorldFarPlan.EXPRESSWAY })
+        assertTrue(WorldFarPlan(sk, site.origin.origin, site.frame, 1930).lines.none { it.kind == WorldFarPlan.EXPRESSWAY })
+    }
+
     @Test fun theReaderGivesTheBakesFacts() {
         assertEquals(fixture.getString("seed"), sk.seed)
         assertEquals(fixture.getInt("version"), sk.version)

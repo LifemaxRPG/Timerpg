@@ -37,7 +37,8 @@ internal object WorldPreview {
 
     fun attach(ft: FilamentTown, town: Town, site: WorldSite): WorldFar = WorldFar.attach(ft, {
         val t0 = System.nanoTime()
-        site.plan(town.year).also { println("  world: far view planned in %.0f ms: %s".format((System.nanoTime() - t0) / 1e6, it.report)) }
+        // (-DworldYear=1990: the world's roads as they are that year, Highways v2)
+        site.plan(System.getProperty("worldYear")?.toIntOrNull() ?: town.year).also { println("  world: far view planned in %.0f ms: %s".format((System.nanoTime() - t0) / 1e6, it.report)) }
     }, site.origin, near = System.getProperty("worldNear") != "0")
 
     /** A free camera over ([tx], [ty], [tz]) (street units), [yaw] (0 north, clockwise), [pitch] down, [dist] back, [fov] tall. */
@@ -291,6 +292,9 @@ internal object WorldPreview {
         // 1. the capital from high above, the world to the horizon (looking north-east over the town)
         shot("world_above", "the capital from 4 km up, the world to the horizon",
             pose(mx, 0f, mz, 35f, 24f, 10_000f * u, 55f, w, h, reach, 90f))
+        // 1b. Highways v2: the capital and its beltway from 9 km up, nearly straight down (with -DworldYear=1990)
+        shot("world_hwy", "the capital, its beltway and the expressways from 9 km up (year ${plan.year})",
+            pose(mx, 0f, mz, 0f, 62f, 10_500f * u, 60f, w, h, reach, 90f))
         // 2. the town's edge where it meets the countryside: east, by the highway out, from 150 m
         val east = site.hub.pins.first { it.kind == "highway" && it.name == "east" }.let { street(it.x, it.z) }
         val ex = g[2] + 900f * u

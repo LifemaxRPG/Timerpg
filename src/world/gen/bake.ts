@@ -21,7 +21,14 @@ import type { World } from './world';
 // the renderer's parameters), the ranges ("ranges": id, class, peak), places' mountain settings ("setting", "ore"),
 // roads' winding paths (the path of a road is now its terrain-following line, hub ends still on their pins) and the
 // grids "timberline" and "range" (the class of the range whose term is highest at a cell: 0 none, 1 modest, 2 middle, 3 great).
-export const SKELETON_VERSION = 3;
+// Version 4 (Highways v2, highways.ts): a "highways" object: every segment with its life by year (segs: kind, built, gone,
+// class, surface, lanes and number as [year, value] steps, divided-from year, route, river crossings [x, z, flow, bridge
+// year, ford-from year], structures [kind, from km, to km, depth m], its path; an old road's piece references its stretch
+// of the road's own path in "pts"), the interchanges (kind, design, year, rebuilt, position, segments, exits), the route
+// numbers (system, number, kind, direction, designation, parent, from year, places), the roadside sites (kind, position,
+// years, models) and the towns' records (bypassed, interchange). A road's "expressway" year is gone (the expressways are
+// their own segments now).
+export const SKELETON_VERSION = 4;
 /** Fixed point of the "pts" section: units of an atlas cell. */
 export const PTS_SCALE = 524288;
 
@@ -103,11 +110,30 @@ export function encodeSkeleton(w: World): Uint8Array {
     ...(p.ore ? { ore: p.ore } : {}),
     tags: w.tags.get(p.id) ?? [],
   });
+  const roadRefs: [number, number][] = [];
+  const roadRows = w.roads.map((r, k) => { const p = path(paths.roads[k]!); roadRefs.push(p); return { id: r.id, cls: r.cls, a: r.a, b: r.b, km: r.km, built: r.built, paved: r.paved, cells: ref(r.cells), path: p }; });
+  const roadK = new Map(w.roads.map((r, k) => [r.id, k]));
+  const r3 = (v: number): number => Math.round(v * 1000) / 1000;
+  const hw = w.highways;
+  const highways = {
+    segs: hw.segs.map((s) => ({
+      id: s.id, kind: s.kind, mass: s.mass, ...(s.road ? { road: s.road } : {}), km: s.km, built: s.built, ...(s.gone !== undefined ? { gone: s.gone } : {}),
+      cls: s.cls, surface: s.surface, lanes: s.lanes, ...(s.divided !== undefined ? { divided: s.divided } : {}), number: s.number, ...(s.route ? { route: s.route } : {}),
+      ...(s.crossings.length ? { crossings: s.crossings.map((c) => [r3(c.at[0]), r3(c.at[1]), c.flow, c.bridge, c.ford ?? null]) } : {}),
+      ...(s.structures.length ? { structures: s.structures.map((q) => [q.kind, q.from, q.to, q.depthM]) } : {}), maxGrade: s.maxGrade,
+      // (an old road's piece: its stretch of the road's own points)
+      path: s.kind === 'original' ? [roadRefs[roadK.get(s.road!)!]![0] + s.range![0], s.range![1] - s.range![0] + 1] : path(s.path),
+    })),
+    interchanges: hw.interchanges.map((q) => ({ ...q, x: r3(q.x), z: r3(q.z) })),
+    routes: hw.routes,
+    sites: hw.sites.map((q) => ({ ...q, x: r3(q.x), z: r3(q.z) })),
+    towns: [...hw.towns.values()],
+  };
   const json = {
     format: 'Timerpg world skeleton', version: SKELETON_VERSION, seed: w.seed, grid: { w: W, h: H, cellM: 1075.2, wrapsX: true }, startMass: w.startMass,
     masses: w.terrain.masses,
     places: w.places.map(place),
-    roads: w.roads.map((r, k) => ({ id: r.id, cls: r.cls, a: r.a, b: r.b, km: r.km, built: r.built, paved: r.paved, ...(r.expressway !== undefined ? { expressway: r.expressway } : {}), cells: ref(r.cells), path: path(paths.roads[k]!) })),
+    roads: roadRows,
     railLines: w.rail.lines.map((l, k) => ({ id: l.id, kind: l.kind, stations: l.stations, at: l.at, cells: ref(l.cells), path: path(paths.rail[k]!) })),
     railLinks: w.rail.links,
     sea: w.sea.routes.map((r) => ({ ...r, cells: ref(r.cells) })),
@@ -115,6 +141,7 @@ export function encodeSkeleton(w: World): Uint8Array {
     lakes: w.hydro.lakes,
     dams: w.dams.map((d) => ({ ...d, cells: ref(d.cells) })),
     ranges: t.ranges.map((r) => ({ id: r.id, cls: r.cls, peakM: r.peakM, peakCell: r.peakCell, cells: r.cells })),
+    highways,
     wonders: w.wonders.map((q) => ({ id: q.id, kind: q.kind, tier: q.tier, name: q.name, x: Math.round(q.x * 1000) / 1000, z: Math.round(q.z * 1000) / 1000, mass: q.mass, extentKm: q.extentKm, fame: q.fame, params: q.params })),
     sections,
   };

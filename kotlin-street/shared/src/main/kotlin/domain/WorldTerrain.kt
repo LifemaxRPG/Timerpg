@@ -58,9 +58,11 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
         // the far view's lines (cut at the town's ground already), indexed by the chunk (537.6 m) they reach into
         for (l in plan.lines) {
             val half = nearHalf(l.kind, l.width.toDouble())
+            // (an expressway is asphalt as a highway is, wider)
+            val kind = if (l.kind == WorldFarPlan.EXPRESSWAY) WorldFarPlan.HIGHWAY else l.kind
             val pts = l.pts
             for (k in 0 until pts.size / 2 - 1) {
-                val s = Seg(pts[k * 2], pts[k * 2 + 1], pts[k * 2 + 2], pts[k * 2 + 3], half, l.kind)
+                val s = Seg(pts[k * 2], pts[k * 2 + 1], pts[k * 2 + 2], pts[k * 2 + 3], half, kind)
                 val m = half + CALM_M
                 val i0 = floor((min(s.x0, s.x1) - m) / Planet.CHUNK_M).toInt(); val i1 = floor((max(s.x0, s.x1) + m) / Planet.CHUNK_M).toInt()
                 val j0 = floor((min(s.z0, s.z1) - m) / Planet.CHUNK_M).toInt(); val j1 = floor((max(s.z0, s.z1) + m) / Planet.CHUNK_M).toInt()
@@ -76,6 +78,7 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
     /** The near terrain's half width of a far view line of [kind] (the far view draws them wider, to read from afar). */
     private fun nearHalf(kind: Int, far: Double): Double = when (kind) {
         WorldFarPlan.HIGHWAY -> HIGHWAY_HALF_M
+        WorldFarPlan.EXPRESSWAY -> l2Half(far)
         WorldFarPlan.COUNTY -> COUNTY_HALF_M
         WorldFarPlan.RAIL -> RAIL_HALF_M
         else -> far * RIVER_SHARE / 2.0
@@ -378,6 +381,8 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
 
         /** The lines on the near ground: half widths (m); how far round them the land's detail calms. */
         const val HIGHWAY_HALF_M = 4.2
+        /** An expressway's half width on the near terrain by its far ribbon's width (two lanes 6 m, four divided 12 m, six 16 m). */
+        fun l2Half(far: Double): Double = if (far >= 50) 16.0 else if (far >= 40) 12.0 else 6.0
         const val SHOULDER_M = 1.6
         const val COUNTY_HALF_M = 3.0
         const val RAIL_HALF_M = 2.6

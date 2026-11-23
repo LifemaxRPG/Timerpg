@@ -234,11 +234,26 @@ class WorldFarPlan(
 
     private fun lines() {
         for (r in sk.rivers) { val p = metres(r.path); if (near(p)) addCut(p, RIVER_W[r.order.coerceIn(0, RIVER_W.size - 1)], RIVER) }
-        for (r in sk.roads) {
+        val hw = sk.highways
+        if (hw != null) {
+            // Highways v2: every segment as it is in [year] (tracks thin, gravel and paved roads by class and lanes, the
+            // expressways their own wider ribbons by lanes; abandoned roads not drawn)
+            for (s in hw.segs) {
+                val st = s.at(year) ?: continue
+                val (w, kind) = when (st.cls) {
+                    "expressway" -> (if (st.lanes >= 6) 50f else if (st.lanes >= 4) 40f else 28f) to EXPRESSWAY
+                    "highway" -> (if (st.lanes >= 4) 30f else 24f) to HIGHWAY
+                    "county", "local", "frontage" -> 13f to COUNTY
+                    "track" -> 8f to COUNTY
+                    else -> continue
+                }
+                val p = metres(s.path); if (!near(p)) continue
+                addCut(p, w, kind)
+            }
+        } else for (r in sk.roads) {
             if (r.built > year) continue
             val p = metres(r.path); if (!near(p)) continue
-            val expr = r.expressway?.let { it <= year } == true
-            addCut(p, if (r.cls == "highway") (if (expr) 34f else 24f) else 13f, if (r.cls == "highway") HIGHWAY else COUNTY)
+            addCut(p, if (r.cls == "highway") 24f else 13f, if (r.cls == "highway") HIGHWAY else COUNTY)
         }
         for (l in sk.railLines) { val p = metres(l.path); if (near(p)) addCut(p, if (l.cls == "main") 18f else 13f, RAIL) }
     }
@@ -285,7 +300,7 @@ class WorldFarPlan(
         val LEVELS = listOf(.125 to 128, 1.0 to 96, 4.0 to 80)
         /** How far the coarsest level reaches from its middle (m): the horizon, 172 km. */
         val REACH_M: Double = LEVELS.last().let { it.first * it.second / 2 } * Planet.CELL_M
-        const val RIVER = 0; const val HIGHWAY = 1; const val COUNTY = 2; const val RAIL = 3
+        const val RIVER = 0; const val HIGHWAY = 1; const val COUNTY = 2; const val RAIL = 3; const val EXPRESSWAY = 4
         val RIVER_W = floatArrayOf(30f, 45f, 70f, 110f, 170f, 250f)
         /** The town's ground: flat this far past its edge, then blending to the land's own height over [BLEND_M] (m). */
         const val FLAT_M = 150.0
@@ -325,7 +340,7 @@ class WorldFarPlan(
         )
         fun biomeColour(b: Int, light: Boolean): Int = BIOME_COLOURS[(b.coerceIn(0, BIOME_COLOURS.size / 2 - 1)) * 2 + if (light) 0 else 1]
 
-        val LINE_COLOURS = intArrayOf(0xFF4A86B8.toInt(), 0xFF5A5866.toInt(), 0xFF9A8A6A.toInt(), 0xFF4A3A34.toInt())
+        val LINE_COLOURS = intArrayOf(0xFF4A86B8.toInt(), 0xFF5A5866.toInt(), 0xFF9A8A6A.toInt(), 0xFF4A3A34.toInt(), 0xFF8C8C90.toInt())
         val WALLS = intArrayOf(0xFFB0705A.toInt(), 0xFFD8CCB0.toInt(), 0xFF9A9AA6.toInt(), 0xFFC8A878.toInt(), 0xFF8A5A4A.toInt())
         val ROOFS = intArrayOf(0xFF5A4A52.toInt(), 0xFF6A3A34.toInt(), 0xFF4A5A6A.toInt(), 0xFF7A7A80.toInt())
     }
