@@ -10,6 +10,7 @@ import { RoadGraph, makeRoads, type Road } from './roads';
 import { makeSea, type SeaNet } from './sea';
 import { makeTerrain, type Terrain } from './terrain';
 import { climateTags, makeWeather, type Weather } from './weather';
+import { makeWonders, type Wonder } from './wonders';
 import type { RailWorld } from '../rail';
 
 // THE WORLD SKELETON (WORLD_GEN.md sections 2-11, phases W1-W3): everything that becomes a fact somebody can say or
@@ -29,6 +30,8 @@ export interface World {
   hubs: Place[];
   towns: Place[];
   hamlets: Place[];
+  /** The natural wonders (wonders.ts), named in the same registry as the places. */
+  wonders: Wonder[];
   /** Every place: hubs, towns, hamlets. */
   places: Place[];
   byId: Map<string, Place>;
@@ -80,6 +83,8 @@ export function generateWorld(seed: string, opts: { hubs?: number } = {}): World
   const reg = new NameRegistry(seed);
   for (const p of [...hubs, ...towns, ...hamlets]) p.name = p.hub?.name ? reg.claim(p.hub.name === CAPITAL_NAME ? CAPITAL_NAME : p.hub.name) : reg.make(p.id, STYLE[p.type] ?? 'farm');
   const places = [...hubs, ...towns, ...hamlets];
+  const wonders = makeWonders(terrain, climate, hydro, biome, weather, fields, places, reg);
+  lap('wonders');
   const byId = new Map(places.map((p) => [p.id, p]));
   const byName = new Map(places.map((p) => [p.name.toLowerCase(), p]));
   const railWorld: RailWorld = { seed };
@@ -92,7 +97,7 @@ export function generateWorld(seed: string, opts: { hubs?: number } = {}): World
   const growth = new Map(places.map((p) => [p.id, growthFacts(p, rd.roads, rail.links, hubs, dams)]));
   const tags = new Map(places.map((p) => [p.id, climateTags(climate, weather, p.cell, p.x, p.z)]));
   lap('history');
-  return { seed, terrain, climate, hydro, biome, crop, weather, fields, hubs, towns, hamlets, places, byId, byName, roads: rd.roads, roadGraph, rail, railWorld, sea, dams, growth, tags, startMass: hp.startMass, timing };
+  return { seed, terrain, climate, hydro, biome, crop, weather, fields, hubs, towns, hamlets, wonders, places, byId, byName, roads: rd.roads, roadGraph, rail, railWorld, sea, dams, growth, tags, startMass: hp.startMass, timing };
 }
 
 const cache = new Map<string, World>();

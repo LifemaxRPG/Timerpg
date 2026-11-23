@@ -71,7 +71,7 @@ class WorldSkeletonTest {
         val ss = arr(fixture, "samples")
         for (i in 0 until ss.length()) {
             val s = ss.getJSONObject(i); val cell = s.getInt("cell")
-            for (g in listOf("elev", "flags", "biome", "koppen", "crop", "flow", "steady", "mass", "lake", "snowline")) assertEquals("$g at $cell", s.getInt(g), sk.raw(g, cell))
+            for (g in listOf("elev", "flags", "biome", "koppen", "crop", "flow", "steady", "mass", "lake", "snowline", "timberline", "range")) assertEquals("$g at $cell", s.getInt(g), sk.raw(g, cell))
             assertEquals(s.getInt("elev"), sk.elev(cell % WorldSkeleton.W, cell / WorldSkeleton.W))
         }
         val cap = fixture.getJSONObject("capital")
@@ -92,6 +92,25 @@ class WorldSkeletonTest {
         val rail = arr(fixture, "rail")
         assertTrue(rail.length() > 0)
         for (i in 0 until rail.length()) { val r = rail.getJSONObject(i); same(arr(r, "path"), sk.points(sk.railLines.first { it.id == r.getString("id") }.path)) }
+        // version 3: the natural wonders with their renderer's parameters, and the mountain places' settings
+        assertEquals(c.getInt("wonders"), sk.wonders.size)
+        val ws = arr(fixture, "wonders")
+        assertTrue(ws.length() > 0)
+        for (i in 0 until ws.length()) {
+            val e = ws.getJSONObject(i); val q = sk.wonders.first { it.id == e.getString("id") }
+            assertEquals(e.getString("kind"), q.kind); assertEquals(e.getString("tier"), q.tier); assertEquals(e.getString("name"), q.name)
+            assertEquals(e.getDouble("x"), q.x, 0.0); assertEquals(e.getDouble("z"), q.z, 0.0)
+            val p = e.getJSONObject("params")
+            assertEquals(p.length(), q.params.size)
+            for (key in p.keys()) when (val v = p.get(key)) {
+                is Number -> assertEquals("${q.id} $key", v.toDouble(), q.num(key)!!, 0.0)
+                is String -> assertEquals("${q.id} $key", v, q.str(key))
+                is Boolean -> assertEquals("${q.id} $key", v, q.params[key])
+                is JSONArray -> assertEquals("${q.id} $key", v.length(), (q.params[key] as List<*>).size)
+            }
+        }
+        val settings = fixture.getJSONObject("settings")
+        for (key in settings.keys()) assertEquals(key, settings.getInt(key), sk.places.count { it.setting == key })
         // the grids by default: what the far view needs, about 12 MB
         val slim = File("../../content/world/alpha/skeleton.twsk.gz").inputStream().use { WorldSkeleton.read(it) }
         assertTrue(slim.has("elev") && slim.has("biome") && !slim.has("koppen"))

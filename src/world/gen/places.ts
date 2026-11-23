@@ -35,6 +35,11 @@ export interface Place {
   coastal: boolean;
   /** A hub's spec and pins (world positions). */
   hub?: HubSpec;
+  /** A mountain place's setting (WORLD_GEN.md "Grand mountains", "Mountain villages"): an alpine village in a high valley,
+   * a hamlet on a pass, a mining town on an ore body. */
+  setting?: 'alpine' | 'pass' | 'mining';
+  /** A mining town's ore. */
+  ore?: string;
   pins?: WorldPin[];
 }
 

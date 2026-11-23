@@ -86,6 +86,35 @@ export function candidateName(seed: string, key: string, style: NameStyle, n: nu
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
+// (wonders: a descriptive or nature word, or an invented root, with the kind's own word: Thunder Falls, Kelmar Canyon)
+const WONDER_WORD = [
+  'Silver', 'Thunder', 'Bridal', 'Whisper', 'Echo', 'Crystal', 'Painted', 'Vermilion', 'Sapphire', 'Golden', 'Rose', 'Lantern',
+  'Hollow', 'Raven', 'Eagle', 'Cloud', 'Mist', 'Rainbow', 'Ember', 'Moon', 'Star', 'Sunrise', 'Shadow', 'Giant', 'Lost', 'Hidden',
+  'Singing', 'Weeping', 'Blue', 'White', 'Red', 'Black', 'Amber', 'Jade', 'Coral', 'Ivory', 'Copper', 'Iron', 'Chimney', 'Organ',
+  'Cathedral', 'Devil', 'Angel', 'Widow', 'Lion', 'Bear', 'Elk', 'Heron', 'Falcon', 'Otter', 'Willow', 'Cedar', 'Juniper', 'Aspen',
+] as const;
+const WONDER_SUFFIX: Record<string, readonly string[]> = {
+  'blossom valley': ['Valley', 'Vale', 'Blossom Valley', 'Hollow'], meadow: ['Meadows', 'Meadow', 'Pastures'], superbloom: ['Flower Flats', 'Bloom Basin', 'Poppy Fields'],
+  waterfall: ['Falls', 'Falls', 'Cascade', 'Veil Falls'], canyon: ['Canyon', 'Gorge', 'Canyon'], arches: ['Arches', 'Spires', 'Hoodoos', 'Needles'],
+  karst: ['Towers', 'Pinnacles', 'Stone Forest'], 'table mountain': ['Tableland', 'Table Mountain'], volcano: ['Crater', 'Cone', 'Peak'],
+  'hot springs': ['Hot Springs', 'Geysers', 'Terraces'], glacier: ['Glacier', 'Icefield'], fjord: ['Fjord', 'Sound', 'Inlet'],
+  'giant trees': ['Grove', 'Giants', 'Big Trees'], 'salt flat': ['Salt Flat', 'Salt Pan', 'Mirror Flats'], 'sea stacks': ['Stacks', 'Sea Arch', 'Needles'],
+  atoll: ['Atoll', 'Lagoon'], 'glowing bay': ['Bay', 'Cove'], fireflies: ['Glade', 'Firefly Meadow'], aurora: ['Lights Point', 'Sky Hill'],
+  cave: ['Caverns', 'Caves'],
+};
+
+/** One candidate name for a wonder of [kind], try [n] of key [key]. */
+export function candidateWonderName(seed: string, key: string, kind: string, n: number): string {
+  const r = stream(seed, 'wonder-name', key, n);
+  const pick = <T,>(a: readonly T[]): T => a[Math.floor(r() * a.length)]!;
+  const s = r();
+  const word = s < 0.5 ? pick(WONDER_WORD) : s < 0.75 ? pick(NATURE) : root(r);
+  const suffix = pick(WONDER_SUFFIX[kind] ?? ['Wonder']);
+  if (kind === 'volcano' && r() < 0.5) return `Mount ${word}`;
+  if (kind === 'giant trees' && r() < 0.3) return `${word} Redwoods`;
+  return `${word.charAt(0).toUpperCase()}${word.slice(1)} ${suffix}`;
+}
+
 /** The registry: names in the order they are claimed (hubs first, then towns, then hamlets). */
 export class NameRegistry {
   private readonly used = new Set<string>();
@@ -99,6 +128,16 @@ export class NameRegistry {
   make(key: string, style: NameStyle): string {
     for (let n = 0; n < 200; n++) {
       const c = candidateName(this.seed, key, style, n);
+      if (this.used.has(c.toLowerCase()) || REAL.has(c)) continue;
+      this.used.add(c.toLowerCase());
+      return c;
+    }
+    throw new Error(`no free name for ${key}`);
+  }
+  /** A wonder's name (unique among every place and wonder on the planet). */
+  makeWonder(key: string, kind: string): string {
+    for (let n = 0; n < 400; n++) {
+      const c = candidateWonderName(this.seed, key, kind, n);
       if (this.used.has(c.toLowerCase()) || REAL.has(c)) continue;
       this.used.add(c.toLowerCase());
       return c;
