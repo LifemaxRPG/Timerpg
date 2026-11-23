@@ -331,7 +331,13 @@ want on you) can be **hidden in the past and collected in the future**, if it su
   - The dialogue model voices the negotiation, but the game logic decides whether they'll sell and at what price,
     from their traits, their money, their attachment to the place and their opinion of you.
 
-## Limits on the time machine (proposal for the owner, 2026-11-23)
+## Limits on the time machine (decided by the owner, 2026-11-23: limit 1 only)
+
+**Decision:** the only limit is limit 1, the machine stays in the capital. There's no cooldown or timer: how soon you
+can jump again depends on how fast you can get back to the capital. Limits 2-5 below are not used as gates. They can
+still appear as story flavour (the professor's opinions, a part that needs replacing in a quest), never as a cooldown.
+
+The original proposal:
 
 Free jumping would be too strong. These limits come from the story and the world rather than a timer. They are
 layered, and each one is also gameplay:
