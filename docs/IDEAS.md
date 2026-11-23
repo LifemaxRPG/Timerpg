@@ -748,3 +748,18 @@ Each executed plan step knows its verb, manner (`quietly`, `rudely`), role (`as(
 the crime system's `recordCrime()`, a quiet theft is less conspicuous, and a disguise changes what witnesses remember in
 the police description ("a delivery man walked out the back"). Disguises, distractions and gossip interlock with no
 special-case scripting. Proposed by Jeff in his G007 delivery.
+
+## Air travel (the owner's idea for a later update, 2026-11-23)
+
+Airports and aircraft exist, but **flying is hard.** It must never cheapen crossing the world.
+- **Flying is a real skill:** a demanding flight model (on Jolt plus a simple aerodynamics model) where takeoff,
+  landing, crosswinds, stalls, navigation, fuel and weather all matter. The player gets good by practice: lessons from
+  an NPC instructor, a logbook of hours, and mistakes that cost aircraft or lives. Helicopters are harder still.
+- **The era shapes it:** 1910s-20s barnstormers and grass strips with no licence needed; airfields, beacons and radio
+  later; licences, flight plans, radar and controlled airspace in modern eras. Flying without a licence, or into
+  restricted airspace, is a crime the system notices.
+- **Owning aircraft costs real money:** buying, fuel, hangars, maintenance.
+- **Airports** grow by era: a grass field with a windsock becomes a terminal with security. They are places in the
+  world, with smuggling and theft as possibilities, run through the crime systems.
+- **Open question for the owner:** commercial passenger flights. Can the player buy a ticket and ride as a
+  passenger, sitting through the flight in real time as on trains and ships? Or is all flying piloted by the player?
