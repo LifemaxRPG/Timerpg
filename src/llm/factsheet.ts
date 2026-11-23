@@ -5,6 +5,8 @@ import { planTown } from '../town/plan';
 import { cinemaProgram } from '../town/cinema';
 import { GENRE_WORDS } from '../town/films';
 import { REUSE_WORDS, storeState, townStoreHistories, type StoreState } from '../town/stores';
+import { heardBy, secretsOf } from '../sim/knowledge';
+import { originWords } from '../sim/origin';
 
 // THE FACT SHEET. A language model only gives words to what the simulation already decided: it is
 // handed a short sheet of facts about the person and what the player just did, and told to answer in
@@ -18,10 +20,12 @@ export interface Brief {
   must: string[];
   /** The speaker's own name: introducing yourself by full name is rejected. */
   self: string;
+  /** Their last replies in this conversation: a reply that says one of them again is rejected. */
+  recent?: string[];
 }
 
 /** Constant, so it is cached between lines. */
-export const RULES = 'Roleplay a resident of a small town and reply to what the player says. 1-2 short spoken sentences. Do not introduce yourself. No actions, no quotes, no modern slang. Use only the facts below; never invent names or numbers.\nFACTS';
+export const RULES = 'Roleplay a resident of a small town and reply to what the player says. 1-2 short spoken sentences, in your own manner. Do not introduce yourself. No actions, no quotes, no modern slang. Use only the facts below; never invent names, places, events or numbers.\nFACTS';
 
 const wealthWord = (n: number): string => (n < 400 ? 'poor' : n < 3000 ? 'getting by' : n < 12000 ? 'comfortable' : 'wealthy');
 
@@ -45,7 +49,7 @@ export function cinemaFacts(c: TalkCtx): string[] {
   if (!site || w.year < site.openYear) return [];
   const p = cinemaProgram(w.seed, w.year);
   const on = p.nowShowing.slice(0, 3).map((f) => `"${f.title}" (${GENRE_WORDS[f.genre] ?? f.genre})`);
-  const out = [`${p.name} is showing ${on.length > 1 ? `${on.slice(0, -1).join(', ')} and ${on[on.length - 1]}` : on[0]} this week.`];
+  const out = [`The cinema, ${p.name}, is showing ${on.length > 1 ? `${on.slice(0, -1).join(', ')} and ${on[on.length - 1]}` : on[0]} this week.`];
   const r = rand(w.seed, w.year, 'cinema-saw', c.person.id);
   if (w.year - c.person.birthYear >= 8 && r < 0.4) {
     const f = p.nowShowing[Math.floor((r / 0.4) * p.nowShowing.length)]!;
@@ -148,6 +152,69 @@ const PLAYER: Record<string, string> = {
   news: 'Anything in the news lately?',
 };
 
+export type VoiceKind = 'gossip' | 'warm' | 'cheerful' | 'busy' | 'reserved' | 'shy' | 'grump';
+
+/**
+ * How a person talks, from their traits (charm, ambition, diligence): a way of speaking, not a fact to repeat. Charm
+ * above 0.55 is still "warm" for the game's other uses (templates, fillers, the voice).
+ */
+export function voiceOf(p: Person): { kind: VoiceKind; line: string } {
+  const { charm, ambition, diligence } = p.traits;
+  const kind: VoiceKind = charm >= 0.7 ? (diligence < 0.45 ? 'gossip' : 'warm')
+    : charm > 0.55 ? 'cheerful'
+    : charm >= 0.35 ? (ambition < 0.4 ? 'shy' : diligence > 0.6 ? 'busy' : 'reserved')
+    : 'grump';
+  const line = {
+    gossip: 'You love gossip and chatter; you talk fast and ask questions back.',
+    warm: 'You are warm and kind, and like a good chat.',
+    cheerful: 'You are cheerful and a little nosy.',
+    busy: 'You are polite but busy, and get to the point.',
+    reserved: 'You are polite but reserved with strangers.',
+    shy: 'You are shy and hesitant, and say little.',
+    grump: 'You are grumpy and blunt, and keep it short.',
+  }[kind];
+  return { kind, line };
+}
+
+/** The sheet's mark for a topic the person would rather not talk about: only then may a reply change the subject. */
+export const AVOID = 'You would rather not talk about it.';
+
+/**
+ * What a person who shares nothing this time really knows, and how they keep it, by their manner: none known (say so,
+ * truthfully), or known but the player not trusted yet (a gossip hints, a shy one says they couldn't say, a grump
+ * refuses), never what it is.
+ */
+function keeping(c: TalkCtx, intent: 'secret' | 'rumors', kind: VoiceKind): string {
+  const own = intent === 'secret';
+  const pool = own ? secretsOf(c.w, c.person) : heardBy(c.w, c.person, c.days ?? 0);
+  if (!pool.length) return own ? 'You have no secrets of your own; say so honestly.' : 'You know no gossip or secrets about anyone; say so honestly.';
+  const what = own ? 'a private matter of your own' : pool.length > 1 ? 'some private gossip about people in town' : 'a bit of private gossip about someone in town';
+  const how = kind === 'gossip' || kind === 'cheerful' ? 'hint that you know something, but give no names'
+    : kind === 'shy' ? 'say you couldn\'t say' : kind === 'grump' ? 'refuse bluntly' : 'keep it to yourself';
+  return `You ${own ? 'have' : 'know'} ${what}, but you do not trust the player enough yet: ${how}. Never make it up. ${AVOID}`;
+}
+
+/** [b] with their last replies in this conversation: the prompt quotes the last 2 (prefill time matters), validate() checks the last 3. */
+export function withRecent(b: Brief, recent: string[]): Brief {
+  const r = recent.slice(-3).filter((x) => x.trim());
+  if (!r.length) return b;
+  const line = `You already said: ${r.slice(-2).map((x) => `"${x}"`).join(' ')} Do not repeat those words.`;
+  const at = b.system.indexOf('\nExample of the kind of answer:');
+  const system = at >= 0 ? b.system.slice(0, at) + '\n' + line + b.system.slice(at) : b.system + '\n' + line;
+  return { ...b, system, recent: r };
+}
+
+/**
+ * [b] as a free question asks it (the app's DialogueEngine.freeTopic does the same to the exported prompt): the player's
+ * own words in place of the menu's question, the example answer left out (it answers the menu's question, and a small
+ * model copies it), their last replies in the facts. [keepMust]: the words to name stay (a secret being told).
+ */
+export function freeQuestion(b: Brief, said: string, recent: string[] = [], keepMust = false): Brief {
+  const at = b.system.indexOf('\nExample of the kind of answer:');
+  const system = at >= 0 ? b.system.slice(0, at) : b.system;
+  return withRecent({ ...b, system, user: said, must: keepMust ? b.must : [] }, recent);
+}
+
 /**
  * Build the prompt for one line of dialogue. Only the facts that bear on what was asked go in (a small
  * model repeats everything it is given, relevant or not). `facts` are extra sentences that must be
@@ -155,16 +222,17 @@ const PLAYER: Record<string, string> = {
  */
 export function brief(c: TalkCtx, intent: string, template: string, facts: string[] = [], must: string[] = []): Brief {
   const p = c.person, w = c.w;
-  const warm = p.traits.charm > 0.55;
   const mayor = w.mayor ? w.people[w.mayor] : undefined;
   const know = c.familiarity === 0 ? 'a stranger' : c.familiarity < 3 ? 'an acquaintance' : 'a friend';
+  const voice = voiceOf(p);
   const relevant: string[] =
     intent === 'family' ? (family(c).length ? family(c) : ['You have no spouse or children.'])
     : intent === 'work' ? [`Your job: ${c.job}.`, `You are ${wealthWord(p.wealth)}.`]
     : intent === 'town' ? [`The town is ${c.townName}.`, mayor ? `The mayor is ${fullName(mayor)}.` : 'The town has no mayor.']
     : intent === 'gift' || intent === 'praise' ? [`You are ${wealthWord(p.wealth)}.`]
-    // nothing to share (the game decided): say so, or a small model happily answers "Yes, I'm hiding something."
-    : (intent === 'secret' || intent === 'rumors') && !facts.length ? ['You do not share private matters with the player yet. Politely keep it to yourself.']
+    // what they really know (src/sim/knowledge.ts) and whether they trust the player with it: the game decided, the
+    // model only says it in their manner (a small model otherwise answers "Yes, I'm hiding something", or makes one up)
+    : (intent === 'secret' || intent === 'rumors') && !facts.length ? [keeping(c, intent, voice.kind)]
     : [];
   // The answer must contain the real fact it is about (a name or the shop), or the template is used.
   const spouse = p.spouse ? w.people[p.spouse] : undefined;
@@ -173,9 +241,10 @@ export function brief(c: TalkCtx, intent: string, template: string, facts: strin
     : intent === 'work' && c.job.includes(' ') && !/^(retired|at school|out about|works from home)/.test(c.job) ? c.job.replace(/^works at /, '').split(/[\s']/)[0] : undefined;
   if (anchor) must = [...must, anchor];
   const sheet = [
+    // where they are from and since when (src/sim/origin.ts): "are you from here?" has a true answer
+    `You are ${fullName(p)}, ${w.year - p.birthYear}, ${p.sex === 'F' ? 'a woman' : 'a man'} ${originWords(w, p, c.townName)}. The year is ${w.year}.`,
     // the personality as a way of speaking, not a fact (a small model repeats facts word for word: "I'm just gruff and guarded")
-    `You are ${fullName(p)}, ${w.year - p.birthYear}, ${p.sex === 'F' ? 'a woman' : 'a man'} who lives in ${c.townName}. The year is ${w.year}.`,
-    warm ? 'You talk warmly and like to chat.' : 'You talk curtly and are wary of strangers.',
+    voice.line,
     `The player is ${know}.`,
     ...(c.wanted ? ['The player is wanted for a crime. You are afraid of them.'] : []),
     ...relevant,
@@ -197,29 +266,114 @@ const COMMON = new Set(['Mr', 'Mrs', 'Ms', 'Miss', 'Mister', 'Dr', 'Sir', 'Madam
   'Thursday', 'Friday', 'Saturday', 'Sunday', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
   'September', 'October', 'November', 'December', 'Christmas', 'Easter', 'English', 'American']);
 
+/**
+ * Places and events a reply may only speak of when the facts do ("the old mill", "the new library", "the fire"): after
+ * "the", "a", "our"... and at most two words. Kept to nouns that name a thing in town, not words like home or street.
+ */
+export const PLACES = ['library', 'mill', 'church', 'chapel', 'college', 'bakery', 'factory', 'museum', 'hospital', 'station',
+  'depot', 'bridge', 'hotel', 'inn', 'tavern', 'pub', 'saloon', 'diner', 'cafe', 'restaurant', 'theater', 'theatre', 'cinema',
+  'market', 'mall', 'plaza', 'courthouse', 'jail', 'prison', 'cemetery', 'graveyard', 'lighthouse', 'harbor', 'harbour', 'pier',
+  'dock', 'quarry', 'warehouse', 'festival', 'parade', 'carnival', 'circus', 'pharmacy', 'gym', 'stadium', 'arena', 'zoo',
+  'castle', 'tower', 'monument', 'statue', 'fountain', 'lake', 'pond', 'river', 'creek', 'farm', 'ranch', 'orchard', 'barn',
+  'dam', 'canal', 'reservoir', 'mansion', 'manor', 'flood', 'fire', 'storm', 'robbery', 'murder', 'scandal', 'election'];
+const PLACE = new RegExp(`\\b(?:the|a|an|our|that|this|its)\\s+(?:[a-z'-]+\\s+){0,2}?(${PLACES.join('|')})(?:e?s)?\\b`, 'gi');
+/** Saying you are from here when the facts say you moved here (or the other way round). */
+const NATIVE = /\b(all my life|my whole life|born here|grew up here|always lived here|born and raised here|i am from here|i'm from here|from around here)\b/i;
+const MOVED = /\b(moved here|came here from|not from here|not from around here)\b/i;
+/** Changing the subject: only for a topic the facts mark as one they would rather not talk about. */
+const DEFLECT = /\b(talk about something else|chat about something else|change the subject|perhaps we (can|could) (talk|chat) about|let's (talk|chat) about|(talk|chat) about [a-z' ]+ instead)\b/i;
+/** A sentence that doubts or denies: the player's own word in it is not a claim ("A library? I haven't heard of one."). */
+const HEDGE = /\?|\b(no|not|never|nothing|nobody)\b|n't\b/i;
+
+/** The sentence of [t] around index [i] (with its closing mark). */
+function sentenceAt(t: string, i: number): string {
+  let s = i;
+  while (s > 0 && !'.!?'.includes(t[s - 1]!)) s--;
+  let e = i;
+  while (e < t.length && !'.!?'.includes(t[e]!)) e++;
+  return t.slice(s, Math.min(t.length, e + 1));
+}
+
+const wordsOf = (s: string): string[] => s.toLowerCase().replace(/[^a-z0-9']+/g, ' ').trim().split(' ').filter((x) => x);
+
+/** [t] says again what one of [recent] said: four words in a row the same ("a lovely day for"), or a sentence of mostly the same words. */
+export function repeats(t: string, recent: string[]): boolean {
+  const grams = (ws: string[]): Set<string> => {
+    const out = new Set<string>();
+    for (let i = 0; i + 4 <= ws.length; i++) out.add(ws.slice(i, i + 4).join(' '));
+    return out;
+  };
+  const sents = (s: string): Set<string>[] => s.split(/[.!?]+/).map(wordsOf).filter((ws) => ws.length >= 3).map((ws) => new Set(ws));
+  const mine = grams(wordsOf(t)), mySents = sents(t);
+  for (const r of recent) {
+    const theirs = grams(wordsOf(r));
+    for (const g of mine) if (theirs.has(g)) return true;
+    for (const a of mySents) for (const b of sents(r)) {
+      let both = 0;
+      for (const x of a) if (b.has(x)) both++;
+      if (both / (a.size + b.size - both) >= 0.75) return true;
+    }
+  }
+  return false;
+}
+
 /** Clean the model's reply, or null if it should not be used. */
 export function validate(raw: string, b: Brief): string | null {
+  return check(raw, b)[0];
+}
+
+/** Why validate() turns [raw] down (null: it passes). */
+export function whyRejected(raw: string, b: Brief): string | null {
+  return check(raw, b)[1];
+}
+
+function check(raw: string, b: Brief): [string | null, string | null] {
   let t = raw.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/<\|[^|]*\|>/g, '').trim();
   t = t.replace(/^["“'‘]+|["”'’]+$/g, '').replace(/\*[^*]*\*/g, '').replace(/\s+/g, ' ').trim();
-  if (t.length < 3 || t.length > 320) return null;
-  // Keep at most the first three sentences.
+  if (t.length < 3) return [null, 'empty'];
+  if (t.length > 320) return [null, 'too long'];
+  // Keep at most the first two sentences.
   const sentences = t.match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g);
   if (sentences && sentences.length > 2) t = sentences.slice(0, 2).join('').trim();
-  if (/^(as an ai|i am an ai|i'm an ai|sorry, i)/i.test(t) || /\b(language model|assistant)\b/i.test(t)) return null;
+  if (/^(as an ai|i am an ai|i'm an ai|sorry, i)/i.test(t) || /\b(language model|assistant)\b/i.test(t)) return [null, 'sounded like an AI assistant'];
   // Stage directions, assistant-speak and self-introductions are not how a neighbor talks.
-  if (/\b(i say|i respond|i reply|i smile|smiles?|nods?|my eyes|flickers?|let me know|how can i (help|assist)|anything else)\b/i.test(t)) return null;
-  if (b.self && t.toLowerCase().includes(b.self.toLowerCase())) return null;
+  if (/\b(i say|i respond|i reply|i smile|smiles?|nods?|my eyes|flickers?|let me know|how can i (help|assist)|anything else)\b/i.test(t)) return [null, 'stage directions'];
+  if (b.self && t.toLowerCase().includes(b.self.toLowerCase())) return [null, 'said their own full name'];
   // the fact sheet read back: its personality words, or its "<town>, <year>" tag
   if (/\b(warm and chatty|gruff and guarded|talk warmly|talk curtly)\b/i.test(t) || /,\s*(1[89]|20)\d\d\b/.test(t)
-    || /^an? [a-z ,]*\b(response|reply|answer|tone|voice)\b/i.test(t)) return null;
+    || /^an? [a-z ,]*\b(response|reply|answer|tone|voice)\b/i.test(t)) return [null, 'read the fact sheet back'];
   const low = t.toLowerCase();
-  if (b.must.some((m) => !low.includes(m.toLowerCase()))) return null;
-  // a name the facts never mention ("We have two kids, Jake and Lisa."): a capitalized word in mid-sentence the prompt lacks
-  const known = b.system + '\n' + b.user;
-  if (b.system) for (const m of t.matchAll(/\b[A-Z][a-z]+\b/g)) {
+  const miss = b.must.find((m) => !low.includes(m.toLowerCase()));
+  if (miss !== undefined) return [null, `left out "${miss}"`];
+  // Everything named comes from the facts. The player's own words may be said back only to doubt or deny them
+  // ("A new library? I haven't heard of one."), not as a claim ("The new library is lovely.").
+  // (their own last replies, quoted in the facts so they say something new, are not facts)
+  const sheet = b.system.replace(/You already said: [^\n]*/, ''), said = b.user;
+  const echoed = (i: number): boolean => HEDGE.test(sentenceAt(t, i));
+  // a name the facts never mention ("We have two kids, Jake and Lisa."): a capitalized word in mid-sentence the facts lack
+  if (sheet) for (const m of t.matchAll(/\b[A-Z][a-z]+\b/g)) {
     const before = t.slice(0, m.index).trimEnd();
     if (!before || /[.!?"“‘(]$/.test(before) || COMMON.has(m[0])) continue;
-    if (!new RegExp(`\\b${m[0]}\\b`).test(known)) return null;
+    const name = new RegExp(`\\b${m[0]}\\b`);
+    if (name.test(sheet) || (name.test(said) && echoed(m.index!))) continue;
+    return [null, `made up a name ("${m[0]}")`];
   }
-  return t;
+  if (sheet) {
+    const sheetLow = sheet.toLowerCase(), saidLow = said.toLowerCase();
+    for (const m of t.matchAll(PLACE)) {
+      const noun = m[1]!.toLowerCase();
+      if (sheetLow.includes(noun) || (saidLow.includes(noun) && echoed(m.index!))) continue;
+      return [null, `made up a place or event ("${m[0]}")`];
+    }
+    // where they are from: the facts say it
+    const town = /moved to (.+?) from /.exec(sheet)?.[1]?.toLowerCase();
+    const native = NATIVE.exec(t); // (not "I wasn't born here", nor "Born here? No.")
+    if (town && ((native && !echoed(native.index)) || [`i am from ${town}`, `i'm from ${town}`, `born in ${town}`, `grew up in ${town}`].some((x) => low.includes(x)))) return [null, 'said they are from here (they moved here)'];
+    if (sheet.includes('born and raised in') && MOVED.test(t)) return [null, 'said they moved here (they were born here)'];
+    // "Perhaps we can talk about something else": only about a topic they would rather not talk about
+    if (DEFLECT.test(t) && !sheet.includes(AVOID)) return [null, 'changed the subject'];
+  }
+  // the same words as one of their last replies ("It is a lovely day for it, isn't it?" three times)
+  if (b.recent?.length && repeats(t, b.recent)) return [null, 'said it again'];
+  return [t, null];
 }

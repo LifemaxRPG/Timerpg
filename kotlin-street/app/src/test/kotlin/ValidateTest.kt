@@ -9,7 +9,7 @@ class ValidateTest {
     @Test
     fun matchesTheTypeScriptValidate() {
         val wrong = ValidateVectors.all.mapNotNull { v ->
-            val got = Dialogue.validate(v.raw, v.must, ValidateVectors.SELF, ValidateVectors.KNOWN)
+            val got = Dialogue.validate(v.raw, v.must, ValidateVectors.SELF, v.known, v.recent)
             if (got == v.expected) null else "validate(${v.raw.take(60)}) = $got, expected ${v.expected}"
         }
         assertEquals(wrong.joinToString("\n"), 0, wrong.size)

@@ -300,31 +300,29 @@ class DialogueEngine private constructor(private val app: Context) {
     /**
      * The player said [said] to [npc] (out loud, written down by [com.timerpg.street.voice.PlayerVoice]): the model answers
      * those words, in the person's own fact sheet for the topic they are nearest ([topicFor]). The template of that topic
-     * is the fallback, as for any line. Returns the topic answered and the request.
+     * is the fallback, as for any line. [recent]: their last replies in this conversation, which they should not say
+     * again. Returns the topic answered and the request.
      */
-    fun askFree(npc: Npc, said: String, remembered: List<String> = emptyList(), vec: FloatArray? = null, onLine: (Line) -> Unit): Pair<Topic, Request>? {
+    fun askFree(npc: Npc, said: String, remembered: List<String> = emptyList(), vec: FloatArray? = null, recent: List<String> = emptyList(),
+                onLine: (Line) -> Unit): Pair<Topic, Request>? {
         // one of the player's frequent questions, answered ahead of time from this person's own facts: that line, if the
         // words are close enough to the theme (same kind of question, same subject: [Themes.match]); else live
         Themes.match(said, vec, steer.themes)?.let { th ->
             themeAsk(npc, th)?.let { (t, key) ->
-                cache.next(key)?.let { line -> return topicFor(npc, said)!! to Request(Line(line, ai = true, final = true, note = "AI · ready", info = ReplyInfo("ready", why = "a theme you ask about")), null, ready = true) }
+                cache.next(key)?.takeIf { !Dialogue.repeats(it, recent) }?.let { line -> return topicFor(npc, said)!! to Request(Line(line, ai = true, final = true, note = "AI · ready", info = ReplyInfo("ready", why = "a theme you ask about")), null, ready = true) }
             }
         }
         val topic = topicFor(npc, said) ?: return null
         // words that plainly ask about one of their topics (their family, their work, the town...): that topic's line written
-        // ahead answers at once, while nothing is generated; small talk and anything else goes to the model live
+        // ahead answers at once, while nothing is generated (unless they said it already); small talk and anything else goes
+        // to the model live
         if (topic.intent != "chat" && topic.prompt != null) {
             val k = keyOf(topic.prompt)
-            if (cache.get(k)?.lines?.isNotEmpty() == true) cache.next(k)?.let { line ->
+            if (cache.get(k)?.lines?.isNotEmpty() == true) cache.next(k)?.takeIf { !Dialogue.repeats(it, recent) }?.let { line ->
                 return topic to Request(Line(line, ai = true, final = true, note = "AI · ready", info = ReplyInfo("ready", why = "their ${topic.intent} line")), null, ready = true)
             }
         }
-        fun clean(s: String) = s.replace("<|", "<").replace("|>", ">").replace("\n", " ").trim()
-        val words = clean(said).take(400)
-        val prompt = topic.prompt?.let { withMemories(withQuestion(it, words), remembered.map { m -> clean(m).take(600) }) }
-        // the topic's fact sheet, but not its required words: a question of the player's own need not name them
-        val asked = topic.copy(prompt = prompt, must = emptyList())
-        return topic to ask(npc, asked, onLine)
+        return topic to ask(npc, freeTopic(topic, said, remembered, recent), onLine)
     }
 
     /** Where the player is: building [index] (-1 between buildings) of [street]. Re-sorts the pre-generation queue. */
@@ -1572,7 +1570,7 @@ class DialogueEngine private constructor(private val app: Context) {
                 val done = completeSentences(Dialogue.preview(sb.toString())) ?: return !g.cancelled && !closed
                 if (done.first != checked) {
                     checked = done.first
-                    val ok = Dialogue.validate(done.first, emptyList(), topic.self, topic.prompt ?: "") ?: return false
+                    val ok = Dialogue.validate(done.first, emptyList(), topic.self, topic.prompt ?: "", topic.recent) ?: return false
                     if (g.listeners.isNotEmpty() && ok != g.shown) { g.shown = ok; g.send(Line(ok, true, false, "AI · writing…")) }
                     if (done.second >= 2) return false
                 }
@@ -1596,17 +1594,17 @@ class DialogueEngine private constructor(private val app: Context) {
             if (g.cancelled || closed) { end = End.CANCELLED; break }
             if (raw == null) { end = End.ERROR; break }
             lastRaw = raw
-            text = Dialogue.validate(raw, topic.must, topic.self, topic.prompt ?: "")
+            text = Dialogue.validate(raw, topic.must, topic.self, topic.prompt ?: "", topic.recent)
             // another way of saying it must be another way: the same words again is a failed try
             if (text != null && g.variant && !cache.isNew(g.key, text!!)) text = null
             if (text != null) { end = End.OK; break }
             // its first sentence alone may be good (the slip was in the second): keep that rather than start over
             FIRST.find(Dialogue.preview(raw))?.groupValues?.get(1)?.let { first ->
-                text = Dialogue.validate(first, topic.must, topic.self, topic.prompt ?: "")
+                text = Dialogue.validate(first, topic.must, topic.self, topic.prompt ?: "", topic.recent)
                 if (text != null && g.variant && !cache.isNew(g.key, text!!)) text = null
             }
             if (text != null) { end = End.OK; break }
-            val why = Dialogue.whyRejected(raw, topic.must, topic.self, topic.prompt ?: "")
+            val why = Dialogue.whyRejected(raw, topic.must, topic.self, topic.prompt ?: "", topic.recent)
             _status.update { it.copy(rejected = "${npc.first}: $why: \u201c${Dialogue.preview(raw).take(90)}\u201d") }
         }
         val tEnd = SystemClock.elapsedRealtime()
@@ -1788,8 +1786,11 @@ class DialogueEngine private constructor(private val app: Context) {
             val s = " " + said.lowercase().replace(Regex("[^a-z' ]"), " ") + " "
             fun has(vararg w: String) = w.any { s.contains(" $it") }
             val intent = when {
-                has("secret", "hiding", "hide ", "hidden") -> "secret"
-                has("rumor", "rumour", "gossip", "heard anything", "heard any", "news", "going on", "what's new", "whats new") -> "rumors"
+                // their own secret ("are you hiding anything?"); a secret about others or the town is gossip: what they have
+                // heard ("do you know any secrets about this town?" asks what they know, not what they keep)
+                has("hiding", "hide ", "hidden", "your secret", "your own secret", "keeping anything", "keeping something",
+                    "keep anything", "keep something", "have any secrets", "have a secret", "got any secrets", "got a secret") -> "secret"
+                has("secret", "rumor", "rumour", "gossip", "heard anything", "heard any", "news", "going on", "what's new", "whats new") -> "rumors"
                 has("family", "wife", "husband", "kids", "children", "child", "son ", "sons", "daughter", "married", "spouse", "parents") -> "family"
                 has("work", "job", "shop", "store", "business", "living", "trade", "sell") -> "work"
                 has("town", "mayor", "place like", "around here") -> "town"
@@ -1815,6 +1816,45 @@ class DialogueEngine private constructor(private val app: Context) {
             val from = start + "<|im_start|>user\n".length
             val end = prompt.indexOf("<|im_end|>", from).takeIf { it >= 0 } ?: return prompt
             return prompt.substring(0, from) + words + prompt.substring(end)
+        }
+
+        private const val EXAMPLE = "\nExample of the kind of answer:"
+
+        /**
+         * [prompt] without its example answer: the example answers the menu's question, and in a free question the model
+         * copied it ("It is a lovely day for it, isn't it?" three times in the owner's first conversation log).
+         */
+        fun withoutExample(prompt: String): String {
+            val at = prompt.indexOf(EXAMPLE).takeIf { it >= 0 } ?: return prompt
+            val end = prompt.indexOf("<|im_end|>", at).takeIf { it >= 0 } ?: return prompt
+            return prompt.substring(0, at) + prompt.substring(end)
+        }
+
+        /** [prompt] with their last replies in this conversation ([recent], at most 2: prefill time matters) and the rule not to say them again. */
+        fun withRecent(prompt: String, recent: List<String>): String {
+            val r = recent.takeLast(2).filter { it.isNotBlank() }
+            if (r.isEmpty()) return prompt
+            val line = "You already said: " + r.joinToString(" ") { "\"$it\"" } + " Do not repeat those words."
+            val at = prompt.indexOf(EXAMPLE).takeIf { it >= 0 } ?: prompt.indexOf("<|im_end|>").takeIf { it >= 0 } ?: return prompt
+            return prompt.substring(0, at) + "\n" + line + prompt.substring(at)
+        }
+
+        /**
+         * The topic as a free question asks it: the player's [said] words in place of the menu's question, the example
+         * answer left out, what they remember ([remembered]) and their last replies ([recent], those not already in a
+         * memory) in the facts, and [recent] for the check. Words it must name only where the topic is the secret being
+         * told (the player asked about it); otherwise a question of the player's own need not name them.
+         */
+        fun freeTopic(topic: Topic, said: String, remembered: List<String>, recent: List<String>): Topic {
+            fun clean(s: String) = s.replace("<|", "<").replace("|>", ">").replace("\n", " ").trim()
+            val words = clean(said).take(400)
+            val mem = remembered.map { m -> clean(m).take(600) }
+            val last = recent.takeLast(3).map { clean(it).take(300) }
+            // (the check knows the last 3; the prompt quotes the last 2, and not one a memory already quotes: prefill matters)
+            val newOnes = last.takeLast(2).filter { r -> mem.none { it.contains(r) } }
+            val prompt = topic.prompt?.let { withRecent(withMemories(withoutExample(withQuestion(it, words)), mem), newOnes) }
+            val keep = if (topic.intent == "rumors" || topic.intent == "secret") topic.must else emptyList()
+            return topic.copy(prompt = prompt, must = keep, recent = last)
         }
 
         private const val TAG = "Dialogue"

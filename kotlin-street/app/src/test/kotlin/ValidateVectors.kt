@@ -5,7 +5,7 @@ object ValidateVectors {
     const val SELF = "Lois Fairchild"
     const val KNOWN = "You are Lois Fairchild, 81. Married to Bob Lee. Children: Ann, Carl. Keep this quiet, but Walter Vance is in debt."
 
-    class V(val raw: String, val must: List<String>, val expected: String?)
+    class V(val raw: String, val must: List<String>, val expected: String?, val known: String = KNOWN, val recent: List<String> = emptyList())
 
     val all = listOf(
         V("\"I'm married to Bob.\" <|im_end|>", listOf(), "I'm married to Bob."),
@@ -107,5 +107,42 @@ object ValidateVectors {
         V("Heard from Bobby lately?", listOf(), null),
         V("Caf\u00e9 is open. \"Vernon\" said so.", listOf(), "Caf\u00e9 is open. \"Vernon\" said so."),
         V("It is a nice day, Vernon.", listOf(), null),
+        V("I heard whispers about the old mill.", listOf(), null),
+        V("The new library is lovely.", listOf(), null, "You are Lois Fairchild, 81. Married to Bob Lee. Children: Ann, Carl. Keep this quiet, but Walter Vance is in debt.\n<|im_start|>user\nWhat about the new library?<|im_end|>", listOf()),
+        V("A new library? I haven't heard of one.", listOf(), "A new library? I haven't heard of one.", "You are Lois Fairchild, 81. Married to Bob Lee. Children: Ann, Carl. Keep this quiet, but Walter Vance is in debt.\n<|im_start|>user\nWhat about the new library?<|im_end|>", listOf()),
+        V("The library is not open yet.", listOf(), "The library is not open yet.", "You are Lois Fairchild, 81. Married to Bob Lee. Children: Ann, Carl. Keep this quiet, but Walter Vance is in debt.\n<|im_start|>user\nIs the library open?<|im_end|>", listOf()),
+        V("THE OLD MILL burned down.", listOf(), null),
+        V("We met at the church.", listOf(), null),
+        V("We met at church on Sunday.", listOf(), "We met at church on Sunday."),
+        V("The fires were bad that year.", listOf(), null),
+        V("The fireman came.", listOf(), "The fireman came."),
+        V("An innocent man.", listOf(), "An innocent man."),
+        V("There was a scandal, I hear.", listOf(), null),
+        V("Our gym is busy.", listOf(), "Our gym is busy.", "You are Lois Fairchild, 81. Your job: works at Thorne's Gym.", listOf()),
+        V("The supermarket is cheap.", listOf(), "The supermarket is cheap.", "You buy groceries at Pine Market downtown.", listOf()),
+        V("The market is cheap.", listOf(), "The market is cheap.", "You buy groceries at Pine Supermarket downtown.", listOf()),
+        V("Yes, I know Tom well.", listOf(), null, "You are Lois Fairchild, 81. Married to Bob Lee. Children: Ann, Carl. Keep this quiet, but Walter Vance is in debt.\n<|im_start|>user\nDo you know Tom?<|im_end|>", listOf()),
+        V("No, I don't know Tom.", listOf(), "No, I don't know Tom.", "You are Lois Fairchild, 81. Married to Bob Lee. Children: Ann, Carl. Keep this quiet, but Walter Vance is in debt.\n<|im_start|>user\nDo you know Tom?<|im_end|>", listOf()),
+        V("Who, Tom? Never met him.", listOf(), "Who, Tom? Never met him.", "You are Lois Fairchild, 81. Married to Bob Lee. Children: Ann, Carl. Keep this quiet, but Walter Vance is in debt.\n<|im_start|>user\nDo you know Tom?<|im_end|>", listOf()),
+        V("I have lived in Maple Hollow all my life.", listOf(), null, "You are Lois Fairchild, 81, a woman who moved to Maple Hollow from Cedar Falls in 2021.", listOf()),
+        V("Yes, I am from Maple Hollow.", listOf(), null, "You are Lois Fairchild, 81, a woman who moved to Maple Hollow from Cedar Falls in 2021.", listOf()),
+        V("No, I moved here from Cedar Falls in 2021.", listOf(), "No, I moved here from Cedar Falls in 2021.", "You are Lois Fairchild, 81, a woman who moved to Maple Hollow from Cedar Falls in 2021.", listOf()),
+        V("I was born and raised in Cedar Falls.", listOf(), "I was born and raised in Cedar Falls.", "You are Lois Fairchild, 81, a woman who moved to Maple Hollow from Cedar Falls in 2021.", listOf()),
+        V("Not born here, no. I came in 2021.", listOf(), "Not born here, no. I came in 2021.", "You are Lois Fairchild, 81, a woman who moved to Maple Hollow from Cedar Falls in 2021.", listOf()),
+        V("Born here? No, I came in 2021.", listOf(), "Born here? No, I came in 2021.", "You are Lois Fairchild, 81, a woman who moved to Maple Hollow from Cedar Falls in 2021.", listOf()),
+        V("I moved here in 1990.", listOf(), null, "You are Lois Fairchild, 81, a woman born and raised in Maple Hollow.", listOf()),
+        V("I grew up here.", listOf(), "I grew up here.", "You are Lois Fairchild, 81, a woman born and raised in Maple Hollow.", listOf()),
+        V("I'm not from around here.", listOf(), null, "You are Lois Fairchild, 81, a woman born and raised in Maple Hollow.", listOf()),
+        V("Perhaps we can talk about something else instead.", listOf(), null),
+        V("Let's talk about the weather instead.", listOf(), null),
+        V("Let's talk about something else.", listOf(), "Let's talk about something else.", "You are Lois Fairchild. You have a private matter of your own. You would rather not talk about it.", listOf()),
+        V("PERHAPS WE COULD CHAT ABOUT it.", listOf(), null),
+        V("Talk about luck, eh?", listOf(), "Talk about luck, eh?"),
+        V("It is a lovely day for it, isn't it?", listOf(), null, "You are Lois Fairchild, 81. Married to Bob Lee. Children: Ann, Carl. Keep this quiet, but Walter Vance is in debt.", listOf("Yes, I can hear you. It is a lovely day for it, isn't it?")),
+        V("Lovely day for it, isn't it?", listOf(), null, "You are Lois Fairchild, 81. Married to Bob Lee. Children: Ann, Carl. Keep this quiet, but Walter Vance is in debt.", listOf("Lovely day for it, is it not?")),
+        V("Yes, it is a fine day.", listOf(), "Yes, it is a fine day.", "You are Lois Fairchild, 81. Married to Bob Lee. Children: Ann, Carl. Keep this quiet, but Walter Vance is in debt.", listOf("Yes, I can hear you quite clearly.")),
+        V("I am fine, thank you.", listOf(), "I am fine, thank you.", "You are Lois Fairchild, 81. Married to Bob Lee. Children: Ann, Carl. Keep this quiet, but Walter Vance is in debt.", listOf("I am fine, thanks.")),
+        V("Fine.", listOf(), "Fine.", "You are Lois Fairchild, 81. Married to Bob Lee. Children: Ann, Carl. Keep this quiet, but Walter Vance is in debt.", listOf("Fine.")),
+        V("The cinema is showing a film.", listOf(), null, "The cinema, Avalon 8, is showing \"Jax\" this week.", listOf("They say the cinema is showing a film tonight.")),
     )
 }

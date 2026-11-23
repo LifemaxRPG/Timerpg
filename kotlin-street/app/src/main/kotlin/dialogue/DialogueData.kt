@@ -16,6 +16,8 @@ data class Topic(
     /** Words the model's reply must contain; the speaker's full name, which it must not. */
     val must: List<String>,
     val self: String,
+    /** Their last replies in this conversation (a free question's): the check turns down a reply that says one again. */
+    val recent: List<String> = emptyList(),
 )
 
 /** Someone the player can talk to at a building. */

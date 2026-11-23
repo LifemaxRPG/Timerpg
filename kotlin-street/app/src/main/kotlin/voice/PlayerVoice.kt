@@ -487,28 +487,125 @@ class PlayerVoice(private val ctx: Context) {
     private var downloadAsked = false
     private val loopNext = Runnable { phoneLoopListen() }
 
+    /**
+     * "Listening" that hears nothing (the owner's S25, 0.1.642: the lamp said listening, no words came, nothing said why).
+     * The loop had no way out of a recognizer that stops calling back (no ready, no level, no result, no error: then
+     * [loopActive] stays set and every restart is skipped), nor of one that answers every start with ERROR_CLIENT (retried
+     * every 300 ms for ever, on the same instance), and it logged none of it. Now a watch checks the loop every
+     * [WATCH_MS]: a recognizer silent for [STALL_MS], or with no result [RESULT_TIMEOUT_MS] after the player stopped
+     * talking, is thrown away and a new one started; a loop idle for no reason is started again; repeated client errors
+     * get a new recognizer. When words were lost (no result after speech) or the recognizer keeps stalling, the lamp says
+     * "didn't catch that: tap to retry" ([needsRetry], [retry]). Every step is a breadcrumb.
+     */
+    private var lastEventAt = 0L
+    private var clientErrors = 0
+    private var stalls = 0
+    private var mutedSince = 0L
+    private var mutedNoted = false
+    private val loopWatch = object : Runnable {
+        override fun run() {
+            if (!phoneLoop || !listening) return
+            val now = SystemClock.elapsedRealtime()
+            when {
+                muted -> {
+                    if (mutedSince == 0L) mutedSince = now
+                    if (!mutedNoted && now - mutedSince > MUTED_LONG_MS) { mutedNoted = true; crumb("not hearing for ${(now - mutedSince) / 1000} s: an NPC's voice is playing (muted)") }
+                }
+                loopActive && speechEndAt > 0 && writing > 0 && now - speechEndAt > RESULT_TIMEOUT_MS -> {
+                    crumb("no result ${(now - speechEndAt) / 1000} s after you stopped talking: the recognizer is replaced")
+                    missed()
+                    resetRecognizer()
+                }
+                loopActive && now - lastEventAt > STALL_MS -> {
+                    stalls++
+                    crumb("the recognizer has been silent for ${(now - lastEventAt) / 1000} s (stall $stalls): replaced")
+                    if (stalls >= 2) missed()
+                    resetRecognizer()
+                }
+                !loopActive && !restartPending && now - lastEventAt > STALL_MS -> {
+                    crumb("the loop was idle for ${(now - lastEventAt) / 1000} s with nothing to wait for: started again")
+                    phoneLoopListen()
+                }
+            }
+            if (!muted) { mutedSince = 0L; mutedNoted = false }
+            main.postDelayed(this, WATCH_MS)
+        }
+    }
+
+    /** The player's words were lost, or the recognizer keeps failing: the lamp offers a retry. */
+    private fun missed() {
+        needsRetry = true
+        problem = "Didn't catch that: tap the mic to retry."
+        if (lastPartial.isNotEmpty()) { lastPartial = ""; onPartialNow?.invoke("") }
+    }
+
+    /** Throws the recognizer away and starts a new one shortly (a recognizer that stalled stays stalled). */
+    private fun resetRecognizer(delayMs: Long = 300) {
+        loopActive = false
+        runCatching { loopRec?.cancel() }
+        runCatching { loopRec?.destroy() }
+        loopRec = null
+        writing = 0; hearing = false; level = 0f
+        speechEndAt = 0L
+        lastEventAt = SystemClock.elapsedRealtime()
+        phoneLoopNext(delayMs)
+    }
+
+    /** The lamp's "tap to retry": listening starts again from scratch (a new recognizer, or our model's mic again). */
+    fun retry() {
+        crumb("retry tapped (${hearer.name.lowercase()})")
+        needsRetry = false
+        problem = null
+        stalls = 0; clientErrors = 0; loopErrors = 0
+        if (phoneLoop) { resetRecognizer(0); return }
+        val t = onTextNow ?: return
+        val p = onPartialNow
+        stopListening(release = false)
+        listen(t, p ?: {})
+    }
+
+    /** The lamp offers "tap to retry" (words were lost, or the recognizer kept stalling). */
+    var needsRetry by mutableStateOf(false)
+        private set
+
+    private fun crumb(s: String) = com.timerpg.street.shot.Crumbs.add("mic: $s")
+
+    /** The always-listening loop in a line, for the screenshot's diagnostics ("state" there is hold to talk's). */
+    fun loopStatus(): String = if (!listening) "not listening" else if (!phoneLoop) "our speech model (${if (asr.loaded) "loaded" else "not loaded"}), writing $writing" else
+        "phone recognizer ${if (loopActive) "listening" else if (restartPending) "restarting" else "idle"}, last sign of life " +
+            "${(SystemClock.elapsedRealtime() - lastEventAt) / 1000} s ago, errors $loopErrors, client errors $clientErrors, stalls $stalls" +
+            "${if (muted) ", muted (an NPC's voice)" else ""}${if (needsRetry) ", asking to retry" else ""}"
+
     private fun phoneLoopStart() {
         phoneLoop = true
-        loopErrors = 0
+        loopErrors = 0; clientErrors = 0; stalls = 0
+        lastEventAt = SystemClock.elapsedRealtime()
         // (our model is not needed: its memory is the dialogue model's)
         if (asr.loaded) { asr.cancel(); worker.execute { asr.close() } }
-        com.timerpg.street.shot.Crumbs.add("mic: the phone's on-device recognizer listens")
+        crumb("the phone's on-device recognizer listens")
+        main.removeCallbacks(loopWatch)
+        main.postDelayed(loopWatch, WATCH_MS)
         phoneLoopListen()
     }
 
+    private var restartPending = false
+
     private fun phoneLoopNext(delayMs: Long) {
         main.removeCallbacks(loopNext)
-        if (phoneLoop && listening) main.postDelayed(loopNext, delayMs)
+        restartPending = phoneLoop && listening
+        if (restartPending) main.postDelayed(loopNext, delayMs)
     }
 
     private fun phoneLoopPause() {
         main.removeCallbacks(loopNext)
+        restartPending = false
         if (loopActive) { loopActive = false; runCatching { loopRec?.cancel() } }
-        hearing = false; level = 0f
+        hearing = false; level = 0f; writing = 0; speechEndAt = 0L
         if (lastPartial.isNotEmpty()) { lastPartial = ""; onPartialNow?.invoke("") }
     }
 
     private fun phoneLoopListen() {
+        restartPending = false
         if (!phoneLoop || !listening || loopActive) return
         if (muted) return   // started again when the voice stops
         val r = loopRec ?: onDevice()?.also { r ->
@@ -517,31 +614,40 @@ class PlayerVoice(private val ctx: Context) {
         } ?: return phoneLoopFail("The phone's on-device speech recognition could not start.")
         loopActive = true
         lastPartial = ""
+        // (the watch counts silence from the start)
+        lastEventAt = SystemClock.elapsedRealtime()
         try { r.startListening(intent(partial = true, silenceMs = PHONE_SILENCE_MS)) }
-        catch (e: Exception) { loopActive = false; phoneLoopError(-1) }
+        catch (e: Exception) { loopActive = false; crumb("could not start the recognizer: ${e.javaClass.simpleName} ${e.message ?: ""}"); phoneLoopError(-1) }
     }
 
+    private fun alive() { lastEventAt = SystemClock.elapsedRealtime() }
+
     private val loopListener = object : RecognitionListener {
-        override fun onReadyForSpeech(p: Bundle?) {}
-        override fun onBeginningOfSpeech() { speechStartAt = SystemClock.elapsedRealtime(); speechEndAt = 0L; if (!muted) hearing = true }
-        override fun onRmsChanged(rmsdB: Float) { if (!muted) level = ((rmsdB + 2f) / 12f).coerceIn(0f, 1f) }
-        override fun onBufferReceived(b: ByteArray?) {}
-        override fun onEndOfSpeech() { speechEndAt = SystemClock.elapsedRealtime(); hearing = false; level = 0f; writing = 1 }
+        override fun onReadyForSpeech(p: Bundle?) { alive(); clientErrors = 0 }
+        override fun onBeginningOfSpeech() { alive(); speechStartAt = SystemClock.elapsedRealtime(); speechEndAt = 0L; if (!muted) hearing = true }
+        override fun onRmsChanged(rmsdB: Float) { alive(); if (!muted) level = ((rmsdB + 2f) / 12f).coerceIn(0f, 1f) }
+        override fun onBufferReceived(b: ByteArray?) { alive() }
+        override fun onEndOfSpeech() { alive(); speechEndAt = SystemClock.elapsedRealtime(); hearing = false; level = 0f; writing = 1 }
         override fun onPartialResults(p: Bundle?) {
+            alive()
             if (muted || !phoneLoop) return
             val t = p?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.trim().orEmpty()
             if (t.isNotEmpty() && t != lastPartial) { lastPartial = t; onPartialNow?.invoke(t) }
         }
-        override fun onEvent(t: Int, p: Bundle?) {}
+        override fun onEvent(t: Int, p: Bundle?) { alive() }
         override fun onResults(b: Bundle?) {
+            alive()
             loopActive = false; writing = 0; hearing = false
             val t = b?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.trim().orEmpty()
             phoneConfidence = b?.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES)?.firstOrNull()?.takeIf { it >= 0f } ?: Float.NaN
-            loopErrors = 0
+            loopErrors = 0; clientErrors = 0; stalls = 0
+            speechEndAt = 0L
             val had = lastPartial
             lastPartial = ""
+            // (a result after the words were partly shown but came out empty is worth a crumb: the words were lost)
+            if (t.isEmpty() && had.isNotEmpty()) crumb("an empty result after ${had.split(' ').size} words were shown")
             if (!muted && always && t.count { it.isLetter() } >= 2) {
-                problem = null
+                problem = null; needsRetry = false
                 val now = SystemClock.elapsedRealtime()
                 heardBy(Heard("the phone's recognizer", if (speechEndAt > 0) now - speechEndAt else 0L, 0L,
                     if (speechStartAt > 0 && speechEndAt > speechStartAt) speechEndAt - speechStartAt else 0L))
@@ -550,19 +656,36 @@ class PlayerVoice(private val ctx: Context) {
             phoneLoopNext(RESTART_MS)
         }
         override fun onError(error: Int) {
+            alive()
             loopActive = false; writing = 0; hearing = false; level = 0f
-            if (lastPartial.isNotEmpty()) { lastPartial = ""; onPartialNow?.invoke("") }
+            // words shown, then an error: they were lost (the player sees their words vanish and nothing answer)
+            if (lastPartial.isNotEmpty()) {
+                crumb("${errorName(error)} after ${lastPartial.split(' ').size} words were shown: lost")
+                if (error != SpeechRecognizer.ERROR_CLIENT) missed()
+                lastPartial = ""; onPartialNow?.invoke("")
+            }
+            speechEndAt = 0L
             phoneLoopError(error)
         }
     }
 
     private fun phoneLoopError(error: Int) {
         if (!phoneLoop) return
+        // (no match and timeouts are the loop's normal quiet: not logged)
+        if (error != SpeechRecognizer.ERROR_NO_MATCH && error != SpeechRecognizer.ERROR_SPEECH_TIMEOUT)
+            crumb("recognizer error: ${errorName(error)} (${loopErrors + 1} errors, ${clientErrors + if (error == SpeechRecognizer.ERROR_CLIENT) 1 else 0} client errors in a row)")
         when (error) {
             // nothing said, or said nothing it knew: listen again
-            SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> { loopErrors = 0; phoneLoopNext(RESTART_MS) }
-            // (a cancel of ours, or a start too soon after the last)
-            SpeechRecognizer.ERROR_CLIENT -> phoneLoopNext(300)
+            SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> { loopErrors = 0; clientErrors = 0; stalls = 0; phoneLoopNext(RESTART_MS) }
+            // (a cancel of ours, or a start too soon after the last; again and again: the instance is broken, a new one)
+            SpeechRecognizer.ERROR_CLIENT -> {
+                if (++clientErrors >= CLIENT_ERRORS_MAX) {
+                    crumb("$clientErrors client errors in a row: a new recognizer")
+                    clientErrors = 0
+                    if (++stalls >= 3) missed()
+                    resetRecognizer(600)
+                } else phoneLoopNext(300)
+            }
             SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> { runCatching { loopRec?.destroy() }; loopRec = null; phoneLoopNext(600) }
             SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> { problem = "The game needs the microphone to hear you."; stopPhoneLoop() }
             // its language pack is not on the phone: asked for (API 33+), and ours hears meanwhile
@@ -575,7 +698,8 @@ class PlayerVoice(private val ctx: Context) {
             }
             else -> {
                 if (++loopErrors >= 5) phoneLoopFail("The phone's on-device speech recognition keeps failing (${errorName(error)}); the game's speech model hears you instead.")
-                else phoneLoopNext(400L * loopErrors)
+                // (an audio or server error can leave the instance unusable: the next try gets a new one)
+                else { runCatching { loopRec?.destroy() }; loopRec = null; phoneLoopNext(400L * loopErrors) }
             }
         }
     }
@@ -593,6 +717,8 @@ class PlayerVoice(private val ctx: Context) {
     private fun stopPhoneLoop() {
         phoneLoop = false
         main.removeCallbacks(loopNext)
+        main.removeCallbacks(loopWatch)
+        restartPending = false
         loopActive = false
         runCatching { loopRec?.cancel() }
         runCatching { loopRec?.destroy() }
@@ -618,6 +744,7 @@ class PlayerVoice(private val ctx: Context) {
         if (!listening && !always) return
         listening = false
         always = false
+        needsRetry = false
         level = 0f; hearing = false
         if (phoneLoop) stopPhoneLoop()
         if (release) { asr.cancel(); worker.execute { asr.close() } } else touch()
@@ -689,6 +816,15 @@ class PlayerVoice(private val ctx: Context) {
         const val PHONE_SILENCE_MS = 700L
         /** The phone's recognizer starts listening again this soon after a result. */
         private const val RESTART_MS = 80L
+        /** The always-listening loop's watch: how often it looks, how long a recognizer may say nothing at all (it sends
+         *  its level several times a second while it listens), how long a result may take after the player stops, and
+         *  client errors in a row before the recognizer is replaced. Guesses, to be checked against the breadcrumbs. */
+        private const val WATCH_MS = 2_000L
+        const val STALL_MS = 10_000L
+        const val RESULT_TIMEOUT_MS = 6_000L
+        private const val CLIENT_ERRORS_MAX = 4
+        /** Muted (an NPC's voice playing) this long is logged once: the mic hears nothing meanwhile. */
+        private const val MUTED_LONG_MS = 30_000L
         /** Our speech model's own buffers beside its weights (MB): its cache in 8 bits and one output row. */
         private const val ASR_WORK_MB = 150L
         const val ASR_MODEL = "asr/Qwen3-ASR-1.7B-Q8_0.gguf"
