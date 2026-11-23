@@ -75,6 +75,10 @@ one major feature rather than the whole premise:
   2,000 x 1,000 km that wraps east-west, ice caps as natural borders; **30% land split into 8-10 small continents and
   big islands** (short drives, lots of sailing between them); terrain is **smooth rolling ground with hard low-poly
   cliff faces only where steep**, pixel-art ground textures on top.
+- **No fast travel** (the owner's decision, 2026-11-23): you get places by actually travelling them at the world's
+  real scale. An hour's drive between big cities is fine ("it'll be a fun drive"). So make the journey worth it:
+  scenery, roadside stops, era radio, weather, night driving, hitchhikers, police, breakdowns and fuel. Trains and
+  ships are real rides you can spend time on, not loading screens.
 - **Approved real-world exception: the Beach Blvd Rex** (the owner's decision, 2026-11-22): a faithful model of the
   1964 roadside dinosaur statue on Beach Boulevard, Jacksonville (an Easter egg to the owner's hometown; the
   mini-golf course it came from is long gone). Keep it as made (`codex/beach-blvd-rex`). Every other model stays
