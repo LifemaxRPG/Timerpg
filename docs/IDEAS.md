@@ -734,3 +734,10 @@ that combine freely, so almost anything a person could do can be expressed, and 
 Because `recognitionChance` scores a police description against **anyone's** appearance, not only the real culprit's,
 an innocent NPC who matches a vague description can be questioned or gossiped about, and an innocent player wearing
 the same coat as a wanted thief can be stopped by a beat cop until cleared. Proposed by Jeff in his G005 delivery.
+
+## Ghost signs (Jeff's idea, from G006, 2026-11-23)
+
+When a business changes hands across the decades, the new sign is painted over the old one, and a faint trace of the
+previous owner's lettering (8-12% of its ink) shows through on weathered boards. Real small-town brick walls show
+these "ghost signs", so the century of town history becomes something the player can spot walking down Main Street.
+Proposed by Jeff in his G006 delivery.

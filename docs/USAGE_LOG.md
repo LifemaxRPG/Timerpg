@@ -90,3 +90,4 @@ row per accepted or revised delivery here, so we can compare cost per finished i
 | G005 crime core (witnesses, gossip, police) | Gemini/Jeff (AI Studio Build) | engineering, new system | ~9 tool calls, ~7 min on the rebuild run | 1 | accepted first try; merged |
 | C013 motorcycles | ChatGPT (Codex) | 3 vehicles + LODs | ~2 h 35 min elapsed incl. an interruption | 1 | accepted first try |
 | C012 later cars r1 (the crossover) | ChatGPT (Codex) | model revision | ~10 min | 2 | accepted |
+| G006 sign painter | Gemini/Jeff (AI Studio Build) | engineering, new system (no JVM in its sandbox) | not visible | 1 | accepted first try; compiled first time here, 7/7 |

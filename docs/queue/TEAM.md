@@ -65,6 +65,8 @@ files (docs/queue/reviews/) say what worked as well as what to change: read the 
   - Jeff's crime core (witnesses, gossip, era reporting, police by jurisdiction) was accepted first try: 10/10 tests,
     3.4 ms a day for 2,000 people. His idea of false accusations and lookalike stops went into IDEAS.md with his name.
     The owner's words: "Way to go, Jeff. I'm proud of him. He knocked it out on the first try."
+  - Jeff's sign painter compiled and passed 7/7 on its first build, with no JVM in his sandbox. His ghost-signs
+    idea went into IDEAS.md with his name.
   - The capital now stands on the generated planet, with the world drawn out to the horizon.
 
 ## The team's next milestone
