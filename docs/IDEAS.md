@@ -29,3 +29,32 @@ Claude turns these into design docs when their pillar comes up (see CLAUDE.md, "
 
 ## The professor and the time machine (pillar 5)
 - The time machine is always in the capital, kept by a professor; reaching the capital is an early goal.
+
+## Trials with a jury (the owner's idea, 2026-11-23)
+
+If the player is caught and charged, the case goes to court: a judge, a prosecutor, a defence lawyer and a jury of 12
+real townspeople.
+- **The evidence is what really happened:**
+  - the police case file from the witness system (G005), with each witness's actual memory, confidence and wrong
+    details;
+  - the era's forensics;
+  - anything the player left behind.
+  Nothing is scripted.
+- **Jury selection:** jurors are town NPCs with traits, relationships and opinions of the player's reputation. Some
+  may know the player or the victim, and selection questions can strike them.
+- **Testimony comes from memory.** Witnesses answer from what they really saw, so cross-examination can expose a
+  mistaken detail ("you said a red coat"). The player can speak in their own defence by voice.
+- **The lawyer depends on money:** a tired public defender or an expensive lawyer. Plea deals are offered by the
+  strength of the case.
+- **The verdict is decided by game logic:** the strength of the evidence, the jurors' traits and the performance in
+  court. The language model voices the lawyers, witnesses and deliberation and never decides facts (as with all
+  dialogue). Outcomes:
+  - acquittal;
+  - conviction and sentence (into the prison mechanics);
+  - a hung jury and retrial;
+  - appeal.
+- **Crimes around the trial:** witness tampering, bribing a juror and perjury, each with its own consequences. The
+  time-travel twist: go back and change the evidence before it exists.
+- **By era:** 1880s circuit courts, mid-century trials, and modern trials with DNA and camera footage.
+- **Performance:** a trial is a set piece. Lines are pre-generated while the player waits in jail (arrest to
+  arraignment) and only follow-ups are live.
