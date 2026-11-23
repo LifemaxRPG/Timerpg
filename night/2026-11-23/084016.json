@@ -1,0 +1,193 @@
+{
+  "kind": "writer",
+  "start": "2026-11-23T08:40:16.201-0500",
+  "end": "2026-11-23T08:40:49.317-0500",
+  "minutes": 0.6,
+  "how": "writer",
+  "stopReason": "stopped in Writer mode",
+  "inPlainWords": "Nothing was written: the model was not ready (Ready. Lines near you are written ahead of time.). It stopped: stopped in Writer mode.",
+  "app": {
+    "versionName": "0.1.684 (c0ae1b6)",
+    "versionCode": 684,
+    "git": "c0ae1b6",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "written": {
+    "lines": 0,
+    "variants": 0,
+    "rejected": 0,
+    "timedOut": 0,
+    "failed": 0,
+    "lastFailure": null,
+    "linesPerHour": 0,
+    "linesPerWritingHour": 0
+  },
+  "speed": {
+    "model": "",
+    "runsOn": "",
+    "genTokens": 0,
+    "genTokPerSec": 0,
+    "prefillTokens": 0,
+    "prefillTokPerSec": 0
+  },
+  "time": {
+    "writingMin": 0,
+    "coolingMin": 0,
+    "hotPausedMin": 0.3,
+    "burstRestMin": 0,
+    "batteryWaitMin": 0,
+    "pausedByYouMin": 0,
+    "heldMin": 0,
+    "heldBy": null,
+    "closingGameMin": 0,
+    "modelLoadMin": 0
+  },
+  "model": {
+    "loaded": "",
+    "problem": "Ready. Lines near you are written ahead of time.",
+    "engineAtEnd": "loading: Loading the model (5417 MB)…",
+    "lastRejected": null,
+    "freeAtStartMb": 1569,
+    "freedByClosingGameMb": 4808,
+    "freeBeforeLoadMb": 6325,
+    "androidThresholdMb": 216,
+    "mainCopyNeedsMb": 6617,
+    "lightCopyNeedsMb": 3751,
+    "freeAfterLoadMb": -1
+  },
+  "heat": {
+    "coolDowns": 0,
+    "hotPauses": 1,
+    "maxThermalStatus": 3
+  },
+  "battery": {
+    "start": 18,
+    "end": 18,
+    "pluggedAtStart": true,
+    "pluggedAtEnd": true
+  },
+  "bank": {
+    "prompts": 1787,
+    "ready": 0,
+    "templates": 0,
+    "missing": 1787,
+    "lines": 0,
+    "variantsDone": 0,
+    "stale": 1,
+    "years": [],
+    "light": 0,
+    "left": -1,
+    "etaMin": null
+  },
+  "queue": {
+    "byYear": {
+      "2025": 1787
+    },
+    "byPerson": {
+      "Ernest Reyes": 33,
+      "Betty Chen": 24,
+      "Gladys Novak": 23,
+      "Louise Radcliffe": 23,
+      "Clyde Novak": 22,
+      "Florence Moreau": 22,
+      "Harold Abbott": 22,
+      "James Moreau": 22,
+      "others (141)": 1596
+    },
+    "byTopic": {
+      "your themes": 966,
+      "work": 173,
+      "chat": 161,
+      "family": 161,
+      "rumors": 161,
+      "secret": 161,
+      "follow-ups": 4
+    }
+  },
+  "recent": [],
+  "player": {
+    "themes": [
+      {
+        "label": "the town: secrets, town",
+        "kind": "the town",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: anyways, asking",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "flirting: nice, pretty",
+        "kind": "flirting",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: ask, asked",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: hear, yo",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "gossip: library, new",
+        "kind": "gossip",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "personal: baby, meet",
+        "kind": "personal",
+        "asked": 1,
+        "live": 0,
+        "people": 1
+      },
+      {
+        "label": "personal: name",
+        "kind": "personal",
+        "asked": 1,
+        "live": 0,
+        "people": 1
+      },
+      {
+        "label": "personal: baby, old",
+        "kind": "personal",
+        "asked": 1,
+        "live": 0,
+        "people": 1
+      }
+    ],
+    "answersByDay": [
+      {
+        "day": "2026-11-18",
+        "ready": 0,
+        "live": 0,
+        "template": 1,
+        "readyShare": 0
+      },
+      {
+        "day": "2026-11-23",
+        "ready": 0,
+        "live": 7,
+        "template": 0,
+        "readyShare": 0
+      }
+    ]
+  }
+}
