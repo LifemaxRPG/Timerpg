@@ -663,3 +663,11 @@ Replaces the "go back and save him" recommendation above, which was too close to
      important" is still unsaid.
   - Claude's recommendation: 3 as the core (the deepest hook, and it uses the unanchored rules), with 1 as the
     everyday reason and 2 as rising pressure.
+- **The professor as a companion** (the owner, 2026-11-23). He doesn't want to be found, and it needn't be explained:
+  maybe he just wanted to retire. If the player does find him, they can try to **convince him to come along** as a
+  companion. Game logic decides it (his traits, the relationship, what's offered); the dialogue model voices it.
+  - **He's very intelligent.** What that means in play is to be decided. First thoughts:
+    - he makes the machine better (more trips from the same fuel, more precise landings);
+    - he spots anachronisms and reads the timeline's changes;
+    - he knows the science of each era (what can be built, invented or patented early);
+    - he sizes up risks (how long a cache spot will last, what evidence a plan leaves).
