@@ -29,3 +29,4 @@ __pycache__/
 out/
 *.apk
 kotlin-street/build-town/
+/node_modules
