@@ -55,7 +55,7 @@ function baseCost(t: Terrain, cl: Climate, h: Hydro, bio: Uint8Array): Float32Ar
   for (let c = 0; c < N; c++) {
     if (!t.land[c]) { cost[c] = Infinity; continue; }
     const s = cl.slope[c]! / 45;
-    cost[c] = 1 + s * s + (h.lake[c] ? 25 : 0) + (h.flow[c]! >= RIVER_FLOW ? 2.5 : 0) + (bio[c] === B.ice || bio[c] === B.glacier ? 4 : 0) + (bio[c] === B.marsh ? 1.5 : 0);
+    cost[c] = 1 + s * s + (h.lake[c] ? 25 : 0) + (h.flow[c]! >= RIVER_FLOW ? 2.5 : 0) + (bio[c] === B.ice || bio[c] === B.glacier ? 4 : 0) + (t.elev[c]! > cl.snowline[c]! ? 6 : 0) + (bio[c] === B.marsh ? 1.5 : 0);
   }
   return cost;
 }

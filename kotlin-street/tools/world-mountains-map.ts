@@ -101,13 +101,20 @@ const KIND_COL: Record<WonderKind, RGB> = {
 
 // ---- 3. a close-up: the road with the most hairpins up to a mountain village, on the near terrain's heights
 {
-  const road = [...w.roads].filter((r) => r.cls === 'county' && w.byId.get(r.a)?.setting).sort((a, b) => (b.switchbacks ?? 0) - (a.switchbacks ?? 0))[0]!;
+  // (a county road up to an alpine village or a pass that stays under the snow line, with the most hairpins)
+  const below = (r: typeof w.roads[number]): boolean => r.cells.every((c) => t.elev[c]! < w.climate.snowline[c]!);
+  const road = [...w.roads].filter((r) => r.cls === 'county' && (w.byId.get(r.a)?.setting === 'alpine' || w.byId.get(r.a)?.setting === 'pass') && below(r) && r.km < 40)
+    .sort((a, b) => (b.switchbacks ?? 0) - (a.switchbacks ?? 0))[0]!;
   const village = w.byId.get(road.a)!;
   const nt = new NearTerrain(seed, Int16Array.from(t.elev, (e) => Math.round(e)));
-  const R = 7.5; // km half-width round the village
+  // (the window round the road's own line: its box, at least 12 km across)
+  const line0 = road.path!;
+  const xs = line0.map((q) => village.x + wrapDx(q[0] - village.x)), zs = line0.map((q) => q[1]);
+  const ctr = { x: (Math.min(...xs) + Math.max(...xs)) / 2, z: (Math.min(...zs) + Math.max(...zs)) / 2 };
+  const R = Math.max(6, (Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs)) * CELL_M) / 2000 + 1);
   const PX = 600, mPer = (2 * R * 1000) / PX;
   const img = new Img(PX, PX);
-  const toCell = (px: number, py: number): [number, number] => [village.x + ((px - PX / 2) * mPer) / CELL_M, village.z + ((py - PX / 2) * mPer) / CELL_M];
+  const toCell = (px: number, py: number): [number, number] => [ctr.x + ((px - PX / 2) * mPer) / CELL_M, ctr.z + ((py - PX / 2) * mPer) / CELL_M];
   const hs = new Float64Array(PX * PX);
   for (let py = 0; py < PX; py++) for (let px = 0; px < PX; px++) { const [x, z] = toCell(px, py); hs[py * PX + px] = nt.smooth(x, z); }
   let lo = Infinity, hi = -Infinity;
@@ -122,7 +129,7 @@ const KIND_COL: Record<WonderKind, RGB> = {
     if (Math.floor(e / 100) !== Math.floor(hs[py * PX + px + 1]! / 100) || Math.floor(e / 100) !== Math.floor(hs[(py + 1) * PX + px]! / 100)) c = shade(c, 0.75);
     img.set(px, py, c);
   }
-  const toPx = (x: number, z: number): [number, number] => [PX / 2 + (wrapDx(x - village.x) * CELL_M) / mPer, PX / 2 + ((z - village.z) * CELL_M) / mPer];
+  const toPx = (x: number, z: number): [number, number] => [PX / 2 + (wrapDx(x - ctr.x) * CELL_M) / mPer, PX / 2 + ((z - ctr.z) * CELL_M) / mPer];
   for (const r of w.roads) {
     const line = r.path ?? [];
     for (let q = 1; q < line.length; q++) {
@@ -138,9 +145,9 @@ const KIND_COL: Record<WonderKind, RGB> = {
     if (Math.min(ax, bx) > PX || Math.max(ax, bx) < 0 || Math.min(ay, by) > PX || Math.max(ay, by) < 0) continue;
     img.line(ax, ay, bx, by, [50, 110, 220], 2);
   }
-  const places = w.places.filter((p) => Math.abs(wrapDx(p.x - village.x)) * CELL_M < R * 1000 && Math.abs(p.z - village.z) * CELL_M < R * 1000);
+  const places = w.places.filter((p) => Math.abs(wrapDx(p.x - ctr.x)) * CELL_M < R * 1000 && Math.abs(p.z - ctr.z) * CELL_M < R * 1000);
   for (const p of places) { const [x, y] = toPx(p.x, p.z); img.disc(x, y, 6, [0, 0, 0]); img.disc(x, y, 4, p.setting ? [255, 80, 40] : [255, 220, 0]); }
-  const wons = w.wonders.filter((q) => Math.abs(wrapDx(q.x - village.x)) * CELL_M < R * 1000 && Math.abs(q.z - village.z) * CELL_M < R * 1000);
+  const wons = w.wonders.filter((q) => Math.abs(wrapDx(q.x - ctr.x)) * CELL_M < R * 1000 && Math.abs(q.z - ctr.z) * CELL_M < R * 1000);
   for (const q of wons) { const [x, y] = toPx(q.x, q.z); img.disc(x, y, 5, KIND_COL[q.kind]); img.ring(x, y, 7, [0, 0, 0]); }
   img.save(`${out}/road_closeup.png`);
   const climb = Math.max(...road.cells.map((c) => t.elev[c]!)) - Math.min(...road.cells.map((c) => t.elev[c]!));

@@ -113,7 +113,7 @@ class WorldSkeleton private constructor(
         const val PTS_SCALE = 524288.0
         /** The grids kept by default (about 17 MB): what the far view, the near terrain (crops, snowline), the hubs and the facts read. */
         val DEFAULT_GRIDS = setOf("elev", "flags", "biome", "flow", "mass", "crop", "snowline")
-        private val UNSIGNED = setOf("flags", "biome", "koppen", "crop", "flow", "steady", "mass", "lake")
+        private val UNSIGNED = setOf("flags", "biome", "koppen", "crop", "flow", "steady", "mass", "lake", "range")
         /** The biomes in the skeleton's order (src/world/gen/climate.ts BIOMES). */
         val BIOMES = listOf("ocean", "ice", "tundra", "taiga", "temperate forest", "temperate rainforest", "prairie", "steppe", "desert", "savanna",
             "tropical forest", "rainforest", "alpine", "marsh", "lake", "beach", "rock", "chaparral", "glacier")

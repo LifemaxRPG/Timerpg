@@ -32,7 +32,7 @@ class WorldSkeletonTest {
 
     companion object {
         private val sk: WorldSkeleton by lazy {
-            File("../../content/world/alpha/skeleton.twsk.gz").inputStream().use { WorldSkeleton.read(it, setOf("elev", "flags", "biome", "koppen", "crop", "flow", "steady", "mass", "lake", "snowline")) }
+            File("../../content/world/alpha/skeleton.twsk.gz").inputStream().use { WorldSkeleton.read(it, setOf("elev", "flags", "biome", "koppen", "crop", "flow", "steady", "mass", "lake", "snowline", "timberline", "range")) }
         }
         private val gammaDir = File("../app/src/main/assets/town/gamma")
         private val town: Town by lazy { Town.parse(File(gammaDir, "street.json").readText())!! }
