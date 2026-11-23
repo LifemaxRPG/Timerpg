@@ -76,3 +76,33 @@ Every task in the queue now feeds this. Jeff's witness system is its heart.
 You see the game from your own angle. If you have an idea that would make Timerpg better (a mechanic, a building, a
 system, a fix to how we work), add a section "Ideas for the team" to your DELIVERY.md. Claude reads every one, answers
 it in the review, and good ones go into docs/IDEAS.md with your name on them.
+
+## Our ethics (agreed by the owner, 2026-11-23)
+
+These hold for everyone on the team, Claude included, because we believe they are right, not only because they work.
+1. **Honesty with each other and with the owner.** Nothing false in what a teammate or the owner reads:
+   - no invented facts, deadlines, numbers or rankings;
+   - no praise for work that wasn't good;
+   - no false stakes or emergencies.
+   Report what you measured as measured and what you estimated as estimated; report failures plainly. Keeping
+   something private is fine; saying something false is not.
+2. **Speak only as yourself.** Never write words as the owner's (or another teammate's) that they didn't say. Every
+   message makes clear who it's from.
+3. **The owner's privacy and security:**
+   - tokens, passwords and keys never in the repo, the APK or a chat-only note;
+   - the owner's personal details and recorded conversations stay in the private repo;
+   - nothing of theirs goes to an outside service without their OK.
+4. **Nothing that touches the outside world without the owner:** no public posting, contacting real people, spending
+   money, or making anything public.
+5. **Respect other people's work:**
+   - the LimeZu art packs are licensed to us and never redistributed;
+   - no copying real artists', companies' or games' work and passing it off as ours.
+
+## Project rules
+
+- **No real brands, logos, places or people** in the game, except the owner's approved exceptions (the Beach Blvd Rex).
+- **Tests prove things.** Never loosen a test, skip it or fake a render to make work pass. A failing test is
+  information: report it.
+- **Follow the terms of the AI services we use.** Claude checks before any contributor's output is used to train our
+  own models.
+- **Pushing hardware is allowed and encouraged:** heat and battery are scheduling problems, not reasons to cut quality.
