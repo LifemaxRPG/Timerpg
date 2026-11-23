@@ -50,8 +50,15 @@ tasks.register<Test>("crossroadsTest") {
     jvmArgs("-Djava.awt.headless=true")
     // (the planned town's yards, baked all at once by YardKitTest: about 2.5 times the old town's)
     maxHeapSize = "3g"
+    if (withFilament) {
+        jvmArgs("-Djava.library.path=" + File(filamentDist, "lib").absolutePath)
+        environment("EGL_PLATFORM", "surfaceless")
+    }
 }
-kotlin { jvmToolchain(21) }
+kotlin {
+    jvmToolchain(21)
+    target.compilations.getByName("crossroadsTest").associateWith(target.compilations.getByName("main"))
+}
 tasks.test { useJUnit() }
 
 tasks.register<JavaExec>("preview") {
@@ -93,7 +100,7 @@ tasks.register<JavaExec>("preview") {
     System.getProperty("weekday")?.let { jvmArgs("-Dweekday=$it") }
     System.getProperty("ref")?.let { jvmArgs("-Dref=$it") }
     // the landmark models' preview (-Dmode=filament-landmarks): which models, which year
-    for (k in listOf("landmarks", "year")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    for (k in listOf("landmarks", "year", "movingDemo", "movingOut")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // the whole town's preview (-Dmode=filament-town): which town folder, where the pack's pictures are, the yards'
     // builder (kit, or placeholder: flat colours)
     for (k in listOf("town", "assetsRoot", "townYards", "memtrace", "heapBudget", "memlive", "coldOnly")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }

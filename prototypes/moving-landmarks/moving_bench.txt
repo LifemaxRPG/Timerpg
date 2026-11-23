@@ -1,0 +1,7 @@
+=== Moving Landmarks Desktop Headless Benchmark ===
+Courthouse (1894): 9 animated nodes (clock hands + swinging bells)
+Great Meridian (1926): 4 animated nodes (armillary rings + night beacon + lift car)
+Warmup: 300 frames, Measured: 2000 frames (night, all 5 animation kinds active)
+Baseline (PropLayer + CinemaLayer only): mean=22.26 us, p50=22.85 us, p95=25.00 us, max=87.27 us | alloc=0 B over 2000 frames (0.00 B/frame) | GPU upload delta=0 B
+Extra cost (LandmarkAnimator.update x2: 13 animated nodes): mean=5.45 us, p50=5.01 us, p95=6.14 us, max=111.22 us | alloc=736 B over 2000 frames (0.37 B/frame) | GPU upload delta=0 B
+Combined (Animators x2 + PropLayer + CinemaLayer): mean=24.55 us, p50=23.95 us, p95=28.11 us, max=76.90 us | alloc=0 B over 2000 frames (0.00 B/frame) | GPU upload delta=0 B

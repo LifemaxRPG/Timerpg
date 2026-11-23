@@ -69,12 +69,18 @@ internal class PropLayer(
     /** Whether the last frame drew them faded (the next whole one sets the fade back). */
     private var faded = false
 
-    private class Batch(val entity: Int, val proxy: Int, val mi: MaterialInstance, val pmi: MaterialInstance?, val glows: Boolean, val vb: VertexBuffer, val ib: IndexBuffer, val casts: Boolean)
+    private class Batch(
+        val entity: Int, val proxy: Int, val mi: MaterialInstance, val pmi: MaterialInstance?,
+        val glows: Boolean, val vb: VertexBuffer, val ib: IndexBuffer, val casts: Boolean,
+        var visible: Boolean = true, var layerShown: Boolean = true, var layerShadow: Boolean = true,
+        var ti: Int = 0, var pti: Int = 0,
+    )
     private val batches = ArrayList<Batch>()
 
     /** How many props were placed, and drawn in how many batches. */
     var count = 0; private set
     val draws: Int get() = batches.size
+    val batchCount: Int get() = batches.size
     /** How many of the batches throw a shadow (have a shadow twin), and the triangles of all of them. */
     val casters: Int get() = batches.count { it.proxy != 0 }
     val triangles: Int get() = batches.sumOf { it.ib.indexCount / 3 }
@@ -167,6 +173,51 @@ internal class PropLayer(
         return Packed(vb, ib, nv, mesh.idx.size * at.size, box, tex, mask, fresh, short)
         }
 
+        /**
+         * [mesh] packed in its own local frame at the origin (for per-frame transforms via [setBatchTransform]), on any
+         * thread. When [mirrorZ] is true, negates local z (and flips triangle winding) so callers in a mirrored street
+         * frame can cancel the reflection and pass positive-determinant matrices to Filament's TransformManager.
+         */
+        fun packLocal(mesh: PropMesh, mirrorZ: Boolean = false, share: MutableMap<IntArray, StreetTextures.Prepared>? = null): Packed? {
+            val nv = mesh.vertexCount
+            if (nv == 0 || mesh.idx.isEmpty()) return null
+            val vb = ByteBuffer.allocateDirect(nv * TownVertex.STRIDE).order(ByteOrder.nativeOrder())
+            val short = TownVertex.short(nv)
+            val ib = ByteBuffer.allocateDirect(mesh.idx.size * (if (short) 2 else 4)).order(ByteOrder.nativeOrder())
+            val q = FloatArray(4)
+            var minX = Float.MAX_VALUE; var minY = Float.MAX_VALUE; var minZ = Float.MAX_VALUE
+            var maxX = -Float.MAX_VALUE; var maxY = -Float.MAX_VALUE; var maxZ = -Float.MAX_VALUE
+            val sz = if (mirrorZ) -1f else 1f
+            for (i in 0 until nv) {
+                val x = mesh.pos[i * 3]; val y = mesh.pos[i * 3 + 1]; val z = mesh.pos[i * 3 + 2] * sz
+                val nx = mesh.nrm[i * 3]; val ny = mesh.nrm[i * 3 + 1]; val nz = mesh.nrm[i * 3 + 2] * sz
+                var tx = mesh.tan[i * 3]; var ty = mesh.tan[i * 3 + 1]; var tz = mesh.tan[i * 3 + 2] * sz
+                val d = tx * nx + ty * ny + tz * nz
+                tx -= d * nx; ty -= d * ny; tz -= d * nz
+                val tl = kotlin.math.sqrt(tx * tx + ty * ty + tz * tz).coerceAtLeast(1e-6f)
+                tx /= tl; ty /= tl; tz /= tl
+                val bx = ny * tz - nz * ty; val by = nz * tx - nx * tz; val bz = nx * ty - ny * tx
+                MathUtils.packTangentFrame(tx, ty, tz, bx, by, bz, nx, ny, nz, q)
+                TownVertex.put(vb, x, y, z, mesh.uv[i * 2], mesh.uv[i * 2 + 1], q)
+                minX = min(minX, x); minY = min(minY, y); minZ = min(minZ, z); maxX = max(maxX, x); maxY = max(maxY, y); maxZ = max(maxZ, z)
+            }
+            if (mirrorZ) {
+                var t = 0
+                while (t + 2 < mesh.idx.size) {
+                    val i0 = mesh.idx[t]; val i1 = mesh.idx[t + 2]; val i2 = mesh.idx[t + 1]; t += 3
+                    if (short) { ib.putShort(i0.toShort()); ib.putShort(i1.toShort()); ib.putShort(i2.toShort()) }
+                    else { ib.putInt(i0); ib.putInt(i1); ib.putInt(i2) }
+                }
+            } else {
+                if (short) for (i in mesh.idx) ib.putShort(i.toShort()) else for (i in mesh.idx) ib.putInt(i)
+            }
+            vb.flip(); ib.flip()
+            val box = floatArrayOf((minX + maxX) / 2f, (minY + maxY) / 2f, (minZ + maxZ) / 2f, (maxX - minX) / 2f + .5f, (maxY - minY) / 2f + .5f, (maxZ - minZ) / 2f + .5f)
+            val (tex, fresh) = StreetTextures.prepareShared(mesh.tex, mesh.texW, mesh.texH, linear = false, share)
+            val mask = mesh.mask?.let { StreetTextures.prepareShared(it, mesh.texW, mesh.texH, linear = true, share, mips = false).first }
+            return Packed(vb, ib, nv, mesh.idx.size, box, tex, mask, fresh, short)
+        }
+
         /** [props] packed for [upload] by look (one batch each), on any thread: each batch, whether it casts, how many props. */
         fun packProps(props: List<WorldProp>, share: MutableMap<IntArray, StreetTextures.Prepared>? = null): List<Triple<Packed, Boolean, Int>> {
             val groups = LinkedHashMap<PropMesh, MutableList<WorldProp>>()
@@ -214,19 +265,30 @@ internal class PropLayer(
      * 1 - t drops, so a crossover between the two never shows both, nor neither, at a pixel.
      */
     var inverseFade = false
+    private val lastLook = FloatArray(16)
+    private var hasLook = false
+    private var lastGlowOn = 0f
 
     fun update(look: FloatArray, dark: Float, shown: Boolean = true, fade: Float = 1f, shadows: Boolean = shown, castFade: Float = 1f) {
         val rm = engine.renderableManager
         val on = smooth((dark - .3f) / .4f)
-        // (no boxing: thousands of batches a frame, and an instance boxed for takeIf was a garbage object each)
-        for (b in batches) {
+        System.arraycopy(look, 0, lastLook, 0, 16)
+        hasLook = true
+        lastGlowOn = on
+        // (index loop, no boxing: zero allocations per frame)
+        for (i in 0 until batches.size) {
+            val b = batches[i]
             // ([castFade]: the batches of things that throw shadows, the tall ones, cut away on their own)
             val f = if (b.casts && castFade < 1f) min(fade, castFade) else fade
-            val drawn = shown && f > .02f
+            val layerVis = shown && f > .02f
+            val layerShad = shadows && (castFade >= .5f || !b.casts)
+            b.layerShown = layerVis
+            b.layerShadow = layerShad
+            val drawn = b.visible && layerVis
             val bi = rm.getInstance(b.entity)
             if (bi != 0) rm.setLayerMask(bi, 0xff, if (drawn) 1 else 0)
             // (a cut thing's shadow goes with it: a shed's shadow on an empty lawn reads wrong)
-            if (b.proxy != 0) { val pi = rm.getInstance(b.proxy); if (pi != 0) rm.setLayerMask(pi, 0xff, if (shadows && (castFade >= .5f || !b.casts)) 1 else 0) }
+            if (b.proxy != 0) { val pi = rm.getInstance(b.proxy); if (pi != 0) rm.setLayerMask(pi, 0xff, if (b.visible && layerShad) 1 else 0) }
             if (!drawn) continue
             b.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
             if (seeThrough) SeeThrough.apply(b.mi)
@@ -236,17 +298,53 @@ internal class PropLayer(
         if (shown) faded = fade < 1f || castFade < 1f
     }
 
+    /** Shows or hides batch [index] (e.g. a night-only beacon beam); allocates nothing and takes effect immediately. */
+    fun setBatchVisible(index: Int, visible: Boolean) {
+        val b = batches[index]
+        if (b.visible == visible) return
+        b.visible = visible
+        val rm = engine.renderableManager
+        val bi = rm.getInstance(b.entity)
+        if (bi != 0) rm.setLayerMask(bi, 0xff, if (visible && b.layerShown) 1 else 0)
+        if (visible && b.layerShown && hasLook) {
+            b.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, lastLook, 0, 1)
+            if (seeThrough) SeeThrough.apply(b.mi)
+            if (b.glows) b.mi.setParameter("glow", GLOW, GLOW, GLOW, lastGlowOn)
+        }
+        if (b.proxy != 0) {
+            val pi = rm.getInstance(b.proxy)
+            if (pi != 0) rm.setLayerMask(pi, 0xff, if (visible && b.layerShadow) 1 else 0)
+        }
+    }
+
+    /** Stands batch [index] at [m] (column-major 4x4, local to world) via TransformManager; allocates nothing. */
+    fun setBatchTransform(index: Int, m: FloatArray) {
+        val b = batches[index]
+        val tm = engine.transformManager
+        var ti = b.ti
+        if (ti == 0) {
+            if (!tm.hasComponent(b.entity)) tm.create(b.entity)
+            ti = tm.getInstance(b.entity)
+            b.ti = ti
+        }
+        if (ti != 0) tm.setTransform(ti, m)
+        if (b.proxy != 0) {
+            var pti = b.pti
+            if (pti == 0) {
+                if (!tm.hasComponent(b.proxy)) tm.create(b.proxy)
+                pti = tm.getInstance(b.proxy)
+                b.pti = pti
+            }
+            if (pti != 0) tm.setTransform(pti, m)
+        }
+    }
+
     /**
      * Stands every batch where [m] (a column-major 4x4, model to world) puts it: a layer packed in its own frame at the
      * origin and moved as one each frame (a train's car, a crossing gate's arm). Its box goes with it for culling.
      */
     fun setTransform(m: FloatArray) {
-        val tm = engine.transformManager
-        for (b in batches) for (e in intArrayOf(b.entity, b.proxy)) {
-            if (e == 0) continue
-            if (!tm.hasComponent(e)) tm.create(e)
-            tm.setTransform(tm.getInstance(e), m)
-        }
+        for (i in 0 until batches.size) setBatchTransform(i, m)
     }
 
     fun destroy() {

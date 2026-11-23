@@ -1258,9 +1258,15 @@ class FilamentTown(
             val o = st.frame(pose, look, dark, seconds, { x, z -> if (pose.cut > 0f) fadeOf(pose, x, z) else 1f }, storeOut)
             if (o[0] > 0) { visible++; renderables += o[0]; draws += o[0]; tris += o[1] }; casters += o[2]
         }
-        for (lm in landmarkDraws + listOfNotNull(depotDraw)) {
+        for (i in 0 until landmarkDraws.size) {
+            val lm = landmarkDraws[i]
             lm.occFade = if (pose.open && lm.occluded) max(OCCLUDED, lm.occFade - occStep) else min(1f, lm.occFade + occStep)
-            val o = lm.frame(pose, look, dark, seconds, { x, z -> if (pose.cut > 0f) fadeOf(pose, x, z) else 1f }, landmarkOut)
+            val o = lm.frame(pose, look, dark, hour, seconds, { x, z -> if (pose.cut > 0f) fadeOf(pose, x, z) else 1f }, landmarkOut)
+            if (o[0] > 0) { visible++; renderables += o[0]; draws += o[0]; tris += o[1] }; casters += o[2]
+        }
+        depotDraw?.let { lm ->
+            lm.occFade = if (pose.open && lm.occluded) max(OCCLUDED, lm.occFade - occStep) else min(1f, lm.occFade + occStep)
+            val o = lm.frame(pose, look, dark, hour, seconds, { x, z -> if (pose.cut > 0f) fadeOf(pose, x, z) else 1f }, landmarkOut)
             if (o[0] > 0) { visible++; renderables += o[0]; draws += o[0]; tris += o[1] }; casters += o[2]
         }
         if (extras.isNotEmpty()) {
@@ -1566,6 +1572,15 @@ class FilamentTown(
 
     /** Where the line of the last [occlude] enters a building the camera would stand in (a share of the way; 1: none). */
     var eyeInside = 1f; private set
+
+    /** Rings swinging bells on the landmark with [sprite] (or every landmark with bells when [sprite] is null). */
+    fun ringLandmarkBells(sprite: String? = null, swings: Int = 5) {
+        for (i in 0 until landmarkDraws.size) {
+            val lm = landmarkDraws[i]
+            if (sprite == null || lm.sprite == sprite) lm.ringBells(swings = swings)
+        }
+        depotDraw?.let { lm -> if (sprite == null || lm.sprite == sprite) lm.ringBells(swings = swings) }
+    }
 
     /**
      * The buildings the last [occlude]'s cone passes through nearer the player than [t] (a share of the way), those near

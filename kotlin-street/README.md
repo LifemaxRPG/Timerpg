@@ -102,3 +102,11 @@ texture and writes each window's rectangle to `buildings/windows.json`. `Buildin
 window, the engine's room (a dim room by day, a warm lit room once its lamp is on) BEHIND the front, and the engine's
 sky/street reflection and sun glint over it. Shop windows (they show goods) and arched or ornate windows are left as
 they are. Not done yet: people and curtains in the windows, windows on the side faces.
+
+## Animated landmarks
+Hand-made `.glb` landmarks can animate named parts (`clock_hour*`, `clock_minute*`, `armillary_ecliptic*`, `armillary_globe*`, `beacon_beam*`, `bell*`, `lift_car*`, or custom entries in `landmarks.json` / `model-info.json` — see `docs/LANDMARKS_GLB.md` under **Animated nodes**). Only matched nodes are split into separate node-local renderables and updated per frame via Filament's `TransformManager` (zero per-frame allocations, skipped when off-screen or beyond near distance); existing static landmarks are unchanged.
+Not done yet:
+- Dynamic player/floor collision for moving `lift_car` nodes (left as a `TODO` in `LandmarkKit.kt`).
+- Bell audio playback when bells swing on the hour or via `FilamentTown.ringLandmarkBells(...)`.
+- On-device Android (S25) frame-time capture and phone screenshots (all verification and preview renders were run on the desktop headless Filament / Mesa llvmpipe build).
+- Merging the prototype County Courthouse and Great Meridian Monument `.glb` assets into `app/src/main/assets/landmarks/` (tested from external files only).
