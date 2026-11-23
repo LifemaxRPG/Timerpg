@@ -96,7 +96,7 @@ class TownPlayTest {
         val files = File(dir, "buildings").list()!!.toSet()
         // (the cinema and the stores are built by code: CinemaKit, StoreKit)
         val stores = com.lifemax.rpg.feature.habits.domain.StoreLots.parse(root).map { it.sprite }.toSet()
-        assertEquals(4, stores.size)
+        assertEquals(38, stores.size)   // the four stores and the hand-made landmark_glb_* models (OpenWalkTest pins the same set)
         for (sp in stores) assertTrue("store $sp has no art", files.none { it.startsWith("${sp}_") || it.startsWith("$sp.") })
         for (sp in sprites - cinemaSprite - stores) assertTrue("art of $sp", files.any { it.startsWith("${sp}_") || it.startsWith("$sp.") })
         for (p in listOf("asphalt/asphalt_24.png", "sidewalk/sidewalk_25.png", "sidewalk/sidewalk_27.png", "grass/grass_9.png", "tree/tree_1.png"))
