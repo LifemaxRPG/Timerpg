@@ -369,10 +369,14 @@ their normal pace, fading back to true speed near land.
 - **Coordinates stay true.** The map is the map: a port is where it is. The boat's world position integrates
   `dPos/dt = vVisual * c(pos)`, where `c` is the compression factor at its position; everything the player sees around
   the boat (the hull's wake, the waves passing, the spray) uses `vVisual`.
-- **c from the sea-sight field**: the skeleton has a per-atlas-cell distance to the nearest land, less a visibility
-  bonus for tall land (a 1,000 m coast is in sight further than a beach; islands count as land). `c = 1` within 5 km of
-  sight, rising smoothly to 30 by 20 km (smoothstep), so land is never in view while c is above 1, and every island
-  slows you as a coast does.
+- **c from the distance to land**: `c = clamp(D / D0, 1, 30)`, where D is the distance to the nearest land (the
+  skeleton stores it per atlas cell; the detail level refines it near coasts; islands count) and D0 = 1 km. Seen from
+  the deck, the nearest land then never drifts past faster than it does from 1 km off at true speed: the angular speed
+  of land at distance D is v/D, and v grows with D. So the boat is at true speed in harbour and close inshore, about 5x
+  five km off a coast, and 30x from 30 km out, where land is out of sight in the haze. Every island slows you as a coast
+  does. (The prototype first tried "true speed until out of sight, then 30x": coastal legs at 11 km/h made crossings
+  10-25 hours, because liners follow coasts for hundreds of km. The proportional rule gives 1.5-6.5 hours.)
+  A later refinement may count tall land as nearer (a 2,000 m range is seen further than a beach).
 - **The ocean surface**: the Gerstner ocean (the separate task) follows the camera; its wave phase scrolls by the
   distance travelled at visual speed (kept separately from the world position), so the waves never streak at 30x.
 - **Other ships**: a sea route's liner or a fishing boat seen at sea is placed in a local bubble round the player's boat
@@ -382,8 +386,10 @@ their normal pace, fading back to true speed near land.
   tiers (only the skeleton and the ocean stay: memory goes back to the language model, a good time to pre-generate the
   arrival port's dialogue); it looks ahead along the course and starts the coast's T2 and T3 tiles when the course is
   within 40 km of sight, so they are ready long before c falls to 1.
-- **Durations**: a typical crossing of 300-450 km (the prototype's) takes about 1-1.5 game hours at sea plus the slow
-  approaches; the timetables use the same integral, so the liner's crossing time is the one you sail.
+- **Durations** (the prototype's sea routes, three seeds): crossings of 285-1,200 km of sea path take **1.5-6.5 game
+  hours** (25-108 hours at true speed), most of it in the slow approaches and along coasts; the open-ocean part
+  (c = 30) is 100-400 km of each route and takes under an hour. The timetables use the same integral, so the liner's
+  crossing time is the one you sail.
 - **Sailing through the night**: from the helm, choose a destination port (or "until morning"): fade out, integrate the
   path along the course in one step (deterministic: the same arrival as sailing it), advance the clock and the
   calendar, fade in near the destination, with a log line of the days at sea. The liners' passengers do the same from
@@ -434,21 +440,27 @@ their normal pace, fading back to true speed near land.
   tiers, skirts, morphing; judge in previews in motion, not just stills.
 - **Heat**: streaming at car speed while the model pre-generates dialogue: scheduling (bursts, pauses, idle and charging
   work) as CLAUDE.md says.
-- **The drive time**: 30% land in 4 continents makes them 400-600 km long on the long axis (the prototype's numbers in
-  "The prototype"), so a crossing is 2-3 hours across but 4-5 along; see the owner's decisions.
+- **The drive time**: 30% land in 3-4 continents makes them 460-970 km long and 300-530 km across (the prototype,
+  "The prototype"), so a crossing by car is 4-5 hours across and 7-10 hours end to end, not the 2-3 hours asked for;
+  see the owner's decisions.
 
 ## 14. Decisions for the owner
 
-1. **Continent count and shape**: recommended 4 continents (one large start continent, two medium, one small), with
-   islands and archipelagos making up about a fifth of the land. Elongated and ragged, not round.
-2. **Land fraction vs drive time**: with 30% land a 4-continent world has continents about 300 km across and 450-600 km
-   long. Recommended: keep 30% and accept 2-3 hours across, 4-5 hours end to end on the largest (the expressway era is
-   faster); the alternative is 5-6 smaller continents (or 20% land) for 2-3 hours every way.
+1. **Continent count and shape**: recommended 4-5 continents (one larger start continent, the others medium, one
+   small), with islands and archipelagos making up 10-20% of the land. Elongated and ragged, not round.
+2. **Land fraction vs drive time** (the main conflict in the brief): on a 2,000 km planet, 30% land is 600,000 km2.
+   In 3-4 continents that is 460-970 km long and 300-530 km across (measured in the sketch): a car (90-110 km/h) needs
+   4-5 hours across and 7-10 end to end. At 20% land (`--land 0.2`): 4-5 continents of 270-720 by 150-460 km, 2.5-4.5
+   hours across. A 2-3 hour crossing every way needs continents of at most about 300 km: about 10% land in 4-5
+   continents, or 30% land split into 8-10 smaller continents and big islands. **Recommended: 20% land in 5
+   continents**, the start continent capped at about 450 km (2-3 hours across, 4-5 end to end by expressway, faster by
+   the express trains), so the drive stays a trip and the bigger ocean costs little time thanks to the compression.
+   (If "2-3 hours" means real minutes of play and the game clock runs faster than real time, 30% works as asked.)
 3. **How far apart the hubs are**: recommended at least 70 km (40 minutes by car, 30-50 minutes by train) on one
    continent, with towns every 12-25 km and hamlets every 4-8 km between.
-4. **Ocean crossings**: recommended 200-500 km gaps between continents, so a crossing takes about 1-2 game hours at 30x
-   and the round-the-world sail about a game day; the compression's start (out of sight of land: 5-20 km) is a feel
-   setting to tune at sea.
+4. **Ocean crossings**: recommended 200-500 km gaps between continents, so a liner crossing takes about 1.5-4 game
+   hours (the sketch: 1.5-6.5 for 285-1,200 km routes) and the round-the-world sail about a game day; D0 (how close
+   the boat is to land before it is at true speed: 1 km) and the cap (30x) are feel settings to tune at sea.
 5. **Terrain look**: recommended smooth, gentle ground for fields and roads with hard low-poly cliff faces where it is
    steep (versus fully terraced, stepped terrain). A preview of both early in W5.
 6. **The planet's shape**: a cylinder (simple, square chunks, no pole convergence), versus a true sphere (much harder,
@@ -463,3 +475,23 @@ climate with wind-carried rain and rain shadows, biomes, priority-flood hydrolog
 (capital first, 6 launch hubs marked), towns by weighted Poisson disk, highways and rail as least-cost paths, sea routes
 over the ocean. It draws the unwrapped planet and the capital's continent at about 1 km a pixel, for each seed, on one
 sheet. It is a sketch for judging the design, not the generator (that is W1-W3, in TypeScript).
+
+Run: `python3 kotlin-street/tools/world-sketch.py alpha bravo charlie --out maps.jpg --stats stats.json` (about 15 s a
+seed; `--land 0.2` for the smaller-continent variant). Measured on the three seeds (2026-11-23, 30% land):
+
+| seed | continents | islands (of land) | start continent | others (long x across) | towns | hub-to-hub drive, longest | sea crossings |
+|---|---|---|---|---|---|---|---|
+| alpha | 3 | 5% | 723 x 510 km | 792 x 422, 503 x 394 | 1,182 | 908 km | 1.5-6.3 h |
+| bravo | 4 | 17% | 968 x 456 km | 489 x 375, 459 x 333, 333 x 295 | 1,149 | 786 km | 2.2-5.6 h |
+| charlie | 3 | 10% | 731 x 426 km | 739 x 531, 657 x 369 | 1,049 | 1,262 km | 2.0-6.5 h |
+
+At 20% land the same seeds give 3-5 continents of 266-721 km by 153-461 km (alpha 664 x 461 start; bravo five
+continents, the start 479 x 310; charlie 721 x 315), and crossings of 1.4-3.7 hours.
+
+What the sketch shows works: plate ranges make believable spines and coastal ranges; the wind-carried rain gives wet
+windward coasts and deserts and prairies in the lee; priority-flood rivers all reach the sea, with lakes in the basins;
+hubs land where their rules say (ports in bays, mountain towns in high valleys on the rail line's route, river cities on
+the trunks); the rail network takes the valleys and passes, the highways are straighter. What the real generator must
+do better: continents too blob-like on some seeds (more plate-driven shape), the latitude bands' rain shows as stripes,
+snow fields too broad on the highest ranges, the separation trench sometimes leaves a continent's islands as one mass,
+and highways' relative-neighbourhood graph detours (the longest drives are 1.3-1.7x the continent's length).

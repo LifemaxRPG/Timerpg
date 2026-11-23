@@ -62,7 +62,7 @@ def terrain(seed):
     xs = (x0 + np.concatenate([[0], np.cumsum(gaps)[:-1]])) % W
     ys = H / 2 + r.uniform(-0.2, 0.2, n) * H
     share = np.concatenate([[1.0], r.uniform(0.45, 0.8, n - 1)]); share /= share.sum()
-    target = LAND * W * H * 0.82  # islands make up the rest
+    target = LAND * W * H * 0.62  # islands and the ragged coast make up the rest
     # warped coordinates for ragged coasts
     wx = X + 38 * (fbm(seed, 'wx', 6, 4, X, Y) - 0.5); wy = Y + 38 * (fbm(seed, 'wy', 6, 4, X, Y) - 0.5)
     blob = np.zeros((H, W), np.float32); dists = []
@@ -82,7 +82,8 @@ def terrain(seed):
         dists.append(np.hypot(wrapdx(wx - xs[c]), wy - ys[c]) / math.sqrt(area / math.pi))
     D = np.sort(np.stack(dists), axis=0)
     trench = np.exp(-((D[1] - D[0]) / 0.35) ** 2) if n > 1 else 0
-    mask = blob + 0.55 * (fbm(seed, 'coast', 10, 6, wx, wy) - 0.5) - 0.55 * trench
+    isl = 3.0 * np.clip(fbm(seed, 'isl', 22, 5, wx, wy) - 0.57, 0, None)
+    mask = blob + 1.0 * (fbm(seed, 'coast', 12, 6, wx, wy) - 0.5) + isl - 0.55 * trench
     mask -= 0.6 * np.clip((np.abs(lat) - 58) / 12, 0, 1)  # little land towards the poles
     thr = np.quantile(mask, 1 - LAND)
     land = mask > thr
@@ -96,7 +97,7 @@ def terrain(seed):
     bd = (d2 - d1) / 2
     ddx = wrapdx(px[p2] - px[p1]); ddy = py[p2] - py[p1]; nn = np.hypot(ddx, ddy) + 1e-6
     conv = ((vel[p1, 0] - vel[p2, 0]) * ddx + (vel[p1, 1] - vel[p2, 1]) * ddy) / nn
-    width = 9 + 10 * vnoise(seed, 'rw', 8, X, Y)
+    width = 5 + 8 * vnoise(seed, 'rw', 8, X, Y)
     ridged = 1 - np.abs(2 * fbm(seed, 'ridge', 16, 5, X, Y) - 1)
     mount = np.clip(conv, 0, 1.2) * np.exp(-(bd / width) ** 2) * maxh[p1, p2] * (0.35 + 0.9 * ridged ** 2)
     # elevation
@@ -127,14 +128,14 @@ def moisture(land, elev, T, lat):
             c = cap[rows, x]
             m = np.where(sea, m + (c - m) * 0.12, m)
             up = np.clip((el[rows, x] - el[rows, xp]) / 220, 0, 1)
-            rn = np.where(sea, 0, m * (0.018 + 0.45 * up))
+            rn = np.where(sea, 0, m * (0.007 + 0.35 * up))
             m = m - rn
             if lap: rec[rows, x] = rn
-    rec = ndimage.gaussian_filter(rec, (2.5, 2), mode=('nearest', 'wrap'))
+    rec = ndimage.gaussian_filter(rec, (5, 2.5), mode=('nearest', 'wrap'))
     a = np.abs(lat)
     band = 0.55 + 0.9 * np.exp(-(lat / 11) ** 2) - 0.35 * np.exp(-((a - 27) / 8) ** 2) + 0.2 * np.exp(-((a - 50) / 10) ** 2)
     r = rec * band
-    return 2400 * r / np.quantile(r[land], 0.985)
+    return np.clip(800 * r / np.median(r[land]), 0, 4500)
 
 BIOMES = ['ocean', 'ice', 'tundra', 'taiga', 'temperate forest', 'temperate rainforest', 'prairie', 'steppe', 'desert',
           'savanna', 'tropical forest', 'rainforest', 'alpine', 'marsh', 'lake']
@@ -392,7 +393,7 @@ def build(seed):
         buckets.setdefault((int(x // B) % (W // B + 1), int(y // B)), []).append((x, y))
         rr = rng(seed, 'rank', int(i)).random()
         towns.append(dict(x=x, y=y, cell=int(i), cont=int(cont.ravel()[i]),
-                          rank='major' if rr < 0.1 else 'town' if rr < 0.45 else 'small'))
+                          rank='major' if rr < 0.06 else 'town' if rr < 0.45 else 'small'))
     w.update(slope=slope, acc=acc, recv=recv, lake=lake, bio=bio, ice=ice, cont=cont, island=island, conts=conts,
              hubs=hubs, towns=towns, coast=coast)
     networks(seed, w)
@@ -489,7 +490,7 @@ def networks(seed, w):
             if j >= 0 and np.isfinite(dist[j]) and dist[j] > 0: county.append(trace(g, pred, j))
     # sea routes between ports: MST of sea distances plus each port's nearest foreign port
     sea_ok = ~land & (np.abs(w['lat']) < 63)
-    sc = np.where(w['ds'] < 2, 1.6, 1.0)
+    sc = np.where(w['ds'] < 2, 1.6, np.where(w['ds'] < 6, 1.25, 1.0))  # liners keep off the coasts
     gs = grid_graph(sea_ok, sc)
     ports = [h for h in hubs if h['type'] == 'port']
     sea_routes = []
@@ -529,13 +530,22 @@ def networks(seed, w):
                 yu, xu = divmod(u, W); yv, xv = divmod(v, W)
                 seg = math.hypot(wrapdx(xv - xu), yv - yu) * KM
                 d = (sight.ravel()[u] + sight.ravel()[v]) / 2
-                s = np.clip((d - 5) / 15, 0, 1); c = 1 + 29 * s * s * (3 - 2 * s)
+                c = compression(d)
                 hours += seg / (11.1 * c)
-                if c > 29: open_km += seg
+                if c >= 30: open_km += seg
             sea_routes.append(dict(path=p, a=ports[a]['name'], b=ports[b]['name'], km=round(km), open_km=round(open_km),
                                    hours=round(hours, 1), true_hours=round(km / 11.1, 1),
                                    cross=ports[a]['cont'] != ports[b]['cont']))
     w.update(roads=roads, rails=rails, county=county, branches=branches, sea_routes=sea_routes, drive=stats)
+
+def smooth(a, b, x):
+    t = min(1.0, max(0.0, (x - a) / (b - a))); return t * t * (3 - 2 * t)
+
+D0 = 1.0  # km: the nearest land never seems to move faster than it does from 1 km off at true speed
+
+def compression(d):
+    """WORLD_GEN.md section 10: c = distance to the nearest land / D0, from 1 (harbour, close inshore) to 30 (out of sight)."""
+    return min(30.0, max(1.0, d / D0))
 
 def sea_sight(w):
     """Distance to land (km), less a bonus for tall land: how far out of sight of land each sea cell is."""
@@ -545,7 +555,7 @@ def sea_sight(w):
     d = d[:, W:2 * W] * KM
     iy, ix = ind[0][:, W:2 * W], ind[1][:, W:2 * W] % W
     h = np.maximum(w['elev'][iy, ix], 0)
-    return np.maximum(d - 3.57 * np.sqrt(h) * 0.25, 0)  # a fraction of the geometric horizon: haze
+    return d  # (h: a later refinement may count tall land as nearer)
 
 # ---------------------------------------------------------------- drawing
 
@@ -558,7 +568,7 @@ def shade(elev, km_per_px):
 def colour(bio, elev, land, lat, ice, sh):
     img = np.zeros(bio.shape + (3,), np.float32)
     for name, c in BCOL.items(): img[bio == BIOMES.index(name)] = c
-    snow = land & (elev > 2400)
+    snow = land & (elev > 3100)
     img[snow] = (230, 234, 240)
     img *= (0.55 + 0.75 * sh)[..., None] * np.where(land, 1, 0)[..., None] / 1.0
     depth = np.clip(-elev / 4500, 0, 1)
@@ -591,12 +601,13 @@ def draw_poly(d, pts, fill, width, tf):
 HUB_FILL = {'capital': (220, 40, 40), 'port': (40, 90, 210), 'river city': (30, 170, 200), 'mountain town': (120, 80, 50),
             'mill town': (200, 120, 30), 'farm town': (230, 200, 40)}
 
-def draw_hub(d, p, h, f, label=None, big=False):
+def draw_hub(d, p, h, f, label=None, big=False, left=None):
     x, y = p; r = 6 if big else 4
     if h['launch']: d.ellipse([x - r - 2, y - r - 2, x + r + 2, y + r + 2], outline=(255, 215, 0), width=2)
     d.rectangle([x - r, y - r, x + r, y + r], fill=HUB_FILL[h['type']], outline=(0, 0, 0))
     t = label if label is not None else HUB_CODE[h['type']]
-    d.text((x + r + 2, y - r - 3), t, fill=(0, 0, 0), font=f, stroke_width=2, stroke_fill=(255, 255, 255))
+    tx = x + r + 2 if left is None or x + r + 2 + d.textlength(t, font=f) < left else x - r - 2 - d.textlength(t, font=f)
+    d.text((tx, y - r - 3), t, fill=(0, 0, 0), font=f, stroke_width=2, stroke_fill=(255, 255, 255))
 
 def render_planet(w):
     sh = shade(w['elev'], KM)
@@ -611,8 +622,8 @@ def render_planet(w):
         if abs(rx - x) > 1: continue
         d.line([(x + .5, y + .5), (rx + .5, ry + .5)], fill=(40, 90, 200), width=1 if acc.ravel()[i] < 1500 else 2)
     for p in w['county']: draw_poly(d, p, (150, 130, 110), 1, tf)
-    for rd in w['roads']: draw_poly(d, rd['path'], (230, 120, 40), 1, tf)
-    for rl in w['rails']: draw_poly(d, rl['path'], (20, 20, 20), 2, tf)
+    for rl in w['rails']: draw_poly(d, rl['path'], (20, 20, 20), 1, tf)
+    for rd in w['roads']: draw_poly(d, rd['path'], (240, 130, 40), 1, tf)
     for s in w['sea_routes']: draw_poly(d, s['path'], (255, 255, 255), 1, tf)
     for t in w['towns']:
         if t['rank'] != 'small': d.point((t['x'], t['y']), fill=(30, 30, 30))
@@ -658,9 +669,9 @@ def render_zoom(seed, w, maxw, maxh):
         a, b = tfc(x + .5, y + .5), tfc(rx + .5, ry + .5)
         if a and b: d.line([a, b], fill=(46, 98, 205), width=1 + int(acc.ravel()[i] > 300) + int(acc.ravel()[i] > 1500))
     for p in w['county']: draw_poly(d, p, (120, 100, 80), 1, tfc)
-    for rd in w['roads']: draw_poly(d, rd['path'], (240, 130, 40), 2, tfc)
     for p in w['branches']: draw_poly(d, p, (60, 60, 60), 1, tfc)
-    for rl in w['rails']: draw_poly(d, rl['path'], (15, 15, 15), 2, tfc)
+    for rl in w['rails']: draw_poly(d, rl['path'], (15, 15, 15), 3, tfc)
+    for rd in w['roads']: draw_poly(d, rd['path'], (240, 130, 40), 2, tfc)
     for sr in w['sea_routes']: draw_poly(d, sr['path'], (255, 255, 255), 1, tfc)
     # hamlets (4-8 km apart) on the continent, sketched
     r = rng(seed, 'hamlets')
@@ -684,7 +695,7 @@ def render_zoom(seed, w, maxw, maxh):
     f = font(11, True)
     for h in w['hubs']:
         q = tfc(h['x'], h['y'])
-        if q and 0 <= q[0] < pw: draw_hub(d, q, h, f, f"{h['name']} ({h['type']})", big=True)
+        if q and 0 <= q[0] < pw: draw_hub(d, q, h, f, f"{h['name']} ({h['type']})", big=True, left=pw)
     # scale bar: 100 km
     L = 100 / KM * s
     d.rectangle([10, ph - 22, 10 + L, ph - 16], fill=(255, 255, 255), outline=(0, 0, 0))
@@ -730,7 +741,10 @@ def summary(seed, w):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('seeds', nargs='+'); ap.add_argument('--out', required=True); ap.add_argument('--stats')
+    ap.add_argument('--land', type=float, default=0.30, help='land fraction (the owner\'s 30%%; try 0.2 for smaller continents)')
     a = ap.parse_args()
+    global LAND
+    LAND = a.land
     rows, stats = [], []
     SW = 1600; zw = SW - W - 24
     for seed in a.seeds:
