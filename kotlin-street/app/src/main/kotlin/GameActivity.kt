@@ -886,7 +886,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 val k = com.lifemax.rpg.feature.habits.presentation.scene.TalkRange.nearest(GameState.x, GameState.lane, doors.map { it.first }, GameState.centers)
                 doors.getOrNull(k)?.let { (i, npc) -> npc to i }
             }
-            if (target == null) noOneNear = System.nanoTime()
+            // (heard, but nobody to answer: a breadcrumb, so "it heard nothing" can be told from "nobody was near")
+            if (target == null) { noOneNear = System.nanoTime(); com.timerpg.street.shot.Crumbs.add("mic: heard ${said.split(' ').size} words, no one near to hear them") }
             else {
                 val (npc, door) = target
                 val t = talk?.takeIf { it.npc.id == npc.id } ?: Talk(npc, byVoice = true, door = door, doorSprite = if (townMode) npc.building else null).also { talk?.close(voices); talk = it }
@@ -983,7 +984,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 "loadInfo" to ai.loadInfo),
             "conversation" to talk?.let { linkedMapOf("npc" to it.npc.name, "byVoice" to it.byVoice, "topic" to it.topic?.label, "said" to it.said) },
             "voices" to linkedMapOf("enabled" to voices.enabled, "speaking" to voices.speaking, "only" to voices.only, "timing" to voices.lastTiming),
-            "mic" to linkedMapOf("always" to micAlways, "granted" to micGranted, "listening" to canListen, "state" to ears.state.name),
+            "mic" to linkedMapOf("always" to micAlways, "granted" to micGranted, "listening" to canListen, "state" to ears.state.name,
+                "hearer" to ears.hearer.name.lowercase(), "hearing" to ears.hearing, "writing" to ears.writing, "problem" to ears.problem, "loop" to ears.loopStatus()),
             "panels" to linkedMapOf("aiPanel" to aiPanel, "crashShown" to (lastCrash != null), "tuningNpu" to tuning),
         )
     }
@@ -1353,7 +1355,7 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
         fun heard(l: Line) {
             if (!early && voices != null) early = earlyVoice(l, voices)
             if (l.final && l.text != spoken) {
-                spoken = l.text; voices?.say(npc, l.text)
+                spoken = l.text; replies += l.text; voices?.say(npc, l.text)
                 // the player's log (counts only): what they ask, and whether a line written ahead answered it
                 engine.record(npc, t.intent, if (r?.ready == true) "ready" else if (l.ai) "live" else "template")
                 finishTurn(tt, l, engine)
@@ -1367,6 +1369,9 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
         if (req.first?.final != true) filler(t.label, voices)
         req.first?.let { heard(it) }
     }
+
+    /** What they have said in this conversation, the latest last: a free question gets their last few so they say something new. */
+    private val replies = ArrayList<String>()
 
     private var fillerSeed = (npc.id.hashCode() and 0xffff)
 
@@ -1387,7 +1392,7 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
         // (the line being written comes a whole sentence at a time, each already checked by the engine)
         val m = FIRST_SENTENCE.find(l.text) ?: WHOLE_SENTENCE.find(l.text) ?: return false
         val tp = topic ?: return false
-        val ok = com.timerpg.street.llm.Dialogue.validate(m.groupValues[1], emptyList(), tp.self, tp.prompt ?: "") ?: return false
+        val ok = com.timerpg.street.llm.Dialogue.validate(m.groupValues[1], emptyList(), tp.self, tp.prompt ?: "", tp.recent) ?: return false
         voices.sayFirst(npc, ok)
         return true
     }
@@ -1428,7 +1433,7 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
             if (l.ai && tFirst == 0L && tAsk > 0L) tFirst = android.os.SystemClock.elapsedRealtime()
             if (!early && voices != null) early = earlyVoice(l, voices)
             if (!l.final || l.text == spoken) return
-            spoken = l.text
+            spoken = l.text; replies += l.text
             run {
                 // the whole turn's timing, for the AI panel and the breadcrumbs: from the end of the player's speech to the
                 // words written down, the memories looked up, the model's first token and the whole line, and who answered
@@ -1460,7 +1465,7 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
             tAsk = android.os.SystemClock.elapsedRealtime()
             vec = v
             tt.memories = remembered.size
-            val (tp, r) = engine.askFree(npc, text, remembered, v) { line = it; heard(it) } ?: return
+            val (tp, r) = engine.askFree(npc, text, remembered, v, replies.toList()) { line = it; heard(it) } ?: return
             asked = r; askedTopic = tp
             topic = tp
             request = r
@@ -1577,6 +1582,11 @@ private fun MicLamp(ears: com.timerpg.street.voice.PlayerVoice, live: Boolean, g
         // always listening is on, but the game may not use the microphone: say so, and ask again on a tap (or, when
         // Android will not ask any more, open the app's settings page)
         Chip(com.timerpg.street.voice.MicAsk.label(blocked), false) { onAllow() }
+        return
+    }
+    // words lost, or the recognizer kept stalling (PlayerVoice's watch): a tap starts listening again from scratch
+    if (live && ears.needsRetry) {
+        Chip("🎤 didn't catch that: tap to retry", false) { ears.retry() }
         return
     }
     val label = when {

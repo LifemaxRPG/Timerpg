@@ -101,6 +101,20 @@ a toast saying what to change (Permissions, Microphone, Allow only while using t
 the chip goes and always listening switches on if that was what was asked. Each request and its outcome is a
 breadcrumb ("mic permission: BLOCKED (rationale false to false, answered in 30 ms)").
 
+**"Listening" that hears nothing (0.1.642, 2026-11-23).** Later in the same session the lamp said "listening" and no
+words came (screenshot 063345: permission granted, voices off, nobody near, no error, no breadcrumb from the mic since
+it started). What the screenshot cannot tell is which way the phone's recognizer had stopped; the loop
+(`voice/PlayerVoice`) had two ways to sit deaf with nothing on screen: a recognizer that stops calling back (no ready,
+no level, no result, no error: the loop thought it was still listening and skipped every restart), and one that answers
+every start with a client error (retried every 300 ms for ever, on the same instance). Neither was logged. Now a watch
+checks the loop every 2 s: a recognizer silent for 10 s (it reports its level several times a second while it listens)
+or with no result 6 s after the player stopped talking is replaced by a new one; an idle loop with nothing pending is
+started again; 4 client errors in a row get a new recognizer, as does any other error. When words were lost (shown,
+then an error or no result) or it keeps stalling, the lamp says "🎤 didn't catch that: tap to retry" (a tap starts
+from scratch). Every error, stall, replacement and retry is a breadcrumb ("mic: ..."), words heard with nobody near say
+so, and the screenshot's `mic` section has the hearer, hearing, writing, the problem and the loop's state in a line.
+The timings are guesses, to be checked against the next breadcrumbs.
+
 To check on the phone: Settings, Apps, Timerpg Street, Permissions, Microphone, "Don't allow"; in the game turn
 always listening on (AI panel); the chip should open the app's settings, not do nothing. To see the dialog path again,
 set the permission to "Ask every time" or clear it with `adb shell pm reset-permissions -p com.timerpg.street`
@@ -285,6 +299,38 @@ What the player says steers what is written ahead.
   word) get that person's ready line; otherwise the model answers live as before. The thresholds are guesses, chosen
   so that a wrong-topic answer is rarer than a needless live one.
 - **Measure**: the AI panel and the night report show the top themes and the questions answered ready vs live per day.
+
+## What the first conversation log showed (2026-11-23), and what changed
+
+The owner's first real conversation (Gladys Chen, `imm:2021:1`, gamma 2025, the light model on the NPU, about 2 s a
+reply) was fast but weak. Checked against her real fact sheets:
+- **Origin (data).** Her sheet said only "who lives in Mapleridge"; she moved there in 2021 (her id), so "all my life"
+  was the model filling a gap. Every sheet now says where the person is from and since when (`src/sim/origin.ts`:
+  founding generation, born here, or moved here in year N from a town named from the seed: a placeholder until the
+  world map places towns). "Mapleridge" is `townName('gamma')`, the seed's placeholder, the same in every exported asset;
+  it changes everywhere on the next export once the owner names the capital.
+- **Secrets (routing and data).** "Do you know any secrets about this town" went to her *own* secret, whose sheet said
+  "You do not share private matters with the player yet. Politely keep it to yourself." Words about secrets in town now
+  go to what she has heard (`topicFor`); every sheet says what the person really knows (`src/sim/knowledge.ts`), and
+  whether they trust the player with it; untrusted, they keep it in their manner (a gossip hints, a shy one says they
+  couldn't say, a grump refuses), never inventing. Everyone has both topics (who knows nothing says so).
+- **Invention (model, unchecked).** "The old mill" and "the new library" are in none of her facts; the check only caught
+  capitalized names. `validate()` now also turns down places and events (`PLACES`: "the old mill", "a fire") the facts
+  do not name, and the player's own words said back as a claim ("The new library is lovely") rather than doubted ("A new
+  library? I haven't heard of one."). A free question about the secret being told keeps its words to name. The engine's
+  second try (`MAX_TRIES` 2) then usually gets a grounded line.
+- **Repetition (prompt).** The chat sheet's example answer was "Lovely day for it, isn't it?" and the model copied it. A
+  free question's prompt drops the example (it answers the menu's question), quotes her last two replies ("You already
+  said: ... Do not repeat those words."; one a memory already quotes is not quoted twice), and `validate()` turns down
+  four words in a row from one of her last three, or a
+  sentence of mostly the same words.
+- **Deflection (model).** "Perhaps we can talk about something else" is allowed only where the sheet marks the topic as
+  one they would rather not talk about.
+- **Personality (data).** Warm or curt became seven manners from the traits (gossip, warm, cheerful, busy, reserved,
+  shy, grump); gamma's 183 people: 13/28/44/14/20/15/49.
+- Tests: `src/llm/conversation-log.test.ts` and `app/src/test/kotlin/ConversationLogTest.kt` replay the seven turns.
+  Prompt sizes: see the commit message (the free-question prompt is about the same size: the example and the old
+  personality line out, the origin and the last replies in).
 
 ## The conversation log (the owner's decision, 2026-11-23)
 
