@@ -279,8 +279,9 @@ The world seed only decides **where** each hub stands, by site rules and a score
   limit (county 10%, highways 7%), so roads wind round the hills and climb by switchbacks; see "Winding roads" below.
 - **County roads**: every town and hamlet to the nearest road; then a coarse section grid on farmland (the American
   section roads farms.ts already uses round a town: a 1-mile grid, here 1.6 km) where the land is flat.
-- **Expressways** (the limited-access network, made-up name like Pennant, from 1956): a subset of highways rebuilt
-  wider and straighter, bypassing the town centres (gamma's plan already has a bypass).
+- **Expressways** (the limited-access network, the Pennant routes, from 1956): built 2026-11-23 as Highways v2, a
+  planned network on its own new lines beside the old highways, bypassing the towns; see "Highways that evolve: as
+  built" at the end.
 - Roads are vectors with a class, a width and a surface by year (section 9); the detail terrain cuts and fills a road
   bed along them.
 - Drive time: highways 90-110 km/h in a car from the 1950s (80 before), expressways 110-120 km/h from the 1960s,
@@ -1135,3 +1136,183 @@ What makes it a real, intelligent highway system:
 - **Traffic:** AI cars and trucks by era and road, with density from the simulation (more cars each decade, rush
   hours near cities). It's built on the vehicle work (V1 and later).
 - **Road meshes (W6):** real road surfaces with lane markings by era, kerbs, shoulders, guard rails, rounded hairpins.
+
+## Highways that evolve: as built (Highways v2, 2026-11-23)
+
+`src/world/gen/highways.ts`, after the winding roads and the names (stage about 5 s for alpha; generation 72 s on the
+4-core server under load, 40 s quiet). The old network of roads.ts and winding.ts stays exactly as it was (the capital's
+pins, the W4 paths test); this pass gives every piece of road its whole life by year and builds the 20th century on top.
+
+### One rule for every segment
+
+The network is a list of **segments** (`Seg`), and every segment carries its whole history: `built` (the first year it
+was any road at all), `gone` (abandoned: it fades over 25 years, then is off every map), and **class, surface, lanes and
+number as [year, value] steps**, a `divided` year, its route, its river crossings (each a ford from one year, a bridge
+from another) and its structures (cuts, fills, tunnels, viaducts). `segAt(seg, year)` gives a segment in one year;
+`networkAt(highways, year)` is exactly that year's roads. The Kotlin reader has the same (`WorldHighways.Seg.at`).
+Segment kinds: `original` (a piece of an old road: a stretch of its own path, never copied), `realignment`, `bypass`,
+`expressway`, `beltway`, `radial`, `connector` (an interchange to its town), `frontage`.
+
+### A road's life
+
+- **Before 1900: tracks.** Every old road was a wagon track from two years after its places were founded (1840 at the
+  earliest) to the year it was built.
+- **Dirt, gravel, paved.** Highways gravel when built (1905-29), paved by 1938; county roads dirt, gravel ten years on,
+  paved 1935-75. Numbered in 1927 (the national numbering), county roads when paved.
+- **1930s realignments.** On every highway paved by 1941, the worst curves are found (a stretch 1.2-6 km long at least
+  1.18 times its chord, kept 2.5 km off the ends and 6 km off every hub) and, three times in four, straightened in
+  1931-41 when the chord is open land under 7% (a cut or fill up to 15 m allowed) over no more rivers than the curve.
+  The new piece takes the number; **the old curvy piece becomes an unnumbered local road**, and 40% of those are
+  abandoned later and fade. The road graph's distance follows (`Road.kmBy`).
+- **Widening.** Busy highways (the weight of their two places) go to four lanes in 1950-68 unless an expressway relieved
+  them first; the busiest are divided four to twelve years later.
+- **Bypasses (1948-68).** A town on a highway no expressway came within 8 km of may get a bypass (a 1.7 km arc round it,
+  under 7%): the bypass takes the number, the old way through Main Street becomes the business route (`N<n>B`), with two
+  at-grade junctions.
+- **Expressways and beltways** (below), from 1956.
+- **Decommissioning (1970-2000).** An old highway an expressway leg replaced, four to sixteen years after the leg opened:
+  40% keep their number, 30% become business routes along their length, 30% are handed to the county (class county,
+  a `C` number, 70 km/h; never a highway into a hub, which become business routes instead).
+
+How one route reads (alpha, `hw:16`, Ardey Meadows to Doranton, 68 km):
+
+| year | what happened |
+|---|---|
+| 1840 | a wagon track between the two settlements (`track`, one lane) |
+| 1905 | built as a gravel highway, two lanes |
+| 1919 | paved |
+| 1927 | numbered **N96** in the national numbering |
+| 1938 | realigned: 3.6 km of new straight road replaces a 4.3 km curve; the old curve becomes a local road, unnumbered |
+| 1959 | widened to four lanes; divided in 1964 |
+| 1967 | the expressway **P48** opens on its own line beside it (its legs cut at six interchanges), Doranton bypassed, its interchange 1.3 km from the centre |
+| 1982 | the old highway renumbered **N96B** (the business route) |
+
+### The planned expressway network (the Pennant routes)
+
+- **Plan.** Per landmass with two or more hubs and major towns: a minimum spanning tree of the highways' own Gabriel
+  graph of those places, plus (up to a quarter as many again) the links where the tree's way is over 1.5 times the
+  direct one, the biggest pairs first. Each link follows the corridor of the old highway between the two places.
+- **Corridors.** At each place the links are paired straightest-first (over 120 degrees) and chained into long
+  through routes: 43 corridors of 78 legs on alpha.
+- **Staging.** A corridor's "busy" is the weight of the places it serves (hubs 40, the capital 100, major towns 12, the
+  towns within 8 km of its line half their weight). Corridors start 1956-78 in order of busy (the capital's first,
+  1957-58); within one, its legs open busiest first, one to three years apart, all by 1985.
+- **Alignment.** Each leg is routed on its own line: A* on 269 m nodes (16 directions) in a corridor 3 cells round the
+  old highway (then 6, 10), the grade limit **5%** on every move (relaxed to 7% and 10% only where nothing fits: never
+  needed on alpha), costs for grade, for every river crossing (a bridge; a big river two and a half times), and for
+  passing within 1.4 km (and 2 km) of a town's centre, the hub pads closed. Then it is **pulled straight** (from each
+  point, the farthest later point on an open chord under the grade, off the towns' cores, over no more rivers) and
+  **filleted** into wide curves (1.8 km radius where the legs allow). A through town's expressway passes 2.2 km off its
+  centre, square to the corridor; a terminal town's ends on its highway 2.5 km out (a trumpet).
+- **Profile, cuts and tunnels.** The road's profile is the mean of the highest 5%-limited line under the ground and the
+  lowest over it: never steeper than 5%, as near the ground as that allows. Where it leaves the ground by more than 8 m
+  it is a cut (a **tunnel** where deeper than 30 m for over 250 m) or a fill (a **viaduct** over 22 m), recorded per
+  segment with km and depth. Every river crossing of an expressway is a bridge from its opening year, never a ford.
+- **Lanes.** The busiest fifth of corridors open with four lanes and get six (1972-88); the quietest third open as
+  two-lane "super twos" and are twinned to four 8-16 years later; the rest open with four. Divided from four lanes.
+- **City structure.** Every hub with a leg, and every major town where three or more legs meet, gets a ring of 16
+  anchors (hubs: past the pad and its 2 km growth margin plus 1 km, an ellipse; towns 3 km). Each leg reaching it ends at
+  the anchor of its old highway's direction, where a **radial** (a spur) runs in to an interchange near the town's edge
+  **on the old highway**, 1 km out along it from its pin (1.3 km from a town's centre). The **beltway** joins the longest
+  run of open anchors (closed when all are), 1961-65 round the capital, 1963-79 round other hubs, 1967-79 round towns,
+  never before a radial plus three years. At the capital: radials join the highways leaving its west and east pins, the
+  plan and its pins untouched (tested), nothing of the expressways inside its pad.
+- **Interchanges as data**: system (three or more expressway lines meeting, or two crossing), service (an expressway
+  crossing a highway, or a county road to a town or bigger, or any town within 6 km: a connector road to the town),
+  terminal (an expressway's end on a highway: trumpets) and the bypasses' at-grade junctions. Service interchanges
+  closer than 1.5 km merge. Design by era: system cloverleafs before 1966 (60% rebuilt as directional 1986-2015), then
+  directional, stacks from 1980; service cloverleafs before 1962 (or 1966 on busy highways; 40% rebuilt as partial
+  cloverleafs later), then diamonds and partial cloverleafs, single-point diamonds from 1990.
+- **Frontage roads**: both sides of the expressway, 75 m off, 1.2 km each way of every service interchange within 4 km
+  of its town, built with it or up to ten years later.
+- **The roadside as sites** (kind, position, years, models): rest areas every 60-95 km along a corridor (a year to four
+  after it opened; a fifth closed 2003-15; the **Pine Bend** model, `landmark_glb_highway_rest_area`, from 1975), weigh
+  stations every 150-220 km (from 1962), truck stops at 45% of the highway interchanges and 20% of the others (**Cedar
+  Relay**, `landmark_glb_truck_stop_1960`, to 1989, then `_1990`), motels (45%, a third closed 1985-2012), diners (30%),
+  toll plazas on a fifth of the corridors (40% of the tolls lifted 1985-2010).
+- **Towns** (`towns`): for every town with a highway Main Street or an interchange: the old highway through it, whether
+  and when it was bypassed (by the expressway within 6 km, or a highway bypass), its interchange, how far and since
+  when. history.ts's growth reads it: a town grows from its interchange's year (within 6 km), a bypassed Main Street
+  declines slowly (to 80%).
+- **Route numbers**: kotlin-street/docs/ROUTE_NUMBERS.md (north-south odd, east-west even, ordered across the landmass;
+  loops even hundreds, spurs odd hundreds; business routes; exits by km; the Pennant shield).
+
+### Numbers (alpha)
+
+| | 1900 | 1930 | 1960 | 1970 | 1990 | 2020 |
+|---|---|---|---|---|---|---|
+| expressway km | 0 | 0 | 827 | 4,804 | 7,226 | 7,226 |
+| highway km | 0 (12,302 of tracks) | 12,302 | 12,222 | 12,451 | 11,593 | 11,593 |
+| county km | 40,169 | 40,169 | 40,169 | 40,169 | 41,137 | 41,137 |
+| local (old curves) km | 0 | 0 | 555 | 526 | 394 | 393 |
+| frontage km | 0 | 0 | 14 | 116 | 326 | 326 |
+
+- Expressways in 2020: 5,267 km of four lanes, 2,000 km of six (the two-lane super twos all twinned by then).
+- 43 Pennant trunks, 37 loops (beltways), 77 spurs (radials); 148 national routes, 32 business routes.
+- **635 interchanges**: 126 system (112 directional, 14 cloverleafs), 88 terminal trumpets, 411 service (195 diamonds,
+  113 partial cloverleafs, 103 cloverleafs), 10 at-grade junctions; 44 rebuilt later.
+- 140 realignments, 5 highway bypasses; **60 bypassed towns** (55 by an expressway, 5 by a highway bypass); 154 towns
+  with an interchange.
+- Structures: 45 cuts, 55 fills, 4 tunnels, 6 viaducts; 205 expressway bridges.
+- Roadside: 73 rest areas, 30 weigh stations, 185 truck stops, 220 motels, 131 diners, 7 toll plazas.
+- The skeleton (version 4): 9.84 MB gzipped (was 9.61); the Kotlin reader holds the world in 24.9 MB of RAM in the town's
+  memory check (held peak 174 MB of the 256 MB budget).
+
+Drive times between the hubs from the road graph (`RoadGraph.drive`, the fastest car route that year; the expressways are
+limited-access links joined only at their interchanges, closed before they open):
+
+| | 1930 | 1960 | 1990 |
+|---|---|---|---|
+| capital to Port Gilan | 76 min, 101 km | 50 min, 93 km | 50 min, 93 km |
+| capital to Coldarcrest | 70 min, 91 km | 45 min, 84 km | 45 min, 84 km |
+| capital to Linden Corners | 98 min, 130 km | 66 min, 125 km | 66 min, 125 km |
+| Port Gilan to Coldarcrest | 130 min, 148 km | 89 min, 169 km | 73 min, 135 km |
+| Coldarcrest to Linden Corners | 163 min, 215 km | 105 min, 200 km | 105 min, 200 km |
+| Thunder Mills to Belford Rapids | 275 min, 321 km | 201 min, 321 km | 158 min, 301 km |
+
+The capital's continent is the busiest, so its corridors were all open by 1960: there the gain from 1960 to 1990 is
+nil, and from 1930 to 1960 it is the paving and the 1950 speeds as much as the expressways. Elsewhere (the later
+corridors) the expressways take a fifth to a quarter off by 1990.
+
+### Bake and app
+
+Skeleton **version 4** (bake.ts): a `highways` object (segments with their steps and path references, interchanges,
+routes, sites, towns); a road's old `expressway` year is gone. The Kotlin reader (`WorldHighways`, on
+`WorldSkeleton.highways`) parses all of it; the far view (`WorldFarPlan.lines`) draws the network of its year from the
+segments: tracks thin, county and local roads, highways by lanes, and **the expressways as their own ribbons (kind
+`EXPRESSWAY`, 28/40/50 m by lanes, concrete grey)**; the near terrain lays them as asphalt 6-16 m half wide. The preview
+takes `-DworldYear=1990` and has a `world_hwy` shot (the capital and its beltway from 9 km up).
+Maps: `npx tsx kotlin-street/tools/world-highways-map.ts <dir>` then
+`python3 kotlin-street/tools/world-highways-sheet.py <dir> <out.jpg> [render.png] [caption]`.
+
+### Tests
+
+vitest (gen.test.ts, "Highways v2"): every hub on a landmass with two or more hubs and major towns is on one expressway
+network in 1990 (and the drive between two of them takes it); the expressways open 1956-85, more each decade, the
+capital's corridors by 1960; every expressway profile under 5%, every point more than 8 m off the ground inside a marked
+structure, tunnels under 2% of the length, every river bridged at opening, no fords; every bypassed town's interchange
+within 6.5 km (all are within 3.7 km); lanes never fewer, every step in order, each old road's pieces tiling its line,
+tracks in 1900, realignments in 1935, local roads, business routes, abandoned roads, county hand-overs in 1990; route
+numbers unique per landmass and system, the direction rule, loops and spurs on their parents, business routes, the
+national routes in order west to east, exits; nothing in the capital's pad, its radials on its pins' highways; the
+Pine Bend and Cedar Relay models placed; drives quicker in 1960 than 1930 and no slower in 1990; determinism of all of
+it; the bake round trip. Kotlin (`WorldSkeletonTest.highwaysV2AreTheBakes`): the counts, one segment of each kind in five
+years and its path, interchanges with exits, the capital's continent's routes, the bypassed towns; the far view's
+expressway ribbons in 1990 and none in 1930.
+
+### Open problems
+
+- **Expressways are data and ribbons only**: no road meshes, ramps or interchange geometry yet (W6); the interchange
+  types say what to build.
+- **Few highway bypasses** (5 on alpha): the highways link hubs and major towns, so few towns sit on a highway's
+  middle; most bypasses are the expressways'. A highway bypass before a late expressway is not modelled.
+- **Radials are short** (about 2 km, from the beltway in to the old highway near the edge); the "radial into the
+  core" is the old highway through the hand-made plan. Hubs with an authored plan could add their own.
+- **The capital's continent's network is complete by 1960**: the staging puts the busiest corridors first, and that
+  continent is the busiest. If the owner wants to watch the capital's expressways arrive during play, push its later legs
+  (or its beltway, 1961-65) later.
+- Connectors run straight from the interchange to the town's centre (the town generator should end them at its own
+  street grid). Frontage roads are offsets of the expressway line, not routed.
+- Rest-area and site positions are on the expressway's line; placing their lots beside it is the placement job's.
+- The interchanges near the old highways sometimes merge (1.5 km rule) onto a crossing a little off the town's own
+  road; the town's connector then runs to the centre from there.
