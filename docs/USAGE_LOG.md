@@ -73,6 +73,11 @@ it can run Vitest and tsc itself (G005-G008: four first-try acceptances). Its Ko
 built blind, without a JVM, Gradle or Filament in its sandbox, and took more rounds; those stay with Claude unless its
 sandbox gains a JDK.
 
+Gemini's daily limit (2026-11-23, reported by the owner): Jeff ran out of usage about 30 minutes into G012, after
+delivering G009, G011 and G010 that day (three engineering systems, all accepted first try). No G012 work in progress
+reached origin, so the task restarts from its brief when his usage resets. Plan about three tasks of that size per day
+for him, and keep each brief one session long.
+
 | Task | Worker (model, setting) | Kind | Tokens or effort | Rounds to accept | Verdict |
 |---|---|---|---|---|---|
 | C001 five-and-dime | ChatGPT (setting not reported) | model, 4 states + LODs | not reported (delivered before the usage rule) | 1 | revise: lettering clipped, roof texture |

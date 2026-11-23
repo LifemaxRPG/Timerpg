@@ -63,6 +63,8 @@ Below that come the brief and the acceptance checks.
 **Push work in progress.** On a long task, commit and push to your task branch at least every 30 minutes, and right away
 if you are near a usage limit, with "WIP" in the message and no DELIVERY.md yet. Running out of usage then loses nothing,
 and the next run continues from the branch.
+Push the branch with a first WIP commit within the first 10 minutes of a task, even if it's only a skeleton: a usage
+limit can arrive without warning (it did on 2026-11-23, 30 minutes into G012, and nothing had been pushed).
 
 ## Report your usage in every DELIVERY.md (must)
 
