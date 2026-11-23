@@ -6,6 +6,7 @@ import com.lifemax.rpg.feature.habits.domain.WorldMemory
 import com.lifemax.rpg.feature.habits.domain.WorldPos
 import com.lifemax.rpg.feature.habits.domain.Planet
 import com.lifemax.rpg.feature.habits.domain.WorldTerrain
+import com.lifemax.rpg.feature.habits.domain.WorldNoise
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -130,8 +131,12 @@ internal class WorldFar(
 
     // ---------------------------------------------------------------- building (a worker)
 
+    /** The near terrain's ground (W5a), made with the plan when the near terrain is on: its finest level wears the near's materials. */
+    @Volatile var terrain: WorldTerrain? = null; private set
+
     private fun build(): List<Part> {
         val plan = planOf().also { this.plan = it }
+        if (townGrass != null) terrain = WorldTerrain(plan.sk, plan, townGrass)
         val out = ArrayList<Part>()
         for ((k, lv) in plan.levels.withIndex()) out += if (k == 0) blocks(lv) else listOfNotNull(level(k, lv))
         val mid = plan.levels.first().let { doubleArrayOf(it.ox + it.n * it.spacing / 2, it.oz + it.n * it.spacing / 2) }
@@ -263,8 +268,25 @@ internal class WorldFar(
     private fun blocks(lv: WorldFarPlan.Level): List<Part> {
         val plan = plan!!
         val n = lv.n
-        // (a quad wholly on the town's ground has no colour of its own in the plan: the town's grass, where it is drawn)
-        val img = IntArray(n * n) { lv.colours[it].takeIf { c -> c != 0 } ?: WorldFarPlan.TOWN_GRASS }
+        // (a quad wholly on the town's ground has no colour of its own in the plan: the town's grass, where it is drawn;
+        // with the near terrain, each quad wears the near ground's material at its middle, in that picture's mean colour, so
+        // the far view goes on as the near ground looks: the same fields, rock and water)
+        val t = terrain
+        val pt = WorldTerrain.Point()
+        val img = IntArray(n * n) { k ->
+            val own = lv.colours[k].takeIf { c -> c != 0 } ?: WorldFarPlan.TOWN_GRASS
+            if (t == null) return@IntArray own
+            val i = k % n; val j = k / n
+            // (towards the level's rim the biome's own colours take over, dithered a quad at a time, so the next level's
+            // biome colours meet it with no square edge)
+            val rim = min(min(i, n - 1 - i), min(j, n - 1 - j))
+            if (rim < RIM_FADE && WorldNoise.hashU(RIM_SEED, i, j) * RIM_FADE > rim) return@IntArray own
+            val x = lv.ox + (i + .5) * lv.spacing; val z = lv.oz + (j + .5) * lv.spacing
+            val cx = (plan.origin.x + x) / Planet.CELL_M; val cz = (plan.origin.z + z) / Planet.CELL_M
+            t.pointAt(cx, cz, x, z, pt)
+            val sl = max(abs(lv.h(i + 1, j + 1) - lv.h(i, j)), abs(lv.h(i + 1, j) - lv.h(i, j + 1))) / (lv.spacing * 1.414)
+            WorldTerrain.MEAN[t.material(cx, cz, x, z, pt, sl)]
+        }
         val s = (lv.spacing * u).toFloat()
         fun y(i: Int, j: Int) = lv.h(i, j) * u
         val drop = 160f * u
@@ -460,6 +482,10 @@ internal class WorldFar(
             if (near) { far.near = WorldNear.attach(town, far, origin, grass); town.farFields = false }
             return far
         }
+
+        /** The finest level's rim over which its colours fade from the near ground's materials to the biomes' (quads). */
+        private const val RIM_FADE = 40
+        private const val RIM_SEED = 0x5EED05AL
 
         /** Whether the near terrain (W5a) comes with the far view (previews: -DworldNear=0 for W4's far view alone). */
         @JvmStatic var nearOn = true

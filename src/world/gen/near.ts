@@ -61,7 +61,7 @@ export class LazyFbm {
 }
 
 /** The constants of the cliffs (WorldTerrain's companion). */
-export const NEAR = { CLIFF_FROM: 0.7, CLIFF_FULL: 1.0, STEP_M: 7.0, STEP_SWING_M: 6.0, TREAD: 0.62, TREAD_RISE: 0.1, SLOPE_E_M: 1.05 } as const;
+export const NEAR = { CLIFF_FROM: 0.62, CLIFF_FULL: 0.9, STEP_M: 7.0, STEP_SWING_M: 6.0, TREAD: 0.72, TREAD_RISE: 0.06, SLOPE_E_M: 1.05 } as const;
 
 export class NearTerrain {
   private readonly detail: LazyFbm;

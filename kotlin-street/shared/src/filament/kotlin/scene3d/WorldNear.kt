@@ -56,6 +56,8 @@ internal class WorldNear(
     private var atlasLayer = 0
     private var atlasJob: Future<ByteArray>? = null
     @Volatile private var atlasGrass: PixImg? = null
+    /** Each layer's mean colour (its last mip level), for reports (WorldTerrain.MEAN is what the far view wears). */
+    private val means = IntArray(WorldTerrain.LAYERS)
     private val atlasSampler = TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.REPEAT).also { it.anisotropy = 8f }
     private val idSampler = TextureSampler(TextureSampler.MinFilter.NEAREST, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE)
     private val atlasReady: Boolean get() = atlas != null && atlasLayer >= WorldTerrain.LAYERS
@@ -94,16 +96,18 @@ internal class WorldNear(
         val b = synchronized(builds) { builds.sorted() }
         val st = if (b.isEmpty()) "none built" else "%d nodes built: median %.1f ms, p90 %.1f, max %.1f (one worker's time each)".format(java.util.Locale.US, b.size, b[b.size / 2], b[(b.size * 9) / 10], b.last())
         return "world near terrain: ${desired.size} nodes wanted, ${live.size} up, $drawnNodes drawn ($drawnTriangles triangles); $st; " +
-            "levels drawn ${drawn.groupingBy { it.level }.eachCount().toSortedMap()}; ${covered.size} root blocks covered"
+            "levels drawn ${drawn.groupingBy { it.level }.eachCount().toSortedMap()}; ${covered.size} root blocks covered; the pictures' means ${means.joinToString { "%06X".format(it and 0xFFFFFF) }}"
     }
 
     // ------------------------------------------------------------------ the engine's thread
 
     override fun step() {
         // the terrain's plan once the far view has its own (the near ground meets the far's finest level exactly)
+        // (the far view makes it with its plan: its finest level wears the same materials)
         if (terrain == null && terrainJob == null) {
-            val plan = far.plan ?: return
-            terrainJob = kit.pool.submit(Callable { WorldTerrain(plan.sk, plan, townGrass) })
+            terrain = far.terrain
+            if (terrain == null && far.ready) { val plan = far.plan ?: return; terrainJob = kit.pool.submit(Callable { WorldTerrain(plan.sk, plan, townGrass) }) }
+            if (terrain == null) return
         }
         terrainJob?.let { j -> if (j.isDone) { terrain = j.get(); terrainJob = null } }
         stepAtlas(block = false)
@@ -155,6 +159,7 @@ internal class WorldNear(
             else -> TerrainPics.layer(k, n, pic, null)
         }
         val chain = TerrainPics.mips(px, n)
+        means[k] = chain.last()[0]
         val out = ByteArray(chain.sumOf { it.size } * 4)
         var o = 0
         for (lv in chain) for (p in lv) { out[o++] = (p shr 16).toByte(); out[o++] = (p shr 8).toByte(); out[o++] = p.toByte(); out[o++] = (p ushr 24).toByte() }
@@ -353,10 +358,10 @@ internal class WorldNear(
      * and every wanted node, uploaded.
      */
     fun settle(pose: TownPose) {
-        if (terrain == null) {
-            if (terrainJob == null) step()
-            terrainJob?.get()
+        while (terrain == null) {
             step()
+            terrainJob?.get()
+            if (terrain == null) Thread.sleep(2)
         }
         val t = terrain ?: return
         stepAtlas(block = true)

@@ -35,73 +35,18 @@ import kotlin.math.sqrt
  */
 class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's own flat ground (m from the plan's origin: x0, z0, x1, z1) left to the town; null: none. */ val townGrass: DoubleArray? = null) {
     private val seed = sk.seed
-    private val detail = WorldFbm(seed, "w4-detail", WorldSkeleton.W / 2, 3)
-    private val hills = WorldFbm(seed, "w5-hills", WorldSkeleton.W * 4, 4)
-    private val ridge = WorldFbm(seed, "w5-ridge", WorldSkeleton.W * 2, 3)
-    private val rough = WorldFbm(seed, "w5-rough", WorldSkeleton.W / 2, 2)
-    private val steps = WorldLattice(seed, "w5-step", WorldSkeleton.W * 8)
+    /** The ground's relief (the cross-language part: [WorldRelief]); the far view's finest level samples it too. */
+    val relief = WorldRelief(sk)
     private val patch = WorldFbm(seed, "w5-patch", WorldSkeleton.W * 8, 2)
     private val tone = WorldNoise.hashStr("$seed|w5-tone")
     private val ox = plan.origin.x
     private val oz = plan.origin.z
 
-    // ------------------------------------------------------------------ the height (cross-language part)
-
-    /**
-     * The ground's height (m above sea level) before cliffs, at ([cx], [cz]) in atlas cell units. Only +, -, *, / and
-     * the noise (which is the TypeScript's bit for bit), so near.ts gives the same doubles.
-     */
-    fun smooth(cx: Double, cz: Double): Double {
-        val base = sk.height(cx, cz)
-        val coast = smoothstep(sat((base - 1.0) / 24.0))
-        val w4 = (detail.at(cx, cz) - .5) * 36.0 * coast
-        val ro = rough.at(cx, cz)
-        val r = sat((ro - .4) / .3)
-        // (outcrops: where the roughness is highest, ridged knolls and bluffs tall enough to break into cliffs)
-        val crop = smoothstep(sat((ro - .62) / .12))
-        val mount = smoothstep(sat((base - 450.0) / 900.0))
-        val hil = (hills.at(cx, cz) - .5) * (10.0 + 26.0 * r)
-        val rv = ridge.at(cx, cz)
-        val ra = 2.0 * rv - 1.0
-        // (a ridge's crest rounded over a few metres, so the slope, and the cliffs it makes, do not jump there)
-        var rr = 1.0 - sqrt(ra * ra + .003)
-        rr *= rr
-        val peaks = rr * (320.0 * mount + 160.0 * crop)
-        return base + w4 + (hil + peaks) * coast
-    }
-
-    /** How much of a cliff ([raw]'s terracing) is at ([cx], [cz]): 0 on ground under [CLIFF_FROM]'s slope, 1 past [CLIFF_FULL]. */
-    fun cliff(cx: Double, cz: Double): Double = cliffOf(slope(cx, cz))
-
-    /** [smooth]'s slope (rise over run) at ([cx], [cz]), by central differences [SLOPE_E_M] either side. */
-    fun slope(cx: Double, cz: Double): Double {
-        val e = SLOPE_E_M / Planet.CELL_M
-        val dx = (smooth(cx + e, cz) - smooth(cx - e, cz)) / (2.0 * SLOPE_E_M)
-        val dz = (smooth(cx, cz + e) - smooth(cx, cz - e)) / (2.0 * SLOPE_E_M)
-        return sqrt(dx * dx + dz * dz)
-    }
-
-    private fun cliffOf(s: Double): Double = smoothstep(sat((s - CLIFF_FROM) / (CLIFF_FULL - CLIFF_FROM)))
-
-    /**
-     * The ground's height (m above sea level) at ([cx], [cz]) with its cliffs: where steep, terraced into ledges (a
-     * gentle tread) and risers (the rest of the rise, much steeper) [STEP_M] tall, more of it the steeper ([cliff]).
-     */
-    fun raw(cx: Double, cz: Double): Double {
-        val h0 = smooth(cx, cz)
-        val c = cliffOf(slope(cx, cz))
-        if (c <= 0.0) return h0
-        return h0 + (terrace(h0, cx, cz) - h0) * c
-    }
-
-    private fun terrace(h0: Double, cx: Double, cz: Double): Double {
-        val step = STEP_M + STEP_SWING_M * steps.at(cx, cz)
-        val t = h0 / step
-        val k = floor(t)
-        val f = t - k
-        val g = if (f < TREAD) f * TREAD_RISE / TREAD else TREAD_RISE + (f - TREAD) * (1.0 - TREAD_RISE) / (1.0 - TREAD)
-        return (k + g) * step
-    }
+    /** [WorldRelief.smooth], [WorldRelief.slope], [WorldRelief.cliff], [WorldRelief.raw]. */
+    fun smooth(cx: Double, cz: Double): Double = relief.smooth(cx, cz)
+    fun slope(cx: Double, cz: Double): Double = relief.slope(cx, cz)
+    fun cliff(cx: Double, cz: Double): Double = relief.cliff(cx, cz)
+    fun raw(cx: Double, cz: Double): Double = relief.raw(cx, cz)
 
     // ------------------------------------------------------------------ the height on the town's planet (Kotlin only)
 
@@ -167,9 +112,9 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
     /** The point at ([cx], [cz]) in cells, which is ([lx], [lz]) m from the plan's origin. */
     fun pointAt(cx: Double, cz: Double, lx: Double, lz: Double, p: Point): Point {
         val base = sk.height(cx, cz)
-        val h0 = smooth(cx, cz)
-        val c = cliffOf(slope(cx, cz))
-        var h = if (c <= 0.0) h0 else h0 + (terrace(h0, cx, cz) - h0) * c
+        val h0 = relief.smooth(cx, cz)
+        val c = relief.cliffOf(relief.slope(cx, cz))
+        var h = if (c <= 0.0) h0 else h0 + (relief.terrace(h0, cx, cz) - h0) * c
         val d = lineD.get()
         near(lx, lz, d)
         // the rivers' and roads' surroundings calmed (the land's detail fading to the cells' own height towards them), the
@@ -208,7 +153,7 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
         val land = sk.land(i, j)
         val above = p.abs
         if (!land && above < 1.0) return SAND
-        if (p.cliff > .35 || quadSlope > ROCK_SLOPE) return ROCK
+        if (quadSlope > ROCK_SLOPE || (p.cliff > .8 && quadSlope > ROCK_SLOPE * .5)) return ROCK
         val b = sk.biome(i, j)
         val coast = (sk.flags(i, j) shr 3) and 3
         if (above < 3.5 && (b == 15 || coast == 1 || !land)) return SAND
@@ -418,13 +363,13 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
         const val TEXELS_A_TILE = 54
 
         /** The slope (rise over run) where the cliffs begin, and where they are whole. */
-        const val CLIFF_FROM = .7
-        const val CLIFF_FULL = 1.0
+        const val CLIFF_FROM = .62
+        const val CLIFF_FULL = .9
         /** The cliffs' steps: [STEP_M] tall and up to [STEP_SWING_M] more by a noise; a step's tread is [TREAD] of it and rises [TREAD_RISE] of its height. */
         const val STEP_M = 7.0
         const val STEP_SWING_M = 6.0
-        const val TREAD = .62
-        const val TREAD_RISE = .1
+        const val TREAD = .72
+        const val TREAD_RISE = .06
         const val SLOPE_E_M = 1.05
         /** A quad is faceted (a flat normal a triangle) past this much cliff or this slope; rock past [ROCK_SLOPE]. */
         const val FACET_CLIFF = .3
@@ -453,6 +398,11 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
         const val GRASS = 0; const val DRY = 1; const val DIRT = 2; const val FARM_X = 3; const val FARM_Z = 4; const val SAND = 5
         const val ROCK = 6; const val SNOW = 7; const val GRAVEL = 8; const val FOREST = 9; const val WATER = 10; const val ASPHALT = 11
         const val LAYERS = 12
+        /** Each picture's mean colour (ARGB; the far view's finest level wears them, the pictures' own last mip level). */
+        val MEAN = intArrayOf(
+            0xFF479656.toInt(), 0xFFA69D5A.toInt(), 0xFF9E7C58.toInt(), 0xFF84603E.toInt(), 0xFF84603E.toInt(), 0xFFE1D199.toInt(),
+            0xFF827C72.toInt(), 0xFFE9EFF6.toInt(), 0xFF9C937E.toInt(), 0xFF4C5C38.toInt(), 0xFF3A6E9E.toInt(), 0xFF4F4B4F.toInt(),
+        )
         val NAMES = listOf("grass", "dry grass", "dirt", "farmland (rows east-west)", "farmland (rows north-south)", "sand", "rock", "snow", "gravel", "forest floor", "water", "asphalt")
         /** The biomes farmed where the skeleton has a crop (temperate forest, prairie, steppe, savanna, chaparral). */
         private val FARMED = setOf(4, 6, 7, 9, 17)

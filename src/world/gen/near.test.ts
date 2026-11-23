@@ -40,7 +40,7 @@ describe('W5a near terrain (near.ts)', () => {
       const cx = 905 + k * e, cz = 300.4;
       worst = Math.max(worst, Math.abs(t.raw(cx + e, cz) - t.raw(cx, cz)));
     }
-    // (a riser is at most about 2.5 times the steepest slope's rise over a tile)
-    expect(worst).toBeLessThan(12);
+    // (a riser is at most about 3.4 times the steepest slope's rise over a tile)
+    expect(worst).toBeLessThan(20);
   });
 });
