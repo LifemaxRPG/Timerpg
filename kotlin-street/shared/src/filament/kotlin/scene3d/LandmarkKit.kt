@@ -55,6 +55,10 @@ data class LandmarkSpec(
     val far: String? = null,
     /** The model x (metres) put on the slot's middle, when it is not the model's own middle: a chain of states that differ in width (the bank's drive-through, the library's wing) keeps one building place. */
     val centre: Float? = null,
+    /** Optional declarative animation rules from `landmarks.json` (overrides `model-info.json` and [LandmarkAnimRule.DEFAULT_TABLE]). */
+    val animations: List<LandmarkAnimRule> = emptyList(),
+    /** Optional per-state stopped clock override (`"h:mm"`, e.g. `"4:17"`). */
+    val clockStopped: String? = null,
 ) {
     /** The file of variant [v] (the town's pick: street.json's glbLandmarks `variant`). */
     fun fileOf(v: Int): String = if (variants.isEmpty()) file else variants[Math.floorMod(v, variants.size)]
@@ -82,7 +86,9 @@ data class LandmarkSpec(
                     era.getInt("from"), era.getInt("to"), era.optInt("built", era.getInt("from")), lw, ld, bw, bd, o.optString("lot", "lot"), sw,
                     o.optJSONObject("price")?.let { PriceBoard.parse(it) }, hid, o.optString("room", "shelves"),
                     o.optJSONArray("variants")?.let { v -> (0 until v.length()).map { v.getString(it) } } ?: emptyList(),
-                    o.optString("far").ifBlank { null }, if (o.has("centre")) o.getDouble("centre").toFloat() else null)
+                    o.optString("far").ifBlank { null }, if (o.has("centre")) o.getDouble("centre").toFloat() else null,
+                    LandmarkAnimRule.parseList(o.optJSONArray("animations")),
+                    o.optString("clock_stopped").ifBlank { o.optString("stopped_at").ifBlank { null } })
             }
         }
     }
@@ -206,7 +212,12 @@ class LandmarkDoor(val name: String, val x: Float, val z: Float, val outX: Float
  * building's front edge at z 0), the walk's boxes ([solids]: x0, z0, x1, z1 each, in the frame), its [doors], and the
  * lot's front edge ([front]: z of the most forward ground; the town puts it on the plot's front line).
  */
-class LandmarkModel(val spec: LandmarkSpec, val model: CinemaModel, val solids: FloatArray, val doors: List<LandmarkDoor>, val front: Float, val names: List<String>)
+class LandmarkModel(
+    val spec: LandmarkSpec, val model: CinemaModel, val solids: FloatArray, val doors: List<LandmarkDoor>,
+    val front: Float, val names: List<String>,
+    /** Animated nodes split out of static merging (empty for static-only landmarks). */
+    val animated: List<AnimatedNodePart> = emptyList(),
+)
 
 object LandmarkKit {
     /** Street units in a metre: the guide's 0.0388 m texel is the buildings' [TEXEL]. */
@@ -275,17 +286,76 @@ object LandmarkKit {
             return false
         }
         fun collisionOnly(n: GlbFile.Node) = n.name == "collision" || n.extras?.optBoolean("collision_only") == true || n.extras?.has("render") == true && !n.extras.optBoolean("render", true)
+        // Declarative animation rules: spec (landmarks.json) > model-info.json > DEFAULT_TABLE
+        val rules = spec.animations + LandmarkAnimRule.fromModelInfo(info, year, spec.file) + LandmarkAnimRule.DEFAULT_TABLE
+        fun matchAnimRule(n: GlbFile.Node): LandmarkAnimRule? {
+            if (n.name.isBlank() || collisionOnly(n) || skipped(n)) return null
+            if (n.extras?.optString("motion")?.equals("fixed", ignoreCase = true) == true) return null
+            val base = rules.firstOrNull { it.matches(n.name) } ?: return null
+            if (!base.active && base.kind == LandmarkAnimKind.SLOW_SPIN) return null
+            return refineRuleFromNode(base, n, spec.clockStopped)
+        }
+        val animRoots = LinkedHashMap<Int, LandmarkAnimRule>()
+        for (n in glb.nodes) {
+            var p = n.parent
+            var underAnim = false
+            while (p >= 0) { if (p in animRoots) { underAnim = true; break }; p = glb.nodes[p].parent }
+            if (underAnim) continue
+            matchAnimRule(n)?.let { r -> animRoots[n.index] = r }
+        }
+        fun animRootOf(n: GlbFile.Node): Int {
+            var k = n.index
+            while (k >= 0) { if (k in animRoots) return k; k = glb.nodes[k].parent }
+            return -1
+        }
         // the price panel's material, drawn for the year
         val priceMat = spec.price?.let { pb -> glb.node(pb.node)?.takeIf { it.mesh >= 0 }?.let { n -> glb.primitives(n.mesh).firstOrNull()?.material } }
-        // every drawn triangle, by material
+        // every drawn triangle, by material (static) and per animated node (local to its pivot)
         class Acc { val pos = ArrayList<Float>(); val nrm = ArrayList<Float>(); val uv = ArrayList<Float>(); val idx = ArrayList<Int>() }
         val acc = LinkedHashMap<Int, Acc>()
+        val animAcc = LinkedHashMap<Int, LinkedHashMap<Int, Acc>>()
+        val animInv = HashMap<Int, FloatArray>()
         val colTris = ArrayList<FloatArray>()
         val tmp = FloatArray(3)
         for (n in glb.nodes) {
             if (n.mesh < 0) continue
             val col = collisionOnly(n)
             if (!col && skipped(n)) continue
+            val aRoot = if (col) -1 else animRootOf(n)
+            if (aRoot >= 0) {
+                val rootNode = glb.nodes[aRoot]
+                val rel = if (n.index == aRoot) null else GlbFile.mul(animInv.getOrPut(aRoot) { GlbFile.invertAffine(rootNode.world) }, n.world)
+                val flip = rel != null && GlbFile.mirrors(rel)
+                val byMat = animAcc.getOrPut(aRoot) { LinkedHashMap() }
+                for (p in glb.primitives(n.mesh)) {
+                    val nv = p.pos.size / 3
+                    val a = byMat.getOrPut(p.material) { Acc() }
+                    val base = a.pos.size / 3
+                    for (v in 0 until nv) {
+                        if (rel == null) {
+                            a.pos += p.pos[v * 3] * U; a.pos += p.pos[v * 3 + 1] * U; a.pos += p.pos[v * 3 + 2] * U
+                            if (p.nrm != null) {
+                                a.nrm += p.nrm[v * 3]; a.nrm += p.nrm[v * 3 + 1]; a.nrm += p.nrm[v * 3 + 2]
+                            } else { a.nrm += 0f; a.nrm += 1f; a.nrm += 0f }
+                        } else {
+                            GlbFile.point(rel, p.pos[v * 3], p.pos[v * 3 + 1], p.pos[v * 3 + 2], tmp, 0)
+                            a.pos += tmp[0] * U; a.pos += tmp[1] * U; a.pos += tmp[2] * U
+                            if (p.nrm != null) {
+                                GlbFile.dir(rel, p.nrm[v * 3], p.nrm[v * 3 + 1], p.nrm[v * 3 + 2], tmp, 0)
+                                val l = sqrt(tmp[0] * tmp[0] + tmp[1] * tmp[1] + tmp[2] * tmp[2]).coerceAtLeast(1e-6f)
+                                a.nrm += tmp[0] / l; a.nrm += tmp[1] / l; a.nrm += tmp[2] / l
+                            } else { a.nrm += 0f; a.nrm += 1f; a.nrm += 0f }
+                        }
+                        a.uv += p.uv?.get(v * 2) ?: 0f; a.uv += p.uv?.get(v * 2 + 1) ?: 0f
+                    }
+                    var t = 0
+                    while (t + 2 < p.idx.size) {
+                        if (flip) { a.idx += base + p.idx[t]; a.idx += base + p.idx[t + 2]; a.idx += base + p.idx[t + 1] } else for (k in 0..2) a.idx += base + p.idx[t + k]
+                        t += 3
+                    }
+                }
+                continue
+            }
             val flip = GlbFile.mirrors(n.world)
             for (p in glb.primitives(n.mesh)) {
                 val nv = p.pos.size / 3
@@ -320,16 +390,11 @@ object LandmarkKit {
             for (a in acc.values) for (i in 1 until a.pos.size step 3) a.pos[i] = a.pos[i] + lift
             for (t in colTris) for (i in 1 until t.size step 3) t[i] += lift
         }
-        val parts = ArrayList<CinemaPart>(); val names = ArrayList<String>()
-        val lights = ArrayList<CinemaLight>()
-        var fx0 = Float.MAX_VALUE; var fz0 = Float.MAX_VALUE; var fx1 = -Float.MAX_VALUE; var fz1 = -Float.MAX_VALUE; var top = 0f
-        var front = 0f
-        for ((mi, a) in acc) {
+        fun buildMaterialPart(mi: Int, a: Acc, isWaterLevel: Boolean): Pair<String, CinemaPart> {
             val mat = glb.materials.getOrNull(mi)
             val name = mat?.name ?: "untitled"
             val role = roleOf(name)
             val pos = a.pos.toFloatArray(); val nrm = a.nrm.toFloatArray(); var uv = a.uv.toFloatArray(); val idx = a.idx.toIntArray()
-            // the picture: the model's own, ours in its place, or the year's prices
             var img: PixImg = mat?.let { pictureOf(glb, it) } ?: PixImg(1, 1).also { it.fill(-1) }
             val swatch = spec.swatches[name]
             if (swatch != null) {
@@ -339,18 +404,15 @@ object LandmarkKit {
                 img = s
             }
             if (mi == priceMat && spec.price != null) img = spec.price.picture(year, seed)
-            // water (a pool's surface) is drawn solid: its see-through texels over deep water, and laid flush with the town's
-            // ground (a pool is sunk below the model's zero, which the town's grass in the lot's hole would hide)
             if (name.startsWith("water_")) {
                 for (i in img.px.indices) img.px[i] = blendOver(img.px[i], DEEP_WATER)
-                for (i in 1 until pos.size step 3) pos[i] = WATER_LEVEL
+                if (isWaterLevel) for (i in 1 until pos.size step 3) pos[i] = WATER_LEVEL
             }
             when (role) {
                 CinemaPart.Role.WINDOWS -> glass(img, spec.room == "hall", if (swatch != null) null else mat?.let { m -> if (m.emissiveImage >= 0) glb.image(m.emissiveImage) else null })
                 CinemaPart.Role.SIGN -> glowMask(img, if (mi == priceMat) null else mat?.let { m -> if (m.emissiveImage >= 0) glb.image(m.emissiveImage) else null }, mat?.emissiveFactor ?: floatArrayOf(1f, 1f, 1f), false)
                 else -> {}
             }
-            // flat normals where the file gave none (a zero normal)
             val nv = pos.size / 3
             val tan = FloatArray(nv * 3)
             for (v in 0 until nv) {
@@ -359,14 +421,58 @@ object LandmarkKit {
             }
             val b = FloatArray(6).also { it[0] = Float.MAX_VALUE; it[1] = Float.MAX_VALUE; it[2] = Float.MAX_VALUE; it[3] = -Float.MAX_VALUE; it[4] = -Float.MAX_VALUE; it[5] = -Float.MAX_VALUE }
             for (v in 0 until nv) for (c in 0..2) { b[c] = min(b[c], pos[v * 3 + c]); b[c + 3] = max(b[c + 3], pos[v * 3 + c]) }
-            fx0 = min(fx0, b[0]); fz0 = min(fz0, b[2]); fx1 = max(fx1, b[3]); fz1 = max(fz1, b[5]); top = max(top, b[4])
-            if (name.startsWith("ground_")) front = max(front, b[5])
             val mesh = PropMesh(pos, uv, nrm, tan, idx, img.w, img.h, img.px, if (img.glows) img.mask else null, b)
             val flat = name.startsWith("ground_") || name.startsWith("floor_") || name.startsWith("water_")
-            parts += CinemaPart(mesh, casts = !flat, tiled = true, role = role)
-            names += name
-            if (role == CinemaPart.Role.SIGN && mi != priceMat) lights += ceilingLights(pos, nrm, idx)
+            return name to CinemaPart(mesh, casts = !flat, tiled = true, role = role)
         }
+
+        val parts = ArrayList<CinemaPart>(); val names = ArrayList<String>()
+        val lights = ArrayList<CinemaLight>()
+        var fx0 = Float.MAX_VALUE; var fz0 = Float.MAX_VALUE; var fx1 = -Float.MAX_VALUE; var fz1 = -Float.MAX_VALUE; var top = 0f
+        var front = 0f
+        for ((mi, a) in acc) {
+            val (name, part) = buildMaterialPart(mi, a, isWaterLevel = true)
+            val b = part.mesh.bounds
+            fx0 = min(fx0, b[0]); fz0 = min(fz0, b[2]); fx1 = max(fx1, b[3]); fz1 = max(fz1, b[5]); top = max(top, b[4])
+            if (name.startsWith("ground_")) front = max(front, b[5])
+            parts += part
+            names += name
+            if (part.role == CinemaPart.Role.SIGN && mi != priceMat) lights += ceilingLights(part.mesh.pos, part.mesh.nrm, part.mesh.idx)
+        }
+        // Build animated nodes (each pivoted at its node origin in node-local street units)
+        val animated = ArrayList<AnimatedNodePart>()
+        var bellIdx = 0
+        for ((nodeIdx, rule) in animRoots) {
+            val node = glb.nodes[nodeIdx]
+            val rest = node.world.copyOf()
+            rest[12] *= U; rest[13] = rest[13] * U + lift; rest[14] *= U
+            val byMat = animAcc[nodeIdx]
+            val nodeParts = ArrayList<CinemaPart>()
+            val lb = floatArrayOf(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE)
+            if (byMat != null && byMat.isNotEmpty()) {
+                for ((mi, a) in byMat) {
+                    val (_, part) = buildMaterialPart(mi, a, isWaterLevel = false)
+                    val pb = part.mesh.bounds
+                    for (c in 0..2) { lb[c] = min(lb[c], pb[c]); lb[c + 3] = max(lb[c + 3], pb[c + 3]) }
+                    nodeParts += part
+                }
+            } else if (rule.kind == LandmarkAnimKind.SWEEP_BEAM) {
+                val beam = AnimatedNodePart.syntheticBeaconBeam(rule.direction, rule.color)
+                val pb = beam.mesh.bounds
+                for (c in 0..2) { lb[c] = min(lb[c], pb[c]); lb[c + 3] = max(lb[c + 3], pb[c + 3]) }
+                nodeParts += beam
+            }
+            if (nodeParts.isEmpty()) continue
+            val bi = if (rule.kind == LandmarkAnimKind.SWING) bellIdx++ else 0
+            animated += AnimatedNodePart(node.name, rule.kind, rule, rest, nodeParts, lb, bellIndex = bi)
+            if (fx0 > fx1) {
+                GlbFile.point(rest, lb[0], lb[1], lb[2], tmp, 0)
+                fx0 = min(fx0, tmp[0]); fz0 = min(fz0, tmp[2]); fx1 = max(fx1, tmp[0]); fz1 = max(fz1, tmp[2]); top = max(top, tmp[1])
+                GlbFile.point(rest, lb[3], lb[4], lb[5], tmp, 0)
+                fx0 = min(fx0, tmp[0]); fz0 = min(fz0, tmp[2]); fx1 = max(fx1, tmp[0]); fz1 = max(fz1, tmp[2]); top = max(top, tmp[1])
+            }
+        }
+        if (fx0 > fx1) { fx0 = 0f; fz0 = 0f; fx1 = 0f; fz1 = 0f }
         if (front == 0f) front = fz1
         // a pool of light on the ground under each lit ceiling (as the stores' lots: the light's speckle on the ground)
         val grounds = parts.zip(names).filter { (_, n) -> n.startsWith("ground_") }.map { it.first.mesh }
@@ -374,7 +480,9 @@ object LandmarkKit {
         val tags = info?.let { collisionTags(it) } ?: emptyList()
         // the model's own boxes, and what its drawn things put in a walker's way that the boxes leave out (the guide's
         // models box a pump's plinth, not the pump): the drawn parts cut at knee to head height as the stores' are,
-        // the inside not filled (the boxes keep their doorways), glass left out (doors stand open in the boxes)
+        // the inside not filled (the boxes keep their doorways), glass left out (doors stand open in the boxes).
+        // Animated parts are excluded from static collision here (TODO: add dynamic lift-car collision when the lift
+        // carries the player).
         val solids = solidsOf(colTris, tags, keepLot, hidden, lift) + drawnSolids(parts.zip(names).filter { (_, n) ->
             !n.startsWith("ground_") && !n.startsWith("floor_") && !n.startsWith("roof_") && !n.startsWith("glass_") }.map { it.first }, fx0, fz0, fx1, fz1)
         // (empty nodes only: a door's panel group, `door_panel_*`, is geometry, not an entrance)
@@ -386,7 +494,7 @@ object LandmarkKit {
             LandmarkDoor(n.name, n.x * U, n.z * U, tmp[0] / l, tmp[2] / l)
         }
         val m = CinemaModel(CinemaEra.of(year), parts, floatArrayOf(fx0, fz0, fx1, fz1), top, spec.buildingW * U, spec.buildingD * U, lights)
-        return LandmarkModel(spec, m, clearDoors(solids, doors), doors, front, names)
+        return LandmarkModel(spec, m, clearDoors(solids, doors), doors, front, names, animated)
     }
 
     /**
@@ -420,6 +528,28 @@ object LandmarkKit {
             cur = out.toFloatArray()
         }
         return cur
+    }
+
+
+    /** Refines a matched [LandmarkAnimRule] using glTF node `extras` (axis, period, stops, active/stopped time) and spec overrides. */
+    private fun refineRuleFromNode(base: LandmarkAnimRule, node: GlbFile.Node, specClockStopped: String?): LandmarkAnimRule {
+        val ex = node.extras
+        fun vec(key: String): FloatArray? = ex?.optJSONArray(key)?.takeIf { it.length() >= 2 }?.let { a -> FloatArray(a.length()) { a.optDouble(it, 0.0).toFloat() } }
+        val axis = base.axis ?: vec("rotation_axis") ?: vec("axis")
+        val periodS = if (ex != null && ex.has("rotation_period_s")) ex.optDouble("rotation_period_s", base.periodSeconds.toDouble()).toFloat()
+            else if (ex != null && ex.has("period_s")) ex.optDouble("period_s", base.periodSeconds.toDouble()).toFloat()
+            else base.periodSeconds
+        val stopsY = base.stopsY ?: vec("stops_y_m")
+        val dir = base.direction ?: vec("direction")
+        val color = ex?.optString("color")?.takeIf { it.isNotBlank() }?.let { LandmarkAnimRule.parseColor(it, base.color) } ?: base.color
+        val exActive = if (ex != null && ex.has("active")) ex.optBoolean("active", true) else true
+        val active = base.active && exActive
+        val stopped = specClockStopped
+            ?: base.stoppedTime
+            ?: if ((base.kind == LandmarkAnimKind.CLOCK_HOUR || base.kind == LandmarkAnimKind.CLOCK_MINUTE) && !active) {
+                ex?.optString("time")?.ifBlank { null } ?: "12:00"
+            } else null
+        return base.copy(axis = axis, periodSeconds = periodS, stopsY = stopsY, direction = dir, color = color, active = active, stoppedTime = stopped)
     }
 
     /** How far to lift a model so its lowest broad up-facing ground ([grounds]: positions, indices) is [GROUND] up. */

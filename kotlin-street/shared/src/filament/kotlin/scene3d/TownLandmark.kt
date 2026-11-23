@@ -44,7 +44,9 @@ internal class TownLandmark(
     private val farLayer = farBytes?.let { PropLayer(engine, scene, lit, proxy, sharedTextures = textures, cull = true) }
     private val farGlow = farLayer?.let { CinemaLayer(it) }
     private val lamps = CinemaLights(engine, scene)
-    private class Built(val far: List<CinemaLayer.Packed>?, val front: Float, val parts: List<CinemaLayer.Packed>, val at: FloatArray, val box: FloatArray, val body: FloatArray, val lights: List<CinemaLight>, val solids: FloatArray, val doors: List<LandmarkDoor>, val triangles: Int)
+    private var animator: LandmarkAnimator? = null
+    private var lastSeconds = 0.0
+    private class Built(val far: List<CinemaLayer.Packed>?, val front: Float, val parts: List<CinemaLayer.Packed>, val animated: LandmarkAnimator.PackedSet?, val at: FloatArray, val box: FloatArray, val body: FloatArray, val lights: List<CinemaLight>, val solids: FloatArray, val doors: List<LandmarkDoor>, val triangles: Int)
     private var job: java.util.concurrent.Future<Built>? = null
     private var at: FloatArray = frameOf(0f, 0f)
     var done = false; private set
@@ -78,7 +80,8 @@ internal class TownLandmark(
             val fp = floatArrayOf(m.footprint[0], m.footprint[1], m.footprint[2], m.footprint[3], m.height)
             // (the distant silhouette in the same frame: it shares the model's origin)
             val far = farBytes?.invoke()?.takeIf { it.isNotEmpty() }?.let { fb -> CinemaLayer.pack(LandmarkKit.build(GlbFile.read(fb), spec, year, seed, hide = hide).model, a) }
-            Built(far, lm.front, CinemaLayer.pack(m, a), a, fp, if (b[0] < b[2]) b else fp, m.lights, StoreSolids.world(lm.solids, a), lm.doors, m.triangles)
+            val totalTris = m.triangles + lm.animated.sumOf { it.triangles }
+            Built(far, lm.front, CinemaLayer.pack(m, a), LandmarkAnimator.pack(lm, a), a, fp, if (b[0] < b[2]) b else fp, m.lights, StoreSolids.world(lm.solids, a), lm.doors, totalTris)
         })
     }
 
@@ -94,6 +97,7 @@ internal class TownLandmark(
         at = b.at
         glow.upload(b.parts)
         b.far?.let { farGlow?.upload(it) }
+        animator = LandmarkAnimator.upload(layer, glow, b.animated)
         lamps.add(b.lights, at)
         job = null
         val fp = b.box
@@ -146,12 +150,18 @@ internal class TownLandmark(
         return t0
     }
 
+    /** Triggers any swinging bells on this landmark for [swings] cycles, easing to rest afterwards. */
+    fun ringBells(nowSeconds: Double = lastSeconds, swings: Int = 5) {
+        animator?.ringBells(nowSeconds, swings)
+    }
+
     /**
      * This frame through [pose] ([look] its matrix), [dark] how dark, [seconds] the clock; [cut] the street view's cut at
      * a world point (1: not cut). Returns its draws, triangles and shadow casters this frame (0s when not drawn).
      */
-    fun frame(pose: TownPose, look: FloatArray, dark: Float, seconds: Double, cut: (Float, Float) -> Float, out: IntArray): IntArray {
+    fun frame(pose: TownPose, look: FloatArray, dark: Float, hour: Float, seconds: Double, cut: (Float, Float) -> Float, out: IntArray): IntArray {
         out.fill(0)
+        lastSeconds = seconds
         if (!done) return out
         val kept = min(cut(cx, cz), if (pose.distance(cx, cy, cz) - r < FAR) 1f else 0f)
         val fade = min(kept, occFade)
@@ -161,11 +171,12 @@ internal class TownLandmark(
         val on = seen && !far
         // (cut away for the camera, it keeps its shadow, as a building does; shadows only within the view's range)
         val near = kept > .5f && pose.rangeFade(cx, cy, cz, r) > .5f && (on || pose.sees(cx, cy, cz, r + 300f)) && !far
+        // (a shut business is dark: no signs, no lit windows, no lamps, no night beacon)
+        val lit = if (closed) 0f else dark
+        animator?.update(hour, seconds, lit, active = on && near)
         layer.update(look, dark, on, fade, near, castFade = 1f)
         farLayer?.update(look, dark, seen && far, fade, false, castFade = 1f)
-        if (seen && far) farGlow?.update(if (closed) 0f else dark, seconds)
-        // (a shut business is dark: no signs, no lit windows, no lamps)
-        val lit = if (closed) 0f else dark
+        if (seen && far) farGlow?.update(lit, seconds)
         if (on) glow.update(lit, seconds)
         lamps.update(lit, on && near)
         shown = on

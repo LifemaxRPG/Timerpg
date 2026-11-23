@@ -1,6 +1,8 @@
 import com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaPart
 import com.lifemax.rpg.feature.habits.presentation.scene3d.GasPrices
 import com.lifemax.rpg.feature.habits.presentation.scene3d.GlbFile
+import com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkAnimKind
+import com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkAnimRule
 import com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkKit
 import com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkSpec
 import com.lifemax.rpg.feature.habits.presentation.scene3d.Png
@@ -283,19 +285,21 @@ class LandmarkGlbTest {
     }
 
     @Test fun theCourthouseClockTellsTheGamesTime() {
+        // the hands are animated nodes now (LandmarkAnimator turns them to the game's hour each frame), not turned once at build
         val s = specs.first { it.kind == "landmark_glb_county_courthouse_2008" }
         val info = File(root, s.info!!).readText()
         val glb = GlbFile.read(File(root, s.file).readBytes())
-        fun hands(h: Float?): List<Float> = LandmarkKit.build(glb, s, 2008, 7, info = info, clockHours = h).model.parts.flatMap { it.mesh.pos.toList() }
-        fun moved(a: List<Float>, b: List<Float>): Float = a.zip(b).maxOf { (p, q) -> abs(p - q) }
-        // at its own 10:10 nothing moves; at 3:00 the hands have turned
-        assertTrue(moved(hands(null), hands(10f + 10f / 60f)) < .05f)
-        assertTrue(moved(hands(null), hands(3f)) > 5f)
+        val live = LandmarkKit.build(glb, s, 2008, 7, info = info, clockHours = 3f)
+        val hands = live.animated.filter { it.kind == LandmarkAnimKind.CLOCK_HOUR || it.kind == LandmarkAnimKind.CLOCK_MINUTE }
+        assertEquals("four faces, two hands each", 8, hands.size)
+        // the static parts do not depend on the hour: the hands are not in them
+        fun statics(h: Float?) = LandmarkKit.build(glb, s, 2008, 7, info = info, clockHours = h).model.parts.flatMap { it.mesh.pos.toList() }
+        assertEquals(statics(null), statics(3f))
         // the stopped clock of the neglected years keeps its 4:17 whatever the time
         val s88 = specs.first { it.kind == "landmark_glb_county_courthouse_1988" }
         val g88 = GlbFile.read(File(root, s88.file).readBytes()); val i88 = File(root, s88.info!!).readText()
-        assertTrue(moved(LandmarkKit.build(g88, s88, 1988, 7, info = i88).model.parts.flatMap { it.mesh.pos.toList() },
-            LandmarkKit.build(g88, s88, 1988, 7, info = i88, clockHours = 3f).model.parts.flatMap { it.mesh.pos.toList() }) == 0f)
+        val stopped = LandmarkKit.build(g88, s88, 1988, 7, info = i88).animated.filter { it.kind == LandmarkAnimKind.CLOCK_HOUR }
+        assertTrue(stopped.isNotEmpty() && stopped.all { Math.abs(it.stoppedHour - (4f + 17f / 60f)) < .01f || it.stoppedHour == LandmarkAnimRule.parseClockTime("4:17") })
     }
 
     @Test fun theRadioStationHasSixNamesAndThreeInnerDoors() {

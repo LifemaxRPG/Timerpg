@@ -20,7 +20,7 @@ import kotlin.math.abs
 class GlbFile private constructor(private val json: org.json.JSONObject, private val bin: ByteBuffer) {
 
     /** One node: its [name], parent (-1 at the root), its matrix in the model (column-major 4x4), mesh (-1: none), extras. */
-    class Node(val index: Int, val name: String, val parent: Int, val world: FloatArray, val mesh: Int, val extras: org.json.JSONObject?) {
+    class Node(val index: Int, val name: String, val parent: Int, val world: FloatArray, val mesh: Int, val extras: org.json.JSONObject?, val local: FloatArray = world) {
         /** Its place in the model (the matrix's translation). */
         val x: Float get() = world[12]
         val y: Float get() = world[13]
@@ -49,14 +49,15 @@ class GlbFile private constructor(private val json: org.json.JSONObject, private
         val ns = json.optJSONArray("nodes") ?: org.json.JSONArray()
         val parent = IntArray(ns.length()) { -1 }
         for (i in 0 until ns.length()) ns.getJSONObject(i).optJSONArray("children")?.let { c -> for (k in 0 until c.length()) parent[c.getInt(k)] = i }
+        val locals = Array(ns.length()) { i -> localMatrix(ns.getJSONObject(i)) }
         val world = arrayOfNulls<FloatArray>(ns.length())
         fun worldOf(i: Int): FloatArray = world[i] ?: run {
-            val local = localMatrix(ns.getJSONObject(i))
+            val local = locals[i]
             (if (parent[i] < 0) local else mul(worldOf(parent[i]), local)).also { world[i] = it }
         }
         nodes = (0 until ns.length()).map { i ->
             val n = ns.getJSONObject(i)
-            Node(i, n.optString("name"), parent[i], worldOf(i), n.optInt("mesh", -1), n.optJSONObject("extras"))
+            Node(i, n.optString("name"), parent[i], worldOf(i), n.optInt("mesh", -1), n.optJSONObject("extras"), locals[i])
         }
         val ms = json.optJSONArray("materials") ?: org.json.JSONArray()
         val tex = json.optJSONArray("textures") ?: org.json.JSONArray()
@@ -179,9 +180,46 @@ class GlbFile private constructor(private val json: org.json.JSONObject, private
         }
 
         /** a * b, column-major 4x4. */
-        internal fun mul(a: FloatArray, b: FloatArray): FloatArray {
+        internal fun mul(a: FloatArray, b: FloatArray): FloatArray = FloatArray(16).also { mulInto(a, b, it) }
+
+        /** a * b into [out] (must not alias [a] or [b]), column-major 4x4; allocates nothing. */
+        internal fun mulInto(a: FloatArray, b: FloatArray, out: FloatArray) {
+            for (c in 0..3) {
+                val c4 = c * 4
+                val b0 = b[c4]; val b1 = b[c4 + 1]; val b2 = b[c4 + 2]; val b3 = b[c4 + 3]
+                out[c4]     = a[0] * b0 + a[4] * b1 + a[8]  * b2 + a[12] * b3
+                out[c4 + 1] = a[1] * b0 + a[5] * b1 + a[9]  * b2 + a[13] * b3
+                out[c4 + 2] = a[2] * b0 + a[6] * b1 + a[10] * b2 + a[14] * b3
+                out[c4 + 3] = a[3] * b0 + a[7] * b1 + a[11] * b2 + a[15] * b3
+            }
+        }
+
+        /** Inverse of a column-major 4x4 affine matrix (last row 0, 0, 0, 1); falls back to identity if singular. */
+        internal fun invertAffine(m: FloatArray): FloatArray {
+            val a00 = m[0]; val a10 = m[1]; val a20 = m[2]
+            val a01 = m[4]; val a11 = m[5]; val a21 = m[6]
+            val a02 = m[8]; val a12 = m[9]; val a22 = m[10]
+            val c00 = a11 * a22 - a12 * a21
+            val c01 = -(a10 * a22 - a12 * a20)
+            val c02 = a10 * a21 - a11 * a20
+            val det = a00 * c00 + a01 * c01 + a02 * c02
+            if (abs(det) < 1e-12f) return floatArrayOf(1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f)
+            val inv = 1f / det
+            val c10 = -(a01 * a22 - a02 * a21)
+            val c11 = a00 * a22 - a02 * a20
+            val c12 = -(a00 * a21 - a01 * a20)
+            val c20 = a01 * a12 - a02 * a11
+            val c21 = -(a00 * a12 - a02 * a10)
+            val c22 = a00 * a11 - a01 * a10
             val o = FloatArray(16)
-            for (c in 0..3) for (r in 0..3) { var s = 0f; for (k in 0..3) s += a[k * 4 + r] * b[c * 4 + k]; o[c * 4 + r] = s }
+            o[0] = c00 * inv; o[1] = c01 * inv; o[2] = c02 * inv
+            o[4] = c10 * inv; o[5] = c11 * inv; o[6] = c12 * inv
+            o[8] = c20 * inv; o[9] = c21 * inv; o[10] = c22 * inv
+            val tx = m[12]; val ty = m[13]; val tz = m[14]
+            o[12] = -(o[0] * tx + o[4] * ty + o[8] * tz)
+            o[13] = -(o[1] * tx + o[5] * ty + o[9] * tz)
+            o[14] = -(o[2] * tx + o[6] * ty + o[10] * tz)
+            o[15] = 1f
             return o
         }
 
