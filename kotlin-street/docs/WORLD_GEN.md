@@ -1104,3 +1104,34 @@ is none (the nearest is 419 km away, the far view reaches 167 km), so it reports
   guesthouse, terraced pasture) is for the town generator.
 - A great range from the capital: none in reach of the far view by design; seeing one from far needs the T3 horizon
   tier and impostors ("Seeing land from the sea").
+
+## Highways that evolve (the owner's request, 2026-11-23; "Highways v2", after the towns-everywhere work)
+
+Already built (`roads.ts`):
+- highways and county roads with years (built, paved, rebuilt as an expressway from 1956);
+- speeds by surface and era;
+- a road graph for drive times;
+- winding roads with switchbacks.
+
+What makes it a real, intelligent highway system:
+- **A planned national network.** In the 1950s-60s an expressway system is planned as a network of trunk routes
+  linking hubs and major towns (like real national systems), not pair by pair. It's built in stages over the
+  decades, with the busiest corridors first.
+- **New alignments and bypasses.** Expressways are built on new, straighter, flatter lines that skirt towns. The old
+  highway becomes the "old route" through Main Street. Bypassed towns lose passing trade in the growth model (the
+  classic Main Street decline); towns at the interchanges grow strips, motels and truck stops.
+- **City structure:**
+  - ring roads and beltways round big cities (1960s-70s);
+  - radial expressways into downtown;
+  - interchanges (cloverleafs, then later designs);
+  - frontage roads;
+  - divided highways with medians.
+- **Lanes by era and traffic:** two lanes, then four, then six on the busiest corridors. Bridges, tunnels and cuts
+  through hills where the terrain demands.
+- **Route numbers and signs:** a made-up national numbering scheme, its own shield shape and colours (no real
+  trade dress), exit numbers, mile markers.
+- **Roadside network:** rest areas (we have the Pine Bend model), weigh stations, truck stops (Cedar Relay), motels and
+  diners at interchanges, toll plazas on some routes.
+- **Traffic:** AI cars and trucks by era and road, with density from the simulation (more cars each decade, rush
+  hours near cities). It's built on the vehicle work (V1 and later).
+- **Road meshes (W6):** real road surfaces with lane markings by era, kerbs, shoulders, guard rails, rounded hairpins.
