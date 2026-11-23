@@ -314,3 +314,17 @@ want on you) can be **hidden in the past and collected in the future**, if it su
   - hide it in a place that history protects (a church, a cemetery wall, a monument's foundation, the professor's
     basement);
   - check in on it at points in between.
+- **When your own changes bury it** (the owner's idea): something you did in the past changes the future, and now a
+  building stands on your cache. You need the building to get it back:
+  - **Buy it:** the owner is an NPC with their own traits, attachments and price. They may not want to sell; it's
+    their family home, their business, or they get suspicious of why you want it so badly.
+  - **Strike a deal:** by negotiation, a favour, a trade, a job for them, help with their problems, or leverage (with
+    the crime system's consequences if it's blackmail).
+  - **Or the other ways:**
+    - rent it;
+    - work there;
+    - befriend them and get invited in;
+    - break in and dig at night, with witnesses and evidence as usual;
+    - or go back in time again and move the cache before the building goes up (if the timeline allows).
+  - The dialogue model voices the negotiation, but the game logic decides whether they'll sell and at what price,
+    from their traits, their money, their attachment to the place and their opinion of you.
