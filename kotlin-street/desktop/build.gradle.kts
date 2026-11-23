@@ -105,7 +105,7 @@ tasks.register<JavaExec>("preview") {
     // builder (kit, or placeholder: flat colours)
     for (k in listOf("town", "assetsRoot", "townYards", "memtrace", "heapBudget", "memlive", "coldOnly")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // the open world's preview (-Dmode=filament-open): -DtownLod=0 bakes no far yards (to compare)
-    for (k in listOf("townLod", "townFar", "folk", "see", "farmTag", "farms", "debugeye", "bench", "benchSecs", "gpucost", "rail", "glbAs", "glbTag", "glbFile")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    for (k in listOf("townLod", "townFar", "folk", "see", "farmTag", "farms", "debugeye", "bench", "benchSecs", "gpucost", "rail", "texStats", "astc", "astcExact", "astcCache", "maskFormats", "glbAs", "glbTag", "glbFile")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     if (withFilament) {
         jvmArgs("-Djava.library.path=" + File(filamentDist, "lib").absolutePath)
         // Mesa's EGL with no display: headless software GL
@@ -133,7 +133,7 @@ if (withFilament) tasks.register<JavaExec>("townMemoryCheck") {
     // (-Dtown=<folder>: another town's export, for comparing what it holds; by default the town the app ships)
     jvmArgs("-Dtown=" + (System.getProperty("town") ?: file("../app/src/main/assets/town/gamma").absolutePath))
     // (-Dmemtrace: the memory every 50 frames; -DmemOwners: the direct buffers at the peak by owner)
-    for (k in listOf("memtrace", "memOwners", "memDump", "memDumpEnd")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    for (k in listOf("memtrace", "memOwners", "memDump", "memDumpEnd", "astc", "astcCache")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     jvmArgs("-Djava.library.path=" + File(filamentDist, "lib").absolutePath)
     environment("EGL_PLATFORM", "surfaceless")
     args(layout.buildDirectory.dir("memcheck").get().asFile.absolutePath, file("../../public/assets/characters").absolutePath)

@@ -84,6 +84,24 @@ object StreetRenderer {
         setGrab(ctx, p.getBoolean("grabWorld", false))
         setBikeFollow(ctx, p.getBoolean("bikeFollow", true))
         setResolution(ctx, p.getFloat("resolution", com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.RES_AUTO))
+        setAstc(ctx, p.getBoolean("astc", true))
+        // (the encoded pictures kept from start to start: the next start reads them instead of encoding them again)
+        com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astcCache = java.io.File(ctx.cacheDir, "astc")
+    }
+
+    /**
+     * The town's pictures (the AI panel's "Textures"): ASTC 4x4 (the default: a quarter of the atlases' GPU memory, their
+     * blocks of one or two colours exact, the rest near) or exact RGBA8 as before (TownQuality.astc). The next town built
+     * takes it (textures are made as the town is built).
+     */
+    var astc by mutableStateOf(true)
+        private set
+
+    fun setAstc(ctx: Context, on: Boolean) {
+        if (on != astc) com.timerpg.street.shot.Crumbs.add("textures: " + if (on) "ASTC" else "exact RGBA8")
+        astc = on
+        com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astc = on
+        prefs(ctx).edit().putBoolean("astc", on).apply()
     }
 
     /** The open world's drawing resolution (the AI panel's "Resolution"): see TownQuality.resolution. */
@@ -435,6 +453,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             com.timerpg.street.shot.Crumbs.add(built)
             com.timerpg.street.shot.Crumbs.add("town built, biggest textures: " + ft.biggestTextures(10))
             com.timerpg.street.shot.Crumbs.add("town built, ${w}x$h: " + ft.gpuEstimate(w, h).line())
+            com.timerpg.street.shot.Crumbs.add("town built, " + com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.line())
             com.timerpg.street.shot.Crumbs.add("town built, memory: " + com.lifemax.rpg.feature.habits.presentation.scene3d.TownMemory.summary() + "; ground queue peak ${ft.queuedPeak shr 20} MB")
             FilamentStats.measureMemory("town built")
         }

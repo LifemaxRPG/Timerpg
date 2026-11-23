@@ -16,6 +16,24 @@ object TownQuality {
     @Volatile var cascades = 4
 
     /**
+     * The town's pictures in ASTC 4x4 ([Astc]) where the GPU reads it: a quarter of the GPU memory for the atlases (their
+     * blocks of one or two colours exact, the rest near) and masks stored exactly. Off: RGBA8 as before, every pixel exact.
+     */
+    @Volatile var astc = true
+    /**
+     * The least share of a picture's 4 x 4 blocks that ASTC must keep exact for the picture to be made ASTC (the rest stay
+     * RGBA8, every pixel as drawn): 0 makes every picture ASTC (near: the blocks of three or more colours approximated).
+     */
+    @Volatile var astcExact = 0.0
+    /** Masks in only the channels they use (R8, RG8, none at all; the same pixels): off, every mask RGBA8 as before (to measure). */
+    @Volatile var maskFormats = true
+    /**
+     * Where the encoded ASTC pictures are kept from start to start (the app's cache folder; null: none, every picture
+     * encoded at every start). Keyed by the pictures' content, so a changed picture is simply encoded again.
+     */
+    @Volatile var astcCache: java.io.File? = null
+
+    /**
      * The open world's drawing resolution (the AI panel's "Resolution"): [RES_AUTO] (the default) draws at the screen's
      * full resolution while the GPU keeps up and lowers it smoothly (to [AUTO_MIN] at most, upscaled with FSR's edge-aware
      * filter) only while it does not, so a heavy view drops a little sharpness instead of frames; [RES_FULL] always full;

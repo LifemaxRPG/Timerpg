@@ -911,3 +911,72 @@ earlier runs); after 144, 149, 164 MB (with this round's larger downtown). Open:
 desktop (textures 1.8 GB with mipmaps: 445 prop and yard atlases of 512 x 512, and every model's atlas and its night
 mask the same size): on the phone's shared memory that is the next thing to cut (night masks as one channel, the yards'
 atlases shared), not measured on the S25.
+
+## GPU memory: compressed pictures and lean masks (branch wf-gpu, 2026-11-23)
+
+Desktop numbers (llvmpipe, the whole gamma town built as the app builds it), NOT measured on the S25.
+
+- **The account** (`GpuAccount`): every texture the town makes, from `StreetTextures`' one place where textures are made
+  to the one where they are destroyed, with its owner (the town's code that asked), size, format, mip levels and bytes.
+  The preview writes the table to `filament-open/gpu.txt` (textures by owner, then vertex and index buffers, the shadow
+  map, render targets and surfaces); the app's breadcrumbs and townMemoryCheck's report carry one line
+  (`town built, GPU textures ... MB in N (by format); by owner: ...`), so the phone reports the same numbers.
+- **Textures 1987 MB -> 672 MB** (the town's 437.6M texels):
+
+  | owner (texture user) | before | after |
+  |---|---|---|
+  | buildings' and landmarks' models (`FilamentModels<BuildingMeshes`: atlases, night masks) | 950 MB | 347 MB |
+  | ground, yards, street props, trees (`PropLayer<FilamentTown`) | 758 MB | 190 MB |
+  | the cinema (`PropLayer<CinemaLayer`) | 127 MB | 33 MB |
+  | farms' models (`FilamentModels<TownFarms`) | 116 MB | 92 MB |
+  | far yards and blocks (`PropLayer<TownFar`) | 25 MB | 7 MB |
+  | the rest (sprite buildings, rail, tree cells, farm props) | 11 MB | 4 MB |
+  | **textures** | **1987 MB** | **672 MB** |
+  | vertex + index buffers (unchanged) | 408 MB | 408 MB |
+  | shadow map (2048 x 4 cascades, DEPTH16; unchanged) | 32 MB | 32 MB |
+  | render targets + surfaces at 2340 x 1080 (estimates; unchanged) | 87 MB | 87 MB |
+  | **total** | **2513 MB** | **1198 MB** |
+
+- **Masks in the channels they use** (exact, the same pixels): street_lit.mat reads a missing channel as 0 and a missing
+  alpha as 1, which reads exactly as the opaque or clear alpha the masks hold, so a mask with no blue and no own-colour
+  light (alpha 64-191) is RG8, one with no glass either R8, one with nothing in it the shared black texture
+  (`StreetTextures.maskFormat`). The models' and the sprite buildings' night masks (rewritten as lights go on) are RG8
+  unless a pixel lights in its own colours or as a sign. Static masks whose every 4x4 block holds one or two values are
+  ASTC (1 byte a texel, stored exactly). Renders with only this change (`-Dastc=0`) are pixel-identical to before.
+- **ASTC 4x4 for every picture with mipmaps** (`Astc`, `TownQuality.astc`, the AI panel's "Textures: Compressed / Exact"):
+  a quarter of RGBA8's bytes. The town's atlases are made at runtime (packed from the pack's pictures as the town is
+  built), so they are encoded as they are packed (on the workers), not in the asset pipeline. The encoder is ours, made for
+  the art: a block of one or two colours (83% of the town's level-0 blocks: flat colours, hard edges) is one partition of
+  8-bit RGBA endpoints with 2-bit weights 0 and 3, which decode to exactly the same RGBA; a block of more colours gets
+  the best line of four steps through its colours, or, if opaque and nearer, two partitions (the spec's partition hash)
+  each its own line in 6-bit colours with 3 steps. 6x6 and 8x8 were measured and left: with 8-bit endpoints they fit no
+  more than 1-bit weights, and only 61-72% of the art's blocks are one or two colours at those sizes. Mip levels are made
+  on the CPU (2 x 2 boxes in linear light, as the GPU makes them) and encoded the same way (56% of their blocks exact).
+  Desktop renders (1170 x 540, 15 views: the start view, Main Street, the square from above, Union Arch, Main Street at
+  night, Lincoln High's and the Great Meridian's grounds from five sides): mean error 0.65 levels a channel (0.23-0.76 in
+  most views; 4.0 over Lincoln High's crop field from behind, the densest pixel noise in town, seen through its mip levels);
+  more than 24 levels off: 0.15% of the start view's pixels, 0.55% from above. Level 0's approximated blocks: RMS 7.1
+  levels; mips' 9.5. The few pixels far off are at thin, distant edges (mip levels) and in busy many-colour art; the
+  pixels stay sharp (nearest magnification as before). `TownQuality.astcExact` keeps any picture whose share of exact
+  blocks is under it RGBA8 (0 by default); keeping only wholly exact pictures would leave 1616 MB, so it stays 0.
+- **Encoding cost**: some 13 s of CPU over the build server's 4 cores for the town's 2200 pictures (each made once: a
+  picture already made is not encoded again), so the cold first view is several seconds later on the build server (noisy
+  there: 13-17 s without ASTC, 18-24 s with it). Big levels are encoded in bands on the common pool. The app keeps the
+  encoded chains in its cache folder (`TownQuality.astcCache`, `AstcCache`, keyed by the pictures' content, about 300 MB):
+  from the second start they are read back (warm first view 14.8-16.5 s on the same server). Estimate for the S25 (8
+  faster cores): about a second more on the first start, nothing after; to be measured.
+- **Heap**: townMemoryCheck held 124-172 MB cold over five runs (was 132-136 in two); warm from the cache 207-243 MB of the 256 budget (the
+  workers run further ahead of the uploads when nothing is encoded: the models' night-mask updates and read-ahead atlases
+  waiting for the engine thread). The models' blank first masks now share one buffer of zeros (they held about 45 MB at
+  that peak).
+- **Left as they are**: the shadow map (2048 x 4 cascades of DEPTH16, 32 MB: Filament's largest, and what the renders are
+  judged by; `TownQuality.shadowMap` / `cascades` set it), the render targets (RGBA16F + depth, at the drawn resolution),
+  mipmaps (every picture can be seen from afar in the open world: without them distant art would shimmer). Identical
+  pictures were already one texture by content across the whole town (one `StreetTextures` for every layer). The
+  CPU-side copies are let go once uploaded (Filament's descriptors release them; townMemoryCheck holds less than before).
+- **Next for memory**: vertex buffers (408 MB, 28 bytes a vertex: half-float UVs and positions relative to a chunk would
+  nearly halve them); the models' night masks (197 MB RG8, rewritten by the hour, so not compressed; a mask covering only
+  the atlas's lit part would need a mask rectangle in street_lit.mat); the lots' yard atlases that repeat the same pictures.
+- **On the phone, check**: the breadcrumbs' `GPU textures` line (ASTC formats listed, about 650-670 MB) and the graphics
+  PSS against the earlier 1031 MB; that pixel art looks the same (Compressed vs Exact in the AI panel; the town must be
+  rebuilt to switch); the first start's first view against later starts (the cache); townMemory's held peak on a warm start.

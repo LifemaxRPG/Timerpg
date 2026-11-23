@@ -1655,6 +1655,12 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             for ((r, label) in listOf(0f to "Auto", 1f to "Full", .85f to "85%", .75f to "75%"))
                 Chip(label, StreetRenderer.resolution == r) { StreetRenderer.setResolution(ctx, r) }
         }
+        // (the town's pictures: compressed ASTC, or exact RGBA8 as before, for the next town built)
+        if (StreetRenderer.filament) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Textures", 12.sp)
+            Chip("Compressed", StreetRenderer.astc) { StreetRenderer.setAstc(ctx, true) }
+            Chip("Exact", !StreetRenderer.astc) { StreetRenderer.setAstc(ctx, false) }
+        }
         // (the street view's camera heights)
         if (StreetRenderer.filament && StreetRenderer.view == StreetRenderer.STREET) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Camera", 12.sp)

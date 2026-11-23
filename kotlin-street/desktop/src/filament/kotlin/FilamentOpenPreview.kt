@@ -65,6 +65,14 @@ fun renderFilamentOpen(out: String) {
     val art = TownArt { path -> open(File(assets, path)) }
     val building: (String) -> SpriteBuilding? = { sp -> SpriteBuildingLoad.load(sp, mids[sp] ?: 0, windows, houses, models) { open(File(bdir, "$it.png")) } }
 
+    // (-DtexStats=1: how many colours the pictures' blocks hold, by owner, in gpu.txt)
+    com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.stats = System.getProperty("texStats") != null
+    // (-Dastc=0: the pictures as RGBA8, as before ASTC, to compare)
+    com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astc = System.getProperty("astc") != "0"
+    // (-DastcCache=DIR: the encoded pictures kept there from run to run, as the app keeps them in its cache folder)
+    System.getProperty("astcCache")?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astcCache = File(it) }
+    com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.maskFormats = System.getProperty("maskFormats") != "0"
+    System.getProperty("astcExact")?.toDoubleOrNull()?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astcExact = it }
     Filament.init()
     val engine = Engine.Builder().backend(Engine.Backend.OPENGL).config(com.lifemax.rpg.feature.habits.presentation.scene3d.TownEngine.config()).build()
     val mats = File("../app/src/main/assets/filament")
@@ -111,6 +119,18 @@ fun renderFilamentOpen(out: String) {
     report.appendLine(ft.farReport)
     report.appendLine("(software GL on the build server, not the S25: draws and triangles are what is sent, the times are not the phone's)")
     ft.textureStats.let { (n, t, sh) -> report.appendLine("textures after the build: %d, %.1fM texels, %d shared; biggest: %s".format(n, t / 1e6, sh, ft.biggestTextures(10))) }
+    // the GPU memory account (TOWN.md "GPU memory"): every texture by owner and format, the shadow map and targets
+    report.appendLine(com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.line())
+    report.appendLine("ASTC encoding: %.1f s over all threads".format(com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.nanos.get() / 1e9))
+    report.appendLine("ASTC level 0: " + com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.level0.line() + "; mip levels: " + com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.mips.line() +
+        "; pictures by exact blocks: " + com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.histogram())
+    report.appendLine("textures if only pictures this exact stayed ASTC: " + com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.policies(0.0, .8, .9, .95, .99, 1.0))
+    report.appendLine("this GL's compressed formats: ASTC 4x4 " + com.google.android.filament.Texture.isTextureFormatSupported(engine, com.google.android.filament.Texture.InternalFormat.SRGB8_ALPHA8_ASTC_4x4) +
+        ", ETC2 " + com.google.android.filament.Texture.isTextureFormatSupported(engine, com.google.android.filament.Texture.InternalFormat.ETC2_EAC_SRGBA8) +
+        ", BC7 " + com.google.android.filament.Texture.isTextureFormatSupported(engine, com.google.android.filament.Texture.InternalFormat.SRGB_ALPHA_BPTC_UNORM))
+    File(dir, "gpu.txt").writeText(com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.table(ft.gpuEstimate(2340, 1080)) +
+        "\n(the shadow map at %d x %d cascades; targets and surfaces for a 2340 x 1080 view)\n".format(ft.shadowMap, ft.shadowCascades) +
+        com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.statsReport())
 
     // the people to talk to (as the app picks them) and the player
     val dialogue = File("../app/src/main/assets/town/${town.seed}/dialogue.json")
