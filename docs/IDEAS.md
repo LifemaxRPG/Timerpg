@@ -385,3 +385,19 @@ Modern eras fill with chains, and the simulation can show one being born and spr
   - or stop it (or start your own) and watch the map change.
 - **Fits:** the growth model, the sign painter (chain names on standard models), the money system (investing, owning
   franchises), and Main Street through the decades.
+- **The player's own businesses follow the same rules** (the owner's question, 2026-11-23: yes). A business you start
+  runs in the same simulation as every NPC's:
+  - the same demand, competition and growth model;
+  - the same chance to become a chain;
+  - the same chance to fail.
+  You choose how hands-on to be:
+  - work the counter yourself;
+  - hire NPCs (with their own traits: a good manager, an employee who steals);
+  - pick the location, prices and hours;
+  - decide when and where to expand, and whether to franchise.
+  A chain you founded spreads across the map like any other.
+- **Time travel compounds it.** Found a diner in 1925 and come back in 1995 to a national chain, if it survived the
+  Depression and the managers you left in charge. Its value, your shares, and your name on the first location's
+  plaque all follow from the simulation.
+- **Shady businesses too.** A business can be a front: laundering money, fencing goods, a speakeasy in the 1920s.
+  These run through the crime and evidence systems like everything else.
