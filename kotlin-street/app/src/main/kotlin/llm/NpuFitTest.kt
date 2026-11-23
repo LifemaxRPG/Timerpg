@@ -214,6 +214,10 @@ object NpuFitTest {
         "gateOn" to NpuGate.enabled(app),
         "gateTries" to NpuGate.tries(app).takeLast(6).map { "${if (it.ok) "held" else "failed"} ${it.freeMb} MB free, ${it.needMb} needed, found ${it.foundMb}${if (it.measure) " (fit test)" else ""}${if (it.why.isNotEmpty()) ": ${it.why}" else ""}" },
         "process" to runCatching { android.app.Application.getProcessName() }.getOrNull(),
+        // (the world layer's RAM and GPU beside the model: WORLD_GEN.md W4's first memory measurement on the S25)
+        "world" to com.lifemax.rpg.feature.habits.domain.WorldMemory.line(),
+        "gpu" to com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.line(),
+        "townMemory" to com.lifemax.rpg.feature.habits.presentation.scene3d.TownMemory.summary(),
     )
 
     /** The model runtime's own log lines from this process (never anything else: the player's words stay out). */

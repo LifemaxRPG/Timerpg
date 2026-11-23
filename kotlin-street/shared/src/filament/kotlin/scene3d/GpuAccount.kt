@@ -62,7 +62,9 @@ object GpuAccount {
             .joinToString(", ") { g -> "${g.key} ${g.value.size} = ${mb(g.value.sumOf { it.bytes })}" }
         val byOwner = e.groupBy { it.owner.substringBefore('<') }.entries.sortedByDescending { g -> g.value.sumOf { it.bytes } }.take(6)
             .joinToString(", ") { g -> "${g.key} ${mb(g.value.sumOf { it.bytes })}" }
-        return "GPU textures ${mb(e.sumOf { it.bytes })} MB in ${e.size} ($byFmt); by owner: $byOwner"
+        // (the world layer's own numbers, WORLD_GEN.md 7's budget beside them, once it is there: its pictures are in the textures too, owner WorldFar)
+        val world = com.lifemax.rpg.feature.habits.domain.WorldMemory.let { w -> if (w.ram > 0 || w.gpu > 0) "; " + w.line() else "" }
+        return "GPU textures ${mb(e.sumOf { it.bytes })} MB in ${e.size} ($byFmt); by owner: $byOwner$world"
     }
 
     /** The whole account: by owner (count, texels, bytes, formats), then the shadow map, targets and surfaces of [est]. */

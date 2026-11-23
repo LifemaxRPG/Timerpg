@@ -178,6 +178,8 @@ describe('W2 places', () => {
     const mains = p.roads.filter((r) => r.main && r.horizontal).sort((a, b) => a.x - b.x);
     const west = GAMMA_PINS.find((q) => q.kind === 'highway' && q.name === 'west')!;
     expect(Math.abs(west.dx - (mains[0]!.x - p.center.x) * 2.1)).toBeLessThan(5);
+    // (on the road's middle line: W4's alignment with the town's own Main Street)
+    expect(Math.abs(west.dz - (mains[0]!.y + mains[0]!.h / 2 - p.center.y) * 2.1)).toBeLessThan(1.1);
     // the river column crosses the top row near the pin
     const m = p.water!.mask, top: number[] = [];
     for (let x = 0; x < p.water!.width; x++) if (m[x]) top.push(x);

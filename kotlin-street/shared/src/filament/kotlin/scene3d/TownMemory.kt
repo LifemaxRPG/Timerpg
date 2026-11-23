@@ -64,7 +64,8 @@ object TownMemory {
     fun summary(): String {
         val m = synchronized(marks) { marks.joinToString(", ") }
         val desk = if (live != null) ", live after GC peak ${mb(peakLive)} MB, direct buffers peak ${mb(peakDirect)} MB, held (live + direct) peak ${mb(peakHeld)} MB" else ""
-        return "heap limit ${mb(limit)} MB, peak used ${mb(peakUsed)} MB$desk" + if (m.isEmpty()) "" else " (used/peak at: $m)"
+        val world = com.lifemax.rpg.feature.habits.domain.WorldMemory.let { w -> if (w.ram > 0 || w.gpu > 0) "; " + w.line() else "" }
+        return "heap limit ${mb(limit)} MB, peak used ${mb(peakUsed)} MB$desk" + (if (m.isEmpty()) "" else " (used/peak at: $m)") + world
     }
 
     fun mb(b: Long): Long = b / (1L shl 20)

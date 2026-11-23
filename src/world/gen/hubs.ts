@@ -33,15 +33,16 @@ export interface HubSpec {
 const T = 2.1; // metres a tile
 // gamma (planTown('gamma'), plan v2: 965 x 307 tiles, centre (789, 144)); pins read from the plan and checked by
 // src/world/gen/gen.test.ts against planTown and townRail: the river column at x 706 runs north-south through the
-// town; Main Street's ends (x 14 and 951, y 141) are where the highways leave west and east; the main line's portals
+// town; Main Street's ends (x 14 and 951, its middle line y 142: the road's y 141 and its 2 tiles) are where the highways
+// leave west and east; the main line's portals
 // are on the farm ring's edge, east (1063, 49.5) and west (-99, 40.2).
 const G = { cx: 789, cy: 144 };
 const gp = (kind: PinKind, name: string, x: number, y: number, ox: number, oz: number): Pin => ({ kind, name, dx: Math.round((x - G.cx) * T), dz: Math.round((y - G.cy) * T), ox, oz });
 export const GAMMA_PINS: Pin[] = [
   gp('river', 'river north', 708, 0, 0, -1),
   gp('river', 'river south', 705, 307, 0, 1),
-  gp('highway', 'west', 14, 141, -1, 0),
-  gp('highway', 'east', 951, 141, 1, 0),
+  gp('highway', 'west', 14, 142, -1, 0),
+  gp('highway', 'east', 951, 142, 1, 0),
   gp('rail', 'west', -99, 40.2, -1, 0),
   gp('rail', 'east', 1063, 49.5, 1, 0),
 ];
