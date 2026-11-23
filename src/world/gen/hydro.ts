@@ -1,5 +1,6 @@
 import { CELL_KM, CELL_KM2, H, Heap, N, W, components, nb } from './grid';
 import { MONTHS, type Climate } from './climate';
+import { hashStr, hashU } from './noise';
 import type { Terrain } from './terrain';
 
 // RIVERS, LAKES AND COASTS (WORLD_GEN.md section 2.5). Priority-flood from the sea (x wraps) fills every pit, so every
@@ -70,9 +71,12 @@ export function makeHydro(t: Terrain, cl: Climate): Hydro {
   }
   const order = new Int32Array(N);
   let no = 0;
+  // (the flood's order is jittered by a few tenths of a metre, so filled flats drain in branching courses instead of the
+  // parallel straight lines of a regular wavefront)
+  const jit = hashStr(`${t.seed}|flood`);
   while (heap.size) {
     const c = heap.pop();
-    const e = heap.lastKey;
+    const e = filled[c]!;
     order[no++] = c;
     for (let k = 0; k < 8; k++) {
       const m = nb(c, k);
@@ -81,7 +85,7 @@ export function makeHydro(t: Terrain, cl: Climate): Hydro {
       const fe = Math.max(elev[m]!, e + 0.01);
       filled[m] = fe;
       recv[m] = c;
-      heap.push(fe, m);
+      heap.push(fe + 0.6 * hashU(jit, m), m);
     }
   }
   const ord = order.subarray(0, no);
