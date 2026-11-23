@@ -118,7 +118,7 @@ class VehicleSpec(
         fun colour(hex: String): Int = (0xFF000000L or hex.removePrefix("#").toLong(16)).toInt()
 
         /** The five cars V1 drives (docs/VEHICLES.md), by their asset folders. */
-        val V1 = listOf("alderwick-1928", "fenmere-1938", "northcairn-1956", "rowanvale-1970", "tallmere-1972")
+        val V1 = listOf("alderwick-1928", "fenmere-1938", "northcairn-1956", "rowanvale-1970", "tallmere-1972", "torrel-1968", "torrel-1988")
     }
 }
 
