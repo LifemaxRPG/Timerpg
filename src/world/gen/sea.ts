@@ -144,16 +144,17 @@ export function makeSea(t: Terrain, places: Place[], hubs: Place[]): SeaNet {
   // ---- the ports: hub ports, then a ferry landing on each landmass with places and no hub port
   const ports = hubs.filter((p) => p.type === 'port');
   const masses = new Set(places.map((p) => p.mass));
-  const landings: Place[] = [];
+  // (each landmass's candidates for its landing, best first: the first whose harbour opens on the open sea is used)
+  const landingCands: Place[][] = [];
   for (const m of [...masses].sort((a, b) => a - b)) {
     if (ports.some((p) => p.mass === m)) continue;
     const here = places.filter((p) => p.mass === m);
     const rankV = (p: Place): number => (p.kind === 'hub' ? 3 : p.rank === 'major' ? 2.5 : p.rank === 'town' ? 2 : p.kind === 'town' ? 1.5 : 1);
-    const best = here.map((p) => ({ p, s: rankV(p) * (p.coastal ? 3 : 1) - t.distSea[p.cell]! / 10 })).sort((a, b) => b.s - a.s || (a.p.id < b.p.id ? -1 : 1))[0];
-    if (best) landings.push(best.p);
+    landingCands.push(here.map((p) => ({ p, s: rankV(p) * (p.coastal ? 3 : 1) - t.distSea[p.cell]! / 10 })).sort((a, b) => b.s - a.s || (a.p.id < b.p.id ? -1 : 1)).slice(0, 8).map((o) => o.p));
   }
+  const landings: Place[] = [];
   const portQ = new Map<string, number>();
-  for (const p of [...ports, ...landings]) { const q = harbourOf(p); if (q !== null) portQ.set(p.id, q); }
+  for (const p of ports) { const q = harbourOf(p); if (q !== null) portQ.set(p.id, q); }
   // ---- Dijkstra on the sea grid
   const dist = new Float64Array(SN), pred = new Int32Array(SN);
   const heap = new Heap(1 << 15);
@@ -238,15 +239,20 @@ export function makeSea(t: Terrain, places: Place[], hubs: Place[]): SeaNet {
   // ferries: each landing to its nearest port (a hub port or, failing that, any other landing already joined)
   const portSet = new Map<number, Place>();
   for (const p of hp) portSet.set(portQ.get(p.id)!, p);
-  for (const l of landings) {
-    const q = portQ.get(l.id);
-    if (q === undefined) continue;
-    const g = flood(q, new Set(portSet.keys()));
-    if (g === null) continue;
-    build(`ferry:${routes.length}`, 'ferry', l, portSet.get(g)!, trace(g));
-    portSet.set(q, l);
+  for (const cands of landingCands) {
+    for (const l of cands) {
+      const q = harbourOf(l);
+      if (q === null) continue;
+      const g = flood(q, new Set(portSet.keys()));
+      if (g === null) { harbour.delete(l.id); continue; }
+      portQ.set(l.id, q);
+      build(`ferry:${routes.length}`, 'ferry', l, portSet.get(g)!, trace(g));
+      portSet.set(q, l);
+      landings.push(l);
+      break;
+    }
   }
-  return { ports: hp, landings: landings.filter((l) => portQ.has(l.id)), routes, harbour };
+  return { ports: hp, landings, routes, harbour };
 }
 
 const r1 = (v: number): number => Math.round(v * 10) / 10;
