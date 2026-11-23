@@ -73,3 +73,4 @@ C004, C005 and C006 are in the game (kotlin-street/docs/LANDMARKS_GLB.md "The fo
 
 - C011 `codex/C011-cars-early`: Alderwick Six (1927-1930), Fenmere Club Coupe (1937-1940), Northcairn Terrace (1955-1957). Wheels, steering, doors, lights, repaint masks, mid and far models.
 - C013 `codex/C013-motorcycles`: Brackenton Quarry Twin (1941-1949), Marrowfield Standard 550 (1971-1978), Kelveran Slipstream (2002-2008). Kickstand, two seats, lamps, repaint masks, mid and far models.
+- C012 `codex/C012-cars-late`: Tallmere 72 Pickup (1968-1976), Rowanvale Sprint (1968-1974), Pinelatch City 3 (1990-1997), Stoneweir Wayfarer crossover (2012-2018, revised). The Wayfarer is the one not yet in the game.
