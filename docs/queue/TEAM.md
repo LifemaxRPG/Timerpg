@@ -60,6 +60,8 @@ files (docs/queue/reviews/) say what worked as well as what to change: read the 
   - Jeff's ocean was accepted after three rounds and merged into the game. The owner's "waves look flat" note became
     shaded, broken, living waves.
   - ChatGPT's barbershop was accepted first try and the schools on their second round, both with the new self-review.
+  - ChatGPT's first cars (Alderwick Six, Fenmere Club Coupe, Northcairn Terrace) were accepted first try, and the
+    Thimble Trails mini golf became a winding course the owner called out by name: "that thing looks good."
   - The capital now stands on the generated planet, with the world drawn out to the horizon.
 
 ## The team's next milestone
