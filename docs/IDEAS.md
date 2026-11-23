@@ -258,3 +258,32 @@ fits the world rather than a menu:
 - **Rules:**
   - short, era-correct, and optional;
   - each one connects to the rest: money, NPC relationships, reputation, crime (rigged games, illegal betting).
+
+## Inventory and carrying (the owner's idea, 2026-11-23)
+
+Grounded, like the rest: what you carry is limited by **weight and bulk**, where it sits matters, and what's visible
+matters to the people who see you.
+- **Two limits:** kilograms and litres, simple on a phone (a list with weight and space bars, not a puzzle grid).
+  Rough capacities (tuned in play):
+  - **Pockets:** about 2 kg and 3 L, hidden. Wallet, keys, cash, a knife, a phone in later eras.
+  - **Hands:** one item each, or one big two-handed item (a TV, a crate), up to about 25 kg for short carries, and
+    visible to everyone.
+  - **Worn:** a belt and holster, coat pockets (more pocket space in winter coats), a shoulder bag.
+  - **Back:** a backpack or rucksack by era, about 15-25 kg and 20-40 L, partly hidden.
+  - **Carried containers:** a suitcase, a toolbox, a duffel bag, a briefcase, a cart, a wheelbarrow, a bicycle basket.
+- **Load costs speed and stamina.** Up to about 15% of body weight is free; more slows walking, running and
+  climbing; overloaded means you can't run. The mountains and long walks make this matter.
+- **Vehicles and places as storage:**
+  - car trunks (the C011 cars already have `trunk` nodes) and the pickup's bed;
+  - saddlebags on motorcycles and horses;
+  - a home, a hidden stash, a safe, a bank deposit box, a rented storage unit, a hideout.
+  Everything stored stays where you left it, and can be stolen, searched or found.
+- **What you carry is evidence:**
+  - Witnesses notice what's visible: a TV under your arm at 2 a.m. is remembered.
+  - Police searches follow the era's rules: pat-downs, car searches, warrants.
+  - Stolen goods can carry serial numbers and your fingerprints, and pawn shops (C010) may check them, by era.
+  - Contraband by era: liquor in the 1920s, and so on.
+- **Items are real things in the world.** Dropped items stay where they fall and NPCs may pick them up. Items have
+  condition and age.
+- **Time travel adds a twist:** an item from the future in the past (a phone in 1925) is a curiosity, a fortune, or a
+  dangerous thing to be seen with. Era cash only works in its era.
