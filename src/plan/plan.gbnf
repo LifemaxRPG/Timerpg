@@ -1,0 +1,50 @@
+# Timerpg Plan Language — llama.cpp GBNF grammar
+# Kept in exact 1:1 agreement with src/plan/parser.ts.
+
+root         ::= plan
+
+plan         ::= step (ws combinator ws step)*
+combinator   ::= "then" | "while"
+
+step         ::= verb (ws target)? (ws "with" ws item-ref)? (ws manner)? (ws "until" ws cond)? (ws "if" ws cond)?
+
+verb         ::= "go" | "follow" | "wait" | "watch" | "hide"
+               | "talk" | "ask" | "tell" | "lie" | "warn" | "distract" | "signal"
+               | "take" | "give" | "put" | "use"
+               | "open" | "close" | "lock" | "unlock"
+               | "carry" | "drive"
+               | "buy" | "sell" | "steal"
+               | "attack" | "restrain" | "flee"
+               | "call" | "write"
+
+target       ::= person-ref | place-ref | item-ref | vehicle-ref | "player" | nearest-ref | "here"
+
+person-ref   ::= "person:" id
+place-ref    ::= "place:" id
+item-ref     ::= "item:" id
+vehicle-ref  ::= "vehicle:" id
+nearest-ref  ::= "nearest(" kind ")"
+
+manner       ::= "quietly" | "quickly" | "carefully" | "politely" | "rudely" | "as(" role ")"
+
+cond         ::= ("not" ws)? cond-atom
+cond-atom    ::= "sees(" target ")"
+               | "at(" at-arg ")"
+               | "time(" hhmm ")"
+               | "heard(" signal ")"
+               | "has(" item-ref ")"
+               | "alone"
+               | "done(" step-ref ")"
+
+at-arg       ::= at-place | at-subject "," ws? at-place
+at-place     ::= place-ref | nearest-ref | "here"
+at-subject   ::= person-ref | vehicle-ref | "player" | nearest-ref
+
+hhmm         ::= ([01][0-9] | "2"[0-3]) ":" [0-5][0-9]
+step-ref     ::= [1-9][0-9]*
+id           ::= [a-z][a-z0-9_]*
+kind         ::= [a-z][a-z0-9_]*
+signal       ::= [a-z][a-z0-9_]*
+role         ::= [a-z][a-z0-9_]* (" " [a-z][a-z0-9_]*)*
+
+ws           ::= [ \t\n]+
