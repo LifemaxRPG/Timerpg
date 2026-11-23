@@ -62,13 +62,25 @@ export type GlbLandmarkKind =
   | 'landmark_glb_great_meridian_1926'
   | 'landmark_glb_great_meridian_1941'
   | 'landmark_glb_great_meridian_1976'
-  | 'landmark_glb_great_meridian_2000';
+  | 'landmark_glb_great_meridian_2000'
+  | 'landmark_glb_five_and_dime_1925'
+  | 'landmark_glb_five_and_dime_1970'
+  | 'landmark_glb_five_and_dime_2000'
+  | 'landmark_glb_five_and_dime_closed'
+  | 'landmark_glb_grain_elevator_1925'
+  | 'landmark_glb_grain_elevator_1950'
+  | 'landmark_glb_grain_elevator_1990'
+  | 'landmark_glb_baseball_park_1935'
+  | 'landmark_glb_baseball_park_1950'
+  | 'landmark_glb_baseball_park_1960'
+  | 'landmark_glb_baseball_park_2000';
 
 export interface GlbLandmarkSpec {
   name: string;
   /** The business it houses. */
   role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot' | 'laundromat' | 'factory' | 'funeral_home' | 'video_store' | 'phone_repair' | 'courthouse' | 'radio_station'
-    | 'library' | 'drugstore' | 'bank' | 'church' | 'school' | 'carhop' | 'fire_station' | 'post_office' | 'rest_area' | 'lodge' | 'monument' | 'roadside_attraction';
+    | 'library' | 'drugstore' | 'bank' | 'church' | 'school' | 'carhop' | 'fire_station' | 'post_office' | 'rest_area' | 'lodge' | 'monument' | 'roadside_attraction'
+    | 'five_and_dime' | 'grain_elevator' | 'ballpark';
   /** The design's years: built from..to (it may stand long after, as the simulation decides), and its sample year. */
   era: { from: number; to: number; built: number };
   /** The lot, metres: width along the street, depth back from it; the building's walls. */
@@ -166,6 +178,21 @@ export const GLB_LANDMARKS: Record<GlbLandmarkKind, GlbLandmarkSpec> = {
   landmark_glb_great_meridian_1941: { name: "The Great Meridian", role: 'monument', era: { from: 1941, to: 1975, built: 1941 }, lot: [119.96, 120.13], building: [119.97, 119.97], plot: [119.96, 120.13] },
   landmark_glb_great_meridian_1976: { name: "The Great Meridian", role: 'monument', era: { from: 1976, to: 1999, built: 1976 }, lot: [119.96, 120.13], building: [119.97, 119.97], plot: [119.96, 120.13] },
   landmark_glb_great_meridian_2000: { name: "The Great Meridian", role: 'monument', era: { from: 2000, to: 2040, built: 2000 }, lot: [119.96, 120.13], building: [119.97, 119.97], plot: [119.96, 120.13] },
+
+  // ---- the third intake (C001-C003, 2026-11-23): the five and dime (10 x 28 m, party walls: a street-wall building mid-block downtown; the dime store,
+  // the variety store, Dollar Cove, then for lease), the Lark Bend grain elevator (timber 1925, the concrete bins added 1950, the co-op 1990: the rail
+  // side, its siding along its back) and the Alder Bend Ballpark (wooden park 1935, lights 1950, steel bleachers 1960, aluminium 2000; its gravel lot on the street)
+  landmark_glb_five_and_dime_1925: { name: "Marlow Dime", role: 'five_and_dime', era: { from: 1925, to: 1969, built: 1927 }, lot: [10.04, 31.36], building: [10, 28], plot: [10.04, 31.36] },
+  landmark_glb_five_and_dime_1970: { name: "Marlow Variety", role: 'five_and_dime', era: { from: 1970, to: 1999, built: 1975 }, lot: [10.04, 31.36], building: [10, 28], plot: [10.04, 31.36] },
+  landmark_glb_five_and_dime_2000: { name: "Dollar Cove", role: 'five_and_dime', era: { from: 2000, to: 2040, built: 2005 }, lot: [10.04, 31.36], building: [10, 28], plot: [10.04, 31.36] },
+  landmark_glb_five_and_dime_closed: { name: "Marlow (for lease)", role: 'five_and_dime', era: { from: 2012, to: 2040, built: 2014 }, lot: [10.04, 31.36], building: [10, 28], plot: [10.04, 31.36] },
+  landmark_glb_grain_elevator_1925: { name: "Lark Bend Elevator", role: 'grain_elevator', era: { from: 1925, to: 1949, built: 1930 }, lot: [48.0, 32.68], building: [48.0, 28.8], plot: [71.0, 32.8] },
+  landmark_glb_grain_elevator_1950: { name: "Lark Bend Elevator", role: 'grain_elevator', era: { from: 1950, to: 1989, built: 1955 }, lot: [71.0, 32.8], building: [71, 28.8], plot: [71.0, 32.8] },
+  landmark_glb_grain_elevator_1990: { name: "Lark Bend Co-op", role: 'grain_elevator', era: { from: 1990, to: 2040, built: 1995 }, lot: [71.0, 32.8], building: [71, 28.8], plot: [71.0, 32.8] },
+  landmark_glb_baseball_park_1935: { name: "Alder Bend Ballpark", role: 'ballpark', era: { from: 1935, to: 1949, built: 1937 }, lot: [144.32, 155.16], building: [144.92, 155.52], plot: [144.32, 155.16] },
+  landmark_glb_baseball_park_1950: { name: "Alder Bend Ballpark", role: 'ballpark', era: { from: 1950, to: 1959, built: 1955 }, lot: [144.32, 155.16], building: [144.92, 155.52], plot: [144.32, 155.16] },
+  landmark_glb_baseball_park_1960: { name: "Alder Bend Ballpark", role: 'ballpark', era: { from: 1960, to: 1999, built: 1965 }, lot: [144.32, 155.16], building: [144.92, 155.52], plot: [144.32, 155.16] },
+  landmark_glb_baseball_park_2000: { name: "Alder Bend Ballpark", role: 'ballpark', era: { from: 2000, to: 2040, built: 2005 }, lot: [144.32, 155.16], building: [144.92, 155.52], plot: [144.32, 155.16] },
   landmark_glb_reel_time_video_2020: { name: 'Cell Fix', role: 'phone_repair', era: { from: 2009, to: 2015, built: 2013 }, lot: [36.01, 28.56], building: [32.28, 11.17] },
 };
 export const GLB_LANDMARK_KINDS = Object.keys(GLB_LANDMARKS) as GlbLandmarkKind[];

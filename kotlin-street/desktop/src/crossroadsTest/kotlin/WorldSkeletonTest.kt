@@ -174,7 +174,8 @@ class WorldSkeletonTest {
         // the world river comes in and goes out where the town's own river meets its ground's edge (north and south)
         val polys = town.water.flatten()
         val g = f.ground
-        val river = sk.rivers.first { rv -> sk.points(rv.path).let { p -> (0 until p.size / 2).any { abs(p[it * 2] - site.hub.x) < .3 && abs(p[it * 2 + 1] - site.hub.z) < .3 } } }
+        // (within .6 cells of the hub's centre: the river's pins stand 460 m north and 342 m south of it since the third intake's ballpark block grew the plan)
+        val river = sk.rivers.first { rv -> sk.points(rv.path).let { p -> (0 until p.size / 2).any { abs(p[it * 2] - site.hub.x) < .6 && abs(p[it * 2 + 1] - site.hub.z) < .6 } } }
         val p = sk.points(river.path)
         for (edge in listOf(g[1], g[3])) {
             val span = polys.filter { abs(it.z - edge) < 1f }.map { it.x }

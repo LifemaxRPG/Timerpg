@@ -39,8 +39,8 @@ export type District = 'core' | 'square' | 'civic' | 'old' | 'westmain' | 'worke
  */
 export const CAPITAL_SEED = 'gamma';
 export const isCapital = (seed: string): boolean => seed === CAPITAL_SEED;
-/** The grounds column's width and its blocks' depths (tiles; north of Main Street first, nearest it first), sized for the models. */
-export const GROUNDS = { w: 200, north: [62, 80], south: [30, 80] } as const;
+/** The grounds column's width and its blocks' depths (tiles; north of Main Street first, nearest it first), sized for the models (the third south block: the ballpark). */
+export const GROUNDS = { w: 200, north: [62, 80], south: [30, 80, 80] } as const;
 
 /** The year each district is platted (its streets and first plots may be built from then on). */
 export const PLATTED: Record<District, number> = {
@@ -326,6 +326,17 @@ export function platTown(seed: string): Plat {
     keep.y = top; keep.h = bot - top;
     for (const b of edgeN) if (b !== keep) blocks.splice(blocks.indexOf(b), 1);
   }
+  // the capital's rail column: the two blocks at its far end (no street between them) made one, 82 tiles along the track, for the grain elevator
+  // (the third intake: its 1950 state is 71 m of bins along the siding; the column's blocks are 36-42 tiles long)
+  if (isCapital(seed) && railcol >= 0) {
+    const rb = blocks.filter((b) => b.col === railcol - civic && b.district === 'rail' && (b.row === 1 || b.row === 2));
+    if (rb.length === 2) {
+      const top = Math.min(...rb.map((b) => b.y)), bot = Math.max(...rb.map((b) => b.y + b.h));
+      const keep = rb.find((b) => b.row === 1)!;
+      keep.y = top; keep.h = bot - top;
+      blocks.splice(blocks.indexOf(rb.find((b) => b !== keep)!), 1);
+    }
+  }
 
   // ---------------------------------------------------------------------------------------------- the capital's grounds
   // (abstract frame, past the edge column: Main Street runs on through it; a street between it and the edge, a street between each
@@ -370,7 +381,7 @@ export function platTown(seed: string): Plat {
   let riverOut: Plat['river'] = null;
   if (riverB >= 0) {
     const channel: Rect[] = [], column: Rect[] = [];
-    const top = Y[0]! - 80, bottom = Y[rows.length]! + 80;
+    const top = Math.min(Y[0]! - 80, groundsTop - 40), bottom = Math.max(Y[rows.length]! + 80, groundsBottom + 40); // (past the capital's grounds too: the plan's top and bottom rows)
     const cB = X[riverB]! + cols[riverB]!.w / 2;
     channel.push({ x: cB - 5, y: top, w: 10, h: bottom - top });
     column.push({ x: X[riverB]!, y: top, w: cols[riverB]!.w, h: bottom - top });

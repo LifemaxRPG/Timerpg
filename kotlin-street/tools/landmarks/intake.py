@@ -2,7 +2,7 @@
 """The intake job's data step (docs/LANDMARKS_GLB.md "The intake models"): from the contributors' model-info files (copied with
 `git show`, in the landmark folders of app/src/main/assets/landmarks/) it writes one flat model-info per state in the shape the
 loader reads (top-level `doors` with `external`, `collision.boxes_gltf_y_up`), and prints the catalogue entries and the
-generator's specs for the models. Run from kotlin-street/:  python3 tools/landmarks/intake.py [--write]
+generator's specs for the models. Run from kotlin-street/:  python3 tools/landmarks/intake.py [--write] [--only=slug,slug]  (--only: just those folders, for a later intake)
 Lots are the .glb's bounds (everything drawn, x and z); a chain of states that differ in size shares the biggest plot (`plot`)
 and the first state's middle (`centre`), so the building does not move between states."""
 import json, os, sys, copy
@@ -68,6 +68,15 @@ add('landmark_glb_beach_blvd_rex', 'beach-blvd-rex', 'beach-blvd-rex.glb', ('mod
 for y, (a, b) in {'1926': (1926, 1940), '1941': (1941, 1975), '1976': (1976, 1999), '2000': (2000, 2040)}.items():
     add(f'landmark_glb_great_meridian_{y}', 'great-meridian-monument', f'great-meridian-{y}.glb', ('model-info.json', 'gm', y), 'The Great Meridian', 'monument', (a, b, a), far='great-meridian-monument/great-meridian-far.glb')
 
+# ---- the third intake (C001-C003, 2026-11-23): a states list whose entries carry the near / mid / far models; the per-state far file is the distant model
+M = lambda slug, stem, st: f"{slug}/{stem}-{st}"
+for st, (a, b, c, nm) in {'1925': (1925, 1969, 1927, 'Marlow Dime'), '1970': (1970, 1999, 1975, 'Marlow Variety'), '2000': (2000, 2040, 2005, 'Dollar Cove'), 'closed': (2012, 2040, 2014, 'Marlow (for lease)')}.items():
+    add(f'landmark_glb_five_and_dime_{st}', 'five-and-dime', f'marlow-{st}.glb', ('model-info.json', 'c3', st), nm, 'five_and_dime', (a, b, c), room='shelves', far=f'five-and-dime/marlow-{st}-far.glb', mid=f'five-and-dime/marlow-{st}-mid.glb')
+for st, (a, b, c, nm) in {'1925': (1925, 1949, 1930, 'Lark Bend Elevator'), '1950': (1950, 1989, 1955, 'Lark Bend Elevator'), '1990': (1990, 2040, 1995, 'Lark Bend Co-op')}.items():
+    add(f'landmark_glb_grain_elevator_{st}', 'grain-elevator', f'lark-bend-{st}.glb', ('model-info.json', 'c3', st), nm, 'grain_elevator', (a, b, c), far=f'grain-elevator/lark-bend-{st}-far.glb', mid=f'grain-elevator/lark-bend-{st}-mid.glb')
+for st, (a, b, c) in {'1935': (1935, 1949, 1937), '1950': (1950, 1959, 1955), '1960': (1960, 1999, 1965), '2000': (2000, 2040, 2005)}.items():
+    add(f'landmark_glb_baseball_park_{st}', 'baseball-park', f'alder-bend-{st}.glb', ('model-info.json', 'c3', st), 'Alder Bend Ballpark', 'ballpark', (a, b, c), far=f'baseball-park/alder-bend-{st}-far.glb', mid=f'baseball-park/alder-bend-{st}-mid.glb')
+
 INTERNAL = {  # doors the info marks (or the glb names) as joining rooms: no entrance from the street
     'carhop': {'door_prep_inside'},
     'monument': {'door_hall_west', 'door_hall_east', 'door_observatory_lift', 'door_cornice_gallery', 'door_sky_deck', 'door_lantern_chamber', 'door_rotunda_south', 'door_north', 'door_east', 'door_west'},
@@ -81,6 +90,16 @@ def state_info(s):
     key = s['info'][2]
     if how == 'state': return next(x for x in j['states'] if x['state'] == key)
     if how == 'id': return next(x for x in j['states'] if x['id'] == key)
+    if how == 'c3':
+        # (C001-C003: a state's `models` list holds the near, mid and far models; the near one carries the doors and boxes, under a different key in each)
+        st = next(x for x in j['states'] if x['id'] == key)
+        m = next(x for x in st['models'] if x.get('level', x.get('lod')) == 'near')
+        ds = m.get('anchors') or m.get('doors') or m.get('door_nodes_gltf_m') or {}
+        bx = m.get('collision_boxes_gltf_m') or m.get('colliders') or []
+        boxes = [{'source': b.get('name', 'box'), 'group': 'lot' if b.get('group') == 'lot' else 'structure', 'attachment': b.get('attachment') or 'structure',
+                  'center': b['center_gltf_m'], 'size': b['size_gltf_m']} for b in bx]
+        return {'name': j['name'], 'doors': [{'node': k, 'position': v, 'external': True} for k, v in ds.items()], 'collision': {'coordinate_note': 'glTF Y-up metres, from the contributor info (near model)', 'boxes_gltf_y_up': boxes},
+                'footprint_m': j.get('footprint_m') or ([round(m['footprint_x_m'][1] - m['footprint_x_m'][0], 2), 28.8] if m.get('footprint_x_m') else None)}
     if how == 'gm':
         st = j['states'][key]
         base = j['collision']['boxes_gltf_y_up']
@@ -103,6 +122,8 @@ def building(s, j):
 def main(write):
     entries = []; ts = []
     chains = {}
+    only = {a.split('=', 1)[1] for a in sys.argv if a.startswith('--only=')}
+    if only: S[:] = [s for s in S if s['slug'] in set(','.join(only).split(','))]
     for s in S:
         path = os.path.join(A, s['slug'], s['glb'])
         r = glbinfo.report(path)
@@ -138,6 +159,7 @@ def main(write):
         e = {'kind': s['kind'], 'name': s['name'], 'role': s['role'], 'room': s['room'], 'file': f"{s['slug']}/{s['glb']}", 'info': f"{s['slug']}/model-info-{s['kind'].split('landmark_glb_')[1]}.json",
              'era': {'from': s['era'][0], 'to': s['era'][1], 'built': s['era'][2]}, 'footprint': {'lot': s['lot'], 'building': s['building']}}
         if s.get('far'): e['far'] = s['far']
+        if s.get('mid'): e['mid'] = s['mid']
         if s.get('centre') is not None: e['centre'] = s['centre']; e['footprint']['plot'] = s['plot']
         entries.append(e)
         ts.append(f"  {s['kind']}: {{ name: {json.dumps(s['name'])}, role: '{s['role']}', era: {{ from: {s['era'][0]}, to: {s['era'][1]}, built: {s['era'][2]} }}, lot: {s['lot']}, building: {s['building']}{', plot: ' + json.dumps(s['plot']) if s.get('plot') else ''} }},")

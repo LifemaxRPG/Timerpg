@@ -1,0 +1,5510 @@
+{
+  "task": "C002",
+  "name": "Lark Bend Grain Elevator",
+  "axes": "glTF metres, +Y up, street +Z, origin centred on the front edge of the scale office at grade.",
+  "bounds_gltf_m": {
+    "x": [
+      -25,
+      46
+    ],
+    "y": [
+      0,
+      44.71
+    ],
+    "z": [
+      -28.83,
+      4
+    ]
+  },
+  "swatches": {
+    "wood": "plank_vertical",
+    "concrete_palette": "roof_membrane_tan",
+    "steel_palette": "roof_tin_brown",
+    "roof_palette": "roof_membrane_grey",
+    "brick": "brick_red",
+    "yard": "asphalt_worn",
+    "gravel": "ballast"
+  },
+  "lod_distances_suggested_m": {
+    "mid": 80,
+    "far": 190
+  },
+  "rail_siding": {
+    "centerline_gltf_m": [
+      [
+        -27,
+        0,
+        -28.5
+      ],
+      [
+        47,
+        0,
+        -28.5
+      ]
+    ],
+    "loading_spout_timber_gltf_m": [
+      -16,
+      5.13,
+      -28.5
+    ],
+    "loading_spout_concrete_gltf_m": [
+      35,
+      5.18,
+      -28.5
+    ],
+    "note": "The game places the track. Spouts are static. Timber spout available through 1989, concrete spout from 1950."
+  },
+  "states": [
+    {
+      "id": "1925",
+      "name": "Timber Elevator",
+      "era": [
+        1925,
+        1949
+      ],
+      "models": [
+        {
+          "file": "lark-bend-1925.glb",
+          "lod": "near",
+          "visible_triangles": 920,
+          "doors": {
+            "door_main": [
+              0,
+              0.14,
+              0.32
+            ],
+            "door_back": [
+              1.86,
+              0.14,
+              -6.4
+            ]
+          },
+          "colliders": [
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.3857999999999997,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.0284,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -1.63,
+                0.6950000000000001,
+                -5.99
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.1099999999999999,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -1.63,
+                1.8708,
+                -5.995
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.3558000000000001,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.4884,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.26,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.2799999999999998,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                -3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office records counter",
+              "center_gltf_m": [
+                -3.005,
+                0.5900000000000001,
+                -4.25
+              ],
+              "size_gltf_m": [
+                1.0699999999999998,
+                0.9,
+                2.9000000000000004
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale sign post",
+              "center_gltf_m": [
+                4.745,
+                1.3675000000000002,
+                -6.0
+              ],
+              "size_gltf_m": [
+                0.1899999999999995,
+                2.665,
+                0.1999999999999993
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Timber elevator",
+              "center_gltf_m": [
+                -16.0,
+                11.1675,
+                -15.975
+              ],
+              "size_gltf_m": [
+                10,
+                22.265,
+                10.349999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving shed front post",
+              "center_gltf_m": [
+                -20.23,
+                2.5175,
+                -7.04
+              ],
+              "size_gltf_m": [
+                0.38000000000000256,
+                4.965,
+                0.40000000000000036
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving shed front post",
+              "center_gltf_m": [
+                -11.78,
+                2.5175,
+                -7.04
+              ],
+              "size_gltf_m": [
+                0.379999999999999,
+                4.965,
+                0.40000000000000036
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear safety rail",
+              "center_gltf_m": [
+                -13.95,
+                0.741,
+                -23.74
+              ],
+              "size_gltf_m": [
+                14.6,
+                1.418,
+                0.17999999999999972
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Office waste cabinet",
+              "center_gltf_m": [
+                -4.505,
+                0.6425,
+                -4.824999999999999
+              ],
+              "size_gltf_m": [
+                0.8100000000000005,
+                1.215,
+                0.9500000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            }
+          ],
+          "sign_panels": {
+            "sign_office": {
+              "rect_texels": [
+                0,
+                0,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_scale": {
+              "rect_texels": [
+                0,
+                172,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_wood": {
+              "rect_texels": [
+                0,
+                28,
+                192,
+                38
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            }
+          },
+          "footprint_x_m": [
+            -23.8,
+            24.2
+          ],
+          "height_m": 32.35
+        },
+        {
+          "file": "lark-bend-1925-mid.glb",
+          "lod": "mid",
+          "visible_triangles": 800,
+          "doors": {
+            "door_main": [
+              0,
+              0.14,
+              0.32
+            ],
+            "door_back": [
+              1.86,
+              0.14,
+              -6.4
+            ]
+          },
+          "colliders": [
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.3857999999999997,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.0284,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -1.63,
+                0.6950000000000001,
+                -5.99
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.1099999999999999,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -1.63,
+                1.8708,
+                -5.995
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.3558000000000001,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.4884,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.26,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.2799999999999998,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                -3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office records counter",
+              "center_gltf_m": [
+                -3.005,
+                0.5900000000000001,
+                -4.25
+              ],
+              "size_gltf_m": [
+                1.0699999999999998,
+                0.9,
+                2.9000000000000004
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale sign post",
+              "center_gltf_m": [
+                4.745,
+                1.3675000000000002,
+                -6.0
+              ],
+              "size_gltf_m": [
+                0.1899999999999995,
+                2.665,
+                0.1999999999999993
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Timber elevator",
+              "center_gltf_m": [
+                -16.0,
+                11.1675,
+                -15.975
+              ],
+              "size_gltf_m": [
+                10,
+                22.265,
+                10.349999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving shed front post",
+              "center_gltf_m": [
+                -20.23,
+                2.5175,
+                -7.04
+              ],
+              "size_gltf_m": [
+                0.38000000000000256,
+                4.965,
+                0.40000000000000036
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving shed front post",
+              "center_gltf_m": [
+                -11.78,
+                2.5175,
+                -7.04
+              ],
+              "size_gltf_m": [
+                0.379999999999999,
+                4.965,
+                0.40000000000000036
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "sign_panels": {
+            "sign_office": {
+              "rect_texels": [
+                0,
+                0,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_scale": {
+              "rect_texels": [
+                0,
+                172,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_wood": {
+              "rect_texels": [
+                0,
+                28,
+                192,
+                38
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            }
+          },
+          "footprint_x_m": [
+            -23.8,
+            24.2
+          ],
+          "height_m": 32.35
+        },
+        {
+          "file": "lark-bend-1925-far.glb",
+          "lod": "far",
+          "visible_triangles": 792,
+          "doors": {
+            "door_main": [
+              0,
+              0.14,
+              0.32
+            ],
+            "door_back": [
+              1.86,
+              0.14,
+              -6.4
+            ]
+          },
+          "colliders": [
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.3857999999999997,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.0284,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -1.63,
+                0.6950000000000001,
+                -5.99
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.1099999999999999,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -1.63,
+                1.8708,
+                -5.995
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.3558000000000001,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.4884,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.26,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.2799999999999998,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                -3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office records counter",
+              "center_gltf_m": [
+                -3.005,
+                0.5900000000000001,
+                -4.25
+              ],
+              "size_gltf_m": [
+                1.0699999999999998,
+                0.9,
+                2.9000000000000004
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale sign post",
+              "center_gltf_m": [
+                4.745,
+                1.3675000000000002,
+                -6.0
+              ],
+              "size_gltf_m": [
+                0.1899999999999995,
+                2.665,
+                0.1999999999999993
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Timber elevator",
+              "center_gltf_m": [
+                -16.0,
+                11.1675,
+                -15.975
+              ],
+              "size_gltf_m": [
+                10,
+                22.265,
+                10.349999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving shed front post",
+              "center_gltf_m": [
+                -20.23,
+                2.5175,
+                -7.04
+              ],
+              "size_gltf_m": [
+                0.38000000000000256,
+                4.965,
+                0.40000000000000036
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving shed front post",
+              "center_gltf_m": [
+                -11.78,
+                2.5175,
+                -7.04
+              ],
+              "size_gltf_m": [
+                0.379999999999999,
+                4.965,
+                0.40000000000000036
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "sign_panels": {
+            "sign_office": {
+              "rect_texels": [
+                0,
+                0,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_scale": {
+              "rect_texels": [
+                0,
+                172,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_wood": {
+              "rect_texels": [
+                0,
+                28,
+                192,
+                38
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            }
+          },
+          "footprint_x_m": [
+            -23.8,
+            24.2
+          ],
+          "height_m": 32.35
+        }
+      ]
+    },
+    {
+      "id": "1950",
+      "name": "Timber and Concrete Expansion",
+      "era": [
+        1950,
+        1989
+      ],
+      "models": [
+        {
+          "file": "lark-bend-1950.glb",
+          "lod": "near",
+          "visible_triangles": 3228,
+          "doors": {
+            "door_main": [
+              0,
+              0.14,
+              0.32
+            ],
+            "door_back": [
+              1.86,
+              0.14,
+              -6.4
+            ]
+          },
+          "colliders": [
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.3857999999999997,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.0284,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -1.63,
+                0.6950000000000001,
+                -5.99
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.1099999999999999,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -1.63,
+                1.8708,
+                -5.995
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.3558000000000001,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.4884,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.26,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.2799999999999998,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                -3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office records counter",
+              "center_gltf_m": [
+                -3.005,
+                0.5900000000000001,
+                -4.25
+              ],
+              "size_gltf_m": [
+                1.0699999999999998,
+                0.9,
+                2.9000000000000004
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale sign post",
+              "center_gltf_m": [
+                4.745,
+                1.3675000000000002,
+                -6.0
+              ],
+              "size_gltf_m": [
+                0.1899999999999995,
+                2.665,
+                0.1999999999999993
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Timber elevator",
+              "center_gltf_m": [
+                -16.0,
+                11.1675,
+                -15.975
+              ],
+              "size_gltf_m": [
+                10,
+                22.265,
+                10.349999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving shed front post",
+              "center_gltf_m": [
+                -20.23,
+                2.5175,
+                -7.04
+              ],
+              "size_gltf_m": [
+                0.38000000000000256,
+                4.965,
+                0.40000000000000036
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving shed front post",
+              "center_gltf_m": [
+                -11.78,
+                2.5175,
+                -7.04
+              ],
+              "size_gltf_m": [
+                0.379999999999999,
+                4.965,
+                0.40000000000000036
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 1 square core",
+              "center_gltf_m": [
+                1.4,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.7737988599166945,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 1 east/west shoulders",
+              "center_gltf_m": [
+                1.4,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779317,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 2 square core",
+              "center_gltf_m": [
+                9.36,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 2 east/west shoulders",
+              "center_gltf_m": [
+                9.36,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 3 square core",
+              "center_gltf_m": [
+                17.32,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 3 east/west shoulders",
+              "center_gltf_m": [
+                17.32,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 4 square core",
+              "center_gltf_m": [
+                25.279999999999998,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 4 east/west shoulders",
+              "center_gltf_m": [
+                25.279999999999998,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 5 square core",
+              "center_gltf_m": [
+                33.24,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 5 east/west shoulders",
+              "center_gltf_m": [
+                33.24,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.80243089177932,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 6 square core",
+              "center_gltf_m": [
+                41.199999999999996,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 6 east/west shoulders",
+              "center_gltf_m": [
+                41.199999999999996,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.8024308917793235,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rail loadout leg",
+              "center_gltf_m": [
+                33.62,
+                3.2475,
+                -23.855
+              ],
+              "size_gltf_m": [
+                0.35999999999999943,
+                6.425,
+                0.39000000000000057
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rail loadout leg",
+              "center_gltf_m": [
+                36.38,
+                3.2475,
+                -23.855
+              ],
+              "size_gltf_m": [
+                0.35999999999999943,
+                6.425,
+                0.39000000000000057
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear safety rail",
+              "center_gltf_m": [
+                -13.95,
+                0.741,
+                -23.74
+              ],
+              "size_gltf_m": [
+                14.6,
+                1.418,
+                0.17999999999999972
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Office waste cabinet",
+              "center_gltf_m": [
+                -4.505,
+                0.6425,
+                -4.824999999999999
+              ],
+              "size_gltf_m": [
+                0.8100000000000005,
+                1.215,
+                0.9500000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            }
+          ],
+          "sign_panels": {
+            "sign_office": {
+              "rect_texels": [
+                0,
+                0,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_scale": {
+              "rect_texels": [
+                0,
+                172,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_wood": {
+              "rect_texels": [
+                0,
+                28,
+                192,
+                38
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_name": {
+              "texture": "signs.png",
+              "rect_texels": [
+                0,
+                70,
+                120,
+                30
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "bottom_edge_gltf_m": [
+                [
+                  15.110138965542482,
+                  23.08,
+                  -12.678709241140961
+                ],
+                [
+                  16.543999999999997,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  18.096,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  19.529861034457518,
+                  23.08,
+                  -12.678709241140961
+                ]
+              ]
+            },
+            "sign_trade": {
+              "texture": "signs.png",
+              "rect_texels": [
+                0,
+                104,
+                120,
+                30
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "bottom_edge_gltf_m": [
+                [
+                  23.07013896554248,
+                  23.08,
+                  -12.678709241140961
+                ],
+                [
+                  24.503999999999994,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  26.055999999999997,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  27.489861034457512,
+                  23.08,
+                  -12.678709241140961
+                ]
+              ]
+            }
+          },
+          "footprint_x_m": [
+            -25,
+            46
+          ],
+          "height_m": 44.71
+        },
+        {
+          "file": "lark-bend-1950-mid.glb",
+          "lod": "mid",
+          "visible_triangles": 2076,
+          "doors": {
+            "door_main": [
+              0,
+              0.14,
+              0.32
+            ],
+            "door_back": [
+              1.86,
+              0.14,
+              -6.4
+            ]
+          },
+          "colliders": [
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.3857999999999997,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.0284,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -1.63,
+                0.6950000000000001,
+                -5.99
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.1099999999999999,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -1.63,
+                1.8708,
+                -5.995
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.3558000000000001,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.4884,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.26,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.2799999999999998,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                -3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office records counter",
+              "center_gltf_m": [
+                -3.005,
+                0.5900000000000001,
+                -4.25
+              ],
+              "size_gltf_m": [
+                1.0699999999999998,
+                0.9,
+                2.9000000000000004
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale sign post",
+              "center_gltf_m": [
+                4.745,
+                1.3675000000000002,
+                -6.0
+              ],
+              "size_gltf_m": [
+                0.1899999999999995,
+                2.665,
+                0.1999999999999993
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Timber elevator",
+              "center_gltf_m": [
+                -16.0,
+                11.1675,
+                -15.975
+              ],
+              "size_gltf_m": [
+                10,
+                22.265,
+                10.349999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving shed front post",
+              "center_gltf_m": [
+                -20.23,
+                2.5175,
+                -7.04
+              ],
+              "size_gltf_m": [
+                0.38000000000000256,
+                4.965,
+                0.40000000000000036
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving shed front post",
+              "center_gltf_m": [
+                -11.78,
+                2.5175,
+                -7.04
+              ],
+              "size_gltf_m": [
+                0.379999999999999,
+                4.965,
+                0.40000000000000036
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 1 square core",
+              "center_gltf_m": [
+                1.4,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.7737988599166945,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 1 east/west shoulders",
+              "center_gltf_m": [
+                1.4,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779317,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 2 square core",
+              "center_gltf_m": [
+                9.36,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 2 east/west shoulders",
+              "center_gltf_m": [
+                9.36,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 3 square core",
+              "center_gltf_m": [
+                17.32,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 3 east/west shoulders",
+              "center_gltf_m": [
+                17.32,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 4 square core",
+              "center_gltf_m": [
+                25.279999999999998,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 4 east/west shoulders",
+              "center_gltf_m": [
+                25.279999999999998,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 5 square core",
+              "center_gltf_m": [
+                33.24,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 5 east/west shoulders",
+              "center_gltf_m": [
+                33.24,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.80243089177932,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 6 square core",
+              "center_gltf_m": [
+                41.199999999999996,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 6 east/west shoulders",
+              "center_gltf_m": [
+                41.199999999999996,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.8024308917793235,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rail loadout leg",
+              "center_gltf_m": [
+                33.62,
+                3.2475,
+                -23.855
+              ],
+              "size_gltf_m": [
+                0.35999999999999943,
+                6.425,
+                0.39000000000000057
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rail loadout leg",
+              "center_gltf_m": [
+                36.38,
+                3.2475,
+                -23.855
+              ],
+              "size_gltf_m": [
+                0.35999999999999943,
+                6.425,
+                0.39000000000000057
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "sign_panels": {
+            "sign_office": {
+              "rect_texels": [
+                0,
+                0,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_scale": {
+              "rect_texels": [
+                0,
+                172,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_wood": {
+              "rect_texels": [
+                0,
+                28,
+                192,
+                38
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_name": {
+              "texture": "signs.png",
+              "rect_texels": [
+                0,
+                70,
+                120,
+                30
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "bottom_edge_gltf_m": [
+                [
+                  15.110138965542482,
+                  23.08,
+                  -12.678709241140961
+                ],
+                [
+                  16.543999999999997,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  18.096,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  19.529861034457518,
+                  23.08,
+                  -12.678709241140961
+                ]
+              ]
+            },
+            "sign_trade": {
+              "texture": "signs.png",
+              "rect_texels": [
+                0,
+                104,
+                120,
+                30
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "bottom_edge_gltf_m": [
+                [
+                  23.07013896554248,
+                  23.08,
+                  -12.678709241140961
+                ],
+                [
+                  24.503999999999994,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  26.055999999999997,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  27.489861034457512,
+                  23.08,
+                  -12.678709241140961
+                ]
+              ]
+            }
+          },
+          "footprint_x_m": [
+            -25,
+            46
+          ],
+          "height_m": 44.71
+        },
+        {
+          "file": "lark-bend-1950-far.glb",
+          "lod": "far",
+          "visible_triangles": 1472,
+          "doors": {
+            "door_main": [
+              0,
+              0.14,
+              0.32
+            ],
+            "door_back": [
+              1.86,
+              0.14,
+              -6.4
+            ]
+          },
+          "colliders": [
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.3857999999999997,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.0284,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -1.63,
+                0.6950000000000001,
+                -5.99
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.1099999999999999,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -1.63,
+                1.8708,
+                -5.995
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.3558000000000001,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.4884,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.26,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.2799999999999998,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                -3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office records counter",
+              "center_gltf_m": [
+                -3.005,
+                0.5900000000000001,
+                -4.25
+              ],
+              "size_gltf_m": [
+                1.0699999999999998,
+                0.9,
+                2.9000000000000004
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale sign post",
+              "center_gltf_m": [
+                4.745,
+                1.3675000000000002,
+                -6.0
+              ],
+              "size_gltf_m": [
+                0.1899999999999995,
+                2.665,
+                0.1999999999999993
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Timber elevator",
+              "center_gltf_m": [
+                -16.0,
+                11.1675,
+                -15.975
+              ],
+              "size_gltf_m": [
+                10,
+                22.265,
+                10.349999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving shed front post",
+              "center_gltf_m": [
+                -20.23,
+                2.5175,
+                -7.04
+              ],
+              "size_gltf_m": [
+                0.38000000000000256,
+                4.965,
+                0.40000000000000036
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Receiving shed front post",
+              "center_gltf_m": [
+                -11.78,
+                2.5175,
+                -7.04
+              ],
+              "size_gltf_m": [
+                0.379999999999999,
+                4.965,
+                0.40000000000000036
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 1 square core",
+              "center_gltf_m": [
+                1.4,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.7737988599166945,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 1 east/west shoulders",
+              "center_gltf_m": [
+                1.4,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779317,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 2 square core",
+              "center_gltf_m": [
+                9.36,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 2 east/west shoulders",
+              "center_gltf_m": [
+                9.36,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 3 square core",
+              "center_gltf_m": [
+                17.32,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 3 east/west shoulders",
+              "center_gltf_m": [
+                17.32,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 4 square core",
+              "center_gltf_m": [
+                25.279999999999998,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 4 east/west shoulders",
+              "center_gltf_m": [
+                25.279999999999998,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 5 square core",
+              "center_gltf_m": [
+                33.24,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 5 east/west shoulders",
+              "center_gltf_m": [
+                33.24,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.80243089177932,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 6 square core",
+              "center_gltf_m": [
+                41.199999999999996,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 6 east/west shoulders",
+              "center_gltf_m": [
+                41.199999999999996,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.8024308917793235,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rail loadout leg",
+              "center_gltf_m": [
+                33.62,
+                3.2475,
+                -23.855
+              ],
+              "size_gltf_m": [
+                0.35999999999999943,
+                6.425,
+                0.39000000000000057
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rail loadout leg",
+              "center_gltf_m": [
+                36.38,
+                3.2475,
+                -23.855
+              ],
+              "size_gltf_m": [
+                0.35999999999999943,
+                6.425,
+                0.39000000000000057
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "sign_panels": {
+            "sign_office": {
+              "rect_texels": [
+                0,
+                0,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_scale": {
+              "rect_texels": [
+                0,
+                172,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_wood": {
+              "rect_texels": [
+                0,
+                28,
+                192,
+                38
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_name": {
+              "texture": "signs.png",
+              "rect_texels": [
+                0,
+                70,
+                120,
+                30
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "bottom_edge_gltf_m": [
+                [
+                  15.110138965542482,
+                  23.08,
+                  -12.678709241140961
+                ],
+                [
+                  16.543999999999997,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  18.096,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  19.529861034457518,
+                  23.08,
+                  -12.678709241140961
+                ]
+              ]
+            },
+            "sign_trade": {
+              "texture": "signs.png",
+              "rect_texels": [
+                0,
+                104,
+                120,
+                30
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "bottom_edge_gltf_m": [
+                [
+                  23.07013896554248,
+                  23.08,
+                  -12.678709241140961
+                ],
+                [
+                  24.503999999999994,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  26.055999999999997,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  27.489861034457512,
+                  23.08,
+                  -12.678709241140961
+                ]
+              ]
+            }
+          },
+          "footprint_x_m": [
+            -25,
+            46
+          ],
+          "height_m": 44.71
+        }
+      ]
+    },
+    {
+      "id": "1990",
+      "name": "Lark Bend Co-op",
+      "era": [
+        1990,
+        null
+      ],
+      "models": [
+        {
+          "file": "lark-bend-1990.glb",
+          "lod": "near",
+          "visible_triangles": 2920,
+          "doors": {
+            "door_main": [
+              0,
+              0.14,
+              0.32
+            ],
+            "door_back": [
+              1.86,
+              0.14,
+              -6.4
+            ]
+          },
+          "colliders": [
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.3857999999999997,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.0284,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -1.63,
+                0.6950000000000001,
+                -5.99
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.1099999999999999,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -1.63,
+                1.8708,
+                -5.995
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.3558000000000001,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.4884,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.26,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.2799999999999998,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                -3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office records counter",
+              "center_gltf_m": [
+                -3.005,
+                0.5900000000000001,
+                -4.25
+              ],
+              "size_gltf_m": [
+                1.0699999999999998,
+                0.9,
+                2.9000000000000004
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale sign post",
+              "center_gltf_m": [
+                4.745,
+                1.3675000000000002,
+                -6.0
+              ],
+              "size_gltf_m": [
+                0.1899999999999995,
+                2.665,
+                0.1999999999999993
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Silo 1 square core",
+              "center_gltf_m": [
+                1.4,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.7737988599166945,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 1 east/west shoulders",
+              "center_gltf_m": [
+                1.4,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779317,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 2 square core",
+              "center_gltf_m": [
+                9.36,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 2 east/west shoulders",
+              "center_gltf_m": [
+                9.36,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 3 square core",
+              "center_gltf_m": [
+                17.32,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 3 east/west shoulders",
+              "center_gltf_m": [
+                17.32,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 4 square core",
+              "center_gltf_m": [
+                25.279999999999998,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 4 east/west shoulders",
+              "center_gltf_m": [
+                25.279999999999998,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 5 square core",
+              "center_gltf_m": [
+                33.24,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 5 east/west shoulders",
+              "center_gltf_m": [
+                33.24,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.80243089177932,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 6 square core",
+              "center_gltf_m": [
+                41.199999999999996,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 6 east/west shoulders",
+              "center_gltf_m": [
+                41.199999999999996,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.8024308917793235,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rail loadout leg",
+              "center_gltf_m": [
+                33.62,
+                3.2475,
+                -23.855
+              ],
+              "size_gltf_m": [
+                0.35999999999999943,
+                6.425,
+                0.39000000000000057
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rail loadout leg",
+              "center_gltf_m": [
+                36.38,
+                3.2475,
+                -23.855
+              ],
+              "size_gltf_m": [
+                0.35999999999999943,
+                6.425,
+                0.39000000000000057
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear safety rail",
+              "center_gltf_m": [
+                -13.95,
+                0.741,
+                -23.74
+              ],
+              "size_gltf_m": [
+                14.6,
+                1.418,
+                0.17999999999999972
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Office waste cabinet",
+              "center_gltf_m": [
+                -4.505,
+                0.6425,
+                -4.824999999999999
+              ],
+              "size_gltf_m": [
+                0.8100000000000005,
+                1.215,
+                0.9500000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            }
+          ],
+          "sign_panels": {
+            "sign_office": {
+              "rect_texels": [
+                0,
+                0,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_scale": {
+              "rect_texels": [
+                0,
+                172,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_name": {
+              "texture": "signs.png",
+              "rect_texels": [
+                0,
+                70,
+                120,
+                30
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "bottom_edge_gltf_m": [
+                [
+                  15.110138965542482,
+                  23.08,
+                  -12.678709241140961
+                ],
+                [
+                  16.543999999999997,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  18.096,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  19.529861034457518,
+                  23.08,
+                  -12.678709241140961
+                ]
+              ]
+            },
+            "sign_trade": {
+              "texture": "signs.png",
+              "rect_texels": [
+                0,
+                138,
+                120,
+                30
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "bottom_edge_gltf_m": [
+                [
+                  23.07013896554248,
+                  23.08,
+                  -12.678709241140961
+                ],
+                [
+                  24.503999999999994,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  26.055999999999997,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  27.489861034457512,
+                  23.08,
+                  -12.678709241140961
+                ]
+              ]
+            }
+          },
+          "footprint_x_m": [
+            -25,
+            46
+          ],
+          "height_m": 44.71
+        },
+        {
+          "file": "lark-bend-1990-mid.glb",
+          "lod": "mid",
+          "visible_triangles": 1768,
+          "doors": {
+            "door_main": [
+              0,
+              0.14,
+              0.32
+            ],
+            "door_back": [
+              1.86,
+              0.14,
+              -6.4
+            ]
+          },
+          "colliders": [
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.3857999999999997,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.0284,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -1.63,
+                0.6950000000000001,
+                -5.99
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.1099999999999999,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -1.63,
+                1.8708,
+                -5.995
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.3558000000000001,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.4884,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.26,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.2799999999999998,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                -3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office records counter",
+              "center_gltf_m": [
+                -3.005,
+                0.5900000000000001,
+                -4.25
+              ],
+              "size_gltf_m": [
+                1.0699999999999998,
+                0.9,
+                2.9000000000000004
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale sign post",
+              "center_gltf_m": [
+                4.745,
+                1.3675000000000002,
+                -6.0
+              ],
+              "size_gltf_m": [
+                0.1899999999999995,
+                2.665,
+                0.1999999999999993
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Silo 1 square core",
+              "center_gltf_m": [
+                1.4,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.7737988599166945,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 1 east/west shoulders",
+              "center_gltf_m": [
+                1.4,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779317,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 2 square core",
+              "center_gltf_m": [
+                9.36,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 2 east/west shoulders",
+              "center_gltf_m": [
+                9.36,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 3 square core",
+              "center_gltf_m": [
+                17.32,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 3 east/west shoulders",
+              "center_gltf_m": [
+                17.32,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 4 square core",
+              "center_gltf_m": [
+                25.279999999999998,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 4 east/west shoulders",
+              "center_gltf_m": [
+                25.279999999999998,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 5 square core",
+              "center_gltf_m": [
+                33.24,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 5 east/west shoulders",
+              "center_gltf_m": [
+                33.24,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.80243089177932,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 6 square core",
+              "center_gltf_m": [
+                41.199999999999996,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 6 east/west shoulders",
+              "center_gltf_m": [
+                41.199999999999996,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.8024308917793235,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rail loadout leg",
+              "center_gltf_m": [
+                33.62,
+                3.2475,
+                -23.855
+              ],
+              "size_gltf_m": [
+                0.35999999999999943,
+                6.425,
+                0.39000000000000057
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rail loadout leg",
+              "center_gltf_m": [
+                36.38,
+                3.2475,
+                -23.855
+              ],
+              "size_gltf_m": [
+                0.35999999999999943,
+                6.425,
+                0.39000000000000057
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "sign_panels": {
+            "sign_office": {
+              "rect_texels": [
+                0,
+                0,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_scale": {
+              "rect_texels": [
+                0,
+                172,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_name": {
+              "texture": "signs.png",
+              "rect_texels": [
+                0,
+                70,
+                120,
+                30
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "bottom_edge_gltf_m": [
+                [
+                  15.110138965542482,
+                  23.08,
+                  -12.678709241140961
+                ],
+                [
+                  16.543999999999997,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  18.096,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  19.529861034457518,
+                  23.08,
+                  -12.678709241140961
+                ]
+              ]
+            },
+            "sign_trade": {
+              "texture": "signs.png",
+              "rect_texels": [
+                0,
+                138,
+                120,
+                30
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "bottom_edge_gltf_m": [
+                [
+                  23.07013896554248,
+                  23.08,
+                  -12.678709241140961
+                ],
+                [
+                  24.503999999999994,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  26.055999999999997,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  27.489861034457512,
+                  23.08,
+                  -12.678709241140961
+                ]
+              ]
+            }
+          },
+          "footprint_x_m": [
+            -25,
+            46
+          ],
+          "height_m": 44.71
+        },
+        {
+          "file": "lark-bend-1990-far.glb",
+          "lod": "far",
+          "visible_triangles": 1172,
+          "doors": {
+            "door_main": [
+              0,
+              0.14,
+              0.32
+            ],
+            "door_back": [
+              1.86,
+              0.14,
+              -6.4
+            ]
+          },
+          "colliders": [
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.9391999999999999,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3183999999999998,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                2.34,
+                0.685,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.0899999999999999,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                2.34,
+                1.8508,
+                -0.145
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.06999999999999999
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.7408,
+                1.835,
+                -0.14
+              ],
+              "size_gltf_m": [
+                0.3184,
+                3.3899999999999997,
+                0.24000000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                -3.3857999999999997,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.0284,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Window plinth",
+              "center_gltf_m": [
+                -1.63,
+                0.6950000000000001,
+                -5.99
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.1099999999999999,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed sash",
+              "center_gltf_m": [
+                -1.63,
+                1.8708,
+                -5.995
+              ],
+              "size_gltf_m": [
+                2.4832,
+                1.2416,
+                0.07000000000000028
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Full-height office pier",
+              "center_gltf_m": [
+                0.3558000000000001,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.4884,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "End office pier",
+              "center_gltf_m": [
+                3.26,
+                1.835,
+                -5.99
+              ],
+              "size_gltf_m": [
+                1.2799999999999998,
+                3.3899999999999997,
+                0.2400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                -3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office side wall",
+              "center_gltf_m": [
+                3.7800000000000002,
+                1.835,
+                -3.065
+              ],
+              "size_gltf_m": [
+                0.23999999999999977,
+                3.3899999999999997,
+                5.61
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Office records counter",
+              "center_gltf_m": [
+                -3.005,
+                0.5900000000000001,
+                -4.25
+              ],
+              "size_gltf_m": [
+                1.0699999999999998,
+                0.9,
+                2.9000000000000004
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                6.25,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.22000000000000064,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -1.14
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.23999999999999977
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale bollard",
+              "center_gltf_m": [
+                19.85,
+                0.4975,
+                -4.97
+              ],
+              "size_gltf_m": [
+                0.21999999999999886,
+                0.9249999999999999,
+                0.2400000000000002
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale sign post",
+              "center_gltf_m": [
+                4.745,
+                1.3675000000000002,
+                -6.0
+              ],
+              "size_gltf_m": [
+                0.1899999999999995,
+                2.665,
+                0.1999999999999993
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Silo 1 square core",
+              "center_gltf_m": [
+                1.4,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.7737988599166945,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 1 east/west shoulders",
+              "center_gltf_m": [
+                1.4,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779317,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 2 square core",
+              "center_gltf_m": [
+                9.36,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 2 east/west shoulders",
+              "center_gltf_m": [
+                9.36,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 3 square core",
+              "center_gltf_m": [
+                17.32,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 3 east/west shoulders",
+              "center_gltf_m": [
+                17.32,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 4 square core",
+              "center_gltf_m": [
+                25.279999999999998,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 4 east/west shoulders",
+              "center_gltf_m": [
+                25.279999999999998,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.802430891779316,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 5 square core",
+              "center_gltf_m": [
+                33.24,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 5 east/west shoulders",
+              "center_gltf_m": [
+                33.24,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.80243089177932,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 6 square core",
+              "center_gltf_m": [
+                41.199999999999996,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                5.773798859916695,
+                35.685,
+                7.802430891779316
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Silo 6 east/west shoulders",
+              "center_gltf_m": [
+                41.199999999999996,
+                17.877499999999998,
+                -16.0
+              ],
+              "size_gltf_m": [
+                7.8024308917793235,
+                35.685,
+                4.759482843985381
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rail loadout leg",
+              "center_gltf_m": [
+                33.62,
+                3.2475,
+                -23.855
+              ],
+              "size_gltf_m": [
+                0.35999999999999943,
+                6.425,
+                0.39000000000000057
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rail loadout leg",
+              "center_gltf_m": [
+                36.38,
+                3.2475,
+                -23.855
+              ],
+              "size_gltf_m": [
+                0.35999999999999943,
+                6.425,
+                0.39000000000000057
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "sign_panels": {
+            "sign_office": {
+              "rect_texels": [
+                0,
+                0,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_scale": {
+              "rect_texels": [
+                0,
+                172,
+                98,
+                24
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "texture": "signs.png"
+            },
+            "sign_name": {
+              "texture": "signs.png",
+              "rect_texels": [
+                0,
+                70,
+                120,
+                30
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "bottom_edge_gltf_m": [
+                [
+                  15.110138965542482,
+                  23.08,
+                  -12.678709241140961
+                ],
+                [
+                  16.543999999999997,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  18.096,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  19.529861034457518,
+                  23.08,
+                  -12.678709241140961
+                ]
+              ]
+            },
+            "sign_trade": {
+              "texture": "signs.png",
+              "rect_texels": [
+                0,
+                138,
+                120,
+                30
+              ],
+              "atlas_size_texels": [
+                256,
+                256
+              ],
+              "bottom_edge_gltf_m": [
+                [
+                  23.07013896554248,
+                  23.08,
+                  -12.678709241140961
+                ],
+                [
+                  24.503999999999994,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  26.055999999999997,
+                  23.08,
+                  -12.084784554110342
+                ],
+                [
+                  27.489861034457512,
+                  23.08,
+                  -12.678709241140961
+                ]
+              ]
+            }
+          },
+          "footprint_x_m": [
+            -25,
+            46
+          ],
+          "height_m": 44.71
+        }
+      ]
+    }
+  ]
+}

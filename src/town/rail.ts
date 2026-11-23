@@ -662,6 +662,26 @@ function layRail(w: RailWorld, site: TownSite, plan: TownPlan, extra: readonly R
     }
   }
 
+  // ---- the capital's grain elevator (the third intake: kotlin-street/docs/LANDMARKS_GLB.md): its own siding along its plot's back, between the plot and the
+  // main track (the model's `rail_siding` runs along its rear edge), leaving the main track towards the depot with a short lead
+  {
+    const ge = v2?.reserved.find((q) => q.id === 'glb:grain_elevator');
+    const main = out.tracks.filter((t) => t.kind !== 'siding');
+    if (ge && band && !band.horizontal && out.depot && main.length) {
+      const r = sh(ge);
+      const toTrack = band.track > r.x + r.w / 2 ? 1 : -1;
+      const sx = (toTrack > 0 ? r.x + r.w : r.x) + toTrack * 3.5;
+      const dir = band.depot.y > r.y + r.h / 2 ? 1 : -1;
+      const a = { x: sx, y: dir > 0 ? r.y + r.h : r.y }, b = { x: sx, y: dir > 0 ? r.y : r.y + r.h };
+      const lead0 = { x: band.track, y: a.y + dir * 8 };
+      if (clearSeg(a, b) && roadsOn(a, b) === 0 && clearSeg(lead0, a) && roadsOn(lead0, a) === 0) {
+        const near = (t: TownTrack): number => Math.min(...t.pts.map((q) => Math.hypot(q.x - lead0.x, q.y - lead0.y)));
+        const own = [...main].sort((p, q) => near(p) - near(q))[0]!;
+        out.tracks.push({ link: own.link, kind: 'siding', pts: [lead0, a, b] });
+      }
+    }
+  }
+
   // ---- level crossings: wherever a track runs over a street
   for (const t of out.tracks) {
     const link = links.find((l) => l.id === t.link)!;

@@ -1,0 +1,423 @@
+{
+ "name": "Dollar Cove",
+ "state": "landmark_glb_five_and_dime_2000",
+ "file": "marlow-2000.glb",
+ "doors": [
+  {
+   "node": "door_main",
+   "position": [
+    0,
+    0.12,
+    -0.57
+   ],
+   "external": true
+  },
+  {
+   "node": "door_back",
+   "position": [
+    3.28,
+    0.12,
+    -28.22
+   ],
+   "external": true
+  }
+ ],
+ "collision": {
+  "coordinate_note": "glTF Y-up metres, from the contributor info (near model)",
+  "boxes_gltf_y_up": [
+   {
+    "source": "Solid brick party wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -4.859999999999999,
+     3.94,
+     -14.0
+    ],
+    "size": [
+     0.28000000000000025,
+     7.64,
+     28.0
+    ]
+   },
+   {
+    "source": "Solid brick party wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     4.859999999999999,
+     3.94,
+     -14.0
+    ],
+    "size": [
+     0.28000000000000025,
+     7.64,
+     28.0
+    ]
+   },
+   {
+    "source": "Street-level masonry pier",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -4.765000000000001,
+     1.845,
+     -0.16
+    ],
+    "size": [
+     0.46999999999999975,
+     3.4499999999999997,
+     0.32
+    ]
+   },
+   {
+    "source": "Street-level masonry pier",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -1.1099999999999999,
+     1.845,
+     -0.16
+    ],
+    "size": [
+     0.26,
+     3.4499999999999997,
+     0.32
+    ]
+   },
+   {
+    "source": "Street-level masonry pier",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     1.1099999999999999,
+     1.845,
+     -0.16
+    ],
+    "size": [
+     0.26,
+     3.4499999999999997,
+     0.32
+    ]
+   },
+   {
+    "source": "Street-level masonry pier",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     4.765000000000001,
+     1.845,
+     -0.16
+    ],
+    "size": [
+     0.46999999999999975,
+     3.4499999999999997,
+     0.32
+    ]
+   },
+   {
+    "source": "Street display base",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -2.8850000000000002,
+     0.345,
+     -0.135
+    ],
+    "size": [
+     3.29,
+     0.44999999999999996,
+     0.27
+    ]
+   },
+   {
+    "source": "Street display pane",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -2.8850000000000002,
+     1.9200000000000002,
+     -0.148
+    ],
+    "size": [
+     3.29,
+     2.56,
+     0.09800000000000002
+    ]
+   },
+   {
+    "source": "Street display base",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     2.8850000000000002,
+     0.345,
+     -0.135
+    ],
+    "size": [
+     3.29,
+     0.44999999999999996,
+     0.27
+    ]
+   },
+   {
+    "source": "Street display pane",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     2.8850000000000002,
+     1.9200000000000002,
+     -0.148
+    ],
+    "size": [
+     3.29,
+     2.56,
+     0.09800000000000002
+    ]
+   },
+   {
+    "source": "Recessed shop entry return",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -1.1,
+     1.6400000000000001,
+     -0.615
+    ],
+    "size": [
+     0.28,
+     3.04,
+     0.69
+    ]
+   },
+   {
+    "source": "Recessed shop entry return",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     1.1,
+     1.6400000000000001,
+     -0.615
+    ],
+    "size": [
+     0.28,
+     3.04,
+     0.69
+    ]
+   },
+   {
+    "source": "Upper sash window",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -3.505,
+     5.925,
+     -0.151
+    ],
+    "size": [
+     1.0899999999999999,
+     1.7300000000000004,
+     0.09800000000000002
+    ]
+   },
+   {
+    "source": "Upper sash window",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     5.925,
+     -0.151
+    ],
+    "size": [
+     1.18,
+     1.7300000000000004,
+     0.09800000000000002
+    ]
+   },
+   {
+    "source": "Upper sash window",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     3.505,
+     5.925,
+     -0.151
+    ],
+    "size": [
+     1.0899999999999999,
+     1.7300000000000004,
+     0.09800000000000002
+    ]
+   },
+   {
+    "source": "Upper sash window",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -3.505,
+     5.925,
+     -27.86
+    ],
+    "size": [
+     1.0899999999999999,
+     1.7300000000000004,
+     0.09799999999999898
+    ]
+   },
+   {
+    "source": "Upper sash window",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     0.0,
+     5.925,
+     -27.86
+    ],
+    "size": [
+     1.18,
+     1.7300000000000004,
+     0.09799999999999898
+    ]
+   },
+   {
+    "source": "Upper sash window",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     3.505,
+     5.925,
+     -27.86
+    ],
+    "size": [
+     1.0899999999999999,
+     1.7300000000000004,
+     0.09799999999999898
+    ]
+   },
+   {
+    "source": "Receiving brick wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -1.215,
+     1.95,
+     -27.85
+    ],
+    "size": [
+     7.57,
+     3.6599999999999997,
+     0.3000000000000007
+    ]
+   },
+   {
+    "source": "Receiving brick wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     4.495,
+     1.95,
+     -27.85
+    ],
+    "size": [
+     1.0099999999999998,
+     3.6599999999999997,
+     0.3000000000000007
+    ]
+   },
+   {
+    "source": "West sales counter",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -2.8,
+     0.55,
+     -10.649999999999999
+    ],
+    "size": [
+     1.1999999999999997,
+     0.86,
+     12.499999999999998
+    ]
+   },
+   {
+    "source": "East sales counter",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     1.09,
+     0.55,
+     -11.7
+    ],
+    "size": [
+     1.04,
+     0.86,
+     13.200000000000001
+    ]
+   },
+   {
+    "source": "Rear service counter",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -4.02,
+     0.55,
+     -22.259999999999998
+    ],
+    "size": [
+     0.9999999999999996,
+     0.86,
+     7.080000000000002
+    ]
+   },
+   {
+    "source": "Loading bollard",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     2.26,
+     0.55,
+     -28.73
+    ],
+    "size": [
+     0.1900000000000004,
+     0.86,
+     0.17999999999999972
+    ]
+   },
+   {
+    "source": "Loading bollard",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     4.38,
+     0.55,
+     -28.73
+    ],
+    "size": [
+     0.1899999999999995,
+     0.86,
+     0.17999999999999972
+    ]
+   },
+   {
+    "source": "Rear refuse box",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     -3.3150000000000004,
+     0.65,
+     -28.52
+    ],
+    "size": [
+     1.35,
+     1.24,
+     0.8200000000000003
+    ]
+   }
+  ]
+ },
+ "lot_node": null,
+ "triangles_visible": 2796,
+ "source": "codex/five-and-dime model-info.json, flattened per state by tools/landmarks/intake.py"
+}
