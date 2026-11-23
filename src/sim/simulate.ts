@@ -1,3 +1,4 @@
+import { recipeOf, tradeOf } from '../town/recipe';
 import { advanceSettlement } from '../town/properties';
 import { archetypeOf, pickShop } from './archetype';
 import { runScenarios } from './scenarios';
@@ -131,7 +132,8 @@ function economy(c: Ctx): void {
   for (const b of openBusinesses(w)) {
     const owner = b.owner ? w.people[b.owner] : undefined;
     const skill = owner ? (owner.traits.diligence - 0.5) * 0.08 : 0;
-    const growth = -0.06 + rand(seed, y, 'biz', b.id) * 0.26 + skill;
+    // (a bypassed Main Street's lost passing trade: tradeOf below 1 for a world place's town, src/town/recipe.ts)
+    const growth = -0.06 + rand(seed, y, 'biz', b.id) * 0.26 + skill - Math.max(0, 1 - tradeOf(seed, y)) * 0.25;
     const profit = b.capital * growth;
     if (profit >= 0) {
       b.capital += profit * 0.6;
@@ -200,7 +202,10 @@ function immigration(c: Ctx): void {
   if (living(w).length > 500) return;
   // The town's character sets how many people move in (a mining town booms, then empties).
   const roll = Math.pow(rand(seed, y, 'immig-n'), 1 / archetypeOf(seed).immigration(y));
-  const n = roll < 0.5 ? 0 : roll < 0.9 ? 1 : 2;
+  let n = roll < 0.5 ? 0 : roll < 0.9 ? 1 : 2;
+  // (a world place's recipe scales the town's draw: a hamlet a fraction of a town's newcomers, a hub more)
+  const g = recipeOf(seed)?.people.growth;
+  if (g !== undefined) n = g < 1 ? (rand(seed, y, 'immig-g') < g ? n : 0) : n + (rand(seed, y, 'immig-g') < g - 1 ? 1 : 0);
   for (let i = 0; i < n; i++) {
     const id = `imm:${y}:${i}`;
     const age = 18 + Math.floor(rand(seed, id, 'age') * 28);
@@ -217,7 +222,7 @@ function foundings(c: Ctx): void {
   const seed = w.seed;
   const open = openBusinesses(w);
   // Town business capacity grows with the calendar, not with headcount (see births()).
-  const capacity = Math.round((8 + Math.floor((y - 1950) / 6)) * archetypeOf(seed).commerce);
+  const capacity = Math.round((8 + Math.floor((y - 1950) / 6)) * archetypeOf(seed).commerce * (recipeOf(seed)?.people.growth ?? 1) * tradeOf(seed, y));
   if (open.length >= capacity) return;
   const owners = new Set(open.map((b) => b.owner));
   for (const p of living(w)) {

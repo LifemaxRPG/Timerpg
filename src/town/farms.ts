@@ -3,6 +3,7 @@ import type { Rect, Road } from './kinds';
 import type { LandmarkPlot } from './landmarks';
 import type { TownPlan } from './plan';
 import { hitsWater } from './water';
+import { recipeOf } from './recipe';
 
 // THE FARMS round the town (kotlin-street/docs/TOWN.md "Farms"): farmsteads and their fields in the open country along the
 // roads out of town, a pure function of the seed's plan (rand(seed, 'farm', ...)).
@@ -121,7 +122,15 @@ export interface FarmPlan {
   /** The river past the map (tile rects), and the country roads' bridges over it. */
   water: Rect[];
   bridges: { rect: Rect; horizontal: boolean }[];
+  /** A world place's roads in (src/town/recipe.ts): where each world road crosses the farmland's edge ([worldAt], plan
+   * tiles along that side) and where the town's road meets it ([at]: the country road there, a spoke of the town's own
+   * within ENTRY_SNAP tiles, or a road laid out to it from the section road). Empty without a recipe. */
+  entries: { kind: string; road: string; side: Side; worldAt: number; at: number; spoke: string }[];
 }
+
+/** A world road crossing the farmland's edge this near (tiles) a country road the town has anyway meets that road (the
+ * world road's last stretch is bent to it, as the capital's pins bend the world's roads); further off, a road is laid. */
+export const ENTRY_SNAP = 40;
 
 // ------------------------------------------------------------------------------------------------ crops
 /** The crops our fields grow (crops.json `midwest`), by use. Corn and wheat are the field crops; the rest a truck farm's. */
@@ -212,6 +221,34 @@ export function planFarms(plan: TownPlan): FarmPlan {
     roads.push({ id: 'ring:S', kind: 'ring', side: 'W', root: -1, a: [x1, y1], b: [x0, y1] });
     roads.push({ id: 'ring:W', kind: 'ring', side: 'N', root: -1, a: [x0, y1], b: [x0, y0] });
   }
+  // a world place's roads in: each meets a country road at the farmland's edge (its own, or one laid from the section road)
+  const entries: FarmPlan['entries'] = [];
+  for (const [k, e] of (recipeOf(seed)?.entries ?? []).entries()) {
+    if (e.kind === 'rail' || e.kind === 'expressway') continue;
+    const horiz = e.side === 'N' || e.side === 'S';
+    const near = roads.filter((r) => r.kind === 'spoke' && r.side === e.side).map((r) => ({ r, at: horiz ? r.b[0] : r.b[1] }))
+      .sort((a, b) => Math.abs(a.at - e.at) - Math.abs(b.at - e.at))[0];
+    // (exactly where the world's road crosses the edge, a tenth of a tile: the world road never bends to the town)
+    const at = Math.round(e.at * 10) / 10;
+    if (near && Math.abs(near.at - at) < 0.05) { entries.push({ kind: e.kind, road: e.road, side: e.side, worldAt: e.at, at: near.at, spoke: near.r.id }); continue; }
+    const ringPt = (v: number): [number, number] => e.side === 'N' ? [v, -PERIM] : e.side === 'S' ? [v, H + PERIM] : e.side === 'W' ? [-PERIM, v] : [W + PERIM, v];
+    const lim = horiz ? [-PERIM + 2, W + PERIM - 2] : [-PERIM + 2, H + PERIM - 2];
+    if (near && Math.abs(near.at - at) <= ENTRY_SNAP && at >= lim[0]! && at <= lim[1]! && !near.r.id.startsWith('entry:')) {
+      // a country road of the town's own a little off: it runs out to the section road, and the road in leaves the section
+      // road where the world's road is (the jog at a section line the country roads of a surveyed land have)
+      near.r.b = ringPt(horiz ? near.r.a[0] : near.r.a[1]);
+    }
+    // (laid out from the section road round the town, which joins every road out; a crossing past the section road's
+    // span, near a corner, runs in on a slant to its end)
+    const inner = Math.max(lim[0]!, Math.min(lim[1]!, at));
+    const from: [number, number] = ringPt(at);
+    const edge: [number, number] = e.side === 'N' ? [at, -RING] : e.side === 'S' ? [at, H + RING] : e.side === 'W' ? [-RING, at] : [W + RING, at];
+    const id = `entry:${e.side}${k}`;
+    // (past the section road's corner: the section road runs on along its line to meet it; every road stays straight)
+    if (inner !== at) roads.push({ id: `${id}:ring`, kind: 'ring', side: e.side, root: -1, a: ringPt(inner), b: from });
+    roads.push({ id, kind: 'spoke', side: e.side, root: -1, a: from, b: edge });
+    entries.push({ kind: e.kind, road: e.road, side: e.side, worldAt: e.at, at, spoke: id });
+  }
   // bridges where a country road crosses the river past the map
   const bridges: { rect: Rect; horizontal: boolean }[] = [];
   for (const r of roads) for (const w of water) {
@@ -298,7 +335,7 @@ export function planFarms(plan: TownPlan): FarmPlan {
         rowsX: b.w >= b.h, gate: gateOf(b, farm.rect, plan.roads) });
     }
   }
-  const out: FarmPlan = { seed, roads, farms, fields, extent, water, bridges };
+  const out: FarmPlan = { seed, roads, farms, fields, extent, water, bridges, entries };
   cache.set(seed, out);
   return out;
 }
@@ -451,7 +488,7 @@ export function farmsIn(plan: TownPlan, year: number, d: Developed): FarmsYear {
   const fields = fp.fields.filter((f) => fieldClear(f, d)).map((f) => ({ ...f, crop: cropIn(f, year) }));
   const live = new Set(fields.map((f) => f.farm));
   const roads = fp.roads.map((r) => {
-    if (r.kind === 'ring') return r;
+    if (r.kind === 'ring' || r.root < 0) return r;
     const root = plan.roads[r.root]!;
     if (d.roads.some((b) => b.x === root.x && b.y === root.y && b.w === root.w && b.h === root.h)) return r;
     // the street it continues is not built yet: run on along its line to the first built street

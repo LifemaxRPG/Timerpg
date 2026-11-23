@@ -1,4 +1,5 @@
 import { archetypeOf } from '../sim/archetype';
+import { recipeOf } from './recipe';
 import { rand } from '../sim/rng';
 import type { Rect, Road } from './plan';
 
@@ -143,6 +144,9 @@ export function waterKind(seed: string): 'none' | 'river' | 'lake' {
  */
 function waterRoll(seed: string): number {
   const r = rand(seed, 'water', 'kind');
+  // (a town with a recipe has the world's water: a roll inside that kind's band)
+  const kind = recipeOf(seed)?.water;
+  if (kind) return kind === 'none' ? r * 0.27 : kind === 'river' ? 0.28 + r * 0.43 : 0.72 + r * 0.28;
   const t = archetypeOf(seed).id;
   if (t === 'harbor') return 0.28 + r * 0.72;
   if (t === 'resort') return 0.72 + r * 0.28;

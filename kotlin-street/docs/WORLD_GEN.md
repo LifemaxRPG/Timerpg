@@ -1311,8 +1311,11 @@ expressway ribbons in 1990 and none in 1930.
 - **The capital's continent's network is complete by 1960**: the staging puts the busiest corridors first, and that
   continent is the busiest. If the owner wants to watch the capital's expressways arrive during play, push its later legs
   (or its beltway, 1961-65) later.
-- Connectors run straight from the interchange to the town's centre (the town generator should end them at its own
-  street grid). Frontage roads are offsets of the expressway line, not routed.
-- Rest-area and site positions are on the expressway's line; placing their lots beside it is the placement job's.
+- ~~Connectors run straight~~ (fixed 2026-11-23, TOWNS_EVERYWHERE.md): routed on the land under 7% and filleted; a
+  baked town's own roads take over at its ground's edge. Frontage roads are offsets of the expressway line, not routed.
+- ~~Rest-area and site positions are on the expressway's line~~ (fixed 2026-11-23): rest areas and weigh stations stand
+  beside the carriageway, the interchange sites in the quadrants round their exit.
+- ~~Beltways are circles~~ (fixed 2026-11-23): each anchor at its own distance on open, gentle ground off rivers and
+  cores, the loop a smooth spline through them (TOWNS_EVERYWHERE.md, "Highways").
 - The interchanges near the old highways sometimes merge (1.5 km rule) onto a crossing a little off the town's own
   road; the town's connector then runs to the centre from there.

@@ -16,6 +16,8 @@ kotlin-street/local.properties
 kotlin-street/**/build/
 kotlin-street/**/.cxx/
 kotlin-street/.gradle/
+# Baked towns for every world place (kotlin-street/tools/towns-bake.ts): a build artifact
+kotlin-street/build-towns/
 
 # llama.cpp source (fetched by kotlin-street/tools/get-llama.sh)
 kotlin-street/third_party/

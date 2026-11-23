@@ -2,6 +2,7 @@ import { archetypeOf, pickShop } from './archetype';
 import { BUSINESS_KINDS, FEMALE_NAMES, MALE_NAMES, SURNAMES } from './names';
 import { clamp01, pick, rand, rngFor } from './rng';
 import type { Business, Person, World } from './types';
+import { recipeOf } from '../town/recipe';
 
 /**
  * Creates one person. Everything about them (sex, name, traits) is derived from
@@ -37,13 +38,16 @@ export function makePerson(
   };
 }
 
-const FOUNDING_FAMILIES = 22;
-const FOUNDING_SINGLES = 8;
-const FOUNDING_BUSINESSES = 8;
+const FAMILIES = 22;
+const SINGLES = 8;
+const BUSINESSES = 8;
 
 /** Builds the starting town (ids prefixed `gen:`). Deterministic in `seed`. */
 export function generateWorld(seed: string, startYear = 1950): World {
   const world: World = { seed, year: startYear, people: {}, businesses: {}, bonds: {} };
+  // (a town with a recipe starts with its rank's people: a hamlet a handful of families, a hub more than the usual town)
+  const rp = recipeOf(seed)?.people;
+  const FOUNDING_FAMILIES = rp?.families ?? FAMILIES, FOUNDING_SINGLES = rp?.singles ?? SINGLES, FOUNDING_BUSINESSES = rp?.businesses ?? BUSINESSES;
   const add = (p: Person): Person => {
     p.wealth = p.birthYear < startYear - 18 ? Math.round((5 + Math.floor(rand(seed, 'wealth', p.id) * 35)) * archetypeOf(seed).wealth) : 0;
     world.people[p.id] = p;

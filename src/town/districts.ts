@@ -476,6 +476,10 @@ function fill(p: Plat): Districts {
       default:
         break;
     }
+    // a hamlet's houses also front its cross street (the road to the next place), turned to face it
+    if (p.size === 'H' && b.district !== 'square' && b.district !== 'core' && b.district !== 'strip') {
+      for (const f of ['E', 'W'] as Face[]) if (b.faces.includes(f)) face(b, f, one(f, 'house', 'house', 'small'), g(2, 4), true);
+    }
   }
   function oldAlley(b: Block): void {
     const mine = lots.filter((l) => inside(l, b));
@@ -493,6 +497,8 @@ function fill(p: Plat): Districts {
     l.order = (l.kind === 'shop' ? (l.district === 'core' || l.district === 'square' ? 0 : 100) : BASE[l.district] ?? 900) + d + R('rank', l.id) * 6;
   }
   lots.sort((a, b) => a.order - b.order || (a.id < b.id ? -1 : 1));
+  // (a hamlet has no back lanes: its blocks are fields behind the houses on its two roads)
+  if (p.size === 'H') alleys.length = 0;
   return { lots, reserved, alleys, plaza };
 }
 

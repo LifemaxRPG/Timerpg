@@ -1,5 +1,6 @@
 import { archetypeOf, foundedOf } from '../sim/archetype';
 import { pick, rand, rngFor } from '../sim/rng';
+import { recipeOf } from '../town/recipe';
 
 // Town names, pure in the town's seed: "Maplefield", "Cedar Falls", "Port Willow", "Mount Amber".
 const FIRST = [
@@ -12,6 +13,9 @@ const ENDINGS = ['field', 'ton', 'ford', 'dale', 'wood', 'haven', 'ville', 'burg
 const SECOND = ['Falls', 'Springs', 'Heights', 'Crossing', 'Junction', 'Hollow', 'Landing', 'Bluffs', 'Meadows', 'Corners', 'Grove', 'Point'] as const;
 
 export function townName(seed: string): string {
+  // (a world place's town has the planet's name for it: src/world/gen/names.ts)
+  const named = recipeOf(seed)?.name;
+  if (named) return named;
   const r = rngFor(seed, 'town-name');
   const style = r();
   // A harbor town sounds like one, a mining town like another (see sim/archetype.ts).

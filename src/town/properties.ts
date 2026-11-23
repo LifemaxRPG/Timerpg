@@ -1,3 +1,4 @@
+import { recipeOf } from './recipe';
 import { neighborhoodOf } from './neighborhoods';
 import { rand } from '../sim/rng';
 import { isAlive, type Id, type World } from '../sim/types';
@@ -109,6 +110,10 @@ export function advanceSettlement(w: World): void {
     if (!lot) {
       const candidates = plan.candidates.filter((c) => c.kind !== 'shop' && !bySlot.has(c.id));
       const c = candidates.find((c) => c.kind === preferred.tier) ?? candidates[0];
+      // (a world place's small town, a hamlet, can have more households than its plan's homes: the newest doubles up in
+      // the home with the fewest households, as families did, rather than the town growing past its rank)
+      const crowd = !c && recipeOf(w.seed) ? properties.filter((l) => l.tier !== 'shop').sort((a, b) => a.heads.length - b.heads.length || rank.get(a.slot)! - rank.get(b.slot)!)[0] : undefined;
+      if (crowd) { occupy(crowd, head); continue; }
       if (!c) throw new Error(`Housing capacity exhausted in ${w.seed}, ${w.year}: ${head}`);
       lot = construct(c, preferred);
     }

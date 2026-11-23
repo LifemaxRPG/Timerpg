@@ -106,6 +106,14 @@ fun renderFilamentTown(out: String) {
     if (coldOnly) { File(dir, "town.txt").writeText(report.toString()); return }
     val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, cinema = cinema, stores = storeSites)
     if (System.getProperty("townYards") == "placeholder") ft.yardBuilder = PlaceholderYards
+    // (-Dfarms=1: the farms round the town, as the app attaches them: a generated town's fields up to its last houses)
+    if (System.getProperty("farms") == "1") {
+        val farmDir = File("../app/src/main/assets/farm")
+        val farmData = com.lifemax.rpg.feature.habits.domain.TownFarmsData.parse(root)
+        if (!farmData.isEmpty) com.lifemax.rpg.feature.habits.presentation.scene3d.TownFarms.attach(ft, farmData,
+            com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt({ p -> open(File(farmDir, p)) }, { p -> File(farmDir, p).takeIf { it.exists() }?.readText() }, { p -> open(File(assets, p)) }),
+            null, day = 200)
+    }
     // (each shot is one frame: every building's windows lit for its hour in it, not a few a frame as the game does)
     ft.nightBudgetNs = Long.MAX_VALUE
     ft.sheetsOnWorker = false
@@ -188,6 +196,15 @@ fun renderFilamentTown(out: String) {
     shoot("aerial_13h", TownFrame.aerial(mx, mz, 0f, 52f, 13000f, 45f, aw.toFloat(), ah.toFloat()), 13f)
     shoot("aerial_dusk", TownFrame.aerial(mx, mz, 0f, 52f, 13000f, 45f, aw.toFloat(), ah.toFloat()), dusk)
     shoot("aerial_top", TownFrame.aerial(mx, mz, 0f, 89f, 11500f, 45f, aw.toFloat(), ah.toFloat()), 13f)
+    // (any town, -Dtown=DIR: the whole built town framed by its own size, from above and from an oblique angle; the
+    // aerials above are framed for the capital. -Dyaw= turns the oblique view)
+    run {
+        val span = maxOf(tb[2] - tb[0], (tb[3] - tb[1]) * aw / ah.toFloat())
+        val yaw = System.getProperty("yaw")?.toFloatOrNull() ?: 20f
+        shoot("fit_top", TownFrame.aerial(mx, mz, 0f, 89f, span * 0.95f, 45f, aw.toFloat(), ah.toFloat()), 13f)
+        shoot("fit_oblique", TownFrame.aerial(mx, mz, yaw, 40f, span * 0.75f, 45f, aw.toFloat(), ah.toFloat()), 15f)
+        shoot("fit_low", TownFrame.aerial(mx, mz, yaw + 150f, 22f, span * 0.45f, 45f, aw.toFloat(), ah.toFloat()), 16f)
+    }
     val plaza = town.plaza
     val civic = town.road(town.civicRoad ?: 8)
     val cx = civic.pts.first().x
