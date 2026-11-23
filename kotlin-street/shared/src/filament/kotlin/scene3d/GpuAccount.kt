@@ -11,12 +11,28 @@ import com.google.android.filament.Texture
  * The bytes are what the formats take (a mip chain a third more; ASTC 4x4 one byte a texel), not what the driver pads to.
  */
 object GpuAccount {
-    class Entry(val owner: String, val w: Int, val h: Int, val format: String, val levels: Int, val bytes: Long)
+    /** [exact]: for an ASTC texture, the share of its level 0's blocks stored exactly; -1 for any other. */
+    class Entry(val owner: String, val w: Int, val h: Int, val format: String, val levels: Int, val bytes: Long, val exact: Double = -1.0)
 
     private val live = java.util.Collections.synchronizedMap(java.util.IdentityHashMap<Texture, Entry>())
 
-    internal fun add(t: Texture, w: Int, h: Int, format: String, levels: Int, bytes: Long) {
-        live[t] = Entry(owner(), w, h, format, levels, bytes)
+    internal fun add(t: Texture, w: Int, h: Int, format: String, levels: Int, bytes: Long, exact: Double = -1.0) {
+        live[t] = Entry(owner(), w, h, format, levels, bytes, exact)
+    }
+
+    /**
+     * What the textures would take if only the ASTC pictures with at least [min] of their blocks exact stayed ASTC (the
+     * rest RGBA8 with their mip levels, as before): "min: MB" for each, to choose [TownQuality.astcExact].
+     */
+    fun policies(vararg min: Double): String {
+        val e = entries()
+        return min.joinToString(", ") { m ->
+            val b = e.sumOf { x ->
+                if (x.exact < 0 || x.exact >= m) x.bytes
+                else { var s = 0L; for (l in 0 until x.levels) s += maxOf(1, x.w shr l).toLong() * maxOf(1, x.h shr l) * 4; s }
+            }
+            "%.0f%% exact: %s MB".format(java.util.Locale.US, m * 100, mb(b))
+        }
     }
 
     internal fun remove(t: Texture) { live.remove(t) }

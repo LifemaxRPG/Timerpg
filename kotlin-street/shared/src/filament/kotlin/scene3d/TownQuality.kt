@@ -20,6 +20,11 @@ object TownQuality {
      * blocks of one or two colours exact, the rest near) and masks stored exactly. Off: RGBA8 as before, every pixel exact.
      */
     @Volatile var astc = true
+    /**
+     * The least share of a picture's 4 x 4 blocks that ASTC must keep exact for the picture to be made ASTC (the rest stay
+     * RGBA8, every pixel as drawn): 0 makes every picture ASTC (near: the blocks of three or more colours approximated).
+     */
+    @Volatile var astcExact = 0.0
 
     /**
      * The open world's drawing resolution (the AI panel's "Resolution"): [RES_AUTO] (the default) draws at the screen's

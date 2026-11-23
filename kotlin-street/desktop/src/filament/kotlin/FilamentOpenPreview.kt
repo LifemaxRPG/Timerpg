@@ -69,6 +69,7 @@ fun renderFilamentOpen(out: String) {
     com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.stats = System.getProperty("texStats") != null
     // (-Dastc=0: the pictures as RGBA8, as before ASTC, to compare)
     com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astc = System.getProperty("astc") != "0"
+    System.getProperty("astcExact")?.toDoubleOrNull()?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astcExact = it }
     Filament.init()
     val engine = Engine.Builder().backend(Engine.Backend.OPENGL).config(com.lifemax.rpg.feature.habits.presentation.scene3d.TownEngine.config()).build()
     val mats = File("../app/src/main/assets/filament")
@@ -117,7 +118,10 @@ fun renderFilamentOpen(out: String) {
     ft.textureStats.let { (n, t, sh) -> report.appendLine("textures after the build: %d, %.1fM texels, %d shared; biggest: %s".format(n, t / 1e6, sh, ft.biggestTextures(10))) }
     // the GPU memory account (TOWN.md "GPU memory"): every texture by owner and format, the shadow map and targets
     report.appendLine(com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.line())
-    report.appendLine("ASTC level 0: " + com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.level0.line() + "; mip levels: " + com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.mips.line())
+    report.appendLine("ASTC encoding: %.1f s over all threads".format(com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.nanos.get() / 1e9))
+    report.appendLine("ASTC level 0: " + com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.level0.line() + "; mip levels: " + com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.mips.line() +
+        "; pictures by exact blocks: " + com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.histogram())
+    report.appendLine("textures if only pictures this exact stayed ASTC: " + com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.policies(0.0, .8, .9, .95, .99, 1.0))
     report.appendLine("this GL's compressed formats: ASTC 4x4 " + com.google.android.filament.Texture.isTextureFormatSupported(engine, com.google.android.filament.Texture.InternalFormat.SRGB8_ALPHA8_ASTC_4x4) +
         ", ETC2 " + com.google.android.filament.Texture.isTextureFormatSupported(engine, com.google.android.filament.Texture.InternalFormat.ETC2_EAC_SRGBA8) +
         ", BC7 " + com.google.android.filament.Texture.isTextureFormatSupported(engine, com.google.android.filament.Texture.InternalFormat.SRGB_ALPHA_BPTC_UNORM))

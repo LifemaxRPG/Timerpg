@@ -96,15 +96,23 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
         if (p.empty) { shared++; return black }
         val key = p.key ?: return build(p.buf, p.w, p.h, p.linear, false, p.fmt)
         byContent[key]?.let { shared++; return it }
-        return build(p.buf, p.w, p.h, p.linear, key.mips, p.fmt).also { byContent[key] = it }
+        // (one [prepare] left unencoded, its picture made already, but by another set of textures: encoded now)
+        val q = if (p.src != null) prepare(p.src, p.w, p.h, p.linear, mips = true, again = true) else p
+        lastExact = q.exact
+        return build(q.buf, q.w, q.h, q.linear, key.mips, q.fmt).also { byContent[key] = it; madeKeys += key }
     }
+    private var lastExact = -1.0
 
     /**
      * A picture ready for the GPU: its bytes as Filament takes them ([fmt]: its channels) and, for one never updated, its
      * content's key; [empty]: a mask with nothing in it (made as the plain black texture).
      */
     class Prepared internal constructor(internal val buf: ByteBuffer, val w: Int, val h: Int, val linear: Boolean, internal val key: ContentKey?,
-        internal val fmt: Fmt = Fmt.RGBA8, internal val empty: Boolean = false)
+        internal val fmt: Fmt = Fmt.RGBA8, internal val empty: Boolean = false,
+        /** Left unencoded (its picture is made already, [madeKeys]): the pixels, should it need making after all. */
+        internal val src: IntArray? = null,
+        /** For ASTC, the share of its level 0's blocks stored exactly ([Astc]); -1 for any other. */
+        internal val exact: Double = -1.0)
 
     /**
      * A texture's channels. A mask (street_lit.mat's `mask`: red a lamp's light, green glass, blue a lit display, alpha
@@ -168,7 +176,7 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
         }
         made += t
         gpu.textures.addAndGet(off.toLong())
-        GpuAccount.add(t, w, h, if (s) "SRGB_ASTC_4x4" else "ASTC_4x4", levels, off.toLong())
+        GpuAccount.add(t, w, h, if (s) "SRGB_ASTC_4x4" else "ASTC_4x4", levels, off.toLong(), lastExact)
         com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.bytes += off
         return t
     }
@@ -190,6 +198,7 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     /** Frees what was made from the street's pictures; [all] also the plain white and black. */
     fun destroy(all: Boolean = false) {
         for (t in made) if (all || (t !== white && t !== black)) { engine.destroyTexture(t); GpuAccount.remove(t); fmts.remove(t) }
+        madeKeys.removeAll(byContent.keys)
         made.clear(); byImage.clear(); warmed.clear(); byContent.clear()
         gpu.textures.set(0L)
         if (!all) { made += white; made += black; gpu.textures.set(8L) }
@@ -200,13 +209,26 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
          * Packs [px] for [make] (any thread: no engine call): [mips] for a picture never updated, which is then shared by
          * its content.
          */
-        fun prepare(px: IntArray, w: Int, h: Int, linear: Boolean = false, mips: Boolean = false): Prepared {
+        fun prepare(px: IntArray, w: Int, h: Int, linear: Boolean = false, mips: Boolean = false): Prepared = prepare(px, w, h, linear, mips, false)
+
+        internal fun prepare(px: IntArray, w: Int, h: Int, linear: Boolean, mips: Boolean, again: Boolean): Prepared {
             if (!mips) return Prepared(pack(px, w, h), w, h, linear, null)
             val key = ContentKey(w, h, linear, px.contentHashCode(), hash64(px))
-            // (a picture never updated, on a GPU that reads ASTC: encoded here, with its mip levels, on the caller's thread)
-            if (useAstc) return Prepared(Astc.encodeChain(px, w, h, levelsOf(w, h), srgb = !linear), w, h, linear, key, Fmt.ASTC)
+            if (useAstc) {
+                // (a picture made already: its texture is shared by its content, so it is not encoded again)
+                if (!again && key in madeKeys) return Prepared(EMPTY, w, h, linear, key, Fmt.ASTC, src = px)
+                // a picture never updated, on a GPU that reads ASTC: encoded here, with its mip levels, on the caller's
+                // thread; kept RGBA8 if fewer of its blocks than [TownQuality.astcExact] would be exact
+                val st = Astc.Stats()
+                val buf = Astc.encodeChain(px, w, h, levelsOf(w, h), srgb = !linear, stats = st, level0Only = true)
+                val share = st.exact.toDouble() / (st.exact + st.near).coerceAtLeast(1)
+                if (share >= TownQuality.astcExact) return Prepared(buf, w, h, linear, key, Fmt.ASTC, exact = share)
+            }
             return Prepared(pack(px, w, h), w, h, linear, key)
         }
+
+        /** The content keys of the pictures made (by any set of textures): [prepare] leaves these unencoded. */
+        private val madeKeys: MutableSet<ContentKey> = java.util.concurrent.ConcurrentHashMap.newKeySet()
 
         /** A full mip chain's levels for [w] x [h]. */
         fun levelsOf(w: Int, h: Int): Int = 32 - Integer.numberOfLeadingZeros(maxOf(w, h))
@@ -227,7 +249,7 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
             if (fmt == null) return Prepared(EMPTY, w, h, linear, null, Fmt.R8, empty = true)
             val key = ContentKey(w, h, linear, px.contentHashCode(), hash64(px), mips = false)
             // (a mask stored exactly in ASTC, every block of it one or two colours: a byte a texel, the same values)
-            if (useAstc && fmt != Fmt.R8 && Astc.exact(px, w, h)) return Prepared(Astc.encodeChain(px, w, h, 1, srgb = false), w, h, linear, key, Fmt.ASTC)
+            if (useAstc && fmt != Fmt.R8 && Astc.exact(px, w, h)) return Prepared(Astc.encodeChain(px, w, h, 1, srgb = false), w, h, linear, key, Fmt.ASTC, exact = 1.0)
             return Prepared(pack(px, w, h, fmt), w, h, linear, key, fmt)
         }
 
@@ -290,6 +312,7 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
                     Fmt.RGBA8 -> buf.put((c shr 16).toByte()).put((c shr 8).toByte()).put(c.toByte()).put((c ushr 24).toByte())
                     Fmt.RG8 -> buf.put((c shr 16).toByte()).put((c shr 8).toByte())
                     Fmt.R8 -> buf.put((c shr 16).toByte())
+                    Fmt.ASTC -> error("ASTC is encoded, not packed")
                 }
             }
             buf.flip()
