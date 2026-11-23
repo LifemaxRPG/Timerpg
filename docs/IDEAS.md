@@ -763,3 +763,13 @@ Airports and aircraft exist, but **flying is hard.** It must never cheapen cross
   world, with smuggling and theft as possibilities, run through the crime systems.
 - **Open question for the owner:** commercial passenger flights. Can the player buy a ticket and ride as a
   passenger, sitting through the flight in real time as on trains and ships? Or is all flying piloted by the player?
+- **Passports gate commercial flights** (the owner, 2026-11-23). Flying between continents on a passenger airline needs
+  a passport, which keeps air travel for the late game:
+  - **Getting a real one** takes documents, money, waiting and a clean record: a wanted player is flagged at the
+    counter. It follows the era, with passports standard from about the 1920s and air travel expensive early.
+  - **Getting a forged one** is hard and shady. It takes connections (forgers, corrupt clerks), government access, or
+    other routes the systems allow. A forgery can be caught, by era.
+  - **An erased player** (the unanchored rules) has no identity, so only the shady routes are left.
+  - **Keep the sea open.** The opening needs a sea crossing to reach the capital. Suggested: passenger liners check
+    papers, but working passage as crew, cargo ships, ferries, fishing boats and your own boat don't (or check
+    loosely). That way sailing stays the early-game route and flying the late-game shortcut.
