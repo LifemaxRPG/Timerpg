@@ -1,0 +1,65 @@
+[
+  {
+    "file": "alderwick-1928.glb",
+    "triangles": 2896,
+    "materials": 6,
+    "max_uv_edge_error_m": 8.167266845049426e-07,
+    "nodes_checked": 24
+  },
+  {
+    "file": "alderwick-1928-mid.glb",
+    "triangles": 898,
+    "materials": 6,
+    "max_uv_edge_error_m": 8.167266845049426e-07,
+    "nodes_checked": 24
+  },
+  {
+    "file": "alderwick-1928-far.glb",
+    "triangles": 140,
+    "materials": 2,
+    "max_uv_edge_error_m": 3.051757810901279e-07,
+    "nodes_checked": 24
+  },
+  {
+    "file": "fenmere-1938.glb",
+    "triangles": 2558,
+    "materials": 5,
+    "max_uv_edge_error_m": 7.980346685698692e-07,
+    "nodes_checked": 27
+  },
+  {
+    "file": "fenmere-1938-mid.glb",
+    "triangles": 852,
+    "materials": 5,
+    "max_uv_edge_error_m": 7.197380069712267e-07,
+    "nodes_checked": 27
+  },
+  {
+    "file": "fenmere-1938-far.glb",
+    "triangles": 136,
+    "materials": 2,
+    "max_uv_edge_error_m": 3.5063856207440125e-07,
+    "nodes_checked": 27
+  },
+  {
+    "file": "northcairn-1956.glb",
+    "triangles": 2820,
+    "materials": 6,
+    "max_uv_edge_error_m": 7.383298305380093e-07,
+    "nodes_checked": 31
+  },
+  {
+    "file": "northcairn-1956-mid.glb",
+    "triangles": 1090,
+    "materials": 6,
+    "max_uv_edge_error_m": 6.820340427982075e-07,
+    "nodes_checked": 31
+  },
+  {
+    "file": "northcairn-1956-far.glb",
+    "triangles": 136,
+    "materials": 3,
+    "max_uv_edge_error_m": 5.600929260385357e-07,
+    "nodes_checked": 31
+  }
+]
