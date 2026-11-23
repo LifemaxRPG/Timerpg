@@ -980,3 +980,29 @@ Desktop numbers (llvmpipe, the whole gamma town built as the app builds it), NOT
 - **On the phone, check**: the breadcrumbs' `GPU textures` line (ASTC formats listed, about 650-670 MB) and the graphics
   PSS against the earlier 1031 MB; that pixel art looks the same (Compressed vs Exact in the AI panel; the town must be
   rebuilt to switch); the first start's first view against later starts (the cache); townMemory's held peak on a warm start.
+
+## Walkable heights, the arch's flicker and the trees' two levels (2026-11-23, the owner's S25 screenshots 164138, 164212, 163251)
+
+- **Steps and terraces** (`domain/WalkLevels.kt`): the open walk was flat, so the Great Meridian's broad steps on Main Street
+  stopped the player (its drawn steps were walk outlines cut at 16, 25 and 34 units). Each hand-made landmark now has a
+  `LevelField`: solid spans (y0..y1) over a 3-unit grid in the model's frame, made on the landmark's worker from its drawn
+  triangles (tops and bottoms sampled at cell middles, upright faces drawn along their foot a quarter cell thick, water as
+  a wall) and its listed collision boxes with their heights (not the info files' one-block flights of steps). The walk
+  (`OpenWalk.levelMove`) climbs a riser up to `WalkHeight.RISE` (14 units, 0.66 m: the Meridian's risers are 0.53 m and,
+  where a tread dips behind its nosing, 0.62 m), is blocked by solid between that and the head (34 units), follows the
+  steps down, and falls off a higher edge (207 units/s2). The landmark's flat outlines stay in `TownCollision` for the
+  cars and the people, marked `STEPPED` so the walk on foot leaves them to the field. The figure (`TownFigure.y`), the
+  camera (eased, `TownRun.CAM_RISE`), the cutaway's lines and the see-through cone follow the feet; a landmark the player
+  stands on is not cut away whole (they would float over the grass), the cone cuts what hides them. Memory: heights in
+  quarter units as shorts, plain or one-top tiles kept small: 38 MB for gamma's 35 models on the desktop (the Eyrie 13 MB).
+- **The flicker on the arch while walking**: the S25 drew with Filament's dynamic resolution moving the scale every frame
+  (GPU over 16.7 ms in half the frames), and each scale lays the screen over the nearest-sampled pixel art differently, so
+  the coffered vault crawled. The automatic resolution is now `ResolutionSteps`: one of 1, 0.86, 0.72, held, stepped down
+  after 1.5 s over budget, up after 6 s with room, never within 4 s of the last change (desktop: `-DseqScales` shows both).
+- **Trees half drawn**: the simple level (past `LOD_DETAIL`) was a different, sparser tree (fewer lobes from a different
+  run of the seeded choices, no limbs), so crowns floated off their trunks and every cell swapped shape at 800 units. Both
+  levels now grow the same tree (every lobe and limb, the same seeded choices), the simple one coarser; a cell keeps its
+  detail 120 units past the line it came in at; the detail is shown only once its whole cell is up.
+- Desktop tools (`-Dmode=filament-open -Dshots=at -Dat=...`): `-Dseq=frames,every,hx,hz` plays on frame by frame as the
+  app does, `-DseqViews=yaw:pitch:dist;...` renders the end spot from other sides, `-DlevelProbe=dx,dz,len` prints the
+  height fields along a line, `-DtreeLevel=1|2` forces every tree cell to detail or simple, `-DseqScales`, `-DseqNoShadow`.

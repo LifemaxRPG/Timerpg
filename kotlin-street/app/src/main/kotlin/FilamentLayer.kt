@@ -320,6 +320,8 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
     private var lastN = -1L
     private var dirty = true
     private val history = Array(4) { Renderer.FrameInfo() }
+    /** When the last frame started (ns), for the automatic resolution's clock. */
+    private var lastFrameNs = 0L
     private val onFrame: () -> Unit = { frame() }
 
     init {
@@ -407,6 +409,16 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             val got = r.getFrameInfoHistory(history)
             val g = if (got > 0 && history[0].gpuFrameDuration > 0) history[0].gpuFrameDuration / 1e6f else -1f
             FilamentStats.add(cpu, g)
+            // (the automatic resolution: a held step, changed only after seconds over or well under the GPU's budget)
+            if (townMode) {
+                val tq = com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality
+                val dt = if (lastFrameNs == 0L) 0f else ((t0 - lastFrameNs) / 1e9f).coerceAtMost(.25f)
+                lastFrameNs = t0
+                if (tq.resolution == tq.RES_AUTO && tq.autoSteps.feed(g, dt)) {
+                    town?.view?.let { tq.applyResolution(it) }
+                    com.timerpg.street.shot.Crumbs.add("resolution: auto, %.2f".format(java.util.Locale.US, tq.autoSteps.scale))
+                }
+            }
             // the playtest recorder's second (play/PlayLog: fixed arrays, nothing allocated; before FrameSpikes clears FrameWork)
             run {
                 val fw = com.lifemax.rpg.feature.habits.presentation.scene.FrameWork

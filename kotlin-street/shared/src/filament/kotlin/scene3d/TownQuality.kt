@@ -35,8 +35,9 @@ object TownQuality {
 
     /**
      * The open world's drawing resolution (the AI panel's "Resolution"): [RES_AUTO] (the default) draws at the screen's
-     * full resolution while the GPU keeps up and lowers it smoothly (to [AUTO_MIN] at most, upscaled with FSR's edge-aware
-     * filter) only while it does not, so a heavy view drops a little sharpness instead of frames; [RES_FULL] always full;
+     * full resolution while the GPU keeps up and steps it down ([autoSteps]: to [AUTO_MIN] at most, upscaled with FSR's
+     * edge-aware filter, each step held for seconds, never a scale a frame) only while it does not, so a heavy view drops
+     * a little sharpness instead of frames; [RES_FULL] always full;
      * a share (0.85, 0.75) a fixed scale. Untested on the S25 so far: there, Filament's own frame timing drives it.
      */
     @Volatile var resolution = RES_AUTO
@@ -44,13 +45,20 @@ object TownQuality {
     const val RES_FULL = 1f
     const val AUTO_MIN = .72f
 
-    /** [view]'s resolution options for [resolution]. */
+    /**
+     * The automatic resolution's steps ([RES_AUTO]): fed the GPU's frame times by the app, it holds one of a few scales
+     * (Filament's own controller moved the scale every frame, and the pixel art crawled with it: see [ResolutionSteps]).
+     */
+    val autoSteps = com.lifemax.rpg.feature.habits.presentation.scene.ResolutionSteps()
+
+    /** [view]'s resolution options for [resolution] (automatic: [autoSteps]' scale now, held). */
     fun applyResolution(view: com.google.android.filament.View) {
         val r = resolution
+        val k = if (r == RES_AUTO) autoSteps.scale else r
         view.dynamicResolutionOptions = com.google.android.filament.View.DynamicResolutionOptions().apply {
-            enabled = r != RES_FULL
-            minScale = if (r == RES_AUTO) AUTO_MIN else r
-            maxScale = if (r == RES_AUTO) 1f else r
+            enabled = k < 1f
+            minScale = k
+            maxScale = k
             quality = com.google.android.filament.View.QualityLevel.HIGH
             sharpness = .9f
             homogeneousScaling = true
