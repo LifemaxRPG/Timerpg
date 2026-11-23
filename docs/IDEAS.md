@@ -625,3 +625,24 @@ Replaces the "go back and save him" recommendation above, which was too close to
   - He's a character to enjoy: his personality, his reasons for erasing himself, what he's hiding from, and whether
     he wants to be found.
   - The "found dead" idea above is dropped.
+- **Finding him by anachronisms** (the owner's idea, inspired by Ken Grimwood's *Replay*, where a film nobody
+  should know reveals another time traveller). The professor can't help changing the world around him, and his
+  changes leave **anachronisms**: things that shouldn't exist yet in that year and place.
+  - **Examples:** a transistor radio in a 1931 shop window; a medicine, a song, a phrase, a fashion or a building style
+    decades early; a business with an impossible idea; a local inventor whose patents are too good.
+  - **Systemic, not placed:**
+    - the professor is an intervention source in the simulation, like the player;
+    - his changes (deterministic from the seed) spread outward from where and when he is;
+    - they're strongest near him, fading with distance and years.
+    - The player learns the "normal" history by living in it, notices what doesn't belong, and narrows down the year
+      and place by where the anomalies get stronger.
+  - **NPCs react to the anomalies:** shopkeepers talk about the strange new gadget, papers write up the local genius,
+    and rumours spread by the gossip rules.
+  - **Misleading signs:** the player's own changes leave anachronisms too, and other unanchored travellers may
+    exist (red herrings, or rivals).
+- **Why he doesn't want to be found:** the owner decides. Seeds to choose from or mix:
+  - he's hiding from someone else who is unanchored;
+  - he caused something terrible and is trying to undo it quietly;
+  - he erased himself to protect the player;
+  - he's testing whether the player is ready for what he knows;
+  - he simply chose a life in another era and doesn't want it disturbed.
