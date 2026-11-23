@@ -646,3 +646,16 @@ Replaces the "go back and save him" recommendation above, which was too close to
   - he erased himself to protect the player;
   - he's testing whether the player is ready for what he knows;
   - he simply chose a life in another era and doesn't want it disturbed.
+- **Why the player wants to find him** (open; the owner decides). Never forced, but it should pull hard. Options that
+  combine well:
+  1. **Practical:** he's the only one who understands the machine. Its fuel use, its range, its faults and how to make
+     the most of each trip are in his head, and his notes are incomplete. Finding him makes the machine better.
+  2. **Danger:** whatever he's hiding from now has a reason to look for the player too, who holds his machine and is
+     unanchored. Finding him first is safer than waiting.
+  3. **Personal ("why you?"):** his letter hints he knows something about the player. Look into your own past and
+     the records don't add up: a missing birth record, relatives who don't remember you. You may already have been
+     erased once and not know it. Only he can tell you.
+  4. **The unfinished letter:** it stops mid-thought, as if he had to flee before you arrived. "Something very
+     important" is still unsaid.
+  - Claude's recommendation: 3 as the core (the deepest hook, and it uses the unanchored rules), with 1 as the
+    everyday reason and 2 as rising pressure.
