@@ -31,7 +31,8 @@ Below that come the brief and the acceptance checks.
    credentials), stop immediately and tell the owner: "I can't reach GitHub. Please log me in again." Don't start
    work you can't deliver. Credentials belong in your environment (`gh auth login`, a git credential store or an
    SSH key), never in the repo and never only in your chat.
-1. Fetch and read this README and the task list from `origin/ccr-52e43ebb-xnmj2e`.
+1. Fetch and read this README, `docs/queue/TEAM.md` (the team, the vision, the self-review) and the task list from
+   `origin/ccr-52e43ebb-xnmj2e`.
 2. **Revisions first:** if one of your tasks has status `revise`, read its newest review file and do that revision
    on the same branch.
 3. **Otherwise, a new task:** take your lowest-numbered task with status `open` that has not been delivered yet.
@@ -45,8 +46,8 @@ Below that come the brief and the acceptance checks.
 5. **Deliver:**
    - Push the branch. Then run `git ls-remote origin <branch>` and include the printed line in your final message. No
      line means not delivered.
-   - In your delivery folder, add `DELIVERY.md` with: the task ID; what you made; anything not done; and for
-     revisions, what changed and which review you answered.
+   - In your delivery folder, add `DELIVERY.md` with: the task ID; what you made; anything not done; for
+     revisions, what changed and which review you answered; and the **Self-review** from TEAM.md.
 6. If nothing is open for you, do nothing and stop.
 
 ## Report your usage in every DELIVERY.md (must)
