@@ -1,0 +1,6382 @@
+{
+  "task": "C006",
+  "name": "Cedar Relay Truck Stop",
+  "footprint_m": [
+    127,
+    144
+  ],
+  "height_m": 16.22,
+  "units": "glTF metres, +Y up and +Z toward the highway. Common grade origin at the main entrance midpoint.",
+  "lot_bounds_gltf_m": {
+    "x": [
+      -64,
+      63
+    ],
+    "y": [
+      0,
+      16.22
+    ],
+    "z": [
+      -116,
+      28
+    ]
+  },
+  "truck_parking": {
+    "bays": 30,
+    "bay_size_m": [
+      4.0,
+      18.7
+    ],
+    "rows_gltf_z_m": [
+      -55.0,
+      -75.1
+    ],
+    "head_to_head": true
+  },
+  "routing": {
+    "diesel_lanes": [
+      {
+        "center_gltf_m": [
+          -57.275,
+          0,
+          -35
+        ],
+        "clear_width_m": 4.33
+      },
+      {
+        "center_gltf_m": [
+          -51.825,
+          0,
+          -35
+        ],
+        "clear_width_m": 4.33
+      },
+      {
+        "center_gltf_m": [
+          -46.375,
+          0,
+          -35
+        ],
+        "clear_width_m": 4.33
+      },
+      {
+        "center_gltf_m": [
+          -40.925,
+          0,
+          -35
+        ],
+        "clear_width_m": 4.33
+      },
+      {
+        "center_gltf_m": [
+          -35.475,
+          0,
+          -35
+        ],
+        "clear_width_m": 4.33
+      },
+      {
+        "center_gltf_m": [
+          -30.025,
+          0,
+          -35
+        ],
+        "clear_width_m": 4.33
+      }
+    ],
+    "car_lanes": [
+      {
+        "center_gltf_m": [
+          28.4,
+          0,
+          -10
+        ],
+        "clear_width_m": 3.68
+      },
+      {
+        "center_gltf_m": [
+          33.2,
+          0,
+          -10
+        ],
+        "clear_width_m": 3.68
+      },
+      {
+        "center_gltf_m": [
+          38.0,
+          0,
+          -10
+        ],
+        "clear_width_m": 3.68
+      }
+    ],
+    "scale_center_gltf_m": [
+      42.2,
+      0.28,
+      -48.18
+    ],
+    "scale_entry_gltf_m": [
+      42.2,
+      0.028,
+      -34.7
+    ],
+    "scale_exit_gltf_m": [
+      42.2,
+      0.028,
+      -61.65
+    ],
+    "travel_axis_gltf": [
+      0,
+      0,
+      -1
+    ]
+  },
+  "swatches": [
+    "brick_red",
+    "plank_horizontal",
+    "pavement",
+    "asphalt_worn",
+    "roof_membrane_grey",
+    "roof_membrane_green",
+    "roof_membrane_tan",
+    "roof_tin_brown",
+    "roof_tin_red"
+  ],
+  "lod_distances_suggested_m": {
+    "mid": 90,
+    "far": 220
+  },
+  "states": [
+    {
+      "id": "1960",
+      "name": "Cedar Relay",
+      "era": [
+        1960,
+        1989
+      ],
+      "diesel_clear_height_m": 6.25,
+      "car_clear_height_m": 4.08,
+      "models": [
+        {
+          "file": "cedar-relay-1960.glb",
+          "lod": "near",
+          "triangles_visible": 3909,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.14,
+              0.34
+            ],
+            "door_back": [
+              13.14,
+              0.14,
+              -21.04
+            ],
+            "door_showers": [
+              20.4,
+              0.14,
+              -14.64
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Parking safety guard",
+              "center_gltf_m": [
+                -33.0,
+                0.5740000000000001,
+                -55.0
+              ],
+              "size_gltf_m": [
+                0.4000000000000057,
+                1.092,
+                0.3400000000000034
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Parking safety guard",
+              "center_gltf_m": [
+                -33.0,
+                0.5740000000000001,
+                -68.0
+              ],
+              "size_gltf_m": [
+                0.4000000000000057,
+                1.092,
+                0.3400000000000034
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Parking safety guard",
+              "center_gltf_m": [
+                -33.0,
+                0.5740000000000001,
+                -83.0
+              ],
+              "size_gltf_m": [
+                0.4000000000000057,
+                1.092,
+                0.3400000000000034
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Parking safety guard",
+              "center_gltf_m": [
+                -33.0,
+                0.5740000000000001,
+                -94.0
+              ],
+              "size_gltf_m": [
+                0.4000000000000057,
+                1.092,
+                0.3400000000000034
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Parking safety guard",
+              "center_gltf_m": [
+                34.0,
+                0.5740000000000001,
+                -55.0
+              ],
+              "size_gltf_m": [
+                0.4000000000000057,
+                1.092,
+                0.3400000000000034
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Parking safety guard",
+              "center_gltf_m": [
+                34.0,
+                0.5740000000000001,
+                -68.0
+              ],
+              "size_gltf_m": [
+                0.4000000000000057,
+                1.092,
+                0.3400000000000034
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Parking safety guard",
+              "center_gltf_m": [
+                34.0,
+                0.5740000000000001,
+                -83.0
+              ],
+              "size_gltf_m": [
+                0.4000000000000057,
+                1.092,
+                0.3400000000000034
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Parking safety guard",
+              "center_gltf_m": [
+                34.0,
+                0.5740000000000001,
+                -94.0
+              ],
+              "size_gltf_m": [
+                0.4000000000000057,
+                1.092,
+                0.3400000000000034
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                39.92,
+                0.609,
+                -37.8
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                39.92,
+                0.609,
+                -58.6
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                44.49,
+                0.609,
+                -37.8
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                44.49,
+                0.609,
+                -58.6
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale reader pedestal",
+              "center_gltf_m": [
+                45.03,
+                0.9390000000000001,
+                -52.31
+              ],
+              "size_gltf_m": [
+                0.7999999999999972,
+                1.822,
+                0.6199999999999974
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Dining room ribbon",
+              "center_gltf_m": [
+                -11.9,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                16.2,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main entrance storefront",
+              "center_gltf_m": [
+                -2.5,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.5999999999999996,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main entrance storefront",
+              "center_gltf_m": [
+                2.5,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.5999999999999996,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Market storefront",
+              "center_gltf_m": [
+                11.9,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                16.2,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West dining wall",
+              "center_gltf_m": [
+                -19.86,
+                2.25,
+                -10.35
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                20.7
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East shower wall",
+              "center_gltf_m": [
+                19.86,
+                2.25,
+                -6.8
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                13.6
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East shower wall",
+              "center_gltf_m": [
+                19.86,
+                2.25,
+                -18.189999999999998
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                5.02
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back receiving elevation",
+              "center_gltf_m": [
+                -4.0,
+                2.25,
+                -20.560000000000002
+              ],
+              "size_gltf_m": [
+                32.0,
+                4.220000000000001,
+                0.28000000000000114
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back receiving elevation",
+              "center_gltf_m": [
+                17.14,
+                2.25,
+                -20.560000000000002
+              ],
+              "size_gltf_m": [
+                5.720000000000001,
+                4.220000000000001,
+                0.28000000000000114
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Service waste container",
+              "center_gltf_m": [
+                17.244999999999997,
+                0.74,
+                -21.79
+              ],
+              "size_gltf_m": [
+                2.09,
+                1.2000000000000002,
+                1.5199999999999996
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                -13.559999999999999,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                12.319999999999999,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                -2.415,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                5.09,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                6.93,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                7.5,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                16.46,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                6.52,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                -6.8,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.2599999999999998,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                -0.18,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                9.9,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.26000000000000156,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed cash and service counter",
+              "center_gltf_m": [
+                7.65,
+                0.575,
+                -9.309999999999999
+              ],
+              "size_gltf_m": [
+                7.8999999999999995,
+                0.87,
+                1.08
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -2.36
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -2.36
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -2.36
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.2999999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -5.12
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -5.12
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -5.12
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -7.88
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -7.88
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -7.879999999999999
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.2999999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -10.65
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000013
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -10.65
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000013
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -10.65
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                14.8,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                16.86,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                19.34,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Shower bench",
+              "center_gltf_m": [
+                19.25,
+                0.315,
+                -16.515
+              ],
+              "size_gltf_m": [
+                0.740000000000002,
+                0.35,
+                0.990000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -60.0,
+                3.1795,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                6.301,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -54.55,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -49.1,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -43.65,
+                3.1795,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                6.301,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -38.2,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -32.75,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -27.299999999999997,
+                3.1795,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                6.301,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                26.0,
+                2.0945,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                4.131,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                30.8,
+                0.8845,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                1.711,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                35.6,
+                2.0945,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                4.131,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                40.4,
+                2.0945,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                4.131,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Highway sign pole",
+              "center_gltf_m": [
+                44.4,
+                6.134499999999999,
+                19.15
+              ],
+              "size_gltf_m": [
+                0.9599999999999937,
+                12.210999999999999,
+                0.9200000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "sign_panels": {
+            "sign_scale": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                254,
+                400,
+                114,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                44.3684,
+                1.8,
+                -51.965
+              ],
+              "width_m": 4.4232000000000005,
+              "height_m": 0.9312
+            },
+            "sign_staff": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                130,
+                400,
+                114,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                15.351600000000001,
+                2.75,
+                -20.732
+              ],
+              "width_m": 4.4232000000000005,
+              "height_m": 0.9312
+            },
+            "sign_store": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                208,
+                502,
+                48
+              ],
+              "bottom_left_gltf_m": [
+                -9.7388,
+                3.84,
+                0.258
+              ],
+              "width_m": 19.4776,
+              "height_m": 1.8624
+            },
+            "sign_menu": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                430,
+                214,
+                44
+              ],
+              "bottom_left_gltf_m": [
+                2.2484,
+                1.71,
+                -12.828
+              ],
+              "width_m": 8.3032,
+              "height_m": 1.7072
+            },
+            "sign_diesel": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                320,
+                224,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                -47.995599999999996,
+                6.42,
+                -24.764
+              ],
+              "width_m": 8.6912,
+              "height_m": 1.2416
+            },
+            "sign_car": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                360,
+                200,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                29.320000000000004,
+                4.25,
+                -1.764
+              ],
+              "width_m": 7.76,
+              "height_m": 1.2416
+            },
+            "sign_name": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                0,
+                302,
+                96
+              ],
+              "bottom_left_gltf_m": [
+                38.541199999999996,
+                11.7,
+                19.477
+              ],
+              "width_m": 11.717600000000001,
+              "height_m": 3.7248
+            },
+            "sign_name_rear": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                0,
+                302,
+                96
+              ],
+              "bottom_left_gltf_m": [
+                50.2588,
+                11.7,
+                18.822999999999997
+              ],
+              "width_m": 11.717600000000001,
+              "height_m": 3.7248
+            }
+          },
+          "materials": [
+            "detail_cream",
+            "detail_ochre",
+            "floor_tile",
+            "glass_storefront",
+            "ground_asphalt",
+            "ground_paving",
+            "roof_membrane",
+            "sign_faces",
+            "trim_brand",
+            "trim_dark_steel",
+            "wall_brick"
+          ]
+        },
+        {
+          "file": "cedar-relay-1960-mid.glb",
+          "lod": "mid",
+          "triangles_visible": 3513,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.14,
+              0.34
+            ],
+            "door_back": [
+              13.14,
+              0.14,
+              -21.04
+            ],
+            "door_showers": [
+              20.4,
+              0.14,
+              -14.64
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                39.92,
+                0.609,
+                -37.8
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                39.92,
+                0.609,
+                -58.6
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                44.49,
+                0.609,
+                -37.8
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                44.49,
+                0.609,
+                -58.6
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale reader pedestal",
+              "center_gltf_m": [
+                45.03,
+                0.9390000000000001,
+                -52.31
+              ],
+              "size_gltf_m": [
+                0.7999999999999972,
+                1.822,
+                0.6199999999999974
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Dining room ribbon",
+              "center_gltf_m": [
+                -11.9,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                16.2,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main entrance storefront",
+              "center_gltf_m": [
+                -2.5,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.5999999999999996,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main entrance storefront",
+              "center_gltf_m": [
+                2.5,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.5999999999999996,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Market storefront",
+              "center_gltf_m": [
+                11.9,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                16.2,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West dining wall",
+              "center_gltf_m": [
+                -19.86,
+                2.25,
+                -10.35
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                20.7
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East shower wall",
+              "center_gltf_m": [
+                19.86,
+                2.25,
+                -6.8
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                13.6
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East shower wall",
+              "center_gltf_m": [
+                19.86,
+                2.25,
+                -18.189999999999998
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                5.02
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back receiving elevation",
+              "center_gltf_m": [
+                -4.0,
+                2.25,
+                -20.560000000000002
+              ],
+              "size_gltf_m": [
+                32.0,
+                4.220000000000001,
+                0.28000000000000114
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back receiving elevation",
+              "center_gltf_m": [
+                17.14,
+                2.25,
+                -20.560000000000002
+              ],
+              "size_gltf_m": [
+                5.720000000000001,
+                4.220000000000001,
+                0.28000000000000114
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Service waste container",
+              "center_gltf_m": [
+                17.244999999999997,
+                0.74,
+                -21.79
+              ],
+              "size_gltf_m": [
+                2.09,
+                1.2000000000000002,
+                1.5199999999999996
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                -13.559999999999999,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                12.319999999999999,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                -2.415,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                5.09,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                6.93,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                7.5,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                16.46,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                6.52,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                -6.8,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.2599999999999998,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                -0.18,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                9.9,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.26000000000000156,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed cash and service counter",
+              "center_gltf_m": [
+                7.65,
+                0.575,
+                -9.309999999999999
+              ],
+              "size_gltf_m": [
+                7.8999999999999995,
+                0.87,
+                1.08
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -2.36
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -2.36
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -2.36
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.2999999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -5.12
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -5.12
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -5.12
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -7.88
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -7.88
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -7.879999999999999
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.2999999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -10.65
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000013
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -10.65
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000013
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -10.65
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                14.8,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                16.86,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                19.34,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Shower bench",
+              "center_gltf_m": [
+                19.25,
+                0.315,
+                -16.515
+              ],
+              "size_gltf_m": [
+                0.740000000000002,
+                0.35,
+                0.990000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -60.0,
+                3.1795,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                6.301,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -54.55,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -49.1,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -43.65,
+                3.1795,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                6.301,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -38.2,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -32.75,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -27.299999999999997,
+                3.1795,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                6.301,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                26.0,
+                2.0945,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                4.131,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                30.8,
+                0.8845,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                1.711,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                35.6,
+                2.0945,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                4.131,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                40.4,
+                2.0945,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                4.131,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Highway sign pole",
+              "center_gltf_m": [
+                44.4,
+                6.134499999999999,
+                19.15
+              ],
+              "size_gltf_m": [
+                0.9599999999999937,
+                12.210999999999999,
+                0.9200000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "sign_panels": {
+            "sign_scale": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                254,
+                400,
+                114,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                44.3684,
+                1.8,
+                -51.965
+              ],
+              "width_m": 4.4232000000000005,
+              "height_m": 0.9312
+            },
+            "sign_staff": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                130,
+                400,
+                114,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                15.351600000000001,
+                2.75,
+                -20.732
+              ],
+              "width_m": 4.4232000000000005,
+              "height_m": 0.9312
+            },
+            "sign_store": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                208,
+                502,
+                48
+              ],
+              "bottom_left_gltf_m": [
+                -9.7388,
+                3.84,
+                0.258
+              ],
+              "width_m": 19.4776,
+              "height_m": 1.8624
+            },
+            "sign_menu": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                430,
+                214,
+                44
+              ],
+              "bottom_left_gltf_m": [
+                2.2484,
+                1.71,
+                -12.828
+              ],
+              "width_m": 8.3032,
+              "height_m": 1.7072
+            },
+            "sign_diesel": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                320,
+                224,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                -47.995599999999996,
+                6.42,
+                -24.764
+              ],
+              "width_m": 8.6912,
+              "height_m": 1.2416
+            },
+            "sign_car": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                360,
+                200,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                29.320000000000004,
+                4.25,
+                -1.764
+              ],
+              "width_m": 7.76,
+              "height_m": 1.2416
+            },
+            "sign_name": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                0,
+                302,
+                96
+              ],
+              "bottom_left_gltf_m": [
+                38.541199999999996,
+                11.7,
+                19.477
+              ],
+              "width_m": 11.717600000000001,
+              "height_m": 3.7248
+            },
+            "sign_name_rear": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                0,
+                302,
+                96
+              ],
+              "bottom_left_gltf_m": [
+                50.2588,
+                11.7,
+                18.822999999999997
+              ],
+              "width_m": 11.717600000000001,
+              "height_m": 3.7248
+            }
+          },
+          "materials": [
+            "detail_cream",
+            "detail_ochre",
+            "floor_tile",
+            "glass_storefront",
+            "ground_asphalt",
+            "ground_paving",
+            "roof_membrane",
+            "sign_faces",
+            "trim_brand",
+            "trim_dark_steel",
+            "wall_brick"
+          ]
+        },
+        {
+          "file": "cedar-relay-1960-far.glb",
+          "lod": "far",
+          "triangles_visible": 2697,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.14,
+              0.34
+            ],
+            "door_back": [
+              13.14,
+              0.14,
+              -21.04
+            ],
+            "door_showers": [
+              20.4,
+              0.14,
+              -14.64
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                39.92,
+                0.609,
+                -37.8
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                39.92,
+                0.609,
+                -58.6
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                44.49,
+                0.609,
+                -37.8
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                44.49,
+                0.609,
+                -58.6
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale reader pedestal",
+              "center_gltf_m": [
+                45.03,
+                0.9390000000000001,
+                -52.31
+              ],
+              "size_gltf_m": [
+                0.7999999999999972,
+                1.822,
+                0.6199999999999974
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Dining room ribbon",
+              "center_gltf_m": [
+                -11.9,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                16.2,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main entrance storefront",
+              "center_gltf_m": [
+                -2.5,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.5999999999999996,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main entrance storefront",
+              "center_gltf_m": [
+                2.5,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.5999999999999996,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Market storefront",
+              "center_gltf_m": [
+                11.9,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                16.2,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West dining wall",
+              "center_gltf_m": [
+                -19.86,
+                2.25,
+                -10.35
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                20.7
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East shower wall",
+              "center_gltf_m": [
+                19.86,
+                2.25,
+                -6.8
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                13.6
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East shower wall",
+              "center_gltf_m": [
+                19.86,
+                2.25,
+                -18.189999999999998
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                5.02
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back receiving elevation",
+              "center_gltf_m": [
+                -4.0,
+                2.25,
+                -20.560000000000002
+              ],
+              "size_gltf_m": [
+                32.0,
+                4.220000000000001,
+                0.28000000000000114
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back receiving elevation",
+              "center_gltf_m": [
+                17.14,
+                2.25,
+                -20.560000000000002
+              ],
+              "size_gltf_m": [
+                5.720000000000001,
+                4.220000000000001,
+                0.28000000000000114
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Service waste container",
+              "center_gltf_m": [
+                17.244999999999997,
+                0.74,
+                -21.79
+              ],
+              "size_gltf_m": [
+                2.09,
+                1.2000000000000002,
+                1.5199999999999996
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                -13.559999999999999,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                12.319999999999999,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                -2.415,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                5.09,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                6.93,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                7.5,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                16.46,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                6.52,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                -6.8,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.2599999999999998,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                -0.18,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                9.9,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.26000000000000156,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed cash and service counter",
+              "center_gltf_m": [
+                7.65,
+                0.575,
+                -9.309999999999999
+              ],
+              "size_gltf_m": [
+                7.8999999999999995,
+                0.87,
+                1.08
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -2.36
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -2.36
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -2.36
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.2999999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -5.12
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -5.12
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -5.12
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -7.88
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -7.88
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -7.879999999999999
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.2999999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -10.65
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000013
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -10.65
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000013
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -10.65
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                14.8,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                16.86,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                19.34,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Shower bench",
+              "center_gltf_m": [
+                19.25,
+                0.315,
+                -16.515
+              ],
+              "size_gltf_m": [
+                0.740000000000002,
+                0.35,
+                0.990000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -60.0,
+                3.1795,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                6.301,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -54.55,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -49.1,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -43.65,
+                3.1795,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                6.301,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -38.2,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -32.75,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -27.299999999999997,
+                3.1795,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                6.301,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                26.0,
+                2.0945,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                4.131,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                30.8,
+                0.8845,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                1.711,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                35.6,
+                2.0945,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                4.131,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                40.4,
+                2.0945,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                4.131,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Highway sign pole",
+              "center_gltf_m": [
+                44.4,
+                6.134499999999999,
+                19.15
+              ],
+              "size_gltf_m": [
+                0.9599999999999937,
+                12.210999999999999,
+                0.9200000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "sign_panels": {
+            "sign_scale": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                254,
+                400,
+                114,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                44.3684,
+                1.8,
+                -51.965
+              ],
+              "width_m": 4.4232000000000005,
+              "height_m": 0.9312
+            },
+            "sign_staff": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                130,
+                400,
+                114,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                15.351600000000001,
+                2.75,
+                -20.732
+              ],
+              "width_m": 4.4232000000000005,
+              "height_m": 0.9312
+            },
+            "sign_store": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                208,
+                502,
+                48
+              ],
+              "bottom_left_gltf_m": [
+                -9.7388,
+                3.84,
+                0.258
+              ],
+              "width_m": 19.4776,
+              "height_m": 1.8624
+            },
+            "sign_menu": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                430,
+                214,
+                44
+              ],
+              "bottom_left_gltf_m": [
+                2.2484,
+                1.71,
+                -12.828
+              ],
+              "width_m": 8.3032,
+              "height_m": 1.7072
+            },
+            "sign_diesel": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                320,
+                224,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                -47.995599999999996,
+                6.42,
+                -24.764
+              ],
+              "width_m": 8.6912,
+              "height_m": 1.2416
+            },
+            "sign_car": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                360,
+                200,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                29.320000000000004,
+                4.25,
+                -1.764
+              ],
+              "width_m": 7.76,
+              "height_m": 1.2416
+            },
+            "sign_name": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                0,
+                302,
+                96
+              ],
+              "bottom_left_gltf_m": [
+                38.541199999999996,
+                11.7,
+                19.477
+              ],
+              "width_m": 11.717600000000001,
+              "height_m": 3.7248
+            },
+            "sign_name_rear": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                0,
+                302,
+                96
+              ],
+              "bottom_left_gltf_m": [
+                50.2588,
+                11.7,
+                18.822999999999997
+              ],
+              "width_m": 11.717600000000001,
+              "height_m": 3.7248
+            }
+          },
+          "materials": [
+            "detail_cream",
+            "detail_ochre",
+            "floor_tile",
+            "glass_storefront",
+            "ground_asphalt",
+            "ground_paving",
+            "roof_membrane",
+            "sign_faces",
+            "trim_brand",
+            "trim_dark_steel",
+            "wall_brick"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1990",
+      "name": "Relay Travel Center",
+      "era": [
+        1990,
+        null
+      ],
+      "diesel_clear_height_m": 6.79,
+      "car_clear_height_m": 4.62,
+      "models": [
+        {
+          "file": "cedar-relay-1990.glb",
+          "lod": "near",
+          "triangles_visible": 3964,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.14,
+              0.34
+            ],
+            "door_back": [
+              13.14,
+              0.14,
+              -21.04
+            ],
+            "door_showers": [
+              20.4,
+              0.14,
+              -14.64
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Parking safety guard",
+              "center_gltf_m": [
+                -33.0,
+                0.5740000000000001,
+                -55.0
+              ],
+              "size_gltf_m": [
+                0.4000000000000057,
+                1.092,
+                0.3400000000000034
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Parking safety guard",
+              "center_gltf_m": [
+                -33.0,
+                0.5740000000000001,
+                -68.0
+              ],
+              "size_gltf_m": [
+                0.4000000000000057,
+                1.092,
+                0.3400000000000034
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Parking safety guard",
+              "center_gltf_m": [
+                -33.0,
+                0.5740000000000001,
+                -83.0
+              ],
+              "size_gltf_m": [
+                0.4000000000000057,
+                1.092,
+                0.3400000000000034
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Parking safety guard",
+              "center_gltf_m": [
+                -33.0,
+                0.5740000000000001,
+                -94.0
+              ],
+              "size_gltf_m": [
+                0.4000000000000057,
+                1.092,
+                0.3400000000000034
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Parking safety guard",
+              "center_gltf_m": [
+                34.0,
+                0.5740000000000001,
+                -55.0
+              ],
+              "size_gltf_m": [
+                0.4000000000000057,
+                1.092,
+                0.3400000000000034
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Parking safety guard",
+              "center_gltf_m": [
+                34.0,
+                0.5740000000000001,
+                -68.0
+              ],
+              "size_gltf_m": [
+                0.4000000000000057,
+                1.092,
+                0.3400000000000034
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Parking safety guard",
+              "center_gltf_m": [
+                34.0,
+                0.5740000000000001,
+                -83.0
+              ],
+              "size_gltf_m": [
+                0.4000000000000057,
+                1.092,
+                0.3400000000000034
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Parking safety guard",
+              "center_gltf_m": [
+                34.0,
+                0.5740000000000001,
+                -94.0
+              ],
+              "size_gltf_m": [
+                0.4000000000000057,
+                1.092,
+                0.3400000000000034
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                39.92,
+                0.609,
+                -37.8
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                39.92,
+                0.609,
+                -58.6
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                44.49,
+                0.609,
+                -37.8
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                44.49,
+                0.609,
+                -58.6
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale reader pedestal",
+              "center_gltf_m": [
+                45.03,
+                0.9390000000000001,
+                -52.31
+              ],
+              "size_gltf_m": [
+                0.7999999999999972,
+                1.822,
+                0.6199999999999974
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Dining room ribbon",
+              "center_gltf_m": [
+                -11.9,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                16.2,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main entrance storefront",
+              "center_gltf_m": [
+                -2.5,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.5999999999999996,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main entrance storefront",
+              "center_gltf_m": [
+                2.5,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.5999999999999996,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Market storefront",
+              "center_gltf_m": [
+                11.9,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                16.2,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West dining wall",
+              "center_gltf_m": [
+                -19.86,
+                2.25,
+                -10.35
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                20.7
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East shower wall",
+              "center_gltf_m": [
+                19.86,
+                2.25,
+                -6.8
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                13.6
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East shower wall",
+              "center_gltf_m": [
+                19.86,
+                2.25,
+                -18.189999999999998
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                5.02
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back receiving elevation",
+              "center_gltf_m": [
+                -4.0,
+                2.25,
+                -20.560000000000002
+              ],
+              "size_gltf_m": [
+                32.0,
+                4.220000000000001,
+                0.28000000000000114
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back receiving elevation",
+              "center_gltf_m": [
+                17.14,
+                2.25,
+                -20.560000000000002
+              ],
+              "size_gltf_m": [
+                5.720000000000001,
+                4.220000000000001,
+                0.28000000000000114
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main canopy column",
+              "center_gltf_m": [
+                -9.65,
+                1.8,
+                2.21
+              ],
+              "size_gltf_m": [
+                0.2920000000000016,
+                3.32,
+                0.3200000000000003
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main canopy column",
+              "center_gltf_m": [
+                9.65,
+                1.8,
+                2.21
+              ],
+              "size_gltf_m": [
+                0.2920000000000016,
+                3.32,
+                0.3200000000000003
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Service waste container",
+              "center_gltf_m": [
+                17.244999999999997,
+                0.74,
+                -21.79
+              ],
+              "size_gltf_m": [
+                2.09,
+                1.2000000000000002,
+                1.5199999999999996
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                -13.559999999999999,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                12.319999999999999,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                -2.415,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                5.09,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                6.93,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                7.5,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                16.46,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                6.52,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                -6.8,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.2599999999999998,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                -0.18,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                9.9,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.26000000000000156,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed cash and service counter",
+              "center_gltf_m": [
+                7.65,
+                0.575,
+                -9.309999999999999
+              ],
+              "size_gltf_m": [
+                7.8999999999999995,
+                0.87,
+                1.08
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -2.36
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -2.36
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -2.36
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.2999999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -5.12
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -5.12
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -5.12
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -7.88
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -7.88
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -7.879999999999999
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.2999999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -10.65
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000013
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -10.65
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000013
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -10.65
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                14.8,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                16.86,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                19.34,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Shower bench",
+              "center_gltf_m": [
+                19.25,
+                0.315,
+                -16.515
+              ],
+              "size_gltf_m": [
+                0.740000000000002,
+                0.35,
+                0.990000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -60.0,
+                3.4495,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                6.841,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -54.55,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -49.1,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -43.65,
+                3.4495,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                6.841,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -38.2,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -32.75,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -27.299999999999997,
+                3.4495,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                6.841,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                26.0,
+                2.3645,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                4.671,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                30.8,
+                0.8845,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                1.711,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                35.6,
+                2.3645,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                4.671,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                40.4,
+                2.3645,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                4.671,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Highway sign pole",
+              "center_gltf_m": [
+                42.17,
+                6.3345,
+                19.15
+              ],
+              "size_gltf_m": [
+                0.9599999999999937,
+                12.611,
+                0.9200000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Highway sign pole",
+              "center_gltf_m": [
+                46.629999999999995,
+                6.3345,
+                19.15
+              ],
+              "size_gltf_m": [
+                0.9599999999999937,
+                12.611,
+                0.9200000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "sign_panels": {
+            "sign_scale": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                254,
+                400,
+                114,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                44.3684,
+                1.8,
+                -51.965
+              ],
+              "width_m": 4.4232000000000005,
+              "height_m": 0.9312
+            },
+            "sign_staff": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                130,
+                400,
+                114,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                15.351600000000001,
+                2.75,
+                -20.732
+              ],
+              "width_m": 4.4232000000000005,
+              "height_m": 0.9312
+            },
+            "sign_store": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                264,
+                502,
+                48
+              ],
+              "bottom_left_gltf_m": [
+                -9.7388,
+                4.18,
+                0.31
+              ],
+              "width_m": 19.4776,
+              "height_m": 1.8624
+            },
+            "sign_menu": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                430,
+                214,
+                44
+              ],
+              "bottom_left_gltf_m": [
+                2.2484,
+                1.71,
+                -12.828
+              ],
+              "width_m": 8.3032,
+              "height_m": 1.7072
+            },
+            "sign_diesel": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                232,
+                320,
+                224,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                -47.995599999999996,
+                6.96,
+                -24.764
+              ],
+              "width_m": 8.6912,
+              "height_m": 1.2416
+            },
+            "sign_car": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                208,
+                360,
+                210,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                29.126000000000005,
+                4.79,
+                -1.764
+              ],
+              "width_m": 8.148,
+              "height_m": 1.2416
+            },
+            "sign_name": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                104,
+                302,
+                96
+              ],
+              "bottom_left_gltf_m": [
+                38.541199999999996,
+                12.1,
+                19.477
+              ],
+              "width_m": 11.717600000000001,
+              "height_m": 3.7248
+            },
+            "sign_name_rear": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                104,
+                302,
+                96
+              ],
+              "bottom_left_gltf_m": [
+                50.2588,
+                12.1,
+                18.822999999999997
+              ],
+              "width_m": 11.717600000000001,
+              "height_m": 3.7248
+            }
+          },
+          "materials": [
+            "detail_cream",
+            "detail_ochre",
+            "floor_tile",
+            "glass_storefront",
+            "ground_asphalt",
+            "ground_paving",
+            "roof_membrane",
+            "sign_faces",
+            "trim_brand",
+            "trim_dark_steel",
+            "wall_brick"
+          ]
+        },
+        {
+          "file": "cedar-relay-1990-mid.glb",
+          "lod": "mid",
+          "triangles_visible": 3568,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.14,
+              0.34
+            ],
+            "door_back": [
+              13.14,
+              0.14,
+              -21.04
+            ],
+            "door_showers": [
+              20.4,
+              0.14,
+              -14.64
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                39.92,
+                0.609,
+                -37.8
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                39.92,
+                0.609,
+                -58.6
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                44.49,
+                0.609,
+                -37.8
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                44.49,
+                0.609,
+                -58.6
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale reader pedestal",
+              "center_gltf_m": [
+                45.03,
+                0.9390000000000001,
+                -52.31
+              ],
+              "size_gltf_m": [
+                0.7999999999999972,
+                1.822,
+                0.6199999999999974
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Dining room ribbon",
+              "center_gltf_m": [
+                -11.9,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                16.2,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main entrance storefront",
+              "center_gltf_m": [
+                -2.5,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.5999999999999996,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main entrance storefront",
+              "center_gltf_m": [
+                2.5,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.5999999999999996,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Market storefront",
+              "center_gltf_m": [
+                11.9,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                16.2,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West dining wall",
+              "center_gltf_m": [
+                -19.86,
+                2.25,
+                -10.35
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                20.7
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East shower wall",
+              "center_gltf_m": [
+                19.86,
+                2.25,
+                -6.8
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                13.6
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East shower wall",
+              "center_gltf_m": [
+                19.86,
+                2.25,
+                -18.189999999999998
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                5.02
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back receiving elevation",
+              "center_gltf_m": [
+                -4.0,
+                2.25,
+                -20.560000000000002
+              ],
+              "size_gltf_m": [
+                32.0,
+                4.220000000000001,
+                0.28000000000000114
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back receiving elevation",
+              "center_gltf_m": [
+                17.14,
+                2.25,
+                -20.560000000000002
+              ],
+              "size_gltf_m": [
+                5.720000000000001,
+                4.220000000000001,
+                0.28000000000000114
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main canopy column",
+              "center_gltf_m": [
+                -9.65,
+                1.8,
+                2.21
+              ],
+              "size_gltf_m": [
+                0.2920000000000016,
+                3.32,
+                0.3200000000000003
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main canopy column",
+              "center_gltf_m": [
+                9.65,
+                1.8,
+                2.21
+              ],
+              "size_gltf_m": [
+                0.2920000000000016,
+                3.32,
+                0.3200000000000003
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Service waste container",
+              "center_gltf_m": [
+                17.244999999999997,
+                0.74,
+                -21.79
+              ],
+              "size_gltf_m": [
+                2.09,
+                1.2000000000000002,
+                1.5199999999999996
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                -13.559999999999999,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                12.319999999999999,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                -2.415,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                5.09,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                6.93,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                7.5,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                16.46,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                6.52,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                -6.8,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.2599999999999998,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                -0.18,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                9.9,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.26000000000000156,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed cash and service counter",
+              "center_gltf_m": [
+                7.65,
+                0.575,
+                -9.309999999999999
+              ],
+              "size_gltf_m": [
+                7.8999999999999995,
+                0.87,
+                1.08
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -2.36
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -2.36
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -2.36
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.2999999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -5.12
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -5.12
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -5.12
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -7.88
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -7.88
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -7.879999999999999
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.2999999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -10.65
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000013
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -10.65
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000013
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -10.65
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                14.8,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                16.86,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                19.34,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Shower bench",
+              "center_gltf_m": [
+                19.25,
+                0.315,
+                -16.515
+              ],
+              "size_gltf_m": [
+                0.740000000000002,
+                0.35,
+                0.990000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -60.0,
+                3.4495,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                6.841,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -54.55,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -49.1,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -43.65,
+                3.4495,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                6.841,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -38.2,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -32.75,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -27.299999999999997,
+                3.4495,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                6.841,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                26.0,
+                2.3645,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                4.671,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                30.8,
+                0.8845,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                1.711,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                35.6,
+                2.3645,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                4.671,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                40.4,
+                2.3645,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                4.671,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Highway sign pole",
+              "center_gltf_m": [
+                42.17,
+                6.3345,
+                19.15
+              ],
+              "size_gltf_m": [
+                0.9599999999999937,
+                12.611,
+                0.9200000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Highway sign pole",
+              "center_gltf_m": [
+                46.629999999999995,
+                6.3345,
+                19.15
+              ],
+              "size_gltf_m": [
+                0.9599999999999937,
+                12.611,
+                0.9200000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "sign_panels": {
+            "sign_scale": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                254,
+                400,
+                114,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                44.3684,
+                1.8,
+                -51.965
+              ],
+              "width_m": 4.4232000000000005,
+              "height_m": 0.9312
+            },
+            "sign_staff": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                130,
+                400,
+                114,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                15.351600000000001,
+                2.75,
+                -20.732
+              ],
+              "width_m": 4.4232000000000005,
+              "height_m": 0.9312
+            },
+            "sign_store": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                264,
+                502,
+                48
+              ],
+              "bottom_left_gltf_m": [
+                -9.7388,
+                4.18,
+                0.31
+              ],
+              "width_m": 19.4776,
+              "height_m": 1.8624
+            },
+            "sign_menu": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                430,
+                214,
+                44
+              ],
+              "bottom_left_gltf_m": [
+                2.2484,
+                1.71,
+                -12.828
+              ],
+              "width_m": 8.3032,
+              "height_m": 1.7072
+            },
+            "sign_diesel": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                232,
+                320,
+                224,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                -47.995599999999996,
+                6.96,
+                -24.764
+              ],
+              "width_m": 8.6912,
+              "height_m": 1.2416
+            },
+            "sign_car": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                208,
+                360,
+                210,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                29.126000000000005,
+                4.79,
+                -1.764
+              ],
+              "width_m": 8.148,
+              "height_m": 1.2416
+            },
+            "sign_name": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                104,
+                302,
+                96
+              ],
+              "bottom_left_gltf_m": [
+                38.541199999999996,
+                12.1,
+                19.477
+              ],
+              "width_m": 11.717600000000001,
+              "height_m": 3.7248
+            },
+            "sign_name_rear": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                104,
+                302,
+                96
+              ],
+              "bottom_left_gltf_m": [
+                50.2588,
+                12.1,
+                18.822999999999997
+              ],
+              "width_m": 11.717600000000001,
+              "height_m": 3.7248
+            }
+          },
+          "materials": [
+            "detail_cream",
+            "detail_ochre",
+            "floor_tile",
+            "glass_storefront",
+            "ground_asphalt",
+            "ground_paving",
+            "roof_membrane",
+            "sign_faces",
+            "trim_brand",
+            "trim_dark_steel",
+            "wall_brick"
+          ]
+        },
+        {
+          "file": "cedar-relay-1990-far.glb",
+          "lod": "far",
+          "triangles_visible": 2752,
+          "door_nodes_gltf_m": {
+            "door_main": [
+              0,
+              0.14,
+              0.34
+            ],
+            "door_back": [
+              13.14,
+              0.14,
+              -21.04
+            ],
+            "door_showers": [
+              20.4,
+              0.14,
+              -14.64
+            ]
+          },
+          "collision_boxes_gltf_m": [
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                39.92,
+                0.609,
+                -37.8
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                39.92,
+                0.609,
+                -58.6
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                44.49,
+                0.609,
+                -37.8
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale curb guard",
+              "center_gltf_m": [
+                44.49,
+                0.609,
+                -58.6
+              ],
+              "size_gltf_m": [
+                0.23999999999999488,
+                1.162,
+                0.23999999999999488
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Scale reader pedestal",
+              "center_gltf_m": [
+                45.03,
+                0.9390000000000001,
+                -52.31
+              ],
+              "size_gltf_m": [
+                0.7999999999999972,
+                1.822,
+                0.6199999999999974
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Dining room ribbon",
+              "center_gltf_m": [
+                -11.9,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                16.2,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main entrance storefront",
+              "center_gltf_m": [
+                -2.5,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.5999999999999996,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main entrance storefront",
+              "center_gltf_m": [
+                2.5,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                2.5999999999999996,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Market storefront",
+              "center_gltf_m": [
+                11.9,
+                2.25,
+                -0.14
+              ],
+              "size_gltf_m": [
+                16.2,
+                4.220000000000001,
+                0.28
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "West dining wall",
+              "center_gltf_m": [
+                -19.86,
+                2.25,
+                -10.35
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                20.7
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East shower wall",
+              "center_gltf_m": [
+                19.86,
+                2.25,
+                -6.8
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                13.6
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "East shower wall",
+              "center_gltf_m": [
+                19.86,
+                2.25,
+                -18.189999999999998
+              ],
+              "size_gltf_m": [
+                0.28000000000000114,
+                4.220000000000001,
+                5.02
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back receiving elevation",
+              "center_gltf_m": [
+                -4.0,
+                2.25,
+                -20.560000000000002
+              ],
+              "size_gltf_m": [
+                32.0,
+                4.220000000000001,
+                0.28000000000000114
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back receiving elevation",
+              "center_gltf_m": [
+                17.14,
+                2.25,
+                -20.560000000000002
+              ],
+              "size_gltf_m": [
+                5.720000000000001,
+                4.220000000000001,
+                0.28000000000000114
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main canopy column",
+              "center_gltf_m": [
+                -9.65,
+                1.8,
+                2.21
+              ],
+              "size_gltf_m": [
+                0.2920000000000016,
+                3.32,
+                0.3200000000000003
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Main canopy column",
+              "center_gltf_m": [
+                9.65,
+                1.8,
+                2.21
+              ],
+              "size_gltf_m": [
+                0.2920000000000016,
+                3.32,
+                0.3200000000000003
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Service waste container",
+              "center_gltf_m": [
+                17.244999999999997,
+                0.74,
+                -21.79
+              ],
+              "size_gltf_m": [
+                2.09,
+                1.2000000000000002,
+                1.5199999999999996
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                -13.559999999999999,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                12.319999999999999,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                -2.415,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                5.09,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                6.93,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                7.5,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Back-of-house wall",
+              "center_gltf_m": [
+                16.46,
+                1.865,
+                -12.965
+              ],
+              "size_gltf_m": [
+                6.52,
+                3.4499999999999997,
+                0.25
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                -6.8,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.2599999999999998,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                -0.18,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.26,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Rear room partition",
+              "center_gltf_m": [
+                9.9,
+                1.865,
+                -16.755000000000003
+              ],
+              "size_gltf_m": [
+                0.26000000000000156,
+                3.4499999999999997,
+                7.330000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed cash and service counter",
+              "center_gltf_m": [
+                7.65,
+                0.575,
+                -9.309999999999999
+              ],
+              "size_gltf_m": [
+                7.8999999999999995,
+                0.87,
+                1.08
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -2.36
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -2.36
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -2.36
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.2999999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -5.12
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -5.12
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -5.12
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -7.88
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -7.88
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4399999999999995
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -7.879999999999999
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.2999999999999998
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -18.9,
+                0.665,
+                -10.65
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000013
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Fixed diner booth seat",
+              "center_gltf_m": [
+                -16.4,
+                0.665,
+                -10.65
+              ],
+              "size_gltf_m": [
+                0.8000000000000007,
+                1.0499999999999998,
+                1.4400000000000013
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Booth table",
+              "center_gltf_m": [
+                -17.68,
+                0.5800000000000001,
+                -10.65
+              ],
+              "size_gltf_m": [
+                1.1600000000000001,
+                0.88,
+                1.3000000000000007
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                14.8,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                16.86,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Tiled shower stall divider",
+              "center_gltf_m": [
+                19.34,
+                1.33,
+                -18.86
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                2.38,
+                3.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Shower bench",
+              "center_gltf_m": [
+                19.25,
+                0.315,
+                -16.515
+              ],
+              "size_gltf_m": [
+                0.740000000000002,
+                0.35,
+                0.990000000000002
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -60.0,
+                3.4495,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                6.841,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -54.55,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -49.1,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -43.65,
+                3.4495,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                6.841,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -38.2,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -32.75,
+                0.8845,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                1.711,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Diesel equipment island",
+              "center_gltf_m": [
+                -27.299999999999997,
+                3.4495,
+                -35.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                6.841,
+                8.120000000000001
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                26.0,
+                2.3645,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                4.671,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                30.8,
+                0.8845,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1199999999999974,
+                1.711,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                35.6,
+                2.3645,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                4.671,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Car equipment island",
+              "center_gltf_m": [
+                40.4,
+                2.3645,
+                -10.0
+              ],
+              "size_gltf_m": [
+                1.1200000000000045,
+                4.671,
+                8.119999999999997
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Highway sign pole",
+              "center_gltf_m": [
+                42.17,
+                6.3345,
+                19.15
+              ],
+              "size_gltf_m": [
+                0.9599999999999937,
+                12.611,
+                0.9200000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            },
+            {
+              "name": "Highway sign pole",
+              "center_gltf_m": [
+                46.629999999999995,
+                6.3345,
+                19.15
+              ],
+              "size_gltf_m": [
+                0.9599999999999937,
+                12.611,
+                0.9200000000000017
+              ],
+              "group": "building",
+              "attachment": ""
+            }
+          ],
+          "sign_panels": {
+            "sign_scale": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                254,
+                400,
+                114,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                44.3684,
+                1.8,
+                -51.965
+              ],
+              "width_m": 4.4232000000000005,
+              "height_m": 0.9312
+            },
+            "sign_staff": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                130,
+                400,
+                114,
+                24
+              ],
+              "bottom_left_gltf_m": [
+                15.351600000000001,
+                2.75,
+                -20.732
+              ],
+              "width_m": 4.4232000000000005,
+              "height_m": 0.9312
+            },
+            "sign_store": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                264,
+                502,
+                48
+              ],
+              "bottom_left_gltf_m": [
+                -9.7388,
+                4.18,
+                0.31
+              ],
+              "width_m": 19.4776,
+              "height_m": 1.8624
+            },
+            "sign_menu": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                430,
+                214,
+                44
+              ],
+              "bottom_left_gltf_m": [
+                2.2484,
+                1.71,
+                -12.828
+              ],
+              "width_m": 8.3032,
+              "height_m": 1.7072
+            },
+            "sign_diesel": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                232,
+                320,
+                224,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                -47.995599999999996,
+                6.96,
+                -24.764
+              ],
+              "width_m": 8.6912,
+              "height_m": 1.2416
+            },
+            "sign_car": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                208,
+                360,
+                210,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                29.126000000000005,
+                4.79,
+                -1.764
+              ],
+              "width_m": 8.148,
+              "height_m": 1.2416
+            },
+            "sign_name": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                104,
+                302,
+                96
+              ],
+              "bottom_left_gltf_m": [
+                38.541199999999996,
+                12.1,
+                19.477
+              ],
+              "width_m": 11.717600000000001,
+              "height_m": 3.7248
+            },
+            "sign_name_rear": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                512
+              ],
+              "rect_texels": [
+                0,
+                104,
+                302,
+                96
+              ],
+              "bottom_left_gltf_m": [
+                50.2588,
+                12.1,
+                18.822999999999997
+              ],
+              "width_m": 11.717600000000001,
+              "height_m": 3.7248
+            }
+          },
+          "materials": [
+            "detail_cream",
+            "detail_ochre",
+            "floor_tile",
+            "glass_storefront",
+            "ground_asphalt",
+            "ground_paving",
+            "roof_membrane",
+            "sign_faces",
+            "trim_brand",
+            "trim_dark_steel",
+            "wall_brick"
+          ]
+        }
+      ]
+    }
+  ]
+}
