@@ -117,10 +117,15 @@ drift) give the mountain ranges (2.2).
 ### 2.2 Elevation and mountains
 
 - Land base height rises with distance from the coast (a smooth 0-400 m plain-and-plateau shape) plus low fBm.
-- **Mountain ranges** where plates converge: for each cell the nearest and second-nearest plate give a boundary
-  distance; if the two plates' drift converges, a ridged-noise range (1,500-3,500 m) runs along the boundary, falling
-  off over 11-28 km either side (the range's ridged noise scales a 1,500-3,200 m crest, so the highest peaks reach
-  about 3,500 m); on a coast it makes a coastal range (the west-coast look), inland a spine. Diverging boundaries at
+- **Mountain ranges** where plates converge: every pair of plates (a, b) whose drift converges has its own range
+  (crest 1,500-3,200 m, the pair's), standing on the pair's boundary distance g = (d_a + d_b - 2 d1) / 2 (d1 the
+  nearest plate's distance): the usual half-gap (d2 - d1) / 2 for the nearest pair, growing smoothly past the ends of
+  their boundary, so a range tapers out past a triple junction instead of stopping. A cell takes the highest pair's
+  term, so the height is continuous everywhere (no step where the second-nearest plate changes: the W4 plateau-wall).
+  The profile is a ridged-noise crest falling to nothing at 1.9 x the range's width (11-28 km) on a foothill apron
+  (16% of the crest) out to 3.2 x, both (1 - x^2)^3 bumps, so the land rises over tens of km (foothills, then the
+  range) and only plates within reach count. The worst step between land cells one atlas cell apart is about 350 m
+  (2,945 m before; `gen.test.ts` checks it stays under 500 m everywhere); on a coast it makes a coastal range (the west-coast look), inland a spine. Diverging boundaries at
   sea give mid-ocean ridges (only seen in the depth shading). Old ranges (a per-plate-pair age) are lower and rounder.
 - Ocean depth from the distance off the shelf: a 20-40 km shelf at 0-150 m, then the deep at 3-5 km.
 
@@ -215,7 +220,7 @@ The world seed only decides **where** each hub stands, by site rules and a score
 
 | hub type | site rule (hard) | score (soft) |
 |---|---|---|
-| **capital** (`gamma`, the start) | on the start continent (the largest), temperate (C or D class, mean 5-21 C), a river of the plan's size through the site running north-south, flat, 12 km or more from the coast, the plan's pad and its 2 km growth margin clear land | temperate and fertile; 20-80 km from the coast (on the way to a port); central on its continent (rail reaches out both ways); the plan's river direction matches the world river's |
+| **capital** (`gamma`, the start) | on the start continent (the largest), temperate (C or D class, mean 5-21 C), a river of the plan's size through the site running north-south, flat lowland (450 m or lower), 12 km or more from the coast, the plan's pad and its 2 km growth margin clear land | temperate and fertile; 20-80 km from the coast (on the way to a port); central on its continent (rail reaches out both ways); the plan's river direction matches the world river's |
 | **port** | on the coast, sheltered (a bay: little open sea within 10 km), deep water close in | a river mouth; facing another continent across the shortest ocean; a temperate climate |
 | **river city** | on one of the planet's largest rivers (flow in the top 5%, steady enough not to run dry), low and flat | a confluence; a crossing point (narrow valley); not on the coast (that is a port) |
 | **mountain town** | 800-2,000 m high, in a valley (lower than its surroundings) | near a pass between two river basins (the rail line's route over the range); forest and snow |
@@ -664,10 +669,12 @@ hub names), the Koppen classes, and January and July temperatures.
 - **Previews**: `gradle :desktop:preview -Dmode=filament-open -Dworld=1 -Dshots=world`.
 
 **Open problems (W4)**:
-- **The generator's cliffs**: east of the capital the ground steps from about 210 m to 1,930 m in one atlas cell along
-  a line some 40 km long (a plateau-wall). Likely cause in terrain.ts: a range's crest height `maxh` is per pair of
-  nearest plates, so it jumps where the second-nearest plate changes; the convergence term flips there too. It dominates
-  every far view east of the capital; a W1 fix (blend the pair's height across the switch) belongs before W5.
+- ~~The generator's cliffs~~ (fixed 2026-11-23): east of the old capital site the ground stepped from about 210 m to
+  1,930 m in one atlas cell along some 40 km, a plateau-wall. Cause (verified): the range's crest height and
+  convergence were taken from the nearest pair of plates only, so they jumped wherever the second-nearest plate
+  changed (all 360 land steps over 500 m were at such a change; there a divergent pair, no range, met a convergent
+  one at 3 km from its boundary). Now every converging pair's range is a continuous term (2.2). The ground west of the
+  old wall became the range's flank, so the capital moved about 44 km west to 326 m (its rule now asks for lowland).
 - Far towns are blocks a little bigger than life; 15 km off they are a few pixels, readable only with a long lens or by
   their lights at night (W5's T2/T3 tiers draw landmark silhouettes).
 - The open world's own haze (the player's camera) still takes everything past about 3 km on low ground; ground well

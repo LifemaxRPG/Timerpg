@@ -77,6 +77,9 @@ export function siteFields(t: Terrain, cl: Climate, h: Hydro, bio: Uint8Array, c
   return { usable, fertile, flat, seaFrac, valley, mainDonor, bigFlow: rf[Math.floor(rf.length * 0.95)] ?? Infinity };
 }
 
+/** The capital stands on lowland (WORLD_GEN.md 3): no higher than this, in metres. */
+export const CAPITAL_MAX_M = 450;
+
 const temperate = (T: number): number => Math.exp(-((T - 13) / 6) * ((T - 13) / 6));
 
 /** The direction a river runs at cell [c] over about [n] cells up and down: (dx, dz) in cells, downstream. */
@@ -99,6 +102,7 @@ export function hubRule(type: HubType, t: Terrain, cl: Climate, h: Hydro, f: Sit
       if (T < 5 || T > 21) return no('not temperate');
       { const g = koppenGroup(cl.koppen[c]!); if (g !== 'C' && g !== 'D') return no('not a temperate climate class'); }
       if (f.flat[c]! > 30) return no('not flat');
+      if (e > CAPITAL_MAX_M) return no('not lowland');
       if (t.distSea[c]! < 12) return no('too near the coast');
       const [dx, dz] = riverDir(h, f, c);
       if (Math.abs(dz) < 1.6 * Math.abs(dx) || Math.abs(dz) < 3) return no('river not north-south');
