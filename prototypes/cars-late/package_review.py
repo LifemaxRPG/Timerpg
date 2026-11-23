@@ -18,7 +18,8 @@ draw.text((14,13),"Timerpg Later Vehicles  ·  Blender Cycles",font=title,fill="
 for index,car in enumerate(DESIGNS):
     y=67+index*row_h
     draw.text((14,y),f"{car.name}  ·  {car.years[0]}–{car.years[-1]}",font=label,fill="#eee3cd")
-    for v,(key,caption) in enumerate(VIEWS):
+    views=VIEWS+(("rear_night","Wraparound light bar"),) if car.slug=="stoneweir-2015" else VIEWS
+    for v,(key,caption) in enumerate(views):
         x=12+(v%cols)*W
         row_y=y+(v//cols)*H+29
         with Image.open(ROOT/"renders"/f"{car.slug}-{key}.png") as source:

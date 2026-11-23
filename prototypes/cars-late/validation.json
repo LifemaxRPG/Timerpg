@@ -64,23 +64,23 @@
   },
   {
     "file": "stoneweir-2015.glb",
-    "triangles": 2540,
+    "triangles": 2890,
     "materials": 6,
-    "max_uv_edge_error_m": 8.235931394651175e-07,
-    "nodes_checked": 31
+    "max_uv_edge_error_m": 8.002519606975511e-07,
+    "nodes_checked": 34
   },
   {
     "file": "stoneweir-2015-mid.glb",
-    "triangles": 870,
+    "triangles": 1022,
     "materials": 6,
-    "max_uv_edge_error_m": 7.820066399988335e-07,
-    "nodes_checked": 31
+    "max_uv_edge_error_m": 7.524431548944222e-07,
+    "nodes_checked": 34
   },
   {
     "file": "stoneweir-2015-far.glb",
-    "triangles": 120,
-    "materials": 2,
-    "max_uv_edge_error_m": 5.468488079030109e-07,
-    "nodes_checked": 31
+    "triangles": 136,
+    "materials": 3,
+    "max_uv_edge_error_m": 4.413606204956011e-07,
+    "nodes_checked": 34
   }
 ]

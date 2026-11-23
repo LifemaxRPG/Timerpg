@@ -130,6 +130,8 @@ views={
     "scale":((5.36,2.62,4.91),(.25,.91,.06),6.65),
     "cargo":((3.85,3.61,-5.36),(0,.83,-1.15),6.18),
 }
+if slug=="stoneweir-2015":
+    views["rear_night"]=((4.6,2.52,-6.26),(0,.82,-.19),6.24)
 for name in (*asset["door_preview_degrees"],*asset["cargo_preview_degrees"]):
     bpy.data.objects[name].rotation_mode="XYZ"
 only=os.environ.get("CAR_VIEWS","").split(",")
@@ -138,7 +140,7 @@ folder.mkdir(exist_ok=True)
 for tag,(position,target,width) in views.items():
     if only!=[""] and tag not in only:
         continue
-    night=tag=="night"
+    night=tag in ("night","rear_night")
     key.energy=.25 if night else 2.40
     key.color=(.54,.70,1) if night else (1,.93,.80)
     sky.inputs[0].default_value=(.27,.42,.72,1) if night else (.76,.85,.94,1)
@@ -161,6 +163,6 @@ for tag,(position,target,width) in views.items():
     camera.data.type="ORTHO" if width else "PERSP"
     camera.data.ortho_scale=width if width else 6
     camera.data.lens=20
-    scene.cycles.samples=12 if tag in ("interior","night") else 8
+    scene.cycles.samples=12 if tag in ("interior","night","rear_night") else 8
     scene.render.filepath=str(folder/f"{slug}-{tag}.png")
     bpy.ops.render.render(write_still=True)

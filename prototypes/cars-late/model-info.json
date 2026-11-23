@@ -4098,7 +4098,7 @@
       ],
       "estimated_mass_kg": 1710,
       "estimated_top_speed_kmh": 187,
-      "wheel_radius_m": 0.359,
+      "wheel_radius_m": 0.371,
       "wheelbase_m": 2.7,
       "track_m": 1.615,
       "suggested_lod_m": {
@@ -4110,38 +4110,38 @@
         {
           "center_gltf_m": [
             0,
-            0.631,
-            0
+            0.654,
+            -0.04
           ],
           "size_gltf_m": [
-            1.68606,
-            0.702,
-            3.948
+            1.8,
+            0.898,
+            4.45
           ]
         },
         {
           "center_gltf_m": [
             0,
-            1.333,
-            -0.51
+            1.366,
+            -0.375
           ],
           "size_gltf_m": [
-            1.47288,
-            0.702,
-            1.65
+            1.425,
+            0.526,
+            1.81
           ]
         }
       ],
       "paint": {
         "preset_body_colours": [
+          "#8a5948",
           "#506c65",
           "#4d5a6d",
           "#9b9e96",
-          "#826255",
           "#464a4c",
           "#835953"
         ],
-        "stock_secondary": "#404947",
+        "stock_secondary": "#343835",
         "masks": {
           "primary": "textures/stoneweir-2015-primary-mask.png",
           "secondary": "textures/stoneweir-2015-secondary-mask.png"
@@ -4160,19 +4160,19 @@
         {
           "file": "stoneweir-2015.glb",
           "lod": "near",
-          "triangles": 2540,
+          "triangles": 2890,
           "bounds_gltf_m": [
             [
-              -1.060344,
-              1.060344
+              -1.0805,
+              1.0805
             ],
             [
               0.0,
-              1.704998
+              1.689998
             ],
             [
-              -2.536,
-              2.512
+              -2.447,
+              2.4275
             ]
           ],
           "materials": [
@@ -4187,8 +4187,8 @@
             "hood": {
               "center_gltf_m": [
                 0.0,
-                1.079,
-                0.75
+                1.207,
+                0.922
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -4200,8 +4200,8 @@
             "trunk": {
               "center_gltf_m": [
                 0.0,
-                1.584,
-                -1.395
+                1.574,
+                -1.156
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -4212,9 +4212,9 @@
             },
             "door_front_l": {
               "center_gltf_m": [
-                0.953496,
-                0.501,
-                0.74
+                0.962352,
+                0.551,
+                0.891
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -4225,9 +4225,9 @@
             },
             "door_rear_l": {
               "center_gltf_m": [
-                0.953496,
-                0.501,
-                -0.33
+                0.962352,
+                0.551,
+                -0.269
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -4238,9 +4238,9 @@
             },
             "door_front_r": {
               "center_gltf_m": [
-                -0.953496,
-                0.501,
-                0.74
+                -0.962352,
+                0.551,
+                0.891
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -4251,9 +4251,9 @@
             },
             "door_rear_r": {
               "center_gltf_m": [
-                -0.953496,
-                0.501,
-                -0.33
+                -0.962352,
+                0.551,
+                -0.269
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -4265,7 +4265,7 @@
             "steer_fl": {
               "center_gltf_m": [
                 0.8075,
-                0.359,
+                0.371,
                 1.35
               ],
               "parent": "stoneweir-2015",
@@ -4278,7 +4278,7 @@
             "wheel_fl": {
               "center_gltf_m": [
                 0.8075,
-                0.359,
+                0.371,
                 1.35
               ],
               "parent": "steer_fl",
@@ -4291,7 +4291,7 @@
             "steer_fr": {
               "center_gltf_m": [
                 -0.8075,
-                0.359,
+                0.371,
                 1.35
               ],
               "parent": "stoneweir-2015",
@@ -4304,7 +4304,7 @@
             "wheel_fr": {
               "center_gltf_m": [
                 -0.8075,
-                0.359,
+                0.371,
                 1.35
               ],
               "parent": "steer_fr",
@@ -4317,7 +4317,7 @@
             "wheel_rl": {
               "center_gltf_m": [
                 0.8075,
-                0.359,
+                0.371,
                 -1.35
               ],
               "parent": "stoneweir-2015",
@@ -4330,7 +4330,7 @@
             "wheel_rr": {
               "center_gltf_m": [
                 -0.8075,
-                0.359,
+                0.371,
                 -1.35
               ],
               "parent": "stoneweir-2015",
@@ -4343,7 +4343,7 @@
             "seat_driver": {
               "center_gltf_m": [
                 0.346,
-                0.669,
+                0.719,
                 -0.204
               ],
               "parent": "stoneweir-2015"
@@ -4351,7 +4351,7 @@
             "seat_passenger": {
               "center_gltf_m": [
                 -0.346,
-                0.669,
+                0.719,
                 -0.204
               ],
               "parent": "stoneweir-2015"
@@ -4359,7 +4359,7 @@
             "seat_rear_left": {
               "center_gltf_m": [
                 0.336,
-                0.669,
+                0.719,
                 -1.027
               ],
               "parent": "stoneweir-2015"
@@ -4367,7 +4367,7 @@
             "seat_rear_right": {
               "center_gltf_m": [
                 -0.336,
-                0.669,
+                0.719,
                 -1.027
               ],
               "parent": "stoneweir-2015"
@@ -4375,8 +4375,8 @@
             "steering_wheel": {
               "center_gltf_m": [
                 0.34,
-                0.949,
-                0.536
+                1.085,
+                0.796
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -4387,7 +4387,7 @@
             },
             "exit_left": {
               "center_gltf_m": [
-                1.539,
+                1.548,
                 0.0,
                 0.014
               ],
@@ -4395,105 +4395,129 @@
             },
             "exit_right": {
               "center_gltf_m": [
-                -1.539,
+                -1.548,
                 0.0,
                 0.014
               ],
               "parent": "stoneweir-2015"
             },
+            "light_tail_bar": {
+              "center_gltf_m": [
+                0.0,
+                1.023,
+                -2.353
+              ],
+              "parent": "trunk"
+            },
             "light_head_l": {
               "center_gltf_m": [
-                0.65,
-                0.879,
-                2.38
+                0.719,
+                1.034,
+                2.22
+              ],
+              "parent": "stoneweir-2015"
+            },
+            "light_drl_l": {
+              "center_gltf_m": [
+                0.719,
+                1.077,
+                2.226
               ],
               "parent": "stoneweir-2015"
             },
             "light_tail_l": {
               "center_gltf_m": [
-                0.676,
-                0.878,
-                -2.41
+                0.835,
+                1.067,
+                -2.253
               ],
               "parent": "stoneweir-2015"
             },
             "light_brake_l": {
               "center_gltf_m": [
-                0.676,
-                0.761,
-                -2.414
+                0.62,
+                0.875,
+                -2.386
               ],
               "parent": "stoneweir-2015"
             },
             "light_turn_front_l": {
               "center_gltf_m": [
-                0.65,
-                0.739,
-                2.361
+                0.704,
+                0.788,
+                2.3
               ],
               "parent": "stoneweir-2015"
             },
             "light_turn_rear_l": {
               "center_gltf_m": [
-                0.48672,
-                0.732,
-                -2.416
+                0.815,
+                0.917,
+                -2.284
               ],
               "parent": "stoneweir-2015"
             },
             "light_reverse_l": {
               "center_gltf_m": [
-                0.36504,
-                0.755,
-                -2.42
+                0.48,
+                0.802,
+                -2.386
               ],
               "parent": "stoneweir-2015"
             },
             "light_head_r": {
               "center_gltf_m": [
-                -0.65,
-                0.879,
-                2.38
+                -0.719,
+                1.034,
+                2.22
+              ],
+              "parent": "stoneweir-2015"
+            },
+            "light_drl_r": {
+              "center_gltf_m": [
+                -0.719,
+                1.077,
+                2.226
               ],
               "parent": "stoneweir-2015"
             },
             "light_tail_r": {
               "center_gltf_m": [
-                -0.676,
-                0.878,
-                -2.41
+                -0.835,
+                1.067,
+                -2.253
               ],
               "parent": "stoneweir-2015"
             },
             "light_brake_r": {
               "center_gltf_m": [
-                -0.676,
-                0.761,
-                -2.414
+                -0.62,
+                0.875,
+                -2.386
               ],
               "parent": "stoneweir-2015"
             },
             "light_turn_front_r": {
               "center_gltf_m": [
-                -0.65,
-                0.739,
-                2.361
+                -0.704,
+                0.788,
+                2.3
               ],
               "parent": "stoneweir-2015"
             },
             "light_turn_rear_r": {
               "center_gltf_m": [
-                -0.48672,
-                0.732,
-                -2.416
+                -0.815,
+                0.917,
+                -2.284
               ],
               "parent": "stoneweir-2015"
             },
             "light_reverse_r": {
               "center_gltf_m": [
-                -0.36504,
-                0.755,
-                -2.42
+                -0.48,
+                0.802,
+                -2.386
               ],
               "parent": "stoneweir-2015"
             }
@@ -4508,8 +4532,26 @@
             "trunk": 77
           },
           "lamps": {
+            "light_tail_bar": {
+              "role": "tail",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
             "light_head_l": {
               "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_drl_l": {
+              "role": "drl",
               "lens_material": "glow_lamps",
               "facing_gltf": [
                 0,
@@ -4564,6 +4606,15 @@
             },
             "light_head_r": {
               "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_drl_r": {
+              "role": "drl",
               "lens_material": "glow_lamps",
               "facing_gltf": [
                 0,
@@ -4621,19 +4672,19 @@
         {
           "file": "stoneweir-2015-mid.glb",
           "lod": "mid",
-          "triangles": 870,
+          "triangles": 1022,
           "bounds_gltf_m": [
             [
-              -1.058,
-              1.058
+              -1.0715,
+              1.0715
             ],
             [
               0.0,
-              1.684
+              1.674
             ],
             [
-              -2.5435,
-              2.4895
+              -2.4865,
+              2.4485
             ]
           ],
           "materials": [
@@ -4648,8 +4699,8 @@
             "hood": {
               "center_gltf_m": [
                 0.0,
-                1.079,
-                0.75
+                1.207,
+                0.922
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -4661,8 +4712,8 @@
             "trunk": {
               "center_gltf_m": [
                 0.0,
-                1.584,
-                -1.395
+                1.574,
+                -1.156
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -4673,9 +4724,9 @@
             },
             "door_front_l": {
               "center_gltf_m": [
-                0.953496,
-                0.501,
-                0.74
+                0.962352,
+                0.551,
+                0.891
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -4686,9 +4737,9 @@
             },
             "door_rear_l": {
               "center_gltf_m": [
-                0.953496,
-                0.501,
-                -0.33
+                0.962352,
+                0.551,
+                -0.269
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -4699,9 +4750,9 @@
             },
             "door_front_r": {
               "center_gltf_m": [
-                -0.953496,
-                0.501,
-                0.74
+                -0.962352,
+                0.551,
+                0.891
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -4712,9 +4763,9 @@
             },
             "door_rear_r": {
               "center_gltf_m": [
-                -0.953496,
-                0.501,
-                -0.33
+                -0.962352,
+                0.551,
+                -0.269
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -4726,7 +4777,7 @@
             "steer_fl": {
               "center_gltf_m": [
                 0.8075,
-                0.359,
+                0.371,
                 1.35
               ],
               "parent": "stoneweir-2015",
@@ -4739,7 +4790,7 @@
             "wheel_fl": {
               "center_gltf_m": [
                 0.8075,
-                0.359,
+                0.371,
                 1.35
               ],
               "parent": "steer_fl",
@@ -4752,7 +4803,7 @@
             "steer_fr": {
               "center_gltf_m": [
                 -0.8075,
-                0.359,
+                0.371,
                 1.35
               ],
               "parent": "stoneweir-2015",
@@ -4765,7 +4816,7 @@
             "wheel_fr": {
               "center_gltf_m": [
                 -0.8075,
-                0.359,
+                0.371,
                 1.35
               ],
               "parent": "steer_fr",
@@ -4778,7 +4829,7 @@
             "wheel_rl": {
               "center_gltf_m": [
                 0.8075,
-                0.359,
+                0.371,
                 -1.35
               ],
               "parent": "stoneweir-2015",
@@ -4791,7 +4842,7 @@
             "wheel_rr": {
               "center_gltf_m": [
                 -0.8075,
-                0.359,
+                0.371,
                 -1.35
               ],
               "parent": "stoneweir-2015",
@@ -4804,7 +4855,7 @@
             "seat_driver": {
               "center_gltf_m": [
                 0.346,
-                0.669,
+                0.719,
                 -0.204
               ],
               "parent": "stoneweir-2015"
@@ -4812,7 +4863,7 @@
             "seat_passenger": {
               "center_gltf_m": [
                 -0.346,
-                0.669,
+                0.719,
                 -0.204
               ],
               "parent": "stoneweir-2015"
@@ -4820,7 +4871,7 @@
             "seat_rear_left": {
               "center_gltf_m": [
                 0.336,
-                0.669,
+                0.719,
                 -1.027
               ],
               "parent": "stoneweir-2015"
@@ -4828,7 +4879,7 @@
             "seat_rear_right": {
               "center_gltf_m": [
                 -0.336,
-                0.669,
+                0.719,
                 -1.027
               ],
               "parent": "stoneweir-2015"
@@ -4836,8 +4887,8 @@
             "steering_wheel": {
               "center_gltf_m": [
                 0.34,
-                0.949,
-                0.536
+                1.085,
+                0.796
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -4848,7 +4899,7 @@
             },
             "exit_left": {
               "center_gltf_m": [
-                1.539,
+                1.548,
                 0.0,
                 0.014
               ],
@@ -4856,105 +4907,129 @@
             },
             "exit_right": {
               "center_gltf_m": [
-                -1.539,
+                -1.548,
                 0.0,
                 0.014
               ],
               "parent": "stoneweir-2015"
             },
+            "light_tail_bar": {
+              "center_gltf_m": [
+                0.0,
+                1.023,
+                -2.353
+              ],
+              "parent": "trunk"
+            },
             "light_head_l": {
               "center_gltf_m": [
-                0.65,
-                0.879,
-                2.38
+                0.719,
+                1.034,
+                2.22
+              ],
+              "parent": "stoneweir-2015"
+            },
+            "light_drl_l": {
+              "center_gltf_m": [
+                0.719,
+                1.077,
+                2.226
               ],
               "parent": "stoneweir-2015"
             },
             "light_tail_l": {
               "center_gltf_m": [
-                0.676,
-                0.878,
-                -2.41
+                0.835,
+                1.067,
+                -2.253
               ],
               "parent": "stoneweir-2015"
             },
             "light_brake_l": {
               "center_gltf_m": [
-                0.676,
-                0.761,
-                -2.414
+                0.62,
+                0.875,
+                -2.386
               ],
               "parent": "stoneweir-2015"
             },
             "light_turn_front_l": {
               "center_gltf_m": [
-                0.65,
-                0.739,
-                2.361
+                0.704,
+                0.788,
+                2.3
               ],
               "parent": "stoneweir-2015"
             },
             "light_turn_rear_l": {
               "center_gltf_m": [
-                0.48672,
-                0.732,
-                -2.416
+                0.815,
+                0.917,
+                -2.284
               ],
               "parent": "stoneweir-2015"
             },
             "light_reverse_l": {
               "center_gltf_m": [
-                0.36504,
-                0.755,
-                -2.42
+                0.48,
+                0.802,
+                -2.386
               ],
               "parent": "stoneweir-2015"
             },
             "light_head_r": {
               "center_gltf_m": [
-                -0.65,
-                0.879,
-                2.38
+                -0.719,
+                1.034,
+                2.22
+              ],
+              "parent": "stoneweir-2015"
+            },
+            "light_drl_r": {
+              "center_gltf_m": [
+                -0.719,
+                1.077,
+                2.226
               ],
               "parent": "stoneweir-2015"
             },
             "light_tail_r": {
               "center_gltf_m": [
-                -0.676,
-                0.878,
-                -2.41
+                -0.835,
+                1.067,
+                -2.253
               ],
               "parent": "stoneweir-2015"
             },
             "light_brake_r": {
               "center_gltf_m": [
-                -0.676,
-                0.761,
-                -2.414
+                -0.62,
+                0.875,
+                -2.386
               ],
               "parent": "stoneweir-2015"
             },
             "light_turn_front_r": {
               "center_gltf_m": [
-                -0.65,
-                0.739,
-                2.361
+                -0.704,
+                0.788,
+                2.3
               ],
               "parent": "stoneweir-2015"
             },
             "light_turn_rear_r": {
               "center_gltf_m": [
-                -0.48672,
-                0.732,
-                -2.416
+                -0.815,
+                0.917,
+                -2.284
               ],
               "parent": "stoneweir-2015"
             },
             "light_reverse_r": {
               "center_gltf_m": [
-                -0.36504,
-                0.755,
-                -2.42
+                -0.48,
+                0.802,
+                -2.386
               ],
               "parent": "stoneweir-2015"
             }
@@ -4969,8 +5044,26 @@
             "trunk": 77
           },
           "lamps": {
+            "light_tail_bar": {
+              "role": "tail",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
             "light_head_l": {
               "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_drl_l": {
+              "role": "drl",
               "lens_material": "glow_lamps",
               "facing_gltf": [
                 0,
@@ -5025,6 +5118,15 @@
             },
             "light_head_r": {
               "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_drl_r": {
+              "role": "drl",
               "lens_material": "glow_lamps",
               "facing_gltf": [
                 0,
@@ -5082,31 +5184,32 @@
         {
           "file": "stoneweir-2015-far.glb",
           "lod": "far",
-          "triangles": 120,
+          "triangles": 136,
           "bounds_gltf_m": [
             [
-              -0.969,
-              0.969
+              -0.978,
+              0.978
             ],
             [
               0.0,
-              1.684
+              1.674
             ],
             [
-              -2.359,
-              2.325
+              -2.3,
+              2.284
             ]
           ],
           "materials": [
             "interior_and_rubber",
-            "paint_primary"
+            "paint_primary",
+            "paint_secondary"
           ],
           "nodes": {
             "door_front_l": {
               "center_gltf_m": [
-                0.953496,
-                0.501,
-                0.74
+                0.962352,
+                0.551,
+                0.891
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -5117,9 +5220,9 @@
             },
             "door_rear_l": {
               "center_gltf_m": [
-                0.953496,
-                0.501,
-                -0.33
+                0.962352,
+                0.551,
+                -0.269
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -5130,9 +5233,9 @@
             },
             "door_front_r": {
               "center_gltf_m": [
-                -0.953496,
-                0.501,
-                0.74
+                -0.962352,
+                0.551,
+                0.891
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -5143,9 +5246,9 @@
             },
             "door_rear_r": {
               "center_gltf_m": [
-                -0.953496,
-                0.501,
-                -0.33
+                -0.962352,
+                0.551,
+                -0.269
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -5157,7 +5260,7 @@
             "steer_fl": {
               "center_gltf_m": [
                 0.8075,
-                0.359,
+                0.371,
                 1.35
               ],
               "parent": "stoneweir-2015",
@@ -5170,7 +5273,7 @@
             "wheel_fl": {
               "center_gltf_m": [
                 0.8075,
-                0.359,
+                0.371,
                 1.35
               ],
               "parent": "steer_fl",
@@ -5183,7 +5286,7 @@
             "steer_fr": {
               "center_gltf_m": [
                 -0.8075,
-                0.359,
+                0.371,
                 1.35
               ],
               "parent": "stoneweir-2015",
@@ -5196,7 +5299,7 @@
             "wheel_fr": {
               "center_gltf_m": [
                 -0.8075,
-                0.359,
+                0.371,
                 1.35
               ],
               "parent": "steer_fr",
@@ -5209,7 +5312,7 @@
             "wheel_rl": {
               "center_gltf_m": [
                 0.8075,
-                0.359,
+                0.371,
                 -1.35
               ],
               "parent": "stoneweir-2015",
@@ -5222,7 +5325,7 @@
             "wheel_rr": {
               "center_gltf_m": [
                 -0.8075,
-                0.359,
+                0.371,
                 -1.35
               ],
               "parent": "stoneweir-2015",
@@ -5235,7 +5338,7 @@
             "seat_driver": {
               "center_gltf_m": [
                 0.346,
-                0.669,
+                0.719,
                 -0.204
               ],
               "parent": "stoneweir-2015"
@@ -5243,7 +5346,7 @@
             "seat_passenger": {
               "center_gltf_m": [
                 -0.346,
-                0.669,
+                0.719,
                 -0.204
               ],
               "parent": "stoneweir-2015"
@@ -5251,7 +5354,7 @@
             "seat_rear_left": {
               "center_gltf_m": [
                 0.336,
-                0.669,
+                0.719,
                 -1.027
               ],
               "parent": "stoneweir-2015"
@@ -5259,7 +5362,7 @@
             "seat_rear_right": {
               "center_gltf_m": [
                 -0.336,
-                0.669,
+                0.719,
                 -1.027
               ],
               "parent": "stoneweir-2015"
@@ -5267,8 +5370,8 @@
             "steering_wheel": {
               "center_gltf_m": [
                 0.34,
-                0.949,
-                0.536
+                1.085,
+                0.796
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -5280,8 +5383,8 @@
             "hood": {
               "center_gltf_m": [
                 0.0,
-                1.079,
-                0.75
+                1.207,
+                0.922
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -5293,8 +5396,8 @@
             "trunk": {
               "center_gltf_m": [
                 0.0,
-                1.584,
-                -1.395
+                1.574,
+                -1.156
               ],
               "parent": "stoneweir-2015",
               "axis_local_gltf": [
@@ -5305,7 +5408,7 @@
             },
             "exit_left": {
               "center_gltf_m": [
-                1.539,
+                1.548,
                 0.0,
                 0.014
               ],
@@ -5313,105 +5416,129 @@
             },
             "exit_right": {
               "center_gltf_m": [
-                -1.539,
+                -1.548,
                 0.0,
                 0.014
               ],
               "parent": "stoneweir-2015"
             },
+            "light_tail_bar": {
+              "center_gltf_m": [
+                0.0,
+                1.023,
+                -2.353
+              ],
+              "parent": "trunk"
+            },
             "light_head_l": {
               "center_gltf_m": [
-                0.65,
-                0.879,
-                2.38
+                0.719,
+                1.034,
+                2.22
+              ],
+              "parent": "stoneweir-2015"
+            },
+            "light_drl_l": {
+              "center_gltf_m": [
+                0.719,
+                1.077,
+                2.226
               ],
               "parent": "stoneweir-2015"
             },
             "light_tail_l": {
               "center_gltf_m": [
-                0.676,
-                0.878,
-                -2.41
+                0.835,
+                1.067,
+                -2.253
               ],
               "parent": "stoneweir-2015"
             },
             "light_brake_l": {
               "center_gltf_m": [
-                0.676,
-                0.761,
-                -2.414
+                0.62,
+                0.875,
+                -2.386
               ],
               "parent": "stoneweir-2015"
             },
             "light_turn_front_l": {
               "center_gltf_m": [
-                0.65,
-                0.739,
-                2.361
+                0.704,
+                0.788,
+                2.3
               ],
               "parent": "stoneweir-2015"
             },
             "light_turn_rear_l": {
               "center_gltf_m": [
-                0.48672,
-                0.732,
-                -2.416
+                0.815,
+                0.917,
+                -2.284
               ],
               "parent": "stoneweir-2015"
             },
             "light_reverse_l": {
               "center_gltf_m": [
-                0.36504,
-                0.755,
-                -2.42
+                0.48,
+                0.802,
+                -2.386
               ],
               "parent": "stoneweir-2015"
             },
             "light_head_r": {
               "center_gltf_m": [
-                -0.65,
-                0.879,
-                2.38
+                -0.719,
+                1.034,
+                2.22
+              ],
+              "parent": "stoneweir-2015"
+            },
+            "light_drl_r": {
+              "center_gltf_m": [
+                -0.719,
+                1.077,
+                2.226
               ],
               "parent": "stoneweir-2015"
             },
             "light_tail_r": {
               "center_gltf_m": [
-                -0.676,
-                0.878,
-                -2.41
+                -0.835,
+                1.067,
+                -2.253
               ],
               "parent": "stoneweir-2015"
             },
             "light_brake_r": {
               "center_gltf_m": [
-                -0.676,
-                0.761,
-                -2.414
+                -0.62,
+                0.875,
+                -2.386
               ],
               "parent": "stoneweir-2015"
             },
             "light_turn_front_r": {
               "center_gltf_m": [
-                -0.65,
-                0.739,
-                2.361
+                -0.704,
+                0.788,
+                2.3
               ],
               "parent": "stoneweir-2015"
             },
             "light_turn_rear_r": {
               "center_gltf_m": [
-                -0.48672,
-                0.732,
-                -2.416
+                -0.815,
+                0.917,
+                -2.284
               ],
               "parent": "stoneweir-2015"
             },
             "light_reverse_r": {
               "center_gltf_m": [
-                -0.36504,
-                0.755,
-                -2.42
+                -0.48,
+                0.802,
+                -2.386
               ],
               "parent": "stoneweir-2015"
             }
@@ -5426,8 +5553,26 @@
             "trunk": 77
           },
           "lamps": {
+            "light_tail_bar": {
+              "role": "tail",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                -1
+              ]
+            },
             "light_head_l": {
               "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_drl_l": {
+              "role": "drl",
               "lens_material": "glow_lamps",
               "facing_gltf": [
                 0,
@@ -5482,6 +5627,15 @@
             },
             "light_head_r": {
               "role": "head",
+              "lens_material": "glow_lamps",
+              "facing_gltf": [
+                0,
+                0,
+                1
+              ]
+            },
+            "light_drl_r": {
+              "role": "drl",
               "lens_material": "glow_lamps",
               "facing_gltf": [
                 0,

@@ -44,6 +44,9 @@ def tile(color,seed,size=32):
     return im
 
 
+WAYFARER_FINISH={"screen":(215,222)}
+WAYFARER_LIGHTS={"drl":(190,42),"tail_bar":(134,82)}
+
 for i,design in enumerate(DESIGNS):
     root=design.slug
     for channel,color in (("primary",design.colours[0]),("secondary",design.accent)):
@@ -53,7 +56,7 @@ for i,design in enumerate(DESIGNS):
         for p in ((0,1),(9,26),(19,28),(29,3),(22,18)):
             mask.putpixel(p,66)
         save(mask,f"{root}-{channel}-mask")
-    glass=Image.new("RGBA",(32,32),(112,153,146,48))
+    glass=Image.new("RGBA",(32,32),(92,134,143,79) if i==3 else (112,153,146,48))
     gd=ImageDraw.Draw(glass)
     for y in (3,16,24):
         for x in range(3,29):
@@ -105,6 +108,12 @@ for i,design in enumerate(DESIGNS):
             draw.rectangle((x-3,y-3,x+3,y+3),fill="#36443b")
             draw.polygon([(x,y-3),(x+3,y),(x,y+3),(x-3,y)],fill=("#e4c693","#e4cf9a","#c3c5b7","#c2d4c7")[i])
             draw.point((x,y),fill="#3b5348")
+    if i==3:
+        x,y=(v//2 for v in WAYFARER_FINISH["screen"])
+        draw.rectangle((x-7,y-5,x+8,y+6),fill="#23312f")
+        draw.rectangle((x-5,y-3,x+5,y+3),fill="#405d64")
+        draw.line((x-4,y+1,x-1,y+1,x+1,y-1,x+4,y-1),fill="#a0c9bc")
+        draw.point((x+1,y-1),fill="#e3bd7c")
     save(finish,f"{root}-finish")
 
     lamps=Image.new("RGB",(ATLAS//2,ATLAS//2),"#28342f")
@@ -125,7 +134,20 @@ for i,design in enumerate(DESIGNS):
             l.line((x-5,y-1,x+5,y-1),fill=offset(hue,18))
             e.rectangle((x-6,y-4,x+6,y+4),fill=0)
             e.rectangle((x-5,y-1,x+5,y+1),fill=hue)
+    if i==3:
+        for name,half_w,hue in (("drl",9,"#b8e1ed"),("tail_bar",13,"#dc6254")):
+            x,y=(v//2 for v in WAYFARER_LIGHTS[name])
+            l.rectangle((x-half_w-1,y-2,x+half_w+1,y+2),fill=offset(hue,-70))
+            l.line((x-half_w,y,x+half_w,y),fill=hue)
+            l.line((x-half_w,y+1,x+half_w,y+1),fill=offset(hue,-19))
+            e.rectangle((x-half_w,y,x+half_w,y+1),fill=hue)
     save(lamps,f"{root}-lamps")
     save(emission,f"{root}-emission")
 
 (OUT/"regions.json").write_text(json.dumps({"finish":REGIONS,"lamps":LENSES,"atlas_texels":ATLAS},indent=2)+"\n")
+
+(OUT/"stoneweir-2015-regions.json").write_text(json.dumps({
+    "finish":{**REGIONS,**WAYFARER_FINISH},
+    "lamps":{**LENSES,**WAYFARER_LIGHTS},
+    "atlas_texels":ATLAS,
+},indent=2)+"\n")

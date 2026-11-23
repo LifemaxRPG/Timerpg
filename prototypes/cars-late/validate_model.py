@@ -87,11 +87,19 @@ for item in meta["vehicles"]:
             assert emissive[0]["name"]=="glow_lamps"
             mask=embedded(doc,data,emissive[0]["emissiveTexture"]["index"])[:,:,:3]
             expected=np.zeros(mask.shape[:2],dtype=bool)
+            wayfarer=item["key"]=="stoneweir-2015"
+            if wayfarer:
+                for zone,(x,y) in json.loads((ROOT/"textures/stoneweir-2015-regions.json").read_text())["lamps"].items():
+                    if zone in ("drl","tail_bar"):
+                        w=18 if zone=="drl" else 26
+                        expected[y:y+4,x-w:x+w+2]=True
+                        assert mask[y:y+4,x-w:x+w+2].max()>0
             for x,y in regions["lamps"].values():
                 width=10 if item["key"]=="stoneweir-2015" and x in (16,42) else 6
                 expected[y-6:y+8,x-width:x+width+2]=True
             assert mask[expected].any() and not mask[~expected].any()
             assert pixel_grid(mask)
+        paint_faces=[]
         bounds=[]
         dim={}
         triangles=0
@@ -121,6 +129,8 @@ for item in meta["vehicles"]:
                     dim[tex]=np.array(image.shape[:2][::-1])
                 uv=acc(doc,data,primitive["attributes"]["TEXCOORD_0"]).astype(float)[idx]*dim[tex]*T
                 xyz=points[idx]
+                if item["key"]=="stoneweir-2015" and mat["name"]=="paint_primary":
+                    paint_faces.extend(xyz)
                 if liftback and node_id in moving_cargo and mat["name"]=="glass_vehicle":
                     cargo_glazing=True
                 if pickup and not far:
@@ -133,6 +143,36 @@ for item in meta["vehicles"]:
         coords=np.concatenate(bounds)
         assert np.allclose(np.column_stack((coords.min(axis=0),coords.max(axis=0))),a["bounds_gltf_m"],atol=1e-5)
         assert -.001<coords[:,1].min()<.001
+        if item["key"]=="stoneweir-2015":
+            assert 1.65<=coords[:,1].max()<=1.70+.002
+            assert .70<=2*item["wheel_radius_m"]<=.75
+            assert parents[by_name["light_tail_bar"]]=="trunk"
+            assert {"light_drl_l","light_drl_r","light_tail_bar"}.issubset(a["lamps"])
+            wheels={i for key in ("wheel_fl","wheel_fr","wheel_rl","wheel_rr")
+                    for i in descendants(doc,by_name[key])}
+            min_chassis=min(p[:,1].min() for i,ps in positions.items() if i not in wheels for p in ps)
+            assert .197<=min_chassis<=.212,(a["file"],min_chassis)
+            if not far:
+                faces=np.asarray(paint_faces)
+                a0,b0,c0=np.moveaxis(faces,1,0)
+                u,v=b0-a0,c0-a0
+                det=u[:,1]*v[:,2]-u[:,2]*v[:,1]
+                valid=abs(det)>1.e-9
+                for axle_z in (-1.35,1.35):
+                    for delta in (-.12,0,.12):
+                        dy=.647-a0[:,1]
+                        dz=axle_z+delta-a0[:,2]
+                        a_weight=np.divide(dy*v[:,2]-dz*v[:,1],det,where=valid,out=np.zeros_like(det))
+                        b_weight=np.divide(u[:,1]*dz-u[:,2]*dy,det,where=valid,out=np.zeros_like(det))
+                        inside=valid&(a_weight>=0)&(b_weight>=0)&(a_weight+b_weight<=1)
+                        x=a0[:,0]+a_weight*u[:,0]+b_weight*v[:,0]
+                        assert not (inside&(abs(x)>.85)).any(),(a["file"],axle_z,delta)
+                for light in ("light_drl_l","light_drl_r","light_tail_bar"):
+                    for i in descendants(doc,by_name[light]):
+                        for p in doc["meshes"][nodes[i]["mesh"]]["primitives"]:
+                            uv=acc(doc,data,p["attributes"]["TEXCOORD_0"])
+                            center=(uv.mean(axis=0)*256).astype(int).clip(0,255)
+                            assert mask[center[1]-1:center[1]+2,center[0]-1:center[0]+2].any(),light
         assert max_error<.0002
         assert triangles==a["triangles"]
         assert triangles<=3000 if near else triangles<150 if far else triangles<.40*item["lods"][0]["triangles"]
