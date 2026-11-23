@@ -3,6 +3,7 @@
 // water, bridges, props, lots), and the yards (tools/town-yards.ts: every lot's front yard and backyard, back lanes and
 // verges; props standing in them are dropped) and the farms round it (tools/town-farms.ts). Anything the placement had to nudge, or that does not fit, goes to stderr.
 // Usage: npx tsx kotlin-street/tools/export-town.ts [seed] [year] > town.json (default: the town of tools/town-config.ts)
+import './town-recipe-env';
 import { TOWN } from './town-config';
 import { townGraph } from './town-graph';
 import { withFarms } from './town-farms';

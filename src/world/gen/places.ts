@@ -4,6 +4,7 @@ import { CAPITAL, GAMMA_PLAN_TILES, HUB_COUNT, LAUNCH, laterHub, type HubSpec, t
 import { RIVER_FLOW, type Hydro } from './hydro';
 import { Fbm, hashU, hashStr, stream } from './noise';
 import { RANGE_GREAT, type Terrain } from './terrain';
+import { DENSITY } from './density';
 import { archetypeOf, type ArchetypeId } from '../../sim/archetype';
 
 // PLACES (WORLD_GEN.md sections 3-4): the hubs by type with their site rules and scores (the capital first, honouring
@@ -199,8 +200,8 @@ function hubScore(type: HubType, t: Terrain, cl: Climate, h: Hydro, f: SiteField
 }
 
 /** Minimum km between hubs (ports among themselves: PORT_SEP). */
-export const HUB_SEP = 70;
-export const PORT_SEP = 120;
+export const HUB_SEP: number = DENSITY.hub.sepKm;
+export const PORT_SEP: number = DENSITY.hub.portSepKm;
 
 export interface HubPlacement { hubs: Place[]; startMass: number; neighbourMass: number }
 
@@ -291,9 +292,9 @@ function pinsOf(t: Terrain, h: Hydro, f: SiteFields, p: Place, spec: HubSpec): W
 // ---------------------------------------------------------------- towns
 
 /** Town spacing (km): 12 on the best land, up to 25 on poor land; none within TOWN_HUB_KM of a hub. */
-export const TOWN_MIN_KM = 12;
-export const TOWN_MAX_KM = 25;
-export const TOWN_HUB_KM = 15;
+export const TOWN_MIN_KM: number = DENSITY.town.minKm;
+export const TOWN_MAX_KM: number = DENSITY.town.maxKm;
+export const TOWN_HUB_KM: number = DENSITY.town.hubKm;
 
 export function placeTowns(t: Terrain, cl: Climate, h: Hydro, f: SiteFields, bio: Uint8Array, hubs: Place[]): Place[] {
   const seed = t.seed;
@@ -331,7 +332,7 @@ export function placeTowns(t: Terrain, cl: Climate, h: Hydro, f: SiteFields, bio
     const n = towns.length;
     const r = hashU(hashStr(`${seed}|rank`), c);
     void rr;
-    const rank: Rank = r < 0.06 ? 'major' : r < 0.45 ? 'town' : 'small';
+    const rank: Rank = r < DENSITY.rank.major ? 'major' : r < DENSITY.rank.town ? 'town' : 'small';
     const type = townType(t, cl, h, f, c, hubs);
     const p: Place = { id: `t:${n}`, kind: 'town', type, rank, x, z, cell: c, mass: t.mass[c]!, seed: townSeed(seed, n, type), name: '', founded: 0, coastal: h.coast[c]! > 0 };
     towns.push(p);
@@ -372,9 +373,9 @@ export function townSeed(world: string, n: number, type: ArchetypeId): string {
 // ---------------------------------------------------------------- mountain places (WORLD_GEN.md "Grand mountains")
 
 /** Mountain places keep this far (km) from every other place, and TOWN_HUB_KM from a hub. */
-export const ALPINE_SEP_KM = 8;
-export const PASS_SEP_KM = 10;
-export const MINE_SEP_KM = 10;
+export const ALPINE_SEP_KM: number = DENSITY.mountain.alpineKm;
+export const PASS_SEP_KM: number = DENSITY.mountain.passKm;
+export const MINE_SEP_KM: number = DENSITY.mountain.mineKm;
 /** The ores by where they lie: the high ranges' veins, the middle heights, the foothills' seams. */
 const ORES_HIGH = ['gold', 'silver', 'copper', 'tungsten'], ORES_MID = ['copper', 'lead', 'zinc', 'silver'], ORES_LOW = ['coal', 'iron', 'coal'];
 

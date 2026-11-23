@@ -1,4 +1,5 @@
 import { rand } from './rng';
+import { recipeOf } from '../town/recipe';
 
 // TOWN TYPES. Every town has a character chosen from its seed, and the character changes the rules of
 // its history: which shops open, how fast people move in (and when), how well off they are, how much
@@ -67,6 +68,8 @@ const ORDER: ArchetypeId[] = ['farm', 'harbor', 'mill', 'mining', 'resort', 'sub
 
 /** The type of the town with this seed (equal chances). */
 export function archetypeOf(seed: string): Archetype {
+  const r = recipeOf(seed);
+  if (r) return ARCHETYPES[r.type];
   return ARCHETYPES[ORDER[Math.floor(rand(seed, 'archetype') * ORDER.length)]!];
 }
 
@@ -79,4 +82,4 @@ export function pickShop(a: Archetype, kinds: readonly string[], r: number): str
 }
 
 /** The year the town was first settled (well before the game's 1950 start). */
-export const foundedOf = (seed: string): number => 1830 + Math.floor(rand(seed, 'town-founded') * 100);
+export const foundedOf = (seed: string): number => recipeOf(seed)?.founded ?? 1830 + Math.floor(rand(seed, 'town-founded') * 100);

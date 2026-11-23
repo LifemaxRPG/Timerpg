@@ -7,6 +7,7 @@
 // stockroom, aisles and checkouts of src/town/interiors.ts), so the open world's "Go inside" works at its doors.
 // --all: the rooms of every building of the town (tools/town-whole.ts: the same sprite names as street.json v2 and the
 // whole-town dialogue.json); the file says `version: 2`. Without it, the two streets' buildings, as before.
+import './town-recipe-env';
 import { townStreets } from './town-streets';
 import { wholeTown } from './town-whole';
 import { planInterior } from '../../src/town/interiors';

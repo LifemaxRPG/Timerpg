@@ -4,6 +4,7 @@ import { POPULATION_BY, POPULATION_FROM, populationIn } from './population';
 import { storeNeeds } from './stores';
 import { waterKind } from './water';
 import type { Rect, Road } from './kinds';
+import { recipeOf } from './recipe';
 
 // THE PLATTING (kotlin-street/docs/TOWN_PLAN.md): the town surveyed into blocks before anything is built, the way an
 // American town was laid out along its railroad and round its square. A pure function of the seed:
@@ -48,7 +49,8 @@ export const PLATTED: Record<District, number> = {
   heights: 1958, late: 1975, edge: 1985, river: 1885, grounds: 1885,
 };
 
-export type SizeClass = 'S' | 'M' | 'L';
+/** H a crossroads hamlet and V a village (only from a world place's recipe, src/town/recipe.ts), then the towns S, M, L. */
+export type SizeClass = 'H' | 'V' | 'S' | 'M' | 'L';
 export type PlanForm = 'parallel' | 'T';
 
 export interface Block extends Rect {
@@ -117,12 +119,16 @@ export function platPeak(seed: string): number {
 }
 
 export function sizeOf(seed: string): SizeClass {
+  const r = recipeOf(seed);
+  if (r) return r.size;
   const p = platPeak(seed);
   return p < 5000 ? 'S' : p < 9000 ? 'M' : 'L';
 }
 
 /** County seat: a seed roll by size (about 35% of L towns, 15% of M, 5% of S) until the world has counties. */
 export function isCountySeat(seed: string): boolean {
+  const rc = recipeOf(seed);
+  if (rc) return rc.countySeat;
   const s = sizeOf(seed);
   return rand(seed, 'plat', 'seat') < (s === 'L' ? 0.35 : s === 'M' ? 0.15 : 0.05);
 }
@@ -139,14 +145,18 @@ export function platTown(seed: string): Plat {
   const seat = isCountySeat(seed);
   const river = waterKind(seed) === 'river';
   const needs = storeNeeds(seed);
-  const form: PlanForm = R('form') < (type === 'farm' ? 0.45 : 0.2) ? 'T' : 'parallel';
+  // (a world place's recipe says whether a rail line stops here; a hamlet is never a T plan: it is a crossroads)
+  const rail = recipeOf(seed)?.rail ?? true;
+  /** A hamlet or a village (a world place's small sizes): one or two blocks each way from the crossroads. */
+  const tiny = size === 'H', small = size === 'H' || size === 'V' || size === 'S';
+  const form: PlanForm = rail && !tiny && R('form') < (type === 'farm' ? 0.45 : 0.2) ? 'T' : 'parallel';
   const flipX = R('flipX') < 0.3;
   const flipY = R('flipY') < 0.35;
 
   // ---------------------------------------------------------------------------------------------- the grid
-  const coreBase = size === 'S' ? 1 : 2;
-  let coreW = Math.min(3, Math.max(1, coreBase + (seat ? 1 : 0) - (size !== 'S' && R('coreW') < 0.3 ? 1 : 0)));
-  let coreE = Math.min(3, Math.max(1, coreBase + (seat ? 1 : 0) + (size === 'L' && R('coreE') < 0.5 ? 1 : 0)));
+  const coreBase = small ? 1 : 2;
+  let coreW = tiny ? 0 : Math.min(3, Math.max(1, coreBase + (seat ? 1 : 0) - (!small && R('coreW') < 0.3 ? 1 : 0)));
+  let coreE = tiny ? 1 : Math.min(3, Math.max(1, coreBase + (seat ? 1 : 0) + (size === 'L' && R('coreE') < 0.5 ? 1 : 0)));
   // A river town's downtown STRADDLES the river (the owner's choice, "river through downtown"): Main Street crosses it in
   // the middle of the core, the civic block one block from it on one bank (a core block between them), and about as many
   // core blocks on the other bank as on the civic block's (at most one more or fewer). [far] core blocks lie beyond the
@@ -154,25 +164,26 @@ export function platTown(seed: string): Plat {
   // other, by the seed (never leaving the civic block on the core's strip end: the strip starts past a core block).
   let riverSide: 1 | -1 = 1, other = 0;
   if (river) {
-    const far = size === 'S' ? 0 : Math.min(2, 1 + (seat || (size === 'L' && R('coreFar') < 0.5) ? 1 : 0));
-    other = Math.min(3, Math.max(1, far + 2 - (R('coreOther') < 0.4 ? 1 : 0)));
+    const far = small ? 0 : Math.min(2, 1 + (seat || (size === 'L' && R('coreFar') < 0.5) ? 1 : 0));
+    other = tiny ? 1 : Math.min(3, Math.max(1, far + 2 - (R('coreOther') < 0.4 ? 1 : 0)));
     riverSide = far > 0 && R('riverSide') < 0.5 ? -1 : 1;
     // (the river's column goes in between the civic side's core and the far bank's below)
     if (riverSide > 0) { coreW = far; coreE = 1 + other; } else { coreW = 1 + other; coreE = far; }
   }
-  const westCols = size === 'S' ? 1 : size === 'M' ? jit(1, 2, 'westCols') : jit(2, 3, 'westCols');
-  const stripCols = size === 'S' ? 2 : size === 'M' ? jit(2, 3, 'stripCols') : 3;
+  const westCols = small ? 1 : size === 'M' ? jit(1, 2, 'westCols') : jit(2, 3, 'westCols');
+  const stripCols = tiny || size === 'V' ? 1 : size === 'S' ? 2 : size === 'M' ? jit(2, 3, 'stripCols') : 3;
   const edgeW = needs.superstore !== undefined ? jit(146, 154, 'edgeW') : needs.supermarket !== undefined ? jit(98, 106, 'edgeW') : jit(70, 84, 'edgeW');
   const cols: Col[] = [];
   for (let i = westCols - 1; i >= 1; i--) cols.push({ kind: 'outer', w: jit(44, 50, 'cw', 'o', i) });
   cols.push({ kind: 'westmain', w: jit(44, 48, 'cw', 'wm') });
-  if (form === 'T') cols.push({ kind: 'railcol', w: 44 });
+  if (form === 'T' && rail) cols.push({ kind: 'railcol', w: 44 });
   for (let i = coreW; i >= 1; i--) cols.push({ kind: 'core', w: jit(42, 48, 'cw', 'cW', i) });
   const civicCol = cols.length;
   cols.push({ kind: 'civic', w: seat ? 44 : jit(42, 44, 'cw', 'civic') });
   for (let i = 1; i <= coreE; i++) cols.push({ kind: 'core', w: jit(42, 48, 'cw', 'cE', i) });
   for (let i = 1; i <= stripCols; i++) cols.push({ kind: 'strip', w: jit(60, 68, 'cw', 's', i) });
-  cols.push({ kind: 'edge', w: edgeW });
+  // (a hamlet ends at its strip: no edge column, no bypass)
+  if (!tiny) cols.push({ kind: 'edge', w: edgeW });
 
   // the river's column through the core: between the core block beside the civic block and the far bank's core
   let riverB = -1;
@@ -182,7 +193,7 @@ export function platTown(seed: string): Plat {
   }
   const civic = cols.findIndex((c) => c.kind === 'civic');
 
-  const north = size === 'S' ? 2 : size === 'M' ? 3 : jit(3, 4, 'north');
+  const north = tiny ? 3 : size === 'V' || size === 'S' ? 2 : size === 'M' ? 3 : jit(3, 4, 'north');
   // (the superstore needs about 100 tiles of depth north of the highway in the edge column)
   const northRows = needs.superstore !== undefined ? Math.max(north, 3) : north;
   const rows: Row[] = [];
@@ -190,12 +201,13 @@ export function platTown(seed: string): Plat {
   const coreNRow = rows.length;
   rows.push({ kind: 'coreN', h: seat ? 44 : jit(36, 40, 'rh', 'cN') });
   rows.push({ kind: 'coreS', h: jit(40, 43, 'rh', 'cS') });
-  if (form === 'parallel') {
+  if (form === 'parallel' && rail) {
     rows.push({ kind: 'rail', h: 44 });
     const across = size === 'L' ? 2 : 1;
     for (let i = 1; i <= across; i++) rows.push({ kind: 'across', h: jit(40, 46, 'rh', 'a', i) });
   } else {
-    const south = size === 'S' ? 1 : 2;
+    // (a T plan's rows south of the core, or a town no railroad reaches: its homes south of Main Street too)
+    const south = small && !tiny ? 1 : 2;
     for (let i = 1; i <= south; i++) rows.push({ kind: 'south', h: jit(40, 46, 'rh', 'so', i) });
   }
   const mainRow = coreNRow + 1; // Main Street runs along the top of this row
@@ -224,6 +236,8 @@ export function platTown(seed: string): Plat {
     const westOfTrack = railcol >= 0 && ci < railcol;
     if (r.kind === 'coreN' || r.kind === 'coreS') {
       if (ci === civic && r.kind === 'coreN') return 'square';
+      // (a hamlet's store row: the one block of shops beside the crossroads on Main Street's civic side; houses across)
+      if (tiny && c.kind === 'core' && r.kind === 'coreS') return 'old';
       if (isCore(ci) || c.kind === 'river') return 'core';
       if (c.kind === 'strip') return 'strip';
       if (westOfTrack) return 'worker';
@@ -235,8 +249,8 @@ export function platTown(seed: string): Plat {
     if (r.kind === 'south') return isCore(ci) && rj === mainRow + 1 ? 'old' : ci < civic ? 'postwar' : 'late';
     if (r.kind === 'outer') return ci <= civic ? 'heights' : 'late';
     if (r.kind === 'civic2' && ci === civic) return 'civic';
-    if (r.kind === 'civic2' && size === 'S' && (c.kind === 'westmain' || c.kind === 'outer')) return 'heights';
-    if (r.kind === 'north' && size !== 'S') return ci < civic - 1 || ci > civic + 1 ? 'postwar' : 'old';
+    if (r.kind === 'civic2' && small && (c.kind === 'westmain' || c.kind === 'outer')) return 'heights';
+    if (r.kind === 'north' && !small) return ci < civic - 1 || ci > civic + 1 ? 'postwar' : 'old';
     return 'old';
   }
 
@@ -294,13 +308,31 @@ export function platTown(seed: string): Plat {
         continue;
       }
       const cls = i === cols.length - 1 && cols[i]!.kind === 'edge' ? 'bypass'
-        : i === depotCol && (j === coreNRow || j === mainRow) ? 'depot' : i === courtCol && j < mainRow ? 'court'
+        : rail && i === depotCol && (j === coreNRow || j === mainRow) ? 'depot' : i === courtCol && j < mainRow ? 'court'
         : railcol >= 0 && (i === railcol || i === railcol + 1) ? 'railroad'
         : riverCol(i) || riverCol(i - 1) ? 'river' : 'street';
       add({ x: x - 1, y: lo, w: 2, h: hi - lo, main: false, horizontal: false }, cls);
     }
   }
 
+  // ---- a hamlet is a crossroads: Main Street (the road through) and the one street crossing it beside the civic block
+  // (the road to the next place), no streets round its blocks; its houses front those two roads, the fields behind them
+  if (tiny) {
+    const crossX = X[depotCol]! - 1;
+    let y0 = Infinity, y1 = -Infinity;
+    for (let i = roads.length - 1; i >= 0; i--) {
+      const r = roads[i]!;
+      if (r.main || (rail && roadClass[i] === 'railroad')) continue;
+      if (!r.horizontal && r.x === crossX && !(rail && rows[rows.findIndex((_, j) => Y[j]! < r.y && r.y < Y[j + 1]!)]?.kind === 'rail')) { y0 = Math.min(y0, r.y); y1 = Math.max(y1, r.y + r.h); }
+      roads.splice(i, 1); roadClass.splice(i, 1);
+    }
+    // (the cross street in one piece from the hamlet's north edge to its south, a little past its last houses: Main
+    // Street's square stays Main Street's)
+    y0 -= 8; y1 += 8;
+    const mainR = roads.find((r) => r.main)!;
+    if (y0 < mainR.y) { roads.push({ x: crossX, y: y0, w: 2, h: mainR.y - y0, main: false, horizontal: false }); roadClass.push('street'); }
+    if (y1 > mainR.y + mainR.h) { roads.push({ x: crossX, y: mainR.y + mainR.h, w: 2, h: y1 - mainR.y - mainR.h, main: false, horizontal: false }); roadClass.push('street'); }
+  }
   // ---- keep only streets connected to Main Street (a perimeter piece between two cul-de-sac stubs goes)
   {
     const touch = (a: Rect, b: Rect): boolean => a.x <= b.x + b.w + 1 && b.x <= a.x + a.w + 1 && a.y <= b.y + b.h + 1 && b.y <= a.y + a.h + 1;

@@ -19,6 +19,7 @@
 //    (toPrompt(brief(...))); null otherwise;
 //  - must / self: what validate() needs to check the model's reply (words it must contain; the speaker's name).
 // rumors/secret are added (asked as a friend, familiarity 3, the way the game asks them) for people who have any.
+import './town-recipe-env';
 import { readFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
