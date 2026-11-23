@@ -646,7 +646,10 @@ Replaces the "go back and save him" recommendation above, which was too close to
   - he erased himself to protect the player;
   - he's testing whether the player is ready for what he knows;
   - he simply chose a life in another era and doesn't want it disturbed.
-- **Why the player wants to find him** (OPEN: the owner wasn't satisfied with the options below, 2026-11-23; it needs
+- **Decided (the owner, 2026-11-23): there is no mission to find him.** The professor is an interesting character,
+  not the plot. The player may come across him by chance or by following the anachronisms if they're curious; meeting
+  him again is a great moment, but nothing requires it. The game stays player-driven.
+- **Why the player wants to find him** (SUPERSEDED by the decision above. Earlier: the owner wasn't satisfied with the options below, 2026-11-23; it needs
   real brainstorming. Kept only as a record of what was considered). Never forced, but it should pull hard. Options that
   combine well:
   1. **Practical:** he's the only one who understands the machine. Its fuel use, its range, its faults and how to make

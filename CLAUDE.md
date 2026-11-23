@@ -29,7 +29,8 @@ one major feature rather than the whole premise:
   the capital, to this address."); the player must work out how to get there.
 - **The time machine is always in the capital.** When the player arrives, the professor is gone. They find his work,
   the time machine and a letter he left for them. He is alive but unanchored (he erased his younger self from history),
-  hiding in some year and place; finding him is a long mystery (docs/IDEAS.md, "The time-travel rules").
+  hiding in some year and place. He is a character the player may run into, not a mission: nothing requires finding him
+  (docs/IDEAS.md, "The time-travel rules").
 - **The time machine runs on nuclear material:** the player starts with enough for about 4 trips and refuels through
   the world, never by a scripted route (docs/IDEAS.md).
 - **Money: legit and nefarious ways** to earn it (jobs and businesses; crime, with law, police and consequences).
