@@ -961,11 +961,11 @@ Desktop numbers (llvmpipe, the whole gamma town built as the app builds it), NOT
   blocks is under it RGBA8 (0 by default); keeping only wholly exact pictures would leave 1616 MB, so it stays 0.
 - **Encoding cost**: some 13 s of CPU over the build server's 4 cores for the town's 2200 pictures (each made once: a
   picture already made is not encoded again), so the cold first view is several seconds later on the build server (noisy
-  there: 13-17 s without ASTC, 21-24 s with it). Big levels are encoded in bands on the common pool. The app keeps the
+  there: 13-17 s without ASTC, 18-24 s with it). Big levels are encoded in bands on the common pool. The app keeps the
   encoded chains in its cache folder (`TownQuality.astcCache`, `AstcCache`, keyed by the pictures' content, about 300 MB):
   from the second start they are read back (warm first view 14.8-16.5 s on the same server). Estimate for the S25 (8
   faster cores): about a second more on the first start, nothing after; to be measured.
-- **Heap**: townMemoryCheck held 124-144 MB cold (was 132-136); warm from the cache 207-243 MB of the 256 budget (the
+- **Heap**: townMemoryCheck held 124-172 MB cold over five runs (was 132-136 in two); warm from the cache 207-243 MB of the 256 budget (the
   workers run further ahead of the uploads when nothing is encoded: the models' night-mask updates and read-ahead atlases
   waiting for the engine thread). The models' blank first masks now share one buffer of zeros (they held about 45 MB at
   that peak).

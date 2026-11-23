@@ -221,7 +221,6 @@ object Astc {
 
     private const val BLOCK_MODE_2P = 81
     private const val CEM_RGB = 8
-    private val W3 = intArrayOf(0, 32, 64)
 
     /** The ASTC partition hash (the spec's), for 2 partitions of a small block: which partition texel ([x], [y]) is in. */
     private fun partitionOf(seed0: Int, x0: Int, y0: Int): Int {
@@ -448,7 +447,7 @@ object Astc {
     private fun write(e: Enc, c0: Int, c1: Int, wts: IntArray) {
         var v = 0L
         var sh = 0
-        for (k in intArrayOf2) { v = v or (ch(c0, k).toLong() shl sh) or (ch(c1, k).toLong() shl (sh + 8)); sh += 16 }
+        for (k in RGBA_ORDER) { v = v or (ch(c0, k).toLong() shl sh) or (ch(c1, k).toLong() shl (sh + 8)); sh += 16 }
         var lo = BLOCK_MODE.toLong() or (CEM_RGBA.toLong() shl 13) or (v shl 17)
         var hi = v ushr 47
         for (i in 0 until 16) {
@@ -458,11 +457,8 @@ object Astc {
         }
         e.lo = lo; e.hi = hi
     }
-    private val intArrayOf2 = intArrayOf(2, 1, 0, 3)
-
-    private fun bits(b: ByteArray, at: Int, n: Int, v: Int) {
-        for (k in 0 until n) if ((v shr k) and 1 == 1) { val p = at + k; b[p shr 3] = (b[p shr 3].toInt() or (1 shl (p and 7))).toByte() }
-    }
+    /** The channels in an endpoint's order (r g b a; [ch]'s 2 1 0 3). */
+    private val RGBA_ORDER = intArrayOf(2, 1, 0, 3)
 
     private fun get(b: ByteArray, at: Int, n: Int): Int {
         var v = 0
