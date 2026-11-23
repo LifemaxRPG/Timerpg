@@ -130,8 +130,29 @@ export function ingestPoliceReport(
   const prevJur: JurisdictionState = jur ?? { jurisdictionId: report.jurisdictionId, cases: {} };
   const prevCase = prevJur.cases[crime.id];
   const reports = prevCase ? [...prevCase.reports, report] : [report];
-  const merged = mergeDescriptions(reports);
+  let merged = mergeDescriptions(reports);
   const firstHandCount = (prevCase?.firstHandCount ?? 0) + (report.source === 'first_hand' ? 1 : 0);
+
+  // Preserve physical evidence suspect naming if stronger than witness consensus
+  if (prevCase?.evidenceMatches && prevCase.evidenceMatches.length > 0) {
+    let bestPhysSuspect: Id | undefined;
+    let bestPhysConf = 0;
+    for (let i = 0; i < prevCase.evidenceMatches.length; i++) {
+      const m = prevCase.evidenceMatches[i]!;
+      if (m.confidence > bestPhysConf) {
+        bestPhysConf = m.confidence;
+        bestPhysSuspect = m.suspectId;
+      }
+    }
+    if (bestPhysSuspect && bestPhysConf >= 0.55 && bestPhysConf > merged.namedSuspectConfidence) {
+      merged = {
+        ...merged,
+        namedSuspectId: bestPhysSuspect,
+        namedSuspectConfidence: bestPhysConf,
+        overallConfidence: Math.max(merged.overallConfidence, bestPhysConf),
+      };
+    }
+  }
 
   const nextCase: PoliceCase = {
     crimeId: crime.id,
@@ -146,6 +167,9 @@ export function ingestPoliceReport(
     reports,
     merged,
     actualCulpritId: crime.culpritId,
+    ...(prevCase?.traces !== undefined ? { traces: prevCase.traces } : {}),
+    ...(prevCase?.evidenceMatches !== undefined ? { evidenceMatches: prevCase.evidenceMatches } : {}),
+    ...(prevCase?.timeAnomalies !== undefined ? { timeAnomalies: prevCase.timeAnomalies } : {}),
   };
 
   return {
@@ -165,7 +189,14 @@ export function caseHeatHalfLifeDays(severity: number): number {
 
 /** Current heat contribution (0..100) of a single `PoliceCase` on `day`. */
 export function caseHeatOnDay(c: PoliceCase, day: number): number {
-  const elapsed = Math.max(0, day - c.lastReportedDay);
+  let latestActivityDay = c.lastReportedDay;
+  if (c.evidenceMatches) {
+    for (let i = 0; i < c.evidenceMatches.length; i++) {
+      const md = c.evidenceMatches[i]!.matchedDay;
+      if (md > latestActivityDay) latestActivityDay = md;
+    }
+  }
+  const elapsed = Math.max(0, day - latestActivityDay);
   const halfLife = caseHeatHalfLifeDays(c.severity);
   const decay = Math.pow(0.5, elapsed / halfLife);
   const namedBoost = c.merged.namedSuspectId ? 1.15 : 1.0;

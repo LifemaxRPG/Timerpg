@@ -97,3 +97,57 @@ Within an active decision window (`6 days` first-hand, `5 days` 1-hop, `3 days` 
 2. When the player or an NPC commits a crime, call `witnessesOf(event, nearbyBystanders, { seed, canSee, streetLamps, world, victim })` and `state = recordCrime(state, event, sightings)`.
 3. Once per simulated day, call `state = advanceDay(state, world, day, ctx)` providing `jurisdictionOf`, `townOf`, `workplaceOf`, `travelTownsOf`, and `escalateJurisdictionOf`.
 4. Read `policeKnowledge`, `isWanted`, `knowersOf`, and `recognitionChance` from AI dialogue, patrol spotting, Gazette crime stories, and arrest checks; call `refreshWitnessMemory` when an NPC spots a suspect again or is interviewed.
+
+---
+
+## 8. Physical Evidence, Era Forensics, Cold Cases & Case Strength (`src/crime/forensics.ts`, `src/crime/evidence.ts`)
+
+Extends the witness/police core with physical and digital crime traces whose investigative value changes smoothly across historical eras, while staying 100% backward-compatible with existing `CrimeState` saves (`traces` and `identityFiles` are optional plain-JSON maps).
+
+### 8.1 Trace Types & Scene Decay (`leaveTraces`, `recordTraces`, `decayTraceOneDay`, `destroyTraces` / `cleanScene`)
+
+When a crime occurs, call `leaveTraces(event, options)` and persist the result with `recordTraces(state, event.id, traces)`:
+
+- **`fingerprint`** — left on touched surfaces/items unless `gloved: true`.
+- **`footprint`** — left around the scene (sharper outdoors in `rain`/`snow`, carries optional `shoeProfile`).
+- **`dna`** — rare blood/biological trace (higher chance in `murder`/`assault`, or forced via `bloodSpilled: true`).
+- **`dropped_item`** — optional personal item left behind (`droppedItem: { label, ownerId?, serialNumber? }`).
+- **`stolen_serial`** — generated for `event.stolenOrDamaged` when `itemHasSerialInEra(classifySerialItem(item), year)` is true.
+- **`vehicle_plate`** — generated when `culpritAppearance.vehicle` is present; `plateNumber` is populated **only** once `year >= FORENSIC_ERA.plateRegistrationYear` (1905).
+- **`camera_footage`** — generated for caller-supplied `cameras` with line of sight & radius; capability and captured fields depend on the era (`bw` drops clothing colour; `color` adds it; `hd` improves quality).
+
+Uncollected traces decay every simulated day inside `advanceDay` using `ctx.weatherOf(placeId, day)` (outdoor footprints and blood wash away sharply in `rain`/`storm`, and uncollected `camera_footage` overwrites automatically once `retentionDays` elapses). Any actor can call `destroyTraces` / `cleanScene(state, crimeId, { method, actorId, day, thoroughness? })` (`'clean' | 'wash' | 'wipe' | 'burn' | 'overwrite' | 'dispose'`) to destroy or degrade uncollected traces. Traces already collected into a police evidence locker (`collected: true`) are immune to weather decay and scene cleaning.
+
+### 8.2 Era Forensics Table (`FORENSIC_ERA`)
+
+All historical milestones live in a single tunable table in `src/crime/forensics.ts` (overridable via `ctx.forensicEra`):
+
+| Domain | Milestone | Default Year | Behaviour |
+|---|---|---:|---|
+| Fingerprints | `fingerprintLocalYear` | 1910 | Manual match against local station card file |
+| Fingerprints | `fingerprintNationalYear` | 1924 | Manual bureau search of `scope: 'national'` cards across jurisdictions |
+| Fingerprints | `fingerprintAutomatedYear` | 1980 | Automated AFIS search across all jurisdictions & local files |
+| DNA | `dnaAnalysisYear` | 1987 | Manual suspect comparison (same-jurisdiction enrolled DNA sample) |
+| DNA | `dnaDatabaseYear` | 1995 | Indexed national DNA database (cross-jurisdiction cold hits) |
+| Security cameras | `cameraBwYear` | 1970 | B&W CCTV (no clothing/vehicle colour) |
+| Security cameras | `cameraColorYear` | 1990 | Colour CCTV |
+| Security cameras | `cameraHdYear` | 2010 | High-definition digital CCTV |
+| License plates | `plateRegistrationYear` | 1905 | Local vehicle plate registration |
+| License plates | `plateDatabaseYear` | 1972 | Computerized cross-jurisdiction plate database |
+| Serial numbers | `serialFirearmWatchYear` | 1900 | Firearms & watches |
+| Serial numbers | `serialApplianceBikeYear` | 1930 | Bicycles, typewriters & major appliances |
+| Serial numbers | `serialElectronicsYear` | 1970 | Consumer electronics, TVs, cameras & phones |
+
+### 8.3 Linking, Identity Files & Cold Cases (`enrollOnFile`, `collectCrimeTraces`, `matchTrace`, `reexamineColdCases`)
+
+- A trace never links to a person by magic: the person must have an accessible `IdentityFileRecord` in `state.identityFiles` (`reason: 'arrest' | 'license' | 'database' | 'military' | 'vehicle_registration' | 'pawn_registry'`, `scope: 'local' | 'national'`, `enrolledYear <= year`).
+- `collectCrimeTraces(state, world, crimeId, jurisdictionId, day, options)` moves surviving scene traces into `PoliceCase.traces` and immediately runs `matchTrace` for the current era.
+- Unmatched collected traces stay in `PoliceCase.traces` indefinitely. When `advanceDay` runs (or `reexamineColdCases` is called explicitly), unmatched collected traces are re-checked in O(unmatched traces) time: a 1965 fingerprint or blood sample collected with no match automatically solves the cold case when the culprit is booked in 1982 (AFIS) or entered into a DNA database in 1995 (`coldCase: true`, `yearsToMatch`), re-heating the case so `policeKnowledge`, `isNamedSuspect`, and `isWanted` update immediately.
+
+### 8.4 Time-Travel Anomalies (`detectTimeTravelAnomalies`, `findTimeTravelAnomalies`)
+
+When a forensic match (or an enrolled identity record) links a trace from `traceYear` to a person whose `birthYear` is later (`traceYear < birthYear`) or whose `firstEraArrivalYear` / `ctx.eraArrivalYearOf(personId)` is later (`traceYear < arrivalYear`), the match is flagged with `impossibleTimeline: true`, `beforeBirth`, `beforeEraArrival`, and structured `TimeTravelAnomaly[]` entries (`kind`, `traceYear`, `referenceYear`, `yearsImpossible`, human-readable `summary`). The module exposes the flags on both `EvidenceMatch`, `PoliceCase.timeAnomalies`, `caseStrength(...).timeAnomalies`, and `findTimeTravelAnomalies(state, world)` without forcing any specific game reaction.
+
+### 8.5 Explainable Case Strength (`caseStrength(policeCase, day)`)
+
+`caseStrength(policeCase, day)` combines pure witness consensus (`mergeDescriptions(policeCase.reports)`) and physical/digital forensic matches into a single `0..1` prosecution score (`combinedScore`, `witnessScore`, `physicalScore`, `corroborationAdjustment`, `verdictTier`: `'none' | 'circumstantial' | 'probable_cause' | 'strong' | 'overwhelming'`, `leadSuspectId`, `hasTimeAnomaly`, and itemized `parts[]` with labels, sources, years, cold-case flags, and corroboration/conflict notes so a prosecutor or UI can explain every component).

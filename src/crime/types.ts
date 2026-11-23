@@ -1,4 +1,5 @@
 import type { Id } from '../sim/types';
+import type { ForensicEraTable, TimeTravelAnomaly } from './forensics';
 
 /** 2D world coordinate in meters. */
 export interface Vec2 {
@@ -223,6 +224,12 @@ export interface PoliceCase {
   merged: MergedDescription;
   /** Ground-truth culprit id linked to the underlying incident for matching wanted status. */
   actualCulpritId: Id;
+  /** Physical/digital traces collected into this case file (optional; plain JSON). */
+  traces?: EvidenceTrace[];
+  /** Era-gated forensic matches linking collected traces to persons on file. */
+  evidenceMatches?: EvidenceMatch[];
+  /** Time-travel anomalies flagged on this case (e.g. prints before birth). */
+  timeAnomalies?: TimeTravelAnomaly[];
 }
 
 export interface JurisdictionState {
@@ -245,6 +252,10 @@ export interface CrimeState {
   jurisdictions: Record<string, JurisdictionState>;
   /** `toldPairs[crimeId][tellerId]` = listener ids already told by `tellerId`. */
   toldPairs: Record<string, Record<Id, Id[]>>;
+  /** Physical/digital traces left at crime scenes, keyed by `crimeId` (plain JSON). */
+  traces?: Record<string, EvidenceTrace[]>;
+  /** People on file (arrests, licences, registrations, databases), keyed by `personId`. */
+  identityFiles?: Record<Id, IdentityFileRecord[]>;
 }
 
 /** Caller-provided world/geography hooks for `advanceDay`. */
@@ -265,4 +276,179 @@ export interface CrimeContext {
   stationDistanceKm?: (placeId: string) => number;
   /** Optional upward jurisdiction escalation hook (e.g. town -> county sheriff -> state police). */
   escalateJurisdictionOf?: (jurisdictionId: string, crime: CrimeEvent) => string | undefined;
+  /** Optional daily weather at a place (affects outdoor trace decay). */
+  weatherOf?: (placeId: string, day: number) => WeatherKind;
+  /** Optional custom forensic era milestones table (defaults to `FORENSIC_ERA`). */
+  forensicEra?: Readonly<ForensicEraTable>;
+  /** Optional time-traveller arrival year per person id (for pre-arrival anomaly detection). */
+  eraArrivalYearOf?: (personId: Id) => number | undefined;
+  /** Optional birth year override per person id (fallback when person is not in `world.people`, e.g. unanchored player). */
+  birthYearOf?: (personId: Id) => number | undefined;
+}
+
+export type TraceKind =
+  | 'fingerprint'
+  | 'footprint'
+  | 'dna'
+  | 'dropped_item'
+  | 'stolen_serial'
+  | 'vehicle_plate'
+  | 'camera_footage';
+
+export type TraceExposure = 'indoor' | 'outdoor';
+
+export type WeatherKind = 'clear' | 'rain' | 'storm' | 'snow' | 'heat';
+
+export type DestroyMethod = 'clean' | 'burn' | 'wash' | 'wipe' | 'overwrite' | 'dispose';
+
+export interface SecurityCamera {
+  id: string;
+  position: Vec2;
+  /** Coverage radius in meters (default 28 m). */
+  radius?: number;
+  /** Optional explicit colour override; otherwise derived from era (`FORENSIC_ERA.cameraColorYear`). */
+  color?: boolean;
+  /** Optional indoor/outdoor placement. */
+  exposure?: TraceExposure;
+}
+
+/** One physical or digital trace left by a crime event. Plain JSON. */
+export interface EvidenceTrace {
+  id: string;
+  crimeId: string;
+  kind: TraceKind;
+  placeId: string;
+  position: Vec2;
+  createdYear: number;
+  createdDay: number;
+  /** Current trace quality in 0..1; decays with time & weather until collected or destroyed. */
+  quality: number;
+  initialQuality: number;
+  exposure: TraceExposure;
+  /** True once police collected the trace into an evidence locker (stops weather decay). */
+  collected: boolean;
+  collectedDay?: number;
+  collectedYear?: number;
+  collectedJurisdiction?: string;
+  destroyed: boolean;
+  destroyedBy?: Id;
+  destroyedMethod?: DestroyMethod;
+  destroyedDay?: number;
+  /** Ground-truth person who left the trace (never exposed to police until matched against files). */
+  sourcePersonId?: Id;
+  /** Optional shoe/tread class for footprints. */
+  shoeProfile?: string;
+  /** Optional item label for `dropped_item` or `stolen_serial`. */
+  itemLabel?: string;
+  /** Traceable serial number for `stolen_serial` or `dropped_item`. */
+  serialNumber?: string;
+  /** Vehicle plate (only populated when vehicle registration exists in that era). */
+  plateNumber?: string;
+  vehicleKind?: VehicleKind;
+  vehicleColor?: ClothingColor;
+  /** Camera metadata & captured appearance for `camera_footage`. */
+  cameraId?: string;
+  cameraColor?: boolean;
+  cameraHd?: boolean;
+  capturedAppearance?: CulpritDescription;
+  /** Days of local tape/DVR retention before uncollected footage overwrites. */
+  retentionDays?: number;
+}
+
+export type FileRecordScope = 'local' | 'national';
+
+export type FileRecordReason =
+  | 'arrest'
+  | 'license'
+  | 'database'
+  | 'military'
+  | 'vehicle_registration'
+  | 'pawn_registry';
+
+/** Record putting a person (or their prints/DNA/plate/footwear) on file in a jurisdiction & era. */
+export interface IdentityFileRecord {
+  id: string;
+  personId: Id;
+  jurisdictionId: string;
+  scope: FileRecordScope;
+  reason: FileRecordReason;
+  enrolledYear: number;
+  enrolledDay: number;
+  hasPrints: boolean;
+  hasDna: boolean;
+  plateNumbers?: string[];
+  shoeProfile?: string;
+  /** Optional pawned/recovered serial numbers linked to this person. */
+  serialNumbers?: string[];
+  /** Optional known birth year on record (fallback when person is outside `world.people`). */
+  birthYear?: number;
+  /** Optional year the traveller first arrived in this era (for anomaly detection). */
+  firstEraArrivalYear?: number;
+}
+
+export type EvidenceMatchMethod =
+  | 'fingerprint_local_manual'
+  | 'fingerprint_national_manual'
+  | 'fingerprint_automated'
+  | 'dna_manual_suspect'
+  | 'dna_database'
+  | 'plate_local_registry'
+  | 'plate_database'
+  | 'serial_registry'
+  | 'dropped_item_ownership'
+  | 'footprint_comparison'
+  | 'camera_identification';
+
+/** A forensic match linking one collected trace to a person on file. */
+export interface EvidenceMatch {
+  traceId: string;
+  traceKind: TraceKind;
+  crimeId: string;
+  suspectId: Id;
+  matchedYear: number;
+  matchedDay: number;
+  confidence: number;
+  method: EvidenceMatchMethod;
+  /** True when matched at least 1 year (or >= 365 days) after the crime was committed. */
+  coldCase: boolean;
+  yearsToMatch: number;
+  /** True when the matched trace predates the suspect's birth or era arrival. */
+  impossibleTimeline: boolean;
+  beforeBirth: boolean;
+  beforeEraArrival: boolean;
+  anomalies: TimeTravelAnomaly[];
+}
+
+export interface CaseStrengthPart {
+  source: 'witness' | 'evidence';
+  kind: string;
+  label: string;
+  contribution: number;
+  suspectId?: Id;
+  traceId?: string;
+  year?: number;
+  coldCase?: boolean;
+}
+
+export type CaseVerdictTier =
+  | 'none'
+  | 'circumstantial'
+  | 'probable_cause'
+  | 'strong'
+  | 'overwhelming';
+
+export interface CaseStrengthResult {
+  crimeId: string;
+  day: number;
+  combinedScore: number;
+  witnessScore: number;
+  physicalScore: number;
+  corroborationAdjustment: number;
+  verdictTier: CaseVerdictTier;
+  leadSuspectId?: Id;
+  witnessSuspectId?: Id;
+  physicalSuspectId?: Id;
+  hasTimeAnomaly: boolean;
+  timeAnomalies: TimeTravelAnomaly[];
+  parts: CaseStrengthPart[];
 }
