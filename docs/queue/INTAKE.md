@@ -24,13 +24,7 @@ them in the capital city. It runs after the town plan merges (`wf-town-plan`), b
 
 ## New from the queue (waiting for the next intake)
 
-C001, C002 and C003 went in on 2026-11-23 (see "Done" below). Waiting:
-
-| ID | Branch | What | Where in the capital |
-|---|---|---|---|
-| C004 | codex/C004-elementary-school | Mill Branch one-room school (in use, abandoned) + Westmeadow Elementary 1955 and 1990+ | Westmeadow in a residential district of the capital; Mill Branch for farm towns (one abandoned at the capital's rural edge) |
-| C005 | codex/C005-barbershop | Mercer Barber and Lilac Beauty, narrow Main Street shops, 3 eras each; `barber_pole` node spins | Main Street street walls (fill the empty lot beside the five-and-dime) |
-| C006 | codex/C006-truck-stop | Cedar Relay truck stop 1960-1989 and Relay Travel Center 1990+: diesel and car canopies, diner, 30 truck bays, scale, lube bay / truck wash | the highway outside the capital (east approach), not in town |
+C001-C006 are all in (see "Done" below). Nothing is waiting from the numbered queue; the coastal and port set below still waits.
 
 Coastal and port set: these wait for the coastal hub and the ocean, so they aren't placed in the capital yet:
 - codex/copperwake (the ships);
@@ -60,3 +54,13 @@ kotlin-street/docs/TOWN_PLAN.md "The third intake in the capital"). Files copied
 | C002 | codex/C002-grain-elevator | `glb:grain_elevator`: the rail column's far end (two blocks made one, 82 tiles), 16 x 58 tiles facing the town side, its own siding along its back; timber 1925, concrete bins 1950, co-op 1990 |
 | C003 | codex/C003-baseball-park | `glb:baseball_park`: a third south block of the grounds column behind the school, 117 x 74 tiles, its gravel lot on the street; wooden park 1935, lights 1950, steel bleachers 1960, renovation 2000; gravel re-skinned with the town's yard gravel |
 
+## Done: the fourth intake (2026-11-23, branch worktree-agent-aa3869f31d3684250)
+
+C004, C005 and C006 are in the game (kotlin-street/docs/LANDMARKS_GLB.md "The fourth intake", kotlin-street/docs/TOWN_PLAN.md "The fourth intake in the capital"). Files copied with
+`git show origin/codex/<branch>:prototypes/<name>/...`, no merges. The capital's plan did not grow (965 x 382 tiles, `GAMMA_PINS` and `src/world/` untouched).
+
+| ID | Branch | Where it went |
+|---|---|---|
+| C004 | codex/C004-elementary-school | `glb:westmeadow`: Westmeadow Elementary (1955, 1990+) in the capital's late subdivision, east end of a 152-tile block (69 x 32 tiles); `glb:mill_branch`: the Mill Branch one-room school (in use to the 1950s, abandoned after) at the grounds' far west edge beside the ballpark (18 x 15 tiles). Catalogued for farm towns too (not placed there: `INTAKE_FOR_OTHERS` is off) |
+| C005 | codex/C005-barbershop | `glb:barber` (Mercer Barber 1940, Hair Co. 1980, Barber Co. 2010) in the gap beside the five and dime, in the street wall, party walls touching; `glb:salon` (Lilac Beauty / Styling / Nail Room) across Main Street beside the Gazette (the gap holds one 5-tile shop, not two). The `barber_pole` node spins (LandmarkAnimation `DEFAULT_TABLE`, 3.5 s a turn) |
+| C006 | codex/C006-truck-stop | **catalogued, not placed**: Cedar Relay (1960) and Relay Travel Center (1990) are 127 x 144 m (106 x 69 tiles). No outside-the-plan placement exists in the current system (every glb plot is a plan block; `src/world/` is another job's), and the plan's east edge holds a 47-tile worker column and a 44-tile rail column: nothing of 106 x 69 tiles is free without growing the plan or removing the depot or the houses. For the next hub or a roadside-plot system |

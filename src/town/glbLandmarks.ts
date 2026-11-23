@@ -73,14 +73,27 @@ export type GlbLandmarkKind =
   | 'landmark_glb_baseball_park_1935'
   | 'landmark_glb_baseball_park_1950'
   | 'landmark_glb_baseball_park_1960'
-  | 'landmark_glb_baseball_park_2000';
+  | 'landmark_glb_baseball_park_2000'
+  | 'landmark_glb_mill_branch_active'
+  | 'landmark_glb_mill_branch_abandoned'
+  | 'landmark_glb_westmeadow_1955'
+  | 'landmark_glb_westmeadow_1990'
+  | 'landmark_glb_barber_1940'
+  | 'landmark_glb_barber_1980'
+  | 'landmark_glb_barber_2010'
+  | 'landmark_glb_salon_1940'
+  | 'landmark_glb_salon_1980'
+  | 'landmark_glb_salon_2010'
+  | 'landmark_glb_truck_stop_1960'
+  | 'landmark_glb_truck_stop_1990';
 
 export interface GlbLandmarkSpec {
   name: string;
   /** The business it houses. */
   role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot' | 'laundromat' | 'factory' | 'funeral_home' | 'video_store' | 'phone_repair' | 'courthouse' | 'radio_station'
     | 'library' | 'drugstore' | 'bank' | 'church' | 'school' | 'carhop' | 'fire_station' | 'post_office' | 'rest_area' | 'lodge' | 'monument' | 'roadside_attraction'
-    | 'five_and_dime' | 'grain_elevator' | 'ballpark';
+    | 'five_and_dime' | 'grain_elevator' | 'ballpark'
+    | 'elementary_school' | 'barber' | 'salon' | 'truck_stop';
   /** The design's years: built from..to (it may stand long after, as the simulation decides), and its sample year. */
   era: { from: number; to: number; built: number };
   /** The lot, metres: width along the street, depth back from it; the building's walls. */
@@ -193,6 +206,21 @@ export const GLB_LANDMARKS: Record<GlbLandmarkKind, GlbLandmarkSpec> = {
   landmark_glb_baseball_park_1950: { name: "Alder Bend Ballpark", role: 'ballpark', era: { from: 1950, to: 1959, built: 1955 }, lot: [144.32, 155.16], building: [144.92, 155.52], plot: [144.32, 155.16] },
   landmark_glb_baseball_park_1960: { name: "Alder Bend Ballpark", role: 'ballpark', era: { from: 1960, to: 1999, built: 1965 }, lot: [144.32, 155.16], building: [144.92, 155.52], plot: [144.32, 155.16] },
   landmark_glb_baseball_park_2000: { name: "Alder Bend Ballpark", role: 'ballpark', era: { from: 2000, to: 2040, built: 2005 }, lot: [144.32, 155.16], building: [144.92, 155.52], plot: [144.32, 155.16] },
+  // ---- the fourth intake (C004-C006, 2026-11-23): Westmeadow Elementary (1955, then 1990 with the portables) and the Mill Branch one-room school (in use to the
+  // 1950s, then abandoned); Mercer Barber and Lilac Beauty, two 6 x 18 m street-wall shops in three eras each (the pole spins); the Cedar Relay truck stop
+  // (1960) and the Relay Travel Center (1990): 127 x 144 m of canopies, diner, 30 truck bays, scale and service bay, catalogued but not placed in the capital (its plan has no room for it)
+  landmark_glb_mill_branch_active: { name: "Mill Branch School", role: 'elementary_school', era: { from: 1890, to: 1950, built: 1895 }, lot: [22.0, 30.0], building: [22, 30], plot: [22.0, 30.0] },
+  landmark_glb_mill_branch_abandoned: { name: "Mill Branch School (abandoned)", role: 'elementary_school', era: { from: 1951, to: 2040, built: 1955 }, lot: [22.0, 30.0], building: [22, 30], plot: [22.0, 30.0] },
+  landmark_glb_westmeadow_1955: { name: "Westmeadow Elementary", role: 'elementary_school', era: { from: 1955, to: 1989, built: 1957 }, lot: [85.0, 66.0], building: [85, 66], plot: [85.0, 66.0] },
+  landmark_glb_westmeadow_1990: { name: "Westmeadow Elementary", role: 'elementary_school', era: { from: 1990, to: 2040, built: 1992 }, lot: [85.0, 66.0], building: [85, 66], plot: [85.0, 66.0] },
+  landmark_glb_barber_1940: { name: "Mercer Barber", role: 'barber', era: { from: 1940, to: 1979, built: 1945 }, lot: [6.06, 22.1], building: [6, 18], plot: [6.06, 22.1] },
+  landmark_glb_barber_1980: { name: "Mercer Hair Co.", role: 'barber', era: { from: 1980, to: 2009, built: 1985 }, lot: [6.04, 22.1], building: [6, 18], plot: [6.06, 22.1] },
+  landmark_glb_barber_2010: { name: "Mercer Barber Co.", role: 'barber', era: { from: 2010, to: 2040, built: 2012 }, lot: [6.04, 22.1], building: [6, 18], plot: [6.06, 22.1] },
+  landmark_glb_salon_1940: { name: "Lilac Beauty", role: 'salon', era: { from: 1940, to: 1979, built: 1945 }, lot: [6.06, 22.1], building: [6, 18], plot: [6.06, 22.1] },
+  landmark_glb_salon_1980: { name: "Lilac Styling", role: 'salon', era: { from: 1980, to: 2009, built: 1985 }, lot: [6.04, 22.1], building: [6, 18], plot: [6.06, 22.1] },
+  landmark_glb_salon_2010: { name: "Lilac Nail Room", role: 'salon', era: { from: 2010, to: 2040, built: 2012 }, lot: [6.04, 22.1], building: [6, 18], plot: [6.06, 22.1] },
+  landmark_glb_truck_stop_1960: { name: "Cedar Relay", role: 'truck_stop', era: { from: 1960, to: 1989, built: 1962 }, lot: [127.0, 144.0], building: [127, 144], plot: [127.0, 144.0] },
+  landmark_glb_truck_stop_1990: { name: "Relay Travel Center", role: 'truck_stop', era: { from: 1990, to: 2040, built: 1992 }, lot: [127.0, 144.0], building: [127, 144], plot: [127.0, 144.0] },
   landmark_glb_reel_time_video_2020: { name: 'Cell Fix', role: 'phone_repair', era: { from: 2009, to: 2015, built: 2013 }, lot: [36.01, 28.56], building: [32.28, 11.17] },
 };
 export const GLB_LANDMARK_KINDS = Object.keys(GLB_LANDMARKS) as GlbLandmarkKind[];

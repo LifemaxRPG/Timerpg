@@ -20,7 +20,7 @@ class LandmarkGlbTest {
     private val U = LandmarkKit.UNITS_PER_METRE
 
     /** The roles of the intake models (docs/queue/INTAKE.md) whose doors may stand back from the lot's front. */
-    private val INTAKE_ROLES = setOf("monument", "roadside_attraction", "rest_area", "lodge", "church", "school", "library", "bank", "drugstore", "carhop", "fire_station", "post_office", "five_and_dime", "grain_elevator", "ballpark")
+    private val INTAKE_ROLES = setOf("monument", "roadside_attraction", "rest_area", "lodge", "church", "school", "library", "bank", "drugstore", "carhop", "fire_station", "post_office", "five_and_dime", "grain_elevator", "ballpark", "elementary_school", "truck_stop")
 
     private fun build(s: LandmarkSpec, year: Int = s.built, keepLot: Boolean = true) =
         LandmarkKit.build(GlbFile.read(File(root, s.file).readBytes()), s, year, 7, keepLot, info = s.info?.let { File(root, it).readText() })
@@ -322,7 +322,10 @@ class LandmarkGlbTest {
         "great_meridian_1926", "great_meridian_1941", "great_meridian_1976", "great_meridian_2000",
         // the third intake (C001-C003)
         "five_and_dime_1925", "five_and_dime_1970", "five_and_dime_2000", "five_and_dime_closed", "grain_elevator_1925", "grain_elevator_1950", "grain_elevator_1990",
-        "baseball_park_1935", "baseball_park_1950", "baseball_park_1960", "baseball_park_2000")
+        "baseball_park_1935", "baseball_park_1950", "baseball_park_1960", "baseball_park_2000",
+        // the fourth intake (C004-C006)
+        "mill_branch_active", "mill_branch_abandoned", "westmeadow_1955", "westmeadow_1990", "barber_1940", "barber_1980", "barber_2010", "salon_1940", "salon_1980", "salon_2010",
+        "truck_stop_1960", "truck_stop_1990")
 
     @Test fun theIntakeModelsAreInTheCatalogue() {
         for (k in INTAKE) assertTrue("$k listed", specs.any { it.kind == "landmark_glb_$k" })
@@ -438,5 +441,47 @@ class LandmarkGlbTest {
         }
         // and the lot's ground is drawn from it
         assertTrue(build(specs.first { it.kind.endsWith("baseball_park_2000") }).names.any { it == "ground_gravel" })
+    }
+
+    // ------------------------------------------------------------------------------------------------ the fourth intake (C004-C006, 2026-11-23)
+    private val FOURTH = mapOf(
+        "mill_branch" to listOf("active", "abandoned"), "westmeadow" to listOf("1955", "1990"), "barber" to listOf("1940", "1980", "2010"), "salon" to listOf("1940", "1980", "2010"),
+        "truck_stop" to listOf("1960", "1990"))
+
+    @Test fun theFourthIntakeHasItsStatesYearsAndDistantModels() {
+        for ((m, states) in FOURTH) {
+            val c = states.map { st -> specs.first { it.kind == "landmark_glb_${m}_$st" } }
+            for (s in c) {
+                assertTrue("${s.kind} far", s.far != null && File(root, s.far!!).isFile)
+                val far = LandmarkKit.build(GlbFile.read(File(root, s.far!!).readBytes()), s, s.built, 7, true, info = s.info?.let { File(root, it).readText() })
+                assertTrue("${s.kind} far has parts", far.model.parts.isNotEmpty())
+                assertTrue("${s.kind} far keeps its main door", far.doors.any { it.name == "door_main" })
+                assertTrue("${s.kind} mid shipped", File(root, s.file.replace(".glb", "-mid.glb")).isFile)
+            }
+            c.zipWithNext().forEach { (a, b) -> assertTrue("${a.kind} -> ${b.kind}", b.from >= a.from) }
+        }
+        assertEquals(listOf(1955, 1990), listOf("1955", "1990").map { st -> specs.first { it.kind == "landmark_glb_westmeadow_$st" }.from })
+        assertEquals(listOf(1940, 1980, 2010), listOf("1940", "1980", "2010").map { st -> specs.first { it.kind == "landmark_glb_barber_$st" }.from })
+        // the one-room school: in use to 1950, abandoned after, one building place
+        assertEquals(1, listOf("active", "abandoned").map { st -> specs.first { it.kind == "landmark_glb_mill_branch_$st" }.lotW }.distinct().size)
+        // the truck stop is big (127 x 144 m), its canopies, diner, bays and scale boxes to walk round
+        for (st in listOf("1960", "1990")) { val s = specs.first { it.kind == "landmark_glb_truck_stop_$st" }; assertTrue(s.lotW > 120f && s.lotD > 140f); assertTrue(build(s).solids.size / 4 >= 10) }
+    }
+
+    @Test fun theBarberPoleSpins() {
+        // C005: the `barber_pole` node of every barber state (near and far model) turns about its own +Y; the salons have no pole
+        for (st in listOf("1940", "1980", "2010")) {
+            val s = specs.first { it.kind == "landmark_glb_barber_$st" }
+            for (file in listOf(s.file, s.far!!)) {
+                val lm = LandmarkKit.build(GlbFile.read(File(root, file).readBytes()), s, s.built, 7, true, info = s.info?.let { File(root, it).readText() })
+                val pole = lm.animated.firstOrNull { it.nodeName == "barber_pole" }
+                assertTrue("${s.kind} $file pole animates", pole != null && pole.kind == LandmarkAnimKind.SLOW_SPIN)
+                // it stays out of the static merge (its own renderable) and moves with time
+                val a = FloatArray(16); val b = FloatArray(16)
+                pole!!.computeModelMatrix(13f, 0.0, 0f, 0f, a); pole.computeModelMatrix(13f, 0.9, 0f, 0f, b)
+                assertTrue("${s.kind} $file pole turns", a.indices.any { Math.abs(a[it] - b[it]) > 1e-3f })
+            }
+        }
+        for (st in listOf("1940", "1980", "2010")) assertTrue("salons have no pole", build(specs.first { it.kind == "landmark_glb_salon_$st" }).animated.none { it.nodeName == "barber_pole" })
     }
 }

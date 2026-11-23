@@ -94,6 +94,8 @@ data class LandmarkAnimRule(
             LandmarkAnimRule("bell", LandmarkAnimKind.SWING, axis = floatArrayOf(1f, 0f, 0f), periodSeconds = 2.4f, amplitudeDeg = 30f, swingsOnHour = 5),
             LandmarkAnimRule("bell_*", LandmarkAnimKind.SWING, axis = floatArrayOf(1f, 0f, 0f), periodSeconds = 2.4f, amplitudeDeg = 30f, swingsOnHour = 5),
             LandmarkAnimRule("lift_car*", LandmarkAnimKind.LIFT, waitSeconds = 6f, speedMps = 2.5f),
+            // the barber shops' striped pole (C005: pivot at the node origin, local +Y): one turn in 3.5 s (the model-info's suggested_period_s), day and night
+            LandmarkAnimRule("barber_pole*", LandmarkAnimKind.SLOW_SPIN, axis = floatArrayOf(0f, 1f, 0f), periodSeconds = 3.5f),
         )
 
         /** Parses `"h:mm"` (e.g. `"4:17"`, `"04:17"`, `"12:30"`) into fractional game hours, or NaN if invalid. */

@@ -322,7 +322,23 @@ function fill(p: Plat): Districts {
   if (plotChain('country_church').length) reserve('glb:country_church', chainOf(plotChain('country_church'), 'field'), [...byNear(blocksOf(['late', 'postwar', 'heights', 'old'])).reverse()], toSquare, [tiles('landmark_glb_country_church')], 'far', { pad: 2 });
   if (plotChain('carhop_drive_in').length) reserve('glb:carhop_drive_in', chainOf(plotChain('carhop_drive_in')), [...stripN, ...stripS], (b) => [mainFace(b)], [tiles('landmark_glb_carhop_drive_in_original')], 'core', { pad: 2 });
   // ---- the third intake's five and dime (before the grounds' reserved plot and the other future plots, which stay last in the ledger): mid-block in a street wall on Main Street's core blocks (south side, beside the bank in the block nearest the civic block's strip side, where the shops stand; the north side's first block is the start view's street wall; its party walls meet the shops beside it)
-  if (plotChain('five_and_dime').length) reserve('glb:five_and_dime', chainOf(plotChain('five_and_dime'), 'shops'), [...nearCivic(south, 1), ...nearCivic(north, 1).slice(1), ...nearCivic(north, 1).slice(0, 1), ...nearCivic(north, -1), ...south], (b) => [mainFace(b)], [tiles('landmark_glb_five_and_dime_1925')], 'mid', { pad: 0 });
+  const dime = plotChain('five_and_dime').length ? reserve('glb:five_and_dime', chainOf(plotChain('five_and_dime'), 'shops'), [...nearCivic(south, 1), ...nearCivic(north, 1).slice(1), ...nearCivic(north, 1).slice(0, 1), ...nearCivic(north, -1), ...south], (b) => [mainFace(b)], [tiles('landmark_glb_five_and_dime_1925')], 'mid', { pad: 0 }) : undefined;
+  // ---- the fourth intake (C004-C006, docs/queue/INTAKE.md). The barber and the salon (5 x 11 tiles each) fill the gap beside the five and dime in its block's street wall
+  // (the nearest free ground to it, party walls touching: the wall closes from the block's end to the dime); Westmeadow Elementary (69 x 32 tiles) takes ground in a late
+  // subdivision's wide block; the Mill Branch school (18 x 15, in use to the 1950s, abandoned after) stands at the far west edge of the grounds, beside the ballpark's block face.
+  // The truck stop (106 x 69 tiles) has no plot: no block of the plan is wide enough but the grounds' and the edge's, which are full (it stays catalogued: glbSites.ts CATALOGUED_ONLY).
+  {
+    const dimeBlock = dime ? p.blocks.find((b) => inside(dime, b)) : undefined;
+    if (dimeBlock && dime) {
+      const near = { x: dime.x + dime.w / 2, y: dime.y + dime.h / 2 };
+      // (the gap is 8 tiles wide: the barber takes its nearer 5; the salon, if the gap has no room left, the next free street-wall ground nearest the dime)
+      for (const m of ['barber', 'salon']) {
+        if (plotChain(m).length) reserve(`glb:${m}`, chainOf(plotChain(m), 'shops'), [dimeBlock, ...nearCivic(north, 1), ...nearCivic(south, 1), ...nearCivic(north, -1), ...south], (b) => [mainFace(b)], [tiles(`landmark_glb_${m}_1940` as GlbLandmarkKind)], 'near', { pad: 0, toward: near });
+      }
+    }
+    if (plotChain('westmeadow').length) reserve('glb:westmeadow', chainOf(plotChain('westmeadow'), 'field'), byNear(blocksOf(['late', 'postwar', 'heights'])), toSquare, [tiles('landmark_glb_westmeadow_1955')], 'near', { pad: 2 });
+  }
+
   {
     const gb = (row: number): Block | undefined => blocksOf('grounds', row)[0];
     const onG = (id: string, m: string, row: number, pos: Parameters<typeof positions>[3], first?: GlbLandmarkKind): void => {
@@ -342,6 +358,8 @@ function fill(p: Plat): Districts {
     onG('glb:lincoln_high_school', 'lincoln_high_school', 1, 'mid');
     // (the ballpark behind the school, in the grounds' third south block: its gravel lot on the street between them)
     onG('glb:baseball_park', 'baseball_park', 2, 'mid');
+    // (the Mill Branch one-room school at the far west end of the same block face, beside the ballpark: the capital's rural edge)
+    onG('glb:mill_branch', 'mill_branch', 2, 'far');
     // (one more reserved landmark plot for what comes next, between the Rex and the Night Keeper)
     if (gb(0)) reserve('future:landmark:3', [{ use: 'reserved', from: 0 }], [gb(0)], (b) => [mainFace(b)], [[30, 20]], 'near', { pad: 1 });
   }

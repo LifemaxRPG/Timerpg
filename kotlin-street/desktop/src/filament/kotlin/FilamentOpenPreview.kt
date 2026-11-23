@@ -397,7 +397,7 @@ fun renderFilamentOpen(out: String) {
         // (the funeral home: the street at a person's height close in, day and night, and its sign, a low double-faced board at
         // x 5.6..9.3 m whose front face is at z 1.56 m, seen by the player standing before it)
         // (a street-wall shop: the sidewalk before its facade, the neighbours either side in the frame)
-        if (kind.startsWith("five_and_dime")) {
+        if (kind.startsWith("five_and_dime") || kind.startsWith("barber_") || kind.startsWith("salon_")) {
             val pw = at(xm, zf + 50f)
             view("${n}_wall_13h", pw[0], pw[1], xx, xz, fwd, 5f, 230f, 13f, "$kind, from the Main Street sidewalk before its facade")
         }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { runTimeline, worldAt } from '../sim';
 import { railSite, type RailWorld } from '../world/rail';
 import { GLB_LANDMARK_KINDS, GLB_LANDMARKS, type GlbLandmarkKind } from './glbLandmarks';
-import { FUNERAL_NAMES, INTAKE_STATES, REPLACED_LANDMARKS, VIDEO_PEOPLE, VIDEO_STATES, glbSites, glbStandingOn, glbTenures, glbUnplaced, peakPeople, premierDepot, type GlbSite } from './glbSites';
+import { CATALOGUED_ONLY, FUNERAL_NAMES, INTAKE_STATES, REPLACED_LANDMARKS, VIDEO_PEOPLE, VIDEO_STATES, glbSites, glbStandingOn, glbTenures, glbUnplaced, peakPeople, premierDepot, type GlbSite } from './glbSites';
 import { planTown } from './plan';
 import { townRail, type TownRail } from './rail';
 import type { Rect } from './kinds';
@@ -258,7 +258,8 @@ describe('hand-made landmark models in the towns', () => {
     // (rho is a county seat: the courthouse's states)
     for (const seed of [...SEEDS, 'rho']) for (const s of town(seed).sites) for (const t of s.tenures) seen.add(t.kind);
     for (const seed of SEEDS) if (town(seed).rail.depot?.premier) seen.add('landmark_glb_premier_railroad_depot');
-    expect(GLB_LANDMARK_KINDS.filter((k) => !seen.has(k))).toEqual([]);
+    // (the truck stop is catalogued with no plot in the capital's plan: CATALOGUED_ONLY)
+    expect(GLB_LANDMARK_KINDS.filter((k) => !seen.has(k) && !CATALOGUED_ONLY.includes(k))).toEqual([]);
     // and gamma, the app's town, finds a plot for nearly all it earns
     expect(glbUnplaced('gamma', town('gamma').sites)).toEqual([]);
     // 1955 and 1985 show something standing
@@ -281,6 +282,15 @@ describe('hand-made landmark models in the towns', () => {
     const ids = plan.v2!.reserved.filter((q) => q.district === 'grounds').map((q) => q.id);
     for (const m of ['great_meridian', 'the_eyrie', 'lincoln_high_school', 'union_arch', 'night_keeper', 'highway_rest_area']) expect(ids).toContain(`glb:${m}`);
     expect(plan.v2!.reserved.filter((q) => q.id.startsWith('future:')).length).toBeGreaterThanOrEqual(1);
+    // the fourth intake: the barber beside the five and dime in its street wall, the salon across Main Street, Westmeadow in a late block, Mill Branch on the grounds' far edge; the plan did not grow
+    const res = plan.v2!.reserved;
+    const dime = res.find((q) => q.id === 'glb:five_and_dime')!, barber = res.find((q) => q.id === 'glb:barber')!;
+    expect(Math.abs(barber.x + barber.w - dime.x) <= 0.01 || Math.abs(dime.x + dime.w - barber.x) <= 0.01, 'the barber touches the dime').toBe(true);
+    expect(res.some((q) => q.id === 'glb:salon' && q.district === 'core')).toBe(true);
+    expect(res.find((q) => q.id === 'glb:westmeadow')!.district).toBe('late');
+    expect(res.find((q) => q.id === 'glb:mill_branch')!.district).toBe('grounds');
+    expect([plan.width, plan.height]).toEqual([965, 382]);
+    expect(res.some((q) => q.id.includes('truck_stop'))).toBe(false);
     // (the other towns keep their ledgers: INTAKE_FOR_OTHERS is off)
     for (const seed of ['eta', 'orbit', 'quartz']) expect(glbTenures(seed).some((t) => Object.values(INTAKE_STATES).flat().includes(t.kind)), seed).toBe(false);
   }, 60000);
