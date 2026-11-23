@@ -557,3 +557,19 @@ way you would in life:
   - **The world keeps changing:** decades, chains, elections, disasters. There's always something new to react to.
   - **The player's own stakes:** their money, businesses, buildings, record, companions and caches.
   - **A journal the player keeps:** facts learned, people met, leads. It's a notebook, not a quest log.
+
+## The opening (the owner's decision, 2026-11-23)
+
+- **You never spawn on the capital's continent.** Every game starts far away, with a real journey: work, money, roads,
+  rail and a sea crossing.
+- **A letter from the professor** starts it: "I have something very important. Come to the capital, to this address."
+  How to get there is up to the player.
+- **On arrival, the professor is dead.** The player finds his work, the time machine with its small store of nuclear
+  material, and a letter he left them.
+- **Open threads** that grow from the systems, not a script:
+  - **How did he die?** Natural causes or murder: a case the crime system can actually hold, with witnesses, evidence
+    and a culprit.
+  - **Why did he write to you?**
+  - **Meeting him alive:** with the machine, the player can go back and meet him while he's living, and perhaps change
+    what happened.
+  The owner decides the answers.

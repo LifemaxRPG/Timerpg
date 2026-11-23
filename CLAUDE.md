@@ -24,9 +24,13 @@ Elite for Galaxy: 8 fast Oryon cores, no little cores; Adreno 830 GPU; Hexagon N
 Timerpg is now aimed at being **the best open-world RPG ever made**, competing with the likes of GTA 6 on depth of
 mechanics rather than photoreal graphics (our stylized pixel-art look frees effort for systems). Time travel stays, as
 one major feature rather than the whole premise:
-- The player **spawns on a random continent**, sometimes in or near the capital, sometimes very far away.
-- **The time machine is always in the capital**, kept by a professor who lives there. Reaching the capital is an
-  early goal for anyone who wants to time travel.
+- The player **spawns on a random continent, never the capital's** (the owner's decision, 2026-11-23), so every game
+  starts with the journey there. The opening: a letter from the professor ("I have something very important. Come to
+  the capital, to this address."); the player must work out how to get there.
+- **The time machine is always in the capital.** When the player arrives, the professor is dead. They find his work,
+  the time machine and a letter he left for them. With time travel they can still meet him alive in the past.
+- **The time machine runs on nuclear material:** the player starts with enough for about 4 trips and refuels through
+  the world, never by a scripted route (docs/IDEAS.md).
 - **Money: legit and nefarious ways** to earn it (jobs and businesses; crime, with law, police and consequences).
 - **Crime is grounded:** the player can do anything a person could do in real life, with the consequences it would
   really have. Consequences travel through people: witnesses remember, may tell others (by their traits and
