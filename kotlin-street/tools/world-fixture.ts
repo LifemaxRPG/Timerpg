@@ -9,6 +9,7 @@ import { PTS_SCALE, decodeSkeleton } from '../../src/world/gen/bake';
 import { N, W } from '../../src/world/gen/grid';
 import { PLANET_SEED } from '../../src/world/gen/hubs';
 import { Fbm, Lattice, hash3, hashStr, hashU } from '../../src/world/gen/noise';
+import { NearTerrain } from '../../src/world/gen/near';
 
 const seed = process.argv[2] ?? PLANET_SEED;
 const outPath = process.argv[3] ?? 'kotlin-street/desktop/src/crossroadsTest/resources/world/fixture.json';
@@ -37,6 +38,27 @@ const fixture = {
   capRiver: { index: capRiver, path: path(json.rivers[capRiver].path) },
   roads: json.roads.slice(0, 5).map((r: any) => ({ id: r.id, path: path(r.path) })),
   rail: json.railLines.filter((l: any) => l.stations.includes(cap.id)).map((l: any) => ({ id: l.id, path: path(l.path) })),
+  near: nearSamples(),
 };
+// W5a: the near terrain's heights (src/world/gen/near.ts) at tile indices round the capital (a tile is 2.1 m; cells
+// are tile * 2.1 / 1075.2), and at the steepest of a few hundred points within 8 km (a cliff, to test the terracing)
+function nearSamples() {
+  const nt = new NearTerrain(seed, sk.elev);
+  const tx = Math.floor((cap.x * 1075.2) / 2.1), tz = Math.floor((cap.z * 1075.2) / 2.1);
+  const pts: [number, number][] = [[2400, 1450], [-2900, 960], [1430, -2860], [37, 3333], [-3100, -2500], [2950, 2980], [-1801, 2777]].map(([a, b]) => [tx + a!, tz + b!]);
+  let best: [number, number] = pts[0]!, bestC = -1;
+  for (let k = 0; k < 600; k++) {
+    const a = tx + Math.floor((hashU(7, k, 1) - 0.5) * 7600), b = tz + Math.floor((hashU(7, k, 2) - 0.5) * 7600);
+    const c = nt.cliff((a * 2.1) / 1075.2, (b * 2.1) / 1075.2);
+    if (c > bestC) { bestC = c; best = [a, b]; }
+  }
+  // (and its neighbours a tile apart: the ledges and risers)
+  for (let d = 0; d < 6; d++) pts.push([best[0] + d, best[1]]);
+  return pts.map(([gx, gz]) => {
+    const cx = (gx * 2.1) / 1075.2, cz = (gz * 2.1) / 1075.2;
+    return { gx, gz, smooth: nt.smooth(cx, cz), slope: nt.slope(cx, cz), raw: nt.raw(cx, cz) };
+  });
+}
+
 writeFileSync(outPath, JSON.stringify(fixture, null, 1));
 console.log(`wrote ${outPath}: ${samples.length} cells, river ${capRiver} (${fixture.capRiver.path.length} points)`);

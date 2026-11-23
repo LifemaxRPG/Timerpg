@@ -94,6 +94,9 @@ class WorldFarPlan(
         return t * t * (3 - 2 * t)
     }
 
+    /** The scene's height (m above [baseElev]) of ground [raw] m above sea level at ([x], [z]): flattened under and round the town. */
+    fun shapeRaw(x: Double, z: Double, raw: Double): Float = shape(x, z, raw)
+
     private fun shape(x: Double, z: Double, raw: Double): Float {
         if (outside(x, z) <= 0) return (-UNDER_M).toFloat()
         val b = blend(x, z)
