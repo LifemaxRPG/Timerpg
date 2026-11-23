@@ -1,0 +1,86 @@
+[
+  {
+    "file": "tallmere-1972.glb",
+    "triangles": 2300,
+    "materials": 6,
+    "max_uv_edge_error_m": 8.167266845049426e-07,
+    "nodes_checked": 27
+  },
+  {
+    "file": "tallmere-1972-mid.glb",
+    "triangles": 878,
+    "materials": 6,
+    "max_uv_edge_error_m": 8.167266845049426e-07,
+    "nodes_checked": 27
+  },
+  {
+    "file": "tallmere-1972-far.glb",
+    "triangles": 134,
+    "materials": 3,
+    "max_uv_edge_error_m": 4.7417593296295024e-07,
+    "nodes_checked": 27
+  },
+  {
+    "file": "rowanvale-1970.glb",
+    "triangles": 2362,
+    "materials": 6,
+    "max_uv_edge_error_m": 8.465290068926379e-07,
+    "nodes_checked": 29
+  },
+  {
+    "file": "rowanvale-1970-mid.glb",
+    "triangles": 884,
+    "materials": 6,
+    "max_uv_edge_error_m": 8.465290068926379e-07,
+    "nodes_checked": 29
+  },
+  {
+    "file": "rowanvale-1970-far.glb",
+    "triangles": 120,
+    "materials": 2,
+    "max_uv_edge_error_m": 4.5989704122728625e-07,
+    "nodes_checked": 29
+  },
+  {
+    "file": "pinelatch-1993.glb",
+    "triangles": 2172,
+    "materials": 6,
+    "max_uv_edge_error_m": 8.494377139456333e-07,
+    "nodes_checked": 29
+  },
+  {
+    "file": "pinelatch-1993-mid.glb",
+    "triangles": 846,
+    "materials": 6,
+    "max_uv_edge_error_m": 8.167266845049426e-07,
+    "nodes_checked": 29
+  },
+  {
+    "file": "pinelatch-1993-far.glb",
+    "triangles": 120,
+    "materials": 2,
+    "max_uv_edge_error_m": 3.745115216835515e-07,
+    "nodes_checked": 29
+  },
+  {
+    "file": "stoneweir-2015.glb",
+    "triangles": 2540,
+    "materials": 6,
+    "max_uv_edge_error_m": 8.235931394651175e-07,
+    "nodes_checked": 31
+  },
+  {
+    "file": "stoneweir-2015-mid.glb",
+    "triangles": 870,
+    "materials": 6,
+    "max_uv_edge_error_m": 7.820066399988335e-07,
+    "nodes_checked": 31
+  },
+  {
+    "file": "stoneweir-2015-far.glb",
+    "triangles": 120,
+    "materials": 2,
+    "max_uv_edge_error_m": 5.468488079030109e-07,
+    "nodes_checked": 31
+  }
+]
