@@ -287,3 +287,30 @@ matters to the people who see you.
   condition and age.
 - **Time travel adds a twist:** an item from the future in the past (a phone in 1925) is a curiosity, a fortune, or a
   dangerous thing to be seen with. Era cash only works in its era.
+
+### Caches across time (the owner's idea, 2026-11-23)
+
+The time machine can only take what you carry. Anything bigger (a car, a crate of gold, furniture, documents you don't
+want on you) can be **hidden in the past and collected in the future**, if it survives. So where you hide it matters.
+- **The world decides, from what really happened to that spot:**
+  - A house demolished in 1970 means the crew found what was in its walls.
+  - Woods turned into a housing estate in 1985 means the dig turned it up.
+  - A bank that failed in 1931 means the deposit box was seized.
+  - A barn that stands untouched for 60 years means a "barn find".
+  The growth model and the town's history (built, demolished, flooded, burned, dug up) are already simulated, so the
+  result is determined, not luck. A careful player can learn which places last.
+- **Decay by material and place:**
+  - paper and cloth rot in damp ground;
+  - metal rusts;
+  - a sealed, dry container (a tin box, a waxed crate, a sealed jar) keeps things;
+  - a car left outside rots, while a car in a dry, sealed barn survives.
+- **If someone finds it,** an NPC acts on their own traits: they keep it, sell it, hand it to the police, or make the
+  news ("1920s gold found in demolished house"). A found cache can become evidence, especially with your fingerprints
+  on it.
+- **If it survives, it's worth more.** Old items become antiques, a mint 1950s car is a collector's piece, and old
+  currency is worth more to collectors than its face value.
+- **Real tactics:**
+  - buy the land first, so nobody digs it up;
+  - hide it in a place that history protects (a church, a cemetery wall, a monument's foundation, the professor's
+    basement);
+  - check in on it at points in between.
