@@ -1,4 +1,4 @@
-import { B, type Climate } from './climate';
+import { B, CR, koppenGroup, type Climate } from './climate';
 import { CELL_KM, CELL_M, H, N, W, blur, distKm, latOf, nb, wrapDx, wrapX } from './grid';
 import { CAPITAL, GAMMA_PLAN_TILES, HUB_COUNT, LAUNCH, laterHub, type HubSpec, type HubType, type Pin } from './hubs';
 import { RIVER_FLOW, type Hydro } from './hydro';
@@ -49,14 +49,15 @@ export interface SiteFields {
   bigFlow: number;
 }
 
-const FERTILE = new Set([B.prairie, B['temperate forest'], B.savanna, B['tropical forest'], B.steppe]);
+/** Crop belts good for a farm town (not ranching country). */
+const FARMING = new Set([CR.wheat, CR.corn, CR.cotton, CR.orchards, CR.rice, CR.dairy]);
 
-export function siteFields(t: Terrain, cl: Climate, h: Hydro, bio: Uint8Array): SiteFields {
+export function siteFields(t: Terrain, cl: Climate, h: Hydro, bio: Uint8Array, crops: Uint8Array): SiteFields {
   const usable = new Uint8Array(N), fertile = new Uint8Array(N);
   for (let c = 0; c < N; c++) {
     const b = bio[c]!;
-    usable[c] = t.land[c] && !h.lake[c] && b !== B.ice && b !== B.rock && t.elev[c]! < 2400 ? 1 : 0;
-    fertile[c] = FERTILE.has(b) ? 1 : 0;
+    usable[c] = t.land[c] && !h.lake[c] && b !== B.ice && b !== B.glacier && b !== B.rock && t.elev[c]! < 2400 ? 1 : 0;
+    fertile[c] = FARMING.has(crops[c]!) ? 1 : 0;
   }
   const flat = blur(cl.slope, 2, 2, 2);
   const sea = new Float32Array(N);
@@ -96,6 +97,7 @@ export function hubRule(type: HubType, t: Terrain, cl: Climate, h: Hydro, f: Sit
     case 'capital': {
       if (h.flow[c]! < RIVER_FLOW * 1.5 || h.flow[c]! > 9000) return no('no river of the plan\'s size');
       if (T < 5 || T > 21) return no('not temperate');
+      { const g = koppenGroup(cl.koppen[c]!); if (g !== 'C' && g !== 'D') return no('not a temperate climate class'); }
       if (f.flat[c]! > 30) return no('not flat');
       if (t.distSea[c]! < 12) return no('too near the coast');
       const [dx, dz] = riverDir(h, f, c);
@@ -117,6 +119,7 @@ export function hubRule(type: HubType, t: Terrain, cl: Climate, h: Hydro, f: Sit
       return deepNear(t, c) ? { ok: true, why: '' } : no('no deep water close in');
     case 'river city':
       if (h.flow[c]! < f.bigFlow || e > 400 || t.distSea[c]! < 8 || f.flat[c]! > 25) return no('not on a big river, low and flat');
+      if (h.steady[c]! < 0.12) return no('the river runs dry part of the year');
       return { ok: true, why: '' };
     case 'mountain town':
       if (e < 800 || e > 2000 || !f.valley[c]) return no('not a high valley');
@@ -125,10 +128,12 @@ export function hubRule(type: HubType, t: Terrain, cl: Climate, h: Hydro, f: Sit
       const r = h.recv[c]!;
       const fall = r >= 0 ? e - Math.max(0, t.elev[r]!) : 0;
       if (h.flow[c]! < RIVER_FLOW * 1.3 || h.flow[c]! > 6000 || fall < 8) return no('no river with fall');
+      if (h.steady[c]! < 0.25) return no('the river is not reliable all year');
       return { ok: true, why: '' };
     }
     case 'farm town':
       if (!f.fertile[c] || f.flat[c]! > 12 || cl.rain[c]! < 420 || e > 600) return no('not flat fertile plains');
+      if (koppenGroup(cl.koppen[c]!) === 'B' && cl.rain[c]! < 500) return no('too dry to farm');
       return { ok: true, why: '' };
   }
 }
