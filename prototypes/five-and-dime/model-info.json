@@ -10,10 +10,11 @@
   "swatches": [
     "brick_red",
     "plank_horizontal",
-    "roof_tar_brown",
+    "roof_membrane_grey",
     "pavement",
     "block_courses"
   ],
+  "roof_finish": "Grey membrane swatch with added staggered seams and stepped wear.",
   "emission": "Glass UVs use their pane-mask textures. The closed condition has a black mask.",
   "lod_preview_distances_m": {
     "mid": 45,
@@ -29,7 +30,7 @@
         {
           "file": "marlow-1925.glb",
           "level": "near",
-          "triangles_visible": 2710,
+          "triangles_visible": 2782,
           "anchors": {
             "door_main": [
               0,
@@ -472,7 +473,7 @@
         {
           "file": "marlow-1925-mid.glb",
           "level": "mid",
-          "triangles_visible": 1690,
+          "triangles_visible": 1762,
           "anchors": {
             "door_main": [
               0,
@@ -869,7 +870,7 @@
         {
           "file": "marlow-1925-far.glb",
           "level": "far",
-          "triangles_visible": 956,
+          "triangles_visible": 1052,
           "anchors": {
             "door_main": [
               0,
@@ -1229,7 +1230,7 @@
         {
           "file": "marlow-1970.glb",
           "level": "near",
-          "triangles_visible": 2720,
+          "triangles_visible": 2792,
           "anchors": {
             "door_main": [
               0,
@@ -1672,7 +1673,7 @@
         {
           "file": "marlow-1970-mid.glb",
           "level": "mid",
-          "triangles_visible": 1700,
+          "triangles_visible": 1772,
           "anchors": {
             "door_main": [
               0,
@@ -2069,7 +2070,7 @@
         {
           "file": "marlow-1970-far.glb",
           "level": "far",
-          "triangles_visible": 968,
+          "triangles_visible": 1064,
           "anchors": {
             "door_main": [
               0,
@@ -2429,7 +2430,7 @@
         {
           "file": "marlow-2000.glb",
           "level": "near",
-          "triangles_visible": 2724,
+          "triangles_visible": 2796,
           "anchors": {
             "door_main": [
               0,
@@ -2872,7 +2873,7 @@
         {
           "file": "marlow-2000-mid.glb",
           "level": "mid",
-          "triangles_visible": 1704,
+          "triangles_visible": 1776,
           "anchors": {
             "door_main": [
               0,
@@ -3269,7 +3270,7 @@
         {
           "file": "marlow-2000-far.glb",
           "level": "far",
-          "triangles_visible": 972,
+          "triangles_visible": 1068,
           "anchors": {
             "door_main": [
               0,
@@ -3629,7 +3630,7 @@
         {
           "file": "marlow-closed.glb",
           "level": "near",
-          "triangles_visible": 1978,
+          "triangles_visible": 2050,
           "anchors": {
             "door_main": [
               0,
@@ -4026,7 +4027,7 @@
         {
           "file": "marlow-closed-mid.glb",
           "level": "mid",
-          "triangles_visible": 1630,
+          "triangles_visible": 1702,
           "anchors": {
             "door_main": [
               0,
@@ -4378,7 +4379,7 @@
         {
           "file": "marlow-closed-far.glb",
           "level": "far",
-          "triangles_visible": 982,
+          "triangles_visible": 1078,
           "anchors": {
             "door_main": [
               0,

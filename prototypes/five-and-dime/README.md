@@ -25,4 +25,4 @@ done
 python package_review.py
 ```
 
-`review.jpg` compares day, night, rear, above, entrance and interior views. The images are Blender Cycles desktop renders.
+`review.jpg` compares day, night, rear, above, entrance and interior views, with close-ups of the storefront, receiving and soda counter signs. The images are Blender Cycles desktop renders.

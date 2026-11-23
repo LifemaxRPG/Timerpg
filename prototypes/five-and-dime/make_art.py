@@ -16,10 +16,29 @@ def save(im,name):
 path=ROOT.parents[1]/"kotlin-street/tools/swatches/atlas"
 catalog=json.loads((path/"atlas.json").read_text())
 atlas=Image.open(path/"atlas.png").convert("RGB")
-for key,out in (("brick_red","brick"),("plank_horizontal","wood"),("roof_tar_brown","tar"),
+for key,out in (("brick_red","brick"),("plank_horizontal","wood"),("roof_membrane_grey","membrane"),
                 ("pavement","walk"),("block_courses","block")):
     x,y,w,h=(catalog[key][a] for a in ("x","y","w","h"))
     save(atlas.crop((x,y,x+w,y+h)).resize((w//2,h//2),Image.Resampling.NEAREST),out)
+
+# Keep the shared slate-grey undertone, with roofing seams and low-contrast wear.
+with Image.open(OUT/"membrane.png") as source:
+    base = max(source.getcolors(), key=lambda entry: entry[0])[1]
+roof_palette = [tuple(channel - shade for channel in base) for shade in (35, 46, 40, 30)]
+roof = Image.new("RGB", (64, 64), roof_palette[0])
+draw = ImageDraw.Draw(roof)
+rng = Random(921)
+for _ in range(115):
+    x, y = rng.randrange(64), rng.randrange(64)
+    tone = rng.choice(roof_palette[1:])
+    for dx, dy in ((0, 0), (1, 0), (2, 0), (0, 1)):
+        draw.point(((x + dx) % 64, (y + dy) % 64), fill=tone)
+for y in (0, 32):
+    draw.line((0, y, 63, y), fill=roof_palette[1])
+    draw.line((0, y + 1, 63, y + 1), fill=roof_palette[2])
+    x = 17 if y == 0 else 49
+    draw.line((x, y + 2, x, y + 31), fill=roof_palette[2])
+save(roof, "membrane")
 
 pal={
     "limestone":("#b6ae94","#d0c6a7","#929482","#aaa58e"),
@@ -63,26 +82,38 @@ signs={
     "name-1970":(20,113,15,"MARLOW VARIETY","#d1ccb0",(62,86,81),1),
     "name-2000":(36,116,17,"DOLLAR COVE","#4d7464",(238,224,174),2),
     "name-closed":(54,113,16,"MARLOW VARIETY","#716d60",(190,182,151),1),
-    "lease":(71,56,12,"FOR LEASE","#d1b992",(103,65,53),1),
-    "value":(84,34,19,"VALUE","#b98857",(242,217,155),1),
-    "sale":(104,31,17,"SALE","#816459",(236,210,155),1),
-    "receiving":(122,67,11,"RECEIVING","#53615e",(230,218,185),1),
-    "candy":(134,67,11,"SODA CANDY","#7e4e46",(230,203,144),1),
+    "lease":(71,38,19,"FOR\nLEASE","#d1b992",(103,65,53),1),
+    "value":(91,34,19,"VALUE","#b98857",(242,217,155),1),
+    "sale":(111,31,17,"SALE","#816459",(236,210,155),1),
+    "receiving":(129,67,11,"RECEIVING","#53615e",(230,218,185),1),
+    "candy":(141,67,11,"SODA CANDY","#7e4e46",(230,203,144),1),
 }
 im=Image.new("RGB",(128,256),("#55483c")); d=ImageDraw.Draw(im)
 e=Image.new("RGB",im.size); m=ImageDraw.Draw(e)
 for name,(y,w,h,line,bg,text,scale) in signs.items():
     d.rectangle((0,y,w-1,y+h-1),fill="#ab946f")
     d.rectangle((1,y+1,w-2,y+h-2),fill=bg)
-    start=(w-(len(line)*6-1)*scale)//2
-    for i,ch in enumerate(line):
-        for j,row in enumerate(FONT.get(ch,())):
-            for k,bit in enumerate(row):
-                if bit=="1":
-                    x=start+(i*6+k)*scale; z=y+(h-7*scale)//2+j*scale
-                    rect=(x,z,x+scale-1,z+scale-1)
-                    d.rectangle(rect,fill=text)
-                    if name in ("name-1925","name-1970","name-2000"):
-                        m.rectangle(rect,fill=(232,208,169))
+    columns = (0, 1, 1, 2, 3, 3, 4) if scale == 2 else (0, 1, 2, 3, 4)
+    lines = line.splitlines()
+    gap = 2 if scale == 2 else 1
+    line_height = 7 * scale
+    text_height = len(lines) * line_height + (len(lines) - 1) * gap
+    assert text_height <= h - 2, name
+    for line_index, words in enumerate(lines):
+        assert all(ch == " " or ch in FONT for ch in words), name
+        stride = len(columns) + gap
+        text_width = len(words) * stride - gap
+        start = (w - text_width) // 2
+        assert min(start, w - start - text_width) >= 2, name
+        for letter, ch in enumerate(words):
+            for j, row in enumerate(FONT.get(ch, ())):
+                for k, column in enumerate(columns):
+                    if row[column] == "1":
+                        x = start + letter * stride + k
+                        z = y + (h - text_height) // 2 + line_index * (line_height + gap) + j * scale
+                        rect = (x, z, x, z + scale - 1)
+                        d.rectangle(rect, fill=text)
+                        if name in ("name-1925", "name-1970", "name-2000"):
+                            m.rectangle(rect, fill=(232, 208, 169))
 save(im,"signs"); save(e,"sign-mask")
 (OUT/"sign-regions.json").write_text(json.dumps({key:list(v[:3]) for key,v in signs.items()},indent=2)+"\n")

@@ -33,7 +33,7 @@ def build(state,lod):
     stone=material("wall_limestone","limestone")
     red=material("detail_oxblood","oxblood")
     iron=material("detail_frames","iron")
-    roof=material("roof_built_up","tar")
+    roof=material("roof_built_up","membrane")
     floor=material("floor_shop","wood" if state in ("1925","closed") else "tile")
     paving=material("ground_pavement","walk")
     block=material("wall_receiving_block","block")
@@ -127,10 +127,10 @@ def build(state,lod):
         slab("Thin replacement sign case",shell,-4.55,4.55,-.199,-.073,3.39,4.68,iron)
     sign("name-"+state,"sign_name",0,-.112 if old else -.205,3.26 if old else 3.41)
     if state=="2000":
-        sign("value","sign_value",-3.25,.107,.81)
-        sign("sale","sign_sale",3.28,.105,.80)
+        sign("value","sign_value",-2.885,.049,.81)
+        sign("sale","sign_sale",2.885,.049,.80)
     if closed:
-        sign("lease","sign_for_lease",2.82,.108,1.10)
+        sign("lease","sign_for_lease",2.885,.049,1.00)
         slab("Vacant left board over lower glass",shell,-4.44,-1.34,.208,.27,.66,1.23,floor)
 
     # Second floor window bays split the brick, leaving clear panes and true recesses.
@@ -178,8 +178,12 @@ def build(state,lod):
         for a,b in ((-4.88,-4.50),(4.50,4.88)):
             for z in (4.95,6.95):
                 slab("Front pier quoin stone",shell,a,b,-.036,.073,z,z+.154,stone)
-        slab("Rear roof scuttle",top,-3.64,-2.37,22.89,24.18,7.75,8.05,iron)
-        slab("Rear scuttle cap",top,-3.67,-2.34,22.84,24.22,8.04,8.14,stone)
+    slab("Rear roof scuttle",top,-3.64,-2.37,22.89,24.18,7.75,8.05,iron)
+    slab("Rear scuttle cap",top,-3.67,-2.34,22.84,24.22,8.04,8.14,stone)
+    for x, y in ((-2.60, 7.38), (1.88, 16.16)):
+        slab("Vent flashing",top,x-.28,x+.28,y-.27,y+.27,7.75,7.815,iron)
+        slab("Vent stack",top,x-.14,x+.14,y-.14,y+.14,7.815,8.32,iron)
+        slab("Vent rain cap",top,x-.21,x+.21,y-.21,y+.21,8.32,8.39,stone)
     slab("Older chimney",top,2.86,3.55,20.60,21.44,7.70,8.98,brick)
     slab("Chimney coping",top,2.79,3.63,20.52,21.52,8.96,9.06,stone)
 
@@ -250,7 +254,8 @@ for key,(title,start,end) in STATES.items():
     out.append({"id":key,"name":title,"from":start,"to":end,"models":versions})
 manifest={"task":"C001","name":"Marlow Five and Dime","footprint_m":[10,28],
           "height_m":9.06,"axes":"glTF metres. +Y up, +Z to the street. The front centre is the shared grade origin.",
-          "swatches":["brick_red","plank_horizontal","roof_tar_brown","pavement","block_courses"],
+          "swatches":["brick_red","plank_horizontal","roof_membrane_grey","pavement","block_courses"],
+          "roof_finish":"Grey membrane swatch with added staggered seams and stepped wear.",
           "emission":"Glass UVs use their pane-mask textures. The closed condition has a black mask.",
           "lod_preview_distances_m":{"mid":45,"far":120},
           "states":out}

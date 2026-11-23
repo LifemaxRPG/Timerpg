@@ -1,7 +1,7 @@
 [
   {
     "asset": "marlow-1925.glb",
-    "visible_triangles": 2710,
+    "visible_triangles": 2782,
     "materials": 12,
     "doors_checked": 2,
     "collision_boxes_checked": 26,
@@ -10,7 +10,7 @@
   },
   {
     "asset": "marlow-1925-mid.glb",
-    "visible_triangles": 1690,
+    "visible_triangles": 1762,
     "materials": 11,
     "doors_checked": 2,
     "collision_boxes_checked": 23,
@@ -19,7 +19,7 @@
   },
   {
     "asset": "marlow-1925-far.glb",
-    "visible_triangles": 956,
+    "visible_triangles": 1052,
     "materials": 11,
     "doors_checked": 2,
     "collision_boxes_checked": 20,
@@ -28,7 +28,7 @@
   },
   {
     "asset": "marlow-1970.glb",
-    "visible_triangles": 2720,
+    "visible_triangles": 2792,
     "materials": 12,
     "doors_checked": 2,
     "collision_boxes_checked": 26,
@@ -37,7 +37,7 @@
   },
   {
     "asset": "marlow-1970-mid.glb",
-    "visible_triangles": 1700,
+    "visible_triangles": 1772,
     "materials": 11,
     "doors_checked": 2,
     "collision_boxes_checked": 23,
@@ -46,7 +46,7 @@
   },
   {
     "asset": "marlow-1970-far.glb",
-    "visible_triangles": 968,
+    "visible_triangles": 1064,
     "materials": 11,
     "doors_checked": 2,
     "collision_boxes_checked": 20,
@@ -55,7 +55,7 @@
   },
   {
     "asset": "marlow-2000.glb",
-    "visible_triangles": 2724,
+    "visible_triangles": 2796,
     "materials": 12,
     "doors_checked": 2,
     "collision_boxes_checked": 26,
@@ -64,7 +64,7 @@
   },
   {
     "asset": "marlow-2000-mid.glb",
-    "visible_triangles": 1704,
+    "visible_triangles": 1776,
     "materials": 11,
     "doors_checked": 2,
     "collision_boxes_checked": 23,
@@ -73,7 +73,7 @@
   },
   {
     "asset": "marlow-2000-far.glb",
-    "visible_triangles": 972,
+    "visible_triangles": 1068,
     "materials": 11,
     "doors_checked": 2,
     "collision_boxes_checked": 20,
@@ -82,7 +82,7 @@
   },
   {
     "asset": "marlow-closed.glb",
-    "visible_triangles": 1978,
+    "visible_triangles": 2050,
     "materials": 11,
     "doors_checked": 2,
     "collision_boxes_checked": 23,
@@ -91,7 +91,7 @@
   },
   {
     "asset": "marlow-closed-mid.glb",
-    "visible_triangles": 1630,
+    "visible_triangles": 1702,
     "materials": 11,
     "doors_checked": 2,
     "collision_boxes_checked": 20,
@@ -100,7 +100,7 @@
   },
   {
     "asset": "marlow-closed-far.glb",
-    "visible_triangles": 982,
+    "visible_triangles": 1078,
     "materials": 11,
     "doors_checked": 2,
     "collision_boxes_checked": 20,

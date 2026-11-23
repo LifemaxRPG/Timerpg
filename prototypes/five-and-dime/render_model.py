@@ -15,7 +15,7 @@ for obj in bpy.data.objects:
 
 scene=bpy.context.scene
 scene.render.engine="CYCLES"
-scene.cycles.samples=8
+scene.cycles.samples=12
 scene.cycles.use_denoising=False
 scene.cycles.max_bounces=3
 scene.render.resolution_x=790
@@ -80,10 +80,15 @@ views={
  "rear":((19,43,17),(0,18.7,3.9),35,False),
  "above":((8,15,55),(0,13,2.2),41,False),
  "eye":((3.35,-10.7,1.72),(0,.3,2.91),0,False),
+ "signs":((0,-10,2.55),(0,0,2.55),10.55,False),
+ "receiving-sign":((.05,36,3.38),(.05,28,3.38),6.35,False),
+ "soda-sign":((-2.03,22.2,2.98),(-2.03,26.69,2.98),5.85,False),
  "room":((-.28,3.22,1.71),(-.70,15.95,1.80),0,False),
 }
 only=os.environ.get("MARLOW_VIEWS")
 for label,(eye,target,width,night) in views.items():
+    if label in ("receiving-sign", "soda-sign") and state != "1925":
+        continue
     if only and label not in only.split(","):
         continue
     cam.location=eye
@@ -98,9 +103,10 @@ for label,(eye,target,width,night) in views.items():
     screen.inputs[0].default_value=(.065,.11,.19,1) if night else (.39,.55,.61,1)
     screen.inputs[1].default_value=.72
     for light,power in shop_lights:
-        light.energy=0 if state=="closed" else (power if night or label=="room" else power*.35)
+        light.energy=0 if state=="closed" else (power if night or label in ("room", "soda-sign") else power*.35)
+    sun.rotation_euler = Vector((.44,-.72,-.60) if label=="receiving-sign" else (.41,.49,-.73)).to_track_quat("-Z","Y").to_euler()
     front_light[0].energy=front_light[1] if night else 0
-    room_fill[0].energy=room_fill[1]*(.20 if state=="closed" else .55) if label=="room" else 0
+    room_fill[0].energy=room_fill[1]*(.20 if state=="closed" else .55) if label in ("room", "soda-sign") else 0
     for material_name in ("glow_fixtures","sign_name","glass_storefront"):
         mat=bpy.data.materials.get(material_name)
         shader=mat.node_tree.nodes.get("Principled BSDF") if mat else None
