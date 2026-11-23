@@ -82,3 +82,4 @@ row per accepted or revised delivery here, so we can compare cost per finished i
 | C004 schools r1 | ChatGPT (Codex, GPT-6 family) | model revision | 1 turn, ~38 tool calls, ~10 min | 2 | accepted (first delivery with a self-review) |
 | C005 barbershop and beauty parlour | ChatGPT (Codex, GPT-6 family) | model, 6 states + LODs | 1 turn, ~25 tool calls, ~8 min | 1 | accepted first try (with self-review) |
 | C006 truck stop | ChatGPT (Codex, GPT-6 family) | model, 2 states + LODs | 1 turn, ~32 tool calls, ~13 min | 1 | revise: bare lot, needs lot life, signs, era extras, night floods |
+| C007 mini golf | ChatGPT (Codex, GPT-6 family) | model, 3 states + LODs | 1 turn, ~27 tool calls, ~10 min | 1 | revise: rigid rows, flat, closed state not closed |
