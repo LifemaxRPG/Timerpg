@@ -1,0 +1,1002 @@
+{
+ "name": "Relay Travel Center",
+ "state": "landmark_glb_truck_stop_1990",
+ "file": "cedar-relay-1990.glb",
+ "doors": [
+  {
+   "node": "door_main",
+   "position": [
+    0,
+    0.14,
+    0.34
+   ],
+   "external": true
+  },
+  {
+   "node": "door_back",
+   "position": [
+    13.14,
+    0.14,
+    -21.04
+   ],
+   "external": true
+  },
+  {
+   "node": "door_showers",
+   "position": [
+    20.4,
+    0.14,
+    -14.64
+   ],
+   "external": true
+  }
+ ],
+ "collision": {
+  "coordinate_note": "glTF Y-up metres, from the contributor info (near model)",
+  "boxes_gltf_y_up": [
+   {
+    "source": "Scale curb guard",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     39.92,
+     0.609,
+     -37.8
+    ],
+    "size": [
+     0.23999999999999488,
+     1.162,
+     0.23999999999999488
+    ]
+   },
+   {
+    "source": "Scale curb guard",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     39.92,
+     0.609,
+     -58.6
+    ],
+    "size": [
+     0.23999999999999488,
+     1.162,
+     0.23999999999999488
+    ]
+   },
+   {
+    "source": "Scale curb guard",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     44.49,
+     0.609,
+     -37.8
+    ],
+    "size": [
+     0.23999999999999488,
+     1.162,
+     0.23999999999999488
+    ]
+   },
+   {
+    "source": "Scale curb guard",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     44.49,
+     0.609,
+     -58.6
+    ],
+    "size": [
+     0.23999999999999488,
+     1.162,
+     0.23999999999999488
+    ]
+   },
+   {
+    "source": "Scale reader pedestal",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     45.03,
+     0.9390000000000001,
+     -52.31
+    ],
+    "size": [
+     0.7999999999999972,
+     1.822,
+     0.6199999999999974
+    ]
+   },
+   {
+    "source": "Main entrance storefront",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -10.6,
+     2.25,
+     -0.14
+    ],
+    "size": [
+     18.8,
+     4.220000000000001,
+     0.28
+    ]
+   },
+   {
+    "source": "Main entrance storefront",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     10.6,
+     2.25,
+     -0.14
+    ],
+    "size": [
+     18.8,
+     4.220000000000001,
+     0.28
+    ]
+   },
+   {
+    "source": "West dining wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -19.86,
+     2.25,
+     -10.35
+    ],
+    "size": [
+     0.28000000000000114,
+     4.220000000000001,
+     20.7
+    ]
+   },
+   {
+    "source": "East shower wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     19.86,
+     2.25,
+     -6.8
+    ],
+    "size": [
+     0.28000000000000114,
+     4.220000000000001,
+     13.6
+    ]
+   },
+   {
+    "source": "East shower wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     19.86,
+     2.25,
+     -18.189999999999998
+    ],
+    "size": [
+     0.28000000000000114,
+     4.220000000000001,
+     5.02
+    ]
+   },
+   {
+    "source": "Back receiving elevation",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -4.0,
+     2.25,
+     -20.560000000000002
+    ],
+    "size": [
+     32.0,
+     4.220000000000001,
+     0.28000000000000114
+    ]
+   },
+   {
+    "source": "Back receiving elevation",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     17.14,
+     2.25,
+     -20.560000000000002
+    ],
+    "size": [
+     5.720000000000001,
+     4.220000000000001,
+     0.28000000000000114
+    ]
+   },
+   {
+    "source": "Main canopy column",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -9.65,
+     1.8,
+     2.21
+    ],
+    "size": [
+     0.2920000000000016,
+     3.32,
+     0.3200000000000003
+    ]
+   },
+   {
+    "source": "Main canopy column",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     9.65,
+     1.8,
+     2.21
+    ],
+    "size": [
+     0.2920000000000016,
+     3.32,
+     0.3200000000000003
+    ]
+   },
+   {
+    "source": "Back-of-house wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -13.559999999999999,
+     1.865,
+     -12.965
+    ],
+    "size": [
+     12.319999999999999,
+     3.4499999999999997,
+     0.25
+    ]
+   },
+   {
+    "source": "Back-of-house wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -2.415,
+     1.865,
+     -12.965
+    ],
+    "size": [
+     5.09,
+     3.4499999999999997,
+     0.25
+    ]
+   },
+   {
+    "source": "Back-of-house wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     6.93,
+     1.865,
+     -12.965
+    ],
+    "size": [
+     7.5,
+     3.4499999999999997,
+     0.25
+    ]
+   },
+   {
+    "source": "Back-of-house wall",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     16.46,
+     1.865,
+     -12.965
+    ],
+    "size": [
+     6.52,
+     3.4499999999999997,
+     0.25
+    ]
+   },
+   {
+    "source": "Rear room partition",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -6.8,
+     1.865,
+     -16.755000000000003
+    ],
+    "size": [
+     0.2599999999999998,
+     3.4499999999999997,
+     7.330000000000002
+    ]
+   },
+   {
+    "source": "Rear room partition",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -0.18,
+     1.865,
+     -16.755000000000003
+    ],
+    "size": [
+     0.26,
+     3.4499999999999997,
+     7.330000000000002
+    ]
+   },
+   {
+    "source": "Rear room partition",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     9.9,
+     1.865,
+     -16.755000000000003
+    ],
+    "size": [
+     0.26000000000000156,
+     3.4499999999999997,
+     7.330000000000002
+    ]
+   },
+   {
+    "source": "Fixed cash and service counter",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     7.65,
+     0.575,
+     -9.309999999999999
+    ],
+    "size": [
+     7.8999999999999995,
+     0.87,
+     1.08
+    ]
+   },
+   {
+    "source": "Fixed booth and table",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -17.65,
+     0.665,
+     -2.36
+    ],
+    "size": [
+     3.3000000000000007,
+     1.0499999999999998,
+     1.4400000000000002
+    ]
+   },
+   {
+    "source": "Fixed booth and table",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -17.65,
+     0.665,
+     -5.12
+    ],
+    "size": [
+     3.3000000000000007,
+     1.0499999999999998,
+     1.4399999999999995
+    ]
+   },
+   {
+    "source": "Fixed booth and table",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -17.65,
+     0.665,
+     -7.88
+    ],
+    "size": [
+     3.3000000000000007,
+     1.0499999999999998,
+     1.4399999999999995
+    ]
+   },
+   {
+    "source": "Fixed booth and table",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -17.65,
+     0.665,
+     -10.65
+    ],
+    "size": [
+     3.3000000000000007,
+     1.0499999999999998,
+     1.4400000000000013
+    ]
+   },
+   {
+    "source": "Tiled shower stall divider",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     14.8,
+     1.33,
+     -18.86
+    ],
+    "size": [
+     0.17999999999999972,
+     2.38,
+     3.120000000000001
+    ]
+   },
+   {
+    "source": "Tiled shower stall divider",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     16.86,
+     1.33,
+     -18.86
+    ],
+    "size": [
+     0.17999999999999972,
+     2.38,
+     3.120000000000001
+    ]
+   },
+   {
+    "source": "Tiled shower stall divider",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     19.34,
+     1.33,
+     -18.86
+    ],
+    "size": [
+     0.17999999999999972,
+     2.38,
+     3.120000000000001
+    ]
+   },
+   {
+    "source": "Shower bench",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     19.25,
+     0.315,
+     -16.515
+    ],
+    "size": [
+     0.740000000000002,
+     0.35,
+     0.990000000000002
+    ]
+   },
+   {
+    "source": "Diesel equipment island",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -60.0,
+     3.4495,
+     -35.0
+    ],
+    "size": [
+     1.1200000000000045,
+     6.841,
+     8.120000000000001
+    ]
+   },
+   {
+    "source": "Diesel equipment island",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -54.55,
+     0.8845,
+     -35.0
+    ],
+    "size": [
+     1.1200000000000045,
+     1.711,
+     8.120000000000001
+    ]
+   },
+   {
+    "source": "Diesel equipment island",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -49.1,
+     0.8845,
+     -35.0
+    ],
+    "size": [
+     1.1200000000000045,
+     1.711,
+     8.120000000000001
+    ]
+   },
+   {
+    "source": "Diesel equipment island",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -43.65,
+     3.4495,
+     -35.0
+    ],
+    "size": [
+     1.1200000000000045,
+     6.841,
+     8.120000000000001
+    ]
+   },
+   {
+    "source": "Diesel equipment island",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -38.2,
+     0.8845,
+     -35.0
+    ],
+    "size": [
+     1.1200000000000045,
+     1.711,
+     8.120000000000001
+    ]
+   },
+   {
+    "source": "Diesel equipment island",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -32.75,
+     0.8845,
+     -35.0
+    ],
+    "size": [
+     1.1200000000000045,
+     1.711,
+     8.120000000000001
+    ]
+   },
+   {
+    "source": "Diesel equipment island",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     -27.299999999999997,
+     3.4495,
+     -35.0
+    ],
+    "size": [
+     1.1199999999999974,
+     6.841,
+     8.120000000000001
+    ]
+   },
+   {
+    "source": "Car equipment island",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     26.0,
+     2.3645,
+     -10.0
+    ],
+    "size": [
+     1.1199999999999974,
+     4.671,
+     8.119999999999997
+    ]
+   },
+   {
+    "source": "Car equipment island",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     30.8,
+     0.8845,
+     -10.0
+    ],
+    "size": [
+     1.1199999999999974,
+     1.711,
+     8.119999999999997
+    ]
+   },
+   {
+    "source": "Car equipment island",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     35.6,
+     2.3645,
+     -10.0
+    ],
+    "size": [
+     1.1200000000000045,
+     4.671,
+     8.119999999999997
+    ]
+   },
+   {
+    "source": "Car equipment island",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     40.4,
+     2.3645,
+     -10.0
+    ],
+    "size": [
+     1.1200000000000045,
+     4.671,
+     8.119999999999997
+    ]
+   },
+   {
+    "source": "Highway sign pole",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     42.17,
+     6.3345,
+     19.15
+    ],
+    "size": [
+     0.9599999999999937,
+     12.611,
+     0.9200000000000017
+    ]
+   },
+   {
+    "source": "Highway sign pole",
+    "group": "structure",
+    "attachment": "structure",
+    "center": [
+     46.629999999999995,
+     6.3345,
+     19.15
+    ],
+    "size": [
+     0.9599999999999937,
+     12.611,
+     0.9200000000000017
+    ]
+   },
+   {
+    "source": "Tree trunk",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     -54.0,
+     0.9544999999999999,
+     23.37
+    ],
+    "size": [
+     0.29999999999999716,
+     1.851,
+     0.29999999999999716
+    ]
+   },
+   {
+    "source": "Tree trunk",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     -51.0,
+     0.9544999999999999,
+     -67.14
+    ],
+    "size": [
+     0.29999999999999716,
+     1.851,
+     0.30000000000001137
+    ]
+   },
+   {
+    "source": "Paired tree trunks",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     55.0,
+     0.9544999999999999,
+     -52.355000000000004
+    ],
+    "size": [
+     0.7000000000000028,
+     1.851,
+     1.009999999999998
+    ]
+   },
+   {
+    "source": "Back fence",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     0.09999999999999787,
+     0.955,
+     -112.64500000000001
+    ],
+    "size": [
+     122.6,
+     1.8499999999999999,
+     0.9299999999999926
+    ]
+   },
+   {
+    "source": "Flood light standard",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     -33.7,
+     5.264,
+     -55.6
+    ],
+    "size": [
+     0.2560000000000002,
+     10.472,
+     0.2600000000000051
+    ]
+   },
+   {
+    "source": "Flood light standard",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     34.1,
+     5.264,
+     -56.3
+    ],
+    "size": [
+     0.2560000000000002,
+     10.472,
+     0.2600000000000051
+    ]
+   },
+   {
+    "source": "Flood light standard",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     -33.7,
+     5.264,
+     -78.0
+    ],
+    "size": [
+     0.2560000000000002,
+     10.472,
+     0.2599999999999909
+    ]
+   },
+   {
+    "source": "Flood light standard",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     34.1,
+     5.264,
+     -78.0
+    ],
+    "size": [
+     0.2560000000000002,
+     10.472,
+     0.2599999999999909
+    ]
+   },
+   {
+    "source": "Flood light standard",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     -33.7,
+     5.264,
+     -98.8
+    ],
+    "size": [
+     0.2560000000000002,
+     10.472,
+     0.2599999999999909
+    ]
+   },
+   {
+    "source": "Flood light standard",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     34.1,
+     5.264,
+     -98.8
+    ],
+    "size": [
+     0.2560000000000002,
+     10.472,
+     0.2599999999999909
+    ]
+   },
+   {
+    "source": "Ice and newspaper dispensers",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     -6.41,
+     1.06,
+     0.85
+    ],
+    "size": [
+     6.02,
+     1.8399999999999999,
+     1.0999999999999999
+    ]
+   },
+   {
+    "source": "Air and water service posts",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     44.6575,
+     0.9445,
+     -22.4
+    ],
+    "size": [
+     6.265000000000001,
+     1.8310000000000002,
+     0.8499999999999979
+    ]
+   },
+   {
+    "source": "Back service corral",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     -15.9,
+     1.0294999999999999,
+     -23.174999999999997
+    ],
+    "size": [
+     7.400000000000002,
+     2.001,
+     3.9499999999999993
+    ]
+   },
+   {
+    "source": "Directional sign stem",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     -22.27,
+     1.6195,
+     -18.9
+    ],
+    "size": [
+     0.17999999999999972,
+     3.181,
+     0.1599999999999966
+    ]
+   },
+   {
+    "source": "Directional sign stem",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     25.1,
+     1.6195,
+     -39.2
+    ],
+    "size": [
+     0.17999999999999972,
+     3.181,
+     0.1599999999999966
+    ]
+   },
+   {
+    "source": "Service bay side wall",
+    "group": "structure",
+    "attachment": "era_service_bay",
+    "center": [
+     -6.055,
+     2.7545,
+     -36.7
+    ],
+    "size": [
+     0.4900000000000002,
+     5.4510000000000005,
+     15.8
+    ]
+   },
+   {
+    "source": "Service bay side wall",
+    "group": "structure",
+    "attachment": "era_service_bay",
+    "center": [
+     8.355,
+     2.7545,
+     -36.7
+    ],
+    "size": [
+     0.4900000000000002,
+     5.4510000000000005,
+     15.8
+    ]
+   },
+   {
+    "source": "Reefer fence",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     -0.125,
+     0.7995,
+     -74.65
+    ],
+    "size": [
+     61.87,
+     1.5410000000000001,
+     0.7600000000000051
+    ]
+   },
+   {
+    "source": "Reefer fence",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     -31.0,
+     0.7995,
+     -85.56
+    ],
+    "size": [
+     0.11999999999999744,
+     1.5410000000000001,
+     21.30000000000001
+    ]
+   },
+   {
+    "source": "Reefer fence",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     30.75,
+     0.7995,
+     -85.56
+    ],
+    "size": [
+     0.11999999999999744,
+     1.5410000000000001,
+     21.30000000000001
+    ]
+   },
+   {
+    "source": "Exterior ATM",
+    "group": "lot",
+    "attachment": "lot",
+    "center": [
+     7.34,
+     1.07,
+     0.32199999999999995
+    ],
+    "size": [
+     2.740000000000001,
+     1.8599999999999999,
+     0.756
+    ]
+   }
+  ]
+ },
+ "lot_node": null,
+ "triangles_visible": 3964,
+ "source": "codex/truck-stop model-info.json, flattened per state by tools/landmarks/intake.py"
+}

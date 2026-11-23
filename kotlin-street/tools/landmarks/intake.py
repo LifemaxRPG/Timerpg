@@ -77,6 +77,17 @@ for st, (a, b, c, nm) in {'1925': (1925, 1949, 1930, 'Lark Bend Elevator'), '195
 for st, (a, b, c) in {'1935': (1935, 1949, 1937), '1950': (1950, 1959, 1955), '1960': (1960, 1999, 1965), '2000': (2000, 2040, 2005)}.items():
     add(f'landmark_glb_baseball_park_{st}', 'baseball-park', f'alder-bend-{st}.glb', ('model-info.json', 'c3', st), 'Alder Bend Ballpark', 'ballpark', (a, b, c), far=f'baseball-park/alder-bend-{st}-far.glb', mid=f'baseball-park/alder-bend-{st}-mid.glb')
 
+# ---- the fourth intake (C004-C006, 2026-11-23): the same states list; the state's own name / title / footprint when the file has none at the top
+for st, (a, b, c, nm) in {'active': (1890, 1950, 1895, 'Mill Branch School'), 'abandoned': (1951, 2040, 1955, 'Mill Branch School (abandoned)')}.items():
+    add(f'landmark_glb_mill_branch_{st}', 'elementary-school', f'mill-branch-{st}.glb', ('model-info.json', 'c3', f'mill-branch-{st}'), nm, 'elementary_school', (a, b, c), room='classroom', chain='mill', far=f'elementary-school/mill-branch-{st}-far.glb', mid=f'elementary-school/mill-branch-{st}-mid.glb')
+for st, (a, b, c) in {'1955': (1955, 1989, 1957), '1990': (1990, 2040, 1992)}.items():
+    add(f'landmark_glb_westmeadow_{st}', 'elementary-school', f'westmeadow-{st}.glb', ('model-info.json', 'c3', f'westmeadow-{st}'), 'Westmeadow Elementary', 'elementary_school', (a, b, c), room='classroom', chain='west', far=f'elementary-school/westmeadow-{st}-far.glb', mid=f'elementary-school/westmeadow-{st}-mid.glb')
+for who, nmz in {'barber': ('Mercer Barber', 'Mercer Hair Co.', 'Mercer Barber Co.'), 'salon': ('Lilac Beauty', 'Lilac Styling', 'Lilac Nail Room')}.items():
+    for st, (a, b, c), nm in zip(('1940', '1980', '2010'), ((1940, 1979, 1945), (1980, 2009, 1985), (2010, 2040, 2012)), nmz):
+        add(f'landmark_glb_{who}_{st}', 'barbershop', f'{who}-{st}.glb', ('model-info.json', 'c3', f'{who}-{st}'), nm, who, (a, b, c), room='shelves', far=f'barbershop/{who}-{st}-far.glb', mid=f'barbershop/{who}-{st}-mid.glb')
+for st, (a, b, c, nm) in {'1960': (1960, 1989, 1962, 'Cedar Relay'), '1990': (1990, 2040, 1992, 'Relay Travel Center')}.items():
+    add(f'landmark_glb_truck_stop_{st}', 'truck-stop', f'cedar-relay-{st}.glb', ('model-info.json', 'c3', st), nm, 'truck_stop', (a, b, c), far=f'truck-stop/cedar-relay-{st}-far.glb', mid=f'truck-stop/cedar-relay-{st}-mid.glb')
+
 INTERNAL = {  # doors the info marks (or the glb names) as joining rooms: no entrance from the street
     'carhop': {'door_prep_inside'},
     'monument': {'door_hall_west', 'door_hall_east', 'door_observatory_lift', 'door_cornice_gallery', 'door_sky_deck', 'door_lantern_chamber', 'door_rotunda_south', 'door_north', 'door_east', 'door_west'},
@@ -98,8 +109,8 @@ def state_info(s):
         bx = m.get('collision_boxes_gltf_m') or m.get('colliders') or []
         boxes = [{'source': b.get('name', 'box'), 'group': 'lot' if b.get('group') == 'lot' else 'structure', 'attachment': b.get('attachment') or 'structure',
                   'center': b['center_gltf_m'], 'size': b['size_gltf_m']} for b in bx]
-        return {'name': j['name'], 'doors': [{'node': k, 'position': v, 'external': True} for k, v in ds.items()], 'collision': {'coordinate_note': 'glTF Y-up metres, from the contributor info (near model)', 'boxes_gltf_y_up': boxes},
-                'footprint_m': j.get('footprint_m') or ([round(m['footprint_x_m'][1] - m['footprint_x_m'][0], 2), 28.8] if m.get('footprint_x_m') else None)}
+        return {'name': j.get('name') or st.get('name') or st.get('title'), 'doors': [{'node': k, 'position': v, 'external': True} for k, v in ds.items()], 'collision': {'coordinate_note': 'glTF Y-up metres, from the contributor info (near model)', 'boxes_gltf_y_up': boxes},
+                'footprint_m': st.get('footprint_m') or j.get('footprint_m') or ([round(m['footprint_x_m'][1] - m['footprint_x_m'][0], 2), 28.8] if m.get('footprint_x_m') else None)}
     if how == 'gm':
         st = j['states'][key]
         base = j['collision']['boxes_gltf_y_up']
@@ -133,7 +144,7 @@ def main(write):
         s['xmid'] = round((lx + hx) / 2, 2)
         s['tris'] = r['tris']; s['doors_glb'] = r['doors']; s['mats'] = len(r['mats']); s['height'] = hy
         s['building'] = building(s, j) or [round(s['lot'][0] * .6, 2), round(s['lot'][1] * .6, 2)]
-        chains.setdefault((s['slug'], s['role'] if s['slug'] != 'brick-church' else s['glb']), []).append(s)
+        chains.setdefault((s['slug'], s.get('chain') or (s['role'] if s['slug'] != 'brick-church' else s['glb'])), []).append(s)
     # a chain of states: the biggest plot, the first state's middle
     for key, ch in chains.items():
         if len(ch) > 1:

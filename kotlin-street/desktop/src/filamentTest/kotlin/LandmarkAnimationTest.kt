@@ -351,8 +351,9 @@ class LandmarkAnimationTest {
                 GlbFile.read(File(landmarksRoot, s.file).readBytes()),
                 s, s.built, seed = 7, info = s.info?.let { File(landmarksRoot, it).readText() },
             )
-            // (the courthouse's clock hands and bell and the Great Meridian's rings are animated nodes; the rest of the catalogue has none)
-            if (!s.kind.startsWith("landmark_glb_county_courthouse_") && !s.kind.startsWith("landmark_glb_great_meridian_")) assertTrue("${s.kind} stays purely static", built.animated.isEmpty())
+            // (the courthouse's clock hands and bell, the Great Meridian's rings and the barber shops' pole are animated nodes; the rest of the catalogue has none)
+            if (s.kind.startsWith("landmark_glb_barber_")) assertEquals("${s.kind} turns only its pole", listOf("barber_pole"), built.animated.map { it.nodeName })
+            else if (!s.kind.startsWith("landmark_glb_county_courthouse_") && !s.kind.startsWith("landmark_glb_great_meridian_")) assertTrue("${s.kind} stays purely static", built.animated.isEmpty())
             assertTrue("${s.kind} has static triangles", built.model.triangles > 0)
         }
     }

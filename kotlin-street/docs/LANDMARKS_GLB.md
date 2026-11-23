@@ -270,6 +270,32 @@ capital only: TOWN_PLAN.md "The third intake in the capital".
   The scale test's height limit for the elevator's role is 50 m (the model is 44.7 m); the ballpark is 17.4 m.
 - **Measured** (desktop, software GL, not the S25): the town's memory check with them in (gamma, whole town cold start, 320 MB heap): held peak 161 MB (live 133 + direct 58; 160 before, budget 256), 84,514 triangles in the far view; the renders were desktop contact sheets (Filament, software GL); triangles above are the near models', counted by `glbinfo.py`.
 
+## The fourth intake (2026-11-23, C004-C006)
+
+Three more accepted models from docs/queue/INTAKE.md, brought in as before (files copied with `git show origin/codex/<branch>:prototypes/<name>/...`, no merge): twelve states in thirty-six .glb files (near, mid, far each; the mid files are
+shipped and catalogued, not drawn). Folders `elementary-school/`, `barbershop/`, `truck-stop/` under app/src/main/assets/landmarks/.
+
+| kind (landmark_glb_...) | model (states) | lot (m) | triangles near / mid / far | from |
+|---|---|---|---|---|
+| `westmeadow_1955`, `_1990` | Westmeadow Elementary: the 1955 school (1955-89), the 1990 one with portables (1990-) | 85.0 x 66.0 | 2,472 / 2,304 / 2,024; 3,752 / 3,548 / 3,056 | `codex/C004-elementary-school` |
+| `mill_branch_active`, `_abandoned` | Mill Branch one-room school: in use (1890-1950), abandoned after; woodstove, pump, outhouses | 22.0 x 30.0 | 1,316 / 1,252 / 1,064; 1,690 / 1,542 / 1,288 | same |
+| `barber_1940`, `_1980`, `_2010` | Mercer Barber (1940-79), Mercer Hair Co. (1980-2009), Mercer Barber Co. (2010-); 6 x 18 m street wall shop, party walls | 6.06 x 22.1 | 1,520 / 1,292 / 944; 1,520 / 1,292 / 944; 1,534 / 1,306 / 994 | `codex/C005-barbershop` |
+| `salon_1940`, `_1980`, `_2010` | Lilac Beauty, Lilac Styling, Lilac Nail Room; the same 6 x 18 m shell | 6.06 x 22.1 | 1,678 / 1,354 / 1,114; 1,678 / 1,354 / 1,114; 1,332 / 1,104 / 900 | same |
+| `truck_stop_1960`, `_1990` | Cedar Relay (1960-89), Relay Travel Center (1990-): diesel and car canopies, diner, 30 truck bays, scale, service bay (lube bay / truck wash) | 127.0 x 144.0 | 3,809 / 3,767 / 3,323; 3,964 / 3,922 / 3,478 | `codex/C006-truck-stop` |
+
+- **Data**: `python3 tools/landmarks/intake.py --write --only=elementary-school,barbershop,truck-stop` (a fourth table-driven set of rows; the contributors' files are the same `states` + `models` shape as the third intake's: the school and the
+  barbershop have no `name` at the top, so the state's `name` / `title` is read, and the school's footprint is the state's). The two schools share one folder but not one plot: each has its own chain (`chain=` on the row), so Mill Branch's 22 m and Westmeadow's
+  85 m are not made one plot. The barbershop's lot is 6.04-6.06 x 22.1 m (the pole and the awning stand a little before the wall).
+- **Years**: each state's years are the model-info's own (the catalogue's `era`): Westmeadow 1955-89 / 1990-; Mill Branch active to 1950 (the model gives no years for the abandoned state: 1951- is ours); the barber and the salon 1940-79 / 1980-2009 / 2010-; the truck stop 1960-89 / 1990-.
+- **The spinning pole**: `barber_pole` (a node at the pole's own pivot, `extras.animation_axis` local +Y) is matched by one new row of `LandmarkAnimRule.DEFAULT_TABLE`: `barber_pole*` -> `slow_spin`, axis (0,1,0), `period_s` 3.5 (the model-info's `suggested_period_s`), a real-time period, not game
+  hours (the table's other spin rows are game-day periods). Near and far models both have it; the salons have no pole. The rule needs nothing in `landmarks.json` (that file would override the table per entry). `LandmarkAnimationTest` expects exactly `barber_pole` animated on the barber states and nothing on the rest;
+  `LandmarkGlbTest.theBarberPoleSpins` checks both models turn.
+- **Against the guide**: no closed door panels; the doors are `door_main`, `door_back` (the school `door_service`, the 1990 school's `door_portable_a` / `_b`, the truck stop `door_showers`), all external; the truck stop's collision is 58 boxes (the bays' scale curb guards, the scale reader's pedestal are `lot` group);
+  the truck stop's routing (diesel lanes at z -35, car lanes at z -10, `scale_center`, 30 bays in two head-to-head rows at z -55 and -75) is data in its model-info, which the game does not read yet (no vehicles).
+- **The truck stop is catalogued and not placed** (`glbSites.ts` `CATALOGUED_ONLY`: no tenures, so the ledger never asks for a plot; `glbSites.test.ts` skips these two kinds in "place every model"): TOWN_PLAN.md "The fourth intake in the capital".
+- **Measured** (desktop, software GL, not the S25): the town's memory check with the new models in (gamma, whole town cold start, 320 MB heap): peak used 199 MB, live after GC 125 MB, direct buffers 74 MB, held (live + direct) peak 177 MB (budget 256; 161 MB after the third intake); the renders are desktop
+  Filament renders on software GL. Triangles above are the near models', counted by `glbinfo.py` through intake.py.
+
 ## The loader (shared/src/filament/kotlin/scene3d/)
 
 - `GlbFile.kt`: a small reader for the subset these files use (nodes with TRS or matrix, triangle meshes with float

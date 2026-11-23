@@ -93,6 +93,12 @@ const LOT_TYPE: Record<GlbLandmarkKind, GlbLotType> = {
   landmark_glb_five_and_dime_1925: 'downtown', landmark_glb_five_and_dime_1970: 'downtown', landmark_glb_five_and_dime_2000: 'downtown', landmark_glb_five_and_dime_closed: 'downtown',
   landmark_glb_grain_elevator_1925: 'edge', landmark_glb_grain_elevator_1950: 'edge', landmark_glb_grain_elevator_1990: 'edge',
   landmark_glb_baseball_park_1935: 'edge', landmark_glb_baseball_park_1950: 'edge', landmark_glb_baseball_park_1960: 'edge', landmark_glb_baseball_park_2000: 'edge',
+  // the fourth intake: the schools (Westmeadow in a late subdivision, Mill Branch on the grounds' far edge), the barber and the salon in Main Street's street wall,
+  // the truck stop (catalogued; no plot in the capital's plan)
+  landmark_glb_mill_branch_active: 'edge', landmark_glb_mill_branch_abandoned: 'edge', landmark_glb_westmeadow_1955: 'edge', landmark_glb_westmeadow_1990: 'edge',
+  landmark_glb_barber_1940: 'downtown', landmark_glb_barber_1980: 'downtown', landmark_glb_barber_2010: 'downtown',
+  landmark_glb_salon_1940: 'downtown', landmark_glb_salon_1980: 'downtown', landmark_glb_salon_2010: 'downtown',
+  landmark_glb_truck_stop_1960: 'highway', landmark_glb_truck_stop_1990: 'highway',
 };
 /** Street-wall buildings: at the pavement in a block face of the old core, never beside a strip of car parks. */
 const WALL: ReadonlySet<GlbLandmarkKind> = new Set(['landmark_glb_gazette_office']);
@@ -123,7 +129,14 @@ export const INTAKE_STATES: Record<string, readonly GlbLandmarkKind[]> = {
   five_and_dime: ['landmark_glb_five_and_dime_1925', 'landmark_glb_five_and_dime_1970', 'landmark_glb_five_and_dime_2000', 'landmark_glb_five_and_dime_closed'],
   grain_elevator: ['landmark_glb_grain_elevator_1925', 'landmark_glb_grain_elevator_1950', 'landmark_glb_grain_elevator_1990'],
   baseball_park: ['landmark_glb_baseball_park_1935', 'landmark_glb_baseball_park_1950', 'landmark_glb_baseball_park_1960', 'landmark_glb_baseball_park_2000'],
+  // the fourth intake (C004-C005): the capital's alone
+  westmeadow: ['landmark_glb_westmeadow_1955', 'landmark_glb_westmeadow_1990'],
+  mill_branch: ['landmark_glb_mill_branch_active', 'landmark_glb_mill_branch_abandoned'],
+  barber: ['landmark_glb_barber_1940', 'landmark_glb_barber_1980', 'landmark_glb_barber_2010'],
+  salon: ['landmark_glb_salon_1940', 'landmark_glb_salon_1980', 'landmark_glb_salon_2010'],
 };
+/** Catalogued models with no plot in the capital's plan yet (docs/queue/INTAKE.md C006): no tenures, so the ledger never asks for a plot. */
+export const CATALOGUED_ONLY: readonly GlbLandmarkKind[] = ['landmark_glb_truck_stop_1960', 'landmark_glb_truck_stop_1990'];
 const INTAKE_KINDS: ReadonlySet<GlbLandmarkKind> = new Set(Object.values(INTAKE_STATES).flat());
 /** Towns of these sizes (inhabitants at the peak) earn the ordinary intake models; the capital has every one. */
 export const LIBRARY_PEOPLE = 3000, BANK_PEOPLE = 2000, DRUGSTORE_PEOPLE = 1500, CHURCH_PEOPLE = 1500, CARHOP_PEOPLE = 2500;
@@ -426,6 +439,13 @@ export function glbTenures(seed: string): GlbTenure[] {
     states(INTAKE_STATES.five_and_dime!, [Math.max(yr(1925, 1930, 'open', 'dime'), Math.min(1930, founded + 6)), 1970, 2000, yr(2010, 2020, 'lease', 'dime')]);
     states(INTAKE_STATES.grain_elevator!, [Math.max(yr(1925, 1935, 'open', 'elevator'), Math.min(1935, founded + 6)), 1950, 1990]);
     states(INTAKE_STATES.baseball_park!, [Math.max(yr(1935, 1940, 'open', 'park'), Math.min(1940, founded + 6)), 1950, 1960, 2000]);
+    // the fourth intake. Westmeadow Elementary: the 1955 building (opened 1955-58), the 1990 one with the portables; the Mill Branch one-room school,
+    // in use from 1890-1900 (never before the town's founding) until it closes in 1948-55, then abandoned to the present; the barber and the salon
+    // (Mercer Barber / Lilac Beauty 1940, the 1980 and 2010 looks: the models' own years)
+    states(INTAKE_STATES.westmeadow!, [yr(1955, 1958, 'open', 'westmeadow'), 1990]);
+    states(INTAKE_STATES.mill_branch!, [Math.max(yr(1890, 1900, 'open', 'millbranch'), Math.min(1900, founded + 2)), yr(1948, 1955, 'closed', 'millbranch')]);
+    states(INTAKE_STATES.barber!, [yr(1940, 1944, 'open', 'barber'), 1980, 2010]);
+    states(INTAKE_STATES.salon!, [yr(1940, 1946, 'open', 'salon'), 1980, 2010]);
   }
   // the county seat's courthouse on its square: built 1885-1905, modernised in the 1950s (the annex), neglected from the
   // 1970s (the clock stopped), restored about 2000; four states on one plot (src/town/plat.ts isCountySeat)
@@ -628,7 +648,7 @@ export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
 
 /** Which reserved plot of the plan a model's tenure stands on (one plot for a chain: the clubs, the works and The Foundry, the
  * strip centre's and the courthouse's states). */
-export const glbPlotOf = (kind: GlbLandmarkKind): string => `glb:${kind.slice('landmark_glb_'.length).replace(/_(\d{4}s?|family|retail|closed|cafe|original|restored|drive_through)$/, '').replace(/^(mirage|pulse)_nightclub$/, 'club').replace(/^foundry_(factory|nightclub)$/, 'foundry')}`;
+export const glbPlotOf = (kind: GlbLandmarkKind): string => `glb:${kind.slice('landmark_glb_'.length).replace(/_(\d{4}s?|family|retail|closed|cafe|original|restored|drive_through|active|abandoned)$/, '').replace(/^(mirage|pulse)_nightclub$/, 'club').replace(/^foundry_(factory|nightclub)$/, 'foundry')}`;
 
 function plannedSites(plan: TownPlan): GlbSite[] {
   const tenures = glbTenures(plan.seed);
