@@ -359,13 +359,13 @@ private fun renderMovingDemo(modelsDir: File, outDir: File) {
         courtAnim.ringBells(0.0, swings = 500)
 
         val look = benchStage.look
-        val warm = 300
+        val warm = 5000
         val iters = 2000
         val dark = 1.0f // night: beacon active + lit materials active
 
-        // Warmup
+        // Warmup past HotSpot Tier-3/Tier-4 thresholds across full lift, bell, and hour-crossing cycles
         for (i in 0 until warm) {
-            val sec = i * (1.0 / 60.0)
+            val sec = i * 0.05
             val hr = 22.0f + (sec / 120.0).toFloat()
             courtAnim.update(hr, sec, dark, active = true)
             meridAnim.update(hr, sec, dark, active = true)
@@ -373,8 +373,12 @@ private fun renderMovingDemo(modelsDir: File, outDir: File) {
             layer.update(dark, sec)
         }
 
+        // Re-arm continuous bell swings after warmup hour-crossings so all 5 kinds stay active in every timed pass
+        courtAnim.ringBells(0.0, swings = 500)
+
         val tmb = java.lang.management.ManagementFactory.getThreadMXBean() as? com.sun.management.ThreadMXBean
         val tid = Thread.currentThread().id
+        tmb?.getThreadAllocatedBytes(tid)
 
         val samples = LongArray(iters)
         fun formatStats(label: String, allocBytes: Long, fwDelta: Long): String {

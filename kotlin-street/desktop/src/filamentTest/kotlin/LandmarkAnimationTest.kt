@@ -390,13 +390,19 @@ class LandmarkAnimationTest {
         val bean = ManagementFactory.getThreadMXBean() as com.sun.management.ThreadMXBean
         val tid = Thread.currentThread().id
         val look = FloatArray(16).also { it[0] = 1f; it[5] = 1f; it[10] = 1f; it[15] = 1f }
-        // Warm up JIT & Filament transform components
-        for (i in 0 until 200) {
-            val t = i * 0.016
-            animator.update(12f + i * 0.01f, t, if (i % 2 == 0) 0.9f else 0.0f, active = true)
+        // Warm up HotSpot tiered JIT (past Tier-3/Tier-4 thresholds) and every per-frame code path:
+        // full lift dwell+ride cycles, bell active/ease-out/rest phases, hour crossings, and night/day toggles,
+        // ending in the steady-state night regime so C2 does not deoptimize mid-measurement.
+        for (i in 0 until 5000) {
+            val t = i * 0.05
+            val dark = if (i < 4000 && i % 50 == 0) 0.0f else 0.9f
+            animator.update(12f + i * 0.003f, t, dark, active = true)
             props.update(look, 0.9f, shown = true)
             cinema.update(0.9f, t)
         }
+        // Prime MXBean lookup before the measured window and re-trigger bells so bells swing during measurement
+        animator.ringBells(4.0, swings = 5)
+        bean.getThreadAllocatedBytes(tid)
 
         val before = bean.getThreadAllocatedBytes(tid)
         for (i in 0 until 500) {

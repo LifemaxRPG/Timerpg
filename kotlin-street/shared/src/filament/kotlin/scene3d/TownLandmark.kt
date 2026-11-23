@@ -141,15 +141,15 @@ internal class TownLandmark(
         return t0
     }
 
-    /**
-     * This frame through [pose] ([look] its matrix), [dark] how dark, [seconds] the clock; [cut] the street view's cut at
-     * a world point (1: not cut). Returns its draws, triangles and shadow casters this frame (0s when not drawn).
-     */
     /** Triggers any swinging bells on this landmark for [swings] cycles, easing to rest afterwards. */
     fun ringBells(nowSeconds: Double = lastSeconds, swings: Int = 5) {
         animator?.ringBells(nowSeconds, swings)
     }
 
+    /**
+     * This frame through [pose] ([look] its matrix), [dark] how dark, [seconds] the clock; [cut] the street view's cut at
+     * a world point (1: not cut). Returns its draws, triangles and shadow casters this frame (0s when not drawn).
+     */
     fun frame(pose: TownPose, look: FloatArray, dark: Float, hour: Float, seconds: Double, cut: (Float, Float) -> Float, out: IntArray): IntArray {
         out.fill(0)
         lastSeconds = seconds

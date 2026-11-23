@@ -1570,10 +1570,6 @@ class FilamentTown(
     /** Where the line of the last [occlude] enters a building the camera would stand in (a share of the way; 1: none). */
     var eyeInside = 1f; private set
 
-    /**
-     * The buildings the last [occlude]'s cone passes through nearer the player than [t] (a share of the way), those near
-     * the eye, and the yards' tall things it passes, are cut away next [frame] (eased out over [OCCLUDE_SECONDS]).
-     */
     /** Rings swinging bells on the landmark with [sprite] (or every landmark with bells when [sprite] is null). */
     fun ringLandmarkBells(sprite: String? = null, swings: Int = 5) {
         for (i in 0 until landmarkDraws.size) {
@@ -1583,6 +1579,10 @@ class FilamentTown(
         depotDraw?.let { lm -> if (sprite == null || lm.sprite == sprite) lm.ringBells(swings = swings) }
     }
 
+    /**
+     * The buildings the last [occlude]'s cone passes through nearer the player than [t] (a share of the way), those near
+     * the eye, and the yards' tall things it passes, are cut away next [frame] (eased out over [OCCLUDE_SECONDS]).
+     */
     fun fadeBetween(t: Float) {
         for (s in slots) s.occluded = s.occT < t
         for (s in storeDraws) s.occluded = s.occT < t
