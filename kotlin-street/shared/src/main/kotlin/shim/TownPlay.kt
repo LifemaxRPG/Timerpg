@@ -37,6 +37,8 @@ class TownFigure {
     var bike: BikeState? = null
     /** Which of [TownFolk.sheets] they wear (-1: none, the old character sheets by [sheet]). */
     var folk = -1
+    /** A passer's seed (the loop takes it for one of the town's people: LoopTown.passerId); -1 for others. */
+    var who = -1
 }
 
 /**
@@ -116,6 +118,21 @@ object TownPlay {
 
     /** Where a world point (feet, [y] up) is on the screen as last drawn (set by the renderer each frame; null: not drawn). */
     @Volatile var projector: ((x: Float, y: Float, z: Float) -> androidx.compose.ui.geometry.Offset?)? = null
+
+    /**
+     * The people drawn a moment ago (passers and the people at their doors, not the player), as a list the game's
+     * threads may read (the loop's witnesses: docs/LOOP.md); refreshed by [people] a few times a second.
+     */
+    @Volatile var crowd: List<com.lifemax.rpg.feature.habits.loop.LoopFigure> = emptyList()
+        private set
+    private var crowdAt = Float.NaN
+
+    /**
+     * More people to draw where they are, set by the game (the loop's police officers on their routes: x, z, dx, dz and
+     * a look seed each); drawn while within [EXTRA_RANGE] of the player.
+     */
+    @Volatile var extras: List<FloatArray> = emptyList()
+    private val EXTRA_RANGE = 3000f
 
     /** This frame's people ([figureCount] of [figures]), filled by [people]. */
     val figures = ArrayList<TownFigure>()
@@ -214,6 +231,7 @@ object TownPlay {
 
     /** Stops playing the town (back to the old crossroads). */
     fun stop() {
+        crowd = emptyList(); extras = emptyList()
         if (walk == null) return
         walk = null
         street = null; open = null
@@ -433,7 +451,7 @@ object TownPlay {
 
     private fun next(): TownFigure {
         if (figureCount == figures.size) figures += TownFigure()
-        return figures[figureCount++].also { it.keeper = null; it.me = false; it.facing = 0; it.bike = null; it.folk = -1 }
+        return figures[figureCount++].also { it.keeper = null; it.me = false; it.facing = 0; it.bike = null; it.folk = -1; it.who = -1 }
     }
 
     /**
@@ -478,6 +496,7 @@ object TownPlay {
                 f.folk = TownFolk.pick(who, female, age, year)
                 f.still = p.still > .5f
                 f.frame = if (f.still) ((seconds * 5f).toInt() + p.slot * 3).mod(6) else (p.frame % StreetGait.FRAMES) * 6 / StreetGait.FRAMES
+                f.who = who
             }
             for ((k, b) in r.buildings.withIndex()) {
                 val look = keepers[b.sprite] ?: continue
@@ -494,6 +513,22 @@ object TownPlay {
                 f.frame = ((seconds * 5f).toInt() + k * 3).mod(6)
                 f.keeper = b.sprite
             }
+        }
+        for (e in extras) {
+            if (e.size < 5 || abs(e[0] - w.wx) > EXTRA_RANGE || abs(e[1] - w.wz) > EXTRA_RANGE) continue
+            val f = next()
+            f.x = e[0]; f.z = e[1]; f.dx = e[2]; f.dz = e[3]
+            f.sheet = e[4].toInt() and 0x7fffffff
+            f.folk = TownFolk.pick(f.sheet, false, 35, year)
+            f.still = false
+            f.frame = ((seconds * 7f).toInt()).mod(6)
+            f.who = -1
+        }
+        // (the crowd the loop's witnesses come from, a few times a second)
+        if (crowdAt.isNaN() || abs(seconds - crowdAt) > .3f) {
+            crowdAt = seconds
+            crowd = (0 until figureCount).map { figures[it] }.filter { it.who >= 0 || it.keeper != null }
+                .map { com.lifemax.rpg.feature.habits.loop.LoopFigure(it.x, it.z, it.dx, it.dz, it.still, it.who, it.keeper) }
         }
         // (in a car the player sits inside it, unseen: the car is drawn by its own layer)
         if (w is OpenWalk && w.carried) return figureCount
