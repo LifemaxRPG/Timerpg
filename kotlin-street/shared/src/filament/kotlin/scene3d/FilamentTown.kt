@@ -1920,7 +1920,7 @@ class FilamentTown(
             for (e in listOf(b.entity, b.proxy)) if (e != 0) { scene.remove(e); engine.destroyEntity(e); em.destroy(e) }
             for (mi in b.mis) engine.destroyMaterialInstance(mi)
             for (mi in b.proxyMis) engine.destroyMaterialInstance(mi)
-            engine.destroyVertexBuffer(b.vb); engine.destroyIndexBuffer(b.ib)
+            b.geo.free(engine)
             s.built = null
         }
         far.destroy()

@@ -622,6 +622,37 @@ time with its drawing (it renders each frame twice in `-Dmode=move` to measure);
   now carries `gpuByPart`, `graphicsBeyondFilamentMb` and `graphicsParts` (Gfx dev, GL mtrack, EGL mtrack, the
   kgsl and dma-buf mappings' PSS), `walkableTown.gpuNow` the parts at the moment of the shot, and the play log's
   accounts line `gpuParts`. If it is per-allocation overhead, packing a layer's batches into shared buffers is the fix.
+- **Packed into shared buffers** (2026-11-23; desktop numbers, NOT yet measured on the S25): every batch of up to 16,384
+  vertices (all the yards' batches but the biggest, the trees' cells, the street things, the buildings' and farms' models,
+  the landmarks) now takes a range of a shared page instead of a vertex and an index buffer of its own (`BufferArena`:
+  vertex pages of 65,536 vertices, 1.75 MB, so 16-bit indices reach a whole page; index pages of 196,608 indices, 384 KB;
+  a batch's indices rebased onto its place in the page, its renderable drawing its range). Freeing a range (a yard baked
+  again, a thing knocked down, a chunk or a tree cell's detail let go, the town let go) returns it to its page's free
+  list, merged with its neighbours; an empty page goes (one spare kept). Desktop, the whole capital
+  (`-Dmode=filament-open -DgpuOnly=1`), before -> after:
+  - buffer objects 32,000 -> 459 (247 shared pages holding 15,894 ranges, 212 big batches with their own); under 16 KB
+    28,523 -> 0. Rounded up to 4 KB each, textures and buffers 1,170 -> 1,075 MB; to 64 KB each 2,995 -> 1,164 MB.
+  - by part, buffer objects (bytes unchanged): yards 11,884 -> 120 own + 5,882 ranges (254 MB); trees 10,284 -> 0 own +
+    5,142 ranges (25 MB); street things 5,494 -> 0 + 2,747 (13 MB); farms 1,996 -> 82 + 957 (98 MB); GLB landmarks
+    1,066 -> 0 + 533 (12 MB); buildings and stores 846 -> 2 + 422 (8.5 MB); ground 362 -> 6 + 178 (9 MB); rail 66 -> 2 +
+    32 (6 MB). Filament's total 1,188.7 -> 1,188.9 MB (the pages' free space 0.2 MB; after the 40 s bench walk and ride,
+    259 pages, 1.5 MB free: streaming does not fragment them).
+  - the same pictures: the key views (Main Street by day and night, from above, a Heights yard by day, from above and at
+    night, the trees, the woods by the farms, downtown from above, a farm at night) and the cars' smash shots, rendered
+    with the old code and the new, are pixel-identical but for pixels that also differ between two runs of the same code
+    (the far city's windows at night, a fence's flying panel).
+  - the frame bench (build server, software GL): ours p50 2.18 -> 2.18-2.21 ms, p95 4.44 -> 4.40 ms; Filament's render
+    calls p50 11.3 -> 11.1 ms. The town's build 15.4-17.4 s -> 15.3-15.8 s (wall clock, the same machine).
+  - On the S25 (an estimate, to be checked with the next screenshot's `graphicsParts`): if the driver's ~970 MB beyond
+    Filament's count is per-allocation overhead, most of it goes, some 0.6-0.9 GB; if it is something else (the driver's
+    own copies of the buffers, the compositor), little changes. `gpuByPart`'s total now names the buffer objects and the
+    pages (`bufferPages`, `bufferRanges`).
+- Waste seen but not cut (each a change to how things look or are batched, for a later job): a yard's far version
+  repeats meshes its near version has unchanged (vegetable beds, bushes, greenhouses, bike sheds, low walls, sheds,
+  garages, play sets: ~28 MB of the yards' 254 MB of buffers), both always held; the yards' trees are their detailed
+  mesh at any distance (1,229 trees, 82 MB, a third of the yards' buffers: instancing a few tree meshes, or the woods'
+  simple level, would take most of it); the models' night masks are as big as their atlases (RG8, 181 MB of the
+  buildings' 326 MB of textures) though only their windows' pixels are used.
 - Fixed: a street thing the cars knock down no longer keeps its old batch's buffers on the GPU (`PropLayer.release`);
   the wreckage's pieces let go are freed, not hidden (`TownWreck`). Small (a batch of lamps is tens of KB), but they
   grew with every crash for the whole session.

@@ -188,6 +188,7 @@ fun renderFilament(out: String, albedo: Boolean) {
     street.destroy()
     engine.destroyRenderer(renderer)
     engine.destroySwapChain(swap)
+    com.lifemax.rpg.feature.habits.presentation.scene3d.BufferArena.release(engine)
     engine.destroy()
     WeatherOverride.forced = null
 }

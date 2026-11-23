@@ -177,6 +177,7 @@ fun renderStores(out: String) {
         stage.destroy()
     }
     engine.destroyMaterial(lit); engine.destroyMaterial(proxy)
+    com.lifemax.rpg.feature.habits.presentation.scene3d.BufferArena.release(engine)
     engine.destroy()
     File(dir, "stores.txt").writeText(report.toString())
     print(report)

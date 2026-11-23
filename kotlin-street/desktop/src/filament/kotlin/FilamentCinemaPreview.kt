@@ -146,6 +146,7 @@ fun renderCinema(out: String) {
             stage.destroy()
         }
         engine.destroyMaterial(lit); engine.destroyMaterial(proxy)
+        com.lifemax.rpg.feature.habits.presentation.scene3d.BufferArena.release(engine)
         engine.destroy()
     }
     File(dir, "cinema.txt").writeText(report.toString())

@@ -116,9 +116,12 @@ fun renderFilamentOpen(out: String) {
     com.lifemax.rpg.feature.habits.presentation.scene3d.SeeThrough.ease = false
     val report = StringBuilder()
     report.appendLine("open world, town ${town.seed} ${town.year}: ${ft.slots.size} buildings, ${yards.yards.size} yards; far yards ${if (com.lifemax.rpg.feature.habits.presentation.scene3d.YardKitBuilder.far) "baked" else "off (-DtownLod=0)"}")
+    val buildStart = System.nanoTime()
     ft.startGround()
     while (!ft.uploadGround(8f)) Thread.sleep(1)
     while (ft.pending > 0) { if (ft.buildNearest(0f, 0f, 8f) == 0) Thread.sleep(1) }
+    // (the whole town from the start of its ground to its last building, as built here: the build server's time, not the phone's)
+    report.appendLine("town built in %.0f ms (wall clock, this machine)".format((System.nanoTime() - buildStart) / 1e6))
     report.appendLine(ft.farReport)
     for (l in ft.extraReport) report.appendLine(l)
     report.appendLine("(software GL on the build server, not the S25: draws and triangles are what is sent, the times are not the phone's)")
@@ -649,12 +652,16 @@ fun renderFilamentOpen(out: String) {
         ft.nightBudgetNs = FilamentTown.NIGHT_BUDGET_NS
         com.lifemax.rpg.feature.habits.presentation.scene3d.SeeThrough.ease = true
         benchWalk(dir, walk, run, ft, shooter, sheets)
+        // (the shared buffer pages after a walk and a ride of chunks, cells and yards coming and going: how fragmented)
+        com.lifemax.rpg.feature.habits.presentation.scene3d.BufferArena.stats().let { a ->
+            File(dir, "bench.txt").appendText("buffer pages after the bench: %d pages, %.1f MB held, %.1f MB in use\n".format(a.pages, a.bytes / 1048576.0, a.used / 1048576.0)) }
     }
     if (want("walk")) scriptedWalk(dir, town, yards, walk, run, shooter, sheets, w, h, events)
     TownPlay.stop()
     TownPlay.onEvent = null
     shooter.destroy()
     ft.destroy()
+    com.lifemax.rpg.feature.habits.presentation.scene3d.BufferArena.release(engine)
     engine.destroy()
 }
 

@@ -551,6 +551,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
         if (townMode) TownSession.sceneGone()
         swap?.let { e.destroySwapChain(it) }; swap = null
         renderer?.let { e.destroyRenderer(it) }; renderer = null
+        com.lifemax.rpg.feature.habits.presentation.scene3d.BufferArena.release(e)
         e.destroy(); engine = null
         // a clean stop before the first frames is no crash, nor one in the town's build
         if (good < StreetRenderer.GOOD_FRAMES && StreetRenderer.error == null) StreetRenderer.starting(ctx, false)

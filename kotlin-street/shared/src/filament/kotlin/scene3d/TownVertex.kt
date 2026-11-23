@@ -25,13 +25,13 @@ internal object TownVertex {
 
     private fun snorm(f: Float): Short = (f.coerceIn(-1f, 1f) * 32767f).roundToInt().toShort()
 
-    /** A vertex buffer of [n] vertices in this layout. */
-    fun buffer(engine: Engine, n: Int): VertexBuffer = VertexBuffer.Builder().bufferCount(1).vertexCount(n)
+    /** A vertex buffer of [n] vertices in this layout ([account]: listed in [GpuAccount] under the caller). */
+    fun buffer(engine: Engine, n: Int, account: Boolean = true): VertexBuffer = VertexBuffer.Builder().bufferCount(1).vertexCount(n)
         .attribute(VertexBuffer.VertexAttribute.POSITION, 0, VertexBuffer.AttributeType.FLOAT3, 0, STRIDE)
         .attribute(VertexBuffer.VertexAttribute.UV0, 0, VertexBuffer.AttributeType.FLOAT2, 12, STRIDE)
         .attribute(VertexBuffer.VertexAttribute.TANGENTS, 0, VertexBuffer.AttributeType.SHORT4, 20, STRIDE)
         .normalized(VertexBuffer.VertexAttribute.TANGENTS)
-        .build(engine).also { GpuAccount.addBuffer(it, n.toLong() * STRIDE) }
+        .build(engine).also { if (account) GpuAccount.addBuffer(it, n.toLong() * STRIDE) }
 
     /** Whether a batch of [vertices] can be indexed with 16-bit indices (half the bytes of 32-bit ones). */
     fun short(vertices: Int): Boolean = vertices <= 65536

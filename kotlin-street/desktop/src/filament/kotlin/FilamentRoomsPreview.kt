@@ -64,6 +64,7 @@ fun renderRooms(out: String) {
     File(dir, "rooms.txt").writeText(report.toString())
     print(report)
     engine.destroyMaterial(lit); engine.destroyMaterial(proxy)
+    com.lifemax.rpg.feature.habits.presentation.scene3d.BufferArena.release(engine)
     engine.destroy()
 }
 

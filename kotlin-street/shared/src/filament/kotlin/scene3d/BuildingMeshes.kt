@@ -46,8 +46,8 @@ internal class BuiltBuilding(
     val proxy: Int,
     val mis: Array<MaterialInstance>,
     val proxyMis: Array<MaterialInstance>,
-    val vb: VertexBuffer,
-    val ib: IndexBuffer,
+    /** Its vertices and indices ([BufferArena]): free them with [GeomSlice.free]. */
+    val geo: GeomSlice,
     /** Its windows' night light by the hour (rebuilds its mask only when the set of lit windows changes). */
     val night: ((Float) -> Unit)?,
     /** Its bounds in its own frame: min x, y, z, max x, y, z. */
@@ -152,7 +152,7 @@ internal class BuildingMeshes(
         val prims = rm.getInstance(m.entity).let { if (it != 0) rm.getPrimitiveCount(it) else 1 }
         // (the town draws through Filament's own camera: it may cull the model by its box)
         rm.getInstance(m.entity).takeIf { it != 0 }?.let { rm.setCulling(it, true) }
-        return BuiltBuilding(m.entity, m.proxy, m.mis, m.proxyMis, m.vb, m.ib, m.night, m.bounds, prims, m.ib.indexCount / 3)
+        return BuiltBuilding(m.entity, m.proxy, m.mis, m.proxyMis, m.geo, m.night, m.bounds, prims, m.geo.triangles)
     }
 
     /** A box (a shop or a stack of flats): its front, sign, sides, back, roof or pitched roof and gables, rooftop billboard. */
@@ -473,11 +473,8 @@ internal class BuildingMeshes(
         val ranges = pk.ranges; val bmin = pk.bmin; val bmax = pk.bmax
         val tex = Array(faces.size) { faces[it].tex() }
         val masks = Array(faces.size) { faces[it].mask?.invoke() ?: textures.black }
-        val vertices = TownVertex.buffer(engine, nv)
-        vertices.setBufferAt(engine, 0, vb)
-        val indices = IndexBuffer.Builder().indexCount(ni).bufferType(IndexBuffer.Builder.IndexType.USHORT).build(engine)
-        GpuAccount.addBuffer(indices, ni * 2L)
-        indices.setBuffer(engine, ib)
+        val geo = BufferArena.upload(engine, vb, nv, ib, ni, true)
+        val vertices = geo.vb; val indices = geo.ib; val first = geo.first
         textures.gpu.buffers(vb.limit(), ib.limit())
         val box = Box((bmin[0] + bmax[0]) / 2f, (bmin[1] + bmax[1]) / 2f, (bmin[2] + bmax[2]) / 2f,
             (bmax[0] - bmin[0]) / 2f + .1f, (bmax[1] - bmin[1]) / 2f + .1f, (bmax[2] - bmin[2]) / 2f + .1f)
@@ -495,7 +492,7 @@ internal class BuildingMeshes(
         }
         val e = EntityManager.get().create()
         val rb = RenderableManager.Builder(faces.size).boundingBox(box).culling(true).castShadows(false).receiveShadows(true).priority(4)
-        for (j in faces.indices) rb.geometry(j, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices, ranges[j][0], ranges[j][1]).material(j, mis[j])
+        for (j in faces.indices) rb.geometry(j, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices, first + ranges[j][0], ranges[j][1]).material(j, mis[j])
         rb.build(engine, e)
         var proxy = 0
         var pmis: Array<MaterialInstance> = emptyArray()
@@ -503,10 +500,10 @@ internal class BuildingMeshes(
             pmis = Array(faces.size) { j -> proxyMat.createInstance().also { mi -> mi.setParameter("albedo", tex[j], crisp); mi.setParameter("uvRect", 0f, 0f, 1f, 1f) } }
             proxy = EntityManager.get().create()
             val pb = RenderableManager.Builder(faces.size).boundingBox(box).castShadows(true).receiveShadows(false)
-            for (j in faces.indices) pb.geometry(j, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices, ranges[j][0], ranges[j][1]).material(j, pmis[j])
+            for (j in faces.indices) pb.geometry(j, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices, first + ranges[j][0], ranges[j][1]).material(j, pmis[j])
             pb.build(engine, proxy)
         }
-        return BuiltBuilding(e, proxy, mis, pmis, vertices, indices, windows?.let { w -> val f: (Float) -> Unit = { h -> w.update(h) }; f },
+        return BuiltBuilding(e, proxy, mis, pmis, geo, windows?.let { w -> val f: (Float) -> Unit = { h -> w.update(h) }; f },
             floatArrayOf(bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2]), faces.size, ni / 3)
     }
 

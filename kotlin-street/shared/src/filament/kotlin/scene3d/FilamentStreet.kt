@@ -103,6 +103,8 @@ class FilamentStreet(
     private val cards = ArrayList<Card>()
     private val vbs = ArrayList<VertexBuffer>()
     private val ibs = ArrayList<IndexBuffer>()
+    /** The models' geometry ([BufferArena]'s ranges). */
+    private val geos = ArrayList<GeomSlice>()
     private var builtFor: List<CrossSide>? = null
     /** The street props (hydrants, mailboxes, signs...: [PropLayer]), placed by the rules along both streets. */
     private var props: PropLayer? = null
@@ -584,7 +586,7 @@ class FilamentStreet(
         val oz = world.frontZ(cr, s, bx.index) + az * left - nz * sh.setback * kk
         val m = FilamentModels.build(engine, visibleMat, if (albedo) null else proxyMat, textures, ma, ModelPlace(ox, oz, ax, az, nx, nz, kk),
             s.arts[bx.index].stack.id.hashCode(), linear = !albedo)
-        vbs += m.vb; ibs += m.ib
+        geos += m.geo
         scene.addEntity(m.entity)
         if (m.proxy != 0) scene.addEntity(m.proxy)
         things += Thing(BOX, bx.street, m.entity, m.mis, m.proxy, m.proxyMis, (bx.x0 + bx.x1) / 2f, height / 3f, (bx.z0 + bx.z1) / 2f, bx, s, 0, null)
@@ -1204,6 +1206,8 @@ class FilamentStreet(
         for (v in vbs) engine.destroyVertexBuffer(v)
         for (i in ibs) engine.destroyIndexBuffer(i)
         vbs.clear(); ibs.clear()
+        for (g in geos) g.free(engine)
+        geos.clear()
         textures.destroy()
         builtFor = null
     }

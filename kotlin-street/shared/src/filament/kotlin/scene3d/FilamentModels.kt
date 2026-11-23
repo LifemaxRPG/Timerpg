@@ -39,8 +39,8 @@ internal class ModelMesh(
     val proxy: Int,
     val mis: Array<MaterialInstance>,
     val proxyMis: Array<MaterialInstance>,
-    val vb: VertexBuffer,
-    val ib: IndexBuffer,
+    /** Its vertices and indices ([BufferArena]): free them with [GeomSlice.free]. */
+    val geo: GeomSlice,
     /** Its windows' night light: call with the hour (it rebuilds its mask only when the set of lit windows changes). */
     val night: ((Float) -> Unit)?,
     /** Its world bounds (min x, y, z, max x, y, z), and those of the building alone (not its yard). */
@@ -1181,10 +1181,8 @@ internal object FilamentModels {
     fun finish(engine: Engine, visibleMat: Material, proxyMat: Material?, textures: StreetTextures, r: Ready): ModelMesh {
         val groups = r.groups; val nv = r.nv; val ni = r.ni; val vb = r.vb; val ib = r.ib; val ranges = r.ranges
         val bounds = r.bounds; val body = r.body; val night = r.night; val linear = r.linear
-        val vertices = TownVertex.buffer(engine, max(1, nv))
-        vertices.setBufferAt(engine, 0, vb)
-        val indices = TownVertex.indices(engine, max(1, ni), TownVertex.short(nv))
-        indices.setBuffer(engine, ib)
+        val geo = BufferArena.upload(engine, vb, nv, ib, ni, TownVertex.short(nv))
+        val vertices = geo.vb; val indices = geo.ib; val first = geo.first
         textures.gpu.buffers(vb.limit(), ib.limit())
         val bbox = Box((bounds[0] + bounds[3]) / 2f, (bounds[1] + bounds[4]) / 2f, (bounds[2] + bounds[5]) / 2f,
             (bounds[3] - bounds[0]) / 2f + .1f, (bounds[4] - bounds[1]) / 2f + .1f, (bounds[5] - bounds[2]) / 2f + .1f)
@@ -1232,7 +1230,7 @@ internal object FilamentModels {
         }
         val e = EntityManager.get().create()
         val rb = RenderableManager.Builder(groups.size).boundingBox(bbox).culling(false).castShadows(false).receiveShadows(true).priority(4)
-        for (j in groups.indices) rb.geometry(j, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices, ranges[j][0], ranges[j][1]).material(j, mis[j])
+        for (j in groups.indices) rb.geometry(j, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices, first + ranges[j][0], ranges[j][1]).material(j, mis[j])
         rb.build(engine, e)
         var proxy = 0
         var pmis: Array<MaterialInstance> = emptyArray()
@@ -1245,7 +1243,7 @@ internal object FilamentModels {
             }
             proxy = EntityManager.get().create()
             val pb = RenderableManager.Builder(groups.size).boundingBox(bbox).castShadows(true).receiveShadows(false)
-            for (j in groups.indices) pb.geometry(j, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices, ranges[j][0], ranges[j][1]).material(j, pmis[j])
+            for (j in groups.indices) pb.geometry(j, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices, first + ranges[j][0], ranges[j][1]).material(j, pmis[j])
             pb.build(engine, proxy)
         }
         val hourly: ((Float) -> Unit)? = when {
@@ -1254,7 +1252,7 @@ internal object FilamentModels {
             else -> null
         }
         textures.drop(r.warmed)
-        return ModelMesh(e, proxy, mis, pmis, vertices, indices, hourly, bounds, body)
+        return ModelMesh(e, proxy, mis, pmis, geo, hourly, bounds, body)
     }
 
     /** A 4x4 screen door at [alpha] (0..255) of white: a glass panel's pixels, every one of a model's pixels a cell. */

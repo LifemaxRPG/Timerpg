@@ -489,6 +489,7 @@ fun renderOcean(outRoot: String) {
     engine.destroyScene(scene)
     engine.destroyRenderer(renderer)
     engine.destroySwapChain(swap)
+    com.lifemax.rpg.feature.habits.presentation.scene3d.BufferArena.release(engine)
     engine.destroy()
 }
 

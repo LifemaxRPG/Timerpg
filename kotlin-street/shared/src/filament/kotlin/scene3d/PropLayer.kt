@@ -71,7 +71,7 @@ internal class PropLayer(
 
     private class Batch(
         val entity: Int, val proxy: Int, val mi: MaterialInstance, val pmi: MaterialInstance?,
-        val glows: Boolean, val vb: VertexBuffer, val ib: IndexBuffer, val casts: Boolean,
+        val glows: Boolean, val geo: GeomSlice, val casts: Boolean,
         var visible: Boolean = true, var layerShown: Boolean = true, var layerShadow: Boolean = true,
         var ti: Int = 0, var pti: Int = 0,
         /** Its entities, material instances and buffers are gone ([release]): its slot stays so the other batches keep their index. */
@@ -85,7 +85,7 @@ internal class PropLayer(
     val batchCount: Int get() = batches.size
     /** How many of the batches throw a shadow (have a shadow twin), and the triangles of all of them. */
     val casters: Int get() = batches.count { it.proxy != 0 && !it.released }
-    val triangles: Int get() = batches.sumOf { if (it.released) 0 else it.ib.indexCount / 3 }
+    val triangles: Int get() = batches.sumOf { if (it.released) 0 else it.geo.triangles }
 
     /** Adds [props]: those of one look (the same mesh) go into one batch. */
     fun add(props: List<WorldProp>) {
@@ -119,17 +119,14 @@ internal class PropLayer(
 
     /** Uploads a [Packed] batch (the engine's thread); [casts]: it throws a shadow; [tiled]: its picture repeats. */
     fun upload(p: Packed, casts: Boolean, tiled: Boolean = false): MaterialInstance {
-        val vertices = TownVertex.buffer(engine, p.vertices)
-        vertices.setBufferAt(engine, 0, p.vb)
-        val indices = TownVertex.indices(engine, p.indices, p.shortIndices)
-        indices.setBuffer(engine, p.ib)
+        val geo = BufferArena.upload(engine, p.vb, p.vertices, p.ib, p.indices, p.shortIndices)
         textures.gpu.buffers(p.vb.limit(), p.ib.limit())
         com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.bytes += p.vb.limit() + p.ib.limit()
         val b = p.box
         val box = Box(b[0], b[1], b[2], b[3], b[4], b[5])
         val tex: Texture = textures.make(p.tex)
         val mask: Texture = p.mask?.let { textures.make(it) } ?: textures.black
-        return finish(vertices, indices, box, tex, mask, p.mask != null, casts, tiled)
+        return finish(geo, box, tex, mask, p.mask != null, casts, tiled)
     }
 
     object Packing {
@@ -230,7 +227,7 @@ internal class PropLayer(
         }
     }
 
-    private fun finish(vertices: VertexBuffer, indices: IndexBuffer, box: Box, tex: Texture, mask: Texture, glows: Boolean, casts: Boolean, tiled: Boolean): MaterialInstance {
+    private fun finish(geo: GeomSlice, box: Box, tex: Texture, mask: Texture, glows: Boolean, casts: Boolean, tiled: Boolean): MaterialInstance {
         val sampler = if (tiled) TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.REPEAT).also { it.anisotropy = min(8f, anisotropy) } else crisp
         val mi = visible.createInstance().also { m ->
             m.setParameter("albedo", tex, sampler); m.setParameter("mask", mask, nearest)
@@ -240,7 +237,7 @@ internal class PropLayer(
         }
         val e = EntityManager.get().create()
         RenderableManager.Builder(1).boundingBox(box).culling(cull).castShadows(false).receiveShadows(true).priority(4)
-            .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices).material(0, mi).build(engine, e)
+            .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, geo.vb, geo.ib, geo.first, geo.count).material(0, mi).build(engine, e)
         scene.addEntity(e)
         var pe = 0
         var pmi: MaterialInstance? = null
@@ -248,10 +245,10 @@ internal class PropLayer(
             pmi = proxy.createInstance().also { m -> m.setParameter("albedo", tex, crisp); m.setParameter("uvRect", 0f, 0f, 1f, 1f) }
             pe = EntityManager.get().create()
             RenderableManager.Builder(1).boundingBox(box).castShadows(true).receiveShadows(false)
-                .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices).material(0, pmi).build(engine, pe)
+                .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, geo.vb, geo.ib, geo.first, geo.count).material(0, pmi).build(engine, pe)
             scene.addEntity(pe)
         }
-        batches += Batch(e, pe, mi, pmi, glows, vertices, indices, casts)
+        batches += Batch(e, pe, mi, pmi, glows, geo, casts)
         return mi
     }
 
@@ -366,7 +363,7 @@ internal class PropLayer(
         scene.remove(b.entity); engine.destroyEntity(b.entity); em.destroy(b.entity)
         if (b.proxy != 0) { scene.remove(b.proxy); engine.destroyEntity(b.proxy); em.destroy(b.proxy) }
         engine.destroyMaterialInstance(b.mi); b.pmi?.let { engine.destroyMaterialInstance(it) }
-        engine.destroyVertexBuffer(b.vb); engine.destroyIndexBuffer(b.ib)
+        b.geo.free(engine)
     }
 
     fun destroy() {
@@ -377,7 +374,7 @@ internal class PropLayer(
             if (b.proxy != 0) { scene.remove(b.proxy); engine.destroyEntity(b.proxy); em.destroy(b.proxy) }
         }
         for (b in held) { engine.destroyMaterialInstance(b.mi); b.pmi?.let { engine.destroyMaterialInstance(it) } }
-        for (b in held) { engine.destroyVertexBuffer(b.vb); engine.destroyIndexBuffer(b.ib) }
+        for (b in held) b.geo.free(engine)
         batches.clear()
         if (ownTextures) textures.destroy(all = true)
         count = 0

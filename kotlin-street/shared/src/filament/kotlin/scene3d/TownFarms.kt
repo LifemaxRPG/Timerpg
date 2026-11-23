@@ -148,7 +148,7 @@ class TownFarms internal constructor(
         "farms: ${groups.size} farms, ${groups.sumOf { it.fields.size }} fields farmed in $year (day $day), ${groups.count { it.built }} built, " +
             "${groups.sumOf { g -> g.models.count { it.mesh != null } }} models, ${data.roads.size} roads; " +
             "triangles: ground ${groups.sumOf { (it.stat?.triangles ?: 0) + (it.fence?.triangles ?: 0) } + (roads?.triangles ?: 0)}, soil ${groups.sumOf { it.soil?.triangles ?: 0 }}, " +
-            "plants ${groups.sumOf { it.plants?.triangles ?: 0 }}, models ${groups.sumOf { g -> g.models.sumOf { m -> m.mesh?.ib?.indexCount?.div(3) ?: 0 } }}"
+            "plants ${groups.sumOf { it.plants?.triangles ?: 0 }}, models ${groups.sumOf { g -> g.models.sumOf { m -> m.mesh?.geo?.triangles ?: 0 } }}"
 
     init {
         collision?.let { col ->
@@ -681,7 +681,7 @@ class TownFarms internal constructor(
                     mi.setParameter("glass", f.glass[0], f.glass[1], f.glass[2], 1f)
                 }
                 mm.night?.invoke(f.hour)
-                out[0] += mm.mis.size; out[1] += mm.ib.indexCount / 3
+                out[0] += mm.mis.size; out[1] += mm.geo.triangles
             }
         }
         return out
@@ -748,7 +748,7 @@ class TownFarms internal constructor(
                 for (e in listOf(mm.entity, mm.proxy)) if (e != 0) { kit.scene.remove(e); engine.destroyEntity(e); em.destroy(e) }
                 for (mi in mm.mis) engine.destroyMaterialInstance(mi)
                 for (mi in mm.proxyMis) engine.destroyMaterialInstance(mi)
-                engine.destroyVertexBuffer(mm.vb); engine.destroyIndexBuffer(mm.ib)
+                mm.geo.free(engine)
                 m.mesh = null
             }
         }

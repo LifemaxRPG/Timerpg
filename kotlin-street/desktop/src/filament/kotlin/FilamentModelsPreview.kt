@@ -147,6 +147,7 @@ fun renderFilamentModels(out: String) {
     engine.destroyMaterial(lit); engine.destroyMaterial(proxyMat)
     engine.destroyRenderer(renderer)
     engine.destroySwapChain(swap)
+    com.lifemax.rpg.feature.habits.presentation.scene3d.BufferArena.release(engine)
     engine.destroy()
 }
 
@@ -202,7 +203,7 @@ private class ModelStage(val engine: Engine, val lit: Material, val proxyMat: Ma
             // the model's x 0 at its lot's left plus its margin; its front line its setback back from the pavement (z 0)
             val place = ModelPlace(x + (lot - sh.width) / 2f * k, sh.setback * k, 1f, 0f, 0f, -1f, k)
             val m = FilamentModels.build(engine, lit, proxyMat, textures, ma, place, pair.first.hashCode() + i, linear = true)
-            meshes += m; bounds += m.body; vbs += m.vb; ibs += m.ib
+            meshes += m; bounds += m.body
             scene.addEntity(m.entity); scene.addEntity(m.proxy)
             allMis += m.mis; modelMis += m.mis; nights += m.night
             x += lot * k
@@ -387,6 +388,7 @@ private class ModelStage(val engine: Engine, val lit: Material, val proxyMat: Ma
         for (mi in allMis) if (meshes.none { mi in it.mis }) engine.destroyMaterialInstance(mi)
         for (v in vbs) engine.destroyVertexBuffer(v)
         for (i in ibs) engine.destroyIndexBuffer(i)
+        for (m in meshes) m.geo.free(engine)
         textures.destroy(all = true)
         scene.remove(sun); engine.destroyEntity(sun); em.destroy(sun)
         ibl?.let { engine.destroyIndirectLight(it) }

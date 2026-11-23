@@ -40,17 +40,19 @@ object GpuAccount {
      * destroyed drops out by itself (its Java object's native handle is cleared), so no destroy site has to report it:
      * what is listed is what is still held.
      */
-    class Buf(val owner: String, val bytes: Long)
+    /** [gpu]: a buffer object of its own; else a range of [BufferArena]'s shared pages ([GeomSlice]). */
+    class Buf(val owner: String, val bytes: Long, val gpu: Boolean = true)
     private val buffers = java.util.Collections.synchronizedMap(java.util.IdentityHashMap<Any, Buf>())
 
-    /** A vertex or index buffer of [bytes] just built (any of Filament's buffer objects). */
-    fun addBuffer(b: Any, bytes: Long) { buffers[b] = Buf(withScope(owner()), bytes) }
+    /** A vertex or index buffer of [bytes] just built (any of Filament's buffer objects), or ([gpu] false) a range of the shared pages. */
+    fun addBuffer(b: Any, bytes: Long, gpu: Boolean = true) { buffers[b] = Buf(withScope(owner()), bytes, gpu) }
 
     private fun alive(o: Any): Boolean = try {
         when (o) {
             is com.google.android.filament.VertexBuffer -> o.nativeObject != 0L
             is com.google.android.filament.IndexBuffer -> o.nativeObject != 0L
             is Texture -> o.nativeObject != 0L
+            is GeomSlice -> !o.freed
             else -> true
         }
     } catch (e: IllegalStateException) { false }
@@ -79,16 +81,24 @@ object GpuAccount {
         val out = LinkedHashMap<String, Any?>()
         for ((k, s) in sums.entries.sortedByDescending { it.value.tb + it.value.bb })
             out[k] = linkedMapOf("mb" to mb(s.tb + s.bb), "texturesMb" to mb(s.tb), "textures" to s.tn, "buffersMb" to mb(s.bb), "buffers" to s.bn)
+        // the shared buffer pages ([BufferArena]): the ranges in them are counted with their parts above, their free space here
+        val arena = BufferArena.stats()
+        if (arena.pages > 0) out["buffer pages, free space"] = linkedMapOf("mb" to mb(arena.bytes - arena.used), "pages" to arena.pages, "pagesMb" to mb(arena.bytes))
         if (est != null) {
             out["shadow map"] = linkedMapOf("mb" to mb(est.shadows))
             out["render targets + surfaces"] = linkedMapOf("mb" to mb(est.targets + est.surfaces))
         }
-        val total = tex.sumOf { it.bytes } + bufs.sumOf { it.bytes } + (est?.let { it.shadows + it.targets + it.surfaces } ?: 0L)
+        val total = tex.sumOf { it.bytes } + bufs.sumOf { it.bytes } + (arena.bytes - arena.used) + (est?.let { it.shadows + it.targets + it.surfaces } ?: 0L)
+        // (the buffer objects the driver holds: those of their own and the shared pages, not the ranges in them)
+        val own = bufs.filter { it.gpu }
+        val pageSizes = BufferArena.pageSizes()
         // (what the allocations come to if the driver rounds each one up, to a 4 KB page or a 64 KB block: tens of
         // thousands of small buffers cost the GPU driver more than their bytes, a lead for "graphics" beyond this count)
-        fun rounded(unit: Long) = bufs.sumOf { (it.bytes + unit - 1) / unit * unit } + tex.sumOf { (it.bytes + unit - 1) / unit * unit }
-        out["total"] = linkedMapOf("mb" to mb(total), "textures" to tex.size, "buffers" to bufs.size,
-            "buffersUnder16k" to bufs.count { it.bytes < 16384 }, "texturesUnder64k" to tex.count { it.bytes < 65536 },
+        fun up(b: Long, unit: Long) = (b + unit - 1) / unit * unit
+        fun rounded(unit: Long) = own.sumOf { up(it.bytes, unit) } + pageSizes.sumOf { up(it, unit) } + tex.sumOf { up(it.bytes, unit) }
+        out["total"] = linkedMapOf("mb" to mb(total), "textures" to tex.size, "buffers" to own.size + arena.pages,
+            "bufferPages" to arena.pages, "bufferRanges" to bufs.size - own.size,
+            "buffersUnder16k" to own.count { it.bytes < 16384 } + pageSizes.count { it < 16384 }, "texturesUnder64k" to tex.count { it.bytes < 65536 },
             "allocationsAt4kMb" to mb(rounded(4096)), "allocationsAt64kMb" to mb(rounded(65536)))
         return out
     }
@@ -97,13 +107,15 @@ object GpuAccount {
     fun categoryLine(est: GpuEstimate? = null): String = "GPU by part (Filament's own count): " + categories(est).entries.joinToString(", ") { (k, v) ->
         @Suppress("UNCHECKED_CAST") val m = v as Map<String, Any?>
         if (m.containsKey("texturesMb")) "$k ${m["mb"]} MB (textures ${m["texturesMb"]} in ${m["textures"]}, buffers ${m["buffersMb"]} in ${m["buffers"]})"
-        else if (k == "total") "total ${m["mb"]} MB in ${m["textures"]} textures and ${m["buffers"]} buffers (${m["buffersUnder16k"]} buffers under 16 KB; " +
+        else if (m.containsKey("pages")) "$k ${m["mb"]} MB (${m["pages"]} pages of ${m["pagesMb"]} MB)"
+        else if (k == "total") "total ${m["mb"]} MB in ${m["textures"]} textures and ${m["buffers"]} buffer objects (${m["bufferPages"]} of them shared pages holding ${m["bufferRanges"]} ranges; ${m["buffersUnder16k"]} buffers under 16 KB; " +
             "textures and buffers rounded up to 4 KB each ${m["allocationsAt4kMb"]} MB, to 64 KB each ${m["allocationsAt64kMb"]} MB)" else "$k ${m["mb"]} MB"
     }
 
     /** The buffers by raw owner (MB, count), largest first: the desktop's gpu.txt. */
     fun bufferTable(): String = bufferEntries().groupBy { it.owner }.entries.sortedByDescending { g -> g.value.sumOf { it.bytes } }
-        .joinToString("\n") { (o, l) -> "%-56s %6d buffers %9s MB  -> %s".format(o.take(56), l.size, mb(l.sumOf { it.bytes }), category(o)) }
+        .joinToString("\n") { (o, l) -> "%-56s %6d buffers %6d ranges %9s MB  -> %s".format(o.take(56), l.count { it.gpu }, l.count { !it.gpu }, mb(l.sumOf { it.bytes }), category(o)) } +
+        BufferArena.stats().let { a -> "\n%-56s %6d pages  %9s MB held, %s MB of it in use".format("BufferArena (shared pages)", a.pages, mb(a.bytes), mb(a.used)) }
 
     /** What an owner (as [owner] and [withScope] wrote it) is for. */
     internal fun category(owner: String): String {
@@ -146,7 +158,7 @@ object GpuAccount {
 
     /** The town's code that asked for a texture: the first two scene3d classes on the stack past the helpers. */
     private fun owner(): String {
-        val skip = setOf("GpuAccount", "StreetTextures", "TownMemory", "TownVertex", "Lazy", "SynchronizedLazyImpl", "UnsafeLazyImpl")
+        val skip = setOf("GpuAccount", "BufferArena", "GeomSlice", "StreetTextures", "TownMemory", "TownVertex", "Lazy", "SynchronizedLazyImpl", "UnsafeLazyImpl")
         val names = ArrayList<String>(2)
         for (e in Thread.currentThread().stackTrace) {
             if (!e.className.contains(".scene3d.") && !e.className.contains(".scene.")) continue

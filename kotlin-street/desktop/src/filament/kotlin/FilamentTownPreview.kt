@@ -365,6 +365,7 @@ fun renderFilamentTown(out: String) {
     print(report)
     shooter.destroy()
     ft.destroy()
+    com.lifemax.rpg.feature.habits.presentation.scene3d.BufferArena.release(engine)
     engine.destroy()
 }
 
