@@ -1,0 +1,128 @@
+[
+  {
+    "file": "barber-1940.glb",
+    "triangles": 1520,
+    "materials": 12,
+    "boxes": 26,
+    "max_uv_error_m": 2.0428180675935437e-06
+  },
+  {
+    "file": "barber-1940-mid.glb",
+    "triangles": 1292,
+    "materials": 12,
+    "boxes": 26,
+    "max_uv_error_m": 2.0428180675935437e-06
+  },
+  {
+    "file": "barber-1940-far.glb",
+    "triangles": 944,
+    "materials": 12,
+    "boxes": 26,
+    "max_uv_error_m": 2.0428180675935437e-06
+  },
+  {
+    "file": "barber-1980.glb",
+    "triangles": 1520,
+    "materials": 12,
+    "boxes": 26,
+    "max_uv_error_m": 2.0428180675935437e-06
+  },
+  {
+    "file": "barber-1980-mid.glb",
+    "triangles": 1292,
+    "materials": 12,
+    "boxes": 26,
+    "max_uv_error_m": 2.0428180675935437e-06
+  },
+  {
+    "file": "barber-1980-far.glb",
+    "triangles": 944,
+    "materials": 12,
+    "boxes": 26,
+    "max_uv_error_m": 2.0428180675935437e-06
+  },
+  {
+    "file": "barber-2010.glb",
+    "triangles": 1534,
+    "materials": 12,
+    "boxes": 26,
+    "max_uv_error_m": 2.0428180675935437e-06
+  },
+  {
+    "file": "barber-2010-mid.glb",
+    "triangles": 1306,
+    "materials": 12,
+    "boxes": 26,
+    "max_uv_error_m": 2.0428180675935437e-06
+  },
+  {
+    "file": "barber-2010-far.glb",
+    "triangles": 994,
+    "materials": 12,
+    "boxes": 26,
+    "max_uv_error_m": 2.0428180675935437e-06
+  },
+  {
+    "file": "salon-1940.glb",
+    "triangles": 1678,
+    "materials": 10,
+    "boxes": 23,
+    "max_uv_error_m": 2.0428180675935437e-06
+  },
+  {
+    "file": "salon-1940-mid.glb",
+    "triangles": 1354,
+    "materials": 10,
+    "boxes": 23,
+    "max_uv_error_m": 2.0428180675935437e-06
+  },
+  {
+    "file": "salon-1940-far.glb",
+    "triangles": 1114,
+    "materials": 10,
+    "boxes": 23,
+    "max_uv_error_m": 2.0428180675935437e-06
+  },
+  {
+    "file": "salon-1980.glb",
+    "triangles": 1678,
+    "materials": 10,
+    "boxes": 23,
+    "max_uv_error_m": 2.0428180675935437e-06
+  },
+  {
+    "file": "salon-1980-mid.glb",
+    "triangles": 1354,
+    "materials": 10,
+    "boxes": 23,
+    "max_uv_error_m": 2.0428180675935437e-06
+  },
+  {
+    "file": "salon-1980-far.glb",
+    "triangles": 1114,
+    "materials": 10,
+    "boxes": 23,
+    "max_uv_error_m": 2.0428180675935437e-06
+  },
+  {
+    "file": "salon-2010.glb",
+    "triangles": 1332,
+    "materials": 10,
+    "boxes": 25,
+    "max_uv_error_m": 2.0428180675935437e-06
+  },
+  {
+    "file": "salon-2010-mid.glb",
+    "triangles": 1104,
+    "materials": 10,
+    "boxes": 25,
+    "max_uv_error_m": 2.0428180675935437e-06
+  },
+  {
+    "file": "salon-2010-far.glb",
+    "triangles": 900,
+    "materials": 10,
+    "boxes": 25,
+    "max_uv_error_m": 2.0428180675935437e-06
+  }
+]
