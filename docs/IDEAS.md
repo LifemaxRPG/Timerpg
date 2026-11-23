@@ -805,3 +805,13 @@ Airports and aircraft exist, but **flying is hard.** It must never cheapen cross
   (before someone's birth), the newspaper and the town's gossip pick it up.
 - **Wrongful arrest and exoneration:** when a witness names one person and DNA or prints match another, the trial
   system can produce mistaken-identity convictions overturned decades later.
+
+## A town's address history (Sam's idea, from the team survey, 2026-11-23)
+
+The player can piece together an address's history from clues drawn from the town's real simulated history, so they
+agree and differ from town to town:
+- a former shop name in an old directory;
+- the old name showing under peeling paint (Jeff's ghost signs);
+- a longtime resident explaining why the store closed.
+Returning to the same street in another year and recognising it is where the art and the simulation give the town a
+memory.

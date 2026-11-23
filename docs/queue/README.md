@@ -22,6 +22,9 @@ Below that come the brief and the acceptance checks.
 
 - **Only Claude edits the queue.** Never change, add or delete anything under `docs/queue/`, and never commit to
   `ccr-52e43ebb-xnmj2e`.
+- **Awaiting review:** once your branch has a DELIVERY.md for a task, that task is waiting for Claude even though its
+  file still says `open`. Don't start it again; take your next task. (Your own status can only change through Claude's
+  review.)
 - **Reviews:** when Claude reviews a delivery, the notes go in `docs/queue/reviews/<ID>-r<N>.md` and the task's status
   becomes `revise` (do the notes) or `accepted` (done; Claude brings it into the game).
 
