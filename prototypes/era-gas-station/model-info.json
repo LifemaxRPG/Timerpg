@@ -1,0 +1,2103 @@
+{
+  "task": "C015",
+  "name": "Vale Lantern Fuel",
+  "naming": "owner",
+  "meters_per_texel": 0.0388,
+  "texels_per_art_pixel": 2,
+  "front_gltf": "+Z",
+  "origin": "Ground at the midpoint of the store street facade",
+  "swatches": {
+    "roof_shingle": "roof_slate",
+    "forecourt": "asphalt_worn",
+    "concrete": "pavement"
+  },
+  "signs": [
+    {
+      "id": "sign_name_1925",
+      "nodes": [
+        "sign_name_street",
+        "sign_name_exit"
+      ],
+      "texture": "signs.png",
+      "rect": [
+        0,
+        0,
+        160,
+        30
+      ],
+      "lines": 1,
+      "maxChars": 12,
+      "ink": "#eddbad",
+      "paper": "#483d32",
+      "face": "serif-block",
+      "glowColor": "#d1aa72",
+      "glow": true,
+      "state": "1925"
+    },
+    {
+      "id": "sign_name_1945",
+      "nodes": [
+        "sign_name_street",
+        "sign_name_exit"
+      ],
+      "texture": "signs.png",
+      "rect": [
+        0,
+        34,
+        160,
+        30
+      ],
+      "lines": 1,
+      "maxChars": 12,
+      "ink": "#ffe4a5",
+      "paper": "#294d49",
+      "face": "rounded",
+      "glowColor": "#f3aa63",
+      "glow": true,
+      "state": "1945"
+    },
+    {
+      "id": "sign_name_1975",
+      "nodes": [
+        "sign_name_street",
+        "sign_name_exit"
+      ],
+      "texture": "signs.png",
+      "rect": [
+        0,
+        68,
+        160,
+        30
+      ],
+      "lines": 1,
+      "maxChars": 12,
+      "ink": "#efedd2",
+      "paper": "#304c56",
+      "face": "sans",
+      "glowColor": "#d6ede2",
+      "glow": true,
+      "state": "1975"
+    }
+  ],
+  "states": {
+    "1925": {
+      "era": [
+        1925,
+        1944
+      ],
+      "height_m": 5.122,
+      "footprint_m": [
+        8.5,
+        7.5
+      ],
+      "lot_bounds_gltf_m": [
+        [
+          -16,
+          0,
+          -11.2
+        ],
+        [
+          15.45,
+          0.048,
+          17
+        ]
+      ],
+      "doors": {
+        "door_main": {
+          "position_gltf_m": [
+            0,
+            0,
+            0.14
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "door_back": {
+          "position_gltf_m": [
+            2.8,
+            0,
+            -7.68
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            -1.0
+          ],
+          "external": true
+        }
+      },
+      "anchors": {
+        "cashier_clerk": [
+          -1.09,
+          0.048,
+          -4.85
+        ],
+        "cashier_guest": [
+          -1.07,
+          0.048,
+          -2.91
+        ],
+        "pump_1_nozzle": [
+          -1.395,
+          1.07,
+          3.69
+        ],
+        "pump_1_use": [
+          -1.035,
+          0.035,
+          3.69
+        ],
+        "pump_2_nozzle": [
+          2.165,
+          1.07,
+          3.69
+        ],
+        "pump_2_use": [
+          2.525,
+          0.035,
+          3.69
+        ],
+        "air_post_use": [
+          -4.81,
+          0.034,
+          2.36
+        ]
+      },
+      "features": {
+        "cashier": {
+          "node": "cashier_counter",
+          "clerk": "cashier_clerk",
+          "guest": "cashier_guest"
+        },
+        "pump_1": {
+          "node": "pump_1",
+          "nozzle": "pump_1_nozzle",
+          "use": "pump_1_use",
+          "style": "gravity_globe"
+        },
+        "pump_2": {
+          "node": "pump_2",
+          "nozzle": "pump_2_nozzle",
+          "use": "pump_2_use",
+          "style": "gravity_globe"
+        },
+        "price": {
+          "node": "price_panel",
+          "material": "glow_price",
+          "texture": "price-1925.png",
+          "rect": [
+            0,
+            0,
+            102,
+            36
+          ],
+          "front_and_back": true,
+          "digits_rect": [
+            0,
+            0,
+            102,
+            36
+          ],
+          "style": "painted_board",
+          "unit": "cents_per_gallon"
+        }
+      },
+      "collision_boxes": [
+        {
+          "name": "Main fuel office frontage",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -2.55,
+            1.41,
+            -0.115
+          ],
+          "size_gltf_m": [
+            3.4,
+            2.82,
+            0.23
+          ]
+        },
+        {
+          "name": "Main fuel office frontage",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            2.55,
+            1.41,
+            -0.115
+          ],
+          "size_gltf_m": [
+            3.4,
+            2.82,
+            0.23
+          ]
+        },
+        {
+          "name": "Rear wall and service opening",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -1.025,
+            1.41,
+            -7.365
+          ],
+          "size_gltf_m": [
+            6.45,
+            2.82,
+            0.27
+          ]
+        },
+        {
+          "name": "Rear wall and service opening",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            3.825,
+            1.41,
+            -7.365
+          ],
+          "size_gltf_m": [
+            0.85,
+            2.82,
+            0.27
+          ]
+        },
+        {
+          "name": "Complete return wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -4.135,
+            1.41,
+            -3.73
+          ],
+          "size_gltf_m": [
+            0.23,
+            2.82,
+            7.0
+          ]
+        },
+        {
+          "name": "Complete return wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            4.135,
+            1.41,
+            -3.73
+          ],
+          "size_gltf_m": [
+            0.23,
+            2.82,
+            7.0
+          ]
+        },
+        {
+          "name": "Cashier counter",
+          "group": "building",
+          "attachment": "cashier_counter",
+          "center_gltf_m": [
+            -1.11,
+            0.619,
+            -3.905
+          ],
+          "size_gltf_m": [
+            3.98,
+            1.142,
+            0.95
+          ]
+        },
+        {
+          "name": "Canopy post",
+          "group": "building",
+          "attachment": "fuel_canopy",
+          "center_gltf_m": [
+            -3.69,
+            1.43,
+            5.13
+          ],
+          "size_gltf_m": [
+            0.416,
+            2.8,
+            0.416
+          ]
+        },
+        {
+          "name": "Canopy post",
+          "group": "building",
+          "attachment": "fuel_canopy",
+          "center_gltf_m": [
+            3.69,
+            1.43,
+            5.13
+          ],
+          "size_gltf_m": [
+            0.416,
+            2.8,
+            0.416
+          ]
+        },
+        {
+          "name": "Pump 1 full body",
+          "group": "lot",
+          "attachment": "pump_1",
+          "center_gltf_m": [
+            -1.745,
+            1.091,
+            3.5275
+          ],
+          "size_gltf_m": [
+            1.0,
+            2.112,
+            0.725
+          ]
+        },
+        {
+          "name": "Pump 2 full body",
+          "group": "lot",
+          "attachment": "pump_2",
+          "center_gltf_m": [
+            1.815,
+            1.091,
+            3.5275
+          ],
+          "size_gltf_m": [
+            1.0,
+            2.112,
+            0.725
+          ]
+        },
+        {
+          "name": "Oil rack",
+          "group": "lot",
+          "attachment": "service_fixtures",
+          "center_gltf_m": [
+            3.42,
+            0.6025,
+            0.67
+          ],
+          "size_gltf_m": [
+            1.26,
+            1.135,
+            0.58
+          ]
+        },
+        {
+          "name": "Air post",
+          "group": "lot",
+          "attachment": "service_fixtures",
+          "center_gltf_m": [
+            -5.26,
+            0.777,
+            2.36
+          ],
+          "size_gltf_m": [
+            0.38,
+            1.486,
+            0.36
+          ]
+        },
+        {
+          "name": "Rear refuse bin",
+          "group": "lot",
+          "attachment": "lot",
+          "center_gltf_m": [
+            -3.72,
+            0.457,
+            -8.29
+          ],
+          "size_gltf_m": [
+            0.64,
+            0.846,
+            0.56
+          ]
+        },
+        {
+          "name": "Rear refuse bin",
+          "group": "lot",
+          "attachment": "lot",
+          "center_gltf_m": [
+            1.22,
+            0.457,
+            -8.22
+          ],
+          "size_gltf_m": [
+            0.64,
+            0.846,
+            0.56
+          ]
+        },
+        {
+          "name": "Road sign full support",
+          "group": "lot",
+          "attachment": "roadside_sign",
+          "center_gltf_m": [
+            -14.05,
+            2.557,
+            11.95
+          ],
+          "size_gltf_m": [
+            0.213,
+            5.046,
+            0.34
+          ]
+        },
+        {
+          "name": "Road sign full support",
+          "group": "lot",
+          "attachment": "roadside_sign",
+          "center_gltf_m": [
+            -9.79,
+            2.557,
+            11.95
+          ],
+          "size_gltf_m": [
+            0.213,
+            5.046,
+            0.34
+          ]
+        }
+      ],
+      "signs": [
+        {
+          "id": "sign_name",
+          "nodes": [
+            "sign_name_street",
+            "sign_name_exit"
+          ],
+          "texture": "signs.png",
+          "rect": [
+            0,
+            0,
+            160,
+            30
+          ],
+          "lines": 1,
+          "maxChars": 12,
+          "ink": "#eddbad",
+          "paper": "#483d32",
+          "face": "serif-block",
+          "glowColor": "#d1aa72",
+          "glow": true
+        }
+      ],
+      "price_panels": [
+        {
+          "node": "price_panel",
+          "material": "glow_price",
+          "texture": "price-1925.png",
+          "rect": [
+            0,
+            0,
+            102,
+            36
+          ],
+          "front_and_back": true,
+          "digits_rect": [
+            0,
+            0,
+            102,
+            36
+          ],
+          "style": "painted_board",
+          "unit": "cents_per_gallon"
+        }
+      ],
+      "price": {
+        "node": "price_face_street",
+        "art": [
+          51,
+          18
+        ],
+        "grades": [
+          "regular"
+        ],
+        "rows": [
+          5
+        ],
+        "left": 14,
+        "font": "5x7",
+        "ink": "#efdfad",
+        "paper": "#393f3b"
+      },
+      "models": {
+        "near": {
+          "file": "vale-lantern-1925.glb",
+          "triangles": 1696,
+          "materials": [
+            "detail_burnt_amber",
+            "detail_enamel",
+            "detail_hardware",
+            "detail_petrol_blue",
+            "floor_concrete",
+            "glass_gravity_pump",
+            "glass_shop",
+            "glow_price",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_station",
+            "wall_finish"
+          ]
+        },
+        "mid": {
+          "file": "vale-lantern-1925-mid.glb",
+          "triangles": 1148,
+          "materials": [
+            "detail_burnt_amber",
+            "detail_enamel",
+            "detail_hardware",
+            "detail_petrol_blue",
+            "floor_concrete",
+            "glass_gravity_pump",
+            "glass_shop",
+            "glow_price",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_station",
+            "wall_finish"
+          ]
+        },
+        "far": {
+          "file": "vale-lantern-1925-far.glb",
+          "triangles": 1024,
+          "materials": [
+            "detail_burnt_amber",
+            "detail_enamel",
+            "detail_hardware",
+            "detail_petrol_blue",
+            "floor_concrete",
+            "glass_gravity_pump",
+            "glass_shop",
+            "glow_price",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_station",
+            "wall_finish"
+          ]
+        }
+      }
+    },
+    "1945": {
+      "era": [
+        1945,
+        1974
+      ],
+      "height_m": 9.19,
+      "footprint_m": [
+        16.85,
+        7.5
+      ],
+      "lot_bounds_gltf_m": [
+        [
+          -16,
+          0,
+          -11.2
+        ],
+        [
+          15.45,
+          0.048,
+          17
+        ]
+      ],
+      "doors": {
+        "door_main": {
+          "position_gltf_m": [
+            0,
+            0,
+            0.14
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "door_back": {
+          "position_gltf_m": [
+            2.8,
+            0,
+            -7.68
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            -1.0
+          ],
+          "external": true
+        },
+        "door_service_1": {
+          "position_gltf_m": [
+            6.435,
+            0,
+            0.14
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "door_service_2": {
+          "position_gltf_m": [
+            10.41,
+            0,
+            0.14
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        }
+      },
+      "anchors": {
+        "cashier_clerk": [
+          -1.09,
+          0.048,
+          -4.85
+        ],
+        "cashier_guest": [
+          -1.07,
+          0.048,
+          -2.91
+        ],
+        "service_bay_1_work": [
+          6.435,
+          0.048,
+          -4.54
+        ],
+        "service_bay_2_work": [
+          10.41,
+          0.048,
+          -4.54
+        ],
+        "pay_phone_use": [
+          -5.3,
+          0.048,
+          -2.23
+        ],
+        "pump_1_nozzle": [
+          -4.845,
+          1.19,
+          6.71
+        ],
+        "pump_1_use": [
+          -4.485,
+          0.035,
+          6.71
+        ],
+        "pump_2_nozzle": [
+          0.435,
+          1.19,
+          6.71
+        ],
+        "pump_2_use": [
+          0.795,
+          0.035,
+          6.71
+        ]
+      },
+      "features": {
+        "cashier": {
+          "node": "cashier_counter",
+          "clerk": "cashier_clerk",
+          "guest": "cashier_guest"
+        },
+        "service_bay_1": {
+          "door": "door_service_1",
+          "leaf_node": "service_bay_1",
+          "work_anchor": "service_bay_1_work",
+          "opening_width_m": 3.35,
+          "opening_height_m": 3.082
+        },
+        "service_bay_2": {
+          "door": "door_service_2",
+          "leaf_node": "service_bay_2",
+          "work_anchor": "service_bay_2_work",
+          "opening_width_m": 3.37,
+          "opening_height_m": 3.082
+        },
+        "pump_1": {
+          "node": "pump_1",
+          "nozzle": "pump_1_nozzle",
+          "use": "pump_1_use",
+          "style": "enamel_box"
+        },
+        "pump_2": {
+          "node": "pump_2",
+          "nozzle": "pump_2_nozzle",
+          "use": "pump_2_use",
+          "style": "enamel_box"
+        },
+        "price": {
+          "node": "price_panel",
+          "material": "glow_price",
+          "texture": "price-1945.png",
+          "rect": [
+            0,
+            0,
+            102,
+            36
+          ],
+          "front_and_back": true,
+          "digits_rect": [
+            0,
+            0,
+            102,
+            36
+          ],
+          "style": "painted_board",
+          "unit": "cents_per_gallon"
+        }
+      },
+      "collision_boxes": [
+        {
+          "name": "Main fuel office frontage",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -2.55,
+            1.55,
+            -0.115
+          ],
+          "size_gltf_m": [
+            3.4,
+            3.1,
+            0.23
+          ]
+        },
+        {
+          "name": "Main fuel office frontage",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            2.55,
+            1.55,
+            -0.115
+          ],
+          "size_gltf_m": [
+            3.4,
+            3.1,
+            0.23
+          ]
+        },
+        {
+          "name": "Rear wall and service opening",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -1.025,
+            1.55,
+            -7.365
+          ],
+          "size_gltf_m": [
+            6.45,
+            3.1,
+            0.27
+          ]
+        },
+        {
+          "name": "Rear wall and service opening",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            3.825,
+            1.55,
+            -7.365
+          ],
+          "size_gltf_m": [
+            0.85,
+            3.1,
+            0.27
+          ]
+        },
+        {
+          "name": "Complete return wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -4.135,
+            1.55,
+            -3.73
+          ],
+          "size_gltf_m": [
+            0.23,
+            3.1,
+            7.0
+          ]
+        },
+        {
+          "name": "Complete return wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            4.135,
+            1.55,
+            -3.73
+          ],
+          "size_gltf_m": [
+            0.23,
+            3.1,
+            7.0
+          ]
+        },
+        {
+          "name": "Cashier counter",
+          "group": "building",
+          "attachment": "cashier_counter",
+          "center_gltf_m": [
+            -1.11,
+            0.619,
+            -3.905
+          ],
+          "size_gltf_m": [
+            3.98,
+            1.142,
+            0.95
+          ]
+        },
+        {
+          "name": "Open service bay front",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            4.505,
+            1.98,
+            -0.115
+          ],
+          "size_gltf_m": [
+            0.51,
+            3.96,
+            0.23
+          ]
+        },
+        {
+          "name": "Open service bay front",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            8.42,
+            1.98,
+            -0.115
+          ],
+          "size_gltf_m": [
+            0.62,
+            3.96,
+            0.23
+          ]
+        },
+        {
+          "name": "Open service bay front",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            12.35,
+            1.98,
+            -0.115
+          ],
+          "size_gltf_m": [
+            0.5,
+            3.96,
+            0.23
+          ]
+        },
+        {
+          "name": "Garage rear wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            8.425,
+            1.98,
+            -7.375
+          ],
+          "size_gltf_m": [
+            8.35,
+            3.96,
+            0.25
+          ]
+        },
+        {
+          "name": "Garage end wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            12.48,
+            1.98,
+            -3.74
+          ],
+          "size_gltf_m": [
+            0.24,
+            3.96,
+            7.02
+          ]
+        },
+        {
+          "name": "Lift riser",
+          "group": "building",
+          "attachment": "lift_1",
+          "center_gltf_m": [
+            5.365,
+            1.133,
+            -4.045
+          ],
+          "size_gltf_m": [
+            0.17,
+            2.17,
+            0.23
+          ]
+        },
+        {
+          "name": "Lift riser",
+          "group": "building",
+          "attachment": "lift_1",
+          "center_gltf_m": [
+            7.505,
+            1.133,
+            -4.045
+          ],
+          "size_gltf_m": [
+            0.17,
+            2.17,
+            0.23
+          ]
+        },
+        {
+          "name": "Lift riser",
+          "group": "building",
+          "attachment": "lift_2",
+          "center_gltf_m": [
+            9.34,
+            1.133,
+            -4.045
+          ],
+          "size_gltf_m": [
+            0.17,
+            2.17,
+            0.23
+          ]
+        },
+        {
+          "name": "Lift riser",
+          "group": "building",
+          "attachment": "lift_2",
+          "center_gltf_m": [
+            11.48,
+            1.133,
+            -4.045
+          ],
+          "size_gltf_m": [
+            0.17,
+            2.17,
+            0.23
+          ]
+        },
+        {
+          "name": "Tyre stack",
+          "group": "building",
+          "attachment": "service_bay_2",
+          "center_gltf_m": [
+            11.88,
+            0.329,
+            -6.59
+          ],
+          "size_gltf_m": [
+            0.76,
+            0.562,
+            0.78
+          ]
+        },
+        {
+          "name": "Canopy post",
+          "group": "building",
+          "attachment": "fuel_canopy",
+          "center_gltf_m": [
+            -7.67,
+            1.9878,
+            9.88
+          ],
+          "size_gltf_m": [
+            0.506,
+            3.91559,
+            0.506
+          ]
+        },
+        {
+          "name": "Canopy post",
+          "group": "building",
+          "attachment": "fuel_canopy",
+          "center_gltf_m": [
+            3.07,
+            2.0142,
+            9.88
+          ],
+          "size_gltf_m": [
+            0.506,
+            3.96841,
+            0.506
+          ]
+        },
+        {
+          "name": "Canopy post",
+          "group": "building",
+          "attachment": "fuel_canopy",
+          "center_gltf_m": [
+            -7.67,
+            1.9878,
+            3.08
+          ],
+          "size_gltf_m": [
+            0.506,
+            3.91559,
+            0.506
+          ]
+        },
+        {
+          "name": "Canopy post",
+          "group": "building",
+          "attachment": "fuel_canopy",
+          "center_gltf_m": [
+            3.07,
+            2.0142,
+            3.08
+          ],
+          "size_gltf_m": [
+            0.506,
+            3.96841,
+            0.506
+          ]
+        },
+        {
+          "name": "Pump 1 full body",
+          "group": "lot",
+          "attachment": "pump_1",
+          "center_gltf_m": [
+            -5.385,
+            1.1975,
+            6.4875
+          ],
+          "size_gltf_m": [
+            1.12,
+            2.325,
+            0.725
+          ]
+        },
+        {
+          "name": "Pump 2 full body",
+          "group": "lot",
+          "attachment": "pump_2",
+          "center_gltf_m": [
+            -0.105,
+            1.1975,
+            6.4875
+          ],
+          "size_gltf_m": [
+            1.12,
+            2.325,
+            0.725
+          ]
+        },
+        {
+          "name": "Rear refuse bin",
+          "group": "lot",
+          "attachment": "lot",
+          "center_gltf_m": [
+            -3.72,
+            0.457,
+            -8.29
+          ],
+          "size_gltf_m": [
+            0.64,
+            0.846,
+            0.56
+          ]
+        },
+        {
+          "name": "Rear refuse bin",
+          "group": "lot",
+          "attachment": "lot",
+          "center_gltf_m": [
+            1.22,
+            0.457,
+            -8.22
+          ],
+          "size_gltf_m": [
+            0.64,
+            0.846,
+            0.56
+          ]
+        },
+        {
+          "name": "Road sign full support",
+          "group": "lot",
+          "attachment": "roadside_sign",
+          "center_gltf_m": [
+            -11.92,
+            4.117,
+            11.95
+          ],
+          "size_gltf_m": [
+            0.31,
+            8.166,
+            0.34
+          ]
+        }
+      ],
+      "signs": [
+        {
+          "id": "sign_name",
+          "nodes": [
+            "sign_name_street",
+            "sign_name_exit"
+          ],
+          "texture": "signs.png",
+          "rect": [
+            0,
+            34,
+            160,
+            30
+          ],
+          "lines": 1,
+          "maxChars": 12,
+          "ink": "#ffe4a5",
+          "paper": "#294d49",
+          "face": "rounded",
+          "glowColor": "#f3aa63",
+          "glow": true
+        }
+      ],
+      "price_panels": [
+        {
+          "node": "price_panel",
+          "material": "glow_price",
+          "texture": "price-1945.png",
+          "rect": [
+            0,
+            0,
+            102,
+            36
+          ],
+          "front_and_back": true,
+          "digits_rect": [
+            0,
+            0,
+            102,
+            36
+          ],
+          "style": "painted_board",
+          "unit": "cents_per_gallon"
+        }
+      ],
+      "price": {
+        "node": "price_face_street",
+        "art": [
+          51,
+          18
+        ],
+        "grades": [
+          "regular"
+        ],
+        "rows": [
+          5
+        ],
+        "left": 14,
+        "font": "5x7",
+        "ink": "#efdfad",
+        "paper": "#393f3b"
+      },
+      "models": {
+        "near": {
+          "file": "vale-lantern-1945.glb",
+          "triangles": 1608,
+          "materials": [
+            "detail_burnt_amber",
+            "detail_enamel",
+            "detail_hardware",
+            "detail_petrol_blue",
+            "floor_concrete",
+            "glass_shop",
+            "glow_price",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_station",
+            "wall_finish"
+          ]
+        },
+        "mid": {
+          "file": "vale-lantern-1945-mid.glb",
+          "triangles": 1304,
+          "materials": [
+            "detail_burnt_amber",
+            "detail_enamel",
+            "detail_hardware",
+            "detail_petrol_blue",
+            "floor_concrete",
+            "glass_shop",
+            "glow_price",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_station",
+            "wall_finish"
+          ]
+        },
+        "far": {
+          "file": "vale-lantern-1945-far.glb",
+          "triangles": 1104,
+          "materials": [
+            "detail_burnt_amber",
+            "detail_enamel",
+            "detail_hardware",
+            "detail_petrol_blue",
+            "floor_concrete",
+            "glass_shop",
+            "glow_price",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_station",
+            "wall_finish"
+          ]
+        }
+      }
+    },
+    "1975": {
+      "era": [
+        1975,
+        null
+      ],
+      "height_m": 7.522,
+      "footprint_m": [
+        15.3,
+        7.5
+      ],
+      "lot_bounds_gltf_m": [
+        [
+          -16,
+          0,
+          -11.2
+        ],
+        [
+          15.45,
+          0.048,
+          17
+        ]
+      ],
+      "doors": {
+        "door_main": {
+          "position_gltf_m": [
+            0,
+            0,
+            0.14
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            1.0
+          ],
+          "external": true
+        },
+        "door_back": {
+          "position_gltf_m": [
+            2.8,
+            0,
+            -7.68
+          ],
+          "facing_gltf": [
+            0.0,
+            0,
+            -1.0
+          ],
+          "external": true
+        }
+      },
+      "anchors": {
+        "cashier_clerk": [
+          -1.09,
+          0.048,
+          -4.85
+        ],
+        "cashier_guest": [
+          -1.07,
+          0.048,
+          -2.91
+        ],
+        "pump_1_nozzle": [
+          -5.488,
+          1.19,
+          10.34
+        ],
+        "pump_1_use": [
+          -5.128,
+          0.035,
+          10.34
+        ],
+        "pump_2_nozzle": [
+          -5.488,
+          1.19,
+          6.93
+        ],
+        "pump_2_use": [
+          -5.128,
+          0.035,
+          6.93
+        ],
+        "pump_3_nozzle": [
+          0.662,
+          1.19,
+          10.34
+        ],
+        "pump_3_use": [
+          1.022,
+          0.035,
+          10.34
+        ],
+        "pump_4_nozzle": [
+          0.662,
+          1.19,
+          6.93
+        ],
+        "pump_4_use": [
+          1.022,
+          0.035,
+          6.93
+        ],
+        "pump_5_nozzle": [
+          6.772,
+          1.19,
+          10.34
+        ],
+        "pump_5_use": [
+          7.132,
+          0.035,
+          10.34
+        ],
+        "pump_6_nozzle": [
+          6.772,
+          1.19,
+          6.93
+        ],
+        "pump_6_use": [
+          7.132,
+          0.035,
+          6.93
+        ],
+        "air_machine_use": [
+          11.71,
+          0.034,
+          4.0
+        ]
+      },
+      "features": {
+        "cashier": {
+          "node": "cashier_counter",
+          "clerk": "cashier_clerk",
+          "guest": "cashier_guest"
+        },
+        "pump_1": {
+          "node": "pump_1",
+          "nozzle": "pump_1_nozzle",
+          "use": "pump_1_use",
+          "style": "self_serve"
+        },
+        "pump_2": {
+          "node": "pump_2",
+          "nozzle": "pump_2_nozzle",
+          "use": "pump_2_use",
+          "style": "self_serve"
+        },
+        "pump_3": {
+          "node": "pump_3",
+          "nozzle": "pump_3_nozzle",
+          "use": "pump_3_use",
+          "style": "self_serve"
+        },
+        "pump_4": {
+          "node": "pump_4",
+          "nozzle": "pump_4_nozzle",
+          "use": "pump_4_use",
+          "style": "self_serve"
+        },
+        "pump_5": {
+          "node": "pump_5",
+          "nozzle": "pump_5_nozzle",
+          "use": "pump_5_use",
+          "style": "self_serve"
+        },
+        "pump_6": {
+          "node": "pump_6",
+          "nozzle": "pump_6_nozzle",
+          "use": "pump_6_use",
+          "style": "self_serve"
+        },
+        "price": {
+          "node": "price_panel",
+          "material": "glow_price",
+          "texture": "price-1975.png",
+          "rect": [
+            0,
+            0,
+            102,
+            36
+          ],
+          "front_and_back": true,
+          "digits_rect": [
+            0,
+            0,
+            102,
+            36
+          ],
+          "style": "led",
+          "unit": "currency_per_gallon"
+        }
+      },
+      "collision_boxes": [
+        {
+          "name": "Main fuel office frontage",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -4.25,
+            1.635,
+            -0.115
+          ],
+          "size_gltf_m": [
+            6.8,
+            3.27,
+            0.23
+          ]
+        },
+        {
+          "name": "Main fuel office frontage",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            4.25,
+            1.635,
+            -0.115
+          ],
+          "size_gltf_m": [
+            6.8,
+            3.27,
+            0.23
+          ]
+        },
+        {
+          "name": "Rear wall and service opening",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -2.725,
+            1.635,
+            -7.365
+          ],
+          "size_gltf_m": [
+            9.85,
+            3.27,
+            0.27
+          ]
+        },
+        {
+          "name": "Rear wall and service opening",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            5.525,
+            1.635,
+            -7.365
+          ],
+          "size_gltf_m": [
+            4.25,
+            3.27,
+            0.27
+          ]
+        },
+        {
+          "name": "Complete return wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -7.535,
+            1.635,
+            -3.73
+          ],
+          "size_gltf_m": [
+            0.23,
+            3.27,
+            7.0
+          ]
+        },
+        {
+          "name": "Complete return wall",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            7.535,
+            1.635,
+            -3.73
+          ],
+          "size_gltf_m": [
+            0.23,
+            3.27,
+            7.0
+          ]
+        },
+        {
+          "name": "Cashier counter",
+          "group": "building",
+          "attachment": "cashier_counter",
+          "center_gltf_m": [
+            -1.11,
+            0.619,
+            -3.905
+          ],
+          "size_gltf_m": [
+            3.98,
+            1.142,
+            0.95
+          ]
+        },
+        {
+          "name": "Cooler built-in",
+          "group": "building",
+          "attachment": "",
+          "center_gltf_m": [
+            -6.24,
+            1.109,
+            -5.95
+          ],
+          "size_gltf_m": [
+            2.34,
+            2.122,
+            2.34
+          ]
+        },
+        {
+          "name": "Canopy post",
+          "group": "building",
+          "attachment": "fuel_canopy",
+          "center_gltf_m": [
+            -8.96,
+            2.3332,
+            12.1
+          ],
+          "size_gltf_m": [
+            0.596,
+            4.6064,
+            0.596
+          ]
+        },
+        {
+          "name": "Canopy post",
+          "group": "building",
+          "attachment": "fuel_canopy",
+          "center_gltf_m": [
+            8.96,
+            2.48828,
+            12.1
+          ],
+          "size_gltf_m": [
+            0.596,
+            4.91656,
+            0.596
+          ]
+        },
+        {
+          "name": "Canopy post",
+          "group": "building",
+          "attachment": "fuel_canopy",
+          "center_gltf_m": [
+            -8.96,
+            2.3332,
+            4.51
+          ],
+          "size_gltf_m": [
+            0.596,
+            4.6064,
+            0.596
+          ]
+        },
+        {
+          "name": "Canopy post",
+          "group": "building",
+          "attachment": "fuel_canopy",
+          "center_gltf_m": [
+            8.96,
+            2.48828,
+            4.51
+          ],
+          "size_gltf_m": [
+            0.596,
+            4.91656,
+            0.596
+          ]
+        },
+        {
+          "name": "Pump 1 full body",
+          "group": "lot",
+          "attachment": "pump_1",
+          "center_gltf_m": [
+            -6.045,
+            1.1975,
+            10.1175
+          ],
+          "size_gltf_m": [
+            1.16,
+            2.325,
+            0.725
+          ]
+        },
+        {
+          "name": "Raised island bollard",
+          "group": "lot",
+          "attachment": "fuel_pumps",
+          "center_gltf_m": [
+            -6.62,
+            0.4525,
+            10.95
+          ],
+          "size_gltf_m": [
+            0.156,
+            0.835,
+            0.156
+          ]
+        },
+        {
+          "name": "Raised island bollard",
+          "group": "lot",
+          "attachment": "fuel_pumps",
+          "center_gltf_m": [
+            -5.54,
+            0.4525,
+            10.95
+          ],
+          "size_gltf_m": [
+            0.156,
+            0.835,
+            0.156
+          ]
+        },
+        {
+          "name": "Pump 2 full body",
+          "group": "lot",
+          "attachment": "pump_2",
+          "center_gltf_m": [
+            -6.045,
+            1.1975,
+            6.7075
+          ],
+          "size_gltf_m": [
+            1.16,
+            2.325,
+            0.725
+          ]
+        },
+        {
+          "name": "Raised island bollard",
+          "group": "lot",
+          "attachment": "fuel_pumps",
+          "center_gltf_m": [
+            -6.62,
+            0.4525,
+            5.84
+          ],
+          "size_gltf_m": [
+            0.156,
+            0.835,
+            0.156
+          ]
+        },
+        {
+          "name": "Raised island bollard",
+          "group": "lot",
+          "attachment": "fuel_pumps",
+          "center_gltf_m": [
+            -5.54,
+            0.4525,
+            5.84
+          ],
+          "size_gltf_m": [
+            0.156,
+            0.835,
+            0.156
+          ]
+        },
+        {
+          "name": "Pump 3 full body",
+          "group": "lot",
+          "attachment": "pump_3",
+          "center_gltf_m": [
+            0.105,
+            1.1975,
+            10.1175
+          ],
+          "size_gltf_m": [
+            1.16,
+            2.325,
+            0.725
+          ]
+        },
+        {
+          "name": "Raised island bollard",
+          "group": "lot",
+          "attachment": "fuel_pumps",
+          "center_gltf_m": [
+            -0.47,
+            0.4525,
+            10.95
+          ],
+          "size_gltf_m": [
+            0.156,
+            0.835,
+            0.156
+          ]
+        },
+        {
+          "name": "Raised island bollard",
+          "group": "lot",
+          "attachment": "fuel_pumps",
+          "center_gltf_m": [
+            0.61,
+            0.4525,
+            10.95
+          ],
+          "size_gltf_m": [
+            0.156,
+            0.835,
+            0.156
+          ]
+        },
+        {
+          "name": "Pump 4 full body",
+          "group": "lot",
+          "attachment": "pump_4",
+          "center_gltf_m": [
+            0.105,
+            1.1975,
+            6.7075
+          ],
+          "size_gltf_m": [
+            1.16,
+            2.325,
+            0.725
+          ]
+        },
+        {
+          "name": "Raised island bollard",
+          "group": "lot",
+          "attachment": "fuel_pumps",
+          "center_gltf_m": [
+            -0.47,
+            0.4525,
+            5.84
+          ],
+          "size_gltf_m": [
+            0.156,
+            0.835,
+            0.156
+          ]
+        },
+        {
+          "name": "Raised island bollard",
+          "group": "lot",
+          "attachment": "fuel_pumps",
+          "center_gltf_m": [
+            0.61,
+            0.4525,
+            5.84
+          ],
+          "size_gltf_m": [
+            0.156,
+            0.835,
+            0.156
+          ]
+        },
+        {
+          "name": "Pump 5 full body",
+          "group": "lot",
+          "attachment": "pump_5",
+          "center_gltf_m": [
+            6.215,
+            1.1975,
+            10.1175
+          ],
+          "size_gltf_m": [
+            1.16,
+            2.325,
+            0.725
+          ]
+        },
+        {
+          "name": "Raised island bollard",
+          "group": "lot",
+          "attachment": "fuel_pumps",
+          "center_gltf_m": [
+            5.64,
+            0.4525,
+            10.95
+          ],
+          "size_gltf_m": [
+            0.156,
+            0.835,
+            0.156
+          ]
+        },
+        {
+          "name": "Raised island bollard",
+          "group": "lot",
+          "attachment": "fuel_pumps",
+          "center_gltf_m": [
+            6.72,
+            0.4525,
+            10.95
+          ],
+          "size_gltf_m": [
+            0.156,
+            0.835,
+            0.156
+          ]
+        },
+        {
+          "name": "Pump 6 full body",
+          "group": "lot",
+          "attachment": "pump_6",
+          "center_gltf_m": [
+            6.215,
+            1.1975,
+            6.7075
+          ],
+          "size_gltf_m": [
+            1.16,
+            2.325,
+            0.725
+          ]
+        },
+        {
+          "name": "Raised island bollard",
+          "group": "lot",
+          "attachment": "fuel_pumps",
+          "center_gltf_m": [
+            5.64,
+            0.4525,
+            5.84
+          ],
+          "size_gltf_m": [
+            0.156,
+            0.835,
+            0.156
+          ]
+        },
+        {
+          "name": "Raised island bollard",
+          "group": "lot",
+          "attachment": "fuel_pumps",
+          "center_gltf_m": [
+            6.72,
+            0.4525,
+            5.84
+          ],
+          "size_gltf_m": [
+            0.156,
+            0.835,
+            0.156
+          ]
+        },
+        {
+          "name": "Ice chest",
+          "group": "lot",
+          "attachment": "ice_chest",
+          "center_gltf_m": [
+            6.1,
+            0.637,
+            0.9435
+          ],
+          "size_gltf_m": [
+            2.06,
+            1.206,
+            0.887
+          ]
+        },
+        {
+          "name": "Air machine",
+          "group": "lot",
+          "attachment": "air_machine",
+          "center_gltf_m": [
+            11.71,
+            0.877,
+            3.45
+          ],
+          "size_gltf_m": [
+            0.94,
+            1.686,
+            0.58
+          ]
+        },
+        {
+          "name": "Rear refuse bin",
+          "group": "lot",
+          "attachment": "lot",
+          "center_gltf_m": [
+            -3.72,
+            0.457,
+            -8.29
+          ],
+          "size_gltf_m": [
+            0.64,
+            0.846,
+            0.56
+          ]
+        },
+        {
+          "name": "Rear refuse bin",
+          "group": "lot",
+          "attachment": "lot",
+          "center_gltf_m": [
+            1.22,
+            0.457,
+            -8.22
+          ],
+          "size_gltf_m": [
+            0.64,
+            0.846,
+            0.56
+          ]
+        },
+        {
+          "name": "Road sign full support",
+          "group": "lot",
+          "attachment": "roadside_sign",
+          "center_gltf_m": [
+            -11.92,
+            3.757,
+            11.95
+          ],
+          "size_gltf_m": [
+            0.31,
+            7.446,
+            0.34
+          ]
+        }
+      ],
+      "signs": [
+        {
+          "id": "sign_name",
+          "nodes": [
+            "sign_name_street",
+            "sign_name_exit"
+          ],
+          "texture": "signs.png",
+          "rect": [
+            0,
+            68,
+            160,
+            30
+          ],
+          "lines": 1,
+          "maxChars": 12,
+          "ink": "#efedd2",
+          "paper": "#304c56",
+          "face": "sans",
+          "glowColor": "#d6ede2",
+          "glow": true
+        }
+      ],
+      "price_panels": [
+        {
+          "node": "price_panel",
+          "material": "glow_price",
+          "texture": "price-1975.png",
+          "rect": [
+            0,
+            0,
+            102,
+            36
+          ],
+          "front_and_back": true,
+          "digits_rect": [
+            0,
+            0,
+            102,
+            36
+          ],
+          "style": "led",
+          "unit": "currency_per_gallon"
+        }
+      ],
+      "price": {
+        "node": "price_face_street",
+        "art": [
+          51,
+          18
+        ],
+        "grades": [
+          "regular"
+        ],
+        "rows": [
+          5
+        ],
+        "left": 14,
+        "font": "5x7",
+        "ink": "#e37b49",
+        "paper": "#393f3b"
+      },
+      "models": {
+        "near": {
+          "file": "vale-lantern-1975.glb",
+          "triangles": 2290,
+          "materials": [
+            "detail_burnt_amber",
+            "detail_enamel",
+            "detail_hardware",
+            "detail_petrol_blue",
+            "floor_concrete",
+            "glass_shop",
+            "glow_price",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_station",
+            "wall_finish"
+          ]
+        },
+        "mid": {
+          "file": "vale-lantern-1975-mid.glb",
+          "triangles": 1642,
+          "materials": [
+            "detail_burnt_amber",
+            "detail_enamel",
+            "detail_hardware",
+            "detail_petrol_blue",
+            "floor_concrete",
+            "glass_shop",
+            "glow_price",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_station",
+            "wall_finish"
+          ]
+        },
+        "far": {
+          "file": "vale-lantern-1975-far.glb",
+          "triangles": 1354,
+          "materials": [
+            "detail_burnt_amber",
+            "detail_enamel",
+            "detail_hardware",
+            "detail_petrol_blue",
+            "floor_concrete",
+            "glass_shop",
+            "glow_price",
+            "ground_forecourt",
+            "roof_finish",
+            "sign_station",
+            "wall_finish"
+          ]
+        }
+      }
+    }
+  }
+}
