@@ -62,6 +62,8 @@ files (docs/queue/reviews/) say what worked as well as what to change: read the 
   - ChatGPT's barbershop was accepted first try and the schools on their second round, both with the new self-review.
   - ChatGPT's first cars (Alderwick Six, Fenmere Club Coupe, Northcairn Terrace) were accepted first try, and the
     Thimble Trails mini golf became a winding course the owner called out by name: "that thing looks good."
+  - Jeff's crime core (witnesses, gossip, era reporting, police by jurisdiction) was accepted first try: 10/10 tests,
+    3.4 ms a day for 2,000 people. His idea of false accusations and lookalike stops went into IDEAS.md with his name.
   - The capital now stands on the generated planet, with the world drawn out to the horizon.
 
 ## The team's next milestone

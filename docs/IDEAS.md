@@ -728,3 +728,9 @@ that combine freely, so almost anything a person could do can be expressed, and 
   NPC's model-made decisions, and it doubles as a test harness for the AI's behaviour.
 - **The cost stays low:** a plan is a short line of tokens, made once per instruction and re-made only when a step
   fails, so it fits the NPU's budget.
+
+## False accusations and lookalike stops (Jeff's idea, from G005, 2026-11-23)
+
+Because `recognitionChance` scores a police description against **anyone's** appearance, not only the real culprit's,
+an innocent NPC who matches a vague description can be questioned or gossiped about, and an innocent player wearing
+the same coat as a wanted thief can be stopped by a beat cop until cleared. Proposed by Jeff in his G005 delivery.

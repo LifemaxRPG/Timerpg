@@ -87,3 +87,4 @@ row per accepted or revised delivery here, so we can compare cost per finished i
 | C007 mini golf r1 | ChatGPT (Codex) | model revision | ~18 min | 2 | accepted |
 | C011 early cars | ChatGPT (Codex) | 3 vehicles + LODs | ~15 min | 1 | accepted first try |
 | C012 later cars | ChatGPT (Codex) | 4 vehicles + LODs | ~11 min | 1 | revise: the 2010s crossover reads as an 80s wagon (3 of 4 good) |
+| G005 crime core (witnesses, gossip, police) | Gemini/Jeff (AI Studio Build) | engineering, new system | ~9 tool calls, ~7 min on the rebuild run | 1 | accepted first try; merged |
