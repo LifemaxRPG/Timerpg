@@ -45,31 +45,30 @@ class TownMapTest {
         assertEquals(g.getJSONArray("rows").length(), TOWN.rows.size)
         assertEquals(g.getJSONArray("lots").length(), TOWN.lots.size)
         assertEquals(g.getJSONArray("props").length(), TOWN.props.size)
-        // gamma as T2 exported it
-        assertEquals(52, TOWN.nodes.size)
-        assertEquals(mapOf(NodeKind.CROSS to 19, NodeKind.TEE to 4, NodeKind.BEND to 5, NodeKind.END to 24), TOWN.nodes.groupingBy { it.kind }.eachCount())
-        assertEquals(56, TOWN.roads.size)
-        assertEquals(112, TOWN.rows.size)
-        assertEquals(58, TOWN.rows.count { it.buildings.isNotEmpty() })
-        // with the cinema (b100, on Main Street), the four stores (b101-b104) and the pack's buildings with nobody in them
-        // (b105-b113: a car park, two hotels and two offices behind Main Street, the two strip shops' front car parks, the town hall in the plaza, the chapel)
-        assertEquals(114, TOWN.buildings.size)
-        assertEquals(mapOf(PlacementKind.SHOP to 22, PlacementKind.HOME to 72, PlacementKind.LANDMARK to 11, PlacementKind.EXTRA to 9), TOWN.buildings.groupingBy { it.kind }.eachCount())
-        assertEquals(94, TOWN.lots.size)
-        assertEquals(11, TOWN.landmarks.size)
+        // gamma as the capital's export now stands (the fixture tools/town-graph.test.ts keeps current)
+        assertEquals(96, TOWN.nodes.size)
+        assertEquals(mapOf(NodeKind.CROSS to 39, NodeKind.TEE to 28, NodeKind.BEND to 7, NodeKind.END to 22), TOWN.nodes.groupingBy { it.kind }.eachCount())
+        assertEquals(131, TOWN.roads.size)
+        assertEquals(262, TOWN.rows.size)
+        assertEquals(138, TOWN.rows.count { it.buildings.isNotEmpty() })
+        assertEquals(322, TOWN.buildings.size)
+        assertEquals(mapOf(PlacementKind.SHOP to 64, PlacementKind.HOME to 214, PlacementKind.LANDMARK to 41, PlacementKind.EXTRA to 3), TOWN.buildings.groupingBy { it.kind }.eachCount())
+        assertEquals(278, TOWN.lots.size)
+        assertEquals(41, TOWN.landmarks.size)
         assertEquals(5, TOWN.neighbourhoods.size)
-        assertEquals(6, TOWN.bridges.size)
-        assertEquals(116, TOWN.water.size)
-        assertEquals(11, TOWN.plazaProps.size) // (the town hall at the plaza's back stands where two of its trees were)
+        assertEquals(3, TOWN.bridges.size)
+        assertEquals(163, TOWN.water.size)
+        assertEquals(51, TOWN.plazaProps.size)
         assertEquals(1.6929f, TOWN.k, 1e-4f)
         // every sprite once
-        assertEquals(114, TOWN.buildings.map { it.sprite }.toSet().size)
-        // the spawn: on the civic avenue, the hotel on its row (the clock tower across)
-        assertEquals("14L", TOWN.spawn.row)
-        assertEquals(14, TOWN.civicRoad)
-        assertEquals(TOWN.civicRoad, TOWN.row(TOWN.spawn.row).road)
+        assertEquals(322, TOWN.buildings.map { it.sprite }.toSet().size)
+        // the spawn: on Main Street (road 60, a main road), among its shops; the civic avenue (road 32) is a separate, building-free road now
+        assertEquals("60L", TOWN.spawn.row)
+        assertEquals(60, TOWN.row(TOWN.spawn.row).road)
+        assertTrue(TOWN.roads.first { it.id == TOWN.row(TOWN.spawn.row).road }.main)
+        assertEquals(32, TOWN.civicRoad)
         assertEquals("b98", TOWN.placement("b98")!!.second.sprite)
-        assertEquals("14L", TOWN.placement("b98")!!.first.id)
+        assertEquals("66L", TOWN.placement("b98")!!.first.id)
     }
 
     @Test fun aV1StreetJsonHasNoTown() {
@@ -145,9 +144,9 @@ class TownMapTest {
 
     @Test fun neighbourhoodLookups() {
         val spawn = TOWN.row(TOWN.spawn.row)
-        // the hotel's neighbourhood where it stands
-        val hotel = spawn.buildings.first { it.sprite == "b98" }
-        assertEquals("waterfront", TOWN.neighbourhoodAt(spawn, hotel.mid)!!.id)
+        // a shop's neighbourhood where it stands (the spawn row's first shop)
+        val shop = spawn.buildings.first { it.sprite == "b5" }
+        assertEquals("old-town", TOWN.neighbourhoodAt(spawn, shop.mid)!!.id)
         // a row with no buildings still has one: the nearest lot's
         val empty = TOWN.rows.first { it.buildings.isEmpty() }
         assertNotNull(TOWN.neighbourhoodAt(empty, empty.length / 2f))
@@ -159,7 +158,7 @@ class TownMapTest {
         val around = TOWN.rowsAround(spawn, 1)
         assertEquals(spawn.id, around.first().id)
         assertEquals(spawn.transitions.map { it.to }.toSet() + spawn.id, around.map { it.id }.toSet())
-        assertEquals("14R", TOWN.facing(spawn)!!.id)
+        assertEquals("60R", TOWN.facing(spawn)!!.id)
     }
 
     @Test fun theLayoutIsTheExportsAndMirrorsExactly() {
@@ -174,11 +173,11 @@ class TownMapTest {
         assertEquals(r.furniture.size, m.furniture.size)
     }
 
-    /** A right turn (the shops of 9L walked to their end, round the corner into the civic avenue 14L) and its mirror
-     *  (14L walked back to its start and round the same corner into 9L). */
-    @Test fun aRightTurnPlansTheRealCorner() = checkTurn(TOWN.row("9L"), TOWN.row("14L"), mirrored = false)
+    /** A right turn (the homes of 45R walked to their end, round the corner into the shop street 46L) and its mirror
+     *  (46L walked back to its start and round the same corner into 45R). */
+    @Test fun aRightTurnPlansTheRealCorner() = checkTurn(TOWN.row("45R"), TOWN.row("46L"), mirrored = false)
 
-    @Test fun aLeftTurnIsTheMirroredPlan() = checkTurn(TOWN.row("14L"), TOWN.row("9L"), mirrored = true)
+    @Test fun aLeftTurnIsTheMirroredPlan() = checkTurn(TOWN.row("46L"), TOWN.row("45R"), mirrored = true)
 
     @Test fun everyTurnInTheTownMakesAPlan() {
         var n = 0
@@ -193,7 +192,7 @@ class TownMapTest {
             agree(cr, r, to)
             n++
         }
-        assertEquals(168, n)
+        assertEquals(424, n)
     }
 
     /** The plan and the rows say the same places: both streets' x and lanes, near the corner. */

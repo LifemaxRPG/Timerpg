@@ -121,7 +121,8 @@ class OpenWalkTest {
         println("collision: ${map.size} shapes in ${"%.0f".format(buildMs)} ms, grid ${map.cols}x${map.rows}; $byKind")
         // every building is in it, and what its slot covers is solid at its middle (a model's parts or its box)
         // (a store's plot is left to its store as built: scene3d's TownStores adds its shapes, StoreCollisionTest checks them)
-        assertEquals(setOf("b101", "b102", "b103", "b104"), map.stores)
+        // (the stores' plots and the hand-made landmark models: StoreLots; the capital's 38, b281-b284 and b288-b321, read off graph.landmarks)
+        assertEquals((listOf(281, 282, 283, 284) + (288..321)).map { "b$it" }.toSet(), map.stores)
         for (r in town.rows) for (b in r.buildings) {
             if (b.sprite in map.stores) { assertTrue("${b.sprite} is a store", (0 until map.size).none { map.owner(it) == b.sprite }); continue }
             // (a car park is walked over: nothing of it is solid)
@@ -129,7 +130,7 @@ class OpenWalkTest {
             assertTrue("no shapes for ${b.sprite}", (0 until map.size).any { map.owner(it) == b.sprite && map.kind(it) == SolidKind.BUILDING })
         }
         assertTrue(byKind[SolidKind.FENCE]!! > 300); assertTrue(byKind[SolidKind.HEDGE]!! > 40); assertTrue(byKind[SolidKind.WATER]!! > 50)
-        assertTrue(byKind[SolidKind.TREE]!! > 4000); assertTrue(byKind[SolidKind.PROP]!! > 500); assertEquals(16, byKind[SolidKind.PARAPET])
+        assertTrue(byKind[SolidKind.TREE]!! > 4000); assertTrue(byKind[SolidKind.PROP]!! > 500); assertEquals(2 * town.bridges.size, byKind[SolidKind.PARAPET])
         // the spawn is clear; the water is solid, the bridges' decks are not
         assertTrue(!map.blocked(spawn.first, spawn.second, R))
         for (w in town.water) {

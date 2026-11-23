@@ -126,7 +126,8 @@ class TownWalkTest {
         if (abs(walk.x - target) < 6f) return
         val s = if (target > walk.x) 1f else -1f
         GameState.moveX = s * .7f
-        until(what = "walking to $target") { (target - walk.x) * s < 4f }
+        // the budget grows with the distance: the capital's long rows (up to ~9000 units) take far more than 4000 frames to walk
+        until(max = 4000 + (3f * abs(target - walk.x)).toInt(), what = "walking to $target") { (target - walk.x) * s < 4f }
         settle()
     }
 
@@ -287,7 +288,7 @@ class TownWalkTest {
             assertTrue(GameState.dir < 0f)
             pairs++
         }
-        assertEquals(84, pairs)
+        assertEquals(212, pairs)
     }
 
     @Test fun walkingTheLengthOfEveryRowNeverSticks() {
@@ -307,9 +308,9 @@ class TownWalkTest {
     }
 
     @Test fun theBuildingsKeepThePlayerOut() {
-        // pushed hard into the fronts all along a row of shops (no yard: setback 0): held on the pavement
-        val r = WALK_TOWN.row("9L")
-        place(r, 300f, 8f); frame()
+        // pushed hard into the fronts all along a row of shops (setback 7, no yard): held on the pavement
+        val r = WALK_TOWN.row("66L")
+        place(r, r.buildings.first().mid, 8f); frame()
         GameState.moveLane = -.45f
         until(what = "to the wall") { walk.lane <= GameState.LANE_MIN + 1e-3f }
         GameState.moveX = .7f; GameState.moveLane = -.45f
