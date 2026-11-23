@@ -330,3 +330,26 @@ want on you) can be **hidden in the past and collected in the future**, if it su
     - or go back in time again and move the cache before the building goes up (if the timeline allows).
   - The dialogue model voices the negotiation, but the game logic decides whether they'll sell and at what price,
     from their traits, their money, their attachment to the place and their opinion of you.
+
+## Limits on the time machine (proposal for the owner, 2026-11-23)
+
+Free jumping would be too strong. These limits come from the story and the world rather than a timer. They are
+layered, and each one is also gameplay:
+1. **It's in the capital, and stays there.** Every jump starts and ends at the professor's lab. Living far away means
+   a real journey (road, rail, sea) to use it. That's already the design; it's the first limit.
+2. **Power.** Each jump needs the machine's cell fully charged, and longer jumps need more.
+   - It charges from the local supply over in-game days, not real-time waits.
+   - In eras without a grid you need another way: a generator and fuel, the mill's water wheel, the dam once it's
+     built, or a lightning storm.
+   - Big draws are noticed: lights dim across the block, the utility asks questions, and neighbours gossip about the
+     professor (the witness and gossip systems).
+3. **Worn parts.** A key component degrades with each jump. Replacements must be found or made in the right era: a
+   valve from the 1940s, a crystal from a mine, a circuit from the 1990s. Better parts mean faster charging and longer
+   reach. This is the machine's upgrade path, and a reason to explore eras and continents.
+4. **The professor.** He calibrates every jump and has his own life, schedule, health and opinions. Your relationship
+   with him matters; he may refuse a jump he thinks is reckless. In a changed timeline, he might not even be the same
+   man.
+5. **The ripple** (optional, for later). Many changes in a short span make the timeline's ripples harder to predict.
+   A soft limit, never a game over.
+
+In-game time is the cost, not real-time cooldowns. The player waits by living in the world, not by staring at a timer.
