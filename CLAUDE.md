@@ -38,6 +38,10 @@ one major feature rather than the whole premise:
   really have. Consequences travel through people: witnesses remember, may tell others (by their traits and
   relationships), someone who will report it does, the police in that jurisdiction then know and look for the player;
   fleeing to another continent to hide out is a real option. Evidence, descriptions and policing follow the era.
+- **Next milestone: the first playable loop in a few capital blocks** (the owner's decision, 2026-11-23, on Sam's
+  proposal): arrive, earn money legit or not, get noticed, and meet a consequence later that traces back to what you
+  did. Planet-wide towns and the organic street upgrade wait until it is playable and the owner has played it. The
+  TypeScript crime/plan/police code runs on the phone as-is in an embedded JS engine (kotlin-street/docs/LOOP.md).
 - Everything else (the living simulated world, NPC dialogue on-device, eras, towns, travel by road, rail and sea)
   serves an open world the player is free to live in.
 

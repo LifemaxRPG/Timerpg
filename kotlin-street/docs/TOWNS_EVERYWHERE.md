@@ -1,5 +1,8 @@
 # Towns everywhere: a real town for every place on the planet
 
+> **On hold** (the owner's decision, 2026-11-23): the first playable loop in the capital comes first
+> (kotlin-street/docs/LOOP.md). This resumes once it is playable and the owner has played it.
+
 The planet (WORLD_GEN.md) has 5,100 places on `alpha`: 21 hubs besides the capital, 64 major towns, 398 towns, 789
 villages and 3,827 hamlets (alpine villages, pass hamlets and mining towns among them). Until now only the capital
 (`gamma`) was a walkable town; the rest were blocks in the far view. This is the **offline pipeline that generates a

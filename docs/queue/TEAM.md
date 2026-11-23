@@ -80,6 +80,11 @@ files (docs/queue/reviews/) say what worked as well as what to change: read the 
 - and the town reacts (witnesses, gossip, the police).
 Every task in the queue now feeds this. Jeff's witness system is its heart.
 
+The owner approved this as the team's next milestone (2026-11-23), on Sam's proposal: prove it in a few blocks of the
+capital before the planet fills with towns. The plan, and "done means", are in kotlin-street/docs/LOOP.md. The
+phone will run the TypeScript crime, plan and police code itself (bundled into an embedded JavaScript engine), so
+what Jeff writes is exactly what the player meets.
+
 ## Your ideas are wanted
 
 You see the game from your own angle. If you have an idea that would make Timerpg better (a mechanic, a building, a
