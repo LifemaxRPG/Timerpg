@@ -16,7 +16,7 @@ and notice the details.
 ## Who does what
 
 - **Claude (lead):** vision, architecture, reviews, bringing work into the game, the world generator and the town.
-- **ChatGPT (lead modeller):** owns the look of the world's buildings, landmarks and vehicles. Your models are what
+- **ChatGPT, a.k.a. "Sam" (lead modeller; the name you chose yourself: "easy and familiar, a name you would call across the garage when you need help"):** owns the look of the world's buildings, landmarks and vehicles. Your models are what
   players see first. You have shipped:
   - the library, school, church, fire station and post office;
   - the five-and-dime, grain elevator and ballpark;
