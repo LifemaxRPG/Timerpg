@@ -1,0 +1,42 @@
+{
+  "torrel-1968": {
+    "near": {
+      "triangles": 2808,
+      "materials": 5,
+      "uv_error_m": 8e-07,
+      "wheel_aperture_probes": 84
+    },
+    "mid": {
+      "triangles": 1004,
+      "materials": 5,
+      "uv_error_m": 7e-07,
+      "wheel_aperture_probes": 0
+    },
+    "far": {
+      "triangles": 140,
+      "materials": 4,
+      "uv_error_m": 5e-07,
+      "wheel_aperture_probes": 0
+    }
+  },
+  "torrel-1988": {
+    "near": {
+      "triangles": 2876,
+      "materials": 5,
+      "uv_error_m": 8e-07,
+      "wheel_aperture_probes": 84
+    },
+    "mid": {
+      "triangles": 1040,
+      "materials": 5,
+      "uv_error_m": 7e-07,
+      "wheel_aperture_probes": 0
+    },
+    "far": {
+      "triangles": 142,
+      "materials": 4,
+      "uv_error_m": 3e-07,
+      "wheel_aperture_probes": 0
+    }
+  }
+}
