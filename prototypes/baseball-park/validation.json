@@ -1,0 +1,86 @@
+[
+  {
+    "file": "alder-bend-1935.glb",
+    "triangles": 6519,
+    "materials": 11,
+    "boxes": 61,
+    "max_uv_error_m": 7.421875011459633e-06
+  },
+  {
+    "file": "alder-bend-1935-mid.glb",
+    "triangles": 4023,
+    "materials": 11,
+    "boxes": 61,
+    "max_uv_error_m": 7.421875011459633e-06
+  },
+  {
+    "file": "alder-bend-1935-far.glb",
+    "triangles": 3375,
+    "materials": 11,
+    "boxes": 61,
+    "max_uv_error_m": 7.421875011459633e-06
+  },
+  {
+    "file": "alder-bend-1950.glb",
+    "triangles": 7015,
+    "materials": 12,
+    "boxes": 65,
+    "max_uv_error_m": 7.707487291952475e-06
+  },
+  {
+    "file": "alder-bend-1950-mid.glb",
+    "triangles": 4519,
+    "materials": 12,
+    "boxes": 65,
+    "max_uv_error_m": 7.707487291952475e-06
+  },
+  {
+    "file": "alder-bend-1950-far.glb",
+    "triangles": 3871,
+    "materials": 12,
+    "boxes": 65,
+    "max_uv_error_m": 7.707487291952475e-06
+  },
+  {
+    "file": "alder-bend-1960.glb",
+    "triangles": 7015,
+    "materials": 12,
+    "boxes": 65,
+    "max_uv_error_m": 7.707487291952475e-06
+  },
+  {
+    "file": "alder-bend-1960-mid.glb",
+    "triangles": 4519,
+    "materials": 12,
+    "boxes": 65,
+    "max_uv_error_m": 7.707487291952475e-06
+  },
+  {
+    "file": "alder-bend-1960-far.glb",
+    "triangles": 3871,
+    "materials": 12,
+    "boxes": 65,
+    "max_uv_error_m": 7.707487291952475e-06
+  },
+  {
+    "file": "alder-bend-2000.glb",
+    "triangles": 7015,
+    "materials": 12,
+    "boxes": 65,
+    "max_uv_error_m": 7.707487291952475e-06
+  },
+  {
+    "file": "alder-bend-2000-mid.glb",
+    "triangles": 4519,
+    "materials": 12,
+    "boxes": 65,
+    "max_uv_error_m": 7.707487291952475e-06
+  },
+  {
+    "file": "alder-bend-2000-far.glb",
+    "triangles": 3871,
+    "materials": 12,
+    "boxes": 65,
+    "max_uv_error_m": 7.707487291952475e-06
+  }
+]
