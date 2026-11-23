@@ -711,3 +711,24 @@ the trunks); the rail network takes the valleys and passes, the highways are str
 do better: continents too blob-like on some seeds (more plate-driven shape), the latitude bands' rain shows as stripes,
 snow fields too broad on the highest ranges, the separation trench sometimes leaves a continent's islands as one mass,
 and highways' relative-neighbourhood graph detours (the longest drives are 1.3-1.7x the continent's length).
+
+## Seeing land from the sea (the owner's request, 2026-11-23; for W5 and the ocean integration)
+
+Land must be visible from a realistic distance, not only when you're on top of it.
+- **A distance budget that follows what's on screen.** At sea, the town layers draw nothing, so the far view takes their
+  budget:
+  - terrain rings extended past the current 172 km (about 300 km at sea), with coarser outer quads;
+  - silhouette-first meshes for distant coasts.
+  Approaching land, the budget shifts back to the town as it streams in. A frame-time governor moves the far ring's
+  reach with measured load.
+- **Horizon and curvature.** Bend distant geometry down by d^2 / 2R (R from the planet's size, or a tuned visual
+  radius), so land rises over the horizon as in real life: mountain tops first, then hills, then the shore. Real
+  numbers for reference: from a deck 10 m up, a 1,000 m peak shows from about 125 km and a 100 m headland from about
+  45 km.
+- **Far coast impostors.** Land beyond the mesh rings is drawn as layered silhouette bands on a horizon cylinder,
+  rebaked from the skeleton as the ship moves a few km. They are cheap enough to show every land mass in range.
+- **Visibility by weather and light.** Haze follows the region's weather (clear: long views; rain or fog: short).
+  At night: lighthouses (about 30-40 km), harbour lights and towns' glow on the clouds. Fix the open-world camera's
+  3 km low-ground haze (W4 open problem 3) first.
+- **Gameplay hooks:** a spyglass and binoculars (a long lens, already tested in the W4 views), a lookout calling "land
+  ho", and charts.
