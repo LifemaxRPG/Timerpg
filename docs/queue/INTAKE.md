@@ -22,6 +22,12 @@ them in the capital city. It runs after the town plan merges (`wf-town-plan`), b
 | pre | codex/great-meridian-monument | The Great Meridian (r2; guardians still blocky) | the capital's landmark plot |
 | pre | codex/county-courthouse | Courthouse, 4 states (already imported by the town plan) | county seats |
 
+## New from the queue (waiting for the next intake)
+
+| ID | Branch | What | Where in the capital |
+|---|---|---|---|
+| C001 | codex/C001-five-and-dime | Marlow Five and Dime, 4 states (1925 dime, 1970 variety, 2000 Dollar Cove, vacant) | downtown Main Street, mid-block in a street wall |
+
 Coastal and port set: these wait for the coastal hub and the ocean, so they aren't placed in the capital yet:
 - codex/copperwake (the ships);
 - codex/port-meridian;
