@@ -7,6 +7,7 @@
 # Host (tools/llm-host-test.sh): llama.cpp static, tuned for this machine, plus the llm_host_test program.
 #
 # Where llama.cpp is: -DLLAMA_DIR=... (Gradle passes llama.dir from local.properties), else kotlin-street/third_party/llama.cpp.
+# Jolt (physics/) and QuickJS-ng (simjs/) the same way: -DJOLT_DIR / -DQUICKJS_DIR (jolt.dir, quickjs.dir).
 cmake_minimum_required(VERSION 3.22)
 project(timerpg_llm C CXX)
 
@@ -137,6 +138,8 @@ if (ANDROID)
 
     # the game's physics (Jolt: cars now, more later), its own library (docs/VEHICLES.md)
     add_subdirectory(physics)
+    # the simulation's JavaScript (QuickJS-ng running assets/sim/sim.js: docs/LOOP.md, "The JavaScript bridge"), its own library
+    add_subdirectory(simjs)
 
     add_library(timerpg_llm SHARED llm_jni.cpp)
     target_link_libraries(timerpg_llm PRIVATE llm_core log)

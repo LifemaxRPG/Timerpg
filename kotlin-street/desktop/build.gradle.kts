@@ -48,6 +48,31 @@ val physicsHost by tasks.registering(Exec::class) {
     commandLine("ninja", "-C", physicsDir.absolutePath, "timerpg_physics", "physics_host_test")
 }
 
+// The simulation's JavaScript engine (docs/LOOP.md, "The JavaScript bridge"): QuickJS-ng and our JNI wrapper built for
+// this computer from the app's app/src/main/cpp/simjs, out of tree in build/simjs; the tests load it by
+// -Dtimerpg.simjs.lib, as the physics.
+val quickjsDirDesktop: File = JProperties().apply { rootProject.file("local.properties").takeIf { it.isFile }?.inputStream()?.use { load(it) } }
+    .getProperty("quickjs.dir")?.trim()?.takeIf { it.isNotEmpty() }?.let { rootProject.file(it) } ?: rootProject.file("third_party/quickjs-ng")
+val simjsDir = layout.buildDirectory.dir("simjs").get().asFile
+val simjsLib = File(simjsDir, "libtimerpg_simjs.so")
+val simjsConfigure by tasks.registering(Exec::class) {
+    group = "build"
+    description = "Configures the JavaScript engine's native build for this computer"
+    val src = file("../app/src/main/cpp/simjs")
+    inputs.file(File(src, "CMakeLists.txt"))
+    outputs.file(File(simjsDir, "build.ninja"))
+    commandLine("cmake", "-S", src.absolutePath, "-B", simjsDir.absolutePath, "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Release", "-DQUICKJS_DIR=${quickjsDirDesktop.absolutePath}")
+    doFirst { if (!quickjsDirDesktop.resolve("quickjs.h").isFile) throw GradleException("QuickJS-ng not found at $quickjsDirDesktop. Run kotlin-street/tools/get-quickjs.sh, or set quickjs.dir in local.properties.") }
+}
+val simjsHost by tasks.registering(Exec::class) {
+    group = "build"
+    description = "Builds the JavaScript engine (QuickJS-ng and its JNI wrapper) for this computer"
+    dependsOn(simjsConfigure)
+    inputs.dir(file("../app/src/main/cpp/simjs"))
+    outputs.file(simjsLib)
+    commandLine("ninja", "-C", simjsDir.absolutePath, "timerpg_simjs")
+}
+
 // -DtestOnly=HouseGeometryTest,DuskTest: compile and run only those test files (a few of the habit tracker's old tests,
 // HabitsViewModelTest and its kin, no longer compile against this engine)
 System.getProperty("testOnly")?.let { only ->
@@ -76,6 +101,11 @@ tasks.register<Test>("crossroadsTest") {
     // (the cars' physics: VehiclePhysicsTest drives them)
     dependsOn(physicsHost)
     jvmArgs("-Dtimerpg.physics.lib=" + physicsLib.absolutePath)
+    // (the simulation's JavaScript: SimJsTest runs the bundle in QuickJS and, for comparison, in Node)
+    dependsOn(simjsHost)
+    jvmArgs("-Dtimerpg.simjs.lib=" + simjsLib.absolutePath,
+        "-Dtimerpg.simjs.bundle=" + file("../app/src/main/assets/sim/sim.js").absolutePath,
+        "-Dtimerpg.simjs.smoke=" + rootProject.file("tools/sim-smoke.mjs").absolutePath)
     // (the planned town's yards, baked all at once by YardKitTest: about 2.5 times the old town's)
     maxHeapSize = "3g"
     if (withFilament) {

@@ -16,6 +16,9 @@ val llamaDir: File = localProps.getProperty("llama.dir")?.trim()?.takeIf { it.is
 // Jolt Physics source (the cars, docs/VEHICLES.md): jolt.dir in local.properties, else third_party/JoltPhysics (tools/get-jolt.sh).
 val joltDir: File = localProps.getProperty("jolt.dir")?.trim()?.takeIf { it.isNotEmpty() }?.let { rootProject.file(it) }
     ?: rootProject.file("third_party/JoltPhysics")
+// QuickJS-ng source (runs the TypeScript simulation, docs/LOOP.md): quickjs.dir in local.properties, else third_party/quickjs-ng (tools/get-quickjs.sh).
+val quickjsDir: File = localProps.getProperty("quickjs.dir")?.trim()?.takeIf { it.isNotEmpty() }?.let { rootProject.file(it) }
+    ?: rootProject.file("third_party/quickjs-ng")
 
 // Every build a new version: the number of commits (an update must have a higher versionCode than what is installed).
 val commitCount: Int = runCatching {
@@ -47,7 +50,7 @@ android {
         externalNativeBuild {
             cmake {
                 // Release flags even in debug APKs: an unoptimised model is unusably slow.
-                arguments += listOf("-DLLAMA_DIR=${llamaDir.absolutePath}", "-DJOLT_DIR=${joltDir.absolutePath}", "-DCMAKE_BUILD_TYPE=Release")
+                arguments += listOf("-DLLAMA_DIR=${llamaDir.absolutePath}", "-DJOLT_DIR=${joltDir.absolutePath}", "-DQUICKJS_DIR=${quickjsDir.absolutePath}", "-DCMAKE_BUILD_TYPE=Release")
                 // the Adreno GPU backend, when the OpenCL headers and link stub are there (tools/get-opencl.sh)
                 localProps.getProperty("opencl.headers")?.let { arguments += "-DTIMERPG_OPENCL_HEADERS=${rootProject.file(it).absolutePath}" }
                 localProps.getProperty("opencl.lib")?.let { arguments += "-DTIMERPG_OPENCL_LIB=${rootProject.file(it).absolutePath}" }
@@ -55,7 +58,7 @@ android {
                 localProps.getProperty("hexagon.sdk")?.let { arguments += "-DTIMERPG_HEXAGON_SDK=${rootProject.file(it).absolutePath}" }
                 // Only what the app loads: our JNI library, llama.cpp's shared libraries and three CPU kernel variants.
                 targets += listOf(
-                    "timerpg_llm", "timerpg_physics", "llama", "ggml", "ggml-base", "mtmd",
+                    "timerpg_llm", "timerpg_physics", "timerpg_simjs", "llama", "ggml", "ggml-base", "mtmd",
                     "ggml-cpu-android_armv8.6_1", "ggml-cpu-android_armv8.2_2", "ggml-cpu-android_armv8.0_1",
                 )
                 if (localProps.getProperty("opencl.lib") != null) targets += "ggml-opencl"
@@ -132,6 +135,9 @@ tasks.matching { it.name.startsWith("configureCMake") || it.name.startsWith("bui
         }
         if (!joltDir.resolve("Jolt/Jolt.h").isFile) {
             throw GradleException("Jolt Physics not found at $joltDir. Run kotlin-street/tools/get-jolt.sh, or set jolt.dir=/path/to/JoltPhysics in kotlin-street/local.properties.")
+        }
+        if (!quickjsDir.resolve("quickjs.h").isFile) {
+            throw GradleException("QuickJS-ng not found at $quickjsDir. Run kotlin-street/tools/get-quickjs.sh, or set quickjs.dir=/path/to/quickjs-ng in kotlin-street/local.properties.")
         }
     }
 }

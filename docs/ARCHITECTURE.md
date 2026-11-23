@@ -32,7 +32,8 @@ save / load                       <--> one JSON string
 - Everything crossing the line is a JSON string: no class instances, Maps, Sets or functions.
 - The bundle may not use Node or browser APIs (`fs`, `process`, `Buffer`, timers), `Date.now` or `Math.random`.
 - The game calls it on one background thread, in bursts (after an action, on the hour, while idle), never per frame.
-  QuickJS is roughly 20-50x slower than Node's V8 (an estimate until measured on the S25), so budget accordingly.
+  QuickJS was 1.2-2x slower than Node's V8 on the crime core's smoke workload (measured on the x86 server, not the
+  S25; kotlin-street/docs/LOOP.md, "The JavaScript bridge"); heavier code may widen that, so budget accordingly.
 
 ## Conventions across modules
 
@@ -49,7 +50,7 @@ save / load                       <--> one JSON string
 |---|---|
 | `src/world/gen/`, `src/town/` | baked into assets: in the game |
 | `src/sim/` (people, schedules) | baked into the dialogue and town exports: in the game |
-| `src/crime/`, `src/plan/` | tested; the bridge to the phone is being built now |
+| `src/crime/`, `src/plan/` | tested; run on the phone through the JS bridge (QuickJS-ng, SimJs.kt) |
 | `src/police/` (G009) | in review or in progress; joins the bundle through `src/loop/` |
 | `src/loop/` (G011) | next: the facade the game calls |
 | `src/court/` (G010) | on hold until the loop plays; a fine or a night in a cell stands in |
