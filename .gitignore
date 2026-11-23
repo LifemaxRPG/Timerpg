@@ -33,3 +33,4 @@ kotlin-street/build-town/
 
 # Leftover output of the deleted Capacitor web build (copied LimeZu art, local.properties): never commit
 /android/
+/kotlin-street/.kotlin/
