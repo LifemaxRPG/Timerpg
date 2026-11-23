@@ -78,3 +78,4 @@ row per accepted or revised delivery here, so we can compare cost per finished i
 | G002 ocean r1 | Gemini (AI Studio Build) | engineering, revision | ~14 tool calls, ~14 min | 2 | revise: projection, horizon and swell fixed; day glint is a solid white sheet; small fixes |
 | G002 ocean r2 | Gemini (setting not visible) | engineering, revision | ~38 min push to push; tokens and tool calls not reported | 3 | accepted: waves with form, glint fixed; polish moves to the integration task |
 | C003 ballpark | ChatGPT (Codex, GPT-6 family) | model, 4 states + LODs | 1 turn, ~30 tool calls, ~10 min | 1 | accepted first try |
+| C004 schools | ChatGPT (Codex, GPT-6 family) | model, 4 states + LODs | 1 turn, ~30 tool calls, ~10 min | 1 | revise: abandoned state not abandoned enough, blank flat roofs, eras too alike |
