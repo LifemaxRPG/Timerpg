@@ -72,6 +72,7 @@ object Astc {
      */
     fun encodeChain(px: IntArray, w: Int, h: Int, levels: Int, srgb: Boolean, stats: Stats? = null, level0Only: Boolean = false): ByteBuffer {
         val t0 = System.nanoTime()
+        encoded.incrementAndGet()
         val out = TownMemory.direct(chainBytes(w, h, levels)).order(ByteOrder.LITTLE_ENDIAN)
         var cur = px; var cw = w; var ch = h
         for (l in 0 until levels) {
@@ -90,19 +91,51 @@ object Astc {
         return out
     }
 
+    /** Pictures read back from [TownQuality.astcCache], and pictures encoded (the reports'). */
+    val cacheHits: Int get() = AstcCache.hits.get()
+    val cacheMisses: Int get() = encoded.get()
+    internal val encoded = java.util.concurrent.atomic.AtomicInteger()
+
     /** The time spent encoding since the start, over every thread (the reports'). */
     val nanos = java.util.concurrent.atomic.AtomicLong()
 
-    /** One level into [out] at its position: blocks bottom row first (Filament's v = 0 at the bottom), left to right. */
+    /**
+     * One level into [out] at its position: blocks bottom row first (Filament's v = 0 at the bottom), left to right. A big
+     * level is split into bands of block rows encoded on the common pool at once (the ground's and the atlases' pictures
+     * are made one after another on one worker, on the way to the first view).
+     */
     fun encodeLevel(px: IntArray, w: Int, h: Int, out: ByteBuffer, stats: Stats? = null) {
-        val e = scratch.get()
         val bw = (w + 3) / 4; val bh = (h + 3) / 4
-        val blk = e.blk
         val st = stats ?: Stats()
+        val base = out.position()
+        val bands = if (bw * bh < 8192) 1 else minOf(bh, BANDS)
+        if (bands == 1) { encodeRows(px, w, h, 0, bh, out, st); return }
+        val parts = Array(bands) { Stats() }
+        val tasks = (0 until bands).map { k ->
+            java.util.concurrent.Callable {
+                val o = out.duplicate().order(ByteOrder.LITTLE_ENDIAN)
+                val r0 = bh * k / bands; val r1 = bh * (k + 1) / bands
+                o.position(base + r0 * bw * 16)
+                encodeRows(px, w, h, r0, r1, o, parts[k])
+            }
+        }
+        for (f in java.util.concurrent.ForkJoinPool.commonPool().invokeAll(tasks)) f.get()
+        for (p in parts) st.add(p)
+        out.position(base + bw * bh * 16)
+    }
+
+    /** How many bands a big level is split into. */
+    private val BANDS = maxOf(2, Runtime.getRuntime().availableProcessors())
+
+    /** Block rows [r0] until [r1] of a level into [out] from its position. */
+    private fun encodeRows(px: IntArray, w: Int, h: Int, r0: Int, r1: Int, out: ByteBuffer, st: Stats) {
+        val e = scratch.get()
+        val bw = (w + 3) / 4
+        val blk = e.blk
         // (a run of blocks of one colour, the commonest kind, written once and copied)
         var lastFlat = 0; var haveFlat = false; var flatLo = 0L; var flatHi = 0L
         // (the picture flipped: the texture's row 0 is the picture's last row)
-        for (by in 0 until bh) for (bx in 0 until bw) {
+        for (by in r0 until r1) for (bx in 0 until bw) {
             var flat = true
             for (j in 0 until 16) {
                 val x = minOf(bx * 4 + (j and 3), w - 1)

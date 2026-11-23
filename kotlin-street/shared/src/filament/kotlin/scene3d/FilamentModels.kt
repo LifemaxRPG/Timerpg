@@ -934,7 +934,7 @@ internal object FilamentModels {
         /** Many windows (a tower, a hotel): a share of them lit by the hour ([BuildingMeshes.towerShare]), each window by its own draw. */
         private var tall = false
         /** The mask (made on the engine's thread the first time it is asked for: [Night] itself is made on a worker). */
-        val mask: Texture? by lazy(LazyThreadSafetyMode.NONE) { if (!glows) null else textures.make(StreetTextures.blank(w, h, linear = true, fmt = maskFmt)) }
+        val mask: Texture? by lazy(LazyThreadSafetyMode.NONE) { if (!glows) null else textures.make(StreetTextures.blankShared(w, h, linear = true, fmt = maskFmt)) }
         /**
          * The mask's channels: red (the lamplight) and green (the glass) only, unless some pixel lights in its own colours
          * (rgb and a half alpha) or is the sign's light (blue): the same on screen for half the bytes ([StreetTextures.Fmt]).

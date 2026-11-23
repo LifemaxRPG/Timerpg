@@ -623,7 +623,7 @@ internal class BuildingMeshes(
                 }
             }
             albedo = pic(StreetTextures.prepare(px, w, h, mips = true))
-            mask = pic(StreetTextures.blank(w, h, linear = true, fmt = maskFmt))
+            mask = pic(StreetTextures.blankShared(w, h, linear = true, fmt = maskFmt))
             back = if (sb.house != null) pic(StreetTextures.prepare(plainBack(art, px), w, h, mips = true)) else albedo
         }
 

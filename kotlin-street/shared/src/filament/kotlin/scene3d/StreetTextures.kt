@@ -219,9 +219,16 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
                 if (!again && key in madeKeys) return Prepared(EMPTY, w, h, linear, key, Fmt.ASTC, src = px)
                 // a picture never updated, on a GPU that reads ASTC: encoded here, with its mip levels, on the caller's
                 // thread; kept RGBA8 if fewer of its blocks than [TownQuality.astcExact] would be exact
+                val levels = levelsOf(w, h)
+                val cached = AstcCache.read(key, Astc.chainBytes(w, h, levels))
+                if (cached != null) {
+                    if (cached.second >= TownQuality.astcExact) return Prepared(cached.first, w, h, linear, key, Fmt.ASTC, exact = cached.second)
+                    return Prepared(pack(px, w, h), w, h, linear, key)
+                }
                 val st = Astc.Stats()
-                val buf = Astc.encodeChain(px, w, h, levelsOf(w, h), srgb = !linear, stats = st, level0Only = true)
+                val buf = Astc.encodeChain(px, w, h, levels, srgb = !linear, stats = st, level0Only = true)
                 val share = st.exact.toDouble() / (st.exact + st.near).coerceAtLeast(1)
+                AstcCache.write(key, buf, share)
                 if (share >= TownQuality.astcExact) return Prepared(buf, w, h, linear, key, Fmt.ASTC, exact = share)
             }
             return Prepared(pack(px, w, h), w, h, linear, key)
@@ -278,6 +285,18 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
          */
         fun blank(w: Int, h: Int, linear: Boolean = false, fmt: Fmt = Fmt.RGBA8): Prepared =
             Prepared(TownMemory.direct(w * h * fmt.bytes).order(ByteOrder.nativeOrder()), w, h, linear, null, fmt)
+
+        /**
+         * A blank picture as [blank], for a texture's first image only (a mask made blank and written later through
+         * [update]): its zeros are one buffer shared by all of them, never written, so making it holds no memory of its own
+         * (the town's models' masks once held some 45 MB of zeros at once while the driver had not yet taken them).
+         */
+        fun blankShared(w: Int, h: Int, linear: Boolean = false, fmt: Fmt = Fmt.RGBA8): Prepared {
+            val n = w * h * fmt.bytes
+            val z = synchronized(this) { zeros.takeIf { it.capacity() >= n } ?: ByteBuffer.allocateDirect(maxOf(n, 1 shl 20)).also { zeros = it } }
+            return Prepared(z.duplicate().also { it.position(0); it.limit(n) }.slice().order(ByteOrder.nativeOrder()), w, h, linear, null, fmt)
+        }
+        @Volatile private var zeros: ByteBuffer = ByteBuffer.allocateDirect(1 shl 20)
 
         /** Where pixel [i] of a [w] x [h] picture (rows top first, as ARGB arrays run) starts in a buffer Filament takes ([stride] bytes a pixel). */
         fun offset(i: Int, w: Int, h: Int, stride: Int = 4): Int { val y = i / w; return ((h - 1 - y) * w + (i - y * w)) * stride }
@@ -337,4 +356,52 @@ class GpuBytes {
     val vertices = java.util.concurrent.atomic.AtomicLong(0)
     val indices = java.util.concurrent.atomic.AtomicLong(0)
     fun buffers(vb: Int, ib: Int) { vertices.addAndGet(vb.toLong()); indices.addAndGet(ib.toLong()) }
+}
+
+/**
+ * The town's ASTC pictures kept on disk ([TownQuality.astcCache]; the app's cache folder), by their content: a picture
+ * encoded once is read back at the next start instead of encoded again (the town is the same from start to start). Each
+ * file is the share of exact blocks (a double) and the chain's bytes. Nothing kept: every picture is encoded.
+ */
+internal object AstcCache {
+    /** Pictures read back and written since the start (the reports'). */
+    val hits = java.util.concurrent.atomic.AtomicInteger()
+    val misses = java.util.concurrent.atomic.AtomicInteger()
+
+    private fun file(k: StreetTextures.ContentKey): java.io.File? = TownQuality.astcCache?.let {
+        java.io.File(it, "%08x%016x_%dx%d%s.astc".format(k.a, k.b, k.w, k.h, if (k.linear) "l" else "s"))
+    }
+
+    /** The chain of [bytes] for [k] and its share of exact blocks, or null (not kept, or not the size expected). */
+    fun read(k: StreetTextures.ContentKey, bytes: Int): Pair<ByteBuffer, Double>? {
+        val f = file(k) ?: return null
+        if (f.length() != bytes + 8L) { misses.incrementAndGet(); return null }
+        return try {
+            java.io.RandomAccessFile(f, "r").use { r ->
+                val share = r.readDouble()
+                val buf = TownMemory.direct(bytes).order(ByteOrder.LITTLE_ENDIAN)
+                val ch = r.channel
+                while (buf.hasRemaining()) if (ch.read(buf) < 0) return null
+                buf.flip()
+                hits.incrementAndGet()
+                buf to share
+            }
+        } catch (t: Throwable) { null }
+    }
+
+    /** Keeps [buf] (from its position to its limit, left as it was) for [k]: written aside, then renamed into place. */
+    fun write(k: StreetTextures.ContentKey, buf: ByteBuffer, share: Double) {
+        val f = file(k) ?: return
+        try {
+            f.parentFile?.mkdirs()
+            val tmp = java.io.File(f.parentFile, f.name + "." + Thread.currentThread().id + ".tmp")
+            java.io.RandomAccessFile(tmp, "rw").use { r ->
+                r.setLength(0)
+                r.writeDouble(share)
+                val d = buf.duplicate()
+                while (d.hasRemaining()) r.channel.write(d)
+            }
+            if (!tmp.renameTo(f)) tmp.delete()
+        } catch (t: Throwable) { }
+    }
 }

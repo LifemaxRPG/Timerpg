@@ -85,6 +85,8 @@ object StreetRenderer {
         setBikeFollow(ctx, p.getBoolean("bikeFollow", true))
         setResolution(ctx, p.getFloat("resolution", com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.RES_AUTO))
         setAstc(ctx, p.getBoolean("astc", true))
+        // (the encoded pictures kept from start to start: the next start reads them instead of encoding them again)
+        com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astcCache = java.io.File(ctx.cacheDir, "astc")
     }
 
     /**

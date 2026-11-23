@@ -52,6 +52,8 @@ fun renderFilamentTown(out: String) {
     // the GPU quality settings to render with (-Djvm="-DshadowMap=2048 -Dcascades=4"; the app's defaults otherwise)
     System.getProperty("shadowMap")?.toIntOrNull()?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.shadowMap = it }
     com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astc = System.getProperty("astc") != "0"
+    // (-DastcCache=DIR: the encoded pictures kept there from run to run, as the app keeps them in its cache folder)
+    System.getProperty("astcCache")?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astcCache = File(it) }
     System.getProperty("cascades")?.toIntOrNull()?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.cascades = it }
     val dir = File(out, "filament-town").also { it.mkdirs() }
     val townDir = System.getProperty("town")?.let { File(it) } ?: File("../build-town/gamma")
@@ -618,6 +620,8 @@ private fun coldStart(
     report.appendLine("cold start, " + ft.gpuEstimate(sw, shh).line() + " (shadow map %d x %d cascades)".format(ft.shadowMap, ft.shadowCascades))
     report.appendLine("cold start, the largest textures by size: " + ft.biggestTextures(12))
     report.appendLine("cold start, " + com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.line())
+    report.appendLine("cold start, ASTC: encoding %.1f s over all threads, pictures read from the cache %d, encoded %d".format(
+        com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.nanos.get() / 1e9, com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.cacheHits, com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.cacheMisses))
     report.appendLine("cold start, memory: " + TownMemory.summary() + "; the ground's queue peaked at ${TownMemory.mb(ft.queuedPeak)} MB")
     println("  memory: " + TownMemory.summary())
     // (-DmemOwners: what held the direct buffers at the peak, by the town's code that made them)

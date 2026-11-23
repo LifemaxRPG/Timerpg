@@ -69,6 +69,8 @@ fun renderFilamentOpen(out: String) {
     com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.stats = System.getProperty("texStats") != null
     // (-Dastc=0: the pictures as RGBA8, as before ASTC, to compare)
     com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astc = System.getProperty("astc") != "0"
+    // (-DastcCache=DIR: the encoded pictures kept there from run to run, as the app keeps them in its cache folder)
+    System.getProperty("astcCache")?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astcCache = File(it) }
     System.getProperty("astcExact")?.toDoubleOrNull()?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astcExact = it }
     Filament.init()
     val engine = Engine.Builder().backend(Engine.Backend.OPENGL).config(com.lifemax.rpg.feature.habits.presentation.scene3d.TownEngine.config()).build()
