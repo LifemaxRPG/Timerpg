@@ -573,3 +573,14 @@ way you would in life:
   - **Meeting him alive:** with the machine, the player can go back and meet him while he's living, and perhaps change
     what happened.
   The owner decides the answers.
+- **"Why not just go back before he died?"** (the owner's question). Claude's recommendation: **you can, and that's
+  the hook**, not a loophole to close. Natural barriers make it hard rather than forbidden:
+  - **It costs fuel:** one of your four trips, on a hunch.
+  - **He doesn't know you.** To his past self you're a stranger claiming to be from the future, at his door, knowing
+    his secrets. He may not trust you, may think you're a threat, or may already fear someone is after him.
+  - **The cause of his death is there too:** a killer, a rival, an illness, an accident in the lab.
+  - **Changes ripple.** Save him and the timeline changes: he becomes a companion, but maybe he never writes the
+    letter, or something else takes his place.
+  - Options weighed and not recommended:
+    - a "fixed point" rule (every attempt to save him fails): it fights our systemic, changeable world;
+    - a rule that the machine can't reach before its own first run: it would cut off the eras the game is about.
