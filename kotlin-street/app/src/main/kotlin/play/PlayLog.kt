@@ -75,12 +75,14 @@ object PlayLog {
         val d = com.timerpg.street.shot.Reports.dir(a)
         dir = d
         talkOn = recordTalk(a)
+        // an earlier process's open files: closed as they are (every flushed member is whole) and queued to send. Here,
+        // before this start's upload pass is queued (it ran on the upload thread while this waited on the recorder's
+        // low-priority one: a race the upload could win, leaving the last session's file for the start after)
+        closeOrphans(d)
         val t = HandlerThread("playlog", android.os.Process.THREAD_PRIORITY_BACKGROUND).apply { start() }
         val h = Handler(t.looper)
         handler = h
         h.post {
-            // an earlier process's open files: closed as they are (every flushed member is whole) and queued to send
-            (d.listFiles { f -> f.name.startsWith("open-") } ?: emptyArray()).forEach { f -> runCatching { f.renameTo(File(d, f.name.removePrefix("open-"))) } }
             probes = Probes(a)
             traces = Traces(a, d) { kind, name, value, detail -> event(kind, name, value, detail) }
             begin()
@@ -88,7 +90,26 @@ object PlayLog {
         phase("process.init")
     }
 
+    /** Renames every "open-" file in [d] to its finished name (an earlier process's, which can write no more). */
+    fun closeOrphans(d: File): Int {
+        var n = 0
+        (d.listFiles { f -> f.name.startsWith("open-") } ?: emptyArray()).forEach { f -> if (runCatching { f.renameTo(File(d, f.name.removePrefix("open-"))) }.getOrDefault(false)) n++ }
+        return n
+    }
+
+    /** A session's file names: its first part `<kind>~<date>~<id>`, later parts (after a trip out of sight) `-p<n>`. */
+    fun partName(kind: String, date: String, id: String, part: Int, ext: String): String =
+        "$kind~$date~$id" + (if (part > 1) "-p$part" else "") + ext
+
     // ------------------------------------------------------------------ the session
+
+    /**
+     * The session's current part. A part is closed (and sent) as soon as the game goes out of sight: the session used
+     * to be closed only [SESSION_GAP_MS] later, by which time Android has frozen the cached process (Android 14+) or
+     * Writer mode has closed it, so the timeline went up only at the next start, if ever. Coming back within the gap
+     * goes on in the same session in a new part; the last part's "partEnd" line has the session's patterns so far.
+     */
+    private var part = 1
 
     private fun begin() {
         val d = dir ?: return
@@ -100,9 +121,10 @@ object PlayLog {
         ticks = 0
         patterns = Patterns()
         lastSettings = null; lastAccounts = null
-        val g = GzipJsonl(File(d, "open-play~$date~$id.jsonl.gz"))
+        part = 1
+        val g = GzipJsonl(File(d, "open-" + partName("play", date, id, 1, ".jsonl.gz")))
         gz = g
-        talkFile = File(d, "open-talk~$date~$id.jsonl")
+        talkFile = File(d, "open-" + partName("talk", date, id, 1, ".jsonl"))
         val head = linkedMapOf<String, Any?>("k" to "session", "t" to 0, "id" to id, "start" to TalkTurn.iso(now),
             "app" to com.timerpg.street.shot.DeviceFacts.app(), "screen" to runCatching { com.timerpg.street.shot.DeviceFacts.screen(app!!) }.getOrNull(),
             "traces" to (traces?.supported == true), "recordTalk" to talkOn, "format" to 1)
@@ -111,18 +133,49 @@ object PlayLog {
         com.timerpg.street.shot.Crumbs.add("playtest session $id")
     }
 
+    /** The session is over (out of sight for [SESSION_GAP_MS]): its part, if one is still open, is closed and sent. */
     private fun end() {
+        if (gz != null) {
+            line(com.timerpg.street.shot.Json.write(linkedMapOf("k" to "patterns", "t" to now(), "final" to true, "v" to com.timerpg.street.shot.Json.Raw(patterns.json()))))
+            line(com.timerpg.street.shot.Json.write(linkedMapOf("k" to "end", "t" to now(), "seconds" to ticks)))
+            finishPart()
+            app?.let { PlayUploads.send(it) }
+        }
+        sessionId = null
+    }
+
+    /** The game went out of sight: this part ends now ("partEnd" with the seconds and the patterns so far) and is sent. */
+    private fun closePart() {
+        if (gz == null) return
+        line(com.timerpg.street.shot.Json.write(linkedMapOf("k" to "partEnd", "t" to now(), "part" to part, "seconds" to ticks,
+            "patterns" to com.timerpg.street.shot.Json.Raw(patterns.json()))))
+        finishPart()
+        app?.let { PlayUploads.send(it) }
+    }
+
+    private fun finishPart() {
         val g = gz ?: return
         val d = dir ?: return
-        line(com.timerpg.street.shot.Json.write(linkedMapOf("k" to "patterns", "t" to now(), "final" to true, "v" to com.timerpg.street.shot.Json.Raw(patterns.json()))))
-        line(com.timerpg.street.shot.Json.write(linkedMapOf("k" to "end", "t" to now(), "seconds" to ticks)))
         runCatching { g.flush() }
         gz = null
         runCatching { g.file.renameTo(File(d, g.file.name.removePrefix("open-"))) }
         talkFile?.let { f -> if (f.isFile) runCatching { f.renameTo(File(d, f.name.removePrefix("open-"))) } }
         talkFile = null
-        sessionId = null
-        app?.let { PlayUploads.send(it) }
+    }
+
+    /** Back in sight within the gap: the same session goes on in a new part. */
+    private fun openPart() {
+        val d = dir ?: return
+        val id = sessionId ?: return
+        val date = sessionDate ?: return
+        part++
+        val g = GzipJsonl(File(d, "open-" + partName("play", date, id, part, ".jsonl.gz")))
+        gz = g
+        talkFile = File(d, "open-" + partName("talk", date, id, part, ".jsonl"))
+        g.add(com.timerpg.street.shot.Json.write(linkedMapOf("k" to "part", "t" to now(), "id" to id, "part" to part,
+            "start" to TalkTurn.iso(System.currentTimeMillis()), "format" to 1)) + "\n")
+        g.flush()
+        lastSettings = null; lastAccounts = null
     }
 
     private val endLater = Runnable { if (!foreground) end() }
@@ -143,12 +196,13 @@ object PlayLog {
             foreground = on
             h.removeCallbacks(endLater)
             if (on) {
-                if (gz == null) begin()
+                if (sessionId == null) begin() else if (gz == null) openPart()
                 event("foreground", "in", 1)
                 h.removeCallbacks(tick); h.post(tick)
             } else {
                 event("foreground", "out", 0)
-                runCatching { gz?.flush() }
+                // (closed and sent now, while the process may still run: see [part])
+                closePart()
                 h.postDelayed(endLater, SESSION_GAP_MS)
             }
         }

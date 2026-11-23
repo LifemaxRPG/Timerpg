@@ -13,7 +13,14 @@ class NightJob : JobService() {
     @Volatile private var mine: NightSession? = null
 
     override fun onStartJob(params: JobParameters): Boolean {
-        if (!NightWriter.enabled(this) || NightWriter.gameVisible(this) || NightWriter.session != null || WriterLock.heldElsewhere(this)) return false
+        val no = when {
+            !NightWriter.enabled(this) -> "switched off in the AI panel"
+            NightWriter.gameVisible(this) -> "the game is open"
+            NightWriter.session != null -> null   // (one already writes: nothing to say)
+            WriterLock.heldElsewhere(this) -> "another writer holds the bank"
+            else -> ""
+        }
+        if (no != "") { if (no != null) NightWriter.noteNotStarted(this, "job", no); return false }
         if (NightWriter.startService(this)) return false
         val s = NightWriter.begin(this, "job") { stop -> runCatching { jobFinished(params, false) } } ?: return false
         mine = s

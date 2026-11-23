@@ -115,6 +115,12 @@ data class NightCount(
     val genMs: Long = 0,
     val prefillTokens: Long = 0,
     val prefillMs: Long = 0,
+    /** Lines given up for taking longer than [DialogueEngine.NIGHT_TIMEOUT_MS] (not tried again tonight), and lines the
+     *  model failed on (a native error), with the last such failure in words: both used to be counted nowhere, so a
+     *  writer that timed out on every line showed 0 lines and 0 turned down. */
+    val timedOut: Int = 0,
+    val failed: Int = 0,
+    val lastFailure: String? = null,
 ) {
     val genPerSec: Float get() = if (genMs > 0) genTokens * 1000f / genMs else 0f
     val prefillPerSec: Float get() = if (prefillMs > 0) prefillTokens * 1000f / prefillMs else 0f
@@ -1640,6 +1646,7 @@ class DialogueEngine private constructor(private val app: Context) {
             End.TIMEOUT -> {
                 // overnight: given up for this night only (no one waited for it)
                 if (night && g.listeners.isEmpty() && !g.speed) {
+                    addNight(timedOut = 1, failure = "a line took longer than ${NIGHT_TIMEOUT_MS / 1000} s ($tokens tokens in ${ms / 1000} s) and was given up")
                     if (g.variant) cache.variantFailed(g.key) else lock.withLock { nightSkip += g.key }
                 } else if (++timeouts >= 2 && pregenOff == null) pregenOff = "The model is too slow on this phone to write lines ahead; it only answers when you ask."
                 g.finish(template(topic, "built-in · the AI took too long", info = info("template", "took too long")))
@@ -1649,6 +1656,7 @@ class DialogueEngine private constructor(private val app: Context) {
                 g.finish(template(topic, "built-in"))
             }
             End.ERROR -> {
+                if (night && !g.speed) addNight(failed = 1, failure = "the model failed on a line: ${(error ?: "unknown").take(160)}")
                 g.finish(template(topic, "built-in · the AI failed", info = info("template", "the model failed: ${error ?: "unknown"}")))
                 if (error != null && PROMPT_ERRORS.any { error!!.contains(it) }) {
                     // this prompt will always fail (too long for the context, cannot be tokenized): the template it is,
@@ -1735,8 +1743,9 @@ class DialogueEngine private constructor(private val app: Context) {
             prefillTokens = it.prefillTokens + (st.promptTokens - st.reusedTokens).coerceAtLeast(0), prefillMs = it.prefillMs + st.prefillMs) }
     }
 
-    private fun addNight(lines: Int = 0, variants: Int = 0, rejected: Int = 0) {
-        nightCount.updateAndGet { it.copy(lines = it.lines + lines, variants = it.variants + variants, rejected = it.rejected + rejected) }
+    private fun addNight(lines: Int = 0, variants: Int = 0, rejected: Int = 0, timedOut: Int = 0, failed: Int = 0, failure: String? = null) {
+        nightCount.updateAndGet { it.copy(lines = it.lines + lines, variants = it.variants + variants, rejected = it.rejected + rejected,
+            timedOut = it.timedOut + timedOut, failed = it.failed + failed, lastFailure = failure ?: it.lastFailure) }
     }
 
     private fun stats(b: LlmBackend) {

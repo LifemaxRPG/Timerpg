@@ -173,6 +173,8 @@ object ShotUploader {
                 "screen" to DeviceFacts.screen(app),
                 "device" to DeviceFacts.device(app),
                 "game" to game,
+                // what fails quietly: breadcrumbs, reports waiting and the uploads' last error, the writer, the charger
+                "diagnostics" to runCatching { Diagnostics.collect(app) }.getOrElse { mapOf("error" to it.toString()) },
             )
             val job = Job(enc, note, takenAt, tz, how, sections, raw, marks, bmp.width, bmp.height)
             upload(app, job, retried = false)
@@ -190,7 +192,7 @@ object ShotUploader {
             ShotRequests.shotPath(job.at, job.tz, job.note, job.enc.ext, k)
         }
         if (r.code == -1) { waitForNetwork(app, job, retried); return }
-        if (!ok(r.code)) { toast(app, "Not sent: " + ShotRequests.explain(r.code, r.body)); return }
+        if (!ok(r.code)) { UploadLog.failed(app, path, r.code, r.body); toast(app, "Not sent: " + ShotRequests.explain(r.code, r.body)); return }
         var rawName: String? = null
         if (job.raw != null) {
             val rawPath = ShotMarks.rawPath(path).substringBeforeLast('.') + "." + job.raw.ext
@@ -251,8 +253,8 @@ object ShotUploader {
                 val (r, _) = put(token, ShotRequests.REPORT_BRANCH, path, bytes, "Crash report from the phone: ${path.substringAfterLast('/')}") { k ->
                     path.removeSuffix(".json") + "-${k + 1}.json"
                 }
-                if (ok(r.code)) { f.delete(); sent++ }
-                else { if (!quiet) toast(app, "Crash report not sent: " + ShotRequests.explain(r.code, r.body)); break }
+                if (ok(r.code)) { f.delete(); sent++; UploadLog.ok(app, path, r.code) }
+                else { UploadLog.failed(app, path, r.code, r.body); if (!quiet) toast(app, "Crash report not sent: " + ShotRequests.explain(r.code, r.body)); break }
             }
             if (sent > 0) toast(app, "Sent $sent crash report${if (sent > 1) "s" else ""} to Claude")
         }
@@ -263,15 +265,16 @@ object ShotUploader {
         val app = ctx.applicationContext
         worker.execute {
             ShotSettings.load(app)
-            val token = ShotSettings.token(app) ?: return@execute
-            if (!online(app)) return@execute
+            val waiting = Reports.pendingNight(app).size + Reports.pendingNpu(app).size
+            val token = ShotSettings.token(app) ?: run { if (waiting > 0) UploadLog.skipped(app, "night", "no token"); return@execute }
+            if (!online(app)) { if (waiting > 0) UploadLog.skipped(app, "night", "offline"); return@execute }
             for (f in Reports.pendingNight(app).reversed()) {
                 val path = Reports.remotePath(f)
                 val bytes = runCatching { f.readBytes() }.getOrNull() ?: continue
                 val (r, _) = put(token, ShotRequests.REPORT_BRANCH, path, bytes, "Overnight writer: ${path.removePrefix("night/")}") { k ->
                     path.removeSuffix(".json") + "-${k + 1}.json"
                 }
-                if (ok(r.code)) f.delete() else break
+                if (ok(r.code)) { f.delete(); UploadLog.ok(app, path, r.code) } else { UploadLog.failed(app, path, r.code, r.body); break }
             }
             // the NPU fit test's reports (a test under way keeps its file: sent once it is done, or on the next start)
             for (f in Reports.pendingNpu(app).reversed()) {
@@ -281,7 +284,7 @@ object ShotUploader {
                 val (r, _) = put(token, ShotRequests.REPORT_BRANCH, path, bytes, "NPU fit test: ${path.removePrefix("npu/")}") { k ->
                     path.removeSuffix(".json") + "-${k + 1}.json"
                 }
-                if (ok(r.code)) f.delete() else break
+                if (ok(r.code)) { f.delete(); UploadLog.ok(app, path, r.code) } else { UploadLog.failed(app, path, r.code, r.body); break }
             }
         }
     }
@@ -291,12 +294,14 @@ object ShotUploader {
 
     /** Puts one file at [path] on the reports branch (call on the upload thread). True once it is in the repository. */
     fun putReport(ctx: Context, path: String, bytes: ByteArray, message: String): Boolean {
-        val token = ShotSettings.token(ctx.applicationContext) ?: return false
-        if (!online(ctx)) return false
+        val app = ctx.applicationContext
+        val token = ShotSettings.token(app) ?: run { UploadLog.skipped(app, UploadLog.kindOf(path), "no token"); return false }
+        if (!online(app)) { UploadLog.skipped(app, UploadLog.kindOf(path), "offline"); return false }
         val dot = path.indexOf('.', path.lastIndexOf('/'))
         val (r, _) = put(token, ShotRequests.REPORT_BRANCH, path, bytes, message) { k ->
             if (dot < 0) "$path-${k + 1}" else path.substring(0, dot) + "-${k + 1}" + path.substring(dot)
         }
+        if (ok(r.code)) UploadLog.ok(app, path, r.code) else UploadLog.failed(app, path, r.code, r.body)
         return ok(r.code)
     }
 
@@ -311,6 +316,17 @@ object ShotUploader {
             if (ShotSettings.hasToken) sendNight(app)
             // the playtest recorder's timelines, conversations and traces (on Wi-Fi or charging; traces on both)
             if (ShotSettings.hasToken) com.timerpg.street.play.PlayUploads.send(app)
+            else if (Reports.dir(app).list()?.any { it.startsWith("play~") || it.startsWith("night~") || it.startsWith("crashes~") } == true)
+                UploadLog.skipped(app, "all", "no token")
         }
+        // the writer in its own process stops as the game opens and writes its report as it stops: after this start's
+        // upload, which therefore never saw it (and its own process is cached, frozen by Android, moments after). Once
+        // its lock is free, the reports waiting then go up from here.
+        if (com.timerpg.street.night.WriterLock.heldElsewhere(app)) Thread({
+            com.timerpg.street.night.WriterLock.awaitFree(app, 60_000L)
+            try { Thread.sleep(1500) } catch (e: InterruptedException) { }
+            Crumbs.add("uploads: the writer let go; sending its report")
+            sendNight(app)
+        }, "night-report-wait").apply { isDaemon = true; start() }
     }
 }

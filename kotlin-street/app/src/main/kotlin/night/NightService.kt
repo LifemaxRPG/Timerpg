@@ -41,18 +41,25 @@ class NightService : Service() {
         }
         // (an overnight session already running here: Writer mode takes it over, the model it loaded kept)
         if (writer) NightWriter.session?.takeIf { !it.writer }?.becomeWriter()
+        // (Writer mode asked while an overnight session started a moment before has just stopped, its end not handed over
+        // yet: Writer mode's own session starts rather than nothing, as it used to)
+        if (writer && mine?.done == true) mine = null
         if (mine == null) {
-            val s = NightWriter.begin(this, if (writer) "writer" else "service") { main.post { done() } }
+            var started: NightSession? = null
+            val s = NightWriter.begin(this, if (writer) "writer" else "service") { main.post { done(started) } }
+            started = s
             if (s == null) {
                 // a session already runs (inside the job): this service only keeps the process in the foreground for it
-                NightWriter.session?.let { running -> mine = running; running.onStopped { main.post { done() } } }
-                    ?: done()
+                NightWriter.session?.let { running -> mine = running; running.onStopped { main.post { done(running) } } }
+                    ?: done(null)
             } else mine = s
         }
         return START_NOT_STICKY
     }
 
-    private fun done() {
+    /** [s] stopped (null: nothing to run): the service ends, unless another session has taken its place meanwhile. */
+    private fun done(s: NightSession?) {
+        if (s != null && mine != null && mine !== s) return
         mine = null
         runCatching { if (Build.VERSION.SDK_INT >= 24) stopForeground(STOP_FOREGROUND_REMOVE) else @Suppress("DEPRECATION") stopForeground(true) }
         stopSelf()

@@ -56,6 +56,8 @@ data class WriterView(
     val paused: Boolean = false,
     /** Once stopped: the run in plain words ([NightReport.explain]). */
     val ended: String? = null,
+    /** Why it is or is not writing now, in plain words ([WriterWhy]): shown under the phase while it is not writing. */
+    val why: WriterWhy? = null,
 )
 
 /**
@@ -77,6 +79,8 @@ class NightSession(private val app: Context, how: String, private val onEnd: (Ni
     @Volatile private var stopWith: String? = null
     private val thread = Thread({ runCatching { run() }.onFailure { Crumbs.add("writer failed: $it"); finish(NightStep.Stop("failed: ${it.javaClass.simpleName}", true), null) } }, "night-writer")
     @Volatile private var finished = false
+    /** It has stopped (its end is being handed to the service). */
+    val done: Boolean get() = finished
     private val _view = MutableStateFlow(WriterView(running = true, phase = "Starting…"))
     val view: StateFlow<WriterView> = _view
 
@@ -137,6 +141,16 @@ class NightSession(private val app: Context, how: String, private val onEnd: (Ni
         if (!WriterLock.hold(app)) return finish(NightStep.Stop("another writer is already writing", false), null)
         val battery0 = NightWriter.battery(app)
         val plugged0 = NightWriter.plugged(app)
+        // Writer mode is opened from the game, and the overnight service is started as the game goes out of sight: either
+        // way the game's screen is still leaving the front for a moment, and that is not "the game was opened" (it
+        // stopped at once, with no report, when the game's process still read as visible)
+        run {
+            val until = SystemClock.elapsedRealtime() + GAME_LEAVING_MS
+            while (stopWith == null && NightWriter.gameVisible(app) && SystemClock.elapsedRealtime() < until) {
+                _view.value = _view.value.copy(phase = "Waiting for the game to close…")
+                wakeups.poll(250, TimeUnit.MILLISECONDS)
+            }
+        }
         // nothing loads when it would stop at once (unplugged meanwhile, the game open, tuning)
         (NightRules().step(inputs(), SystemClock.elapsedRealtime()) as? NightStep.Stop)?.let { return finish(it, null) }
 
@@ -168,7 +182,19 @@ class NightSession(private val app: Context, how: String, private val onEnd: (Ni
             // (room for the main model's copy beside it already: the game is left alone)
             val mainFile = com.timerpg.street.dialogue.ModelFiles.file(app).length()
             if (!writer && mainFile > 0 && Ram.freeMb(app) >= com.timerpg.street.dialogue.ModelRoles.needBytes(mainFile, true) shr 20) break
-            if (writer || waited >= NightWriter.GAME_GRACE_MS) { freed = NightWriter.closeGame(app); break }
+            if (writer || waited >= NightWriter.GAME_GRACE_MS) {
+                // the playtest recorder sends the game's timeline as it goes out of sight: a moment for that upload first
+                // (a killed process loses it until the game's next start)
+                // (its part is closed on the game's recorder thread as it goes out of sight: a moment for that too)
+                val w0 = SystemClock.elapsedRealtime()
+                val until = w0 + UPLOAD_WAIT_MS
+                while (stopWith == null && SystemClock.elapsedRealtime() < until &&
+                    (SystemClock.elapsedRealtime() - w0 < 1500 || com.timerpg.street.play.PlayUploads.waiting(app) > 0)) {
+                    _view.value = _view.value.copy(phase = "Letting the game send its playtest timeline…")
+                    wakeups.poll(500, TimeUnit.MILLISECONDS)
+                }
+                freed = NightWriter.closeGame(app); break
+            }
             (NightRules().step(inputs(), SystemClock.elapsedRealtime()) as? NightStep.Stop)?.let { stop(it.reason) }
             _view.value = _view.value.copy(phase = "The game was just closed: its memory is freed in ${WriterLoop.duration(NightWriter.GAME_GRACE_MS - waited)} (you may come back)")
             wakeups.poll(tickMs(), TimeUnit.MILLISECONDS)
@@ -215,6 +241,8 @@ class NightSession(private val app: Context, how: String, private val onEnd: (Ni
         var lastQueue = 0L
         var queue: BankPlan.Queue? = null
         var loaded = false
+        var lastWhy: WriterWhy? = null
+        var lastStatus = 0L
         var stop: NightStep.Stop
         while (true) {
             val now = SystemClock.elapsedRealtime()
@@ -232,10 +260,17 @@ class NightSession(private val app: Context, how: String, private val onEnd: (Ni
             val c = engine.nightCount()
             val bank = engine.bank()
             val elapsed = now - loop.start
+            val why = loop.why(st.rejected)
             val phase = when {
                 step is NightStep.Rest -> if (step.kind == NightStep.Kind.USER) "Paused" else "Resting: ${step.reason}"
-                st.state == ModelState.READY -> engine.nightHeld()?.let { "Held by the engine: $it" } ?: "Writing"
+                st.state == ModelState.READY -> engine.nightHeld()?.let { "Held by the engine: $it" }
+                    ?: if (why.stuck) "Not writing: ${why.reason}" else "Writing"
                 else -> st.detail.ifEmpty { "Loading the model…" }
+            }
+            if (why.state != lastWhy?.state || why.reason != lastWhy?.reason || now - lastStatus > STATUS_MS) {
+                if (why.state != lastWhy?.state) Crumbs.add("writer: ${why.state}: ${why.reason}")
+                lastWhy = why; lastStatus = now
+                status(true, why, c, engine.modelNow())
             }
             _view.value = WriterView(
                 running = true, phase = phase, model = engine.modelNow(), modelDetail = st.detail, working = st.working, progress = st.night?.label,
@@ -244,7 +279,7 @@ class NightSession(private val app: Context, how: String, private val onEnd: (Ni
                 linesPerHour = if (elapsed > 0) (c.lines + c.variants) * 3_600_000.0 / elapsed else 0.0,
                 queue = queue, recent = engine.nightRecent(), thermal = i.thermal, headroom = i.headroom, maxThermal = loop.rules.maxThermal,
                 battery = i.battery, plugged = i.plugged, charging = i.charging, freeMb = MemoryWatch.freeMb.takeIf { it >= 0 } ?: Ram.freeMb(app),
-                thresholdMb = MemoryWatch.thresholdMb, memory = memory, paused = paused,
+                thresholdMb = MemoryWatch.thresholdMb, memory = memory, paused = paused, why = why,
             )
             if (now - lastNotify > NOTIFY_MS) {
                 lastNotify = now
@@ -282,7 +317,8 @@ class NightSession(private val app: Context, how: String, private val onEnd: (Ni
         runCatching { app.unregisterReceiver(receiver) }
         val r = NightReport.Run(
             start = t0, end = System.currentTimeMillis(), how = how, stopReason = stop.reason,
-            lines = c.lines, variants = c.variants, rejected = c.rejected, genTokens = c.genTokens, genMs = c.genMs,
+            lines = c.lines, variants = c.variants, rejected = c.rejected, timedOut = c.timedOut, failed = c.failed, lastFailure = c.lastFailure,
+            genTokens = c.genTokens, genMs = c.genMs,
             prefillTokens = c.prefillTokens, prefillMs = c.prefillMs, writingMs = loop.writingMs,
             coolMs = loop.spent(NightStep.Kind.COOL), hotMs = loop.spent(NightStep.Kind.HOT),
             burstRestMs = loop.spent(NightStep.Kind.BURST), batteryWaitMs = loop.spent(NightStep.Kind.BATTERY),
@@ -303,25 +339,45 @@ class NightSession(private val app: Context, how: String, private val onEnd: (Ni
         if (finished) return
         finished = true
         hold(false)
-        WriterLock.release()
         NightWriter.clearNotification(app)
         Crumbs.add("writer: stop ($how): ${stop.reason}")
-        val explain = r?.let { NightReport.explain(it) } ?: "It stopped: ${stop.reason}."
-        _view.value = _view.value.copy(running = false, phase = "Stopped: ${stop.reason}", ended = explain, working = null)
+        val explain = r?.let { NightReport.explain(it) } ?: "It stopped before writing: ${stop.reason}."
+        _view.value = _view.value.copy(running = false, phase = "Stopped: ${stop.reason}", ended = explain, working = null,
+            why = WriterWhy("stopped", stop.reason))
         NightWriter.lastView = _view.value
-        if (r != null && (r.written > 0 || r.end - r.start > 60_000L || r.how == "writer")) {
+        status(false, WriterWhy(if (r == null) "not-started" else "stopped", if (r == null) stop.reason else explain), r?.let {
+            com.timerpg.street.dialogue.NightCount(lines = it.lines, variants = it.variants, rejected = it.rejected, timedOut = it.timedOut, failed = it.failed)
+        } ?: com.timerpg.street.dialogue.NightCount(), r?.model ?: "")
+        // every run that got as far as the model has its report (a short one too: "0 lines" with its reason is what
+        // tells why), written before the lock goes: the game, opened, reads the bank once the lock is free and sends the
+        // reports waiting then ([com.timerpg.street.shot.ShotUploader.onLaunch]); this process is cached (and frozen by
+        // Android) moments after, so its own upload may not finish
+        if (r != null) {
             val tz = TimeZone.getDefault()
             val json = NightReport.json(r, com.timerpg.street.shot.DeviceFacts.app(), tz)
             NightWriter.saveLast(app, json, NightReport.summary(r, tz))
             Crumbs.add("writer: $explain")
             runCatching { com.timerpg.street.shot.Reports.writeNight(app, NightReport.path(r.start, tz), json) }
-            if (com.timerpg.street.shot.ShotSettings.token(app) != null) com.timerpg.street.shot.ShotUploader.sendNight(app)
+                .onFailure { Crumbs.add("writer: its report could not be written: $it") }
         }
+        WriterLock.release()
+        if (r != null) com.timerpg.street.shot.ShotUploader.sendNight(app)
         onEnd(stop)
         for (l in stopped) runCatching { l() }
     }
 
+    /** The writer's state for the game's process (the AI panel, the screenshot JSON): [NightWriter.saveStatus]. */
+    private fun status(running: Boolean, why: WriterWhy, c: com.timerpg.street.dialogue.NightCount, model: String) =
+        NightWriter.saveStatus(app, WriterStatus(System.currentTimeMillis(), how, running, why.state, why.reason,
+            c.lines, c.variants, c.rejected, c.timedOut, c.failed, model))
+
     companion object {
+        /** Writer mode: how long the game's screen may take to leave the front before it counts as open. */
+        const val GAME_LEAVING_MS = 10_000L
+        /** How long Writer mode lets the game's last playtest upload run before it closes the game's process. */
+        const val UPLOAD_WAIT_MS = 10_000L
+        /** The writer's state is saved for the game's process on every change and at least this often. */
+        const val STATUS_MS = 60_000L
         const val REST = "night-rest"
         const val HOT = "night-hot"
         const val NOTIFY_MS = 15_000L

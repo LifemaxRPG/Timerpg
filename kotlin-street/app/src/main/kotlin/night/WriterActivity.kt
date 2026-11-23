@@ -103,7 +103,10 @@ class WriterActivity : ComponentActivity() {
         ) {
             T("Timerpg Writer", 20.sp)
             T(v?.phase ?: "Not writing", 15.sp, color = if (running) Color(0xFF9FD3FF) else DIM)
+            // why it is not writing, in plain words (a run with no line must never look like one that writes)
+            v?.why?.takeIf { running && it.stuck && v.phase.startsWith("Not writing").not() }?.let { T("Not writing: ${it.reason}", 13.sp, color = Color(0xFFFFC27A)) }
             v?.ended?.let { T(it, 13.sp, color = DIM) }
+            if (v == null) NightWriter.status(ctx)?.let { T(it.line(System.currentTimeMillis()), 12.sp, color = DIM) }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 when {
                     !running -> Chip("Start", true) { start() }
@@ -158,7 +161,10 @@ class WriterActivity : ComponentActivity() {
                 Spacer(Modifier.height(6.dp))
                 T("Written", 15.sp)
                 val c = v.count
-                T("This session: ${c.lines} lines + ${c.variants} variants (${c.rejected} turned down by the check) · ${f1(v.linesPerHour)} lines/hour", 13.sp)
+                T("This session: ${c.lines} lines + ${c.variants} variants (${c.rejected} turned down by the check" +
+                    (if (c.timedOut > 0) ", ${c.timedOut} too slow" else "") + (if (c.failed > 0) ", ${c.failed} failed" else "") +
+                    ") · ${f1(v.linesPerHour)} lines/hour", 13.sp)
+                c.lastFailure?.let { T("Last failure: $it", 12.sp, color = Color(0xFFFFC27A)) }
                 T("Bank: ${v.bankReady} of ${v.bankPrompts} lines ready, ${v.bankLines} with variants" +
                     (if (v.bankLight > 0) " (${v.bankLight} by the light model)" else ""), 12.sp, color = DIM)
                 T("Prefill ${f1(c.prefillPerSec)} tok/s · generation ${f1(c.genPerSec)} tok/s · writing ${WriterLoop.duration(v.writingMs)} of ${WriterLoop.duration(v.elapsedMs)}", 12.sp, color = DIM)
