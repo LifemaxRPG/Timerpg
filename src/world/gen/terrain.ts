@@ -188,7 +188,7 @@ export function makeTerrain(seed: string): Terrain {
   const px: number[] = [], pz: number[] = [], vx: number[] = [], vz: number[] = [];
   for (let k = 0; k < K; k++) { px.push(r() * W); pz.push((0.08 + 0.84 * r()) * H); vx.push(gauss(r)); vz.push(gauss(r)); }
   const maxh: number[] = [];
-  for (let k = 0; k < K * K; k++) maxh.push(1800 + 1800 * r());
+  for (let k = 0; k < K * K; k++) maxh.push(1500 + 1700 * r());
   const rwN = new Lattice(seed, 'rw', 10), ridgeN = new Fbm(seed, 'ridge', 24, 5), hillsN = new Fbm(seed, 'hills', 16, 7);
   const elev = new Float32Array(N);
   const mount = new Float32Array(N);
@@ -205,7 +205,7 @@ export function makeTerrain(seed: string): Terrain {
     const conv = ((vx[p1]! - vx[p2]!) * ddx + (vz[p1]! - vz[p2]!) * ddz) / nn;
     const widthKm = 11 + 17 * rwN.at(x, z);
     const rd = 1 - Math.abs(2 * ridgeN.at(x, z) - 1);
-    const mt = Math.min(Math.max(conv, 0), 1.2) * Math.exp(-(bdKm / widthKm) * (bdKm / widthKm)) * maxh[Math.min(p1, p2) * K + Math.max(p1, p2)]! * (0.35 + 0.9 * rd * rd);
+    const mt = Math.min(Math.max(conv, 0), 1.0) * Math.exp(-(bdKm / widthKm) * (bdKm / widthKm)) * maxh[Math.min(p1, p2) * K + Math.max(p1, p2)]! * (0.3 + 0.7 * rd * rd);
     const hills = hillsN.at(x, z);
     if (land[c]) {
       mount[c] = mt;

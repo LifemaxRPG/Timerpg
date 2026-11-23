@@ -186,44 +186,53 @@ function rainfall(t: Terrain, tempM: Float32Array, current: Float32Array, cont: 
     rec.fill(0);
     for (let j = 0; j < H; j++) {
       const lat = latOf(j + 0.5);
-      const dir = windAt(lat, m);
-      let q = 0;
-      for (let lap = 0; lap < 2; lap++) for (let s = 0; s < W; s++) {
-        const i = dir > 0 ? s : W - 1 - s;
-        const ip = (i - dir + W) % W;
-        const c = j * W + i;
-        if (!land[c]) {
-          const sst = tempM[m * N + c]!;
-          const cap = Math.min(1.3, Math.max(0.05, (sst + 4) / 30));
-          q += (cap - q) * 0.06;
-          continue;
+      // (the share of the row's wind blowing east: the band edges at 30 and 60 deg blend over 12 deg, so no hard lines)
+      const a = Math.abs(lat - shift);
+      const sst = (v: number): number => { const x = Math.max(0, Math.min(1, v)); return x * x * (3 - 2 * x); };
+      const wE = sst((a - 24) / 12) * (1 - sst((a - 54) / 12));
+      for (const dir of [1, -1] as const) {
+        const wgt = dir > 0 ? wE : 1 - wE;
+        if (wgt < 0.005) continue;
+        let q = 0;
+        for (let lap = 0; lap < 2; lap++) for (let s = 0; s < W; s++) {
+          const i = dir > 0 ? s : W - 1 - s;
+          const ip = (i - dir + W) % W;
+          const c = j * W + i;
+          if (!land[c]) {
+            const sstv = tempM[m * N + c]!;
+            const cap = Math.min(1.3, Math.max(0.05, (sstv + 4) / 30));
+            q += (cap - q) * 0.06;
+            continue;
+          }
+          const e = elev[c]!, ep = land[j * W + ip] ? elev[j * W + ip]! : 0;
+          const up = Math.min(1, Math.max(0, (e - ep) / 220));
+          // (rising ground wrings it out; a little falls everywhere, more in the warm months: convection)
+          const T = tempM[m * N + c]!;
+          const rn = q * (0.003 + 0.0025 * Math.min(1, Math.max(0, T / 25)) + 0.35 * up);
+          q -= rn;
+          if (lap) rec[c] += wgt * rn;
         }
-        const e = elev[c]!, ep = land[j * W + ip] ? elev[j * W + ip]! : 0;
-        const up = Math.min(1, Math.max(0, (e - ep) / 220));
-        // (rising ground wrings it out; a little falls everywhere, more in the warm months: convection)
-        const T = tempM[m * N + c]!;
-        const rn = q * (0.003 + 0.0025 * Math.min(1, Math.max(0, T / 25)) + 0.35 * up);
-        q -= rn;
-        if (lap) rec[c] = rn;
       }
     }
-    const sm = blur(rec, 8, 16);
+    const sm = blur(rec, 8, 20);
     for (let j = 0; j < H; j++) {
       const lat = latOf(j + 0.5), le = lat - shift, a = Math.abs(le);
       // the trough (wet), the subtropical highs (dry, sinking air), the storm tracks (wet)
       const band = 0.45 + 1.1 * Math.exp(-((le / 9) * (le / 9))) - 0.42 * Math.exp(-(((a - 28) / 8) * ((a - 28) / 8))) + 0.3 * Math.exp(-(((a - 52) / 10) * ((a - 52) / 10)));
       const summer = Math.max(0, (lat < 0 ? 1 : -1) * declination(m) / TILT); // 1 at midsummer in this hemisphere
       const winter = Math.max(0, (lat < 0 ? -1 : 1) * declination(m) / TILT);
-      const tropic = Math.abs(lat) > 6 && Math.abs(lat) < 32 ? 1 : 0;
+      const al = Math.abs(lat);
+      // (the monsoon's reach fades in and out smoothly: no hard latitude line)
+      const tropic = Math.max(0, Math.min(1, (al - 4) / 6)) * Math.max(0, Math.min(1, (36 - al) / 10));
       for (let i = 0; i < W; i++) {
         const c = j * W + i;
         if (!land[c]) continue;
         let v = sm[c]! * band * (0.75 + 0.5 * vary.at(i + 0.5, j + 0.5)) * 1000;
         // cold currents dry the coast; warm ones wet it
         v *= Math.min(1.6, Math.max(0.35, 1 + 0.09 * current[c]!));
-        if (tropic && bigLand[c]) {
-          const mon = Math.min(1, warmNear[c]! * 4) * Math.exp(-t.distSea[c]! / 350);
-          v = v * (1 - 0.5 * winter * mon) + 260 * summer * summer * mon;
+        if (tropic > 0 && bigLand[c]) {
+          const mon = tropic * Math.min(1, warmNear[c]! * 4) * Math.exp(-t.distSea[c]! / 350);
+          v = v * (1 - 0.5 * winter * mon + 2.2 * summer * summer * mon);
         }
         void cont;
         rainM[m * N + c] = v;
