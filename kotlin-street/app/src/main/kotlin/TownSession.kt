@@ -160,9 +160,12 @@ object TownSession {
         }
         if (far > FAR_SAVE) return
         com.lifemax.rpg.feature.habits.presentation.scene.GameState.dir = if (p.getFloat("dir", 1f) < 0f) -1f else 1f
-        // (both walks: the open world's lands on the clear spot nearest, the street view's on the pavement)
-        TownPlay.placeAt(x, z, p.getFloat("hx", w.hx), p.getFloat("hz", w.hz))
-        com.timerpg.street.shot.Crumbs.add("town: back where the player stood, (${x.toInt()}, ${z.toInt()}), row ${w.row.id} at x ${w.x.toInt()}, lane ${w.lane}")
+        // (both walks: the open world's lands on the clear spot nearest, the street view's on the pavement; a spot the
+        // player could not walk away from, shut in or in something, goes to the nearest street's pavement or the spawn,
+        // and the solids built later round it, the landmarks, stores and farms, are checked again as they come up)
+        val rescued = TownPlay.restoreAt(x, z, p.getFloat("hx", w.hx), p.getFloat("hz", w.hz))
+        com.timerpg.street.shot.Crumbs.add("town: back where the player stood, (${x.toInt()}, ${z.toInt()}), row ${w.row.id} at x ${w.x.toInt()}, lane ${w.lane}" +
+            (rescued?.let { "; $it" } ?: ""))
     }
 
     /** The Filament layer has built the first view ([ms] from making the scene). */

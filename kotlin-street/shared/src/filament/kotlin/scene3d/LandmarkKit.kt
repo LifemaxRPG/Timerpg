@@ -217,6 +217,13 @@ class LandmarkModel(
     val front: Float, val names: List<String>,
     /** Animated nodes split out of static merging (empty for static-only landmarks). */
     val animated: List<AnimatedNodePart> = emptyList(),
+    /**
+     * The building itself in the frame (x0, z0, x1, z1, height): the walls, roofs and glass of the nodes outside the lot
+     * group ([LandmarkSpec.lot]), so a lot's chain-link fence, grandstand or ticket booth (drawn in the same glass and
+     * wall materials) does not stretch it over the whole lot; null if the model has none (the town then takes the
+     * materials' bounds). What the open world's camera cuts away when it stands in the way ([TownLandmark.inWay]).
+     */
+    val body: FloatArray? = null,
 )
 
 object LandmarkKit {
@@ -316,6 +323,13 @@ object LandmarkKit {
         val animAcc = LinkedHashMap<Int, LinkedHashMap<Int, Acc>>()
         val animInv = HashMap<Int, FloatArray>()
         val colTris = ArrayList<FloatArray>()
+        // the building's own box (its walls, roofs and glass outside the lot group), before the lift
+        val body = floatArrayOf(Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE, 0f)
+        fun inBody(n: GlbFile.Node, material: Int): Boolean {
+            val mn = glb.materials.getOrNull(material)?.name ?: return false
+            if (!(mn.startsWith("wall_") || mn.startsWith("roof_") || mn.startsWith("glass_"))) return false
+            return lotNode == null || !glb.under(n, lotNode)
+        }
         val tmp = FloatArray(3)
         for (n in glb.nodes) {
             if (n.mesh < 0) continue
@@ -364,6 +378,10 @@ object LandmarkKit {
                 // a clock's hands turned to the game's time (a working clock: the model draws them at its own time)
                 hands?.turn(n, wp, U)
                 if (col) { colTris += FloatArray(p.idx.size * 3) { k -> wp[p.idx[k / 3] * 3 + k % 3] }; continue }
+                if (inBody(n, p.material)) for (v in 0 until nv) {
+                    body[0] = min(body[0], wp[v * 3]); body[1] = min(body[1], wp[v * 3 + 2])
+                    body[2] = max(body[2], wp[v * 3]); body[3] = max(body[3], wp[v * 3 + 2]); body[4] = max(body[4], wp[v * 3 + 1])
+                }
                 val a = acc.getOrPut(p.material) { Acc() }
                 val base = a.pos.size / 3
                 for (v in 0 until nv) {
@@ -494,7 +512,8 @@ object LandmarkKit {
             LandmarkDoor(n.name, n.x * U, n.z * U, tmp[0] / l, tmp[2] / l)
         }
         val m = CinemaModel(CinemaEra.of(year), parts, floatArrayOf(fx0, fz0, fx1, fz1), top, spec.buildingW * U, spec.buildingD * U, lights)
-        return LandmarkModel(spec, m, clearDoors(solids, doors), doors, front, names, animated)
+        return LandmarkModel(spec, m, clearDoors(solids, doors), doors, front, names, animated,
+            body = if (body[0] < body[2] && body[1] < body[3]) body.also { it[4] += lift } else null)
     }
 
     /**

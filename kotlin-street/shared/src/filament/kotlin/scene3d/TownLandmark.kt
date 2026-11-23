@@ -71,11 +71,14 @@ internal class TownLandmark(
             val lm = LandmarkKit.build(GlbFile.read(bytes()), spec, year, seed, hide = hide, info = info(), clockHours = clockHours())
             val m = lm.model
             val a = frameOf(spec.centre?.let { it * LandmarkKit.UNITS_PER_METRE } ?: ((m.footprint[0] + m.footprint[2]) / 2f), lm.front)
-            // the building: its walls, roofs and glass (not the lot's ground, the signs on poles or the props)
-            val b = floatArrayOf(Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE, 0f)
-            for ((n, p) in lm.names.zip(m.parts)) if (n.startsWith("wall_") || n.startsWith("roof_") || n.startsWith("glass_")) {
-                val q = p.mesh.bounds
-                b[0] = min(b[0], q[0]); b[1] = min(b[1], q[2]); b[2] = max(b[2], q[3]); b[3] = max(b[3], q[5]); b[4] = max(b[4], q[4])
+            // the building: its walls, roofs and glass (not the lot's ground, the signs on poles or the props, nor the lot
+            // group's fences and stands: drawn in the same materials, they would stretch it over the whole lot, and the
+            // camera would cut the whole landmark away, fences and all, while the player walks its grounds)
+            val b = lm.body ?: floatArrayOf(Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE, 0f).also { b ->
+                for ((n, p) in lm.names.zip(m.parts)) if (n.startsWith("wall_") || n.startsWith("roof_") || n.startsWith("glass_")) {
+                    val q = p.mesh.bounds
+                    b[0] = min(b[0], q[0]); b[1] = min(b[1], q[2]); b[2] = max(b[2], q[3]); b[3] = max(b[3], q[5]); b[4] = max(b[4], q[4])
+                }
             }
             val fp = floatArrayOf(m.footprint[0], m.footprint[1], m.footprint[2], m.footprint[3], m.height)
             // (the distant silhouette in the same frame: it shares the model's origin)

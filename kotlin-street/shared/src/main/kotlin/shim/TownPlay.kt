@@ -147,6 +147,22 @@ object TownPlay {
     }
 
     /**
+     * Stands the player where they were last time ([placeAt]), but never somewhere they cannot walk away from: a saved
+     * spot inside something or shut in (no way out over clear ground, as a save from before the town was replanned may
+     * be) goes to the nearest street's pavement, else the spawn ([OpenWalk.rescue]); the solids built after this (the
+     * landmarks, stores and farms) are checked again as they come up. Returns what the rescue did, or null if the spot was
+     * fine.
+     */
+    fun restoreAt(x: Float, z: Float, dx: Float, dz: Float): String? {
+        placeAt(x, z, dx, dz)
+        val o = open ?: return null
+        val what = o.rescue() ?: return null
+        street?.placeAt(o.wx, o.wz, o.hx, o.hz)
+        event("restore: $what")
+        return what
+    }
+
+    /**
      * The walk the chosen view plays ([OrbitCamera.open]); on a switch the player is handed over to it where they stand,
      * facing the way they faced (into the street view: onto the nearest pavement, as its walk places them).
      */
@@ -262,7 +278,9 @@ object TownPlay {
      * writing order goes by it), never at a corner. Breadcrumbs: the row and the yard (area) changes.
      */
     private fun stepOpen(w: OpenWalk, dt: Float): Float {
+        val wasRescued = w.rescued
         w.step(dt)
+        if (w.rescued !== wasRescued) { w.rescued?.let { event("rescue: $it") }; street?.placeAt(w.wx, w.wz, w.hx, w.hz) }
         if (w.row.id != lastRow) {
             lastRow = w.row.id
             rowChanges++

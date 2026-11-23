@@ -84,8 +84,16 @@ class TownCollision private constructor(
                 while (i + 5 < bx.size) { b.box(bx[i], bx[i + 1], bx[i + 2], bx[i + 3], bx[i + 4], bx[i + 5], k, o); i += 6 }
             }
             extra = if (extraSets.isEmpty()) null else b.finishGrid(minX, minZ, cols, rows)
+            extraVersion++
         }
     }
+
+    /**
+     * Counts the changes to the shapes added since ([setExtra]): a walk that placed its player before a landmark, a store
+     * or the farms were up looks again when it changes ([com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk]).
+     */
+    @Volatile var extraVersion = 0
+        private set
 
     /** The doors added since by key ([setExtraDoors]: the stores' entrances), read by [TownDoors]. */
     @Volatile var extraDoors: Array<TownDoor> = emptyArray(); private set
@@ -308,8 +316,50 @@ class TownCollision private constructor(
         return false
     }
 
+    /**
+     * Whether a walker of [radius] at ([x], [z]) is shut in: standing in something, or no way over clear ground (a flood
+     * over cells of [step], finer than a walker so no fence is stepped over) gets [escape] from the spot (a yard with no
+     * gate, a fenced field without one, a slot between buildings). Cheap in the open (it stops as soon as it gets out),
+     * at most a few tens of thousands of [blocked] queries; allocates its own working arrays: for rare checks (a restored
+     * position, solids added round a player just placed), not every frame.
+     */
+    fun boxedIn(x: Float, z: Float, radius: Float, escape: Float = ESCAPE, step: Float = 8f): Boolean {
+        if (blocked(x, z, radius)) return true
+        val half = ceil(escape / step).toInt() + 1
+        val n = half * 2 + 1
+        val seen = java.util.BitSet(n * n)
+        val q = IntArray(n * n)
+        var h = 0; var t = 0
+        val s = half * n + half
+        seen.set(s); q[t++] = s
+        val e2 = escape * escape
+        while (h < t) {
+            val i = q[h++]
+            val c = i % n; val r = i / n
+            for (k in 0 until 4) {
+                val nc = c + (if (k == 0) 1 else if (k == 1) -1 else 0)
+                val nr = r + (if (k == 2) 1 else if (k == 3) -1 else 0)
+                if (nc < 0 || nc >= n || nr < 0 || nr >= n) continue
+                val j = nr * n + nc
+                if (seen[j]) continue
+                seen.set(j)
+                val px = x + (nc - half) * step; val pz = z + (nr - half) * step
+                if (blocked(px, pz, radius)) continue
+                val dx = px - x; val dz = pz - z
+                if (dx * dx + dz * dz >= e2) return false
+                q[t++] = j
+            }
+        }
+        return true
+    }
+
     companion object {
         private const val EPS = .01f
+        /**
+         * How far a walker must be able to get from a spot for it not to count as shut in ([boxedIn], street units: past
+         * the biggest fenced ground a lot has, a landmark's sports field, from its far corner).
+         */
+        const val ESCAPE = 1200f
         /** The grid's cell (street units). */
         const val CELL = 64f
         /** How far past the town's outermost data the world's edge stands (past the fields' first trees). */
