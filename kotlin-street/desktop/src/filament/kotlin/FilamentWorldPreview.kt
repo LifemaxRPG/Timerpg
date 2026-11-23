@@ -180,6 +180,48 @@ internal object WorldPreview {
             shot("w5_4km_far", "the same with the near terrain hidden: the far view alone (W4 with W5a's materials)", eyePose(x, ground(x, z) + 120f * u, z, 135f, 6f, 60f, w, h, reach, u, 600f).also { near.hidden = true }, hour)
             near.hidden = false
         }
+        // 6. mountains: the highest ground in the near terrain (2-8 km out) close up, and the biggest range within 60 km
+        run {
+            fun peak(r0: Double, r1: Double, step: Double): DoubleArray {
+                var best = -1e9; var bx = 0.0; var bz = 0.0
+                var x = -r1
+                while (x <= r1) {
+                    var z = -r1
+                    while (z <= r1) {
+                        val px = mx / u + x; val pz = mz / u + z
+                        val o = plan.outside(px, pz)
+                        if (o in r0..r1) { val y = t.heightLocal(px, pz); if (y > best) { best = y; bx = px; bz = pz } }
+                        z += step
+                    }
+                    x += step
+                }
+                return doubleArrayOf(bx, bz, best)
+            }
+            fun view(name: String, what: String, p: DoubleArray, back: Double, up: Float, hr: Float) {
+                // stand on the town's side of the peak, `back` metres off, `up` metres over the ground
+                val dx = p[0] - mx / u; val dz = p[1] - mz / u; val dl = hypot(dx, dz).coerceAtLeast(1.0)
+                val cx = ((p[0] - dx / dl * back) * u).toFloat(); val cz = ((p[1] - dz / dl * back) * u).toFloat()
+                val ey = ground(cx, cz) + up * u
+                val ty = (p[2] * u).toFloat() * 0.8f + ground(cx, cz) * 0.2f
+                val pitch = -Math.toDegrees(kotlin.math.atan2((ty - ey).toDouble(), back * u)).toFloat()
+                shot(name, what.format(p[2], plan.outside(p[0], p[1]) / 1000), eyePose(cx, ey, cz, yawTo(dx, dz), pitch, 50f, w, h, reach, u, 800f), hr)
+            }
+            val near1 = peak(2000.0, 7800.0, 100.0)
+            view("mtn_near", "the highest ground in the near terrain (%.0f m, %.1f km out), from 1.2 km off, 40 m up", near1, 1200.0, 40f, 9f)
+            view("mtn_near_eve", "the same peak at 17 h", near1, 1200.0, 40f, 17f)
+            val far1 = peak(9000.0, 60000.0, 500.0)
+            // from the town's own edge, 30 m up, with a long lens aimed at the summit
+            run {
+                val dx = far1[0] - mx / u; val dz = far1[1] - mz / u; val dl = hypot(dx, dz)
+                val sx = ((mx / u + dx / dl * 900.0) * u).toFloat(); val sz = ((mz / u + dz / dl * 900.0) * u).toFloat()
+                val ey = ground(sx, sz) + 30f * u
+                for ((nm, fov) in listOf("mtn_range" to 14f, "mtn_range_wide" to 45f)) {
+                    val pitch = -Math.toDegrees(kotlin.math.atan2(far1[2] * u - ey, dl * u)).toFloat() + (if (fov < 20f) 2f else -3f)
+                    shot(nm, "the biggest range within 60 km (%.0f m summit, %.1f km out) from the capital's edge, 30 m up, a %.0f degree lens".format(far1[2], plan.outside(far1[0], far1[1]) / 1000, fov),
+                        eyePose(sx, ey, sz, yawTo(dx, dz), pitch, fov, w, h, reach, u, 800f), 16f)
+                }
+            }
+        }
     }
 
     private fun compass(deg: Double): String = listOf("north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west")[(((deg + 22.5) % 360) / 45).toInt() % 8]
