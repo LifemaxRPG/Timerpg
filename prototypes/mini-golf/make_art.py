@@ -46,17 +46,18 @@ base=(
     ("path","pavement",(166,151,111),"weathered"),
     ("cream","plank_horizontal",(215,201,162),"siding"),
     ("red","roof_tin_red",(171,78,62),"weathered"),
-    ("gold","roof_membrane_ochre",(189,144,75),"weathered"),
+    ("blue","roof_membrane_grey",(63,111,143),"plain"),
     ("water","roof_membrane_green",(66,112,106),"water"),
-    ("trim","roof_membrane_grey",(49,69,59),"plain"),
+    ("trim","roof_membrane_grey",(76,83,79),"weathered"),
 )
 for i,(name,key,hue,mode) in enumerate(base):
     for era,saturation in (("1962",1.0),("1990",.61),("2006",.44)):
         name_out=f"{name}-{era}"
         tone=int(sum(hue)/3)
         target=tuple(round(tone+(c-tone)*saturation-(5 if era=="2006" else 0)) for c in hue)
-        if name in ("yard","course") and era=="2006":
-            target=(101,110,69) if name=="yard" else (86,106,65)
+        if era=="2006":
+            target={"yard":(101,110,69),"course":(86,106,65),"blue":(75,91,87),
+                    "red":(125,93,72),"cream":(177,164,130)}.get(name,target)
         texture(name_out,key,target,736+i*17,"weathered" if era=="2006" and mode=="plain" else mode)
 
 with Image.open(OUT/"course-2006.png") as source:
@@ -64,11 +65,28 @@ with Image.open(OUT/"course-2006.png") as source:
 d=ImageDraw.Draw(worn)
 rng=Random(1956)
 for x,y in ((5,25),(32,11),(47,49),(18,53),(59,22)):
-    for step in range(6):
-        start=round(x+rng.uniform(-2,2))
-        end=min(63,start+rng.randrange(2,9))
-        d.line((start,y+step,end,y+step),fill=rng.choice(("#827957","#858253","#726f48")))
+    trace=[(x,y)]
+    for step in range(1,13):
+        trace.append((min(63,max(0,trace[-1][0]+rng.choice((-2,-1,0,2)))),(y+step)%64))
+    for a,b in zip(trace,trace[1:]):
+        if b[1]>a[1]:
+            d.line((*a,*b),fill="#494e3d")
+            d.line((a[0]+1,a[1],b[0]+1,b[1]),fill="#827957")
+    for k in (4,8):
+        a=trace[k]
+        d.line((*a,a[0]-3,min(63,a[1]+2)),fill="#494e3d")
 save("course-2006",worn)
+
+for year in ("1962","1990","2006"):
+    with Image.open(OUT/f"cream-{year}.png") as source:
+        ball=source.resize((64,64),Image.Resampling.NEAREST).convert("RGB")
+    dots=ImageDraw.Draw(ball)
+    for y in range(3,64,5):
+        for x in range(3+(y%2)*2,64,6):
+            r,g,b=ball.getpixel((x,y))
+            dots.rectangle((x,y,x+1,y+1),fill=(r-23,g-23,b-22))
+            dots.line((x,y+2,x+1,y+2),fill=(min(255,r+12),min(255,g+12),min(255,b+12)))
+    save(f"ball-{year}",ball)
 
 for dark in (False,True):
     im=Image.new("RGBA",(16,16),(48,59,50,255))
@@ -125,7 +143,17 @@ plate("closed",0,96,59,15,"CLOSED","#78634c","#d0b78a")
 plate("tickets",0,114,62,14,"TICKETS","#596e54","#e8cc91")
 plate("exit",66,114,45,14,"STAFF","#596e54","#e8cc91")
 for i in range(18):
-    plate(f"hole_{i+1}",(i%9)*26,136+(i//9)*15,22,13,str(i+1),"#5b7358","#eccd8e")
+    plate(f"hole_{i+1}",(i%9)*26,136+(i//9)*15,16,12,str(i+1),"#5b7358","#eccd8e")
+plate("graffiti",112,69,54,12,"GHOSTS","#777971","#835d73")
+plate("last",104,96,60,12,"LAST PUTT","#4e6b67","#ead49d")
+for i,(name,tint) in enumerate((("rose","#f8a59e"),("mint","#a9dcae"),("amber","#ffd485"),("white","#f2e5ae"))):
+    x=110+i*10
+    y=120
+    regions["lamp_"+name]=[2*x,2*y,16,16]
+    paint.rectangle((x,y,x+7,y+7),fill="#3d4c44")
+    paint.rectangle((x+1,y+1,x+6,y+6),fill=tint)
+    paint.line((x+2,y+1,x+5,y+1),fill="#fff3ce")
+    glow.rectangle((x+1,y+1,x+6,y+6),fill=tint)
 save("signs",image)
 save("sign-mask",emission)
 (OUT/"sign-regions.json").write_text(json.dumps(regions,indent=2)+"\n")

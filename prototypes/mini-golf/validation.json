@@ -1,65 +1,65 @@
 [
   {
     "file": "thimble-trails-1962.glb",
-    "triangles": 3460,
-    "materials": 11,
-    "boxes": 30,
-    "max_uv_error_m": 4.176655498788762e-06
+    "triangles": 9307,
+    "materials": 12,
+    "boxes": 40,
+    "max_uv_error_m": 6.8826053677417676e-06
   },
   {
     "file": "thimble-trails-1962-mid.glb",
-    "triangles": 3234,
-    "materials": 11,
-    "boxes": 30,
-    "max_uv_error_m": 4.176655498788762e-06
+    "triangles": 8052,
+    "materials": 12,
+    "boxes": 40,
+    "max_uv_error_m": 6.8826053677417676e-06
   },
   {
     "file": "thimble-trails-1962-far.glb",
-    "triangles": 2832,
-    "materials": 11,
-    "boxes": 30,
-    "max_uv_error_m": 4.176655498788762e-06
+    "triangles": 7355,
+    "materials": 12,
+    "boxes": 40,
+    "max_uv_error_m": 6.8826053677417676e-06
   },
   {
     "file": "thimble-trails-1990.glb",
-    "triangles": 3468,
-    "materials": 11,
-    "boxes": 30,
-    "max_uv_error_m": 4.176655498788762e-06
+    "triangles": 9307,
+    "materials": 12,
+    "boxes": 40,
+    "max_uv_error_m": 6.8826053677417676e-06
   },
   {
     "file": "thimble-trails-1990-mid.glb",
-    "triangles": 3242,
-    "materials": 11,
-    "boxes": 30,
-    "max_uv_error_m": 4.176655498788762e-06
+    "triangles": 8052,
+    "materials": 12,
+    "boxes": 40,
+    "max_uv_error_m": 6.8826053677417676e-06
   },
   {
     "file": "thimble-trails-1990-far.glb",
-    "triangles": 2840,
-    "materials": 11,
-    "boxes": 30,
-    "max_uv_error_m": 4.176655498788762e-06
+    "triangles": 7355,
+    "materials": 12,
+    "boxes": 40,
+    "max_uv_error_m": 6.8826053677417676e-06
   },
   {
     "file": "thimble-trails-2006.glb",
-    "triangles": 4160,
+    "triangles": 10401,
     "materials": 12,
-    "boxes": 34,
-    "max_uv_error_m": 4.176655498788762e-06
+    "boxes": 45,
+    "max_uv_error_m": 6.8826053677417676e-06
   },
   {
     "file": "thimble-trails-2006-mid.glb",
-    "triangles": 3661,
+    "triangles": 8573,
     "materials": 12,
-    "boxes": 34,
-    "max_uv_error_m": 4.654845362675464e-06
+    "boxes": 45,
+    "max_uv_error_m": 6.8826053677417676e-06
   },
   {
     "file": "thimble-trails-2006-far.glb",
-    "triangles": 3136,
+    "triangles": 7915,
     "materials": 12,
-    "boxes": 34,
-    "max_uv_error_m": 4.176655498788762e-06
+    "boxes": 45,
+    "max_uv_error_m": 6.8826053677417676e-06
   }
 ]
