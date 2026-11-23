@@ -137,8 +137,12 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         day = res.optInt("toDay", day); hour = res.optDouble("toHour", hour)
         lastAdvance = res
         val changes = res.optJSONArray("attitudeChanges") ?: JSONArray()
-        if (res.optInt("daysElapsed", 0) > 0) { attitudes.clear(); facts.clear() }
-        for (k in 0 until changes.length()) changes.getJSONObject(k).optString("personId").let { attitudes.remove(it); facts.remove(it) }
+        // (Jeff's idea: a person's facts are kept until their attitude changes; a new day's gossip can add to what someone
+        // already wary knows without changing their stance, so then everyone cached is looked up again too)
+        val again = HashSet<String>()
+        if (res.optInt("daysElapsed", 0) > 0) again += attitudes.keys
+        for (k in 0 until changes.length()) again += changes.getJSONObject(k).optString("personId")
+        refreshAttitudes(again)
         for (k in 0 until changes.length()) changes.getJSONObject(k).let { c ->
             say("${c.optString("name")}: ${c.optString("previousStance")} -> ${c.optString("newStance")}")
         }
@@ -193,6 +197,11 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         return a
     }
 
+    /** Looks [ids]' attitudes up again (their facts for the dialogue stay current). */
+    private fun refreshAttitudes(ids: Collection<String>) {
+        for (id in ids.toList()) { attitudes.remove(id); if (town.personById.containsKey(id)) attitude(id) else facts.remove(id) }
+    }
+
     /** Looks up the facts of [ids] not cached yet (before a conversation: their dialogue's fact sheet). */
     fun prefetch(ids: Collection<String>) { for (id in ids) if (!facts.containsKey(id) && town.personById.containsKey(id)) attitude(id) }
 
@@ -228,9 +237,12 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val res = JSONObject(call("act", event))
         lastAct = res.put("bystanders", scene.bystanders.size).put("inside", scene.inside)
         // (the witnesses' and the clerk's attitudes may have changed)
-        res.optJSONArray("witnessedBy")?.let { w -> for (k in 0 until w.length()) w.getJSONObject(k).optString("personId").let { attitudes.remove(it); facts.remove(it) } }
-        event.optString("clerkId").takeIf { it.isNotEmpty() }?.let { attitudes.remove(it); facts.remove(it) }
-        event.optString("employerId").takeIf { it.isNotEmpty() }?.let { attitudes.remove(it); facts.remove(it) }
+        val again = HashSet<String>()
+        res.optJSONArray("witnessedBy")?.let { w -> for (k in 0 until w.length()) again += w.getJSONObject(k).optString("personId") }
+        for (k in listOf("clerkId", "employerId", "ownerId")) event.optString(k).takeIf { it.isNotEmpty() }?.let { again += it }
+        // (a shift: the coworkers learn the player's name too)
+        if (event.optString("kind") == "work_shift") town.people.filter { it.workplacePlaceId == event.optString("placeId") }.forEach { again += it.id }
+        refreshAttitudes(again)
         event("act", JSONObject().put("kind", event.optString("kind")).put("place", event.optString("placeId")).put("summary", res.optString("summary"))
             .put("crimeId", res.opt("crimeId")).put("witnessedBy", res.optJSONArray("witnessedBy")).put("bystanders", scene.bystanders.size)
             .put("sighted", scene.bystanders.count { it.los }).put("inside", scene.inside).put("light", scene.light).put("ms", timings["act"]?.first))
@@ -362,7 +374,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val gone = r.optJSONArray("confiscatedItems")?.let { a -> (0 until a.length()).map { a.getString(it) }.toSet() }.orEmpty()
         val lost = items.filter { it.id in gone }
         items.removeAll { it.id in gone }
-        attitudes.clear(); facts.clear()
+        refreshAttitudes(attitudes.keys.toList())
         val jailH = r.optDouble("jailHours", 0.0)
         val before = hour
         // (the facade moves its own clock on by the hours held, without a day's gossip for the days it crosses; its

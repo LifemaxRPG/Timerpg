@@ -161,6 +161,19 @@ class LoopTown(
 
         private fun h(vararg k: Any): Int = k.joinToString("|").hashCode()
 
+        /** The place of cell ([x], [y]) along a Hilbert curve over a 256 x 256 grid (neighbours on it are near). */
+        private fun hilbert(x0: Int, y0: Int): Int {
+            var x = x0.coerceIn(0, 255); var y = y0.coerceIn(0, 255); var d = 0
+            var s = 128
+            while (s > 0) {
+                val rx = if (x and s > 0) 1 else 0; val ry = if (y and s > 0) 1 else 0
+                d += s * s * ((3 * rx) xor ry)
+                if (ry == 0) { if (rx == 1) { x = 255 - x; y = 255 - y }; val t = x; x = y; y = t }
+                s = s shr 1
+            }
+            return d
+        }
+
         /**
          * Builds the loop's town from the town's [street] (street.json v2's root) and [dialogue] (its dialogue.json),
          * with [town] parsed from the same street.json.
@@ -294,10 +307,11 @@ class LoopTown(
                 )
             }
 
-            // ---- the street graph: the town's junctions, numbered in a serpentine order so the facade's patrol beats
+            // ---- the street graph: the town's junctions, numbered along a Hilbert curve so the facade's patrol beats
             // (runs of consecutive node ids) are a few neighbouring corners, not junctions scattered over the town
-            val band = 2600f
-            val sorted = town.nodes.sortedWith(compareBy({ (it.z / band).toInt() }, { n -> if ((n.z / band).toInt() % 2 == 0) n.x else -n.x }))
+            val x0 = town.nodes.minOf { it.x }; val z0 = town.nodes.minOf { it.z }
+            val span = maxOf(town.nodes.maxOf { it.x } - x0, town.nodes.maxOf { it.z } - z0).coerceAtLeast(1f)
+            val sorted = town.nodes.sortedBy { n -> hilbert(((n.x - x0) / span * 255f).toInt(), ((n.z - z0) / span * 255f).toInt()) }
             val nodeId = HashMap<Int, String>()
             val nodes = ArrayList<LoopNode>()
             sorted.forEachIndexed { i, n ->

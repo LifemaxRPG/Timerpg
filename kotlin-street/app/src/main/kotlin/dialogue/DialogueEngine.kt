@@ -266,11 +266,13 @@ class DialogueEngine private constructor(private val app: Context) {
      * can do better, it writes the reply (ahead of any pre-generation), streaming it to [onLine] on the main thread and
      * ending with a [Line.final] line: the model's if it passes the check, else the template.
      */
-    fun ask(npc: Npc, topic: Topic, onLine: (Line) -> Unit): Request {
+    fun ask(npc: Npc, topic0: Topic, onLine: (Line) -> Unit): Request {
+        // what they know of the player from the loop (they saw a theft, heard of it; worked beside them): in the fact sheet
+        val topic = withLoopFacts(npc, topic0)
         val prompt = topic.prompt ?: return Request(template(topic, "built-in"), null)
         val key = keyOf(prompt)
         // small talk after a real conversation: what they would say about it next time (written overnight), once
-        if (topic.intent == "chat") followUp(npc)?.let { return Request(Line(it, ai = true, final = true, note = "AI · ready", info = ReplyInfo("ready", why = "a follow-up")), null, ready = true) }
+        if (topic.intent == "chat" && topic === topic0) followUp(npc)?.let { return Request(Line(it, ai = true, final = true, note = "AI · ready", info = ReplyInfo("ready", why = "a follow-up")), null, ready = true) }
         // (a line written several ways: the next of them, so a repeat visit hears another)
         cache.get(key)?.let { e -> return Request(cache.next(key)?.let { Line(it, ai = true, final = true, note = "AI", info = ReplyInfo("ready")) } ?: lineOf(topic, e), null, ready = e.lines.isNotEmpty()) }
         if (closed || _status.value.state != ModelState.READY)
@@ -305,9 +307,11 @@ class DialogueEngine private constructor(private val app: Context) {
      */
     fun askFree(npc: Npc, said: String, remembered: List<String> = emptyList(), vec: FloatArray? = null, recent: List<String> = emptyList(),
                 onLine: (Line) -> Unit): Pair<Topic, Request>? {
+        // (someone who knows something of the player from the loop answers live, from facts no line written ahead had)
+        val knows = loopFacts?.invoke(npc.id).orEmpty().isNotEmpty()
         // one of the player's frequent questions, answered ahead of time from this person's own facts: that line, if the
         // words are close enough to the theme (same kind of question, same subject: [Themes.match]); else live
-        Themes.match(said, vec, steer.themes)?.let { th ->
+        if (!knows) Themes.match(said, vec, steer.themes)?.let { th ->
             themeAsk(npc, th)?.let { (t, key) ->
                 cache.next(key)?.takeIf { !Dialogue.repeats(it, recent) }?.let { line -> return topicFor(npc, said)!! to Request(Line(line, ai = true, final = true, note = "AI · ready", info = ReplyInfo("ready", why = "a theme you ask about")), null, ready = true) }
             }
@@ -316,13 +320,29 @@ class DialogueEngine private constructor(private val app: Context) {
         // words that plainly ask about one of their topics (their family, their work, the town...): that topic's line written
         // ahead answers at once, while nothing is generated (unless they said it already); small talk and anything else goes
         // to the model live
-        if (topic.intent != "chat" && topic.prompt != null) {
+        if (!knows && topic.intent != "chat" && topic.prompt != null) {
             val k = keyOf(topic.prompt)
             if (cache.get(k)?.lines?.isNotEmpty() == true) cache.next(k)?.takeIf { !Dialogue.repeats(it, recent) }?.let { line ->
                 return topic to Request(Line(line, ai = true, final = true, note = "AI · ready", info = ReplyInfo("ready", why = "their ${topic.intent} line")), null, ready = true)
             }
         }
         return topic to ask(npc, freeTopic(topic, said, remembered, recent), onLine)
+    }
+
+    /**
+     * The loop's facts about the player for a person (kotlin-street/docs/LOOP.md: the facade's `attitude` facts, cached
+     * by LoopSession until their attitude may have changed): added to their fact sheet in every prompt. Set by the app.
+     */
+    @Volatile var loopFacts: ((String) -> List<String>)? = null
+
+    private fun withLoopFacts(npc: Npc, topic: Topic): Topic {
+        val p = topic.prompt ?: return topic
+        val f = loopFacts?.invoke(npc.id).orEmpty().take(6).map { it.replace("<|", "<").replace("|>", ">").replace("\n", " ").take(300) }
+        if (f.isEmpty()) return topic
+        // (a person who knows the player's name from a shift or a sale does not take them for a stranger)
+        val known = if (f.any { it.startsWith("You know this person by name") }) p.replace("The player is a stranger.", "The player is someone you have met.") else p
+        val at = known.indexOf("\nExample of the kind of answer:").takeIf { it >= 0 } ?: known.indexOf("<|im_end|>").takeIf { it >= 0 } ?: return topic
+        return topic.copy(prompt = known.substring(0, at) + "\nWhat you know about the player (\"this person\"):\n" + f.joinToString("\n") + known.substring(at))
     }
 
     /** Where the player is: building [index] (-1 between buildings) of [street]. Re-sorts the pre-generation queue. */

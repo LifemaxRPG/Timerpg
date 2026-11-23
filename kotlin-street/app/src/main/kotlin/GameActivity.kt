@@ -457,6 +457,14 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     // the crossroads is at the far end of the main street, and at the start of the cross street
     GameState.cornerAtEnd = streetNo == 0
     var hour by remember { mutableFloatStateOf(17.6f) }
+    // the first playable loop (docs/LOOP.md, LoopSession): the sim starts with the town; it follows the clock on each
+    // hour crossed, and moves it (a shift, a wait, a night in the cell)
+    LaunchedEffect(townData) { if (townData != null) LoopSession.start(ctx, townData, hour) }
+    LaunchedEffect(engine) { engine.loopFacts = { id -> LoopSession.factsFor(id) } }
+    LaunchedEffect(hour) { if (townMode) LoopSession.clock(hour) }
+    LoopSession.hourSet?.let { h -> LaunchedEffect(h) { hour = h.coerceIn(0f, LAST_MINUTE); LoopSession.hourSet = null } }
+    var loopShop by remember { mutableStateOf(false) }
+    var loopDebug by remember { mutableStateOf(false) }
     var ticketOpen by remember { mutableStateOf(false) }
     var season by remember { mutableIntStateOf(1) }
     var weather by remember { mutableIntStateOf(0) }
@@ -493,6 +501,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             else if (movingNow && now - movedAt > STILL_NS) { movingNow = false; engine.setMoving(false) }
             near = GameState.nearest
             atCorner = GameState.atCorner
+            if (townMode) townPlay.extras = LoopSession.officerFigures(now)
             // the walk round the corner swaps the street in the frame it ends: the HUD, the people, the lines follow
             if (GameState.street != streetNo && !townPlay.active) streetNo = GameState.street
             val w = townPlay.walk
@@ -520,11 +529,20 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     var talk by remember { mutableStateOf<Talk?>(null) }
     var aiPanel by remember { mutableStateOf(false) }
     val here = if (townMode) townHere else street.sprites.getOrNull(near)
-    val atHere = remember(people, here) { people?.at(here).orEmpty() }
+    val loopTown = LoopSession.town
+    val atHere = remember(people, here, loopTown) {
+        val at = people?.at(here).orEmpty()
+        // (a landmark store's clerk, made one by the loop: met there, as the shop's own person)
+        val clerk = here?.let { loopTown?.clerks?.get(it) }?.takeIf { id -> at.none { it.id == id } }
+            ?.let { id -> people?.npcs?.firstOrNull { it.id == id } }?.let { n -> loopTown?.placeBySprite?.get(here)?.let { p -> n.copy(building = here!!, buildingName = p.name) } }
+        if (clerk != null) listOf(clerk) + at else at
+    }
+    LaunchedEffect(atHere) { LoopSession.prefetch(atHere.map { it.id }) }
     // everyone the player can talk to on this street stands at their building (the first of each building's people)
-    LaunchedEffect(people, streetNo, townMode) {
+    LaunchedEffect(people, streetNo, townMode, loopTown) {
         // the town: everyone to talk to stands at their building's door, on the rows round the player
-        townPlay.keepers = if (!townMode) emptyMap() else people?.buildings?.associateWith { sp -> people!!.at(sp).first().id.hashCode() and 0x7fffffff }.orEmpty()
+        townPlay.keepers = if (!townMode) emptyMap() else people?.buildings?.associateWith { sp -> people!!.at(sp).first().id.hashCode() and 0x7fffffff }.orEmpty() +
+            LoopSession.town?.clerks.orEmpty().mapValues { (_, id) -> id.hashCode() and 0x7fffffff }
         // (their sex and age pick their look from the townspeople's sheets)
         townPlay.keeperTraits = if (!townMode) emptyMap() else people?.buildings?.associateWith { sp -> people!!.at(sp).first().let { it.age.coerceAtLeast(0) * 2 + (if (it.female) 1 else 0) } }.orEmpty()
         GameState.keepers = street.sprites.mapIndexedNotNull { i, sp ->
@@ -791,6 +809,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         }
     }
     val keeperSpot = remember(inside) { inside?.keeperSpot() }
+    // the loop's place the player is at: the shop whose room they are in, or whose door they stand at
+    val loopPlace = if (!townMode) null else LoopSession.placeAt(inside?.id ?: townFront ?: townHere)
     var nearKeeper by remember { mutableStateOf(false) }
     LaunchedEffect(inside) {
         while (inside != null) {
@@ -824,6 +844,13 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             }
         }
         if (step < 0) return@LaunchedEffect
+    }
+    LaunchedEffect(townMode) {
+        if (!townMode) return@LaunchedEffect
+        while (true) {
+            kotlinx.coroutines.delay(1000)
+            if (TownSession.ready) LoopSession.lookForPlayer(ctx, hour, inside != null || townPlay.inCar)
+        }
     }
     // the back gesture closes what is open (the crash report, a conversation, the AI panel) or leaves the room; on the street
     // it takes two within two seconds to leave the game. Android holds the edge's back swipe off only over the bottom 200 dp,
@@ -1151,6 +1178,25 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             Text(st.cue + (owners.getOrNull(near)?.takeIf { it.isNotBlank() }?.let { "  ·  $it" } ?: ""), 15.sp,
                 Modifier.align(Alignment.TopCenter).padding(top = 62.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
         }
+        // the loop's shop panel, the last action's line, the arrest card
+        if (loopShop && loopPlace != null && townData != null) LoopShopPanel(loopPlace, townData.town.year, hour, onAction = { what, arg ->
+            val sc = LoopSession.sceneAt(loopPlace, inside, walker.x, walker.y, hour)
+            if (sc != null) when (what) {
+                "buy" -> LoopSession.buy(ctx, loopPlace, arg as com.lifemax.rpg.feature.habits.loop.StockItem, sc, hour)
+                "take" -> LoopSession.take(ctx, loopPlace, arg as com.lifemax.rpg.feature.habits.loop.StockItem, sc, hour)
+                "sell" -> LoopSession.sell(ctx, loopPlace, arg as com.lifemax.rpg.feature.habits.loop.LoopItem, sc, hour)
+                "work" -> LoopSession.work(ctx, loopPlace, sc, hour)
+            }
+            when (what) { "wait" -> LoopSession.waitHours(ctx, 1.0); "sleep" -> LoopSession.sleep(ctx) }
+        }, onClose = { loopShop = false }, modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp, bottom = 40.dp))
+        if (loopPlace == null && loopShop) LaunchedEffect(Unit) { loopShop = false }
+        LoopSession.line?.let { l ->
+            Text(l, 14.sp, Modifier.align(Alignment.BottomCenter).padding(bottom = 140.dp, start = 24.dp, end = 24.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 6.dp))
+            LaunchedEffect(LoopSession.lineAt) { val at = LoopSession.lineAt; kotlinx.coroutines.delay(6000); LoopSession.lineSeen(at) }
+        }
+        // (officers: a label over their heads while they are in view)
+        if (townMode && inside == null) LoopOfficerLabels(frameTick)
+        LoopArrestCard(Modifier.align(Alignment.Center).padding(16.dp))
         // someone to talk to here
         val open = talk
         // the speech bubbles: what the person said back (over their head) and the player's own words (over theirs)
@@ -1179,6 +1225,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     talk?.close(voices)
                     talk = Talk(npc).also { t -> npc.topics.firstOrNull()?.let { t.ask(engine, it, voices) } }
                 }
+                // the loop's shop here (docs/LOOP.md): buy, take, sell, work a shift
+                if (townMode && loopPlace != null && LoopSession.view != null) Chip("🛒 ${loopPlace.name.take(22)}", loopShop) { loopShop = !loopShop; MoveInput.holdUntilNeutral() }
                 if (inside != null) Chip("Leave", false) { doorTo = false to null }
                 else if (roomHere != null) Chip("Go inside", false) { doorTo = true to roomHere }
                 // the depot: the ticket window (docs/RAIL.md)
@@ -1196,7 +1244,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             if (ride != null) RideOverlay(rail, ride, RailTrip.progress, onDone = {
                 // the clock moves on by the trip (the arrival's time of day); the ride's world goes
                 val arrive = ride.route.legs?.lastOrNull()?.arrive
-                if (arrive != null) hour = ((arrive % 1440.0) / 60.0).toFloat()
+                if (arrive != null) { hour = ((arrive % 1440.0) / 60.0).toFloat(); LoopSession.clock(hour, wrap = true) }
                 RailTrip.stop = true
             }, modifier = Modifier.align(Alignment.TopCenter).padding(top = 110.dp))
         }
@@ -1296,6 +1344,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     Text("${townData.town.seed} · ${townData.kind}", 11.sp, color = DIM, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 } else Text("${street.name} · ${data.town}", 14.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             }
+            if (townMode) LoopWallet(loopDebug) { loopDebug = !loopDebug }
+            if (loopDebug && townMode) LoopDebugPanel()
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Chip(aiChipLabel(ai), aiPanel) { aiPanel = !aiPanel }
                 if (orbiting) Chip("Behind me", false) {

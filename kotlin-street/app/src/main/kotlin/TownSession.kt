@@ -128,6 +128,7 @@ object TownSession {
     fun stop(ctx: Context) {
         if (wanted == null) return
         save(ctx)
+        LoopSession.stop(ctx, save = false)
         wanted = null
         TownPlay.stop()
         loaded = null; loading = false; ready = false; progress = 0f; built = false
@@ -144,6 +145,8 @@ object TownSession {
      * next start (after the app was closed or the town switched away and back) begins there, not at the spawn.
      */
     fun save(ctx: Context) {
+        // (the loop's sim, wallet and inventory with it: files/loop/<seed>.json)
+        LoopSession.save(ctx)
         val w = TownPlay.walk ?: return
         // (and where that is on the planet: the world position and the hub's tile, docs/WORLD_GEN.md 1 "Saved positions")
         val world = loaded?.world?.takeIf { loaded?.town === w.town }?.save(w.wx, w.wz)?.encode()
