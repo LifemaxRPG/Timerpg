@@ -158,8 +158,8 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
         const val PULL_OUT = .5f
         /** Seconds the camera takes to stand back for the bike (and in again off it). */
         const val RIDE_EASE = .8f
-        /** In a car the camera stands this many bike-steps back ([OrbitCamera.RIDE_BACK] each). */
-        const val CAR_BACK = 2.6f
+        /** In a car the camera stands this many bike-steps back ([OrbitCamera.RIDE_BACK] each): a little further than on foot. */
+        const val CAR_BACK = .5f
 
         /** The first view waits for the buildings this near the player (street units): the street in view and the next blocks. */
         const val READY_RADIUS = 1800f

@@ -104,6 +104,12 @@ object TownSession {
                 com.timerpg.street.play.PlayLog.spanDone("town.read", loadMs.toDouble(), seed)
                 loaded = d
                 val w = TownPlay.start(d.town, d.collision, d.yards)
+                // the cars (docs/VEHICLES.md): parked for the town's year, on Jolt (null where the physics library does not load)
+                TownPlay.cars?.close()
+                TownPlay.cars = runCatching {
+                    com.lifemax.rpg.feature.habits.vehicle.VehicleWorld.start(d.town, d.collision, d.yards, { p -> runCatching { app.assets.open("vehicles/$p").bufferedReader().use { it.readText() } }.getOrNull() })
+                }.onFailure { com.timerpg.street.shot.Crumbs.add("cars: failed: ${it.javaClass.simpleName}: ${it.message}") }.getOrNull()
+                com.timerpg.street.shot.Crumbs.add("cars: " + (TownPlay.cars?.cars?.joinToString { it.spec.key + " at " + it.spot } ?: "none"))
                 // where the player was last time in this town (the world position), if anywhere
                 restore(app, d.town.seed, w)
                 loading = false

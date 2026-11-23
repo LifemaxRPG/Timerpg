@@ -165,6 +165,8 @@ fun renderFilamentOpen(out: String) {
     while (!run.build(walk.wx, walk.wz, 8f)) Thread.sleep(1)
     val sheets = SpriteSheets.sheets
     val shooter = Shooter(engine, ft)
+    // (-Dcars=1: the cars in the capital instead of the open world's views: FilamentCarsPreview.kt)
+    if (System.getProperty("cars") != null) { renderCarShots(File(out), ft, town, yards, collision, walk, run, shooter, System.getProperty("w")?.toIntOrNull() ?: 1600, (System.getProperty("w")?.toIntOrNull() ?: 1600) * 1080 / 2340); return }
     val only = System.getProperty("shots")?.split(",")?.map { it.trim() }?.toSet()
     fun want(name: String) = only == null || name in only || only.any { name.startsWith(it) }
     val w = (System.getProperty("w")?.toIntOrNull() ?: 2340); val h = w * 1080 / 2340

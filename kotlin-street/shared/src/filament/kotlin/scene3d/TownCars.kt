@@ -55,7 +55,7 @@ internal class TownCars(
     private val tmp = FloatArray(16)
     private var seen: VehicleWorld? = null
 
-    override val pending: Boolean get() = draws.any { !it.ready && it.job != null }
+    override val pending: Boolean get() = cars()?.cars?.any { c -> draws.none { it.car === c && it.ready } } == true
     override val report: String get() = "cars: ${draws.count { it.ready }} of ${draws.size} built, " +
         "${draws.sumOf { it.model?.triangles ?: 0 }} triangles near; physics step ${"%.3f".format(java.util.Locale.ROOT, cars()?.stepMs ?: 0f)} ms, ${cars()?.staticCount ?: 0} streamed statics"
 
@@ -129,6 +129,8 @@ internal class TownCars(
             if (!d.ready || d.model == null) continue
             d.car.pose.read(d.pose)
             val p = d.pose
+            // (the head and tail lights by this frame's darkness, set just now: [VehicleWorld.lights])
+            p.head = d.car.headlights
             val r = d.spec.footprint[0] * VehicleWorld.U + 20f
             val dist = f.pose.distance(p.x, p.y + 30f, p.z)
             val seen = f.pose.sees(p.x, p.y + 30f, p.z, r)

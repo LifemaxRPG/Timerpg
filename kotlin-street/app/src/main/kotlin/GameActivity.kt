@@ -1036,7 +1036,9 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         Box(Modifier.align(Alignment.BottomStart).fillMaxWidth(.45f).height(200.dp).systemGestureExclusion())
         // the bicycle (open world): one tap gets on or off, a long press rings the bell; just right of the stick's corner
         // (which takes a third of the width, at most 300 dp), low, where the left thumb reaches it from the stick
-        if (townMode && StreetRenderer.view == StreetRenderer.OPEN && inside == null && !townLoading && doorTo == null) {
+        // the cars (docs/VEHICLES.md): "Enter" by a parked car's door; in one, the pedals, the handbrake and "Exit"
+        DriveHud(townMode && StreetRenderer.view == StreetRenderer.OPEN && inside == null && !townLoading && doorTo == null && talk == null)
+        if (townMode && StreetRenderer.view == StreetRenderer.OPEN && inside == null && !townLoading && doorTo == null && !com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.inCar) {
             val conf = androidx.compose.ui.platform.LocalConfiguration.current
             val stickW = minOf(conf.screenWidthDp / 3, 300)
             Box(

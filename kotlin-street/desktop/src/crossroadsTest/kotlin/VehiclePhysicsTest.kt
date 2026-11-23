@@ -316,7 +316,7 @@ class VehiclePhysicsTest {
             // the car's middle never inside a building's shape
             if (col.blocked(c.x, c.z, 1f)) maxIn++
         }
-        println("drove into the town for 12 s: %d streamed statics, step %.3f ms (this server), %d bodies".format(vw.staticCount, vw.stepMs, vw.physics.bodies))
+        println("drove into the town for 12 s: %d streamed statics, step %.3f ms (this server), %d bodies; streaming: first %.2f ms, last %.2f ms".format(vw.staticCount, vw.stepMs, vw.physics.bodies, vw.streamMaxMs, vw.streamMs))
         assertTrue("its middle never went into a building or fence (${maxIn} frames)", maxIn < 3)
         vw.close()
     }

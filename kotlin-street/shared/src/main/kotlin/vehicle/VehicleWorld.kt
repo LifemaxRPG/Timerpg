@@ -103,6 +103,9 @@ class VehicleWorld(
     var stepMs = 0f; private set
     var stepsLast = 0; private set
     var staticCount = 0; private set
+    /** The last restream's time (ms) and the longest so far (the first, getting in, adds the most). */
+    var streamMs = 0f; private set
+    var streamMaxMs = 0f; private set
 
     private var acc = 0f
     private val tmp = FloatArray(6)
@@ -135,9 +138,14 @@ class VehicleWorld(
         // the first: the 1950s sedan when the year has it (the one V1 is shown with), else the newest model about
         val order = fits.sortedWith(compareBy<VehicleSpec>({ if (it.key.startsWith("northcairn")) 0 else 1 }, { -it.from }))
         var si = 0; var di = 0
+        val used = ArrayList<VehicleSpots.Spot>()
+        // (no two cars nose to tail: the first one's way along its street stays clear)
+        fun free(sp: VehicleSpots.Spot) = used.none { hypot(it.x - sp.x, it.z - sp.z) < SPACING_M * U }
+        fun nextStreet(): VehicleSpots.Spot? { while (si < street.size) { val sp = street[si++]; if (free(sp)) return sp }; return null }
+        fun nextDrive(): VehicleSpots.Spot? { while (di < drives.size) { val sp = drives[di++]; if (free(sp)) return sp }; return null }
         for ((k, s) in order.withIndex()) {
-            val useDrive = k % 2 == 1 && di < drives.size || si >= street.size
-            val spot = (if (useDrive) drives.getOrNull(di++) else street.getOrNull(si++)) ?: continue
+            val spot = (if (k % 2 == 1) nextDrive() ?: nextStreet() else nextStreet() ?: nextDrive()) ?: continue
+            used += spot
             if (spot.length < s.footprint[0] * 2f * U) continue
             val colour = s.colours[Math.floorMod((town.seed + s.key).hashCode(), s.colours.size)]
             add(s, colour, s.era(year) == VehicleEra.CLASSIC, spot)
@@ -329,6 +337,7 @@ class VehicleWorld(
         val x = c.x; val z = c.z
         if (!force && !streamX.isNaN() && hypot(x - streamX, z - streamZ) < RESTREAM_M * U && col.extraVersion == streamVersion) return
         streamX = x; streamZ = z; streamVersion = col.extraVersion
+        val t0 = System.nanoTime()
         val r = STREAM_M * U
         keepNow.clear()
         col.forEachNear(x - r, z - r, x + r, z + r, tmp) { i, kind, owner, circle, s ->
@@ -342,6 +351,8 @@ class VehicleWorld(
         while (it.hasNext()) { val e = it.next(); if (e.key !in keepNow) { physics.remove(e.value); it.remove() } }
         staticCount = streamed.size
         streamGround(c)
+        val ms = (System.nanoTime() - t0) / 1e6f
+        streamMs = ms; streamMaxMs = max(streamMaxMs, ms)
     }
 
     /** A shape (street units) as a static body: a box or an upright cylinder [heightOf] its kind tall, on the ground. */
@@ -412,6 +423,8 @@ class VehicleWorld(
 
         /** Street units in a metre (the buildings' 0.0388 m texel is 184/224 units). */
         const val U = (184f / 224f) / .0388f
+        /** Parked cars stand at least this far apart (m). */
+        const val SPACING_M = 18f
         /** The physics' fixed step (s). */
         const val STEP = 1f / 60f
         const val MAX_STEPS = 4

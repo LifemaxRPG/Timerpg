@@ -425,6 +425,10 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
                 stores = data.stores, collision = data.collision, rail = data.rail, landmarks = data.landmarks)
             // the farms round the town, their fields as they are today
             farms = data.farmArt?.let { fa -> com.lifemax.rpg.feature.habits.presentation.scene3d.TownFarms.attach(ft, data.farms, fa, data.collision, day = farmDay()) }
+            // the town's cars (docs/VEHICLES.md), drawn from the game's VehicleWorld
+            com.lifemax.rpg.feature.habits.presentation.scene3d.TownCars.attach(ft, { com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.cars }) { p ->
+                runCatching { ctx.assets.open("vehicles/$p").use { it.readBytes() } }.getOrNull()
+            }
             // the world round the town (docs/WORLD_GEN.md W4: the skeleton's far view to the horizon), planned and built on the town's workers
             data.world?.let { w -> com.lifemax.rpg.feature.habits.presentation.scene3d.WorldFar.attach(ft, { w.plan(data.town.year) }, w.origin) }
             town = ft
