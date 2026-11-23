@@ -39,6 +39,10 @@ buildings and read as the same world. This guide is the contract; a model that b
   sign and a 1980s sign; a closed/boarded state; a reuse).
 - **Small-town America,** ordinary scale: it should look like it belongs on a real Main Street or roadside.
 - Signs and lettering are pixel letters on the art-pixel grid, readable, no fonts from outside the art.
+- **Business names are painted by the game per town and owner.** For every sign that shows the business's name, list it in
+  `model-info.json` under `signs`: `id`, `texture`, `rect` [x, y, w, h] in texels, `lines` (1-2), `maxChars`,
+  `face` (era style), `ink`, `paper`, `glow`. Paint a sample name on it for your renders (the game paints over the
+  whole rect). Words that aren't a name (DINER, TICKETS, PAWN, CLOSED) stay baked in the art. Format: docs/SIGNS.md.
 
 ## 3. Technical format (must)
 
