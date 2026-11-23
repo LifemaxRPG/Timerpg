@@ -139,7 +139,6 @@
     "roof_membrane_grey",
     "roof_membrane_green",
     "roof_membrane_tan",
-    "roof_tin_brown",
     "roof_tin_red"
   ],
   "lod_distances_suggested_m": {
@@ -160,7 +159,7 @@
         {
           "file": "cedar-relay-1960.glb",
           "lod": "near",
-          "triangles_visible": 3909,
+          "triangles_visible": 3809,
           "door_nodes_gltf_m": {
             "door_main": [
               0,
@@ -179,126 +178,6 @@
             ]
           },
           "collision_boxes_gltf_m": [
-            {
-              "name": "Parking safety guard",
-              "center_gltf_m": [
-                -33.0,
-                0.5740000000000001,
-                -55.0
-              ],
-              "size_gltf_m": [
-                0.4000000000000057,
-                1.092,
-                0.3400000000000034
-              ],
-              "group": "lot",
-              "attachment": "lot"
-            },
-            {
-              "name": "Parking safety guard",
-              "center_gltf_m": [
-                -33.0,
-                0.5740000000000001,
-                -68.0
-              ],
-              "size_gltf_m": [
-                0.4000000000000057,
-                1.092,
-                0.3400000000000034
-              ],
-              "group": "lot",
-              "attachment": "lot"
-            },
-            {
-              "name": "Parking safety guard",
-              "center_gltf_m": [
-                -33.0,
-                0.5740000000000001,
-                -83.0
-              ],
-              "size_gltf_m": [
-                0.4000000000000057,
-                1.092,
-                0.3400000000000034
-              ],
-              "group": "lot",
-              "attachment": "lot"
-            },
-            {
-              "name": "Parking safety guard",
-              "center_gltf_m": [
-                -33.0,
-                0.5740000000000001,
-                -94.0
-              ],
-              "size_gltf_m": [
-                0.4000000000000057,
-                1.092,
-                0.3400000000000034
-              ],
-              "group": "lot",
-              "attachment": "lot"
-            },
-            {
-              "name": "Parking safety guard",
-              "center_gltf_m": [
-                34.0,
-                0.5740000000000001,
-                -55.0
-              ],
-              "size_gltf_m": [
-                0.4000000000000057,
-                1.092,
-                0.3400000000000034
-              ],
-              "group": "lot",
-              "attachment": "lot"
-            },
-            {
-              "name": "Parking safety guard",
-              "center_gltf_m": [
-                34.0,
-                0.5740000000000001,
-                -68.0
-              ],
-              "size_gltf_m": [
-                0.4000000000000057,
-                1.092,
-                0.3400000000000034
-              ],
-              "group": "lot",
-              "attachment": "lot"
-            },
-            {
-              "name": "Parking safety guard",
-              "center_gltf_m": [
-                34.0,
-                0.5740000000000001,
-                -83.0
-              ],
-              "size_gltf_m": [
-                0.4000000000000057,
-                1.092,
-                0.3400000000000034
-              ],
-              "group": "lot",
-              "attachment": "lot"
-            },
-            {
-              "name": "Parking safety guard",
-              "center_gltf_m": [
-                34.0,
-                0.5740000000000001,
-                -94.0
-              ],
-              "size_gltf_m": [
-                0.4000000000000057,
-                1.092,
-                0.3400000000000034
-              ],
-              "group": "lot",
-              "attachment": "lot"
-            },
             {
               "name": "Scale curb guard",
               "center_gltf_m": [
@@ -375,14 +254,14 @@
               "attachment": "lot"
             },
             {
-              "name": "Dining room ribbon",
+              "name": "Main entrance storefront",
               "center_gltf_m": [
-                -11.9,
+                -10.6,
                 2.25,
                 -0.14
               ],
               "size_gltf_m": [
-                16.2,
+                18.8,
                 4.220000000000001,
                 0.28
               ],
@@ -392,42 +271,12 @@
             {
               "name": "Main entrance storefront",
               "center_gltf_m": [
-                -2.5,
+                10.6,
                 2.25,
                 -0.14
               ],
               "size_gltf_m": [
-                2.5999999999999996,
-                4.220000000000001,
-                0.28
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Main entrance storefront",
-              "center_gltf_m": [
-                2.5,
-                2.25,
-                -0.14
-              ],
-              "size_gltf_m": [
-                2.5999999999999996,
-                4.220000000000001,
-                0.28
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Market storefront",
-              "center_gltf_m": [
-                11.9,
-                2.25,
-                -0.14
-              ],
-              "size_gltf_m": [
-                16.2,
+                18.8,
                 4.220000000000001,
                 0.28
               ],
@@ -508,21 +357,6 @@
               ],
               "group": "building",
               "attachment": ""
-            },
-            {
-              "name": "Service waste container",
-              "center_gltf_m": [
-                17.244999999999997,
-                0.74,
-                -21.79
-              ],
-              "size_gltf_m": [
-                2.09,
-                1.2000000000000002,
-                1.5199999999999996
-              ],
-              "group": "lot",
-              "attachment": "lot"
             },
             {
               "name": "Back-of-house wall",
@@ -645,14 +479,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -2.36
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4400000000000002
               ],
@@ -660,44 +494,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -2.36
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4400000000000002
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -2.36
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.2999999999999998
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -5.12
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4399999999999995
               ],
@@ -705,44 +509,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -5.12
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4399999999999995
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -5.12
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.3000000000000007
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -7.88
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4399999999999995
               ],
@@ -750,76 +524,16 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -7.88
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4399999999999995
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -7.879999999999999
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.2999999999999998
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -10.65
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4400000000000013
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -16.4,
-                0.665,
-                -10.65
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4400000000000013
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -10.65
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.3000000000000007
               ],
               "group": "building",
               "attachment": ""
@@ -1063,6 +777,276 @@
               ],
               "group": "building",
               "attachment": ""
+            },
+            {
+              "name": "Tree trunk",
+              "center_gltf_m": [
+                -54.0,
+                0.9544999999999999,
+                23.37
+              ],
+              "size_gltf_m": [
+                0.29999999999999716,
+                1.851,
+                0.29999999999999716
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Tree trunk",
+              "center_gltf_m": [
+                -51.0,
+                0.9544999999999999,
+                -67.14
+              ],
+              "size_gltf_m": [
+                0.29999999999999716,
+                1.851,
+                0.30000000000001137
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Paired tree trunks",
+              "center_gltf_m": [
+                55.0,
+                0.9544999999999999,
+                -52.355000000000004
+              ],
+              "size_gltf_m": [
+                0.7000000000000028,
+                1.851,
+                1.009999999999998
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back fence",
+              "center_gltf_m": [
+                0.09999999999999787,
+                0.955,
+                -112.64500000000001
+              ],
+              "size_gltf_m": [
+                122.6,
+                1.8499999999999999,
+                0.9299999999999926
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                4.764,
+                -55.6
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2600000000000051
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                4.764,
+                -56.3
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2600000000000051
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                4.764,
+                -78.0
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                4.764,
+                -78.0
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                4.764,
+                -98.8
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                4.764,
+                -98.8
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Ice and newspaper dispensers",
+              "center_gltf_m": [
+                -6.41,
+                1.06,
+                0.85
+              ],
+              "size_gltf_m": [
+                6.02,
+                1.8399999999999999,
+                1.0999999999999999
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Air and water service posts",
+              "center_gltf_m": [
+                44.6575,
+                0.9445,
+                -22.4
+              ],
+              "size_gltf_m": [
+                6.265000000000001,
+                1.8310000000000002,
+                0.8499999999999979
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back service corral",
+              "center_gltf_m": [
+                -15.9,
+                1.0294999999999999,
+                -23.174999999999997
+              ],
+              "size_gltf_m": [
+                7.400000000000002,
+                2.001,
+                3.9499999999999993
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Directional sign stem",
+              "center_gltf_m": [
+                -22.27,
+                1.6195,
+                -18.9
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.181,
+                0.1599999999999966
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Directional sign stem",
+              "center_gltf_m": [
+                25.1,
+                1.6195,
+                -39.2
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.181,
+                0.1599999999999966
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Service bay side wall",
+              "center_gltf_m": [
+                -6.164999999999999,
+                2.7545,
+                -36.7
+              ],
+              "size_gltf_m": [
+                0.27000000000000046,
+                5.4510000000000005,
+                15.8
+              ],
+              "group": "building",
+              "attachment": "era_service_bay"
+            },
+            {
+              "name": "Service bay side wall",
+              "center_gltf_m": [
+                8.465,
+                2.7545,
+                -36.7
+              ],
+              "size_gltf_m": [
+                0.2699999999999996,
+                5.4510000000000005,
+                15.8
+              ],
+              "group": "building",
+              "attachment": "era_service_bay"
+            },
+            {
+              "name": "Workshop rear wall",
+              "center_gltf_m": [
+                1.1500000000000004,
+                2.7045,
+                -44.47
+              ],
+              "size_gltf_m": [
+                14.36,
+                5.351,
+                0.259999999999998
+              ],
+              "group": "building",
+              "attachment": "era_service_bay"
             }
           ],
           "sign_panels": {
@@ -1071,7 +1055,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 254,
@@ -1092,7 +1076,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 130,
@@ -1113,7 +1097,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -1134,7 +1118,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -1155,7 +1139,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -1176,7 +1160,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -1197,7 +1181,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -1218,7 +1202,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -1233,15 +1217,367 @@
               ],
               "width_m": 11.717600000000001,
               "height_m": 3.7248
+            },
+            "sign_price": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                484,
+                192,
+                74
+              ],
+              "bottom_left_gltf_m": [
+                40.6752,
+                8.12,
+                19.442
+              ],
+              "width_m": 7.4496,
+              "height_m": 2.8712
+            },
+            "sign_price_rear": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                484,
+                192,
+                74
+              ],
+              "bottom_left_gltf_m": [
+                48.1248,
+                8.12,
+                18.857999999999997
+              ],
+              "width_m": 7.4496,
+              "height_m": 2.8712
+            },
+            "label_ice": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                696,
+                68,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -6.119199999999999,
+                0.94,
+                1.412
+              ],
+              "width_m": 2.6384,
+              "height_m": 1.0088
+            },
+            "label_news": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                78,
+                696,
+                76,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -9.394400000000001,
+                0.5499999999999998,
+                1.137
+              ],
+              "width_m": 2.9488000000000003,
+              "height_m": 1.0088
+            },
+            "label_air": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                242,
+                696,
+                68,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                41.580799999999996,
+                0.819,
+                -21.962999999999997
+              ],
+              "width_m": 2.6384,
+              "height_m": 1.0088
+            },
+            "label_water": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                320,
+                696,
+                80,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                44.658,
+                0.819,
+                -21.962999999999997
+              ],
+              "width_m": 3.104,
+              "height_m": 1.0088
+            },
+            "sign_route_diesel_arrow": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                566,
+                204,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                -26.2276,
+                1.95,
+                -18.825
+              ],
+              "width_m": 7.9152000000000005,
+              "height_m": 1.2416
+            },
+            "sign_route_trucks_arrow": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                214,
+                566,
+                208,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                21.0648,
+                1.95,
+                -39.125
+              ],
+              "width_m": 8.0704,
+              "height_m": 1.2416
+            },
+            "sign_service_bay": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                608,
+                324,
+                34
+              ],
+              "bottom_left_gltf_m": [
+                -5.1356,
+                4.27,
+                -28.655
+              ],
+              "width_m": 12.571200000000001,
+              "height_m": 1.3192
             }
           },
+          "lights": [
+            {
+              "node": null,
+              "position_gltf_m": [
+                -54.768,
+                6.3100000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -54.768,
+                6.3100000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -43.65,
+                6.3100000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -43.65,
+                6.3100000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -32.532,
+                6.3100000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -32.532,
+                6.3100000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                27.572,
+                4.140000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                27.572,
+                4.140000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                33.2,
+                4.140000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                33.2,
+                4.140000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                38.828,
+                4.140000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                38.828,
+                4.140000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": "flood_01",
+              "position_gltf_m": [
+                -33.06999969482422,
+                9.03,
+                -55.6
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_02",
+              "position_gltf_m": [
+                33.470001220703125,
+                9.03,
+                -56.3
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_03",
+              "position_gltf_m": [
+                -33.06999969482422,
+                9.03,
+                -78
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_04",
+              "position_gltf_m": [
+                33.470001220703125,
+                9.03,
+                -78
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_05",
+              "position_gltf_m": [
+                -33.06999969482422,
+                9.03,
+                -98.8
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_06",
+              "position_gltf_m": [
+                33.470001220703125,
+                9.03,
+                -98.8
+              ],
+              "role": "yard"
+            }
+          ],
           "materials": [
             "detail_cream",
-            "detail_ochre",
             "floor_tile",
             "glass_storefront",
             "ground_asphalt",
-            "ground_paving",
+            "ground_verge",
             "roof_membrane",
             "sign_faces",
             "trim_brand",
@@ -1252,7 +1588,7 @@
         {
           "file": "cedar-relay-1960-mid.glb",
           "lod": "mid",
-          "triangles_visible": 3513,
+          "triangles_visible": 3767,
           "door_nodes_gltf_m": {
             "door_main": [
               0,
@@ -1347,14 +1683,14 @@
               "attachment": "lot"
             },
             {
-              "name": "Dining room ribbon",
+              "name": "Main entrance storefront",
               "center_gltf_m": [
-                -11.9,
+                -10.6,
                 2.25,
                 -0.14
               ],
               "size_gltf_m": [
-                16.2,
+                18.8,
                 4.220000000000001,
                 0.28
               ],
@@ -1364,42 +1700,12 @@
             {
               "name": "Main entrance storefront",
               "center_gltf_m": [
-                -2.5,
+                10.6,
                 2.25,
                 -0.14
               ],
               "size_gltf_m": [
-                2.5999999999999996,
-                4.220000000000001,
-                0.28
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Main entrance storefront",
-              "center_gltf_m": [
-                2.5,
-                2.25,
-                -0.14
-              ],
-              "size_gltf_m": [
-                2.5999999999999996,
-                4.220000000000001,
-                0.28
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Market storefront",
-              "center_gltf_m": [
-                11.9,
-                2.25,
-                -0.14
-              ],
-              "size_gltf_m": [
-                16.2,
+                18.8,
                 4.220000000000001,
                 0.28
               ],
@@ -1480,21 +1786,6 @@
               ],
               "group": "building",
               "attachment": ""
-            },
-            {
-              "name": "Service waste container",
-              "center_gltf_m": [
-                17.244999999999997,
-                0.74,
-                -21.79
-              ],
-              "size_gltf_m": [
-                2.09,
-                1.2000000000000002,
-                1.5199999999999996
-              ],
-              "group": "lot",
-              "attachment": "lot"
             },
             {
               "name": "Back-of-house wall",
@@ -1617,14 +1908,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -2.36
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4400000000000002
               ],
@@ -1632,44 +1923,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -2.36
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4400000000000002
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -2.36
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.2999999999999998
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -5.12
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4399999999999995
               ],
@@ -1677,44 +1938,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -5.12
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4399999999999995
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -5.12
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.3000000000000007
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -7.88
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4399999999999995
               ],
@@ -1722,76 +1953,16 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -7.88
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4399999999999995
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -7.879999999999999
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.2999999999999998
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -10.65
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4400000000000013
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -16.4,
-                0.665,
-                -10.65
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4400000000000013
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -10.65
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.3000000000000007
               ],
               "group": "building",
               "attachment": ""
@@ -2035,6 +2206,276 @@
               ],
               "group": "building",
               "attachment": ""
+            },
+            {
+              "name": "Tree trunk",
+              "center_gltf_m": [
+                -54.0,
+                0.9544999999999999,
+                23.37
+              ],
+              "size_gltf_m": [
+                0.29999999999999716,
+                1.851,
+                0.29999999999999716
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Tree trunk",
+              "center_gltf_m": [
+                -51.0,
+                0.9544999999999999,
+                -67.14
+              ],
+              "size_gltf_m": [
+                0.29999999999999716,
+                1.851,
+                0.30000000000001137
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Paired tree trunks",
+              "center_gltf_m": [
+                55.0,
+                0.9544999999999999,
+                -52.355000000000004
+              ],
+              "size_gltf_m": [
+                0.7000000000000028,
+                1.851,
+                1.009999999999998
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back fence",
+              "center_gltf_m": [
+                0.09999999999999787,
+                0.955,
+                -112.64500000000001
+              ],
+              "size_gltf_m": [
+                122.6,
+                1.8499999999999999,
+                0.9299999999999926
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                4.764,
+                -55.6
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2600000000000051
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                4.764,
+                -56.3
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2600000000000051
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                4.764,
+                -78.0
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                4.764,
+                -78.0
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                4.764,
+                -98.8
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                4.764,
+                -98.8
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Ice and newspaper dispensers",
+              "center_gltf_m": [
+                -6.41,
+                1.06,
+                0.85
+              ],
+              "size_gltf_m": [
+                6.02,
+                1.8399999999999999,
+                1.0999999999999999
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Air and water service posts",
+              "center_gltf_m": [
+                44.6575,
+                0.9445,
+                -22.4
+              ],
+              "size_gltf_m": [
+                6.265000000000001,
+                1.8310000000000002,
+                0.8499999999999979
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back service corral",
+              "center_gltf_m": [
+                -15.9,
+                1.0294999999999999,
+                -23.174999999999997
+              ],
+              "size_gltf_m": [
+                7.400000000000002,
+                2.001,
+                3.9499999999999993
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Directional sign stem",
+              "center_gltf_m": [
+                -22.27,
+                1.6195,
+                -18.9
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.181,
+                0.1599999999999966
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Directional sign stem",
+              "center_gltf_m": [
+                25.1,
+                1.6195,
+                -39.2
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.181,
+                0.1599999999999966
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Service bay side wall",
+              "center_gltf_m": [
+                -6.164999999999999,
+                2.7545,
+                -36.7
+              ],
+              "size_gltf_m": [
+                0.27000000000000046,
+                5.4510000000000005,
+                15.8
+              ],
+              "group": "building",
+              "attachment": "era_service_bay"
+            },
+            {
+              "name": "Service bay side wall",
+              "center_gltf_m": [
+                8.465,
+                2.7545,
+                -36.7
+              ],
+              "size_gltf_m": [
+                0.2699999999999996,
+                5.4510000000000005,
+                15.8
+              ],
+              "group": "building",
+              "attachment": "era_service_bay"
+            },
+            {
+              "name": "Workshop rear wall",
+              "center_gltf_m": [
+                1.1500000000000004,
+                2.7045,
+                -44.47
+              ],
+              "size_gltf_m": [
+                14.36,
+                5.351,
+                0.259999999999998
+              ],
+              "group": "building",
+              "attachment": "era_service_bay"
             }
           ],
           "sign_panels": {
@@ -2043,7 +2484,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 254,
@@ -2064,7 +2505,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 130,
@@ -2085,7 +2526,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -2106,7 +2547,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -2127,7 +2568,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -2148,7 +2589,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -2169,7 +2610,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -2190,7 +2631,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -2205,15 +2646,367 @@
               ],
               "width_m": 11.717600000000001,
               "height_m": 3.7248
+            },
+            "sign_price": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                484,
+                192,
+                74
+              ],
+              "bottom_left_gltf_m": [
+                40.6752,
+                8.12,
+                19.442
+              ],
+              "width_m": 7.4496,
+              "height_m": 2.8712
+            },
+            "sign_price_rear": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                484,
+                192,
+                74
+              ],
+              "bottom_left_gltf_m": [
+                48.1248,
+                8.12,
+                18.857999999999997
+              ],
+              "width_m": 7.4496,
+              "height_m": 2.8712
+            },
+            "label_ice": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                696,
+                68,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -6.119199999999999,
+                0.94,
+                1.412
+              ],
+              "width_m": 2.6384,
+              "height_m": 1.0088
+            },
+            "label_news": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                78,
+                696,
+                76,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -9.394400000000001,
+                0.5499999999999998,
+                1.137
+              ],
+              "width_m": 2.9488000000000003,
+              "height_m": 1.0088
+            },
+            "label_air": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                242,
+                696,
+                68,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                41.580799999999996,
+                0.819,
+                -21.962999999999997
+              ],
+              "width_m": 2.6384,
+              "height_m": 1.0088
+            },
+            "label_water": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                320,
+                696,
+                80,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                44.658,
+                0.819,
+                -21.962999999999997
+              ],
+              "width_m": 3.104,
+              "height_m": 1.0088
+            },
+            "sign_route_diesel_arrow": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                566,
+                204,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                -26.2276,
+                1.95,
+                -18.825
+              ],
+              "width_m": 7.9152000000000005,
+              "height_m": 1.2416
+            },
+            "sign_route_trucks_arrow": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                214,
+                566,
+                208,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                21.0648,
+                1.95,
+                -39.125
+              ],
+              "width_m": 8.0704,
+              "height_m": 1.2416
+            },
+            "sign_service_bay": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                608,
+                324,
+                34
+              ],
+              "bottom_left_gltf_m": [
+                -5.1356,
+                4.27,
+                -28.655
+              ],
+              "width_m": 12.571200000000001,
+              "height_m": 1.3192
             }
           },
+          "lights": [
+            {
+              "node": null,
+              "position_gltf_m": [
+                -54.768,
+                6.3100000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -54.768,
+                6.3100000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -43.65,
+                6.3100000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -43.65,
+                6.3100000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -32.532,
+                6.3100000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -32.532,
+                6.3100000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                27.572,
+                4.140000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                27.572,
+                4.140000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                33.2,
+                4.140000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                33.2,
+                4.140000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                38.828,
+                4.140000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                38.828,
+                4.140000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": "flood_01",
+              "position_gltf_m": [
+                -33.06999969482422,
+                9.03,
+                -55.6
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_02",
+              "position_gltf_m": [
+                33.470001220703125,
+                9.03,
+                -56.3
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_03",
+              "position_gltf_m": [
+                -33.06999969482422,
+                9.03,
+                -78
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_04",
+              "position_gltf_m": [
+                33.470001220703125,
+                9.03,
+                -78
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_05",
+              "position_gltf_m": [
+                -33.06999969482422,
+                9.03,
+                -98.8
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_06",
+              "position_gltf_m": [
+                33.470001220703125,
+                9.03,
+                -98.8
+              ],
+              "role": "yard"
+            }
+          ],
           "materials": [
             "detail_cream",
-            "detail_ochre",
             "floor_tile",
             "glass_storefront",
             "ground_asphalt",
-            "ground_paving",
+            "ground_verge",
             "roof_membrane",
             "sign_faces",
             "trim_brand",
@@ -2224,7 +3017,7 @@
         {
           "file": "cedar-relay-1960-far.glb",
           "lod": "far",
-          "triangles_visible": 2697,
+          "triangles_visible": 3323,
           "door_nodes_gltf_m": {
             "door_main": [
               0,
@@ -2319,14 +3112,14 @@
               "attachment": "lot"
             },
             {
-              "name": "Dining room ribbon",
+              "name": "Main entrance storefront",
               "center_gltf_m": [
-                -11.9,
+                -10.6,
                 2.25,
                 -0.14
               ],
               "size_gltf_m": [
-                16.2,
+                18.8,
                 4.220000000000001,
                 0.28
               ],
@@ -2336,42 +3129,12 @@
             {
               "name": "Main entrance storefront",
               "center_gltf_m": [
-                -2.5,
+                10.6,
                 2.25,
                 -0.14
               ],
               "size_gltf_m": [
-                2.5999999999999996,
-                4.220000000000001,
-                0.28
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Main entrance storefront",
-              "center_gltf_m": [
-                2.5,
-                2.25,
-                -0.14
-              ],
-              "size_gltf_m": [
-                2.5999999999999996,
-                4.220000000000001,
-                0.28
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Market storefront",
-              "center_gltf_m": [
-                11.9,
-                2.25,
-                -0.14
-              ],
-              "size_gltf_m": [
-                16.2,
+                18.8,
                 4.220000000000001,
                 0.28
               ],
@@ -2452,21 +3215,6 @@
               ],
               "group": "building",
               "attachment": ""
-            },
-            {
-              "name": "Service waste container",
-              "center_gltf_m": [
-                17.244999999999997,
-                0.74,
-                -21.79
-              ],
-              "size_gltf_m": [
-                2.09,
-                1.2000000000000002,
-                1.5199999999999996
-              ],
-              "group": "lot",
-              "attachment": "lot"
             },
             {
               "name": "Back-of-house wall",
@@ -2589,14 +3337,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -2.36
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4400000000000002
               ],
@@ -2604,44 +3352,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -2.36
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4400000000000002
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -2.36
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.2999999999999998
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -5.12
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4399999999999995
               ],
@@ -2649,44 +3367,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -5.12
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4399999999999995
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -5.12
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.3000000000000007
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -7.88
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4399999999999995
               ],
@@ -2694,76 +3382,16 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -7.88
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4399999999999995
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -7.879999999999999
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.2999999999999998
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -10.65
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4400000000000013
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -16.4,
-                0.665,
-                -10.65
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4400000000000013
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -10.65
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.3000000000000007
               ],
               "group": "building",
               "attachment": ""
@@ -3007,6 +3635,276 @@
               ],
               "group": "building",
               "attachment": ""
+            },
+            {
+              "name": "Tree trunk",
+              "center_gltf_m": [
+                -54.0,
+                0.9544999999999999,
+                23.37
+              ],
+              "size_gltf_m": [
+                0.29999999999999716,
+                1.851,
+                0.29999999999999716
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Tree trunk",
+              "center_gltf_m": [
+                -51.0,
+                0.9544999999999999,
+                -67.14
+              ],
+              "size_gltf_m": [
+                0.29999999999999716,
+                1.851,
+                0.30000000000001137
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Paired tree trunks",
+              "center_gltf_m": [
+                55.0,
+                0.9544999999999999,
+                -52.355000000000004
+              ],
+              "size_gltf_m": [
+                0.7000000000000028,
+                1.851,
+                1.009999999999998
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back fence",
+              "center_gltf_m": [
+                0.09999999999999787,
+                0.955,
+                -112.64500000000001
+              ],
+              "size_gltf_m": [
+                122.6,
+                1.8499999999999999,
+                0.9299999999999926
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                4.764,
+                -55.6
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2600000000000051
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                4.764,
+                -56.3
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2600000000000051
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                4.764,
+                -78.0
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                4.764,
+                -78.0
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                4.764,
+                -98.8
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                4.764,
+                -98.8
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                9.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Ice and newspaper dispensers",
+              "center_gltf_m": [
+                -6.41,
+                1.06,
+                0.85
+              ],
+              "size_gltf_m": [
+                6.02,
+                1.8399999999999999,
+                1.0999999999999999
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Air and water service posts",
+              "center_gltf_m": [
+                44.6575,
+                0.9445,
+                -22.4
+              ],
+              "size_gltf_m": [
+                6.265000000000001,
+                1.8310000000000002,
+                0.8499999999999979
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back service corral",
+              "center_gltf_m": [
+                -15.9,
+                1.0294999999999999,
+                -23.174999999999997
+              ],
+              "size_gltf_m": [
+                7.400000000000002,
+                2.001,
+                3.9499999999999993
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Directional sign stem",
+              "center_gltf_m": [
+                -22.27,
+                1.6195,
+                -18.9
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.181,
+                0.1599999999999966
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Directional sign stem",
+              "center_gltf_m": [
+                25.1,
+                1.6195,
+                -39.2
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.181,
+                0.1599999999999966
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Service bay side wall",
+              "center_gltf_m": [
+                -6.164999999999999,
+                2.7545,
+                -36.7
+              ],
+              "size_gltf_m": [
+                0.27000000000000046,
+                5.4510000000000005,
+                15.8
+              ],
+              "group": "building",
+              "attachment": "era_service_bay"
+            },
+            {
+              "name": "Service bay side wall",
+              "center_gltf_m": [
+                8.465,
+                2.7545,
+                -36.7
+              ],
+              "size_gltf_m": [
+                0.2699999999999996,
+                5.4510000000000005,
+                15.8
+              ],
+              "group": "building",
+              "attachment": "era_service_bay"
+            },
+            {
+              "name": "Workshop rear wall",
+              "center_gltf_m": [
+                1.1500000000000004,
+                2.7045,
+                -44.47
+              ],
+              "size_gltf_m": [
+                14.36,
+                5.351,
+                0.259999999999998
+              ],
+              "group": "building",
+              "attachment": "era_service_bay"
             }
           ],
           "sign_panels": {
@@ -3015,7 +3913,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 254,
@@ -3036,7 +3934,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 130,
@@ -3057,7 +3955,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -3078,7 +3976,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -3099,7 +3997,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -3120,7 +4018,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -3141,7 +4039,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -3162,7 +4060,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -3177,15 +4075,367 @@
               ],
               "width_m": 11.717600000000001,
               "height_m": 3.7248
+            },
+            "sign_price": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                484,
+                192,
+                74
+              ],
+              "bottom_left_gltf_m": [
+                40.6752,
+                8.12,
+                19.442
+              ],
+              "width_m": 7.4496,
+              "height_m": 2.8712
+            },
+            "sign_price_rear": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                484,
+                192,
+                74
+              ],
+              "bottom_left_gltf_m": [
+                48.1248,
+                8.12,
+                18.857999999999997
+              ],
+              "width_m": 7.4496,
+              "height_m": 2.8712
+            },
+            "label_ice": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                696,
+                68,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -6.119199999999999,
+                0.94,
+                1.412
+              ],
+              "width_m": 2.6384,
+              "height_m": 1.0088
+            },
+            "label_news": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                78,
+                696,
+                76,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -9.394400000000001,
+                0.5499999999999998,
+                1.137
+              ],
+              "width_m": 2.9488000000000003,
+              "height_m": 1.0088
+            },
+            "label_air": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                242,
+                696,
+                68,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                41.580799999999996,
+                0.819,
+                -21.962999999999997
+              ],
+              "width_m": 2.6384,
+              "height_m": 1.0088
+            },
+            "label_water": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                320,
+                696,
+                80,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                44.658,
+                0.819,
+                -21.962999999999997
+              ],
+              "width_m": 3.104,
+              "height_m": 1.0088
+            },
+            "sign_route_diesel_arrow": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                566,
+                204,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                -26.2276,
+                1.95,
+                -18.825
+              ],
+              "width_m": 7.9152000000000005,
+              "height_m": 1.2416
+            },
+            "sign_route_trucks_arrow": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                214,
+                566,
+                208,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                21.0648,
+                1.95,
+                -39.125
+              ],
+              "width_m": 8.0704,
+              "height_m": 1.2416
+            },
+            "sign_service_bay": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                608,
+                324,
+                34
+              ],
+              "bottom_left_gltf_m": [
+                -5.1356,
+                4.27,
+                -28.655
+              ],
+              "width_m": 12.571200000000001,
+              "height_m": 1.3192
             }
           },
+          "lights": [
+            {
+              "node": null,
+              "position_gltf_m": [
+                -54.768,
+                6.3100000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -54.768,
+                6.3100000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -43.65,
+                6.3100000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -43.65,
+                6.3100000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -32.532,
+                6.3100000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -32.532,
+                6.3100000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                27.572,
+                4.140000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                27.572,
+                4.140000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                33.2,
+                4.140000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                33.2,
+                4.140000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                38.828,
+                4.140000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                38.828,
+                4.140000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": "flood_01",
+              "position_gltf_m": [
+                -33.06999969482422,
+                9.03,
+                -55.6
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_02",
+              "position_gltf_m": [
+                33.470001220703125,
+                9.03,
+                -56.3
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_03",
+              "position_gltf_m": [
+                -33.06999969482422,
+                9.03,
+                -78
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_04",
+              "position_gltf_m": [
+                33.470001220703125,
+                9.03,
+                -78
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_05",
+              "position_gltf_m": [
+                -33.06999969482422,
+                9.03,
+                -98.8
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_06",
+              "position_gltf_m": [
+                33.470001220703125,
+                9.03,
+                -98.8
+              ],
+              "role": "yard"
+            }
+          ],
           "materials": [
             "detail_cream",
-            "detail_ochre",
             "floor_tile",
             "glass_storefront",
             "ground_asphalt",
-            "ground_paving",
+            "ground_verge",
             "roof_membrane",
             "sign_faces",
             "trim_brand",
@@ -3228,126 +4478,6 @@
           },
           "collision_boxes_gltf_m": [
             {
-              "name": "Parking safety guard",
-              "center_gltf_m": [
-                -33.0,
-                0.5740000000000001,
-                -55.0
-              ],
-              "size_gltf_m": [
-                0.4000000000000057,
-                1.092,
-                0.3400000000000034
-              ],
-              "group": "lot",
-              "attachment": "lot"
-            },
-            {
-              "name": "Parking safety guard",
-              "center_gltf_m": [
-                -33.0,
-                0.5740000000000001,
-                -68.0
-              ],
-              "size_gltf_m": [
-                0.4000000000000057,
-                1.092,
-                0.3400000000000034
-              ],
-              "group": "lot",
-              "attachment": "lot"
-            },
-            {
-              "name": "Parking safety guard",
-              "center_gltf_m": [
-                -33.0,
-                0.5740000000000001,
-                -83.0
-              ],
-              "size_gltf_m": [
-                0.4000000000000057,
-                1.092,
-                0.3400000000000034
-              ],
-              "group": "lot",
-              "attachment": "lot"
-            },
-            {
-              "name": "Parking safety guard",
-              "center_gltf_m": [
-                -33.0,
-                0.5740000000000001,
-                -94.0
-              ],
-              "size_gltf_m": [
-                0.4000000000000057,
-                1.092,
-                0.3400000000000034
-              ],
-              "group": "lot",
-              "attachment": "lot"
-            },
-            {
-              "name": "Parking safety guard",
-              "center_gltf_m": [
-                34.0,
-                0.5740000000000001,
-                -55.0
-              ],
-              "size_gltf_m": [
-                0.4000000000000057,
-                1.092,
-                0.3400000000000034
-              ],
-              "group": "lot",
-              "attachment": "lot"
-            },
-            {
-              "name": "Parking safety guard",
-              "center_gltf_m": [
-                34.0,
-                0.5740000000000001,
-                -68.0
-              ],
-              "size_gltf_m": [
-                0.4000000000000057,
-                1.092,
-                0.3400000000000034
-              ],
-              "group": "lot",
-              "attachment": "lot"
-            },
-            {
-              "name": "Parking safety guard",
-              "center_gltf_m": [
-                34.0,
-                0.5740000000000001,
-                -83.0
-              ],
-              "size_gltf_m": [
-                0.4000000000000057,
-                1.092,
-                0.3400000000000034
-              ],
-              "group": "lot",
-              "attachment": "lot"
-            },
-            {
-              "name": "Parking safety guard",
-              "center_gltf_m": [
-                34.0,
-                0.5740000000000001,
-                -94.0
-              ],
-              "size_gltf_m": [
-                0.4000000000000057,
-                1.092,
-                0.3400000000000034
-              ],
-              "group": "lot",
-              "attachment": "lot"
-            },
-            {
               "name": "Scale curb guard",
               "center_gltf_m": [
                 39.92,
@@ -3423,14 +4553,14 @@
               "attachment": "lot"
             },
             {
-              "name": "Dining room ribbon",
+              "name": "Main entrance storefront",
               "center_gltf_m": [
-                -11.9,
+                -10.6,
                 2.25,
                 -0.14
               ],
               "size_gltf_m": [
-                16.2,
+                18.8,
                 4.220000000000001,
                 0.28
               ],
@@ -3440,42 +4570,12 @@
             {
               "name": "Main entrance storefront",
               "center_gltf_m": [
-                -2.5,
+                10.6,
                 2.25,
                 -0.14
               ],
               "size_gltf_m": [
-                2.5999999999999996,
-                4.220000000000001,
-                0.28
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Main entrance storefront",
-              "center_gltf_m": [
-                2.5,
-                2.25,
-                -0.14
-              ],
-              "size_gltf_m": [
-                2.5999999999999996,
-                4.220000000000001,
-                0.28
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Market storefront",
-              "center_gltf_m": [
-                11.9,
-                2.25,
-                -0.14
-              ],
-              "size_gltf_m": [
-                16.2,
+                18.8,
                 4.220000000000001,
                 0.28
               ],
@@ -3586,21 +4686,6 @@
               ],
               "group": "building",
               "attachment": ""
-            },
-            {
-              "name": "Service waste container",
-              "center_gltf_m": [
-                17.244999999999997,
-                0.74,
-                -21.79
-              ],
-              "size_gltf_m": [
-                2.09,
-                1.2000000000000002,
-                1.5199999999999996
-              ],
-              "group": "lot",
-              "attachment": "lot"
             },
             {
               "name": "Back-of-house wall",
@@ -3723,14 +4808,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -2.36
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4400000000000002
               ],
@@ -3738,44 +4823,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -2.36
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4400000000000002
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -2.36
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.2999999999999998
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -5.12
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4399999999999995
               ],
@@ -3783,44 +4838,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -5.12
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4399999999999995
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -5.12
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.3000000000000007
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -7.88
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4399999999999995
               ],
@@ -3828,76 +4853,16 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -7.88
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4399999999999995
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -7.879999999999999
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.2999999999999998
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -10.65
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4400000000000013
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -16.4,
-                0.665,
-                -10.65
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4400000000000013
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -10.65
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.3000000000000007
               ],
               "group": "building",
               "attachment": ""
@@ -4156,6 +5121,321 @@
               ],
               "group": "building",
               "attachment": ""
+            },
+            {
+              "name": "Tree trunk",
+              "center_gltf_m": [
+                -54.0,
+                0.9544999999999999,
+                23.37
+              ],
+              "size_gltf_m": [
+                0.29999999999999716,
+                1.851,
+                0.29999999999999716
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Tree trunk",
+              "center_gltf_m": [
+                -51.0,
+                0.9544999999999999,
+                -67.14
+              ],
+              "size_gltf_m": [
+                0.29999999999999716,
+                1.851,
+                0.30000000000001137
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Paired tree trunks",
+              "center_gltf_m": [
+                55.0,
+                0.9544999999999999,
+                -52.355000000000004
+              ],
+              "size_gltf_m": [
+                0.7000000000000028,
+                1.851,
+                1.009999999999998
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back fence",
+              "center_gltf_m": [
+                0.09999999999999787,
+                0.955,
+                -112.64500000000001
+              ],
+              "size_gltf_m": [
+                122.6,
+                1.8499999999999999,
+                0.9299999999999926
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                5.264,
+                -55.6
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2600000000000051
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                5.264,
+                -56.3
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2600000000000051
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                5.264,
+                -78.0
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                5.264,
+                -78.0
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                5.264,
+                -98.8
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                5.264,
+                -98.8
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Ice and newspaper dispensers",
+              "center_gltf_m": [
+                -6.41,
+                1.06,
+                0.85
+              ],
+              "size_gltf_m": [
+                6.02,
+                1.8399999999999999,
+                1.0999999999999999
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Air and water service posts",
+              "center_gltf_m": [
+                44.6575,
+                0.9445,
+                -22.4
+              ],
+              "size_gltf_m": [
+                6.265000000000001,
+                1.8310000000000002,
+                0.8499999999999979
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back service corral",
+              "center_gltf_m": [
+                -15.9,
+                1.0294999999999999,
+                -23.174999999999997
+              ],
+              "size_gltf_m": [
+                7.400000000000002,
+                2.001,
+                3.9499999999999993
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Directional sign stem",
+              "center_gltf_m": [
+                -22.27,
+                1.6195,
+                -18.9
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.181,
+                0.1599999999999966
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Directional sign stem",
+              "center_gltf_m": [
+                25.1,
+                1.6195,
+                -39.2
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.181,
+                0.1599999999999966
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Service bay side wall",
+              "center_gltf_m": [
+                -6.055,
+                2.7545,
+                -36.7
+              ],
+              "size_gltf_m": [
+                0.4900000000000002,
+                5.4510000000000005,
+                15.8
+              ],
+              "group": "building",
+              "attachment": "era_service_bay"
+            },
+            {
+              "name": "Service bay side wall",
+              "center_gltf_m": [
+                8.355,
+                2.7545,
+                -36.7
+              ],
+              "size_gltf_m": [
+                0.4900000000000002,
+                5.4510000000000005,
+                15.8
+              ],
+              "group": "building",
+              "attachment": "era_service_bay"
+            },
+            {
+              "name": "Reefer fence",
+              "center_gltf_m": [
+                -0.125,
+                0.7995,
+                -74.65
+              ],
+              "size_gltf_m": [
+                61.87,
+                1.5410000000000001,
+                0.7600000000000051
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Reefer fence",
+              "center_gltf_m": [
+                -31.0,
+                0.7995,
+                -85.56
+              ],
+              "size_gltf_m": [
+                0.11999999999999744,
+                1.5410000000000001,
+                21.30000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Reefer fence",
+              "center_gltf_m": [
+                30.75,
+                0.7995,
+                -85.56
+              ],
+              "size_gltf_m": [
+                0.11999999999999744,
+                1.5410000000000001,
+                21.30000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Exterior ATM",
+              "center_gltf_m": [
+                7.34,
+                1.07,
+                0.32199999999999995
+              ],
+              "size_gltf_m": [
+                2.740000000000001,
+                1.8599999999999999,
+                0.756
+              ],
+              "group": "lot",
+              "attachment": "lot"
             }
           ],
           "sign_panels": {
@@ -4164,7 +5444,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 254,
@@ -4185,7 +5465,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 130,
@@ -4206,7 +5486,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -4227,7 +5507,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -4248,7 +5528,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 232,
@@ -4269,7 +5549,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 208,
@@ -4290,7 +5570,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -4311,7 +5591,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -4326,15 +5606,389 @@
               ],
               "width_m": 11.717600000000001,
               "height_m": 3.7248
+            },
+            "sign_price": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                200,
+                484,
+                192,
+                74
+              ],
+              "bottom_left_gltf_m": [
+                40.6752,
+                8.12,
+                19.442
+              ],
+              "width_m": 7.4496,
+              "height_m": 2.8712
+            },
+            "sign_price_rear": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                200,
+                484,
+                192,
+                74
+              ],
+              "bottom_left_gltf_m": [
+                48.1248,
+                8.12,
+                18.857999999999997
+              ],
+              "width_m": 7.4496,
+              "height_m": 2.8712
+            },
+            "label_ice": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                696,
+                68,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -6.119199999999999,
+                0.94,
+                1.412
+              ],
+              "width_m": 2.6384,
+              "height_m": 1.0088
+            },
+            "label_news": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                78,
+                696,
+                76,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -9.394400000000001,
+                0.5499999999999998,
+                1.137
+              ],
+              "width_m": 2.9488000000000003,
+              "height_m": 1.0088
+            },
+            "label_air": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                242,
+                696,
+                68,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                41.580799999999996,
+                0.819,
+                -21.962999999999997
+              ],
+              "width_m": 2.6384,
+              "height_m": 1.0088
+            },
+            "label_water": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                320,
+                696,
+                80,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                44.658,
+                0.819,
+                -21.962999999999997
+              ],
+              "width_m": 3.104,
+              "height_m": 1.0088
+            },
+            "sign_route_diesel_arrow": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                566,
+                204,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                -26.2276,
+                1.95,
+                -18.825
+              ],
+              "width_m": 7.9152000000000005,
+              "height_m": 1.2416
+            },
+            "sign_route_trucks_arrow": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                214,
+                566,
+                208,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                21.0648,
+                1.95,
+                -39.125
+              ],
+              "width_m": 8.0704,
+              "height_m": 1.2416
+            },
+            "sign_service_bay": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                652,
+                324,
+                34
+              ],
+              "bottom_left_gltf_m": [
+                -5.1356,
+                4.27,
+                -28.655
+              ],
+              "width_m": 12.571200000000001,
+              "height_m": 1.3192
+            },
+            "sign_atm": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                164,
+                696,
+                68,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                6.0008,
+                0.91,
+                0.714
+              ],
+              "width_m": 2.6384,
+              "height_m": 1.0088
             }
           },
+          "lights": [
+            {
+              "node": null,
+              "position_gltf_m": [
+                -54.768,
+                6.8500000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -54.768,
+                6.8500000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -43.65,
+                6.8500000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -43.65,
+                6.8500000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -32.532,
+                6.8500000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -32.532,
+                6.8500000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                27.572,
+                4.680000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                27.572,
+                4.680000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                33.2,
+                4.680000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                33.2,
+                4.680000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                38.828,
+                4.680000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                38.828,
+                4.680000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": "flood_01",
+              "position_gltf_m": [
+                -33.06999969482422,
+                10.03,
+                -55.6
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_02",
+              "position_gltf_m": [
+                33.470001220703125,
+                10.03,
+                -56.3
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_03",
+              "position_gltf_m": [
+                -33.06999969482422,
+                10.03,
+                -78
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_04",
+              "position_gltf_m": [
+                33.470001220703125,
+                10.03,
+                -78
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_05",
+              "position_gltf_m": [
+                -33.06999969482422,
+                10.03,
+                -98.8
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_06",
+              "position_gltf_m": [
+                33.470001220703125,
+                10.03,
+                -98.8
+              ],
+              "role": "yard"
+            }
+          ],
           "materials": [
+            "detail_chain_link",
             "detail_cream",
-            "detail_ochre",
             "floor_tile",
             "glass_storefront",
             "ground_asphalt",
-            "ground_paving",
+            "ground_verge",
             "roof_membrane",
             "sign_faces",
             "trim_brand",
@@ -4345,7 +5999,7 @@
         {
           "file": "cedar-relay-1990-mid.glb",
           "lod": "mid",
-          "triangles_visible": 3568,
+          "triangles_visible": 3922,
           "door_nodes_gltf_m": {
             "door_main": [
               0,
@@ -4440,14 +6094,14 @@
               "attachment": "lot"
             },
             {
-              "name": "Dining room ribbon",
+              "name": "Main entrance storefront",
               "center_gltf_m": [
-                -11.9,
+                -10.6,
                 2.25,
                 -0.14
               ],
               "size_gltf_m": [
-                16.2,
+                18.8,
                 4.220000000000001,
                 0.28
               ],
@@ -4457,42 +6111,12 @@
             {
               "name": "Main entrance storefront",
               "center_gltf_m": [
-                -2.5,
+                10.6,
                 2.25,
                 -0.14
               ],
               "size_gltf_m": [
-                2.5999999999999996,
-                4.220000000000001,
-                0.28
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Main entrance storefront",
-              "center_gltf_m": [
-                2.5,
-                2.25,
-                -0.14
-              ],
-              "size_gltf_m": [
-                2.5999999999999996,
-                4.220000000000001,
-                0.28
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Market storefront",
-              "center_gltf_m": [
-                11.9,
-                2.25,
-                -0.14
-              ],
-              "size_gltf_m": [
-                16.2,
+                18.8,
                 4.220000000000001,
                 0.28
               ],
@@ -4603,21 +6227,6 @@
               ],
               "group": "building",
               "attachment": ""
-            },
-            {
-              "name": "Service waste container",
-              "center_gltf_m": [
-                17.244999999999997,
-                0.74,
-                -21.79
-              ],
-              "size_gltf_m": [
-                2.09,
-                1.2000000000000002,
-                1.5199999999999996
-              ],
-              "group": "lot",
-              "attachment": "lot"
             },
             {
               "name": "Back-of-house wall",
@@ -4740,14 +6349,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -2.36
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4400000000000002
               ],
@@ -4755,44 +6364,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -2.36
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4400000000000002
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -2.36
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.2999999999999998
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -5.12
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4399999999999995
               ],
@@ -4800,44 +6379,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -5.12
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4399999999999995
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -5.12
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.3000000000000007
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -7.88
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4399999999999995
               ],
@@ -4845,76 +6394,16 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -7.88
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4399999999999995
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -7.879999999999999
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.2999999999999998
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -10.65
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4400000000000013
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -16.4,
-                0.665,
-                -10.65
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4400000000000013
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -10.65
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.3000000000000007
               ],
               "group": "building",
               "attachment": ""
@@ -5173,6 +6662,321 @@
               ],
               "group": "building",
               "attachment": ""
+            },
+            {
+              "name": "Tree trunk",
+              "center_gltf_m": [
+                -54.0,
+                0.9544999999999999,
+                23.37
+              ],
+              "size_gltf_m": [
+                0.29999999999999716,
+                1.851,
+                0.29999999999999716
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Tree trunk",
+              "center_gltf_m": [
+                -51.0,
+                0.9544999999999999,
+                -67.14
+              ],
+              "size_gltf_m": [
+                0.29999999999999716,
+                1.851,
+                0.30000000000001137
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Paired tree trunks",
+              "center_gltf_m": [
+                55.0,
+                0.9544999999999999,
+                -52.355000000000004
+              ],
+              "size_gltf_m": [
+                0.7000000000000028,
+                1.851,
+                1.009999999999998
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back fence",
+              "center_gltf_m": [
+                0.09999999999999787,
+                0.955,
+                -112.64500000000001
+              ],
+              "size_gltf_m": [
+                122.6,
+                1.8499999999999999,
+                0.9299999999999926
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                5.264,
+                -55.6
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2600000000000051
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                5.264,
+                -56.3
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2600000000000051
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                5.264,
+                -78.0
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                5.264,
+                -78.0
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                5.264,
+                -98.8
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                5.264,
+                -98.8
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Ice and newspaper dispensers",
+              "center_gltf_m": [
+                -6.41,
+                1.06,
+                0.85
+              ],
+              "size_gltf_m": [
+                6.02,
+                1.8399999999999999,
+                1.0999999999999999
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Air and water service posts",
+              "center_gltf_m": [
+                44.6575,
+                0.9445,
+                -22.4
+              ],
+              "size_gltf_m": [
+                6.265000000000001,
+                1.8310000000000002,
+                0.8499999999999979
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back service corral",
+              "center_gltf_m": [
+                -15.9,
+                1.0294999999999999,
+                -23.174999999999997
+              ],
+              "size_gltf_m": [
+                7.400000000000002,
+                2.001,
+                3.9499999999999993
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Directional sign stem",
+              "center_gltf_m": [
+                -22.27,
+                1.6195,
+                -18.9
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.181,
+                0.1599999999999966
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Directional sign stem",
+              "center_gltf_m": [
+                25.1,
+                1.6195,
+                -39.2
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.181,
+                0.1599999999999966
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Service bay side wall",
+              "center_gltf_m": [
+                -6.055,
+                2.7545,
+                -36.7
+              ],
+              "size_gltf_m": [
+                0.4900000000000002,
+                5.4510000000000005,
+                15.8
+              ],
+              "group": "building",
+              "attachment": "era_service_bay"
+            },
+            {
+              "name": "Service bay side wall",
+              "center_gltf_m": [
+                8.355,
+                2.7545,
+                -36.7
+              ],
+              "size_gltf_m": [
+                0.4900000000000002,
+                5.4510000000000005,
+                15.8
+              ],
+              "group": "building",
+              "attachment": "era_service_bay"
+            },
+            {
+              "name": "Reefer fence",
+              "center_gltf_m": [
+                -0.125,
+                0.7995,
+                -74.65
+              ],
+              "size_gltf_m": [
+                61.87,
+                1.5410000000000001,
+                0.7600000000000051
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Reefer fence",
+              "center_gltf_m": [
+                -31.0,
+                0.7995,
+                -85.56
+              ],
+              "size_gltf_m": [
+                0.11999999999999744,
+                1.5410000000000001,
+                21.30000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Reefer fence",
+              "center_gltf_m": [
+                30.75,
+                0.7995,
+                -85.56
+              ],
+              "size_gltf_m": [
+                0.11999999999999744,
+                1.5410000000000001,
+                21.30000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Exterior ATM",
+              "center_gltf_m": [
+                7.34,
+                1.07,
+                0.32199999999999995
+              ],
+              "size_gltf_m": [
+                2.740000000000001,
+                1.8599999999999999,
+                0.756
+              ],
+              "group": "lot",
+              "attachment": "lot"
             }
           ],
           "sign_panels": {
@@ -5181,7 +6985,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 254,
@@ -5202,7 +7006,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 130,
@@ -5223,7 +7027,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -5244,7 +7048,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -5265,7 +7069,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 232,
@@ -5286,7 +7090,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 208,
@@ -5307,7 +7111,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -5328,7 +7132,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -5343,15 +7147,389 @@
               ],
               "width_m": 11.717600000000001,
               "height_m": 3.7248
+            },
+            "sign_price": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                200,
+                484,
+                192,
+                74
+              ],
+              "bottom_left_gltf_m": [
+                40.6752,
+                8.12,
+                19.442
+              ],
+              "width_m": 7.4496,
+              "height_m": 2.8712
+            },
+            "sign_price_rear": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                200,
+                484,
+                192,
+                74
+              ],
+              "bottom_left_gltf_m": [
+                48.1248,
+                8.12,
+                18.857999999999997
+              ],
+              "width_m": 7.4496,
+              "height_m": 2.8712
+            },
+            "label_ice": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                696,
+                68,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -6.119199999999999,
+                0.94,
+                1.412
+              ],
+              "width_m": 2.6384,
+              "height_m": 1.0088
+            },
+            "label_news": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                78,
+                696,
+                76,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -9.394400000000001,
+                0.5499999999999998,
+                1.137
+              ],
+              "width_m": 2.9488000000000003,
+              "height_m": 1.0088
+            },
+            "label_air": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                242,
+                696,
+                68,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                41.580799999999996,
+                0.819,
+                -21.962999999999997
+              ],
+              "width_m": 2.6384,
+              "height_m": 1.0088
+            },
+            "label_water": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                320,
+                696,
+                80,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                44.658,
+                0.819,
+                -21.962999999999997
+              ],
+              "width_m": 3.104,
+              "height_m": 1.0088
+            },
+            "sign_route_diesel_arrow": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                566,
+                204,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                -26.2276,
+                1.95,
+                -18.825
+              ],
+              "width_m": 7.9152000000000005,
+              "height_m": 1.2416
+            },
+            "sign_route_trucks_arrow": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                214,
+                566,
+                208,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                21.0648,
+                1.95,
+                -39.125
+              ],
+              "width_m": 8.0704,
+              "height_m": 1.2416
+            },
+            "sign_service_bay": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                652,
+                324,
+                34
+              ],
+              "bottom_left_gltf_m": [
+                -5.1356,
+                4.27,
+                -28.655
+              ],
+              "width_m": 12.571200000000001,
+              "height_m": 1.3192
+            },
+            "sign_atm": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                164,
+                696,
+                68,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                6.0008,
+                0.91,
+                0.714
+              ],
+              "width_m": 2.6384,
+              "height_m": 1.0088
             }
           },
+          "lights": [
+            {
+              "node": null,
+              "position_gltf_m": [
+                -54.768,
+                6.8500000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -54.768,
+                6.8500000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -43.65,
+                6.8500000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -43.65,
+                6.8500000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -32.532,
+                6.8500000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -32.532,
+                6.8500000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                27.572,
+                4.680000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                27.572,
+                4.680000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                33.2,
+                4.680000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                33.2,
+                4.680000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                38.828,
+                4.680000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                38.828,
+                4.680000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": "flood_01",
+              "position_gltf_m": [
+                -33.06999969482422,
+                10.03,
+                -55.6
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_02",
+              "position_gltf_m": [
+                33.470001220703125,
+                10.03,
+                -56.3
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_03",
+              "position_gltf_m": [
+                -33.06999969482422,
+                10.03,
+                -78
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_04",
+              "position_gltf_m": [
+                33.470001220703125,
+                10.03,
+                -78
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_05",
+              "position_gltf_m": [
+                -33.06999969482422,
+                10.03,
+                -98.8
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_06",
+              "position_gltf_m": [
+                33.470001220703125,
+                10.03,
+                -98.8
+              ],
+              "role": "yard"
+            }
+          ],
           "materials": [
+            "detail_chain_link",
             "detail_cream",
-            "detail_ochre",
             "floor_tile",
             "glass_storefront",
             "ground_asphalt",
-            "ground_paving",
+            "ground_verge",
             "roof_membrane",
             "sign_faces",
             "trim_brand",
@@ -5362,7 +7540,7 @@
         {
           "file": "cedar-relay-1990-far.glb",
           "lod": "far",
-          "triangles_visible": 2752,
+          "triangles_visible": 3478,
           "door_nodes_gltf_m": {
             "door_main": [
               0,
@@ -5457,14 +7635,14 @@
               "attachment": "lot"
             },
             {
-              "name": "Dining room ribbon",
+              "name": "Main entrance storefront",
               "center_gltf_m": [
-                -11.9,
+                -10.6,
                 2.25,
                 -0.14
               ],
               "size_gltf_m": [
-                16.2,
+                18.8,
                 4.220000000000001,
                 0.28
               ],
@@ -5474,42 +7652,12 @@
             {
               "name": "Main entrance storefront",
               "center_gltf_m": [
-                -2.5,
+                10.6,
                 2.25,
                 -0.14
               ],
               "size_gltf_m": [
-                2.5999999999999996,
-                4.220000000000001,
-                0.28
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Main entrance storefront",
-              "center_gltf_m": [
-                2.5,
-                2.25,
-                -0.14
-              ],
-              "size_gltf_m": [
-                2.5999999999999996,
-                4.220000000000001,
-                0.28
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Market storefront",
-              "center_gltf_m": [
-                11.9,
-                2.25,
-                -0.14
-              ],
-              "size_gltf_m": [
-                16.2,
+                18.8,
                 4.220000000000001,
                 0.28
               ],
@@ -5620,21 +7768,6 @@
               ],
               "group": "building",
               "attachment": ""
-            },
-            {
-              "name": "Service waste container",
-              "center_gltf_m": [
-                17.244999999999997,
-                0.74,
-                -21.79
-              ],
-              "size_gltf_m": [
-                2.09,
-                1.2000000000000002,
-                1.5199999999999996
-              ],
-              "group": "lot",
-              "attachment": "lot"
             },
             {
               "name": "Back-of-house wall",
@@ -5757,14 +7890,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -2.36
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4400000000000002
               ],
@@ -5772,44 +7905,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -2.36
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4400000000000002
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -2.36
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.2999999999999998
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -5.12
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4399999999999995
               ],
@@ -5817,44 +7920,14 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -5.12
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4399999999999995
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -5.12
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.3000000000000007
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -7.88
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4399999999999995
               ],
@@ -5862,76 +7935,16 @@
               "attachment": ""
             },
             {
-              "name": "Fixed diner booth seat",
+              "name": "Fixed booth and table",
               "center_gltf_m": [
-                -16.4,
-                0.665,
-                -7.88
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4399999999999995
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -7.879999999999999
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.2999999999999998
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -18.9,
+                -17.65,
                 0.665,
                 -10.65
               ],
               "size_gltf_m": [
-                0.8000000000000007,
+                3.3000000000000007,
                 1.0499999999999998,
                 1.4400000000000013
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Fixed diner booth seat",
-              "center_gltf_m": [
-                -16.4,
-                0.665,
-                -10.65
-              ],
-              "size_gltf_m": [
-                0.8000000000000007,
-                1.0499999999999998,
-                1.4400000000000013
-              ],
-              "group": "building",
-              "attachment": ""
-            },
-            {
-              "name": "Booth table",
-              "center_gltf_m": [
-                -17.68,
-                0.5800000000000001,
-                -10.65
-              ],
-              "size_gltf_m": [
-                1.1600000000000001,
-                0.88,
-                1.3000000000000007
               ],
               "group": "building",
               "attachment": ""
@@ -6190,6 +8203,321 @@
               ],
               "group": "building",
               "attachment": ""
+            },
+            {
+              "name": "Tree trunk",
+              "center_gltf_m": [
+                -54.0,
+                0.9544999999999999,
+                23.37
+              ],
+              "size_gltf_m": [
+                0.29999999999999716,
+                1.851,
+                0.29999999999999716
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Tree trunk",
+              "center_gltf_m": [
+                -51.0,
+                0.9544999999999999,
+                -67.14
+              ],
+              "size_gltf_m": [
+                0.29999999999999716,
+                1.851,
+                0.30000000000001137
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Paired tree trunks",
+              "center_gltf_m": [
+                55.0,
+                0.9544999999999999,
+                -52.355000000000004
+              ],
+              "size_gltf_m": [
+                0.7000000000000028,
+                1.851,
+                1.009999999999998
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back fence",
+              "center_gltf_m": [
+                0.09999999999999787,
+                0.955,
+                -112.64500000000001
+              ],
+              "size_gltf_m": [
+                122.6,
+                1.8499999999999999,
+                0.9299999999999926
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                5.264,
+                -55.6
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2600000000000051
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                5.264,
+                -56.3
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2600000000000051
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                5.264,
+                -78.0
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                5.264,
+                -78.0
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                -33.7,
+                5.264,
+                -98.8
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Flood light standard",
+              "center_gltf_m": [
+                34.1,
+                5.264,
+                -98.8
+              ],
+              "size_gltf_m": [
+                0.2560000000000002,
+                10.472,
+                0.2599999999999909
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Ice and newspaper dispensers",
+              "center_gltf_m": [
+                -6.41,
+                1.06,
+                0.85
+              ],
+              "size_gltf_m": [
+                6.02,
+                1.8399999999999999,
+                1.0999999999999999
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Air and water service posts",
+              "center_gltf_m": [
+                44.6575,
+                0.9445,
+                -22.4
+              ],
+              "size_gltf_m": [
+                6.265000000000001,
+                1.8310000000000002,
+                0.8499999999999979
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Back service corral",
+              "center_gltf_m": [
+                -15.9,
+                1.0294999999999999,
+                -23.174999999999997
+              ],
+              "size_gltf_m": [
+                7.400000000000002,
+                2.001,
+                3.9499999999999993
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Directional sign stem",
+              "center_gltf_m": [
+                -22.27,
+                1.6195,
+                -18.9
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.181,
+                0.1599999999999966
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Directional sign stem",
+              "center_gltf_m": [
+                25.1,
+                1.6195,
+                -39.2
+              ],
+              "size_gltf_m": [
+                0.17999999999999972,
+                3.181,
+                0.1599999999999966
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Service bay side wall",
+              "center_gltf_m": [
+                -6.055,
+                2.7545,
+                -36.7
+              ],
+              "size_gltf_m": [
+                0.4900000000000002,
+                5.4510000000000005,
+                15.8
+              ],
+              "group": "building",
+              "attachment": "era_service_bay"
+            },
+            {
+              "name": "Service bay side wall",
+              "center_gltf_m": [
+                8.355,
+                2.7545,
+                -36.7
+              ],
+              "size_gltf_m": [
+                0.4900000000000002,
+                5.4510000000000005,
+                15.8
+              ],
+              "group": "building",
+              "attachment": "era_service_bay"
+            },
+            {
+              "name": "Reefer fence",
+              "center_gltf_m": [
+                -0.125,
+                0.7995,
+                -74.65
+              ],
+              "size_gltf_m": [
+                61.87,
+                1.5410000000000001,
+                0.7600000000000051
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Reefer fence",
+              "center_gltf_m": [
+                -31.0,
+                0.7995,
+                -85.56
+              ],
+              "size_gltf_m": [
+                0.11999999999999744,
+                1.5410000000000001,
+                21.30000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Reefer fence",
+              "center_gltf_m": [
+                30.75,
+                0.7995,
+                -85.56
+              ],
+              "size_gltf_m": [
+                0.11999999999999744,
+                1.5410000000000001,
+                21.30000000000001
+              ],
+              "group": "lot",
+              "attachment": "lot"
+            },
+            {
+              "name": "Exterior ATM",
+              "center_gltf_m": [
+                7.34,
+                1.07,
+                0.32199999999999995
+              ],
+              "size_gltf_m": [
+                2.740000000000001,
+                1.8599999999999999,
+                0.756
+              ],
+              "group": "lot",
+              "attachment": "lot"
             }
           ],
           "sign_panels": {
@@ -6198,7 +8526,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 254,
@@ -6219,7 +8547,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 130,
@@ -6240,7 +8568,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -6261,7 +8589,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -6282,7 +8610,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 232,
@@ -6303,7 +8631,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 208,
@@ -6324,7 +8652,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -6345,7 +8673,7 @@
               "emission_texture": "sign-light-mask.png",
               "atlas_size_texels": [
                 512,
-                512
+                1024
               ],
               "rect_texels": [
                 0,
@@ -6360,15 +8688,389 @@
               ],
               "width_m": 11.717600000000001,
               "height_m": 3.7248
+            },
+            "sign_price": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                200,
+                484,
+                192,
+                74
+              ],
+              "bottom_left_gltf_m": [
+                40.6752,
+                8.12,
+                19.442
+              ],
+              "width_m": 7.4496,
+              "height_m": 2.8712
+            },
+            "sign_price_rear": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                200,
+                484,
+                192,
+                74
+              ],
+              "bottom_left_gltf_m": [
+                48.1248,
+                8.12,
+                18.857999999999997
+              ],
+              "width_m": 7.4496,
+              "height_m": 2.8712
+            },
+            "label_ice": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                696,
+                68,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -6.119199999999999,
+                0.94,
+                1.412
+              ],
+              "width_m": 2.6384,
+              "height_m": 1.0088
+            },
+            "label_news": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                78,
+                696,
+                76,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                -9.394400000000001,
+                0.5499999999999998,
+                1.137
+              ],
+              "width_m": 2.9488000000000003,
+              "height_m": 1.0088
+            },
+            "label_air": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                242,
+                696,
+                68,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                41.580799999999996,
+                0.819,
+                -21.962999999999997
+              ],
+              "width_m": 2.6384,
+              "height_m": 1.0088
+            },
+            "label_water": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                320,
+                696,
+                80,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                44.658,
+                0.819,
+                -21.962999999999997
+              ],
+              "width_m": 3.104,
+              "height_m": 1.0088
+            },
+            "sign_route_diesel_arrow": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                566,
+                204,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                -26.2276,
+                1.95,
+                -18.825
+              ],
+              "width_m": 7.9152000000000005,
+              "height_m": 1.2416
+            },
+            "sign_route_trucks_arrow": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                214,
+                566,
+                208,
+                32
+              ],
+              "bottom_left_gltf_m": [
+                21.0648,
+                1.95,
+                -39.125
+              ],
+              "width_m": 8.0704,
+              "height_m": 1.2416
+            },
+            "sign_service_bay": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                0,
+                652,
+                324,
+                34
+              ],
+              "bottom_left_gltf_m": [
+                -5.1356,
+                4.27,
+                -28.655
+              ],
+              "width_m": 12.571200000000001,
+              "height_m": 1.3192
+            },
+            "sign_atm": {
+              "texture": "signs.png",
+              "emission_texture": "sign-light-mask.png",
+              "atlas_size_texels": [
+                512,
+                1024
+              ],
+              "rect_texels": [
+                164,
+                696,
+                68,
+                26
+              ],
+              "bottom_left_gltf_m": [
+                6.0008,
+                0.91,
+                0.714
+              ],
+              "width_m": 2.6384,
+              "height_m": 1.0088
             }
           },
+          "lights": [
+            {
+              "node": null,
+              "position_gltf_m": [
+                -54.768,
+                6.8500000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -54.768,
+                6.8500000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -43.65,
+                6.8500000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -43.65,
+                6.8500000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -32.532,
+                6.8500000000000005,
+                -29
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                -32.532,
+                6.8500000000000005,
+                -41
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                27.572,
+                4.680000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                27.572,
+                4.680000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                33.2,
+                4.680000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                33.2,
+                4.680000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                38.828,
+                4.680000000000001,
+                -6
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": null,
+              "position_gltf_m": [
+                38.828,
+                4.680000000000001,
+                -14
+              ],
+              "role": "canopy"
+            },
+            {
+              "node": "flood_01",
+              "position_gltf_m": [
+                -33.06999969482422,
+                10.03,
+                -55.6
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_02",
+              "position_gltf_m": [
+                33.470001220703125,
+                10.03,
+                -56.3
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_03",
+              "position_gltf_m": [
+                -33.06999969482422,
+                10.03,
+                -78
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_04",
+              "position_gltf_m": [
+                33.470001220703125,
+                10.03,
+                -78
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_05",
+              "position_gltf_m": [
+                -33.06999969482422,
+                10.03,
+                -98.8
+              ],
+              "role": "yard"
+            },
+            {
+              "node": "flood_06",
+              "position_gltf_m": [
+                33.470001220703125,
+                10.03,
+                -98.8
+              ],
+              "role": "yard"
+            }
+          ],
           "materials": [
+            "detail_chain_link",
             "detail_cream",
-            "detail_ochre",
             "floor_tile",
             "glass_storefront",
             "ground_asphalt",
-            "ground_paving",
+            "ground_verge",
             "roof_membrane",
             "sign_faces",
             "trim_brand",

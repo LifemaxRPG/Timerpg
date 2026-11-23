@@ -30,6 +30,10 @@ reference=meta["states"][0]["models"][0]["door_nodes_gltf_m"]
 assert len(meta["routing"]["diesel_lanes"])==6
 assert len(meta["routing"]["car_lanes"])==3
 reports=[]
+regions=json.loads((ROOT/"textures/sign-regions.json").read_text())
+for state in meta["states"]:
+    assert len(state["models"])==3
+assert meta["truck_parking"]["bays"]==30
 for state in meta["states"]:
     previous_triangles=12001
     for asset in state["models"]:
@@ -51,12 +55,38 @@ for state in meta["states"]:
         assert {m["name"] for m in doc["materials"] if "emissiveTexture" in m}=={"glass_storefront","sign_faces"}
         sign=next(m for m in doc["materials"] if m["name"]=="sign_faces")
         sign_mask=embedded_image(doc,data,sign["emissiveTexture"]["index"])[:,:,:3]
-        assert sign_mask.any()
+        assert sign_mask.shape==(1024,512,3)
+        x,y,w,h=regions["lens"]
+        lens=sign_mask[y:y+h,x:x+w]
+        assert lens[2:-2,2:-2].any() and not lens[:2].any() and not lens[-2:].any()
+        assert not lens[:,:2].any() and not lens[:,-2:].any()
         assert {"sign_name","sign_name_rear","sign_store","sign_diesel","sign_car","sign_scale","sign_showers"}.issubset(names)
         for key in ("sign_scale","sign_staff","sign_menu"):
             x,y,w,h=asset["sign_panels"][key]["rect_texels"]
             assert not sign_mask[y:y+h,x:x+w].any()
         assert set(asset["sign_panels"]).issubset(names)
+        assert {"era_service_bay","sign_route_diesel_arrow","sign_route_trucks_arrow",
+                "sign_service_bay","label_ice","label_news","label_air","label_water",
+                "sign_price","sign_price_rear"}.issubset(names)
+        modern=state["id"]=="1990"
+        assert ("sign_atm" in names)==modern
+        price=asset["sign_panels"]["sign_price"]
+        x,y,w,h=price["rect_texels"]
+        assert price["atlas_size_texels"]==[512,1024]
+        assert [x,y,w,h]==regions["price_new" if modern else "price_old"]
+        assert sign_mask[y:y+h,x:x+w].any()
+        assert asset["sign_panels"]["sign_price_rear"]["rect_texels"]==[x,y,w,h]
+        tree_meshes=[]
+        light_nodes={source["node"] for source in asset["lights"] if source["role"]=="yard"}
+        assert len(light_nodes)==6 and sum(source["role"]=="canopy" for source in asset["lights"])==12
+        for number in range(1,7):
+            tree=doc["nodes"][names[f"tree_{number:02d}"]]
+            tree_meshes.append(sorted(doc["nodes"][i]["mesh"] for i in tree["children"]))
+            node=f"flood_{number:02d}"
+            assert node in light_nodes
+            source=next(light for light in asset["lights"] if light["node"]==node)
+            assert np.allclose(world[names[node]][:3,3]-(0,.17,0),source["position_gltf_m"])
+        assert all(pair==tree_meshes[0] for pair in tree_meshes)
         for index, node_id in enumerate(doc["nodes"][names["collision"]]["children"]):
             node = doc["nodes"][node_id]
             assert node["name"] == f"collider_{index:02d}" and node["extras"]["collision_only"]
@@ -116,10 +146,11 @@ for state in meta["states"]:
                 misfit = np.linalg.norm(edges,axis=2)-np.linalg.norm(uv_edges,axis=2)
                 max_error = max(max_error, float(abs(misfit).max()))
         assert triangles == asset["triangles_visible"] < previous_triangles, (asset["file"],triangles,asset["triangles_visible"],previous_triangles)
+        assert triangles <= 3964, (asset["file"],triangles)
         assert max_error < .0002, (asset["file"],max_error)
         previous_triangles = triangles
         reports.append({"file":asset["file"],"triangles":triangles,"materials":len(doc["materials"]),
                         "boxes":len(asset["collision_boxes_gltf_m"]),"max_uv_error_m":max_error})
 
 (ROOT / "validation.json").write_text(json.dumps(reports,indent=2)+"\n")
-print(f"{len(reports)} GLBs passed the era, LOD, aperture, lane and scale clearance, collision, emission mask and texel checks")
+print(f"{len(reports)} GLBs passed the era, LOD, aperture, lane and scale clearance, collisions, yard light anchors, mesh reuse, repaint panels, emission masks, texels and triangle budget")

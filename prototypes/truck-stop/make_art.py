@@ -31,7 +31,8 @@ specs=(
     ("roof","roof_membrane_grey",(113,117,111),72,"seams"),
     ("trim","roof_membrane_green",(48,63,58),19,"plain"),
     ("white","roof_membrane_tan",(207,198,168),52,"plain"),
-    ("ochre","roof_tin_brown",(167,117,70),76,"plain"),
+    ("white-vintage","roof_membrane_tan",(173,163,135),56,"wear"),
+    ("grass","roof_membrane_green",(91,111,62),107,"wear"),
     ("rust","roof_tin_red",(144,77,59),21,"plain"),
     ("teal","roof_membrane_green",(60,116,108),32,"plain"),
     ("floor","pavement",(158,163,149),51,"tile"),
@@ -71,11 +72,11 @@ p.rectangle((1,1,30,30),fill="#e1b783")
 save("glass",glass)
 save("pane-mask",pane)
 
-atlas=Image.new("RGB",(256,256),"#364742")
+atlas=Image.new("RGB",(256,512),"#364742")
 mask=Image.new("RGB",atlas.size)
 paint,glow=ImageDraw.Draw(atlas),ImageDraw.Draw(mask)
 regions={}
-light_regions={"pole_old","pole_new","store_old","store_new","diesel_old","diesel_new","car_old","car_new"}
+light_regions={"pole_old","pole_new","store_old","store_new","diesel_old","diesel_new","car_old","car_new","price_old","price_new"}
 
 def sign(key,x,y,w,h,lines,base,ink,scale=1):
     regions[key]=[x*2,y*2,w*2,h*2]
@@ -90,7 +91,16 @@ def sign(key,x,y,w,h,lines,base,ink,scale=1):
         left=(w-width)//2
         assert min(left,w-width-left)>=2,key
         for j,ch in enumerate(line):
-            for row,glyph in enumerate(FONT.get(ch,())):
+            strokes=FONT.get(ch,())
+            if key=="price_new" and i==1 and ch.isdigit():
+                lit_segments={"0":"abcdef","1":"bc","2":"abged","3":"abgcd","4":"fgbc",
+                              "5":"afgcd","6":"afgecd","7":"abc","8":"abcdefg","9":"abfgcd"}[ch]
+                segments={"a":((1,0),(2,0),(3,0)),"b":((4,1),(4,2)),"c":((4,4),(4,5)),
+                          "d":((1,6),(2,6),(3,6)),"e":((0,4),(0,5)),"f":((0,1),(0,2)),
+                          "g":((1,3),(2,3),(3,3))}
+                pixels={p for segment in lit_segments if segment in segments for p in segments[segment]}
+                strokes=["".join("1" if (u,v) in pixels else "0" for u in range(5)) for v in range(7)]
+            for row,glyph in enumerate(strokes):
                 for col,bit in enumerate(glyph):
                     if bit=="1":
                         px=x+left+(j*6+col)*scale
@@ -112,6 +122,35 @@ sign("showers",0,200,61,12,"SHOWERS","#52685b","#ebe0b3")
 sign("service",65,200,57,12,"SERVICE","#675e4e","#e6d0a4")
 sign("scale",127,200,57,12,"SCALE","#52685b","#ece0b3")
 sign("menu",0,215,107,22,"HOT MEALS|COFFEE","#6b584d","#ece0b3")
+sign("price_old",0,242,96,37,"DIESEL|0.399","#675642","#f0d093",2)
+sign("price_new",100,242,96,37,"DIESEL|1.299","#253e38","#e59769",2)
+sign("diesel_arrow",0,283,102,16,"DIESEL  <","#52685b","#ebe0b3")
+sign("trucks_arrow",107,283,104,16,"TRUCKS  ^","#52685b","#ebe0b3")
+sign("repair",0,304,162,17,"TIRES AND LUBE","#725346","#ede2b8")
+sign("wash",0,326,162,17,"TRUCK WASH","#366760","#ede2b8")
+sign("ice",0,348,34,13,"ICE","#506559","#eae0bd")
+sign("news",39,348,38,13,"NEWS","#8e674d","#ecd3a0")
+sign("atm",82,348,34,13,"ATM","#456763","#ead7ac")
+sign("air",121,348,34,13,"AIR","#6d644f","#ead7ac")
+sign("water",160,348,40,13,"WATER","#506c60","#ead7ac")
+for key in ("diesel_arrow","trucks_arrow"):
+    x,y,w,h=[z//2 for z in regions[key]]
+    bx=x+w-25
+    points=[(bx,y+8),(bx+7,y+3),(bx+7,y+6),(bx+16,y+6),(bx+16,y+10),(bx+7,y+10),(bx+7,y+13)]
+    if key=="trucks_arrow":
+        points=[(bx+2+(v-(y+3)),y+3+(u-bx)//2) for u,v in points][::-1]
+    paint.polygon(points,fill="#e6d8aa")
+# All heads sample this patch. The solid lamp housings use non-emissive trim.
+regions["lens"]=[0,734,40,24]
+paint.rectangle((0,367,19,378),fill="#d8ca9c")
+glow.rectangle((1,368,18,377),fill="#f5dca4")
+chain=Image.new("RGBA",(16,16))
+for y in range(16):
+    for x in range(16):
+        if (x+y)%8==0 or (x-y)%8==0:
+            chain.putpixel((x,y),(104,111,99,255))
+save("chain",chain)
+
 save("signs",atlas)
 save("sign-light-mask",mask)
 (OUT/"sign-regions.json").write_text(json.dumps(regions,indent=2)+"\n")

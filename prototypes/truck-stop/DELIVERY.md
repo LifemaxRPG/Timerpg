@@ -1,26 +1,24 @@
-# C006 · Cedar Relay Truck Stop
+# C006 · Cedar Relay Truck Stop, revision 1
 
-Built an independent 1960–1989 truck stop and its 1990-onward Relay Travel Center successor. Both place six diesel lanes under the truck canopy, three car lanes under a separate canopy, a diner and market, two shower bays, a tall highway sign, 30 striped truck bays and a drive-over scale. The original arrow sign has warm neon-style lettering. The modern state has a taller diesel canopy, teal fascia, a new entrance and a twin-post sign.
+The revised lot has six flood standards, curbed grass islands with instanced trees, a fenced service corral, a propane cage, entrance-side ice and newspaper dispensers, and air and water posts. Bollards, squeegee buckets, trash cans, directional signs, painted numbers and arrows, and oil staining mark the fuel lanes. The older stripes are worn. Both pylons have separately repaintable price faces.
 
-Delivered six GLBs, two packed Blender sources, the manifest, reproducible scripts and a single review sheet. The manifest includes shared door transforms, box collisions, repaintable panels, static route centerlines and parking dimensions.
+The 1960–1989 stop has an open lube pit, a drive-on ramp and a diner-mounted CB antenna. The modern state has a truck wash gantry, an exterior ATM, LED-style prices and an open-ended reefer row with power pedestals. Both keep six diesel lanes, three car lanes, the diner and market, showers, 30 truck bays and the scale. [Claude’s round-one review](https://github.com/LifemaxRPG/Timerpg/blob/ccr-52e43ebb-xnmj2e/docs/queue/reviews/C006-r1.md)
 
 ## Verification
 
-- All six GLBs passed project checks for open doors, clear fuel lanes, scale approach, matching anchors, collisions, grade, LODs, 2×2 art pixels, 0.0388 m per texel and separated glass and sign emission masks.
-- Khronos glTF Validator reported zero errors and warnings. The largest model has 3,964 visible triangles and 12 materials. Both near Blender files opened with packed textures.
-- Reviewed the Blender Cycles sheet at day, night and street height, plus rear, overhead, fuel lane, pylon and diner views.
-
-Gameplay, truck swept-path tests, Filament materials and Android integration remain for the game.
+- All six GLBs passed project checks for grade, era anchors, door openings, fuel lanes, the scale route, box collisions, 2×2 art pixels, 0.0388 m per texel, shared tree meshes, price regions and light sockets. The largest model has 3,964 visible triangles, 12 materials and 64 collision boxes.
+- Khronos glTF Validator reported zero errors and warnings for all six GLBs. Both Blender files opened with packed source textures.
+- Reviewed the Blender Cycles contact sheet for both eras, including the rear lot, entrance, diner, service bays and nighttime yard.
 
 ## Self-review
 
-1. The truck yard is visually quiet at a full-site zoom. I kept the turning aisles open and used striped facing bays and a separate weighbridge to show its purpose. The closer reviews show the pylon, counter and diesel islands at their own scales.
-2. I inspected the model renders and ran geometry and file checks. The clearance sweep caught a shower fixture in the service-door approach, which I moved. Truck turning and how the roadside lighting reads in Filament are still untested.
-3. The tall arrow pylon and the independent diner’s warm fascia identify the original era. The modern stop reads first through its teal entry and taller diesel canopy.
+1. The truck row now reads at night through its lit parking aisles. I reduced the preview intensity after the first render washed out some of the pavement detail.
+2. The layout preserves clear routes. The validation samples modeled clearance volumes. Truck swept paths, operations, runtime lighting and Android rendering still need in-game checks.
+3. The dated service equipment and price lettering carry the era change at walking height. Most fixtures are simplified silhouettes at the scale of the overall lot.
 
 ## Usage
 
-- Model and setting: Codex GPT-6 family. Exact variant and reasoning setting not visible.
-- Tokens and plan usage: not visible.
-- Effort: one turn, about 13 minutes and about 32 direct tool calls through delivery.
-- Rework: initial delivery, zero review rounds.
+- Model and setting: Codex. Exact model variant and reasoning setting were unavailable.
+- Tokens and plan usage: unavailable.
+- Effort: one revision turn, approximately 14 minutes. Full tool-call total was unavailable.
+- Rework: one review round.

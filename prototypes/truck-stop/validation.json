@@ -1,44 +1,44 @@
 [
   {
     "file": "cedar-relay-1960.glb",
-    "triangles": 3909,
-    "materials": 12,
-    "boxes": 59,
-    "max_uv_error_m": 4.0222167996262215e-06
+    "triangles": 3809,
+    "materials": 11,
+    "boxes": 58,
+    "max_uv_error_m": 5.371093749317879e-06
   },
   {
     "file": "cedar-relay-1960-mid.glb",
-    "triangles": 3513,
-    "materials": 12,
-    "boxes": 51,
-    "max_uv_error_m": 4.0222167996262215e-06
+    "triangles": 3767,
+    "materials": 11,
+    "boxes": 58,
+    "max_uv_error_m": 5.371093749317879e-06
   },
   {
     "file": "cedar-relay-1960-far.glb",
-    "triangles": 2697,
-    "materials": 12,
-    "boxes": 51,
-    "max_uv_error_m": 4.0222167996262215e-06
+    "triangles": 3323,
+    "materials": 11,
+    "boxes": 58,
+    "max_uv_error_m": 5.371093749317879e-06
   },
   {
     "file": "cedar-relay-1990.glb",
     "triangles": 3964,
     "materials": 12,
-    "boxes": 62,
-    "max_uv_error_m": 4.0222167996262215e-06
+    "boxes": 64,
+    "max_uv_error_m": 5.371093749317879e-06
   },
   {
     "file": "cedar-relay-1990-mid.glb",
-    "triangles": 3568,
+    "triangles": 3922,
     "materials": 12,
-    "boxes": 54,
-    "max_uv_error_m": 4.0222167996262215e-06
+    "boxes": 64,
+    "max_uv_error_m": 5.371093749317879e-06
   },
   {
     "file": "cedar-relay-1990-far.glb",
-    "triangles": 2752,
+    "triangles": 3478,
     "materials": 12,
-    "boxes": 54,
-    "max_uv_error_m": 4.0222167996262215e-06
+    "boxes": 64,
+    "max_uv_error_m": 5.371093749317879e-06
   }
 ]
