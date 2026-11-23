@@ -70,6 +70,9 @@ files (docs/queue/reviews/) say what worked as well as what to change: read the 
   - Jeff's plan language landed first try (15/15): companions can now be told to do almost anything, safely. That's
     three first-try engineering deliveries in a row, each with an idea for the team.
   - The capital now stands on the generated planet, with the world drawn out to the horizon.
+  - Jeff delivered police in action (G009) and the loop facade (G011) within the hour, both accepted first try: six
+    first-try engineering acceptances in a row. The loop now has its doorway, and the first-encounter theft plays end
+    to end through it.
 
 ## The team's next milestone
 

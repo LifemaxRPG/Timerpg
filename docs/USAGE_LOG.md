@@ -101,3 +101,5 @@ sandbox gains a JDK.
 | C010 pawn shop | ChatGPT (Codex) | model, 3 states + LODs | see DELIVERY.md | 1 | accepted first try |
 | C017 sports car | ChatGPT/Sam (Codex) | 2 vehicles + LODs | see DELIVERY.md | 1 | accepted first try |
 | G008 evidence and forensics | Gemini/Jeff (AI Studio Build) | engineering, extends G005 | not visible | 1 | accepted first try; 19/19 |
+| G009 police in action | Gemini/Jeff (AI Studio Build) | engineering, joins G005 + G007 | not visible | 1 | accepted first try; 9/9, 0.48 ms a tick for 30 officers |
+| G011 loop facade | Gemini/Jeff (AI Studio Build) | engineering, the game-facing API | ~1 session; tokens not visible | 1 | accepted first try; 10/10, 1.45 ms for 300 people a day |

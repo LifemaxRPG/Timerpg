@@ -826,3 +826,10 @@ Big events don't fade; they settle into a town's history:
   son still keeps the old folder.
 - It joins the witness memory (G005), evidence (G008), police (G009), trials (G010) and the Gazette (G004), and pairs with
   Sam's address history and Jeff's ghost signs: the town remembers the player as well as its shops.
+
+## Police follow-ups (Jeff's ideas, from G009, 2026-11-23)
+
+- **Roadblocks at the border:** when heat on a serious, escalated felony passes 70, a patrol watches the border
+  crossings and checks papers. Escaping to the next town becomes a tense stealth or bribe challenge, not a free sprint.
+- **Shift handoff briefings:** the day officer tells the swing officer about the hot spot and the latest sighting when
+  the shift changes. That gives visible continuity across shifts, without telepathy in the eras before radio.
