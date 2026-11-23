@@ -612,3 +612,16 @@ Replaces the "go back and save him" recommendation above, which was too close to
   - **Unanchored people can find each other across time,** through traces such as letters, caches and odd records.
 - **Prior art:** self-erasure has been touched on in fiction, but rarely as a playable rule. The details here are our
   own.
+- **Refined (the owner, 2026-11-23): the professor is alive, in hiding.** When the player arrives he's gone, not dead.
+  He's unanchored and hiding in some year and place, so he can't be met just by jumping back. Finding him is a long
+  mystery the player solves from traces only an unanchored man leaves:
+  - a letter or cache addressed to the player in an unexpected era;
+  - an unidentified man in an old photograph;
+  - a patent or an invention that appears too early;
+  - a newspaper oddity;
+  - a lodger nobody can trace;
+  - a local who remembers "a strange old scientist" in a particular year.
+  - Finding him means working out **when and where** he is, then going there, which costs fuel.
+  - He's a character to enjoy: his personality, his reasons for erasing himself, what he's hiding from, and whether
+    he wants to be found.
+  - The "found dead" idea above is dropped.

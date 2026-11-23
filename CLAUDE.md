@@ -27,8 +27,9 @@ one major feature rather than the whole premise:
 - The player **spawns on a random continent, never the capital's** (the owner's decision, 2026-11-23), so every game
   starts with the journey there. The opening: a letter from the professor ("I have something very important. Come to
   the capital, to this address."); the player must work out how to get there.
-- **The time machine is always in the capital.** When the player arrives, the professor is dead. They find his work,
-  the time machine and a letter he left for them. With time travel they can still meet him alive in the past.
+- **The time machine is always in the capital.** When the player arrives, the professor is gone. They find his work,
+  the time machine and a letter he left for them. He is alive but unanchored (he erased his younger self from history),
+  hiding in some year and place; finding him is a long mystery (docs/IDEAS.md, "The time-travel rules").
 - **The time machine runs on nuclear material:** the player starts with enough for about 4 trips and refuels through
   the world, never by a scripted route (docs/IDEAS.md).
 - **Money: legit and nefarious ways** to earn it (jobs and businesses; crime, with law, police and consequences).
