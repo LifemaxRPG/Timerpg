@@ -549,3 +549,11 @@ way you would in life:
   plant"). Lies can mislead, and some people want favours first.
 - **The game never says it's possible.** Multiple paths exist because the systems allow them, not because they were
   written in. Players discover them, and different players find different ones.
+- **Keeping freedom from feeling aimless** (the sandbox risk: "what do I do now?"). Pull, never push:
+  - **One clear early goal:** reach the capital and the time machine.
+  - **People with needs:** NPCs bring their own problems and wants (debts, feuds, a lost brother, a failing shop).
+    These aren't quests, just people, and helping or exploiting them opens doors.
+  - **Rumours and news by era** (papers, radio, gossip) hint at opportunities without pointing.
+  - **The world keeps changing:** decades, chains, elections, disasters. There's always something new to react to.
+  - **The player's own stakes:** their money, businesses, buildings, record, companions and caches.
+  - **A journal the player keeps:** facts learned, people met, leads. It's a notebook, not a quest log.
