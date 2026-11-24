@@ -14,6 +14,7 @@ const roles: Record<Role, readonly [title: string, job: Job, share: number, star
 
 const shopRoles = {
   general: 'shop_clerk', market: 'stock_worker', hardware: 'stock_worker',
+  pharmacy: 'shop_clerk', five_and_dime: 'shop_clerk', clothing: 'shop_clerk', pawn: 'shop_clerk',
   diner: 'dishwasher', gas_station: 'mechanic_helper', garage: 'mechanic_helper',
   mill: 'labourer', factory: 'labourer', hotel: 'night_clerk', motel: 'night_clerk',
 } satisfies Record<string, Role>;
@@ -106,8 +107,8 @@ export function shift(job: Employment, record: ShiftRecord): ShiftResult {
 
   const firstShiftDay = job.firstShiftDay ?? record.day;
   const onTime = record.outcome === 'on_time';
-  const strikes = job.strikes + (onTime ? 0 : 1);
   const steadyShifts = onTime ? job.steadyShifts + 1 : 0;
+  const strikes = steadyShifts >= 10 ? 0 : job.strikes + (onTime ? 0 : 1);
   const updated = { ...job, firstShiftDay, lastShiftDay: record.day, strikes, steadyShifts };
   if (strikes >= 2 || record.outcome === 'caught_stealing') {
     return { job: { ...updated, status: 'dismissed', reference: 'poor' }, event: 'dismissed' };
