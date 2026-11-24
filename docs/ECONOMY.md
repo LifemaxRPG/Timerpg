@@ -52,3 +52,18 @@ The bridge can expose the following calls as JSON inputs and outputs. Keep one s
 `take` is all-or-nothing. Confirm sufficient quantity before charging the player or recording a theft. Invalid and oversized requests leave the stock unchanged. Persist the stock with the corresponding inventory and wallet changes.
 
 Advance by whole elapsed days since the previous call. Delivery intervals are one day for markets and diners, three for pharmacies and gas stations, seven for general stores, hardware stores, five-and-dimes and pawn shops, and fourteen for clothing. A delivery resets quantities to seeded shelf capacity and refreshes the assortment from the supplied year. The caller should open the shelf for the destination timeline when switching timelines. If an advance crosses several deliveries in one year, only the last matters. Split advances using the same year and seed yield the same shelf as a single advance. Delivery prices vary from −3% to +5% of the current base quote, with all prices rounded to cents. Use the row's `priceCents` for checkout.
+
+## Back-room buyers
+
+These calls return JSON-safe facts for the game's dialogue and crime systems. Pass unique resident IDs and traits on a 0–1 scale. Examples below use an eligible adult named Vic from the game's resident roster.
+
+| Call | Example input and result |
+|---|---|
+| `townFences(people, "capital")` | A roster containing `{"id":"vic","age":42,"job":"hardware clerk","honesty":0.2,"greed":0.8,"sociability":0.6}` can produce `{"personId":"vic","cover":"hardware clerk","where":"behind the hardware store","hours":[20,2],"categories":["valuables","hand_tools","power_tools"],"honesty":0.2,"greed":0.8}`. The list can be empty. |
+| `fenceLeads(fences, people, "capital")` | A seeded lead may return `{"sourceId":"diner_regular","fenceId":"vic","where":"behind the hardware store","hours":[20,2],"willingness":0.75}`. The caller turns the fact into dialogue and decides when to reveal it. |
+| `fenceDeal(fence, "pocketwatch", 1952, 0.4, 0)` | `{"accepted":true,"offerCents":210,"trustAfter":0.1}` for a stranger selling to Vic. Heat 0.9 returns `{"accepted":false,"reason":"too_hot"}` at trust 0 and is accepted at trust 0.8. |
+| `fenceRisk(fence, 1952)` | `0.066` for Vic, a 6.6% chance per completed deal. Unsupported years return `null`. |
+
+Hours are local, start inclusive and end exclusive. An end earlier than the start wraps past midnight. Cover and location describe an authored profile. The game must bind it to an available venue before exposing the lead. Resolve display names from the resident IDs.
+
+Pass heat on a 0–1 scale. The game derives it from recency, local awareness and any active police case. Heat above 0.70 can require trust, which raises the acceptance ceiling up to 1 and softens the heat discount. Persist trust only after a completed exchange. Trust rises by 0.10, to a maximum of 1. An accepted quote is bounded below the clean pawn offer. The caller owns money, inventory and the crime report. Roll once per completed deal with a stable transaction key and persist its result. A fence transaction does not create a pawn ledger entry.
