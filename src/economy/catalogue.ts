@@ -45,6 +45,10 @@ const GROUPS = {
     ['root_beer', 'Glass of root beer', 280], ['lime_soda', 'Glass of lime soda', 260, 1895],
     ['milkshake', 'Ice cream milkshake', 555, 1922], ['chili_bowl', 'Bowl of chili', 660],
   ] },
+  fuel: { shops: ['gas_station'], weight: 'handheld', pawnShare: 0, stock: [24, 64], rows: [
+    ['gasoline', 'Gallon of gasoline', 325, 1905],
+    ['diesel', 'Gallon of diesel', 365, 1930],
+  ] },
   roadside: { shops: ['gas_station'], weight: 'pocket', pawnShare: 0, stock: [4, 14], rows: [
     ['paper_road_map', 'Folded highway map', 395, 1915, 2015],
     ['waxed_cup', 'Pack of paper travel cups', 209, 1915],

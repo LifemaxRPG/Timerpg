@@ -1,3 +1,4 @@
+import { relativePrice } from './curves';
 import { rand } from '../sim/rng';
 import { ITEMS, SHOP_KINDS, type Item, type ShopKind } from './catalogue';
 import { priceIndex } from './eras';
@@ -20,14 +21,14 @@ function forSale(item: Item, year: number): boolean {
   return year >= item.from && year <= item.to;
 }
 
-function retailPrice(item: Item, index: number): number {
-  return Math.max(1, Math.round(item.cents2025 * index));
+function retailPrice(item: Item, index: number, year: number): number {
+  return Math.max(1, Math.round(item.cents2025 * index * relativePrice(item, year)));
 }
 
 function listedItem(itemId: string, year: number): { item: Item; price: number } | null {
   const item = ITEMS_BY_ID.get(itemId);
   const index = priceIndex(year);
-  return item && index !== null && forSale(item, year) ? { item, price: retailPrice(item, index) } : null;
+  return item && index !== null && forSale(item, year) ? { item, price: retailPrice(item, index, year) } : null;
 }
 
 export function priceIn(itemId: string, year: number): number | null {
@@ -98,7 +99,7 @@ export function stockOf(shopKind: string, year: number, seed: string): StockEntr
     if (!primary && (!used || item.pawnShare === 0 || rand(seed, 'economy', shop, year, item.id, 'used') >= .15)) {
       continue;
     }
-    const price = retailPrice(item, index);
+    const price = retailPrice(item, index, year);
     const [min, max] = used ? [1, 2] : item.stock;
     const roll = rand(seed, 'economy', shop, year, item.id, 'quantity');
     stock.push({
