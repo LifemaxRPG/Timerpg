@@ -256,6 +256,87 @@ median reclaim (~1.2-1.5 GB) that is **+0.7-1.0 GB** of headroom on the first lo
 start (3665 free) the copy fits with no reclaim counted at all. The model's real memory falls from 2888 to ~2175 MB
 (the 497 MB head no longer copied, compute ~318 -> ~100).
 
+### Step 3 as built (2026-11-24; desktop measured, not yet measured on the S25)
+
+Measured with the open-world preview's GPU account (`gradle :desktop:preview -Dmode=filament-open -DgpuOnly=1`, gamma
+built whole, Filament's own count; it matched the phone's within ~2% in section 1.2), before (0b5fa99) and after:
+
+| part | before MB | after MB | saved |
+|---|---:|---:|---:|
+| yards | 453.7 (textures 181.5) | 362.5 (textures 90.3) | **-91.2** |
+| farms | 191.7 (textures 93.9) | 127.5 (textures 29.7) | **-64.2** |
+| buildings and stores | 334.2 | 334.2 | 0 |
+| GLB landmarks | 41.4 | 41.4 | 0 |
+| props (trees, ground, street things, rail) | 73.6 | 73.6 | 0 |
+| vertex + index buffers (with the pages' free space) | 450.4 | 451.2 | +0.8 |
+| textures | 644.5 in 2498 | 489.1 in 2145 | **-155.4** |
+| shadow map + render targets + surfaces (2340 x 1080) | 118.8 | 118.8 | 0 |
+| **Filament total** | **1213.8** | **1059.2** | **-154.6** |
+
+- **G2, far yards on the near atlases (-91.2 MB)**: each lot's far version ([YardKit.bakeFar]) lays its near patches'
+  atlases out again exactly as their near bakes do (the lot's, and each tall thing's own), so the pixels are the same and
+  the town makes one texture of the two (StreetTextures shares by content); only the far meshes go on them. What the far
+  version draws otherwise (fences as slabs, the trees' simple level) shares one atlas for the whole town
+  ([YardKit.farPictures]: 31 small pictures, 0.13 M texels; laid out per lot it was ~32 MB). The far versions' textures
+  went from ~91 MB to ~0.4 MB. Draws +5 to +10 per view in the downtown shots (+1-2%: a lot's far version now draws one
+  batch per near patch it wears), triangles the same.
+- **G4, the farms' RGBA8 (-64.2 MB)**: the 85.6 MB were not atlases but the farmhouses' night masks (51, one per farm,
+  1024 x 496 / 335, RGBA8 for the sign light's blue; ~150 glowing pixels each). A night mask whose every 4 x 4 block holds
+  at most two of the values its pixels can take at any hour is now made ASTC 4x4 and encoded again whenever its lights
+  change: exact at every hour, a quarter of the bytes. 26 of the 289 models with a glow picture qualify (the farms' and a
+  few more); the capital's houses do not (their glow's brightness varies within a pane: G3 is still to do for them).
+  `NightMaskAstcTest` decodes every such mask at mixed hours against the old RGBA8/RG8 bytes. (Also fixed: `Astc.exact`
+  grouped a picture's rows from the top while the encoder groups them from the bottom: wrong for heights not a multiple
+  of 4; the yards' masks are powers of two, so nothing changed on screen.)
+- **Texture dedup by content hash: nothing to gain.** Counted in the preview's report: 0 textures hold a picture another
+  holds, 0 made again by a second set of textures. Every town layer shares FilamentTown's one set, which already shares
+  by content (15,945 shares after this step).
+- **CPU copies after upload: none left to drop.** PropLayer's batches keep only GPU handles, FilamentModels lets its
+  groups' arrays go once packed, the yard kit's model cache is trimmed after the build (C3 above). The one new holding is
+  the far versions' shared pictures (~0.6 MB, kept for a lot baked again after the cars wreck it). `townMemoryCheck` passes
+  (held peak 206 MB of 256).
+- **C1/C2 after the build (phone only, not measurable on the desktop)**: at "town built" a thread of its own collects
+  and finalizes the Java heap twice, calls ART's `VMRuntime.trimHeap` where the phone allows it, and purges scudo's free
+  pages (`NativeLlm.purgeNativeHeap`, the NPU work's helper); the breadcrumbs say what each gave back ("town built,
+  memory trimmed ...").
+- **G10, the render-target cache: left at Filament's default, on purpose.** `resourceAllocatorCacheSizeMB` (64) holds the
+  frame graph's targets between frames (they are released at each frame's end and taken again at the next: the shadow
+  map's 32 MB, the HDR colour and depth ~29 MB, the post-process targets); `resourceAllocatorCacheMaxAge` is already 1
+  frame. A smaller cache does not lower the peak (the targets are all live within the frame); it only makes Filament
+  delete and re-create tens of MB of targets every frame. What it can hold beyond that is a resolution step's old
+  targets for a frame or two. No saving without changing the look (fewer or smaller targets).
+
+Visual check (desktop renders, not S25 captures; `-Dw=1170`): the ten downtown shots, two views from above
+(`main_high_13h`, `plan_above`) and the farmstead at dusk and night compared pixel by pixel: 0 pixels differ in 7 of
+them; the rest differ in 2-609 pixels (at most 0.1%), all far off in the haze (the far yards' small mip levels now come
+from the near atlases' packing, whose neighbours bleed a little differently), at most 34 levels. The farmhouses' lit
+windows are the same pixels.
+
+**The budget guard** (below) is built: `TownBudget` (shared code) holds the per-part budgets, `GpuBudgetTest`
+(`gradle :desktop:crossroadsTest --tests GpuBudgetTest`, ~30 s of build) fails on any part over budget, and the phone's
+`mem` line carries the same parts against their budgets (`gpuBudget`, `gpuOver`), `memAvail` (/proc/meminfo
+MemAvailable), `gfxDev` and `glMtrack`, and the NPU headroom by the gate's own arithmetic (`npuRoom` = free + the reclaim
+`NpuGate.verdict` counts - the light copy's need with its measured copy and learned margin; `npuNeed`, `npuReclaim`).
+The budgets, set at today's figures after this step with 1-2% room (props +10 MB for the phone's tree cells in detail):
+
+| part | measured | budget |
+|---|---:|---:|
+| yards | 362.5 | 368 |
+| buildings | 334.2 | 340 |
+| farms | 127.5 | 130 |
+| landmarks | 41.4 | 43 |
+| props | 73.6 | 85 |
+| vertex/index buffers | 451.2 | 458 |
+| textures | 489.1 | 497 |
+| render targets | 118.8 | 120 |
+| **total** | **1059.2** | **1080** |
+
+Projected on the phone (estimate): GL mtrack and graphics PSS ~150 MB lower with the town built (Filament's count is
+what moved), so "free" in play ~+45-155 MB (30-100% of the cut, section 3) and the NPU headroom with it; the heap trim
+and the purge are to be read from the breadcrumbs. To confirm on the S25: the `mem` line's `gfx`, `glMtrack`, `gfxDev`,
+`free`, `memAvail` and `npuRoom` over 5 minutes of the same walk as 0.1.848's play log, the "town built, GPU budget" and
+"memory trimmed" breadcrumbs, and one night walk past a farm.
+
 ### The memory budget guard
 
 So a new feature that blows the budget fails a test instead of breaking the NPU on the phone:
