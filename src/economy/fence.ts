@@ -1,6 +1,6 @@
 import { clamp01, rand } from '../sim/rng';
 import { ITEMS, type Category } from './catalogue';
-import { fenceOffer, pawnOffer } from './index';
+import { fenceOffer, pawnOffer } from './pricing';
 import { validYear } from './eras';
 
 export type FencePerson = Readonly<{
@@ -71,15 +71,17 @@ export type FenceDeal =
   | { accepted: true; offerCents: number; trustAfter: number }
   | { accepted: false; reason: 'category' | 'too_hot' | 'no_offer' };
 
-export function fenceDeal(fence: Fence, itemId: string, year: number, hot: boolean, trust: number): FenceDeal {
+export function fenceDeal(fence: Fence, itemId: string, year: number, heat: number, trust: number): FenceDeal {
   const item = ITEMS.find(entry => entry.id === itemId);
   if (!item || !fence.categories.includes(item.category)) return { accepted: false, reason: 'category' };
   const base = fenceOffer(itemId, year);
-  const pawn = pawnOffer(itemId, year, hot);
-  if (!base || !pawn) return { accepted: false, reason: 'no_offer' };
+  const pawn = pawnOffer(itemId, year, false);
+  if (!base || !pawn || !Number.isFinite(heat) || heat < 0 || heat > 1) return { accepted: false, reason: 'no_offer' };
   const standing = Number.isFinite(trust) ? clamp01(trust) : 0;
-  if (hot && standing < .65) return { accepted: false, reason: 'too_hot' };
-  const offerCents = Math.min(pawn - 1, Math.floor(base * (.9 - .3 * fence.greed + .6 * standing)));
+  if (heat > .7 + .3 * standing) return { accepted: false, reason: 'too_hot' };
+  const bargaining = 1.65 - .3 * fence.greed + .35 * standing;
+  const heatDiscount = 1 - heat * (.55 - .3 * standing);
+  const offerCents = Math.min(pawn - 1, Math.floor(base * bargaining * heatDiscount));
   if (offerCents <= 0) return { accepted: false, reason: 'no_offer' };
   return { accepted: true, offerCents, trustAfter: Math.min(100, Math.round(standing * 100) + 10) / 100 };
 }
