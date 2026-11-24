@@ -111,3 +111,4 @@ his limit; G012 was trimmed to the one-police swap plus the wiring fixes. Plan a
 | G011 loop facade | Gemini/Jeff (AI Studio Build) | engineering, the game-facing API | ~1 session; tokens not visible | 1 | accepted first try; 10/10, 1.45 ms for 300 people a day |
 | G010 trials | Gemini/Jeff (AI Studio Build) | engineering, court on G005/G008 | ~8 min, 1 run; tokens not visible | 1 | accepted first try; 10/10 court + 34 regression |
 | C015 gas station | ChatGPT/Sam (Codex) | model, 3 eras | ~11 min, one turn; tokens not visible | 1 | accepted first try (plain interiors: the game furnishes them) |
+| C018 economy by era | ChatGPT/Sam (Codex) | engineering, new TS system | one run, ~1 h from brief to delivery, WIP pushed first; tokens not visible | 1 | accepted first try; 11/11, compact (594 lines) |
