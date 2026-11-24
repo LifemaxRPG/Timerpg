@@ -22,11 +22,61 @@ class NpuGateTest {
         assertEquals(0L, NpuGate.reclaim(2900, 3630, 8000, emptyList(), now, on = false).reclaimMb)
     }
 
-    @Test fun whatWasMeasuredCountsTheLeastOfTheLastThree() {
+    @Test fun whatWasMeasuredCountsTheMedianOfTheLastFive() {
+        // four measured: the lower of the middle two
         val t = listOf(Try(now - 4 * day, 3000, 3630, true, 200), Try(now - 3 * day, 3000, 3630, true, 1800),
             Try(now - 2 * day, 3000, 3630, true, 1200, measure = true), Try(now - day, 3000, 3630, true, 2500))
         assertEquals(1200L, NpuGate.reclaim(2900, 3630, 0, t, now).reclaimMb)
         assertEquals(NpuGate.CAP_MB, NpuGate.reclaim(2900, 3630, 0, listOf(Try(now, 1, 2, true, 9000)), now).reclaimMb)
+        // the S25's case (MEMORY_AUDIT.md, M5): one low load (691) no longer holds back the ~1.5 GB the others found;
+        // the least of the last three counted 691
+        val s25 = listOf(Try(now - 5 * day, 2660, 3513, true, 1514), Try(now - 4 * day, 6260, 6617, true, 1551),
+            Try(now - 3 * day, 2900, 3751, true, 691), Try(now - 2 * day, 3000, 3751, true, 1600), Try(now - day, 3050, 3751, true, 1450))
+        assertEquals(1514L, NpuGate.reclaim(3050, 3751, 0, s25, now).reclaimMb)
+        // only the last five count: an old load is dropped
+        assertEquals(1514L, NpuGate.reclaim(3050, 3751, 0, listOf(Try(now - 9 * day, 2000, 3751, true, 5)) + s25, now).reclaimMb)
+        assertEquals(1550L, NpuGate.lowerMedian(listOf(1600, 1500, 9000, 1550, 100)))
+        assertEquals(10L, NpuGate.lowerMedian(listOf(10, 20)))
+    }
+
+    @Test fun theMedianIsCrossCheckedWithThePhoneNow() {
+        val t = listOf(Try(now - 2 * day, 2660, 3513, true, 1514), Try(now - day, 2900, 3751, true, 1600))
+        // the kernel's reclaimable beyond Android's count (MemAvailable 3400 vs availMem 3000) plus the free swap (600)
+        assertEquals(1000L, NpuGate.crossCap(3400, 3000, 600))
+        val v = NpuGate.reclaim(3000, 3751, 600, t, now, capMb = 1000)
+        assertEquals(1000L, v.reclaimMb)
+        assertTrue(v.why, v.why.contains("at most 1000 MB"))
+        // plenty of swap: the median stands; not readable: no cap
+        assertEquals(1514L, NpuGate.reclaim(3000, 3751, 4000, t, now, capMb = NpuGate.crossCap(3100, 3000, 4000)).reclaimMb)
+        assertEquals(-1L, NpuGate.crossCap(-1, 3000, 4000))
+        assertEquals(1514L, NpuGate.reclaim(3000, 3751, 0, t, now, capMb = -1).reclaimMb)
+        // Android counting more than the kernel: no negative part
+        assertEquals(500L, NpuGate.crossCap(2900, 3000, 500))
+    }
+
+    @Test fun theMarginShrinksAfterLoadsThatHeldAndGrowsAfterTrouble() {
+        // start: the old flat margin
+        assertEquals(com.timerpg.street.llm.Ram.MARGIN_MB, NpuGate.MARGIN_START_MB)
+        // held with 1500 MB free at the lowest, threshold 216: 784 MB above the critical line (716), half of it is more
+        // than a step, so one step down
+        assertEquals(800L, NpuGate.marginAfterHeld(900, 1500, 216))
+        // a little room: half of it (800 - 716 = 84 -> 42)
+        assertEquals(858L, NpuGate.marginAfterHeld(900, 800, 216))
+        // came below the critical line: kept
+        assertEquals(900L, NpuGate.marginAfterHeld(900, 700, 216))
+        // never below the floor; unknown readings change nothing
+        assertEquals(NpuGate.MARGIN_MIN_MB, NpuGate.marginAfterHeld(550, 3000, 216))
+        assertEquals(NpuGate.MARGIN_MIN_MB, NpuGate.marginAfterHeld(NpuGate.MARGIN_MIN_MB, 3000, 216))
+        assertEquals(900L, NpuGate.marginAfterHeld(900, -1, 216))
+        // trouble: up a step, at most the ceiling
+        assertEquals(1100L, NpuGate.marginAfterTrouble(900))
+        assertEquals(NpuGate.MARGIN_MAX_MB, NpuGate.marginAfterTrouble(1400))
+        // five loads that held with room: 900 -> 400 would be too far, it stops at the floor
+        var m = NpuGate.MARGIN_START_MB
+        repeat(5) { m = NpuGate.marginAfterHeld(m, 2000, 216) }
+        assertEquals(NpuGate.MARGIN_MIN_MB, m)
+        // then a failed try and it climbs again
+        assertEquals(700L, NpuGate.marginAfterTrouble(m))
     }
 
     @Test fun aLoadWithRoomToSpareMeasuresNothing() {

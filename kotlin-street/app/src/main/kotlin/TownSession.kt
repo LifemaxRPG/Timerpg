@@ -93,6 +93,8 @@ object TownSession {
         val app = ctx.applicationContext
         com.timerpg.street.shot.Crumbs.add("town load start: $seed")
         Thread({
+            // the dialogue model's NPU copy first when it fits, the build waiting for it briefly (MEMORY_AUDIT.md, M1)
+            runCatching { com.timerpg.street.dialogue.DialogueEngine.loadBeforeTown() }
             val d = try { read(app, seed) } catch (t: Throwable) {
                 android.os.Handler(android.os.Looper.getMainLooper()).post {
                     if (wanted == seed) { loading = false; error = "The town did not load: ${t.message ?: t.javaClass.simpleName}" }

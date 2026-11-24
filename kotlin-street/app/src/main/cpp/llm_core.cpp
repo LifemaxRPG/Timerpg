@@ -486,6 +486,17 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
         // no repacking unless asked: repacked weights are copied out of the mapped file (the 9B's 5.4 GB in memory the
         // system cannot reclaim, read whole at load), which left no room for speech and the voices beside it
         mp.use_extra_bufts = repack_;
+        // a tied output head on the CPU, mapped (MEMORY_AUDIT.md, M3). The model's input embeddings always stay on the CPU
+        // (mapped); a model without its own output weights (Qwen3.5-4B) gets its head as a duplicate of that tensor
+        // (TENSOR_DUPLICATED), put on the output device: on the NPU, a second copy of 497 MB in DMA memory. Matching the
+        // tensor's name sends both to the CPU's buffer, the same file pages. A model with an output.weight of its own is
+        // untouched (the pattern matches only token_embd). The head's matrix-vector product then runs on the CPU, once
+        // per generated token (prompts ask for one row of logits).
+        if (head_mapped_ && !devs_.empty()) {
+            overrides_[0] = { "^token_embd\\.weight$", ggml_backend_cpu_buffer_type() };
+            overrides_[1] = { nullptr, nullptr };
+            mp.tensor_buft_overrides = overrides_;
+        }
         // the model's own next-token prediction head (MTP), when the file has one and it is wanted
         mp.load_mtp = mtp_n_ > 0;
         // cancel() also stops a load.

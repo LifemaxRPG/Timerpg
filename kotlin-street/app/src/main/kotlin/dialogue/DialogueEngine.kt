@@ -400,6 +400,25 @@ class DialogueEngine private constructor(private val app: Context) {
      */
     fun holdLoad(reason: String) { lock.withLock { loadHolds += reason } }
 
+    /** [loadBeforeTown]: the early load asked of the engine's thread, waited for briefly. */
+    private fun loadEarly() {
+        if (closed || night || !foreground || backend?.loaded == true || android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) return
+        val done = java.util.concurrent.CountDownLatch(1)
+        val t0 = android.os.SystemClock.elapsedRealtime()
+        command { try { loadModel(early = true) } finally { done.countDown() } }
+        // room for both the copy and the town's build: the build goes beside the load (the valve still watches it)
+        val free = memoryNow().first shr 20
+        val need = copyNeed(ModelRole.LIVE, ModelFiles.file(app)) shr 20
+        if (free >= need + TOWN_BUILD_MB) {
+            com.timerpg.street.shot.Crumbs.add("dialogue model: early load beside the town's build ($free MB free, $need needed + ~$TOWN_BUILD_MB for the town)")
+            return
+        }
+        val inTime = runCatching { done.await(EARLY_WAIT_MS, java.util.concurrent.TimeUnit.MILLISECONDS) }.getOrDefault(false)
+        com.timerpg.street.shot.Crumbs.add("dialogue model: the town's build waited ${android.os.SystemClock.elapsedRealtime() - t0} ms for the early load " +
+            "(${if (inTime) "done" else "still going, the town goes ahead"}; ${if (backend?.loaded == true) "${loadedRole?.name?.lowercase()} model loaded" else "no model"}, " +
+            "${memoryNow().first shr 20} MB free now)")
+    }
+
     /** Lifts [holdLoad]'s [reason]; the last one lifted starts a load that waited. */
     fun releaseLoad(reason: String) {
         val go = lock.withLock { loadHolds.remove(reason) && loadHolds.isEmpty() && loadWanted }
@@ -478,6 +497,9 @@ class DialogueEngine private constructor(private val app: Context) {
             }
             return
         }
+        // a low-memory signal while a device copy is in its hold window: the margin grows (NpuGate.marginTrouble)
+        if (foreground && (level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW || level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL))
+            marginTroubled("Android's low-memory signal (onTrimMemory $level) within the load's hold window")
         when {
             level >= ComponentCallbacks2.TRIM_MEMORY_BACKGROUND || level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL -> {
                 pause("memory")
@@ -557,26 +579,72 @@ class DialogueEngine private constructor(private val app: Context) {
      * and context, and with [dev], by the device it ran on and the model file (its size), so each device's own measure is
      * used once known; without, the last load's on any device.
      */
-    private fun workKey(role: ModelRole, dev: Int? = null) = "work_${role.name.lowercase()}_${if (kvQ8Wanted) "q8" else "f16"}_${contextFor(role)}" +
-        (dev?.let { "_d${it}_m${modelSize(role)}" } ?: "")
+    private fun workKey(role: ModelRole, dev: Int? = null, batch: Int? = null, what: String = "work") =
+        "${what}_${role.name.lowercase()}_${if (kvQ8Wanted) "q8" else "f16"}_${contextFor(role)}" +
+        (dev?.let { "_d${it}_m${modelSize(role)}" } ?: "") + (batch?.let { "_b$it" } ?: "")
 
     private fun modelSize(role: ModelRole): Long = if (role == ModelRole.LIVE) ModelFiles.LIVE_BYTES else ModelFiles.file(app).length()
 
     /**
-     * [role]'s own memory beside its weights as measured on [dev] for this model (kept across sessions), else as measured
-     * on any device (the CPU's measure of the same cache and context is close to the NPU's), else the flat guess.
+     * The prompt's batch on [dev]: the panel's setting when one was made ("batch"), else 128 on the NPU (its compute
+     * buffers were 318 MB at 512, MEMORY_AUDIT.md M2: in-play prompts are short, a fact sheet and a reply in 1024 tokens)
+     * and 512 elsewhere.
+     */
+    fun batchFor(dev: Int): Int = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getInt("batch",
+        if (dev == com.timerpg.street.llm.NativeLlm.NPU) NPU_BATCH else 512)
+
+    /** How the last [workWanted] got its figure (for the gate's breadcrumb). */
+    @Volatile private var workNote = ""
+
+    /**
+     * [role]'s own memory beside its weights (KV cache, recurrent state, compute buffers) at [dev]'s batch: as measured on
+     * [dev] for this model at that batch (kept across sessions), else on any device at that batch (the CPU's measure of
+     * the same cache and context is close to the NPU's), else a measure at another batch scaled to this one
+     * ([ModelRoles.scaleWork]: the compute buffers follow the batch; measures from before 2026-11-24 kept no batch and no
+     * split, and were all at 512, so their compute share is the S25's measured one), else the flat guess.
      */
     private fun workWanted(role: ModelRole, dev: Int? = deviceFor(role, backend as? com.timerpg.street.llm.NativeLlm)): Long {
         val p = app.getSharedPreferences("ai", Context.MODE_PRIVATE)
-        return listOfNotNull(dev?.let { p.getLong(workKey(role, it), 0L) }, p.getLong(workKey(role), 0L)).firstOrNull { it > 0 } ?: ModelRoles.WORK_BYTES
+        val b = batchFor(dev ?: com.timerpg.street.llm.NativeLlm.CPU)
+        listOfNotNull(dev?.let { workKey(role, it, b) }, workKey(role, null, b)).firstOrNull { p.getLong(it, 0L) > 0 }?.let {
+            workNote = "measured at batch $b"; return p.getLong(it, 0L)
+        }
+        for (from in listOf(512, 256, 128).filter { it != b }) for (k in listOfNotNull(dev?.let { workKey(role, it, from) }, workKey(role, null, from))) {
+            val w = p.getLong(k, 0L); if (w <= 0) continue
+            val c = p.getLong(k.replaceFirst("work_", "compute_"), (w * ModelRoles.COMPUTE_SHARE_512).toLong())
+            workNote = "estimated for batch $b from ${w shr 20} MB measured at $from"
+            return ModelRoles.scaleWork(w, c, from, b)
+        }
+        // (before 2026-11-24: no batch in the key, always 512)
+        listOfNotNull(dev?.let { workKey(role, it) }, workKey(role)).firstOrNull { p.getLong(it, 0L) > 0 }?.let { k ->
+            val w = p.getLong(k, 0L)
+            workNote = "estimated for batch $b from ${w shr 20} MB measured at 512"
+            return ModelRoles.scaleWork(w, (w * ModelRoles.COMPUTE_SHARE_512).toLong(), 512, b)
+        }
+        workNote = "a first guess"
+        return ModelRoles.WORK_BYTES
     }
+
+    /** Where the weights a device copy of [role] really took are kept (MB measured, by device, file size and head setting). */
+    private fun copyKey(role: ModelRole, dev: Int, fileBytes: Long) = "copy_${role.name.lowercase()}_d${dev}_m${fileBytes}_h${if (headMappedWanted) 1 else 0}"
+
+    /** What [role]'s device copy takes of its file, as its last load on [dev] measured (bytes), else -1 (the whole file). */
+    private fun copyWanted(role: ModelRole, fileBytes: Long, dev: Int? = deviceFor(role, backend as? com.timerpg.street.llm.NativeLlm)): Long {
+        if (dev == null || dev == com.timerpg.street.llm.NativeLlm.CPU) return -1
+        return app.getSharedPreferences("ai", Context.MODE_PRIVATE).getLong(copyKey(role, dev, fileBytes), -1L)
+    }
+
+    /** A tied output head kept on the CPU, mapped, for a device copy (the AI panel may turn it off: "headMapped"). */
+    val headMappedWanted: Boolean get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getBoolean("headMapped", true)
 
     /** The context each model gets: the light one's live replies fit in [LIVE_CONTEXT_TOKENS] (fact sheet, memories and reply). */
     private fun contextFor(role: ModelRole) = if (role == ModelRole.LIVE) LIVE_CONTEXT_TOKENS else CONTEXT_TOKENS
 
-    /** What [role]'s copy on its device needs (MB to bytes), with its measured working memory. */
-    private fun copyNeed(role: ModelRole, bankFile: File): Long =
-        ModelRoles.needBytes(if (role == ModelRole.LIVE) ModelFiles.LIVE_BYTES else bankFile.length(), true, workWanted(role))
+    /** What [role]'s copy on its device needs (MB to bytes), with its measured working memory, copy and the adaptive margin. */
+    private fun copyNeed(role: ModelRole, bankFile: File): Long {
+        val size = if (role == ModelRole.LIVE) ModelFiles.LIVE_BYTES else bankFile.length()
+        return ModelRoles.needBytes(size, true, workWanted(role), com.timerpg.street.llm.NpuGate.margin(app) shl 20, copyWanted(role, size))
+    }
 
     private fun describe(c: ModelRoles.Choice): String = when (c) {
         is ModelRoles.Load -> "${c.role.name.lowercase()} ${if (c.copied) "copied to its device" else "on the CPU from its file"}"
@@ -607,6 +675,27 @@ class DialogueEngine private constructor(private val app: Context) {
     @Volatile private var loadedWork = 0L
     /** What the device gate counted beyond the free memory at the last choice, and why (for the breadcrumbs and panel). */
     @Volatile private var gateNote: String? = null
+    /** The gate's whole arithmetic at the last choice (free, reclaim counted, margin, need and its parts, the result). */
+    @Volatile private var gateLine = ""
+    /** When the last device copy in play loaded (elapsed ms; 0: none, or its hold window ended or was troubled): after
+     *  [com.timerpg.street.llm.NpuGate.HOLD_MS] untroubled the margin learns from it ([marginCheck]). */
+    @Volatile private var heldSince = 0L
+    private val marginCheck = Runnable {
+        val at = heldSince
+        if (at == 0L || backend?.loaded != true || android.os.SystemClock.elapsedRealtime() - at < com.timerpg.street.llm.NpuGate.HOLD_MS) return@Runnable
+        heldSince = 0L
+        val lowest = minOf(com.timerpg.street.llm.MemoryWatch.lowestMb, heldValveMin)
+        if (lowest != Long.MAX_VALUE) com.timerpg.street.llm.NpuGate.marginHeld(app, lowest, com.timerpg.street.llm.MemoryWatch.thresholdMb)
+    }
+    @Volatile private var heldValveMin = Long.MAX_VALUE
+
+    /** Trouble beside a device copy within its hold window (a low-memory signal, critical memory): the margin grows, once. */
+    private fun marginTroubled(why: String) {
+        if (heldSince == 0L) return
+        heldSince = 0L
+        main.removeCallbacks(marginCheck)
+        com.timerpg.street.llm.NpuGate.marginTrouble(app, why)
+    }
     /** When the last tried copy loaded (elapsed ms; 0: none): memory critical soon after counts against it. */
     @Volatile private var triedAt = 0L
     @Volatile private var triedFree = 0L
@@ -615,8 +704,8 @@ class DialogueEngine private constructor(private val app: Context) {
     /** The NPU failing for another reason than memory: the GPU before the CPU (the AI panel's switch; on by default). */
     val gpuFallbackWanted: Boolean get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getBoolean("gpuFallback", true)
     fun setGpuFallback(on: Boolean) { app.getSharedPreferences("ai", Context.MODE_PRIVATE).edit().putBoolean("gpuFallback", on).apply() }
-    /** The prompt's batch from the next load (512 by default; 256 or 128 shrink the compute buffers), see [com.timerpg.street.llm.NativeLlm.batch]. */
-    val batchWanted: Int get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getInt("batch", 512)
+    /** The prompt's batch on the NPU from the next load (128 by default; [batchFor]), see [com.timerpg.street.llm.NativeLlm.batch]. */
+    val batchWanted: Int get() = batchFor(com.timerpg.street.llm.NativeLlm.NPU)
     /** What the device gate counted, for the AI panel. */
     val gateText: String? get() = gateNote
 
@@ -1186,11 +1275,17 @@ class DialogueEngine private constructor(private val app: Context) {
         return plans
     }
 
-    private fun loadModel() {
+    /**
+     * [early]: the session is starting and the town is not built yet ([loadBeforeTown]): the light model's NPU copy loads
+     * first if it fits (MEMORY_AUDIT.md, M1), past the town's hold (never past the fit test's); else it waits for the
+     * town as before.
+     */
+    private fun loadModel(early: Boolean = false) {
         if (closed) return
         val holds = lock.withLock { loadHolds.sorted().joinToString() }
+        val earlyOk = early && foreground && !night && backend?.loaded != true && lock.withLock { FIT_TEST !in loadHolds }
         // held (the town is being built): the load waits for the hold to lift ([releaseLoad])
-        if (backend?.loaded != true && holds.isNotEmpty()) {
+        if (backend?.loaded != true && holds.isNotEmpty() && !earlyOk) {
             lock.withLock { loadWanted = true }
             return setState(ModelState.WAITING, "Waiting for the town to be built before loading the model ($holds).")
         }
@@ -1239,20 +1334,41 @@ class DialogueEngine private constructor(private val app: Context) {
                 com.timerpg.street.llm.NpuGate.verdict(app, (avail + held) shr 20, copyNeed(role, bankFile) shr 20, swap)
             }
             gateNote = reclaim?.let { "${it.reclaimMb} MB counted beyond the free memory: ${it.why}" }
-            return ModelRoles.pick(ModelRoles.Input(
+            val margin = com.timerpg.street.llm.NpuGate.margin(app)
+            val liveWork = workWanted(ModelRole.LIVE); val liveWorkNote = workNote
+            val liveCopy = copyWanted(ModelRole.LIVE, ModelFiles.LIVE_BYTES)
+            val input = ModelRoles.Input(
                 foreground = foreground, sceneBuilt = holds.isEmpty(), freeBytes = avail + held, lowMemory = low && held == 0L,
                 bankBytes = if (bankOk) bankFile.length() else 0L, liveBytes = if (liveOk) liveFile.length() else 0L,
                 accelerated = accelerated, forceBank = forceBankWanted, writing = night,
-                bankWorkBytes = workWanted(ModelRole.BANK), liveWorkBytes = workWanted(ModelRole.LIVE),
+                bankWorkBytes = workWanted(ModelRole.BANK), liveWorkBytes = liveWork,
                 reclaimBytes = (reclaim?.reclaimMb ?: 0L) shl 20,
                 npu = onNpu, npuWhy = npuWhy,
-            ))
+                bankCopyBytes = copyWanted(ModelRole.BANK, bankFile.length()), liveCopyBytes = liveCopy,
+                marginBytes = margin shl 20, early = earlyOk,
+            )
+            val c = ModelRoles.pick(input)
+            // the gate's figures, every one (MEMORY_AUDIT.md, plan step 4): the next phone report proves the arithmetic
+            val role = (c as? ModelRoles.Load)?.role ?: if (liveOk && !forceBankWanted && !night) ModelRole.LIVE else ModelRole.BANK
+            gateLine = "free ${(avail + held) shr 20} MB" + (if (held > 0) " (${held shr 20} of it the loaded model's)" else "") +
+                ", reclaim counted ${reclaim?.reclaimMb ?: 0} MB, margin $margin MB, need ${ModelRoles.copyNeed(input, role) shr 20} MB for the " +
+                "${if (role == ModelRole.LIVE) "light" else "main"} copy (weights ${(if (role == ModelRole.LIVE) liveCopy.takeIf { it > 0 }?.let { "${it shr 20} measured" } else null) ?: "${(if (role == ModelRole.LIVE) ModelFiles.LIVE_BYTES else bankFile.length()) shr 20} file"}" +
+                (if (role == ModelRole.LIVE) ", own ${liveWork shr 20} $liveWorkNote" else "") + ", batch ${batchFor(com.timerpg.street.llm.NativeLlm.NPU)})" +
+                (if (earlyOk) ", before the town" else "") + ": ${describe(c)}" + ((c as? ModelRoles.Load)?.takeIf { it.tried }?.let { " (a try)" } ?: "")
+            return c
         }
         _status.update { it.copy(hasLive = liveOk, forceBank = forceBankWanted, needLive = false,
-            liveNeedMb = ModelRoles.needBytes(ModelFiles.LIVE_BYTES, accelerated) shr 20, bankNeedMb = ModelRoles.needBytes(bankFile.length().takeIf { l -> l > 0 } ?: 5_680_522_464L, accelerated) shr 20) }
+            liveNeedMb = (if (accelerated) copyNeed(ModelRole.LIVE, bankFile) else ModelRoles.needBytes(ModelFiles.LIVE_BYTES, false)) shr 20,
+            bankNeedMb = ModelRoles.needBytes(bankFile.length().takeIf { l -> l > 0 } ?: 5_680_522_464L, accelerated) shr 20) }
         var choice = choose()
+        // before the town, only a load that fits now (or as a try): else the town goes first, as before
+        if (earlyOk && choice !is ModelRoles.Load) {
+            com.timerpg.street.shot.Crumbs.add("dialogue model: not before the town: $gateLine")
+            lock.withLock { loadWanted = true }
+            return setState(ModelState.WAITING, "Waiting for the town to be built before loading the model ($holds).")
+        }
         // in play a model on the CPU (loaded behind the game, or by an older rule) goes: in play it never runs there
-        val playNow = foreground && !night && holds.isEmpty()
+        val playNow = foreground && !night && (holds.isEmpty() || earlyOk)
         if (b.loaded) {
             val want = (choice as? ModelRoles.Load)?.role
             if (!(playNow && loadedOnCpu) && (want == null || want == loadedRole)) {
@@ -1366,19 +1482,29 @@ class DialogueEngine private constructor(private val app: Context) {
         native?.mtp = if (role == ModelRole.BANK && useMtp && (mtpSet || native?.device == com.timerpg.street.llm.NativeLlm.NPU)) mtpWanted else 0
         // loading holds the AI lane: speech, memory and the voices do not load beside it (their memory added to a load's
         // is what took the phone down)
-        native?.batch = batchWanted
+        // the prompt's batch: 128 on the NPU (its compute buffers: MEMORY_AUDIT.md, M2), 512 elsewhere (batchFor)
+        native?.batch = batchFor(native?.device ?: com.timerpg.street.llm.NativeLlm.CPU)
+        // a tied output head stays mapped on the CPU rather than copied to the device a second time (M3)
+        native?.headMapped = headMappedWanted
+        val deviceCopy = native != null && !cpuFallback && native.device != com.timerpg.street.llm.NativeLlm.CPU
+        // right before a device copy: the Java heap and the native allocator give back what they can (C2, M6: memory freed
+        // just before the load shows up as free in full; an hour earlier Android would have refilled it with cache)
+        if (deviceCopy) trimBeforeLoad()
         // a try: the copy fits only with what Android is expected to find (NpuGate). Marked first (a kill during it is
-        // known on the next start), watched (stopped if free memory falls to Android's threshold plus a valve), recorded
+        // known on the next start), watched (stopped if free memory falls to Android's threshold plus a valve), recorded.
+        // Every device copy with the game in front is watched by the valve now (a try or not), so it also gives the lowest
+        // free memory the margin learns from
         val tried = (choice as? ModelRoles.Load)?.tried == true && native != null && !cpuFallback
         val freeBefore = memoryNow().first shr 20
         val needMb = copyNeed(role, bankFile) shr 20
         var valve: com.timerpg.street.llm.LoadValve? = null
+        com.timerpg.street.shot.Crumbs.add("npu gate: ${if (tried) "trying" else "loading"} with $freeBefore MB free after the trim; $gateLine")
         if (tried) {
             com.timerpg.street.llm.NpuGate.markRunning(app, freeBefore, needMb)
             com.timerpg.street.shot.Crumbs.add("dialogue model: trying the ${role.name.lowercase()} model's ${listOf("CPU", "GPU", "NPU").getOrElse(wantDev) { "?" }} copy " +
                 "with $freeBefore MB free, $needMb MB needed: ${gateNote ?: ""}")
-            valve = com.timerpg.street.llm.LoadValve.start(app) { b.cancel() }
         }
+        if (tried || (deviceCopy && foreground)) valve = com.timerpg.street.llm.LoadValve.start(app) { b.cancel() }
         var ok = com.timerpg.street.llm.AiLane.run("dialogue") {
             try { b.load(f.path, 0, contextFor(role)) } catch (t: Throwable) { thrown = t.message ?: t.javaClass.simpleName; false }
         }
@@ -1391,6 +1517,18 @@ class DialogueEngine private constructor(private val app: Context) {
                 if (ok) com.timerpg.street.llm.NpuGate.found(freeBefore, after, copied) else -1, why))
             if (ok) { triedAt = android.os.SystemClock.elapsedRealtime(); triedFree = freeBefore; triedNeed = needMb; main.postDelayed({ com.timerpg.street.llm.NpuGate.clearRunning(app) }, 20_000) }
             else com.timerpg.street.llm.NpuGate.clearRunning(app)
+        } else if (deviceCopy && !ok && valve?.hit != null) com.timerpg.street.llm.NpuGate.marginTrouble(app, "the safety valve stopped a load: ${valve?.hit}")
+        // the result, with the gate's figures, in one line (the next phone report proves the arithmetic)
+        if (native != null) com.timerpg.street.shot.Crumbs.add("npu gate: result ${if (ok) "loaded" else "failed (${native.error ?: thrown ?: "?"})"}: " +
+            "${memoryNow().first shr 20} MB free after (${freeBefore} before, lowest ${valve?.minFreeMb?.takeIf { it != Long.MAX_VALUE } ?: "?"}); " +
+            "weights %.0f MB copied + %.0f mapped, own %.0f (compute %.0f, batch ${native.batch}); need was $needMb MB".format(java.util.Locale.US,
+                native.loadMem[1], native.loadMem[0], native.loadMem[2] + native.loadMem[3] + native.loadMem[4], native.loadMem[4]))
+        // the margin's hold window: an untroubled one lets it learn ([marginCheck])
+        if (ok && deviceCopy && foreground && !night) {
+            com.timerpg.street.llm.MemoryWatch.resetLowest()
+            heldValveMin = valve?.minFreeMb ?: Long.MAX_VALUE
+            heldSince = android.os.SystemClock.elapsedRealtime()
+            main.removeCallbacks(marginCheck); main.postDelayed(marginCheck, com.timerpg.street.llm.NpuGate.HOLD_MS + 1000)
         }
         // the NPU could not take it: the GPU (unless it was memory: its copy is as big), then the CPU (and say so)
         val memoryFail = valve?.hit != null || (native?.error ?: "").let { e -> e.contains("alloc", true) || e.contains("memory", true) }
@@ -1448,15 +1586,23 @@ class DialogueEngine private constructor(private val app: Context) {
         loadedRole = role
         loadedCopied = native != null && (native.runsOn != com.timerpg.street.llm.NativeLlm.CPU || native.fastCpu)
         loadedOnCpu = native != null && native.runsOn == com.timerpg.street.llm.NativeLlm.CPU
-        loadedBytes = f.length()
+        // (a device copy's weights as copied: what letting it go gives back; the tied head kept mapped is not in it)
+        loadedBytes = if (loadedCopied && native != null && native.loadMem[1] > 0) (native.loadMem[1] * 1048576.0).toLong() else f.length()
         // what this model's cache and buffers really took: the next choice for it counts that, not a guess
         val m = native?.loadMem
+        // (kept by the batch it was measured at, with its compute part apart, so another batch's need is scaled from it:
+        // ModelRoles.scaleWork; and the weights the device copy really took, so the need counts that and not the file)
         if (native != null && native.workBytes > 0) {
-            app.getSharedPreferences("ai", Context.MODE_PRIVATE).edit().putLong(workKey(role), native.workBytes).apply()
+            val compute = (native.loadMem[4] * 1048576.0).toLong()
+            app.getSharedPreferences("ai", Context.MODE_PRIVATE).edit()
+                .putLong(workKey(role, null, native.batch), native.workBytes).putLong(workKey(role, null, native.batch, "compute"), compute)
+                .putLong(workKey(role, native.runsOn, native.batch), native.workBytes).putLong(workKey(role, native.runsOn, native.batch, "compute"), compute)
+                .apply()
             loadedWork = native.workBytes
         } else loadedWork = 0
-        if (native != null && native.workBytes > 0)
-            app.getSharedPreferences("ai", Context.MODE_PRIVATE).edit().putLong(workKey(role, native.runsOn), native.workBytes).apply()
+        if (native != null && native.runsOn != com.timerpg.street.llm.NativeLlm.CPU && native.loadMem[1] > 0)
+            app.getSharedPreferences("ai", Context.MODE_PRIVATE).edit()
+                .putLong(copyKey(role, native.runsOn, f.length()), (native.loadMem[1] * 1048576.0).toLong()).apply()
         // on the CPU only for want of memory: look again every so often and move it to its device once there is room
         fallbackRole = if (cpuFallback && native?.runsOn == com.timerpg.street.llm.NativeLlm.CPU) role else null
         fallbackDevice = wantDev
@@ -1525,6 +1671,30 @@ class DialogueEngine private constructor(private val app: Context) {
         if (am == null) Long.MAX_VALUE / 4 to false else { am.getMemoryInfo(mi); mi.availMem to mi.lowMemory }
     } catch (e: Exception) { Long.MAX_VALUE / 4 to false }
 
+    /**
+     * Right before a device copy loads: the Java heap collected and finalized once and trimmed, and the native allocator's
+     * free pages purged (MEMORY_AUDIT.md, C2/M6), with what that gave back in the breadcrumbs. On this thread (the
+     * engine's), so tens of ms of collection never stall a frame.
+     */
+    private fun trimBeforeLoad() {
+        fun rssMb() = runCatching {
+            java.io.File("/proc/self/status").readLines().firstOrNull { it.startsWith("VmRSS:") }?.split(Regex("\\s+"))?.getOrNull(1)?.toLong()?.shr(10)
+        }.getOrNull() ?: -1L
+        val rt = Runtime.getRuntime()
+        val t0 = android.os.SystemClock.elapsedRealtime()
+        val free0 = memoryNow().first shr 20; val rss0 = rssMb()
+        val java0 = (rt.totalMemory() - rt.freeMemory()) shr 20; val heap0 = rt.totalMemory() shr 20
+        val native0 = android.os.Debug.getNativeHeapAllocatedSize() shr 20; val nativeSize0 = android.os.Debug.getNativeHeapSize() shr 20
+        System.gc(); System.runFinalization(); System.gc()
+        val purged = com.timerpg.street.llm.NativeLlm.purgeNativeHeap()
+        val java1 = (rt.totalMemory() - rt.freeMemory()) shr 20; val heap1 = rt.totalMemory() shr 20
+        val nativeSize1 = android.os.Debug.getNativeHeapSize() shr 20
+        val rss1 = rssMb(); val free1 = memoryNow().first shr 20
+        com.timerpg.street.shot.Crumbs.add("dialogue model: trimmed before the load in ${android.os.SystemClock.elapsedRealtime() - t0} ms: " +
+            "Java heap $java0 -> $java1 MB used ($heap0 -> $heap1 held), native heap $nativeSize0 -> $nativeSize1 MB ($native0 allocated; " +
+            "purge ${when (purged) { 1 -> "done"; 0 -> "not supported"; else -> "no library" }}), RSS $rss0 -> $rss1 MB, free $free0 -> $free1 MB")
+    }
+
     /** Lets the model go to free memory: in the background, or ([force]) with the game in front under critical pressure. */
     private fun unloadForMemory(force: Boolean = false) {
         // the player came back before this ran: keep the model
@@ -1532,10 +1702,13 @@ class DialogueEngine private constructor(private val app: Context) {
         if (force) {
             val since = android.os.SystemClock.elapsedRealtime() - triedAt
             if (triedAt > 0 && since < com.timerpg.street.llm.NpuGate.HOLD_MS) {
+                // (the failed try grows the margin itself: NpuGate.record)
+                heldSince = 0L; main.removeCallbacks(marginCheck)
                 com.timerpg.street.llm.NpuGate.record(app, com.timerpg.street.llm.NpuGate.Try(System.currentTimeMillis(), triedFree, triedNeed, ok = false, why = "memory went critical ${since / 1000} s after the load"))
                 com.timerpg.street.llm.NpuGate.clearRunning(app)
             }
             triedAt = 0L
+            marginTroubled("memory went critical within the load's hold window")
             memoryUnloads++
             lastMemoryUnload = android.os.SystemClock.elapsedRealtime()
             com.timerpg.street.shot.Crumbs.add("dialogue model: unloaded, memory critical (${com.timerpg.street.llm.Ram.freeMb(app)} MB free; time $memoryUnloads)")
@@ -1988,6 +2161,26 @@ class DialogueEngine private constructor(private val app: Context) {
         const val FIT_TEST = "fit test"
         /** The pause reason while the light model is loaded (pre-generation is the main model's). */
         const val LIVE_PAUSE = "light model loaded"
+        /** The prompt's batch on the NPU unless the panel set one ([batchFor]). */
+        const val NPU_BATCH = 128
+        /** How long the town's build waits for the light model's early load ([loadBeforeTown]; ~6 s measured on the S25). */
+        const val EARLY_WAIT_MS = 20_000L
+        /** What the town's build takes of the phone's free memory, about (game PSS 165 -> 2470-2550 MB, measured on
+         *  0.1.848): free beyond the light copy's need by this much lets the build go beside the load rather than wait. */
+        const val TOWN_BUILD_MB = 2400L
+
+        /**
+         * A session starts (the town's loading thread, before it reads the town): the light model's NPU copy loads first
+         * when it fits (MEMORY_AUDIT.md, M1: at app start 3665 MB free plus what Android finds covers the need; with the
+         * town built ~3050), and the town's build waits for it at most [EARLY_WAIT_MS], or not at all when the phone has
+         * room for both. Safe as every load in play: the gate decides, the valve watches, memory critical later lets the
+         * model go before the game. Nothing when no engine is running, a model is loaded, or the load would not fit (the
+         * town goes first then, as before). Off the main thread.
+         */
+        fun loadBeforeTown() {
+            val e = synchronized(this) { shared?.takeIf { !it.closed } } ?: return
+            e.loadEarly()
+        }
 
         fun keyOf(prompt: String): String = ReplyCache.keyOf(prompt, SETTINGS)
 

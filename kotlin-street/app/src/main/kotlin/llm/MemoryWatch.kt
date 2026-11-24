@@ -23,6 +23,10 @@ object MemoryWatch {
     @Volatile var level = 0; private set
     @Volatile var freeMb = -1L; private set
     @Volatile var thresholdMb = -1L; private set
+    /** The least free memory read since [resetLowest] (MB; Long.MAX_VALUE: none yet): the device copy's margin learns
+     *  from it over a load's hold window ([NpuGate.marginHeld]). */
+    @Volatile var lowestMb = Long.MAX_VALUE; private set
+    fun resetLowest() { lowestMb = Long.MAX_VALUE }
     /** Told of each change of [level] (main thread). */
     val listeners = CopyOnWriteArrayList<(Int) -> Unit>()
     @Volatile private var thread: Thread? = null
@@ -38,6 +42,7 @@ object MemoryWatch {
                     am.getMemoryInfo(mi)
                     val free = mi.availMem shr 20; val th = mi.threshold shr 20
                     freeMb = free; thresholdMb = th
+                    if (free < lowestMb) lowestMb = free
                     // (a level is left only well clear of it, so it does not flicker at the edge)
                     val now = when {
                         mi.lowMemory || free < th + CRITICAL_MB -> 2
