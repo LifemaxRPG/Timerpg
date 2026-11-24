@@ -18,3 +18,11 @@ Added four regional climates, keyed weather fronts, evening fog, and modifiers f
 
 - One interactive implementation run with a WIP and final push. Model setting, tokens and plan usage were not visible.
 - Initial delivery, zero review rounds.
+
+## Revision 1 — C027-r1
+
+Calibrated dry-sky mixes by region and season, switched snow to rain above 1 °C, and added a save-start date argument. Equivalent dates produce identical weather regardless of the save start.
+
+All ten weather and calendar tests passed, including the warm-south clear-sky comparison, snow-temperature checks and date equivalence. TypeScript passed. On-device behavior remains untested.
+
+Revision usage was one interactive run with a WIP and final push. Model setting, tokens and plan usage were not visible.

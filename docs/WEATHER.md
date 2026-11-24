@@ -1,6 +1,6 @@
 # Regional weather
 
-Import from `src/weather`. Pass the absolute day from `dayNumberOf` in `src/calendar`, a local hour in [0, 24), and a stable region seed. All results are JSON-safe.
+Import from `src/weather`. Pass the absolute day from `dayNumberOf` in `src/calendar`, a local hour in [0, 24), and a stable region seed. Alternatively, pass the save-relative day and its calendar start as the optional fifth argument. For example, `weatherAt("temperate_coast", 0, 18, "2", {year:1952,month:11,day:8})` matches the absolute-day example below. The resolved date keys all weather rolls. All results are JSON-safe.
 
 | Call | Example result |
 |---|---|
@@ -17,6 +17,6 @@ Monthly mean temperatures in °C, Frostmonth through Longnight, with the maximum
 | Mountain | −9, −7, −3, 2, 8, 13, 16, 15, 10, 4, −3, −8 | 11 |
 | Warm south | 14, 16, 19, 23, 26, 29, 31, 31, 28, 24, 19, 15 | 8 |
 
-Fronts have 18–30-hour segments with keyed sky and wind. Temperature adds a day-night cycle to front variation. Snow is gated to cold winter and shoulder months. A local evening or morning fog layer can override dry skies, especially in autumn. Storm seasons are autumn on the coast, spring on the plains, and summer in the mountains and warm south. Invalid dates, hours, climates and months return null where applicable.
+Fronts have 18–30-hour segments with keyed sky and wind. Temperature adds a day-night cycle to front variation. Snow occurs during cold winter and shoulder months at 1 °C or below. The same precipitation falls as rain at higher temperatures. The dry-sky mix varies by climate and season, with more clear skies in the warm south than on the coast. A local evening or morning fog layer can override dry skies, especially in autumn. Storm seasons are autumn on the coast, spring on the plains, and summer in the mountains and warm south. Invalid dates, hours, climates and months return null where applicable.
 
 Apply face recognition distance alongside line of sight and lighting. Use the movement, crowd, and grip multipliers on the caller's own baseline values. This module does not locate rivers or drive the renderer.

@@ -10,7 +10,9 @@ it('limits snow to cold calendar months and never snows in the warm south', () =
   for (const climate of regions) {
     for (let month = 1; month <= 12; month++) {
       for (let day = 1; day <= 28; day++) {
-        if (weatherAt(climate, dayOf(month, day), 12, 'town')?.sky !== 'snow') continue;
+        const weather = weatherAt(climate, dayOf(month, day), 12, 'town')!;
+        if (weather.sky !== 'snow') continue;
+        expect(weather.temperatureC).toBeLessThanOrEqual(1);
         expect(climate).not.toBe('warm_south');
         expect([1, 2, 3, 11, 12]).toContain(month);
         snowDays++;
@@ -55,4 +57,28 @@ it('stays within authored climate ranges and generates repeatable JSON', () => {
       }
     }
   }
+});
+
+it('has more clear skies in the warm south than on the temperate coast', () => {
+  const countClear = (climate: Climate) => {
+    let clear = 0;
+    for (const seed of ['town', 'harbor', 'prairie']) {
+      for (let day = dayOf(1); day < dayOf(1) + 366; day++) {
+        if (weatherAt(climate, day, 12, seed)?.sky === 'clear') clear++;
+      }
+    }
+    return clear;
+  };
+  expect(countClear('warm_south')).toBeGreaterThan(549);
+  expect(countClear('warm_south')).toBeGreaterThan(countClear('temperate_coast'));
+});
+
+it('keys the same weather to a date regardless of the save start', () => {
+  const date = { year: 1952, month: 11, day: 8 };
+  const earlier = { ...date, month: 10 };
+  const absolute = dayNumberOf(date)!;
+  const expected = weatherAt('temperate_coast', absolute, 18, '2');
+  expect(expected?.sky).toBe('fog');
+  expect(weatherAt('temperate_coast', 0, 18, '2', date)).toEqual(expected);
+  expect(weatherAt('temperate_coast', absolute - dayNumberOf(earlier)!, 18, '2', earlier)).toEqual(expected);
 });
