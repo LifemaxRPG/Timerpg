@@ -857,6 +857,13 @@ object LandmarkKit {
     class BoxTag(val x: Float, val y: Float, val z: Float, val group: String, val attachment: String, val sx: Float = 0f, val sy: Float = 0f, val sz: Float = 0f, val source: String = "") {
         /** A flight of steps, a landing, a porch or a ramp a walker goes up (no higher than [WALK_UP] m): ground, not a wall. */
         val walkOn: Boolean get() = y + sy / 2f <= WALK_UP && Regex("step|stair|landing|porch|ramp").containsMatchIn(source)
+        /**
+         * A box standing for a flight of steps or a ramp whatever its height (not its cheek walls or rails): left out of
+         * the height field, which takes the drawn steps instead. The guides box a flight two treads a box at the higher
+         * tread's height, which buried every other tread: the Great Meridian's north flight had a 1 m riser at its top,
+         * and the walk stopped there (the owner's 100436, 0.1.848).
+         */
+        val flight: Boolean get() = Regex("step|stair|ramp").containsMatchIn(source) && !Regex("cheek|rail|wall|balust").containsMatchIn(source)
     }
     /** The highest platform (metres) the town's flat walk takes as ground: a courthouse's porch at the top of its steps. */
     const val WALK_UP = 1.3f
@@ -902,7 +909,7 @@ object LandmarkKit {
             val out = ArrayList<Float>()
             for (t in tags) {
                 if (!keepLot && t.group == "lot" || t.attachment in hidden || t.walkOn) continue
-                levels?.addBox((t.x - t.sx / 2f) * U, (t.z - t.sz / 2f) * U, (t.x + t.sx / 2f) * U, (t.z + t.sz / 2f) * U, (t.y - t.sy / 2f) * U + lift, (t.y + t.sy / 2f) * U + lift)
+                if (!t.flight) levels?.addBox((t.x - t.sx / 2f) * U, (t.z - t.sz / 2f) * U, (t.x + t.sx / 2f) * U, (t.z + t.sz / 2f) * U, (t.y - t.sy / 2f) * U + lift, (t.y + t.sy / 2f) * U + lift)
                 if ((t.y - t.sy / 2f) * U > HEAD || (t.y + t.sy / 2f) * U < STEP) continue
                 out += (t.x - t.sx / 2f) * U; out += (t.z - t.sz / 2f) * U; out += (t.x + t.sx / 2f) * U; out += (t.z + t.sz / 2f) * U
             }
@@ -932,7 +939,7 @@ object LandmarkKit {
                 ?.takeIf { abs(it.x - cx) < .08f && abs(it.y - cy) < .08f && abs(it.z - cz) < .08f }
             if (tag != null && !keepLot && tag.group == "lot") continue
             if (tag != null && tag.attachment in hidden) continue
-            if (tag?.walkOn != true) levels?.addBox(b[0], b[2], b[3], b[5], b[1], b[4])
+            if (tag?.walkOn != true && tag?.flight != true) levels?.addBox(b[0], b[2], b[3], b[5], b[1], b[4])
             out += b[0]; out += b[2]; out += b[3]; out += b[5]
         }
         return out.toFloatArray()

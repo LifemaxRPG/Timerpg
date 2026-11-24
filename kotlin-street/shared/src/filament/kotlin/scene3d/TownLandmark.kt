@@ -187,6 +187,37 @@ internal class TownLandmark(
         }
     }
 
+    /**
+     * The underside of its ceiling over a walker at ([x], [z]) with feet at [feet] (a floor or roof no more than
+     * [INDOORS_CEILING] over the head), or NaN: in the open (its plaza, its steps, under a lofty arch) or no field yet.
+     */
+    fun ceilingOver(x: Float, z: Float, feet: Float): Float {
+        val f = levelsMade ?: return Float.NaN
+        val c = f.bottomAbove(x, z, feet + com.lifemax.rpg.feature.habits.domain.WalkHeight.HEAD)
+        if (c.isNaN() || c - feet >= INDOORS_CEILING) return Float.NaN
+        // (and walls round: a room or a hall, not a gazebo's or a porch's roof on posts, where the cutaway would take
+        // everything of the landmark above that roof with it: the Night Keeper's giant figure): of eight ways out at chest
+        // height, most meet a wall within [INDOORS_REACH]
+        var walls = 0
+        for (k in 0 until 8) {
+            val dx = RING_X[k]; val dz = RING_Z[k]
+            var d = 6f
+            while (d <= INDOORS_REACH) {
+                if (f.hits(x + dx * d, z + dz * d, feet + 26f, feet + 32f)) { walls++; break }
+                d += 6f
+            }
+            if (walls + (7 - k) < INDOORS_WALLS) return Float.NaN
+        }
+        return c
+    }
+
+    /** The cutaway of the player inside it ([SeeThrough.cutaway]), or null; set by [FilamentTown.occlude]. */
+    var cutaway: FloatArray?
+        get() = layer.cutaway
+        set(v) { layer.cutaway = v }
+    /** (Its cutaway's own floats, filled in place.) */
+    val cutawayBuf = FloatArray(8)
+
     /** The model's frame: x, z of its origin, its x axis, its z axis (for previews). */
     val frame: FloatArray get() = at
 
@@ -279,6 +310,13 @@ internal class TownLandmark(
          * work: a few hundred ms on a worker at most, long before anyone on foot (or on the bike) reaches its steps.
          */
         val LEVELS_NEAR = 150f * LandmarkKit.UNITS_PER_METRE
+        /** A floor or roof this near over the feet (street units: 6 m) is a ceiling: the player is inside ([ceilingOver]). */
+        const val INDOORS_CEILING = 128f
+        /** Inside: at least this many of eight ways out meet a wall within [INDOORS_REACH] (street units: 14 m). */
+        const val INDOORS_WALLS = 5
+        const val INDOORS_REACH = 300f
+        private val RING_X = FloatArray(8) { kotlin.math.cos(it * Math.PI / 4).toFloat() }
+        private val RING_Z = FloatArray(8) { kotlin.math.sin(it * Math.PI / 4).toFloat() }
 
         /** A row slot's frame: the lot's front edge on the building line [setback] back, its middle on the slot's. */
         fun rowFrame(place: TownPlace, setback: Float): (Float, Float) -> FloatArray = { xMid, front ->

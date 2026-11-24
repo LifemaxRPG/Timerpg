@@ -120,8 +120,9 @@ internal class TreeCells(
      * up to its top). A crown the line starts in counts (the player under it). For the see-through cone, which cuts only
      * while something really hides the player. Allocates nothing.
      */
-    fun blocks(ax: Float, ay: Float, az: Float, bx: Float, by: Float, bz: Float): Boolean {
+    fun blocks(ax: Float, ay: Float, az: Float, bx: Float, by: Float, bz: Float, crowns: Boolean = false): Boolean {
         val lx = min(ax, bx); val hx = max(ax, bx); val lz = min(az, bz); val hz = max(az, bz)
+        var hit = false
         for (c in cells.values) {
             if (c.x1 < lx || c.x0 > hx || c.z1 < lz || c.z0 > hz || c.top < min(ay, by)) continue
             for (i in c.trees.indices) {
@@ -129,10 +130,15 @@ internal class TreeCells(
                 val h = s.height
                 if (h < CROWN_MIN) continue
                 val r = h * CROWN_SIDE
-                if (segmentHitsBox(ax, ay, az, bx, by, bz, at[0] - r, h * CROWN_FROM, at[1] - r, at[0] + r, h, at[1] + r)) return true
+                if (segmentHitsBox(ax, ay, az, bx, by, bz, at[0] - r, h * CROWN_FROM, at[1] - r, at[0] + r, h, at[1] + r)) {
+                    if (!crowns) return true
+                    // (its whole crown faded: the volume round its lobes, its trunk below left)
+                    hit = true
+                    SeeThrough.crown(at[0], h * CROWN_MIDDLE, at[1], h * CROWN_RADIUS)
+                }
             }
         }
-        return false
+        return hit
     }
 
     /** Makes the detail [pose] would show at once (a preview's or a teleport's; unbudgeted). */
@@ -165,6 +171,9 @@ internal class TreeCells(
         /** A crown's half width (a share of the tree's height) and where it begins (a share of the height up). */
         const val CROWN_SIDE = .22f
         const val CROWN_FROM = .5f
+        /** The whole crown as the see-through fades it: its middle (a share of the height up) and radius (TreeKit's lobes reach about .55 of the height out). */
+        const val CROWN_MIDDLE = .66f
+        const val CROWN_RADIUS = .64f
 
         /** Whether the segment ([ax], [ay], [az])-([bx], [by], [bz]) meets the box (inside counts). Allocates nothing. */
         fun segmentHitsBox(ax: Float, ay: Float, az: Float, bx: Float, by: Float, bz: Float,

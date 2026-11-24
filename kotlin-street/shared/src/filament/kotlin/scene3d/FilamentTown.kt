@@ -1647,13 +1647,25 @@ class FilamentTown(
             else if (tc <= 1f && th <= 1f) { cinemaOccT = max(tc, th); blocked = true; if (tc < first) first = tc }
         }
         // the landmark models (their buildings, not their flat lots): as the cinema
-        for (lm in landmarkDraws + listOfNotNull(depotDraw)) {
+        for (i in 0..landmarkDraws.size) {
+            val lm = if (i < landmarkDraws.size) landmarkDraws[i] else depotDraw ?: continue
             lm.occT = Float.MAX_VALUE
+            // the player inside it (a ceiling over them: the school's halls): cut away, Sims-style, only what of it stands
+            // on the camera's side of them and above the ceiling; its floors and far walls stay, the rooms in view (the
+            // owner's 100800, 0.1.848: "going inside just makes building disappear")
+            val ceil = if (lm.under(tx, tz)) lm.ceilingOver(tx, tz, feet) else Float.NaN
+            if (!ceil.isNaN()) {
+                SeeThrough.cutaway(tx, tz, feet, ex, ez, ceil, lm.cutawayBuf)
+                lm.cutaway = lm.cutawayBuf
+                continue
+            }
+            lm.cutaway = null
             val tc = lm.inWay(st[0], st[1], st[2], ex, ey, ez, EYE_CLEAR)
             val th = lm.inWay(st[6], st[7], st[8], ex, ey, ez, 0f)
-            // (the player up on its steps or terrace: it is the ground they stand on, never cut away whole (they would
-            // float over the grass); what of it hides them, the see-through cone cuts)
-            if (feet > com.lifemax.rpg.feature.habits.domain.WalkHeight.RISE && lm.under(tx, tz)) { if (tc <= 1f) blocked = true; continue }
+            // (the player on its grounds (its steps, its terrace, its plaza): it is the ground they stand on and all round
+            // them, never cut away whole: the Night Keeper's plaza, gazebo and giant figure all went at once, its shadow
+            // left on bare grass (the owner's 100614/100624, 0.1.848); what of it hides them, the see-through thins)
+            if (lm.under(tx, tz)) { if (tc <= 1f && th <= 1f) blocked = true; continue }
             if (tc <= 0f) lm.occT = .999f
             else if (tc <= 1f && th <= 1f) { lm.occT = max(tc, th); blocked = true; if (tc < first) first = tc }
         }
@@ -1688,10 +1700,14 @@ class FilamentTown(
         // the extras (the farms' buildings)
         for (x in extras) if (x.occlude(st, ex, ey, ez)) blocked = true
         // the woods' merged trees (no box of their own to cut): a crown across the chest's or the head's line hides the
-        // player, and only then does the see-through cone open ([hidden]); the feet's line behind a bush does not count
-        if (!blocked) for (c in chunks.values) {
+        // player, and only then does the see-through open ([hidden]); the feet's line behind a bush does not count. Each
+        // such crown is faded whole ([SeeThrough.crown])
+        SeeThrough.beginCrowns()
+        for (c in chunks.values) {
             val tc = c.trees ?: continue
-            if (tc.blocks(st[0], st[1], st[2], ex, ey, ez) || tc.blocks(st[6], st[7], st[8], ex, ey, ez)) { blocked = true; break }
+            val a = tc.blocks(st[0], st[1], st[2], ex, ey, ez, crowns = true)
+            val b = tc.blocks(st[6], st[7], st[8], ex, ey, ez, crowns = true)
+            if (a || b) blocked = true
         }
         hidden = blocked
         return first.coerceIn(0f, 1f)

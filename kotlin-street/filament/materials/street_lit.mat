@@ -31,7 +31,20 @@ material {
         // the open world's see-through cone (FilamentTown/SeeThrough.kt): the eye (xyz, user world) and how far along
         // the line to the player the cut ends (w), the player's middle (xyz) and the cone's radius there (w; 0 or unset: off)
         { type : float4, name : seeA, precision : high },
-        { type : float4, name : seeB, precision : high }
+        { type : float4, name : seeB, precision : high },
+        // how far the cone is open (x: 0 shut, 1 open), how much of what is thinned is left (y: the ghost, a share of the
+        // pixels), z: anything on at all (else the material skips it)
+        { type : float4, name : seeK },
+        // the tree crowns across the player's lines to the eye (centre xyz, w: radius; 0: none): each faded whole, its trunk
+        // left, a screen door over the crown's whole volume with a soft rim (no hole round the player)
+        { type : float4[4], name : seeCrowns, precision : high },
+        // how far each crown is faded (0..1, eased on its own)
+        { type : float4, name : seeCrownK },
+        // a building the player is inside (the cutaway, Sims-style): what of it stands on the camera's side of the plane
+        // through the player (seeCut: its normal xz towards the eye, its offset, w: 1 on) and above its ceiling
+        // (seeCutY: the floor, the ceiling's underside) is cut; its floors stay
+        { type : float4, name : seeCut, precision : high },
+        { type : float4, name : seeCutY, precision : high }
     ],
     requires : [ uv0, tangents ]
 }
@@ -71,17 +84,46 @@ fragment {
             if (materialParams.fade >= 0.0 ? d > materialParams.fade : d <= 1.0 + materialParams.fade) c.a = 0.0;
         }
         if (materialParams.oneSided > 0.5 && dot(getWorldGeometricNormalVector(), getWorldViewVector()) < 0.0) c.a = 0.0;
-        // what stands in the cone from the eye to the player is cut, its edge a dither in whole art pixels; never the
-        // ground (nothing under 1.5 up), never past the player
-        if (materialParams.seeB.w > 0.0) {
+        // the see-through (SeeThrough.kt): what hides the player is thinned to a ghost, a screen door in whole art pixels;
+        // never the ground (nothing under 1.5 up), never past the player. Its share kept eases smoothly to whole at the
+        // edges (the cone's and each crown's): no hard ring (the owner's 100817, "the circle cut out looks bad")
+        if (materialParams.seeK.z > 0.0) {
             highp vec3 w = getUserWorldPosition();
-            highp vec3 e = materialParams.seeA.xyz;
-            highp vec3 ax = materialParams.seeB.xyz - e;
-            highp float t = dot(w - e, ax) / max(dot(ax, ax), 1e-3);
-            if (t > 0.0 && t < materialParams.seeA.w && w.y > 1.5) {
-                float r = max(t * materialParams.seeB.w, 3.0);
-                float k = length(w - e - ax * t) / r;
-                if (k < 1.0 && bayer4(gl_FragCoord.xy / max(materialParams.cell, 1.0)) > (k - 0.7) / 0.3) c.a = 0.0;
+            float ghost = mix(1.0, materialParams.seeK.y, materialParams.seeK.x);
+            float keep = 1.0;
+            if (w.y > 1.5) {
+                // the cone from the eye to the player, soft from half its radius out
+                highp vec3 e = materialParams.seeA.xyz;
+                highp vec3 ax = materialParams.seeB.xyz - e;
+                highp float t = dot(w - e, ax) / max(dot(ax, ax), 1e-3);
+                if (materialParams.seeB.w > 0.0 && t > 0.0 && t < materialParams.seeA.w) {
+                    float r = max(t * materialParams.seeB.w, 3.0);
+                    float k = length(w - e - ax * t) / r;
+                    // (and eased in along its first stretch from the eye, so its tip is no hard point either)
+                    float along = smoothstep(0.0, 0.25, t);
+                    keep = min(keep, mix(1.0, ghost, (1.0 - smoothstep(0.45, 1.0, k)) * along));
+                }
+                // the crowns, each whole (a little past its middle's radius the screen door eases back to whole); right
+                // by the eye a crown would be a screen door over the whole view: there it goes altogether
+                float nearEye = smoothstep(110.0, 320.0, length(w - materialParams.seeA.xyz));
+                for (int i = 0; i < 4; i++) {
+                    highp vec4 cr = materialParams.seeCrowns[i];
+                    if (cr.w <= 0.0) continue;
+                    highp vec3 d = (w - cr.xyz) / vec3(cr.w, cr.w * 0.8, cr.w);
+                    float q = length(d);
+                    float g = mix(1.0, materialParams.seeK.y * nearEye, materialParams.seeCrownK[i]);
+                    keep = min(keep, mix(g, 1.0, smoothstep(0.85, 1.05, q)));
+                }
+            }
+            if (keep < 1.0 && bayer4(gl_FragCoord.xy / max(materialParams.cell, 1.0)) > keep) c.a = 0.0;
+        }
+        // the cutaway of a building the player is inside: its walls on the camera's side and all above its ceiling
+        if (materialParams.seeCut.w > 0.0) {
+            highp vec3 w = getUserWorldPosition();
+            if (w.y > materialParams.seeCutY.x + 2.0) {
+                highp float side = dot(w.xz, materialParams.seeCut.xy) - materialParams.seeCut.z;
+                float k = max(smoothstep(0.0, 10.0, side), smoothstep(-6.0, 0.0, w.y - materialParams.seeCutY.y));
+                if (k > 0.0 && bayer4(gl_FragCoord.xy / max(materialParams.cell, 1.0)) < k) c.a = 0.0;
             }
         }
         // a mask pixel at half alpha is a light in its own colour (the mask's rgb: a sign's letters, a spotlight's lens)

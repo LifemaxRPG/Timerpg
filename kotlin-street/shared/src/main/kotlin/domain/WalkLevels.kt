@@ -90,6 +90,16 @@ class LevelField internal constructor(
         return best
     }
 
+    /** The lowest underside of something at ([x], [z]) above [above] (a ceiling, a floor overhead), or NaN. */
+    fun bottomAbove(x: Float, z: Float, above: Float): Float {
+        if (!find(x, z)) return Float.NaN
+        val s = rs ?: return if (!rTop.isNaN() && rTop - SLAB > above) rTop - SLAB else Float.NaN
+        var best = Float.NaN
+        var i = r0
+        while (i < r1) { val b = s[i] / Q; if (b > above && (best.isNaN() || b < best)) best = b; i += 2 }
+        return best
+    }
+
     /** The spans at ([x], [z]) as text (for previews and tests), or null outside. */
     fun describe(x: Float, z: Float): String? {
         if (!find(x, z)) return null
