@@ -138,6 +138,10 @@ fun renderFilamentOpen(out: String) {
     for (l in ft.extraReport) report.appendLine(l)
     report.appendLine("(software GL on the build server, not the S25: draws and triangles are what is sent, the times are not the phone's)")
     ft.textureStats.let { (n, t, sh) -> report.appendLine("textures after the build: %d, %.1fM texels, %d shared; biggest: %s".format(n, t / 1e6, sh, ft.biggestTextures(10))) }
+    // (the same pixels made a second time by another set of textures: each set shares by content within itself)
+    report.appendLine("textures made again by another set: %d, %.1fM texels".format(com.lifemax.rpg.feature.habits.presentation.scene3d.StreetTextures.madeAgain.get(),
+        com.lifemax.rpg.feature.habits.presentation.scene3d.StreetTextures.madeAgainTexels.get() / 1e6) +
+        com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.duplicates().let { (n, b) -> "; textures holding a picture another one holds: %d, %.1f MB".format(n, b / 1048576.0) })
     // the GPU memory account (TOWN.md "GPU memory"): every texture by owner and format, the shadow map and targets
     report.appendLine(com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.line())
     // (the same by part, textures and buffers together, as the phone's screenshot reports it: "gpuNow", "gpuByPart")

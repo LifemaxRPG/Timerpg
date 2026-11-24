@@ -12,12 +12,26 @@ import com.google.android.filament.Texture
  */
 object GpuAccount {
     /** [exact]: for an ASTC texture, the share of its level 0's blocks stored exactly; -1 for any other. */
-    class Entry(val owner: String, val w: Int, val h: Int, val format: String, val levels: Int, val bytes: Long, val exact: Double = -1.0)
+    class Entry(val owner: String, val w: Int, val h: Int, val format: String, val levels: Int, val bytes: Long, val exact: Double = -1.0,
+        /** The picture's content hash for one shared by content ([StreetTextures]), else 0. */
+        val content: Long = 0L)
 
     private val live = java.util.Collections.synchronizedMap(java.util.IdentityHashMap<Texture, Entry>())
 
-    internal fun add(t: Texture, w: Int, h: Int, format: String, levels: Int, bytes: Long, exact: Double = -1.0) {
-        live[t] = Entry(withScope(owner()), w, h, format, levels, bytes, exact)
+    internal fun add(t: Texture, w: Int, h: Int, format: String, levels: Int, bytes: Long, exact: Double = -1.0, content: Long = 0L) {
+        live[t] = Entry(withScope(owner()), w, h, format, levels, bytes, exact, content)
+    }
+
+    /**
+     * Textures holding the same picture as another one held (the same pixels and size, made twice: by two sets of
+     * textures, or once with mipmaps and once without): how many, and the bytes the extra copies take. Only pictures shared
+     * by content are hashed (a mask rewritten by the hour is not).
+     */
+    fun duplicates(): Pair<Int, Long> {
+        val e = entries().filter { it.content != 0L }
+        var n = 0; var b = 0L
+        for (g in e.groupBy { Triple(it.content, it.w, it.h) }.values) if (g.size > 1) { n += g.size - 1; b += g.sortedBy { it.bytes }.dropLast(1).sumOf { it.bytes } }
+        return n to b
     }
 
     /**

@@ -97,11 +97,15 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
         val key = p.key ?: run { lastExact = p.exact; return build(p.buf, p.w, p.h, p.linear, false, p.fmt) }
         byContent[key]?.let { shared++; return it }
         // (one [prepare] left unencoded, its picture made already, but by another set of textures: encoded now)
+        if (p.src != null) { madeAgain.incrementAndGet(); madeAgainTexels.addAndGet(p.w.toLong() * p.h) }
         val q = if (p.src != null) prepare(p.src, p.w, p.h, p.linear, mips = true, again = true) else p
         lastExact = q.exact
-        return build(q.buf, q.w, q.h, q.linear, key.mips, q.fmt).also { byContent[key] = it; madeKeys += key }
+        lastContent = key.b xor (key.a.toLong() shl 32)
+        return build(q.buf, q.w, q.h, q.linear, key.mips, q.fmt).also { byContent[key] = it; madeKeys += key; lastContent = 0L }
     }
     private var lastExact = -1.0
+    /** The content hash of the picture being made (0: not a picture shared by content): the account's, to find duplicates. */
+    private var lastContent = 0L
 
     /**
      * A picture ready for the GPU: its bytes as Filament takes them ([fmt]: its channels) and, for one never updated, its
@@ -154,7 +158,7 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
         var bytes = 0L
         for (l in 0 until levels) bytes += maxOf(1, w shr l).toLong() * maxOf(1, h shr l) * fmt.bytes
         gpu.textures.addAndGet(bytes)
-        GpuAccount.add(t, w, h, if (fmt == Fmt.RGBA8 && srgb && !linear) "SRGB8_A8" else fmt.name, levels, bytes)
+        GpuAccount.add(t, w, h, if (fmt == Fmt.RGBA8 && srgb && !linear) "SRGB8_A8" else fmt.name, levels, bytes, content = lastContent)
         GpuAccount.study(buf, w, h, if (fmt == Fmt.RGBA8 && srgb && !linear) "SRGB8_A8" else fmt.name)
         com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.bytes += w.toLong() * h * fmt.bytes
         return t
@@ -176,7 +180,7 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
         }
         made += t
         gpu.textures.addAndGet(off.toLong())
-        GpuAccount.add(t, w, h, if (s) "SRGB_ASTC_4x4" else "ASTC_4x4", levels, off.toLong(), lastExact)
+        GpuAccount.add(t, w, h, if (s) "SRGB_ASTC_4x4" else "ASTC_4x4", levels, off.toLong(), lastExact, lastContent)
         com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.bytes += off
         return t
     }
@@ -238,6 +242,13 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
             }
             return Prepared(pack(px, w, h), w, h, linear, key)
         }
+
+        /**
+         * Pictures made again by a second set of textures though another set holds the same pixels (each set shares by
+         * content within itself only): the duplicates left across sets, and their level-0 texels (the reports').
+         */
+        val madeAgain = java.util.concurrent.atomic.AtomicInteger()
+        val madeAgainTexels = java.util.concurrent.atomic.AtomicLong()
 
         /** The content keys of the pictures made (by any set of textures): [prepare] leaves these unencoded. */
         private val madeKeys: MutableSet<ContentKey> = java.util.concurrent.ConcurrentHashMap.newKeySet()
