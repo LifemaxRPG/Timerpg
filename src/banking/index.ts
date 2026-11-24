@@ -51,8 +51,97 @@ export function accrueInterest(account: Account, throughDay: number, year: numbe
   const accrued = account.balanceCents * (throughDay - account.day) * terms.annualBasisPoints + account.interestRemainder;
   if (!money(accrued)) return null;
   const cents = Math.floor(accrued / denominator);
+  const balanceCents = account.balanceCents + cents;
+  if (!money(balanceCents)) return null;
   return {
-    ...account, day: throughDay, balanceCents: account.balanceCents + cents, interestRemainder: accrued % denominator,
+    ...account, day: throughDay, balanceCents, interestRemainder: accrued % denominator,
     history: cents ? [...account.history, { day: throughDay, kind: 'interest', cents }] : account.history,
+  };
+}
+
+export type LoanPurpose = 'car' | 'business' | 'personal';
+export type Applicant = Readonly<{
+  monthlyIncomeCents: number; employed: boolean; collateralCents: number; reputation: number; cosigner?: boolean;
+}>;
+type ApprovedLoan = Readonly<{
+  approved: true; purpose: LoanPurpose; principalCents: number; annualBasisPoints: number;
+  months: number; monthlyCents: number; totalCents: number; secured: boolean;
+}>;
+type RefusedLoan = Readonly<{ approved: false; reason: 'invalid' | 'income' | 'reputation' | 'collateral' | 'cosigner' }>;
+
+export function loanOffer(applicant: Applicant, purpose: LoanPurpose, amount: number, year: number): ApprovedLoan | RefusedLoan {
+  if (priceIndex(year) === null || !money(amount) || amount < 100 || amount > 100000000
+    || !['car', 'business', 'personal'].includes(purpose)) return { approved: false, reason: 'invalid' };
+  if (!applicant.employed || !money(applicant.monthlyIncomeCents) || applicant.monthlyIncomeCents === 0) {
+    return { approved: false, reason: 'income' };
+  }
+  if (!Number.isFinite(applicant.reputation) || applicant.reputation < .4) return { approved: false, reason: 'reputation' };
+  const secured = purpose !== 'personal';
+  if (secured && (!money(applicant.collateralCents) || applicant.collateralCents < amount)) {
+    return { approved: false, reason: 'collateral' };
+  }
+  if (purpose === 'car' && year < 1965 && !applicant.cosigner) return { approved: false, reason: 'cosigner' };
+  const months = purpose === 'car' ? 24 : purpose === 'business' ? 36 : 12;
+  const annualBasisPoints = (year < 1970 ? 650 : year < 1990 ? 1050 : 750) + (secured ? 0 : 250);
+  const monthlyRate = annualBasisPoints / 120000;
+  const monthlyCents = Math.ceil(amount * monthlyRate / (1 - (1 + monthlyRate) ** -months));
+  if (monthlyCents > applicant.monthlyIncomeCents * .3) return { approved: false, reason: 'income' };
+  return {
+    approved: true, purpose, principalCents: amount, annualBasisPoints, months, monthlyCents,
+    totalCents: monthlyCents * months, secured,
+  };
+}
+
+export type Loan = Readonly<{ terms: ApprovedLoan; startDay: number; paidCents: number }>;
+export function openLoan(terms: ApprovedLoan, startDay: number): Loan | null {
+  return terms.approved && money(startDay) ? { terms, startDay, paidCents: 0 } : null;
+}
+
+export function repay(loan: Loan, cents: number): Loan | null {
+  if (!money(cents) || cents === 0 || cents > loan.terms.totalCents - loan.paidCents) return null;
+  return { ...loan, paidCents: loan.paidCents + cents };
+}
+
+export function loanStatus(loan: Loan, day: number) {
+  if (!money(day) || day < loan.startDay) return null;
+  const { terms, paidCents } = loan;
+  const installments = Math.min(terms.months, Math.floor((day - loan.startDay) / 30));
+  const overdueCents = Math.max(0, installments * terms.monthlyCents - paidCents);
+  const oldestDue = loan.startDay + 30 * (Math.floor(paidCents / terms.monthlyCents) + 1);
+  const daysLate = overdueCents > 0 ? day - oldestDue : 0;
+  const status = paidCents >= terms.totalCents ? 'paid' : daysLate >= 60 ? 'default'
+    : daysLate >= 30 ? 'collection' : overdueCents ? 'late' : 'current';
+  return {
+    status, overdueCents, daysLate, remainingCents: terms.totalCents - paidCents,
+    seize: status === 'default' && terms.secured ? terms.purpose : null,
+  };
+}
+
+function holidayClosesBank(date?: CalendarDate): boolean {
+  return !!date && holidaysOn(date).some(holiday => holiday.closes.includes('banks'));
+}
+
+export function bankHours(year: number, weekday: number, seed: string, date?: CalendarDate) {
+  if (weekday === 0 || (weekday === 6 && year >= 1970) || holidayClosesBank(date)) return [];
+  return hoursOf('hardware', year, weekday, seed).map(span => ({
+    open: Math.max(9, span.open), close: Math.min(weekday === 6 ? 12 : 15, span.close),
+  }));
+}
+
+export function cashOnHand(bank: string, year: number, weekday: number, hour: number, seed: string, date?: CalendarDate) {
+  const index = priceIndex(year);
+  if (index === null || !Number.isFinite(hour) || hour < 0 || hour >= 24
+    || !Number.isInteger(weekday) || weekday < 0 || weekday > 6) return null;
+  const absolute = date ? dayNumberOf(date) : null;
+  if (date && (absolute === null || date.year !== year || (absolute + 1) % 7 !== weekday)) return null;
+  const next = absolute === null ? null : dateOf(absolute + 1);
+  const preHoliday = next !== null && holidayClosesBank(next);
+  const payday = date ? isPayday(date) : weekday === 5;
+  const open = bankHours(year, weekday, seed, date).some(span => hour >= span.open && hour < span.close);
+  const variation = .95 + .1 * rand(seed, 'bank_cash', bank, year, absolute ?? weekday);
+  return {
+    drawerCents: open ? scale(Math.round((payday ? 300000 : 165000) * variation * (preHoliday ? 1.2 : 1)), index) : 0,
+    vaultCents: scale(Math.round((payday ? 2500000 : 1900000) * variation * (preHoliday ? 1.2 : 1)), index),
+    security: { guards: open ? 1 : 0, alarm: year >= 1915, timeLock: year >= 1890, cameras: year >= 1965 },
   };
 }
