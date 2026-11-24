@@ -170,6 +170,9 @@ object GpuAccount {
 
     internal fun remove(t: Texture) { live.remove(t) }
 
+    /** Forgets every texture and buffer listed (a test's fresh start: those of engines already destroyed stay listed otherwise). */
+    fun reset() { live.clear(); buffers.clear() }
+
     /** The town's code that asked for a texture: the first two scene3d classes on the stack past the helpers. */
     private fun owner(): String {
         val skip = setOf("GpuAccount", "BufferArena", "GeomSlice", "StreetTextures", "TownMemory", "TownVertex", "Lazy", "SynchronizedLazyImpl", "UnsafeLazyImpl")

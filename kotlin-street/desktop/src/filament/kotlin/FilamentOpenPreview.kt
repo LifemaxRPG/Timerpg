@@ -39,6 +39,9 @@ import org.jetbrains.skia.Image as SkiaImage
  * near), with the draw distance only, and as drawn (draw distance and far yards). -Dshots=name,name renders only those.
  * Writes build/preview/filament-open/.
  */
+/** Called with the open world's town once it is built (GpuBudgetTest reads its GPU account there; -DgpuOnly then stops). */
+@Volatile var openBuilt: ((FilamentTown) -> Unit)? = null
+
 fun renderFilamentOpen(out: String) {
     val dir = File(out, "filament-open").also { it.mkdirs() }
     // (the town the app ships, its cinema included; else the last tools/build-town.sh)
@@ -146,6 +149,10 @@ fun renderFilamentOpen(out: String) {
     report.appendLine(com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.line())
     // (the same by part, textures and buffers together, as the phone's screenshot reports it: "gpuNow", "gpuByPart")
     report.appendLine(com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.categoryLine(ft.gpuEstimate(2340, 1080)))
+    // (and against the budgets, MEMORY_AUDIT.md's guard: GpuBudgetTest fails on any part over its budget)
+    report.append("GPU budget by part:\n" + com.lifemax.rpg.feature.habits.presentation.scene3d.TownBudget.let { b -> b.table(b.check(
+        com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.categories(ft.gpuEstimate(2340, 1080)))) })
+    openBuilt?.invoke(ft)
     if (System.getProperty("gpuOnly") != null) {
         File(dir, "town.txt").writeText(report.toString()); println(report)
         println(com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.table(ft.gpuEstimate(2340, 1080)))
