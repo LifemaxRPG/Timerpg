@@ -449,3 +449,18 @@ describe('src/loop facade', () => {
     expect(cooledView.heat).toBeLessThan(hotView.heat);
   });
 });
+
+describe('simCall economy.*', () => {
+  it('dispatches to the era economy', async () => {
+    const { simCall } = await import('./bridge');
+    const econ = await import('../economy');
+    const call = (method: string, ...args: unknown[]) => JSON.parse(simCall(JSON.stringify({ method, args })));
+    expect(call('economy.stockOf', 'general', 1952, 'gamma')).toEqual(econ.stockOf('general', 1952, 'gamma'));
+    expect(call('economy.priceIn', 'peaches', 1952)).toBe(23);
+    expect(call('economy.wage', 'odd_jobs', 1952)).toEqual({ hourlyCents: 75, shiftHours: 2, shiftCents: 150 });
+    expect(call('economy.pawnOffer', 'radio', 1952, true)).toBe(300);
+    expect(call('economy.formatMoney', 2995, 1952)).toBe('$29.95');
+    expect(call('economy.priceIn', 'nonsense', 1952)).toBeNull();
+    expect(() => call('economy.nope')).toThrow();
+  });
+});

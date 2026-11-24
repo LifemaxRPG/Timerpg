@@ -9,6 +9,7 @@ import {
   save,
   spotted,
 } from './facade';
+import * as economy from '../economy';
 import type {
   AdvanceOptions,
   ArrestInput,
@@ -159,8 +160,34 @@ export const TimerpgSim = {
  * [24]}` calls `TimerpgSim.advance(24)` and returns its JSON string; a non-string argument is passed as JSON text
  * where the method takes JSON (e.g. `act`'s event as an object).
  */
+/**
+ * The era economy (src/economy, docs/ECONOMY.md) for the phone: `simCall({"method":"economy.stockOf","args":["general",
+ * 1952,"gamma"]})`. Pure and stateless; every result is JSON text (`null` for an unknown item, job or year).
+ */
+export const Economy = {
+  priceIn: economy.priceIn,
+  priceIndex: economy.priceIndex,
+  stockOf: economy.stockOf,
+  wage: economy.wage,
+  pawnOffer: economy.pawnOffer,
+  pawnPrice: economy.pawnPrice,
+  fenceOffer: economy.fenceOffer,
+  formatMoney: economy.formatMoney,
+} as const;
+(globalThis as Record<string, unknown>).Economy = Economy;
+
+/**
+ * One entry for the phone (SimJs.kt calls a global function with one JSON string): `{"method": "advance", "args":
+ * [24]}` calls `TimerpgSim.advance(24)` and returns its JSON string; a non-string argument is passed as JSON text
+ * where the method takes JSON (e.g. `act`'s event as an object). `economy.*` methods go to [Economy].
+ */
 export function simCall(json: string): string {
   const req = JSON.parse(json) as { method: string; args?: unknown[] };
+  if (req.method.startsWith('economy.')) {
+    const name = req.method.slice('economy.'.length);
+    if (!Object.prototype.hasOwnProperty.call(Economy, name)) throw new Error(`Economy has no method "${name}"`);
+    return JSON.stringify((Economy as Record<string, (...a: unknown[]) => unknown>)[name]!(...(req.args ?? [])) ?? null);
+  }
   const fn = (TimerpgSim as Record<string, unknown>)[req.method];
   if (typeof fn !== 'function') throw new Error(`TimerpgSim has no method "${req.method}"`);
   const args = (req.args ?? []).map((a) => (a !== null && typeof a === 'object' ? JSON.stringify(a) : a));

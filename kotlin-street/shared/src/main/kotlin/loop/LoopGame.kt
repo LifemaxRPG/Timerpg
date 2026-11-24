@@ -24,7 +24,14 @@ class LoopOutcome(
 
 /** What the HUD and the debug panel show, made after each burst on the sim's thread (read anywhere). */
 class LoopView(
+    /** The wallet in cents. */
     val cash: Int,
+    /** [cash] as the era writes it (`economy.formatMoney`). */
+    val cashText: String,
+    /** Each shop's shelves today (place id -> stock) and the pawn shop's offers (item key|hot -> cents and text), made on the sim's thread. */
+    val stock: Map<String, List<StockItem>>,
+    val pawnOffers: Map<String, Int>,
+    val pawnOfferTexts: Map<String, String>,
     val items: List<LoopItem>,
     val day: Int,
     val hour: Double,
@@ -64,7 +71,53 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     /** The last call of each facade method (ms) and the most each took: QuickJS on this device. */
     val timings = LinkedHashMap<String, Pair<Double, Double>>()
 
-    @Volatile var view: LoopView = LoopView(0, emptyList(), 1, 8.0, emptyList(), emptyList(), emptyList()); private set
+    @Volatile var view: LoopView = LoopView(0, "", emptyMap(), emptyMap(), emptyMap(), emptyList(), 1, 8.0, emptyList(), emptyList(), emptyList()); private set
+
+    // ------------------------------------------------------------------ the era economy (src/economy via simCall "economy.*")
+
+    private val moneyText = HashMap<Int, String>()
+    private val stockCache = HashMap<String, List<StockItem>>()
+    private var stockDay = -1
+    private val pawnCache = HashMap<String, Int>()
+    private var indexCache: Double? = null
+
+    private fun econ(method: String, vararg args: Any): Any = org.json.JSONTokener(call("economy.$method", *args)).nextValue()
+
+    /** [cents] as the era writes it (`formatMoney`: "23c", "$29.95"); cached. */
+    fun money(cents: Int): String = moneyText.getOrPut(cents) { econ("formatMoney", cents, town.year) as? String ?: "\$%d.%02d".format(cents / 100, cents % 100) }
+
+    /** The town's year's prices as a share of 2025's (`priceIndex`). */
+    val priceIndex: Double get() = indexCache ?: ((econ("priceIndex", town.year) as? Number)?.toDouble() ?: 1.0).also { indexCache = it }
+
+    /** What the player arrives with: about $60 of 2025 money in the era's cents. */
+    fun startingCash(): Int = max(200, (LoopItems.START_CASH_2025 * priceIndex).roundToInt())
+
+    /** [dollars] of 2025 money (a fine from the facade) in the era's cents. */
+    private fun eraCents(dollars: Int): Int = max(if (dollars > 0) 1 else 0, (dollars * 100 * priceIndex).roundToInt())
+
+    /** The facade works in whole dollars (item value, pay): cents rounded to dollars, at least 1. */
+    private fun dollars(cents: Int): Int = max(1, (cents / 100.0).roundToInt())
+
+    /** [place]'s shelves today (`stockOf`, seeded by the town, the place and the day; cached per day). */
+    fun stockFor(place: LoopPlace): List<StockItem> {
+        if (stockDay != day) { stockCache.clear(); stockDay = day }
+        return stockCache.getOrPut(place.id) {
+            val a = econ("stockOf", LoopItems.econKind(place.shopKind), town.year, "${town.seed}|${place.id}|d$day") as? JSONArray ?: return@getOrPut emptyList()
+            (0 until a.length()).map { k ->
+                val e = a.getJSONObject(k)
+                StockItem(e.getString("itemId"), e.getString("label"), e.getInt("priceCents"), e.optBoolean("serial"), e.optInt("quantity", 1), money(e.getInt("priceCents")))
+            }
+        }
+    }
+
+    /** What the pawn shop pays for [key] (`pawnOffer`; hot: stolen), 0 when it won't take it; cached. */
+    private fun pawnOfferFor(key: String, hot: Boolean): Int = pawnCache.getOrPut("$key|$hot") { (econ("pawnOffer", key, town.year, hot) as? Number)?.toInt() ?: 0 }
+
+    /** The pawn shop's price for [item] (0: they don't buy it). */
+    fun pawnPrice(item: LoopItem): Int = pawnOfferFor(item.key, item.stolen)
+
+    /** What the back-room buyer would pay for [item] whatever its history (`fenceOffer`); null when not in the era's catalogue. */
+    fun fenceOffer(item: LoopItem): Int? = (econ("fenceOffer", item.key, town.year) as? Number)?.toInt()
 
     // ------------------------------------------------------------------ the facade
 
@@ -92,10 +145,10 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val init = town.initJson(startHour, appearance = appearance)
         val res = JSONObject(call("init", init))
         day = res.optInt("day", 1); hour = res.optDouble("hour", startHour)
-        cash = LoopItems.startingCash(town.year)
+        cash = startingCash()
         items.clear(); nextItem = 1
         attitudes.clear(); facts.clear()
-        say("Arrived in ${town.townName} with \$$cash.")
+        say("Arrived in ${town.townName} with ${money(cash)}.")
         event("init", JSONObject(res.toString()).put("cash", cash).put("places", town.places.count { it.kind != "home" }).put("ms", timings["init"]?.first))
         refreshPolice()
         publish()
@@ -223,12 +276,12 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
 
     private fun newItem(place: LoopPlace, s: StockItem, stolen: Boolean, crimeId: String?, serial: String?): LoopItem {
         val n = nextItem++
-        return LoopItem("item:${s.key}:$n", s.key, s.label, LoopItems.eraPrice(s.price2025, town.year),
+        return LoopItem("item:${s.key}:$n", s.key, s.label, s.priceCents,
             serial ?: if (s.serial) "SN-%06d".format(Math.floorMod(("${town.seed}|${s.key}|$n").hashCode(), 1_000_000)) else null,
             stolen, crimeId, place.id, day)
     }
 
-    private fun itemPayload(i: LoopItem) = JSONObject().put("id", i.id).put("label", i.label).put("value", i.value).also { o ->
+    private fun itemPayload(i: LoopItem) = JSONObject().put("id", i.id).put("label", i.label).put("value", dollars(i.value)).also { o ->
         i.serial?.let { o.put("serialNumber", it) }; i.crimeId?.let { o.put("stolenFromCrimeId", it) }
     }
 
@@ -256,13 +309,13 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         if (!place.openAt(hour)) return done(false, closed(place))
         val (no, wary) = refusal(place, "serve")
         if (no != null) return done(false, no)
-        val price = LoopItems.eraPrice(s.price2025, town.year)
-        if (cash < price) return done(false, "You can't afford ${s.label} (\$$price; you have \$$cash).")
+        val price = s.priceCents
+        if (cash < price) return done(false, "You can't afford ${s.label} (${money(price)}; you have ${money(cash)}).")
         val item = newItem(place, s, false, null, null)
         act(JSONObject().put("kind", "buy").put("placeId", place.id).put("item", itemPayload(item)).also { o -> place.keeperId?.let { o.put("clerkId", it) } }, scene)
         cash -= price
         items += item
-        return done(true, "Bought ${s.label} for \$$price.", wary = wary)
+        return done(true, "Bought ${s.label} for ${money(price)}.", wary = wary)
     }
 
     fun take(place: LoopPlace, s: StockItem, scene: LoopScene, gameHour: Double): LoopOutcome {
@@ -283,13 +336,6 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         return done(true, line)
     }
 
-    /** The pawn shop's price for [item] (0: they don't buy it). */
-    fun pawnPrice(item: LoopItem): Int {
-        val s = LoopItems.STOCK.values.flatten().firstOrNull { it.key == item.key } ?: return 0
-        if (s.resale <= 0.0) return 0
-        return max(1, (item.value * s.resale * (if (item.stolen) LoopItems.HOT_DISCOUNT else 1.0)).roundToInt())
-    }
-
     fun sell(place: LoopPlace, item: LoopItem, scene: LoopScene, gameHour: Double): LoopOutcome {
         clockTo(gameHour, exact = true)
         if (place.kind != "pawn_shop") return done(false, "${place.name} doesn't buy things.")
@@ -302,7 +348,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         cash += price
         items.removeAll { it.id == item.id }
         if (res.optBoolean("pawnTraceFlagged")) say("(the pawn ledger has ${item.label}: it is on file as stolen)")
-        return done(true, "Sold ${item.label} for \$$price." + if (item.stolen) " They didn't ask where it came from." else "", wary = wary)
+        return done(true, "Sold ${item.label} for ${money(price)}." + if (item.stolen) " They didn't ask where it came from." else "", wary = wary)
     }
 
     /** A shift at [place]: up to 4 hours (not past closing), paid at the end; the clock moves on by it. */
@@ -313,13 +359,15 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         if (no != null) return done(false, no)
         val hours = min(4.0, floor(place.close - hour))
         if (hours < 1.0) return done(false, "${place.name} closes soon: no shift today.")
-        val pay = max(1, (hours * LoopItems.hourlyWage(town.year)).roundToInt())
+        val w = econ("wage", LoopItems.job(place.shopKind), town.year) as? JSONObject
+        val hourly = w?.optInt("hourlyCents", 0) ?: 0
+        val pay = max(1, (hours * hourly).roundToInt())
         val task = LoopItems.task(place.shopKind)
-        act(JSONObject().put("kind", "work_shift").put("placeId", place.id).put("hours", hours).put("pay", pay).put("taskLabel", task)
+        act(JSONObject().put("kind", "work_shift").put("placeId", place.id).put("hours", hours).put("pay", dollars(pay)).put("taskLabel", task)
             .also { o -> place.keeperId?.let { o.put("employerId", it) } }, scene)
         advance(hours, "work")
         cash += pay
-        return done(true, "You worked ${hours.toInt()} hours $task at ${place.name}: \$$pay.", hours, wary = wary)
+        return done(true, "You worked ${hours.toInt()} hours $task at ${place.name}: ${money(pay)}.", hours, wary = wary)
     }
 
     private fun done(ok: Boolean, line: String, hours: Double = 0.0, moveTo: LoopPlace? = null, wary: String? = null): LoopOutcome {
@@ -364,12 +412,12 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
      * police station.
      */
     fun arrest(officerId: String?, why: String = "arrest"): LoopOutcome {
-        val input = JSONObject().put("jurisdictionId", town.jurisdictionId).put("playerCash", cash)
+        val input = JSONObject().put("jurisdictionId", town.jurisdictionId).put("playerCash", max(0, (cash / 100.0 / priceIndex).roundToInt()))
             .put("carriedItemIds", JSONArray(items.map { it.id }))
         officerId?.let { input.put("officerId", it) }
         val r = JSONObject(call("arrest", input))
         lastArrest = r
-        val fine = min(r.optInt("fineAmount", 0), cash)
+        val fine = min(eraCents(r.optInt("fineAmount", 0)), cash)
         cash -= fine
         val gone = r.optJSONArray("confiscatedItems")?.let { a -> (0 until a.length()).map { a.getString(it) }.toSet() }.orEmpty()
         val lost = items.filter { it.id in gone }
@@ -387,8 +435,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
             .put("fromHour", before).put("hoursPassed", passed).put("ms", timings["arrest"]?.first))
         val what = when (r.optString("penalty")) {
             "warning" -> "You get off with a warning."
-            "fine" -> "Fined \$$fine."
-            "cell_night" -> "${fmt(jailH)} hours in a cell" + (if (fine > 0) " and \$$fine" else "") + "."
+            "fine" -> "Fined ${money(fine)}."
+            "cell_night" -> "${fmt(jailH)} hours in a cell" + (if (fine > 0) " and ${money(fine)}" else "") + "."
             else -> "${fmt(jailH)} hours in jail."
         }
         refreshPolice()
@@ -399,13 +447,17 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     // ------------------------------------------------------------------ the debug view
 
     private fun publish() {
-        view = LoopView(cash, items.toList(), day, hour, debugLines(), officerPlans, messages.toList())
+        val shops = town.places.filter { it.kind != "home" && it.kind != "police_station" }
+        val stock = shops.associate { it.id to stockFor(it) }
+        val offers = HashMap<String, Int>(); val offerTexts = HashMap<String, String>()
+        for (i in items) for (hot in booleanArrayOf(false, true)) pawnOfferFor(i.key, hot).let { o -> offers["${i.key}|$hot"] = o; offerTexts["${i.key}|$hot"] = money(o) }
+        view = LoopView(cash, money(cash), stock, offers, offerTexts, items.toList(), day, hour, debugLines(), officerPlans, messages.toList())
     }
 
     private fun debugLines(): List<String> {
         val out = ArrayList<String>()
-        out += "Day $day, %02d:%02d · cash \$$cash · ${items.size} item(s)".format(hour.toInt() % 24, ((hour - floor(hour)) * 60).toInt())
-        for (i in items) out += "  ${i.label} (\$${i.value})" + (if (i.stolen) " HOT ${i.crimeId ?: ""}" else "") + (i.serial?.let { " #$it" } ?: "")
+        out += "Day $day, %02d:%02d · cash ${money(cash)} · ${items.size} item(s)".format(hour.toInt() % 24, ((hour - floor(hour)) * 60).toInt())
+        for (i in items) out += "  ${i.label} (${money(i.value)})" + (if (i.stolen) " HOT ${i.crimeId ?: ""}" else "") + (i.serial?.let { " #$it" } ?: "")
         lastAct?.let { a ->
             out += "Last act: ${a.optString("summary")} (${a.optInt("bystanders")} near${if (a.optBoolean("inside")) ", inside" else ""})"
             a.optJSONArray("witnessedBy")?.let { w -> for (k in 0 until w.length()) w.getJSONObject(k).let { x ->

@@ -7,7 +7,6 @@ import com.lifemax.rpg.feature.habits.domain.TownYards
 import com.lifemax.rpg.feature.habits.loop.LoopBystander
 import com.lifemax.rpg.feature.habits.loop.LoopFigure
 import com.lifemax.rpg.feature.habits.loop.LoopGame
-import com.lifemax.rpg.feature.habits.loop.LoopItems
 import com.lifemax.rpg.feature.habits.loop.LoopRoutes
 import com.lifemax.rpg.feature.habits.loop.LoopScene
 import com.lifemax.rpg.feature.habits.loop.LoopSight
@@ -42,6 +41,13 @@ class LoopGameTest {
     /** The keeper with their back to the player (the player behind them, at the shelves). */
     private fun behind(place: com.lifemax.rpg.feature.habits.loop.LoopPlace) = LoopSight.inside(place, 320f, 300f, 320f, 560f, 320f, 180f, .9)
 
+    private fun econStock(js: com.lifemax.rpg.feature.habits.simjs.SimJs, kind: String, year: Int, seed: String): List<Pair<String, Int>> {
+        val a = org.json.JSONArray(js.call("simCall", "{\"method\":\"economy.stockOf\",\"args\":[\"$kind\",$year,\"$seed\"]}"))
+        return (0 until a.length()).map { a.getJSONObject(it).let { e -> e.getString("itemId") to e.getInt("priceCents") } }
+    }
+    private fun econLong(js: com.lifemax.rpg.feature.habits.simjs.SimJs, method: String, args: String): Long =
+        js.call("simCall", "{\"method\":\"economy.$method\",\"args\":[$args]}").toLong()
+
     @Test fun initFromTheRealTown() {
         val shops = loop.places.filter { it.kind != "home" }
         println("LoopGameTest: ${loop.people.size} people, ${loop.places.size} places (${shops.size} not homes: " +
@@ -72,16 +78,23 @@ class LoopGameTest {
                 g.onEvent = { n, _ -> events += n }
                 g.init(10.0)
                 val cash0 = g.cash
-                assertEquals(LoopItems.startingCash(2025), cash0)
-                val stock = LoopItems.stockFor(antiques.shopKind, loop.year)
+                // (the economy's numbers, asked of the bundle directly: 2025's index is 1, so $60 is 6000 cents)
+                assertEquals(6000, cash0)
+                assertEquals("\$60.00", g.money(cash0))
+                val stock = g.stockFor(antiques)
+                assertEquals(econStock(js, "pawn", 2025, "${loop.seed}|${antiques.id}|d${g.day}"), stock.map { it.key to it.priceCents })
+                assertTrue("a shelf of many things", stock.size > 5)
+                assertEquals("stock is cached per day", stock, g.stockFor(antiques))
                 // 1. a purchase at the general store's successor (the antiques dealer in 2025)
-                val cheap = stock.minBy { it.price2025 }
+                val cheap = stock.minBy { it.priceCents }
                 val b = g.buy(antiques, cheap, facing(antiques), 10.25)
                 println("LoopGameTest: buy: ${b.line}")
                 assertTrue(b.line, b.ok)
-                assertEquals(cash0 - LoopItems.eraPrice(cheap.price2025, 2025), g.cash)
+                assertEquals(cash0 - cheap.priceCents, g.cash)
+                assertTrue(g.items.single().value == cheap.priceCents)
                 // 2. a theft the keeper sees, face on
                 val watch = stock.first { it.key == "pocketwatch" }
+                assertTrue(watch.serial)
                 val tk = g.take(antiques, watch, facing(antiques), 10.5)
                 println("LoopGameTest: take: ${tk.line} | ${g.lastAct}")
                 assertTrue(tk.ok)
@@ -106,10 +119,18 @@ class LoopGameTest {
                 println("LoopGameTest: sell: ${s.line} | ${g.lastAct}")
                 assertTrue(s.line, s.ok)
                 assertEquals(cashBefore + g.pawnPrice(watchItem), g.cash)
+                // (the hot offer is the economy's own: half the clean offer)
+                assertEquals(econLong(js, "pawnOffer", "\"pocketwatch\",2025,true"), g.pawnPrice(watchItem).toLong())
+                assertEquals(econLong(js, "pawnOffer", "\"pocketwatch\",2025,false") / 2, g.pawnPrice(watchItem).toLong())
                 assertTrue(g.items.none { it.key == "pocketwatch" })
+                val cashAfterSale = g.cash
                 // 6. a shift at the pawn shop
                 val wk = g.work(pawn, facing(pawn), g.hour)
                 println("LoopGameTest: work: ${wk.line}")
+                assertTrue(wk.line, wk.ok)
+                val hours = wk.hoursPassed
+                val wage = JSONObject(js.call("simCall", "{\"method\":\"economy.wage\",\"args\":[\"odd_jobs\",2025]}"))
+                assertEquals((hours * wage.getInt("hourlyCents")).toInt(), g.cash - cashAfterSale)
                 // 7. another day, then the police's view
                 g.advance(24.0, "test")
                 println("LoopGameTest: debug view:\n  " + g.view.debug.joinToString("\n  "))
@@ -131,7 +152,7 @@ class LoopGameTest {
                     assertEquals(saved.second.third, g2.day)
                     assertEquals(JSONObject(saved.first).getString("sim"), JSONObject(g2.save()).getString("sim"))
                     // and the keeper still refuses
-                    val again = g2.buy(antiques, LoopItems.stockFor(antiques.shopKind, 2025).minBy { it.price2025 }, facing(antiques), g2.hour + .1)
+                    val again = g2.buy(antiques, g2.stockFor(antiques).minBy { it.priceCents }, facing(antiques), g2.hour + .1)
                     assertFalse(again.line, again.ok)
                 }.get()
             }
@@ -146,12 +167,12 @@ class LoopGameTest {
                 val g = LoopGame(js, loop)
                 g.init(11.0)
                 // the keeper's back turned, nobody else near: nobody sees
-                val tk = g.take(shop, LoopItems.stockFor(shop.shopKind, 2025).first(), behind(shop), 11.2)
+                val tk = g.take(shop, g.stockFor(shop).first(), behind(shop), 11.2)
                 println("LoopGameTest: unseen take: ${tk.line} | ${g.lastAct?.optString("summary")}")
                 assertEquals(0, g.lastAct!!.getJSONArray("witnessedBy").length())
                 // a theft in plain view, then the police find the player
                 val shop2 = loop.places.first { it.id.startsWith("shop:") && it.shopKind == "music store" }
-                g.take(shop2, LoopItems.stockFor(shop2.shopKind, 2025).first(), facing(shop2), 11.5)
+                g.take(shop2, g.stockFor(shop2).first(), facing(shop2), 11.5)
                 g.advance(30.0, "test")
                 val officer = g.officerPlans.firstOrNull()?.optString("officerId") ?: "officer:${loop.jurisdictionId}:0"
                 val seen = g.spotted(officer, 4.0, .95, g.hour)
@@ -178,7 +199,7 @@ class LoopGameTest {
                     val shop = shops[k % shops.size]
                     val others = loop.people.drop(k * 5).take(4).map { it.id }
                     val sc = LoopSight.inside(shop, 320f, 300f, 320f, 560f, 320f, 380f, .9, others)
-                    g.take(shop, LoopItems.stockFor(shop.shopKind, 2025).first(), sc, 9.0 + k * .25)
+                    g.take(shop, g.stockFor(shop).first(), sc, 9.0 + k * .25)
                     acts += g.timings.getValue("act").first
                 }
                 val days = ArrayList<Double>()

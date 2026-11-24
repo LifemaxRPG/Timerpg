@@ -222,7 +222,10 @@ object LoopSession {
     fun take(ctx: Context, place: LoopPlace, s: com.lifemax.rpg.feature.habits.loop.StockItem, sc: LoopScene, hour: Float) = run("taking", { it.take(place, s, sc, hour.toDouble()) }) { shown(it, ctx) }
     fun sell(ctx: Context, place: LoopPlace, item: com.lifemax.rpg.feature.habits.loop.LoopItem, sc: LoopScene, hour: Float) = run("selling", { it.sell(place, item, sc, hour.toDouble()) }) { shown(it, ctx) }
     fun work(ctx: Context, place: LoopPlace, sc: LoopScene, hour: Float) = run("working", { it.work(place, sc, hour.toDouble()) }) { shown(it, ctx) }
-    fun pawnPrice(item: com.lifemax.rpg.feature.habits.loop.LoopItem): Int = game?.pawnPrice(item) ?: 0
+    /** What the pawn shop pays (cents; the sim's own number, precomputed in the view: the UI thread never calls the sim). */
+    fun pawnPrice(item: com.lifemax.rpg.feature.habits.loop.LoopItem): Int = view?.pawnOffers?.get("${item.key}|${item.stolen}") ?: 0
+    fun pawnPriceText(item: com.lifemax.rpg.feature.habits.loop.LoopItem): String = view?.pawnOfferTexts?.get("${item.key}|${item.stolen}") ?: ""
+    fun stockFor(place: LoopPlace): List<com.lifemax.rpg.feature.habits.loop.StockItem> = view?.stock?.get(place.id).orEmpty()
 
     /** The people at a building the player may talk to: their attitude facts looked up ahead of the conversation. */
     fun prefetch(ids: List<String>) { if (ids.isNotEmpty()) sim?.run { _ -> runCatching { game?.prefetch(ids) } } }
