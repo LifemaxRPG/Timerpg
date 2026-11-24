@@ -46,7 +46,7 @@ export function hoursOf(
   if (weekday === 0 && shop !== 'diner' && shop !== 'gas_station' && year < 1965) return [];
 
   const [start, end] = normalHours[shop];
-  if (weekday === 0) return [{ open: Math.max(start, 10), close: Math.min(end, 17) }];
+  if (weekday === 0 && shop !== 'diner' && shop !== 'gas_station') return [{ open: Math.max(start, 10), close: Math.min(end, 17) }];
   const saturdayHalfDay = weekday === 6 && year < 1950 && shop !== 'diner' && shop !== 'gas_station';
   if (saturdayHalfDay) return [{ open: start, close: 13 }];
 

@@ -67,3 +67,18 @@ These calls return JSON-safe facts for the game's dialogue and crime systems. Pa
 Hours are local, start inclusive and end exclusive. An end earlier than the start wraps past midnight. Cover and location describe an authored profile. The game must bind it to an available venue before exposing the lead. Resolve display names from the resident IDs.
 
 Pass heat on a 0–1 scale. The game derives it from recency, local awareness and any active police case. Heat above 0.70 can require trust, which raises the acceptance ceiling up to 1 and softens the heat discount. Persist trust only after a completed exchange. Trust rises by 0.10, to a maximum of 1. An accepted quote is bounded below the clean pawn offer. The caller owns money, inventory and the crime report. Roll once per completed deal with a stable transaction key and persist its result. A fence transaction does not create a pawn ledger entry.
+
+## Opening hours and staffing
+
+Use local game time. Weekdays are integers from 0 (Sunday) to 6 (Saturday). A span includes its opening hour and excludes its closing hour. Fractional hours work for lookups. An empty span list indicates a closure or unsupported shop, year or weekday.
+
+| Call | JSON result |
+|---|---|
+| `hoursOf("general", 1925, 6, "main")` | `[{"open":8,"close":13}]` |
+| `isOpen("gas_station", 1985, 1, 3, "highway")` | `true` |
+| `staffed("diner", 1952, 2, 12)` | `4` |
+| `hoursOf("market", 1985, 2, "main", {"month":12,"day":25})` | `[]` |
+
+Pass the same stable outlet seed and optional local calendar date to all three calls. Staffing defaults to an empty seed for callers using the four-argument form. Supply the calendar date to enable holiday closures. Retail observes December 25 throughout, January 1 from 1900, and July 4 from 1900 through 1970. Diners and fuel stations keep their usual holiday schedule.
+
+Schedules are authored gameplay defaults. Early retail closes Sunday and takes a Saturday half-day before 1950. Ordinary retail starts opening reduced Sundays from 1965. Selected retail kinds extend Fridays as a payday convention, and gas stations switch to all-night operation in 1975. Staffing estimates workers inside during opening hours, with one at opening or overnight and a lunch peak from 11 to 14. It does not assign specific NPCs or schedule anyone after closing.
