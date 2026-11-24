@@ -137,3 +137,4 @@ his limit; G012 was trimmed to the one-police swap plus the wiring fixes. Plan a
 | C029 small business | ChatGPT/Sam (Codex), low reasoning | engineering | one run | 1 | accepted first try; 5/5 |
 | C030 menus and lodging places | ChatGPT/Sam (Codex), low reasoning | engineering | one run | 1 | accepted first try; 4/4 |
 | C031 newspapers and radio | ChatGPT/Sam (Codex), low reasoning | engineering | one run | 1 | accepted first try; 3/3, compact |
+| C032 communications | ChatGPT/Sam (Codex), low reasoning | engineering | one run | 1 | accepted first try; 3/3 |
