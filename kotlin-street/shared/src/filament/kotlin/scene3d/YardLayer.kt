@@ -77,14 +77,13 @@ object YardKitBuilder : YardBuilder {
         // a lot at a time (culled with the view, cut with its house), then each lane's and verge's items. A lot's tall
         // things (sheds, trees, play sets, back hedges: FilamentTown.tallHeight) are each a patch of their own beside it,
         // so the open world's camera cuts away only the one truly in the way; the lot's far version keeps them all
-        class Work(val near: List<YardItem>, val far: List<YardItem>?, val patch: YardPatch)
-        val work = ArrayList<Work>()
+        val work = ArrayList<Job>()
         fun add(id: String, items: List<com.lifemax.rpg.feature.habits.domain.TownYardItem>, p: YardPatch) {
             val tall = items.indices.filter { FilamentTown.tallHeight(items[it].kind, items[it].zone) > 0f }.toSet()
-            work += Work(items.filterIndexed { k, _ -> k !in tall }.map(::item), items.map(::item), p)
+            work += Job(items.filterIndexed { k, _ -> k !in tall }.map(::item), items.map(::item), p, tall.map { item(items[it]) })
             for (k in tall) {
                 val r = items[k].rect
-                work += Work(listOf(item(items[k])), null, YardPatch(YardPatch.tallId(id, k), (r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f,
+                work += Job(listOf(item(items[k])), null, YardPatch(YardPatch.tallId(id, k), (r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f,
                     kotlin.math.hypot(r[2] - r[0], r[3] - r[1]) / 2f + 40f, p.sprite, follows = id))
             }
         }
@@ -96,9 +95,14 @@ object YardKitBuilder : YardBuilder {
             if (l.items.isEmpty()) continue
             add(l.id, l.items, patchOf(l))
         }
-        bakeAll(work.map { Triple(it.near, it.far, it.patch) }, sink)
+        // (the far versions' own pictures, the whole town's: one atlas every lot's far version shares)
+        farPictures = if (far) YardKit.farPictures(work.mapNotNull { it.far }) else emptyList()
+        bakeAll(work, sink)
         YardKit.trim()
     }
+
+    /** The far versions' own pictures ([YardKit.farPictures]) of the town last built, for its lots baked again ([rebuild]). */
+    @Volatile private var farPictures: List<PropMesh> = emptyList()
 
     /** Lot [y]'s patch for [items] (its parcel widened to them, and to its gates' swing). */
     private fun patchOf(y: com.lifemax.rpg.feature.habits.domain.TownYard, items: List<com.lifemax.rpg.feature.habits.domain.TownYardItem>): YardPatch {
@@ -127,22 +131,26 @@ object YardKitBuilder : YardBuilder {
         val patch = if (y != null) patchOf(y, items) else patchOf(l!!)
         fun item(i: com.lifemax.rpg.feature.habits.domain.TownYardItem) =
             YardItem(i.kind, i.rect[0], i.rect[1], i.rect[2], i.rect[3], i.faceX, i.faceZ, i.variant, i.layer, i.on, i.zone)
-        val work = ArrayList<Triple<List<YardItem>, List<YardItem>?, YardPatch>>()
+        val work = ArrayList<Job>()
         val tall = items.indices.filter { FilamentTown.tallHeight(items[it].kind, items[it].zone) > 0f }.toSet()
-        work += Triple(items.filterIndexed { k, _ -> k !in tall }.map(::item), items.map(::item), patch)
+        work += Job(items.filterIndexed { k, _ -> k !in tall }.map(::item), items.map(::item), patch, tall.map { item(items[it]) })
         for (k in tall) {
             val r = items[k].rect
-            work += Triple(listOf(item(items[k])), null, YardPatch(YardPatch.tallId(id, k), (r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f,
+            work += Job(listOf(item(items[k])), null, YardPatch(YardPatch.tallId(id, k), (r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f,
                 kotlin.math.hypot(r[2] - r[0], r[3] - r[1]) / 2f + 40f, patch.sprite, follows = id))
         }
         bakeAll(work, sink)
         return id
     }
 
-    /** Bakes each (near items, far items or null, patch) and hands the batches to [sink]. */
-    private fun bakeAll(jobs: List<Triple<List<YardItem>, List<YardItem>?, YardPatch>>, sink: YardSink) {
-        class Work(val near: List<YardItem>, val far: List<YardItem>?, val patch: YardPatch)
-        val work = jobs.map { Work(it.first, it.second, it.third) }
+    /**
+     * A patch to bake: its [near] items, all its lot's items for its far version ([far]; null: none, a tall thing's own
+     * patch), and the lot's [tall] things (baked as patches of their own: the far version wears their atlases too).
+     */
+    private class Job(val near: List<YardItem>, val far: List<YardItem>?, val patch: YardPatch, val tall: List<YardItem> = emptyList())
+
+    /** Bakes each [Job] and hands the batches to [sink]. */
+    private fun bakeAll(work: List<Job>, sink: YardSink) {
         val at = listOf(floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f))
         // baked a few lots at a time on the common pool (the kit's caches are shared under locks), handed to the sink in
         // order, so only those few lots' meshes are held at once (each lot's atlases and vertices: up to some 5 MB); the
@@ -155,7 +163,7 @@ object YardKitBuilder : YardBuilder {
             val group = work.subList(from, minOf(work.size, from + step))
             return java.util.concurrent.ForkJoinPool.commonPool().submit(java.util.concurrent.Callable {
                 group.parallelStream().map { w ->
-                    YardKit.bake(w.near, perKind = false) to (if (far && w.far != null) YardKit.bake(w.far, perKind = false, far = true) else emptyList())
+                    YardKit.bake(w.near, perKind = false) to (if (far && w.far != null) YardKit.bakeFar(w.near, w.tall, w.far, farPictures) else emptyList())
                 }.collect(java.util.stream.Collectors.toList<Pair<List<YardBatch>, List<YardBatch>>?>())
             })
         }

@@ -771,23 +771,47 @@ object YardKit {
      * together instead (one atlas for those that throw a shadow, one for those that do not: a lot in a few draws).
      */
     fun bake(items: List<YardItem>, maxAtlas: Int = 2048, perKind: Boolean = true, far: Boolean = false): List<YardBatch> {
-        val byKind = LinkedHashMap<String, MutableList<Pair<PropMesh, FloatArray>>>()
+        val c = collect(items, far)
+        val out = ArrayList<YardBatch>()
+        for ((surface, polys) in c.flats) out += YardBatch("flat:$surface", flatMesh(surface, polys), tiled = true, casts = false, water = surface == "water" || surface == "pondwater")
+        if (perKind) {
+            for ((kind, list) in c.byKind) for (mesh in merge(list.map { it.mesh to it.at }, maxAtlas)) out += YardBatch(kind, mesh, tiled = false, casts = c.subsCast[kind] ?: casts(kind), water = false)
+        } else {
+            for ((group, part) in c.groups()) for (mesh in merge(part.map { it.mesh to it.at }, maxAtlas))
+                out += YardBatch(group, mesh, tiled = false, casts = group == "solid", water = false)
+        }
+        return out
+    }
+
+    /** A mesh placed by [collect]: from which of the items ([item], its index), at [at] ([PropLayer]'s placing). */
+    private class Placed(val mesh: PropMesh, val at: FloatArray, val item: Int)
+    private class Collected(val byKind: LinkedHashMap<String, MutableList<Placed>>, val flats: LinkedHashMap<String, MutableList<FloatArray>>, val subsCast: HashMap<String, Boolean>) {
+        /** [bake]'s grouping with perKind false: those that throw a shadow ("solid"), then those that do not ("flat"), in order. */
+        fun groups(): List<Pair<String, List<Placed>>> {
+            val (solid, flat) = byKind.entries.partition { (kind, _) -> subsCast[kind] ?: casts(kind.substringBefore('/')) }
+            return listOf("solid" to solid.flatMap { it.value }, "flat" to flat.flatMap { it.value })
+        }
+    }
+
+    /** [items]' meshes in the world by kind, and their flats by surface ([bake]; [far]: their far models). */
+    private fun collect(items: List<YardItem>, far: Boolean): Collected {
+        val byKind = LinkedHashMap<String, MutableList<Placed>>()
         val flats = LinkedHashMap<String, MutableList<FloatArray>>() // surface -> world polys: [y, ox, oz, ux, uz, x0, z0, x1, z1, ...]
         val subsCast = HashMap<String, Boolean>()
-        for (it in items) {
+        for ((index, it) in items.withIndex()) {
             if (it.kind !in KINDS) continue
             // (far off: the small things left out, the ground's and surfaces' tufts and edging too, fences as plain slabs)
             if (far && it.kind in FAR_DROP) continue
             val f = frame(it)
             val m = if (far) farModel(it.kind, it.variant, f.w, f.d, it.zone) else model(it.kind, it.variant, f.w, f.d, it.zone)
-            m.mesh?.let { mesh -> byKind.getOrPut(it.kind) { ArrayList() } += mesh to floatArrayOf(f.cx, f.cz, f.ax, f.az, f.ox, f.oz) }
+            m.mesh?.let { mesh -> byKind.getOrPut(it.kind) { ArrayList() } += Placed(mesh, floatArrayOf(f.cx, f.cz, f.ax, f.az, f.ox, f.oz), index) }
             for (s in m.subs) {
                 val wx = f.wx(s.x, s.z); val wz = f.wz(s.x, s.z)
                 val ax = f.ax * s.ax + f.ox * s.az; val az = f.az * s.ax + f.oz * s.az
                 val ox = f.ax * s.ox + f.ox * s.oz; val oz = f.az * s.ox + f.oz * s.oz
                 val g = it.kind + if (s.casts) "" else "/flat"
                 subsCast[g] = s.casts
-                byKind.getOrPut(g) { ArrayList() } += s.mesh to floatArrayOf(wx, wz, ax, az, ox, oz)
+                byKind.getOrPut(g) { ArrayList() } += Placed(s.mesh, floatArrayOf(wx, wz, ax, az, ox, oz), index)
             }
             for (fl in m.flats) {
                 val n = fl.pts.size / 2
@@ -798,16 +822,75 @@ object YardKit {
                 flats.getOrPut(fl.surface) { ArrayList() } += a
             }
         }
+        return Collected(byKind, flats, subsCast)
+    }
+
+    /**
+     * Whether [it]'s far model ([farModel]) is its near model itself (its mesh and its other kits' meshes the same), so
+     * its far version can wear the near version's atlas; false for those drawn otherwise far off (trees in the tree kit's
+     * simple level, fences as slabs) and for those with no mesh far off (the ground's and surfaces' flats alone, [FAR_DROP]).
+     */
+    private fun farSameAsNear(it: YardItem): Boolean {
+        if (it.kind !in KINDS || it.kind in FAR_DROP || it.kind == "tree" || it.kind == "fruitTree") return false
+        if (it.kind in GROUND || it.kind in SURFACES && it.kind != "deck") return false
+        val slab = it.kind in FAR_SLABS || (it.kind == "backFence" && it.variant % 3 == 1)
+        if (!slab) return true
+        val f = frame(it)
+        return model(it.kind, it.variant, f.w, f.d, it.zone).mesh == null
+    }
+
+    /**
+     * A lot's far version ([bake] far, the same look) wearing its near versions' atlases (MEMORY_AUDIT.md, G2): [near]
+     * the lot's items as its near patch bakes them, [tall] its tall things (each baked alone as a patch of its own),
+     * [all] every item of the lot. Each near patch's atlas is laid out again exactly as its near bake laid it (the same
+     * pictures in the same order: the same pixels, so the town makes one texture of the two, [StreetTextures]' sharing
+     * by content), with only the far version's meshes on it; what the far version draws otherwise (the slabs, the trees'
+     * simple level) on one small atlas of [shared] ([farPictures]: the whole town's, so one texture); the flats as before. Far off the GPU samples the near atlases' small
+     * mip levels, and the far version's own atlases (some 90 MB for the town) are gone.
+     */
+    fun bakeFar(near: List<YardItem>, tall: List<YardItem>, all: List<YardItem>, shared: List<PropMesh> = emptyList(), maxAtlas: Int = 2048): List<YardBatch> {
         val out = ArrayList<YardBatch>()
-        for ((surface, polys) in flats) out += YardBatch("flat:$surface", flatMesh(surface, polys), tiled = true, casts = false, water = surface == "water" || surface == "pondwater")
-        if (perKind) {
-            for ((kind, list) in byKind) for (mesh in merge(list, maxAtlas)) out += YardBatch(kind, mesh, tiled = false, casts = subsCast[kind] ?: casts(kind), water = false)
-        } else {
-            val (solid, flat) = byKind.entries.partition { (kind, _) -> subsCast[kind] ?: casts(kind.substringBefore('/')) }
-            for ((group, part) in listOf("solid" to solid, "flat" to flat)) for (mesh in merge(part.flatMap { it.value }, maxAtlas))
-                out += YardBatch(group, mesh, tiled = false, casts = group == "solid", water = false)
+        val c = collect(all, far = true)
+        for ((surface, polys) in c.flats) out += YardBatch("flat:$surface", flatMesh(surface, polys), tiled = true, casts = false, water = surface == "water" || surface == "pondwater")
+        // the near patches' atlases, laid out as their near bakes lay them, with only what the far version keeps of them
+        for (items in listOf(near) + tall.map { listOf(it) }) {
+            val keep = BooleanArray(items.size) { farSameAsNear(items[it]) }
+            if (keep.none { it }) continue
+            for ((group, part) in collect(items, far = false).groups()) {
+                if (part.none { keep[it.item] }) continue
+                for (mesh in merge(part.map { it.mesh to it.at }, maxAtlas) { k -> keep[part[k].item] })
+                    out += YardBatch(group, mesh, tiled = false, casts = group == "solid", water = false)
+            }
         }
+        // the far version's own meshes (slabs, the trees' simple level): one small atlas, the same for the whole town
+        val own = Collected(LinkedHashMap(), LinkedHashMap(), c.subsCast)
+        for ((kind, list) in c.byKind) {
+            val mine = list.filter { !farSameAsNear(all[it.item]) }
+            if (mine.isNotEmpty()) own.byKind[kind] = mine.toMutableList()
+        }
+        // (laid out after [shared]'s pictures, the whole town's, so every lot's is the same atlas: one texture)
+        val lead = shared.map { it to NOWHERE }
+        for ((group, part) in own.groups()) for (mesh in merge(lead + part.map { it.mesh to it.at }, maxAtlas) { k -> k >= lead.size })
+            out += YardBatch(group, mesh, tiled = false, casts = group == "solid", water = false)
         return out
+    }
+    private val NOWHERE = floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f)
+
+    /**
+     * The pictures the far versions of [lots] (each a lot's items) draw of their own ([bakeFar]: the slabs, the trees'
+     * simple level), each once by content, in order: a few dozen small pictures for the whole town, which [bakeFar] lays
+     * out first in every lot's own atlas so that atlas is the same for every lot.
+     */
+    fun farPictures(lots: List<List<YardItem>>): List<PropMesh> {
+        val seen = LinkedHashMap<Long, PropMesh>()
+        for (items in lots) for (it in items) {
+            if (it.kind !in KINDS || it.kind in FAR_DROP || farSameAsNear(it)) continue
+            val f = frame(it)
+            val m = farModel(it.kind, it.variant, f.w, f.d, it.zone)
+            for (mesh in listOfNotNull(m.mesh) + m.subs.map { s -> s.mesh })
+                seen.getOrPut(mesh.tex.contentHashCode().toLong() * 31 + (mesh.mask?.contentHashCode() ?: 0) + (mesh.texW.toLong() shl 40) + (mesh.texH.toLong() shl 52)) { mesh }
+        }
+        return seen.values.toList()
     }
 
     /** The world polygons of one tile picture as one mesh (uv in tiles: the sampler repeats it). */
@@ -844,7 +927,7 @@ object YardKit {
      * Many meshes placed in the world ([at]: x, z, along x, z, out x, z, as [PropLayer] places them) baked into as few
      * meshes as their atlases allow: each distinct atlas (by content) packed once.
      */
-    fun merge(list: List<Pair<PropMesh, FloatArray>>, maxAtlas: Int = 2048): List<PropMesh> {
+    fun merge(list: List<Pair<PropMesh, FloatArray>>, maxAtlas: Int = 2048, keep: ((Int) -> Boolean)? = null): List<PropMesh> {
         if (list.isEmpty()) return emptyList()
         // the distinct atlases, by content
         val keyOf = HashMap<PropMesh, Int>()
@@ -886,7 +969,10 @@ object YardKit {
                     if (mask != null) a.mask?.let { mask[di] = it[sy * a.texW + sx] }
                 }
             }
-            val mine = list.filter { slots[keyOf[it.first]!!]!!.sheet == s }
+            // (with [keep]: the sheet's atlas whole, as laid out for every mesh, but only the kept meshes on it; a sheet
+            // with none of them is left out)
+            val mine = list.filterIndexed { k, it -> slots[keyOf[it.first]!!]!!.sheet == s && (keep == null || keep(k)) }
+            if (mine.isEmpty() && keep != null) continue
             val nv = mine.sumOf { it.first.vertexCount }; val ni = mine.sumOf { it.first.idx.size }
             val pos = FloatArray(nv * 3); val uv = FloatArray(nv * 2); val nr = FloatArray(nv * 3); val tn = FloatArray(nv * 3); val idx = IntArray(ni)
             var vi = 0; var ii = 0
