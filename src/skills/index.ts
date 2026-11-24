@@ -40,3 +40,36 @@ export function practice(skill: Skill, level: number, method: Training, year: nu
   if (!quote || !Number.isFinite(level) || !Number.isSafeInteger(sessions) || sessions < 0) return null;
   return 1 - (1 - clamp01(level)) * (1 - quote.gain) ** sessions;
 }
+
+const shiftSkills = {
+  garage_sweeper: 'mechanics', mechanic_helper: 'mechanics', night_clerk: 'bookkeeping',
+  shop_clerk: 'sales', stock_worker: 'sales', labourer: 'carpentry',
+  dishwasher: 'cooking',
+} satisfies Record<string, Skill>;
+
+export function practiceShift(role: string, level: number, year: number) {
+  if (!Object.prototype.hasOwnProperty.call(shiftSkills, role)) return null;
+  const skill = shiftSkills[role as keyof typeof shiftSkills];
+  const nextLevel = practice(skill, level, 'shift', year);
+  return nextLevel === null ? null : { skill, level: nextLevel };
+}
+
+const botchEffects: Partial<Record<Skill, 'noise' | 'evidence'>> = {
+  lockpicking: 'noise', hot_wiring: 'noise', safecracking: 'noise', forgery: 'evidence',
+};
+
+export function attempt(skill: Skill, level: number, difficulty: number, seed: string, key: string) {
+  if (!skills.includes(skill) || !Number.isFinite(level) || !Number.isFinite(difficulty)) return null;
+  const margin = clamp01(level) - clamp01(difficulty);
+  const successChance = .05 + .9 * clamp01(.5 + margin * .65);
+  const botchChance = Math.min(1 - successChance, .04 + .22 * Math.max(0, -margin));
+  const roll = rand(seed, 'skill_attempt', skill, key);
+  if (roll < successChance) return { outcome: 'success', effect: null } as const;
+  if (roll >= 1 - botchChance) return { outcome: 'botch', effect: botchEffects[skill] ?? null } as const;
+  return { outcome: 'failure', effect: null } as const;
+}
+
+export function safeProfile(year: number): { kind: 'combination' | 'time_lock'; difficulty: number } | null {
+  if (priceIndex(year) === null) return null;
+  return year < 1960 ? { kind: 'combination', difficulty: .55 } : { kind: 'time_lock', difficulty: .83 };
+}
