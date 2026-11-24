@@ -1,4 +1,8 @@
+import java.security.MessageDigest
 import java.util.Properties
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+import java.util.zip.ZipOutputStream
 
 plugins {
     id("com.android.application")
@@ -142,6 +146,56 @@ tasks.matching { it.name.startsWith("configureCMake") || it.name.startsWith("bui
     }
 }
 
+// Filament 1.81.0 with no handle debug tags (docs/TOWN.md, "The freeze on the Meridian's steps"; the S25's freeze of
+// 0.1.805, 050341): its OpenGL driver keeps a debug tag for every GPU handle in a tsl::robin_map keyed by the handle's id,
+// whose age bits (27-28) sit above the table's mask, so a pool slot reused over its ages puts several keys in one bucket.
+// Once a few thousand of the smallest handles (each material instance's descriptor set and uniform buffer) have been
+// reused that way, one insert's probe passes 8192 and the map rehashes, doubling, without end on the driver's thread:
+// native memory to gigabytes in seconds, the main thread waiting in Renderer.beginFrame, "not responding". The tags only
+// name handles in Filament's error messages. The fix: DebugTag::writePoolHandleTag and writeHeapHandleTag return at once
+// (their first instruction a `ret`), in exactly this build of libfilament-jni.so (checked by its SHA-256 and the bytes
+// patched); the desktop build has the same change in its source (tools/build-filament.sh). FilamentHandleTagTest
+// churns material instances the way the town does and fails without it.
+val filamentAarOriginal = configurations.detachedConfiguration(
+    dependencies.create("com.google.android.filament:filament-android:1.81.0@aar")).apply { isTransitive = false }
+val patchedFilamentAar = layout.buildDirectory.file("filament-notags/filament-android-1.81.0-notags.aar")
+val patchFilamentAar = tasks.register("patchFilamentAar") {
+    inputs.files(filamentAarOriginal)
+    outputs.file(patchedFilamentAar)
+    doLast {
+        val lib = "jni/arm64-v8a/libfilament-jni.so"
+        val sha = "56ab04c59a91b69a3e7a5166daab60a7e444775aa5068931b534d97ef3a68fbb"
+        // (file offsets = addresses in its first, executable segment: writePoolHandleTag, writeHeapHandleTag)
+        val at = listOf(0x2103d0, 0x210480)
+        val prologue = byteArrayOf(0xff.toByte(), 0xc3.toByte(), 0x00, 0xd1.toByte())   // sub sp, sp, #0x30
+        val ret = byteArrayOf(0xc0.toByte(), 0x03, 0x5f, 0xd6.toByte())                 // ret
+        val out = patchedFilamentAar.get().asFile
+        out.parentFile.mkdirs()
+        var patched = false
+        ZipFile(filamentAarOriginal.singleFile).use { zin ->
+            ZipOutputStream(out.outputStream().buffered()).use { zout ->
+                for (e in zin.entries()) {
+                    var bytes = zin.getInputStream(e).use { it.readBytes() }
+                    if (e.name == lib) {
+                        val got = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+                        check(got == sha) { "filament-android 1.81.0's $lib is not the build the tag patch was made for ($got)" }
+                        bytes = bytes.copyOf()
+                        for (a in at) {
+                            check(bytes.copyOfRange(a, a + 4).contentEquals(prologue)) { "unexpected code at 0x%x in $lib".format(a) }
+                            ret.copyInto(bytes, a)
+                        }
+                        patched = true
+                    }
+                    zout.putNextEntry(ZipEntry(e.name).also { it.time = e.time })
+                    zout.write(bytes)
+                    zout.closeEntry()
+                }
+            }
+        }
+        check(patched) { "no $lib in the Filament AAR" }
+    }
+}
+
 dependencies {
     val bom = platform("androidx.compose:compose-bom:2024.10.01")
     implementation(bom)
@@ -158,7 +212,9 @@ dependencies {
     // the renderer trial: Google's Filament (OpenGL ES and Vulkan), the same version as the desktop build and matc
     // (without its own dependencies: they would raise the Kotlin standard library past this project's compiler; it needs
     // only androidx.annotation, which the app already has)
-    implementation("com.google.android.filament:filament-android:1.81.0") { isTransitive = false }
+    // (the AAR from Maven with one fix in its arm64 library: no handle debug tags, the freeze on the Meridian's
+    // steps; patchFilamentAar below)
+    implementation(files(patchedFilamentAar).builtBy(patchFilamentAar))
     // JVM unit tests (the validate() port, the pre-generation queue): gradle :app:testDebugUnitTest
     testImplementation("junit:junit:4.13.2")
     // the real org.json for tests that parse dialogue.json (android.jar only has stubs that throw on the JVM)

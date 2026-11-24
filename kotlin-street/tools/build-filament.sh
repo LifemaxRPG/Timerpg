@@ -22,6 +22,24 @@ fi
 
 [ -d "$SRC" ] || git clone --depth 1 --branch "$VERSION" https://github.com/google/filament "$SRC"
 
+# 0. No handle debug tags (the S25's freeze of 0.1.805, docs/TOWN.md "The freeze on the Meridian's steps"): 1.81.0 keeps a
+# tag for every handle in a robin_map keyed by its id, whose age bits (27-28) sit above the table's mask; a pool slot
+# reused over its ages puts several keys in one bucket, and once a few thousand small handles have been reused that way
+# one insert's probe passes 8192 and the map rehashes, doubling, without end. The tags only name handles in error
+# messages. The phone's AAR gets the same change as a binary patch (app/build.gradle.kts, patchFilamentAar).
+HA="$SRC/filament/backend/src/HandleAllocator.cpp"
+if ! grep -q "timerpg: no handle debug tags" "$HA"; then
+    python3 - "$HA" <<'PY'
+import sys
+p = sys.argv[1]; s = open(p).read()
+for fn in ("writePoolHandleTag", "writeHeapHandleTag"):
+    head = "void DebugTag::%s(HandleBase::HandleId key, ImmutableCString&& tag) noexcept {\n" % fn
+    assert s.count(head) == 1, fn
+    s = s.replace(head, head + "    return; // timerpg: no handle debug tags (the tag map's endless rehash, build-filament.sh)\n")
+open(p, "w").write(s)
+PY
+fi
+
 # 1. The engine and matc. EGL_ON_LINUX selects PlatformEGLHeadless (pbuffer swap chains, no X11).
 mkdir -p "$BUILD"
 if [ ! -f "$BUILD/build.ninja" ]; then

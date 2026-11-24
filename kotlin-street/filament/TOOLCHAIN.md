@@ -28,6 +28,10 @@ a `.filamat` compiled here loads on the phone too.
    becomes `if (IS_MOBILE_TARGET OR FILAMENT_SUPPORTS_EGL_ON_LINUX)`. Why: with EGL on Linux Filament compiles its
    OpenGL **ES** backend (llvmpipe gives a GLES 3.2 context), but its built-in materials were still compiled for
    desktop GL, so `Engine.create()` segfaulted in `FMaterial::getDefaultInstance()` (no default material).
+3b. Patch (the script applies it, marked "timerpg: no handle debug tags"): `DebugTag::writePoolHandleTag` and
+   `writeHeapHandleTag` in `filament/backend/src/HandleAllocator.cpp` return at once. Why: 1.81.0's tag map rehashes
+   without end once handle slots have been reused over their ages (docs/TOWN.md, "The freeze on the Meridian's steps");
+   the phone's AAR gets the same change as a checked binary patch (app/build.gradle.kts, `patchFilamentAar`).
 4. Configure and build only what is needed:
 
         CC=clang CXX=clang++ cmake -S filament-src -B filament-build -G Ninja -DCMAKE_BUILD_TYPE=Release \

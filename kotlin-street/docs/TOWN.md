@@ -1006,3 +1006,27 @@ Desktop numbers (llvmpipe, the whole gamma town built as the app builds it), NOT
 - Desktop tools (`-Dmode=filament-open -Dshots=at -Dat=...`): `-Dseq=frames,every,hx,hz` plays on frame by frame as the
   app does, `-DseqViews=yaw:pitch:dist;...` renders the end spot from other sides, `-DlevelProbe=dx,dz,len` prints the
   height fields along a line, `-DtreeLevel=1|2` forces every tree cell to detail or simple, `-DseqScales`, `-DseqNoShadow`.
+
+## The freeze on the Meridian's steps (S25, 0.1.805, 2026-11-24 050341)
+
+- **What happened**: about 70 s into a run (just after the 54 s first view), walking towards the Great Meridian's steps,
+  frames went to 0, native memory went 157 MB -> 1.7 GB -> 5.2 GB in ten seconds and Android killed the game as not
+  responding. The ANR stack: the main thread in `Renderer.beginFrame` waiting for the driver (CommandBufferQueue::flush),
+  the driver thread (`FEngine::loop`) inside a tsl::robin_map rehash under `HandleAllocator::associateTagToHandle`
+  (symbolised against the AAR's own libfilament-jni.so, BuildID 831f673f).
+- **Cause (Filament 1.81.0, not our per-frame code)**: the GL driver keeps a debug tag for every handle in a robin_map
+  keyed by the handle's id with an identity hash; the id's two age bits sit at bits 27-28, above any table size it reaches,
+  so one pool slot reused over its ages puts up to four keys in one bucket. The smallest pool (32 bytes: each material
+  instance's descriptor set and uniform buffer) is packed two index units a slot, so once a few thousand of those slots
+  have been reused across ages (the town's streaming makes and destroys material instances all the time) the keys there
+  are two to a bucket, one insert's probe passes 8192, and the map rehashes, doubling, on every retry, without end.
+  Desktop repro (`FilamentHandleTagTest`, 12,000 material instances made, drawn and destroyed six times): resident
+  memory 216 MB -> 8.4 GB on the fourth round. Walking the same spot in the desktop preview (`-Dseq` with the new
+  `-DseqCount=N`: textures, buffers, pages and RSS every Nth frame) creates no textures, buffers or pages a frame.
+- **Fix**: no handle debug tags (they only name handles in Filament's error messages): the phone's AAR is patched at build
+  time (`app/build.gradle.kts`, `patchFilamentAar`: two `ret`s in libfilament-jni.so, checked by SHA-256 and the patched
+  bytes), the desktop build in its source (`tools/build-filament.sh`). Same churn after: 198 -> 204 MB.
+- **Guards**: `FilamentHandleTagTest` (the churn in a child JVM, killed after 120 s), `MeridianStepsGpuTest` (the
+  Meridian's model walked up its steps for 300 frames and stood on for 300: no new texture, buffer or page; memory level).
+- Desktop runs only; to check on the S25: walk the town for a few minutes and up the Meridian's steps; the play log's
+  `mem` lines keep native under ~200 MB.

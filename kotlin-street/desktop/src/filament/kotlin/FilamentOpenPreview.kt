@@ -347,6 +347,15 @@ fun renderFilamentOpen(out: String) {
                     ft.view.dynamicResolutionOptions = com.google.android.filament.View.DynamicResolutionOptions().apply {
                         enabled = k < 1f; minScale = k; maxScale = k; quality = com.google.android.filament.View.QualityLevel.HIGH; sharpness = .9f; homogeneousScaling = true }
                 }
+                // (-DseqCount=N: every Nth frame the GPU objects held and the process's resident memory, to catch a
+                // per-frame creation: textures, buffers, the shared pages and their ranges)
+                System.getProperty("seqCount")?.toIntOrNull()?.takeIf { it > 0 && f % it == 0 }?.let {
+                    val st = com.lifemax.rpg.feature.habits.presentation.scene3d.BufferArena.stats()
+                    val rss = runCatching { File("/proc/self/status").readLines().first { l -> l.startsWith("VmRSS") }.filter(Char::isDigit).toLong() / 1024 }.getOrDefault(-1L)
+                    log.appendLine("count %04d player (%.1f, %.1f, y %.1f) textures %d buffers %d pages %d rss %d MB".format(f, walk.wx, walk.wz, walk.wy,
+                        com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.entries().size,
+                        com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.bufferEntries().size, st.pages, rss))
+                }
                 if (f % every == 0) {
                     val stage = stageSky(hour, w, h)
                     shooter.save(File(dir, "seq_%03d.png".format(f)), w, h, hour, emptyList(), skyRow = skyRow(hour, h), skyImg = stage)
