@@ -76,6 +76,8 @@ files (docs/queue/reviews/) say what worked as well as what to change: read the 
   - Jeff's court (G010) was accepted first try: exoneration decades later when DNA arrives, and a bribed juror who hangs
     the jury. Sam's Vale Lantern gas station (C015) was accepted first try in about 11 minutes, with three eras that
     read clearly from the road.
+  - Sam's first engineering task, the economy by era (C018), was accepted first try, and it's already in the game: every
+    shelf, price, wage and pawn offer on the phone comes from it. The 1952 scene came out to the cent.
 
 ## The team's next milestone
 
