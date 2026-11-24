@@ -260,6 +260,17 @@ internal class PropLayer(
     /** Whether the open world's see-through cone ([SeeThrough]) cuts this layer (not the ground's). */
     var seeThrough = true
     /**
+     * The cutaway of this layer's building while the player is inside it ([SeeThrough.cutaway]: 8 floats), or null.
+     * Only a landmark's layer sets it.
+     */
+    var cutaway: FloatArray? = null
+    // (it had one lately: its material instances are set back to none once)
+    private var cutWas = false
+    private fun applyCut(mi: MaterialInstance) {
+        val c = cutaway ?: return
+        mi.setParameter("seeCut", c[0], c[1], c[2], c[3]); mi.setParameter("seeCutY", c[4], c[5], c[6], c[7])
+    }
+    /**
      * Its fade is the inverse screen door (the far boxes): at a fade of t it keeps exactly the pixels a thing faded to
      * 1 - t drops, so a crossover between the two never shows both, nor neither, at a pixel.
      */
@@ -274,6 +285,12 @@ internal class PropLayer(
         System.arraycopy(look, 0, lastLook, 0, 16)
         hasLook = true
         lastGlowOn = on
+        // (its cutaway gone: every batch's set back to none, drawn or not)
+        if (cutaway != null) cutWas = true
+        else if (cutWas) {
+            cutWas = false
+            for (i in 0 until batches.size) { val b = batches[i]; if (!b.released) b.mi.setParameter("seeCut", 0f, 0f, 0f, 0f) }
+        }
         // (index loop, no boxing: zero allocations per frame)
         for (i in 0 until batches.size) {
             val b = batches[i]
@@ -291,7 +308,7 @@ internal class PropLayer(
             if (b.proxy != 0) { val pi = rm.getInstance(b.proxy); if (pi != 0) rm.setLayerMask(pi, 0xff, if (b.visible && layerShad) 1 else 0) }
             if (!drawn) continue
             b.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
-            if (seeThrough) SeeThrough.apply(b.mi)
+            if (seeThrough) { SeeThrough.apply(b.mi); applyCut(b.mi) }
             if (b.glows) b.mi.setParameter("glow", GLOW, GLOW, GLOW, on)
             if (f < 1f || faded) b.mi.setParameter("fade", if (inverseFade) -f else f)
         }
@@ -308,7 +325,7 @@ internal class PropLayer(
         if (bi != 0) rm.setLayerMask(bi, 0xff, if (visible && b.layerShown) 1 else 0)
         if (visible && b.layerShown && hasLook) {
             b.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, lastLook, 0, 1)
-            if (seeThrough) SeeThrough.apply(b.mi)
+            if (seeThrough) { SeeThrough.apply(b.mi); applyCut(b.mi) }
             if (b.glows) b.mi.setParameter("glow", GLOW, GLOW, GLOW, lastGlowOn)
         }
         if (b.proxy != 0) {

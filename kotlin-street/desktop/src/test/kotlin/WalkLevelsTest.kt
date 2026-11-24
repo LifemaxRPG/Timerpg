@@ -129,6 +129,8 @@ class WalkLevelsTest {
         assertEquals("the plaza beside it (heights kept to a quarter unit)", .3f, f.top(1030f, 2010f, 20f), .13f)
         assertFalse("nothing at head height under the lintel", f.hits(1050f, 2010f, 1f, 40f))
         assertTrue("the lintel itself", f.hits(1050f, 2010f, 61f, 79f))
+        assertEquals("the lintel's underside over a walker under it (the ceiling a cutaway goes by)", 60f, f.bottomAbove(1050f, 2010f, 34f), .13f)
+        assertTrue("no ceiling over the open plaza", f.bottomAbove(1030f, 2010f, 34f).isNaN())
         assertEquals("the ground under the arch is what a walker stands on", .3f, f.top(1050f, 2010f, 12f), .13f)
         assertTrue("outside the field: nothing", f.top(900f, 2010f, 100f).isNaN())
     }
