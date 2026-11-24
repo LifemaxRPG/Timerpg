@@ -18,3 +18,11 @@ Added deterministic town fence selection, discoverable leads, trust-sensitive qu
 
 - One scheduled run with a WIP and final push. Model setting, token counts and plan percentage were not visible.
 - Initial delivery, zero review rounds.
+
+## Round 1 — C020-r1
+
+Replaced boolean heat with a 0–1 value. A stranger can sell a moderately hot stolen watch. Trust raises the accepted heat ceiling and softens the discount. At heat 0.9, Vic declines at trust 0 and buys at trust 0.8. Moved the existing price functions into `pricing.ts` to remove the circular import while preserving the public exports.
+
+- All 19 economy tests passed, including the unchanged C018 and C019 suites. TypeScript passed.
+- The heat scale and police-case inputs still need game wiring. The test exercises the exchange and trust rules, including the first deal with a stranger.
+- Usage for this revision was one scheduled turn with a WIP and final push. Model setting, token counts and plan percentage were not visible.

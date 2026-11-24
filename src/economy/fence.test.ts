@@ -31,15 +31,23 @@ it('draws leads from sociable adults outside the fence roster', () => {
   expect(leads.every(lead => lead.sourceId.startsWith('regular_') && lead.willingness === .75)).toBe(true);
 });
 
-it('refuses off-category and hot goods until trusted, then pays less than pawn', () => {
-  expect(fenceDeal(fence, 'radio', 1952, false, 1)).toEqual({ accepted: false, reason: 'category' });
-  expect(fenceDeal(fence, 'pocketwatch', 1952, true, .64)).toEqual({ accepted: false, reason: 'too_hot' });
-  const deal = fenceDeal(fence, 'pocketwatch', 1952, true, .7);
-  expect(deal).toEqual({ accepted: true, offerCents: 206, trustAfter: .8 });
-  if (deal.accepted) expect(deal.offerCents).toBeLessThan(pawnOffer('pocketwatch', 1952, true)!);
-  const lowTrust = fenceDeal(fence, 'pocketwatch', 1952, false, 0);
-  if (!lowTrust.accepted || !deal.accepted) throw new Error('Expected two valid offers');
-  expect(lowTrust.offerCents).toBeLessThan(deal.offerCents);
+it('buys a warm stolen watch from a stranger and requires trust for very hot goods', () => {
+  expect(fenceDeal(fence, 'radio', 1952, 0, 1)).toEqual({ accepted: false, reason: 'category' });
+  expect(fenceDeal(fence, 'pocketwatch', 1952, .9, 0)).toEqual({ accepted: false, reason: 'too_hot' });
+  expect(fenceDeal(fence, 'pocketwatch', 1952, NaN, 0)).toEqual({ accepted: false, reason: 'no_offer' });
+
+  const warm = fenceDeal(fence, 'pocketwatch', 1952, .4, 0);
+  const cool = fenceDeal(fence, 'pocketwatch', 1952, 0, 0);
+  const trusted = fenceDeal(fence, 'pocketwatch', 1952, .4, .8);
+  const veryHot = fenceDeal(fence, 'pocketwatch', 1952, .9, .8);
+  if (!warm.accepted || !cool.accepted || !trusted.accepted || !veryHot.accepted) {
+    throw new Error('Expected eligible deals to be accepted');
+  }
+  expect(warm).toEqual({ accepted: true, offerCents: 210, trustAfter: .1 });
+  expect(warm.offerCents).toBeLessThan(pawnOffer('pocketwatch', 1952, false)!);
+  expect(warm.offerCents).toBeLessThan(cool.offerCents);
+  expect(trusted.offerCents).toBeGreaterThan(warm.offerCents);
+  expect(veryHot.offerCents).toBeLessThan(trusted.offerCents);
 });
 
 it('gives bounded informant risk that changes by era and traits', () => {
