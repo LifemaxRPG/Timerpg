@@ -143,6 +143,33 @@ desktop) and `app/src/main/kotlin/LoopSession.kt` (the game's side), `LoopHud.kt
   reason, the last advance's attitude changes, new cases and pawn leads, the last sighting and arrest, and each facade
   call's time. Every loop event goes to PlayLog (`event("loop", name, detail JSON)`: init, load, act, attitude,
   advance, spotted, arrest), and `loop.start` / `loop.save` as spans.
+- **The fence** (`economy.townFences / fenceLeads / fenceDeal / fenceRisk`, src/economy/fence.ts; code `LoopFences.kt`,
+  `LoopGame`, `LoopSession.fence*`, `LoopFencePanel`):
+  - *Built at init* from the town's people (saved with the loop: `fences`, `leads`, `fenceTrust`, `tips`; an older save
+    builds them from the seed). The town has only warmth, so the economy's `FencePerson` is made up deterministically:
+    sociability = warmth; honesty = .15 + .75 u1 + .2 (warmth - .5), 0.05 less under 30; greed = .1 + .85 u2 - .1 (warmth - .5)
+    (u1, u2 from the town seed and the person's id); job = the cover their workplace suggests (bait shop: hardware clerk,
+    music store: repair clerk, pawn or antiques: secondhand dealer), else the seed picks. (The export repeats 22 ids; the
+    fence input has each once.) The capital gets 1 fence with about 40 leads (the seed's draw, not a rule).
+  - *Leads are dialogue facts*: each lead's source person gets "You know <name> buys things, no questions asked, behind
+    <shop>, after dark." in their facts (`LoopGame.attitude`, so `DialogueEngine.loopFacts`), unless their stance is
+    `refuse` or `report_on_sight`. The place is the real spot, not the economy's generic text.
+  - *Where and when*: 20:00-02:00 at the back of the nearest shop the cover works from (hardware: bait shop, repair: music
+    store, secondhand: the pawn shop; else behind their home), two metres past the back wall, facing away from it. Drawn
+    as a standing figure through `TownPlay.extras` (a 6th number, 1, means standing), labelled with their name only. The
+    panel (`LoopFencePanel`) opens by itself within 3 m (checked every 0.4 s), Close keeps it shut until the player walks off.
+  - *Heat* (`LoopFences.heat`): clean item 0; stolen 0.9 within 1 day of the theft (the item's day), 0.6 within a week, 0.3
+    after. Not yet from the case's strength or who knows. `fenceDeal` decides: a stranger is refused above 0.7 ("too hot"),
+    other categories ("not their line"); an offer is below the clean pawn offer by design.
+  - *A deal* pays the cents, removes the item, saves the fence's new trust (+0.10), then rolls `fenceRisk` once with a
+    stable key (town seed, fence, item id). A hit is a **tip-off**: a stolen item is entered into the pawn ledger as if
+    the player sold it at the pawn shop (`act sell`, no one nearby), so the police's pawn trace can find it; otherwise
+    only a note (debug panel, PlayLog `fence_deal`). A clean deal never touches the pawn ledger.
+  - *Debug panel*: each fence (cover, where, hours, trust, number and names of leads), the last tip-offs.
+  - **Gap for Jeff's facade**: no way to say "an informant reported this sale" (no witness on a non-pawn `sell`, no
+    case for the buyer's tip, no trust or stance for the fence). The pawn-ledger `act` is the nearest hook; a clean
+    sale that is tipped goes nowhere. The fence's spot behind a building is not checked for reachability (a fenced
+    back yard may block it).
 
 **Placeholder (to replace):**
 - The landmark stores have no owner in the export: a townsperson who "works from home" is made each one's clerk (the

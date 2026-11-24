@@ -131,7 +131,7 @@ object TownPlay {
 
     /**
      * More people to draw where they are, set by the game (the loop's police officers on their routes: x, z, dx, dz and
-     * a look seed each); drawn while within [EXTRA_RANGE] of the player.
+     * a look seed each, and a sixth, 1, for someone standing still: a fence); drawn while within [EXTRA_RANGE] of the player.
      */
     @Volatile var extras: List<FloatArray> = emptyList()
     private val EXTRA_RANGE = 3000f
@@ -522,7 +522,7 @@ object TownPlay {
             f.x = e[0]; f.z = e[1]; f.dx = e[2]; f.dz = e[3]
             f.sheet = e[4].toInt() and 0x7fffffff
             f.folk = TownFolk.pick(f.sheet, false, 35, year)
-            f.still = false
+            f.still = e.size > 5 && e[5] > 0f
             f.frame = ((seconds * 7f).toInt()).mod(6)
             f.who = -1
         }

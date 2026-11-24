@@ -465,6 +465,9 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     LoopSession.hourSet?.let { h -> LaunchedEffect(h) { hour = h.coerceIn(0f, LAST_MINUTE); LoopSession.hourSet = null } }
     var loopShop by remember { mutableStateOf(false) }
     var loopDebug by remember { mutableStateOf(false) }
+    // the fence the player stands by at night (LoopSession.fenceNear) and the one whose panel they closed (until they walk off)
+    var fenceNear by remember { mutableStateOf<com.lifemax.rpg.feature.habits.loop.LoopFence?>(null) }
+    var fenceClosed by remember { mutableStateOf<String?>(null) }
     var ticketOpen by remember { mutableStateOf(false) }
     var season by remember { mutableIntStateOf(1) }
     var weather by remember { mutableIntStateOf(0) }
@@ -501,7 +504,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             else if (movingNow && now - movedAt > STILL_NS) { movingNow = false; engine.setMoving(false) }
             near = GameState.nearest
             atCorner = GameState.atCorner
-            if (townMode) townPlay.extras = LoopSession.officerFigures(now)
+            if (townMode) townPlay.extras = LoopSession.officerFigures(now) + LoopSession.fenceFigures(hour)
             // the walk round the corner swaps the street in the frame it ends: the HUD, the people, the lines follow
             if (GameState.street != streetNo && !townPlay.active) streetNo = GameState.street
             val w = townPlay.walk
@@ -852,6 +855,15 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             if (TownSession.ready) LoopSession.lookForPlayer(ctx, hour, inside != null || townPlay.inCar)
         }
     }
+    LaunchedEffect(townMode) {
+        if (!townMode) return@LaunchedEffect
+        while (true) {
+            kotlinx.coroutines.delay(400)
+            val f = LoopSession.fenceNear(hour, inside != null || townPlay.inCar)
+            if (f?.personId != fenceNear?.personId) fenceNear = f
+            if (f == null) fenceClosed = null
+        }
+    }
     // the back gesture closes what is open (the crash report, a conversation, the AI panel) or leaves the room; on the street
     // it takes two within two seconds to leave the game. Android holds the edge's back swipe off only over the bottom 200 dp,
     // so a left thumb landing higher on the very edge and pushing right to walk is a back swipe: it must not end the game
@@ -1192,12 +1204,17 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             when (what) { "wait" -> LoopSession.waitHours(ctx, 1.0); "sleep" -> LoopSession.sleep(ctx) }
         }, onClose = { loopShop = false }, modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp, bottom = 40.dp))
         if (loopPlace == null && loopShop) LaunchedEffect(Unit) { loopShop = false }
+        // a fence, met at night by their cover spot: what they would pay for what the player carries
+        fenceNear?.let { f ->
+            if (fenceClosed != f.personId && !loopShop) LoopFencePanel(f, hour, onSell = { item -> LoopSession.sellToFence(ctx, f, item, hour) },
+                onClose = { fenceClosed = f.personId }, modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp, bottom = 40.dp))
+        }
         LoopSession.line?.let { l ->
             Text(l, 14.sp, Modifier.align(Alignment.BottomCenter).padding(bottom = 140.dp, start = 24.dp, end = 24.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 6.dp))
             LaunchedEffect(LoopSession.lineAt) { val at = LoopSession.lineAt; kotlinx.coroutines.delay(6000); LoopSession.lineSeen(at) }
         }
         // (officers: a label over their heads while they are in view)
-        if (townMode && inside == null) LoopOfficerLabels(frameTick)
+        if (townMode && inside == null) LoopOfficerLabels(frameTick, hour)
         LoopArrestCard(Modifier.align(Alignment.Center).padding(16.dp))
         // someone to talk to here
         val open = talk

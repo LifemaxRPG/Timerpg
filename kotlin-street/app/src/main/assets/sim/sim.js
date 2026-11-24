@@ -4928,41 +4928,6 @@
     return `${sign}$${Math.floor(amount / 100)}.${String(amount % 100).padStart(2, "0")}`;
   }
 
-  // src/economy/curves.ts
-  var curves = {
-    electronics: [[0, 4], [5, 2.5], [12, 1.5], [25, 1]],
-    calculator: [[1971, 110], [1978, 41], [1985, 8], [1995, 2], [2005, 1.22], [2025, 1]],
-    appliances: [[1880, 2.5], [1952, 2], [1978, 1.6], [2005, 1.15], [2025, 1]],
-    clothing: [[1880, 1.5], [1952, 1.3], [1978, 1.18], [2025, 1]],
-    food: [[1880, 1.16], [1925, 1.04], [1952, 1], [1978, 1.06], [2025, 1]],
-    fuel: [[1905, 1.34], [1952, 0.84], [1973, 0.74], [1981, 1.45], [1998, 0.72], [2025, 1]],
-    services: [[1880, 0.63], [1925, 0.91], [1952, 0.94], [1978, 0.99], [2025, 1], [2030, 1.07]],
-    tools: [[1880, 1.75], [1952, 1.32], [1978, 1.17], [2025, 1]]
-  };
-  function relativePrice(item, year) {
-    switch (item.category) {
-      case "electronics":
-        if (item.id === "pocket_calculator") return interpolate(curves.calculator, year);
-        if (item.id === "radio") return interpolate([[1922, 2.4], [1952, 1], [1970, 0.65]], year);
-        return interpolate(curves.electronics, year - item.from) / interpolate(curves.electronics, 2025 - item.from);
-      case "appliances":
-      case "clothing":
-      case "fuel":
-        return interpolate(curves[item.category], year);
-      case "pantry":
-      case "produce":
-        return interpolate(curves.food, year);
-      case "counter":
-        return interpolate(curves.services, year);
-      case "hardware_supply":
-      case "hand_tools":
-      case "power_tools":
-        return interpolate(curves.tools, year);
-      default:
-        return 1;
-    }
-  }
-
   // src/economy/catalogue.ts
   var SHOP_KINDS = [
     "general",
@@ -5257,17 +5222,43 @@
     }));
   });
 
-  // src/economy/index.ts
-  var ITEMS_BY_ID = new Map(ITEMS.map((item) => [item.id, item]));
-  var SHOP_ALIASES = {
-    general_store: "general",
-    grocer: "market",
-    grocery: "market",
-    pawn_shop: "pawn",
-    clothing_store: "clothing",
-    hardware_store: "hardware",
-    drugstore: "pharmacy"
+  // src/economy/curves.ts
+  var curves = {
+    electronics: [[0, 4], [5, 2.5], [12, 1.5], [25, 1]],
+    calculator: [[1971, 110], [1978, 41], [1985, 8], [1995, 2], [2005, 1.22], [2025, 1]],
+    appliances: [[1880, 2.5], [1952, 2], [1978, 1.6], [2005, 1.15], [2025, 1]],
+    clothing: [[1880, 1.5], [1952, 1.3], [1978, 1.18], [2025, 1]],
+    food: [[1880, 1.16], [1925, 1.04], [1952, 1], [1978, 1.06], [2025, 1]],
+    fuel: [[1905, 1.34], [1952, 0.84], [1973, 0.74], [1981, 1.45], [1998, 0.72], [2025, 1]],
+    services: [[1880, 0.63], [1925, 0.91], [1952, 0.94], [1978, 0.99], [2025, 1], [2030, 1.07]],
+    tools: [[1880, 1.75], [1952, 1.32], [1978, 1.17], [2025, 1]]
   };
+  function relativePrice(item, year) {
+    switch (item.category) {
+      case "electronics":
+        if (item.id === "pocket_calculator") return interpolate(curves.calculator, year);
+        if (item.id === "radio") return interpolate([[1922, 2.4], [1952, 1], [1970, 0.65]], year);
+        return interpolate(curves.electronics, year - item.from) / interpolate(curves.electronics, 2025 - item.from);
+      case "appliances":
+      case "clothing":
+      case "fuel":
+        return interpolate(curves[item.category], year);
+      case "pantry":
+      case "produce":
+        return interpolate(curves.food, year);
+      case "counter":
+        return interpolate(curves.services, year);
+      case "hardware_supply":
+      case "hand_tools":
+      case "power_tools":
+        return interpolate(curves.tools, year);
+      default:
+        return 1;
+    }
+  }
+
+  // src/economy/pricing.ts
+  var ITEMS_BY_ID = new Map(ITEMS.map((item) => [item.id, item]));
   function forSale(item, year) {
     return year >= item.from && year <= item.to;
   }
@@ -5307,6 +5298,71 @@
     const clean = pawnOffer(itemId, year, false);
     return clean === null ? null : Math.floor(clean / 3);
   }
+
+  // src/economy/fence.ts
+  var covers = [
+    { cover: "hardware clerk", where: "behind the hardware store", categories: ["valuables", "hand_tools", "power_tools"] },
+    { cover: "repair clerk", where: "at the repair shop back door", categories: ["valuables", "electronics", "instruments"] },
+    { cover: "secondhand dealer", where: "at the secondhand shop back door", categories: ["valuables", "clothing", "instruments"] }
+  ];
+  function townFences(people, seed) {
+    const size = people.length;
+    if (rand(seed, "fence_count") >= Math.min(0.98, size / 120)) return [];
+    const limit = size >= 80 && rand(seed, "fence_second") < 0.55 ? 2 : 1;
+    return people.filter((p) => p.age >= 18 && p.honesty <= 0.45 && p.greed >= 0.5).map((person) => ({
+      person,
+      score: person.greed - person.honesty + 0.2 * person.sociability + 0.3 * rand(seed, "fence_rank", person.id)
+    })).sort((a, b) => b.score - a.score || (a.person.id < b.person.id ? -1 : Number(a.person.id > b.person.id))).slice(0, limit).map(({ person }) => {
+      const preferred = covers.find((cover2) => cover2.cover === person.job.trim().toLowerCase());
+      const cover = preferred ?? covers[Math.floor(rand(seed, "fence_cover", person.id) * covers.length)];
+      return { ...cover, personId: person.id, hours: [20, 2], honesty: person.honesty, greed: person.greed };
+    });
+  }
+  function fenceLeads(fences, people, seed) {
+    const fenceIds = new Set(fences.map((fence) => fence.personId));
+    const sources = people.filter((p) => p.age >= 18 && p.sociability >= 0.5 && !fenceIds.has(p.id));
+    return fences.flatMap((fence) => sources.flatMap((person) => {
+      const familiarity = person.sociability * 0.5 + (1 - person.honesty) * 0.25;
+      if (rand(seed, "fence_lead", fence.personId, person.id) >= familiarity) return [];
+      return [{
+        sourceId: person.id,
+        fenceId: fence.personId,
+        where: fence.where,
+        hours: fence.hours,
+        willingness: Math.round(100 * clamp01(0.6 * person.sociability + 0.4 * (1 - person.honesty))) / 100
+      }];
+    }));
+  }
+  function fenceDeal(fence, itemId, year, heat, trust) {
+    const item = ITEMS.find((entry) => entry.id === itemId);
+    if (!item || !fence.categories.includes(item.category)) return { accepted: false, reason: "category" };
+    const base = fenceOffer(itemId, year);
+    const pawn = pawnOffer(itemId, year, false);
+    if (!base || !pawn || !Number.isFinite(heat) || heat < 0 || heat > 1) return { accepted: false, reason: "no_offer" };
+    const standing = Number.isFinite(trust) ? clamp01(trust) : 0;
+    if (heat > 0.7 + 0.3 * standing) return { accepted: false, reason: "too_hot" };
+    const bargaining = 1.65 - 0.3 * fence.greed + 0.35 * standing;
+    const heatDiscount = 1 - heat * (0.55 - 0.3 * standing);
+    const offerCents = Math.min(pawn - 1, Math.floor(base * bargaining * heatDiscount));
+    if (offerCents <= 0) return { accepted: false, reason: "no_offer" };
+    return { accepted: true, offerCents, trustAfter: Math.min(100, Math.round(standing * 100) + 10) / 100 };
+  }
+  function fenceRisk(fence, year) {
+    if (!validYear(year)) return null;
+    const eraRate = year < 1930 ? 0.04 : year < 1960 ? 0.09 : year < 1990 ? 0.16 : 0.26;
+    return Math.round(1e3 * eraRate * clamp01(0.25 + fence.honesty + 0.35 * fence.greed)) / 1e3;
+  }
+
+  // src/economy/index.ts
+  var SHOP_ALIASES = {
+    general_store: "general",
+    grocer: "market",
+    grocery: "market",
+    pawn_shop: "pawn",
+    clothing_store: "clothing",
+    hardware_store: "hardware",
+    drugstore: "pharmacy"
+  };
   function shopKey(kind) {
     const key = kind.trim().toLowerCase().replace(/[ -]+/g, "_");
     if (Object.prototype.hasOwnProperty.call(SHOP_ALIASES, key)) return SHOP_ALIASES[key];
@@ -5608,7 +5664,11 @@
     pawnOffer,
     pawnPrice,
     fenceOffer,
-    formatMoney
+    formatMoney,
+    townFences,
+    fenceLeads,
+    fenceDeal,
+    fenceRisk
   };
   globalThis.Economy = Economy;
   function simCall(json) {

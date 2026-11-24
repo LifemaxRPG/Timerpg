@@ -233,6 +233,29 @@ object LoopSession {
     /** What [personId] knows of the player, for the dialogue's fact sheet (cached; empty until looked up). */
     fun factsFor(personId: String): List<String> = game?.facts?.get(personId).orEmpty()
 
+    // ------------------------------------------------------------------ the fences
+
+    /** The fences standing at their spots at [hour] (their hours, 20:00-02:00), for TownPlay.extras: x, z, dx, dz, look, 1 (standing). */
+    fun fenceFigures(hour: Float): List<FloatArray> = view?.fences.orEmpty().filter { it.atHours(hour.toDouble()) }
+        .map { floatArrayOf(it.spotX, it.spotZ, it.facingX, it.facingZ, (it.personId.hashCode() and 0xffff).toFloat(), 1f) }
+
+    /** Each fence at their spot now (name, x, z), for the label over their head. */
+    fun fenceSpots(hour: Float): List<Triple<String, Float, Float>> = view?.fences.orEmpty().filter { it.atHours(hour.toDouble()) }.map { Triple(it.name, it.spotX, it.spotZ) }
+
+    /** The fence the player stands by (within [FENCE_REACH] of their spot, in their hours), if any. */
+    fun fenceNear(hour: Float, inside: Boolean): com.lifemax.rpg.feature.habits.loop.LoopFence? {
+        if (inside || scene != null) return null
+        val w = TownPlay.walk ?: return null
+        return view?.fences.orEmpty().filter { it.atHours(hour.toDouble()) && hypot(it.spotX - w.wx, it.spotZ - w.wz) <= FENCE_REACH }
+            .minByOrNull { hypot(it.spotX - w.wx, it.spotZ - w.wz) }
+    }
+
+    fun sellToFence(ctx: Context, fence: com.lifemax.rpg.feature.habits.loop.LoopFence, item: com.lifemax.rpg.feature.habits.loop.LoopItem, hour: Float) =
+        run("selling", { it.sellToFence(fence, item, hour.toDouble()) }) { shown(it, ctx) }
+
+    /** How near the player stands to a fence to deal (street units: 3 m). */
+    val FENCE_REACH = 3f * VehicleWorld.U
+
     // ------------------------------------------------------------------ the officers
 
     private val tmp = FloatArray(4)

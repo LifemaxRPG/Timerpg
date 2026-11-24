@@ -113,6 +113,28 @@ fun LoopShopPanel(place: LoopPlace, year: Int, hour: Float, onAction: (String, A
     }
 }
 
+/** A fence, met at night: what they would pay for each thing the player carries (or why not), in cents of the town's year. */
+@Composable
+fun LoopFencePanel(fence: com.lifemax.rpg.feature.habits.loop.LoopFence, hour: Float, onSell: (com.lifemax.rpg.feature.habits.loop.LoopItem) -> Unit, onClose: () -> Unit, modifier: Modifier = Modifier) {
+    val v = LoopSession.view
+    val busy = LoopSession.busy
+    val here = fence.atHours(hour.toDouble())
+    Column(modifier.widthIn(max = 460.dp).background(PANEL_BG, RoundedCornerShape(14.dp)).loopOpaque().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        T(fence.name, 15.sp)
+        T("Sell:", 13.sp, DIM_TEXT)
+        val items = v?.items.orEmpty()
+        if (items.isEmpty()) T("(you carry nothing to sell)", 12.sp, DIM_TEXT)
+        Column(Modifier.heightIn(max = 240.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            for (i in items) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                val q = v?.fenceQuotes?.get("${fence.personId}|${i.id}")
+                T(i.label + if (i.stolen) " (hot)" else "", 13.sp, if (i.stolen) HOT else Color.White, Modifier.widthIn(min = 200.dp))
+                LoopButton(if (q != null && q.accepted) "Sell ${q.text}" else q?.text ?: "...", enabled = !busy && here && q?.accepted == true) { onSell(i) }
+            }
+        }
+        LoopButton("Close") { onClose() }
+    }
+}
+
 /** The arrest card: what happened; closing it takes the player to the station. */
 @Composable
 fun LoopArrestCard(modifier: Modifier = Modifier) {
@@ -144,7 +166,7 @@ fun LoopDebugPanel(modifier: Modifier = Modifier) {
 
 /** "POLICE" over each officer's head while they are near and on the screen (recomposed with the frame, alone). */
 @Composable
-fun LoopOfficerLabels(frameTick: androidx.compose.runtime.LongState) {
+fun LoopOfficerLabels(frameTick: androidx.compose.runtime.LongState, hour: Float) {
     if (frameTick.longValue <= 0L) return
     val w = com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.walk ?: return
     for ((_, x, z) in LoopSession.officers(System.nanoTime())) {
@@ -152,6 +174,14 @@ fun LoopOfficerLabels(frameTick: androidx.compose.runtime.LongState) {
         val at = com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.headOnScreen(x, z) ?: continue
         Box(Modifier.layout { m, c -> val pl = m.measure(c); layout(pl.width, pl.height) { pl.place(at.x.toInt() - pl.width / 2, at.y.toInt() - pl.height - 4) } }) {
             T("POLICE", 10.sp, Color.White, Modifier.background(Color(0xCC1A3D8F), RoundedCornerShape(4.dp)).padding(horizontal = 4.dp, vertical = 1.dp))
+        }
+    }
+    // (the fences, by their name only)
+    for ((name, x, z) in LoopSession.fenceSpots(hour)) {
+        if (kotlin.math.hypot(x - w.wx, z - w.wz) > 1500f) continue
+        val at = com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.headOnScreen(x, z) ?: continue
+        Box(Modifier.layout { m, c -> val pl = m.measure(c); layout(pl.width, pl.height) { pl.place(at.x.toInt() - pl.width / 2, at.y.toInt() - pl.height - 4) } }) {
+            T(name, 10.sp, Color.White, Modifier.background(Color(0xAA101420), RoundedCornerShape(4.dp)).padding(horizontal = 4.dp, vertical = 1.dp))
         }
     }
 }

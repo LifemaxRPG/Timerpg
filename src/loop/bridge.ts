@@ -10,6 +10,7 @@ import {
   spotted,
 } from './facade';
 import * as economy from '../economy';
+import { fenceDeal, fenceLeads, fenceRisk, townFences } from '../economy/fence';
 import type {
   AdvanceOptions,
   ArrestInput,
@@ -177,6 +178,10 @@ export const Economy = {
   pawnPrice: economy.pawnPrice,
   fenceOffer: economy.fenceOffer,
   formatMoney: economy.formatMoney,
+  townFences,
+  fenceLeads,
+  fenceDeal,
+  fenceRisk,
 } as const;
 (globalThis as Record<string, unknown>).Economy = Economy;
 

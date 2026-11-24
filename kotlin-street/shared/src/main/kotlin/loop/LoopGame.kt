@@ -39,6 +39,10 @@ class LoopView(
     val debug: List<String>,
     val officers: List<JSONObject>,
     val messages: List<String>,
+    /** The town's fences, each one's trust (0..1) and what each would pay for each carried item ("<fence id>|<item id>"), made on the sim's thread. */
+    val fences: List<LoopFence> = emptyList(),
+    val fenceTrust: Map<String, Double> = emptyMap(),
+    val fenceQuotes: Map<String, FenceQuote> = emptyMap(),
 )
 
 /**
@@ -72,6 +76,46 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     val timings = LinkedHashMap<String, Pair<Double, Double>>()
 
     @Volatile var view: LoopView = LoopView(0, "", emptyMap(), emptyMap(), emptyMap(), emptyList(), 1, 8.0, emptyList(), emptyList(), emptyList()); private set
+
+    // ------------------------------------------------------------------ the fences (src/economy/fence.ts, docs/LOOP.md "The fence")
+
+    /** The town's fences (0-2, from `townFences` with the town's seed), their leads (who knows of them) and each one's trust in the player; saved with the loop. */
+    var fences: List<LoopFence> = emptyList(); private set
+    var leads: List<JSONObject> = emptyList(); private set
+    private val fenceTrust = HashMap<String, Double>()
+    /** The tip-offs so far: the deal (day, fence, item) a fence informed on; there is no police hook for it yet (see [sellToFence]). */
+    private val tips = ArrayList<JSONObject>()
+    private val quoteCache = HashMap<String, FenceQuote>()
+
+    private fun buildFences() {
+        val people = LoopFences.persons(town)
+        val raw = econ("townFences", people, town.seed) as? JSONArray ?: JSONArray()
+        val list = (0 until raw.length()).map { raw.getJSONObject(it) }
+        fences = list.map { LoopFences.place(town, it) }
+        val ld = econ("fenceLeads", JSONArray(list), people, town.seed) as? JSONArray ?: JSONArray()
+        leads = (0 until ld.length()).map { ld.getJSONObject(it) }
+        quoteCache.clear()
+    }
+
+    /** Trust of [fence] in the player, 0..1. */
+    fun trustOf(fence: LoopFence): Double = fenceTrust[fence.personId] ?: 0.0
+
+    /** The lines about fences [personId] knows of (their leads), for the dialogue's fact sheet. */
+    private fun leadFacts(personId: String): List<String> = leads.filter { it.optString("sourceId") == personId }.mapNotNull { l -> fences.firstOrNull { it.personId == l.optString("fenceId") }?.let { LoopFences.leadFact(it) } }
+
+    /** What [fence] would pay for [item] now (`fenceDeal`, heat from [LoopFences.heat]); cached per trust and heat. */
+    fun fenceQuote(fence: LoopFence, item: LoopItem): FenceQuote {
+        val heat = LoopFences.heat(item, day)
+        val trust = trustOf(fence)
+        return quoteCache.getOrPut("${fence.personId}|${item.key}|$heat|$trust") {
+            val d = econ("fenceDeal", fence.json, item.key, town.year, heat, trust) as? JSONObject
+            when {
+                d == null -> FenceQuote(false, 0, "no offer", "no_offer", heat)
+                d.optBoolean("accepted") -> d.optInt("offerCents").let { FenceQuote(true, it, money(it), null, heat) }
+                else -> d.optString("reason").let { r -> FenceQuote(false, 0, when (r) { "category" -> "not their line"; "too_hot" -> "too hot"; else -> "no offer" }, r, heat) }
+            }
+        }
+    }
 
     // ------------------------------------------------------------------ the era economy (src/economy via simCall "economy.*")
 
@@ -178,6 +222,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         cash = startingCash()
         items.clear(); nextItem = 1
         attitudes.clear(); facts.clear(); stocks.clear(); dayFrac = 0.0
+        fenceTrust.clear(); tips.clear(); buildFences()
         say("Arrived in ${town.townName} with ${money(cash)}.")
         event("init", JSONObject(res.toString()).put("cash", cash).put("places", town.places.count { it.kind != "home" }).put("ms", timings["init"]?.first))
         refreshPolice()
@@ -190,6 +235,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val o = JSONObject().put("version", 1).put("town", town.seed).put("sim", call("save"))
             .put("cash", cash).put("nextItem", nextItem).put("items", JSONArray().also { a -> for (i in items) a.put(itemJson(i)) })
             .put("stocks", JSONObject().also { m -> for ((k, v) in stocks) m.put(k, v) }).put("dayFrac", dayFrac)
+            .put("fences", JSONArray(fences.map { it.json })).put("leads", JSONArray(leads))
+            .put("fenceTrust", JSONObject().also { m -> for ((k, v) in fenceTrust) m.put(k, v) }).put("tips", JSONArray(tips))
         return o.toString()
     }
 
@@ -205,6 +252,15 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         attitudes.clear(); facts.clear(); stocks.clear()
         o.optJSONObject("stocks")?.let { m -> for (k in m.keys()) stocks[k] = m.getJSONObject(k) }
         dayFrac = o.optDouble("dayFrac", 0.0)
+        fenceTrust.clear(); tips.clear()
+        o.optJSONObject("fenceTrust")?.let { m -> for (k in m.keys()) fenceTrust[k] = m.getDouble(k) }
+        o.optJSONArray("tips")?.let { a -> for (k in 0 until a.length()) tips += a.getJSONObject(k) }
+        val sf = o.optJSONArray("fences")
+        if (sf != null) {
+            fences = (0 until sf.length()).map { LoopFences.place(town, sf.getJSONObject(it)) }
+            leads = o.optJSONArray("leads")?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } }.orEmpty()
+            quoteCache.clear()
+        } else buildFences() // (a save from before the fences: the town's are the same ones, from its seed)
         say("Back in ${town.townName}.")
         event("load", JSONObject().put("day", day).put("hour", hour).put("cash", cash).put("items", items.size).put("ms", timings["load"]?.first))
         refreshPolice()
@@ -280,7 +336,10 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         if (!fresh) attitudes[personId]?.let { return it }
         val a = JSONObject(call("attitude", personId))
         attitudes[personId] = a
-        facts[personId] = a.optJSONArray("facts")?.let { f -> (0 until f.length()).map { f.getString(it) } }.orEmpty()
+        val known = a.optJSONArray("facts")?.let { f -> (0 until f.length()).map { f.getString(it) } }.orEmpty()
+        // (someone who would refuse the player or report them does not share who buys stolen goods)
+        val shares = a.optString("stance") !in setOf("refuse", "report_on_sight")
+        facts[personId] = if (shares) known + leadFacts(personId) else known
         return a
     }
 
@@ -387,6 +446,42 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         return done(true, "Sold ${item.label} for ${money(price)}." + if (item.stolen) " They didn't ask where it came from." else "", wary = wary)
     }
 
+    /**
+     * Sells [item] to [fence] (they stand at their spot between their hours): `fenceDeal` decides (category, heat from
+     * [LoopFences.heat], the fence's trust in the player); an accepted offer is paid in cents, the item goes, trust rises
+     * (saved per fence), and `fenceRisk` is rolled once with a deterministic key (town seed, fence, item id: item ids are
+     * unique): on a hit the fence informs. The facade has no such report: a stolen item is then entered into the pawn
+     * ledger as if sold at the pawn shop (`act` sell: the police's pawn leads pick it up); otherwise only a note
+     * (debug panel, PlayLog "fence_tip"). A fence deal itself leaves no pawn entry (docs/ECONOMY.md).
+     */
+    fun sellToFence(fence: LoopFence, item: LoopItem, gameHour: Double): LoopOutcome {
+        clockTo(gameHour, exact = true)
+        if (!fence.atHours(hour)) return done(false, "${fence.first} isn't here now.")
+        val q = fenceQuote(fence, item)
+        if (!q.accepted) return done(false, "${fence.first} won't take ${item.label}: ${q.text}.")
+        val d = econ("fenceDeal", fence.json, item.key, town.year, q.heat, trustOf(fence)) as JSONObject
+        cash += q.cents
+        items.removeAll { it.id == item.id }
+        fenceTrust[fence.personId] = d.optDouble("trustAfter", trustOf(fence))
+        quoteCache.clear()
+        val risk = (econ("fenceRisk", fence.json, town.year) as? Number)?.toDouble() ?: 0.0
+        val roll = LoopFences.unit(town.seed, "fence_risk", fence.personId, item.id)
+        val hit = roll < risk
+        val line = "Sold ${item.label} to ${fence.first} for ${money(q.cents)}."
+        if (hit) {
+            val tip = JSONObject().put("day", day).put("fence", fence.personId).put("item", item.id).put("stolen", item.stolen).put("risk", risk).put("roll", roll)
+            tips += tip
+            say("(${fence.first} tipped the police off about ${item.label})")
+            val pawn = town.places.firstOrNull { it.kind == "pawn_shop" }
+            if (item.stolen && pawn != null) {
+                act(JSONObject().put("kind", "sell").put("placeId", pawn.id).put("item", itemPayload(item)), LoopScene(pawn.doorX, pawn.doorZ, emptyList(), null, false))
+            }
+        }
+        event("fence_deal", JSONObject().put("fence", fence.personId).put("item", item.key).put("cents", q.cents).put("heat", q.heat).put("trust", fenceTrust[fence.personId])
+            .put("risk", risk).put("roll", roll).put("tipped", hit))
+        return done(true, line)
+    }
+
     /** A shift at [place]: up to 4 hours (not past closing), paid at the end; the clock moves on by it. */
     fun work(place: LoopPlace, scene: LoopScene, gameHour: Double): LoopOutcome {
         clockTo(gameHour, exact = true)
@@ -488,7 +583,10 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val stock = shops.associate { it.id to stockFor(it) }
         val offers = HashMap<String, Int>(); val offerTexts = HashMap<String, String>()
         for (i in items) for (hot in booleanArrayOf(false, true)) pawnOfferFor(i.key, hot).let { o -> offers["${i.key}|$hot"] = o; offerTexts["${i.key}|$hot"] = money(o) }
-        view = LoopView(cash, money(cash), stock, offers, offerTexts, items.toList(), day, hour, debugLines(), officerPlans, messages.toList())
+        val quotes = HashMap<String, FenceQuote>()
+        for (f in fences) for (i in items) quotes["${f.personId}|${i.id}"] = fenceQuote(f, i)
+        view = LoopView(cash, money(cash), stock, offers, offerTexts, items.toList(), day, hour, debugLines(), officerPlans, messages.toList(),
+            fences, fenceTrust.toMap(), quotes)
     }
 
     private fun debugLines(): List<String> {
@@ -519,6 +617,12 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
             a.optJSONArray("newPoliceCases")?.let { if (it.length() > 0) out += "  new cases: ${(0 until it.length()).joinToString { k -> it.getString(k) }}" }
             a.optJSONArray("pawnLeadsMatched")?.let { if (it.length() > 0) out += "  pawn leads: ${it.length()}" }
         }
+        for (f in fences) {
+            val src = leads.filter { it.optString("fenceId") == f.personId }.mapNotNull { town.personById[it.optString("sourceId")]?.first }
+            out += "Fence ${f.name} (${f.cover}): ${f.whereText}, ${f.hoursText}, trust %.2f".format(trustOf(f)) + ", ${src.size} lead(s)" + if (src.isNotEmpty()) ": ${src.take(8).joinToString()}" else ""
+        }
+        if (fences.isEmpty()) out += "No fence in this town."
+        for (t in tips.takeLast(3)) out += "  fence tip-off: day ${t.optInt("day")} ${t.optString("item")} (risk %.2f, roll %.2f)".format(t.optDouble("risk"), t.optDouble("roll"))
         lastSpot?.let { out += "Last sighting: ${it.optString("officerId")} ${it.optString("action")} (recognition %.2f)".format(it.optDouble("recognitionChance")) }
         lastArrest?.let { out += "Last arrest: ${it.optString("summary")}" }
         out += "Facts cached for ${facts.count { it.value.isNotEmpty() }} people (${facts.size} looked up)"

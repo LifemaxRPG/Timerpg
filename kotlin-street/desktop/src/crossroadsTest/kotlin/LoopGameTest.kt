@@ -6,6 +6,7 @@ import com.lifemax.rpg.feature.habits.domain.TownCollision
 import com.lifemax.rpg.feature.habits.domain.TownYards
 import com.lifemax.rpg.feature.habits.loop.LoopBystander
 import com.lifemax.rpg.feature.habits.loop.LoopFigure
+import com.lifemax.rpg.feature.habits.loop.LoopFences
 import com.lifemax.rpg.feature.habits.loop.LoopGame
 import com.lifemax.rpg.feature.habits.loop.LoopRoutes
 import com.lifemax.rpg.feature.habits.loop.LoopScene
@@ -157,6 +158,93 @@ class LoopGameTest {
                     assertFalse(again.line, again.ok)
                 }.get()
             }
+        }
+    }
+
+    private fun theFence(g: LoopGame) = g.fences.first()
+
+    @Test fun fencesLeadsAndDeals() {
+        val antiques = loop.placeById.getValue("store:generalstore")
+        SimJsThread().use { t ->
+            t.load(bundle).get()
+            val saved = t.run { js ->
+                val g = LoopGame(js, loop)
+                g.init(10.0)
+                println("LoopGameTest: fences: " + g.fences.joinToString { "${it.name} (${it.cover}) ${it.whereText} ${it.hoursText} at (${it.spotX}, ${it.spotZ})" } + "; ${g.leads.size} leads")
+                assertTrue("0-2 fences", g.fences.size in 1..2)
+                // deterministic: a second new game has the same ones
+                val g2 = LoopGame(js, loop); g2.init(10.0)
+                assertEquals(g.fences.map { it.personId }, g2.fences.map { it.personId })
+                assertEquals(g.leads.map { it.toString() }, g2.leads.map { it.toString() })
+                assertTrue("a fence stands at a real spot", g.fences.all { it.spotX != 0f || it.spotZ != 0f })
+                assertTrue(g.fences.all { it.atHours(22.0) && it.atHours(1.0) && !it.atHours(12.0) })
+                // a lead is in the source person's facts (unless they would refuse the player)
+                assertTrue("leads exist", g.leads.isNotEmpty())
+                val lead = g.leads.first(); val fence = g.fences.first { it.personId == lead.getString("fenceId") }
+                g.attitude(lead.getString("sourceId"), fresh = true)
+                val fact = g.facts.getValue(lead.getString("sourceId"))
+                println("LoopGameTest: lead facts of ${loop.personById[lead.getString("sourceId")]?.name}: $fact")
+                assertEquals("one line per lead", fact.distinct(), fact)
+                assertTrue(fact.any { it.contains(fence.name) && it.contains("no questions asked") && it.contains(fence.whereText) })
+                // the debug panel lists them
+                assertTrue(g.view.debug.any { it.startsWith("Fence ${fence.name}") })
+                // a warm item (stolen three days ago) to the fence: pays less than the pawn shop's clean price, trust rises
+                val f = theFence(g)
+                val watch = g.stockFor(antiques).first { it.key == "pocketwatch" }
+                assertTrue(g.take(antiques, watch, behind(antiques), 10.5).ok)
+                g.advance(72.0, "test")
+                val item = g.items.single { it.key == "pocketwatch" }
+                assertEquals(.6, LoopFences.heat(item, g.day), 1e-9)
+                val cash = g.cash
+                val q = g.fenceQuote(f, item)
+                println("LoopGameTest: fence quote for a warm watch: ${q.text} (${q.accepted}, ${q.reason}); pawn clean ${econLong(js, "pawnOffer", "\"pocketwatch\",2025,false")}, hot ${g.pawnPrice(item)}")
+                assertTrue(q.accepted)
+                val r = g.sellToFence(f, item, 22.0)
+                println("LoopGameTest: ${r.line}")
+                assertTrue(r.line, r.ok)
+                assertEquals(cash + q.cents, g.cash)
+                assertTrue("less than the clean pawn price", q.cents < econLong(js, "pawnOffer", "\"pocketwatch\",2025,false"))
+                assertTrue(g.items.none { it.key == "pocketwatch" })
+                assertTrue("trust rose", g.trustOf(f) > 0.0)
+                // a fence deal leaves no pawn entry; the loop still saves
+                g.save() to (f.personId to g.trustOf(f))
+            }.get()
+            // save/load keeps the fences, their leads and trust
+            SimJsThread().use { t2 ->
+                t2.load(bundle).get()
+                t2.run { js ->
+                    val g3 = LoopGame(js, loop)
+                    g3.load(saved.first)
+                    assertEquals(saved.second.first, g3.fences.first().personId)
+                    assertEquals(saved.second.second, g3.trustOf(g3.fences.first()), 1e-9)
+                    assertTrue(g3.leads.isNotEmpty())
+                }.get()
+            }
+        }
+    }
+
+    @Test fun aVeryHotItemIsRefusedForAStranger() {
+        val antiques = loop.placeById.getValue("store:generalstore")
+        SimJsThread().use { t ->
+            t.load(bundle).get()
+            t.run { js ->
+                val g = LoopGame(js, loop)
+                g.init(10.0)
+                val f = theFence(g)
+                assertTrue(g.take(antiques, g.stockFor(antiques).first { it.key == "pocketwatch" }, behind(antiques), 10.5).ok)
+                val item = g.items.single { it.key == "pocketwatch" }
+                assertEquals(.9, LoopFences.heat(item, g.day), 1e-9)
+                val cash = g.cash
+                val r = g.sellToFence(f, item, 21.0)
+                println("LoopGameTest: hot to a stranger: ${r.line}")
+                assertFalse(r.line, r.ok)
+                assertTrue(r.line, r.line.contains("too hot"))
+                assertEquals(cash, g.cash); assertEquals(1, g.items.size); assertEquals(0.0, g.trustOf(f), 0.0)
+                // and not outside their hours
+                val day = g.sellToFence(f, item, 21.5).also { assertTrue(it.line, !it.ok) }
+                val noon = LoopGame(js, loop).also { it.init(12.0); it.items += item }.sellToFence(f, item, 12.5)
+                assertFalse(noon.line, noon.ok); assertTrue(noon.line, noon.line.contains("isn't here"))
+            }.get()
         }
     }
 
