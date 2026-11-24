@@ -267,7 +267,7 @@ object TownSession {
         val map = try {
             val m0 = System.nanoTime()
             com.lifemax.rpg.feature.habits.maps.TownMapModel.build(town, com.lifemax.rpg.feature.habits.domain.GlbLandmarks.parse(root), yards,
-                com.lifemax.rpg.feature.habits.maps.TownMapModel.shopNames(root), collision)
+                com.lifemax.rpg.feature.habits.maps.TownMapModel.shopNames(root), collision, com.lifemax.rpg.feature.habits.maps.TownMapModel.shopKinds(root))
                 .also { com.timerpg.street.shot.Crumbs.add("city map: ${it.labels.size} names, %.0f ms".format(java.util.Locale.US, (System.nanoTime() - m0) / 1e6f)) }
         } catch (t: Throwable) { com.timerpg.street.shot.Crumbs.add("city map: not made (${t.javaClass.simpleName}: ${t.message})"); null }
         return TownData(seed, town, yards, art, building, names, root.optString("type"), dir,

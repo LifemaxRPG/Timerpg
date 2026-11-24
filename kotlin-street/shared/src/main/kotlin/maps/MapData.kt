@@ -17,7 +17,9 @@ import java.util.concurrent.Executors
  * top-left corner), its labels, its tier, look and print year.
  */
 class MapLayer(val tier: MapTier, val style: MapStyle, val printYear: Int, val image: ImageBitmap, val w: Int, val h: Int,
-               val unitsPerPx: Float, val x0: Float, val z0: Float, val labels: List<MapLabel>, val background: Int) {
+               val unitsPerPx: Float, val x0: Float, val z0: Float, val labels: List<MapLabel>, val background: Int,
+               /** The places marked with icons (the city map's), most important first. */
+               val pois: List<MapPoi> = emptyList()) {
     /** The labels, most important first (the order they claim room in when drawn). */
     val byPriority: List<MapLabel> = labels.sortedByDescending { it.priority }
     val x1: Float get() = x0 + w * unitsPerPx
@@ -25,8 +27,8 @@ class MapLayer(val tier: MapTier, val style: MapStyle, val printYear: Int, val i
 
     companion object {
         /** [background]: what lies past the picture's edge (the town's forest, the planet's sea): its corner pixel. */
-        fun of(tier: MapTier, style: MapStyle, printYear: Int, r: MapRaster, labels: List<MapLabel>) =
-            MapLayer(tier, style, printYear, MapImages.of(r), r.w, r.h, r.unitsPerPx, r.x0, r.z0, labels, r.px[0])
+        fun of(tier: MapTier, style: MapStyle, printYear: Int, r: MapRaster, labels: List<MapLabel>, pois: List<MapPoi> = emptyList()) =
+            MapLayer(tier, style, printYear, MapImages.of(r), r.w, r.h, r.unitsPerPx, r.x0, r.z0, labels, r.px[0], pois)
     }
 }
 
@@ -104,24 +106,99 @@ class MapData(val city: TownMapModel, val site: WorldSite?, val townYear: Int) {
 
     private fun build(tier: MapTier, style: MapStyle, year: Int): MapLayer = when (tier) {
         // (the town's data is the town's year: a city map printed in another year shows it as it is now, labelled with its year)
-        MapTier.CITY -> MapLayer.of(tier, style, year, city.raster(style), city.labels)
+        MapTier.CITY -> MapLayer.of(tier, style, year, city.raster(style), city.labels, city.pois)
         MapTier.REGIONAL -> PlanetMapModel.regional(site!!, year).let { MapLayer.of(tier, style, year, it.raster, it.labels) }
         MapTier.WORLD -> PlanetMapModel.world(site!!, year).let { MapLayer.of(tier, style, year, it.raster, it.labels) }
+    }
+
+    // ------------------------------------------------------------------ the city map at each zoom
+
+    private val stepUsed = ConcurrentHashMap<String, Long>()
+    @Volatile private var useClock = 0L
+
+    /**
+     * The city map in [style] drawn at zoom step [step] ([CITY_STEPS]: metres a pixel), made once on the worker the
+     * first time it is asked for; null until it is ready. Only the last [KEEP_STEPS] steps asked for are kept per look
+     * (the closest is about 30 MB for gamma).
+     */
+    fun cityStep(step: Int, style: MapStyle): MapLayer? {
+        val s = step.coerceIn(0, CITY_STEPS.size - 1)
+        val k = stepKey(style, s)
+        stepUsed[k] = ++useClock
+        ready[k]?.let { return it }
+        if (pending.add(k)) worker.execute {
+            runCatching { buildStep(style, s) }
+                .onSuccess { ready[k] = it; evict(style) }.onFailure { onError?.invoke("map $k: ${it.javaClass.simpleName}: ${it.message}") }
+            pending.remove(k)
+            post { version++ }
+        }
+        return null
+    }
+
+    /** The same, made now on the calling thread (the tests). */
+    fun cityStepNow(step: Int, style: MapStyle): MapLayer {
+        val s = step.coerceIn(0, CITY_STEPS.size - 1)
+        val k = stepKey(style, s)
+        return ready[k] ?: buildStep(style, s).also { ready[k] = it }
+    }
+
+    private fun stepKey(style: MapStyle, s: Int) = "CITY|$style|step$s"
+    private fun buildStep(style: MapStyle, s: Int) =
+        MapLayer.of(MapTier.CITY, style, townYear, city.raster(style, CITY_STEPS[s] * com.lifemax.rpg.feature.habits.vehicle.VehicleWorld.U), city.labels, city.pois)
+
+    /**
+     * The city map for drawing at [metresPerPx] metres a picture pixel: the step closest to it is asked for, and the
+     * closest step that is ready now is given (any ready step beats none; the base picture last of all).
+     */
+    fun cityFor(metresPerPx: Float, style: MapStyle): MapLayer? {
+        val want = closestStep(metresPerPx)
+        cityStep(want, style)?.let { return it }
+        var best: MapLayer? = null; var bestD = Float.MAX_VALUE
+        for (i in CITY_STEPS.indices) {
+            val l = ready[stepKey(style, i)] ?: continue
+            val d = kotlin.math.abs(kotlin.math.ln(CITY_STEPS[i] / metresPerPx))
+            if (d < bestD) { bestD = d; best = l }
+        }
+        return best ?: layer(MapTier.CITY, style, townYear)
+    }
+
+    private fun evict(style: MapStyle) {
+        val keys = stepUsed.keys.filter { it.startsWith("CITY|$style|step") && ready.containsKey(it) }
+        if (keys.size <= KEEP_STEPS) return
+        for (k in keys.sortedBy { stepUsed[it] ?: 0L }.take(keys.size - KEEP_STEPS)) ready.remove(k)
     }
 
     fun close() { worker.shutdownNow() }
 
     companion object {
+        /**
+         * The city map's zoom steps, metres a picture pixel: each is drawn as its own picture, so each is crisp at its
+         * scale (MapSettings.minimapZoom picks one; driving adds steps with the speed).
+         */
+        val CITY_STEPS = floatArrayOf(.45f, .65f, .9f, 1.3f, 1.9f, 2.8f)
+        const val KEEP_STEPS = 3
+        /** The step whose scale is closest to [metresPerPx]. */
+        fun closestStep(metresPerPx: Float): Int {
+            var bi = 0; var bd = Float.MAX_VALUE
+            for (i in CITY_STEPS.indices) { val d = kotlin.math.abs(kotlin.math.ln(CITY_STEPS[i] / metresPerPx)); if (d < bd) { bd = d; bi = i } }
+            return bi
+        }
         /** Runs [f] where Compose state may be changed (the app: the main thread); the default runs it at once. */
         @Volatile var post: (() -> Unit) -> Unit = { it() }
         @Volatile var onError: ((String) -> Unit)? = null
     }
 }
 
-/** The map settings the player chooses (kept by the app): the minimap north up (false) or turning with the camera (true), and its zoom. */
+/**
+ * The map settings the player chooses (kept by the app): the minimap north up (false) or turning with the camera (true),
+ * its zoom step (0 the closest: [MINIMAP_RADIUS_M]), and whether it zooms out by itself with the speed when driving
+ * ([autoZoom]).
+ */
 object MapSettings {
     var headingUp by mutableStateOf(false)
     var minimapZoom by mutableIntStateOf(2)
-    /** The minimap's zoom steps: street units an internal pixel, as multiples of the tier's base. */
-    val ZOOMS = floatArrayOf(.5f, .75f, 1f, 1.5f, 2.2f, 3.2f)
+    var autoZoom by mutableStateOf(true)
+    /** The minimap's zoom steps: how far it shows from the player to its rim, metres (the road and world maps: times their scale). */
+    val MINIMAP_RADIUS_M = floatArrayOf(55f, 80f, 115f, 165f, 240f, 350f)
+    val ZOOMS = MINIMAP_RADIUS_M
 }

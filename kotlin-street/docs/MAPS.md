@@ -102,13 +102,8 @@ natural wonders, truck stops and diners as red marks. The **world map** (1,856 x
 the capitals and big cities, the main railways and the shipping lanes (straight dashes between their ports). Both are
 made on a worker thread of their own (`MapData`), about 0.3 s each on this server, per print year.
 
-**The minimap (`Minimap`, `MiniPainter`)**: top right under the season and weather chips, 150 dp, round. It is drawn into
-its own 120 x 120 picture and scaled up with nearest filtering, so the map, the route, the arrow, the two-ring frame and a
-5 x 5 pixel N are all the HUD's chunky pixels. A frame draws a window of the map's picture and a few shapes, allocating
-nothing. North up by default; **heading up** turns it with the camera's yaw (the full map's "Minimap: heading up"
-button; kept in the app's preferences with the zoom). Zoom: pinch on it or the - / + buttons (six steps). The player's
-arrow points the way they head. The waypoint is a pink pin, or an arrow at the rim toward it with the distance ("250 m").
-With GPS the route line runs along the roads.
+**The minimap (`Minimap`, `MiniPainter`)**: top left of the HUD (docs/HUD.md), 150 dp, round; see "The minimap's look"
+below (2026-11-24, second pass) for how it is drawn now.
 
 **The full map (`FullMap`)**: tap the minimap. It opens on the best tier for here (the city map in town), pans and pinches
 (the point under the fingers stays put); zooming out past the city map goes to the road map, then the world, and
@@ -121,7 +116,54 @@ A* over the town's junctions along its roads (`TownMapModel.route`; gamma corner
 straight, about 1 ms here), redone when the player has moved about 6 m; outside the town and without GPS, a straight
 dashed bearing from the player (when they know where they are) and the straight distance.
 
-**Renders** (desktop, from `MapsTest`, not S25 captures): `minimap_gps.png`, `fullmap_gps.png` (gamma, 2025, the route
+## The minimap's look (2026-11-24, second pass: the owner asked for "way more detailed, pretty")
+
+**Pictures per zoom.** The city map is drawn as its own picture for each zoom step (`MapData.CITY_STEPS`: 0.45, 0.65,
+0.9, 1.3, 1.9 and 2.8 m a pixel; `MapData.cityStep / cityFor`), every width worked out for that scale, so nothing is a
+scaled-down picture: at the default zoom a picture pixel is a whole number of screen pixels (2 on the S25) once the zoom
+has settled. Made on the maps' worker the first time a zoom is used; the last 3 steps per look are kept (gamma: the
+closest 4,629 x 1,906 px, about 35 MB, 0.7 s here; the default 2,315 x 953 in 0.12 s; server numbers, not the S25). The
+base city picture (`TownMapModel.DEFAULT_UPP`) is now 0.76 m a pixel, 2.25 times the first minimap's 1.7 m.
+
+**What is in the picture** (`TownMapModel.raster`, both looks): the ground with a sparse dither (the grass's texture);
+the lots; the paved downtown and the plaza (a paving checker close in); the river rippled with a pixel of sand along its
+shore; the yards' patios, drives and car pads (close in); every tree as a canopy with its shadow down and right and a lit
+pixel; the back lanes; **pavements** each side of every road (2.4 m); the kerb and the road (main roads 1.35 times wider,
+amber, with a brown kerb); **dashed centre lines** (main roads always, others when 7 px wide), kept clear of the
+junctions; the bridges with their parapets; the buildings' **drop shadows** (darkening whatever they fall on, about
+2 m down and right); the buildings by kind with a **lit top-left edge and a shaded bottom-right edge** (raised, lit as
+the game's buildings are); sheds and garages close in; the pools with a pale coping.
+
+**Drawn on the HUD's canvas** (`MiniPainter.draw`, at the screen's own resolution, allocating nothing a frame): the
+picture for the zoom, **turned smoothly with the camera** in heading-up mode (the turn is the screen's, not a small
+picture's); the GPS route (a dark edge, the cyan line, white **chevrons that flow toward the waypoint**); the camera's
+**view cone**; **street names along their streets** when zoomed in (up to 6, where they fit, never overlapping, read left
+to right whatever the turn); the places' **icons** (`MapIcons`, `PoiKind`: home, station, police, doctor, landmark, fire,
+gas, bank, post, hotel, church, school, library, cinema/nightlife, food, gym, services, shops; 11 x 11 pixel badges,
+upright, the minor ones only close in, none over another); the waypoint's pixel **pin**, or an arrow on the rim toward
+it; the player's arrow. Round it a **bezel**: ticks every 30 degrees and **N / E / S / W** on the ring (pixel letters, N
+red), turning with the map. The distance to the waypoint sits on the bezel's bottom. Before GPS the same in the paper
+look, with a brass bezel and a red-ink arrow; without a map the compass alone (dial, needle, the lettered bezel).
+
+**Zoom**: six steps (`MapSettings.MINIMAP_RADIUS_M`: 55 to 350 m from the player to the rim), pinch on the minimap, hold
+it to step out, or the menu's Map tab. **Driving zooms out with the speed** (to 2.4 times at about 45 mph; eased, about
+0.4 s; `MapSettings.autoZoom`, on by default, the menu's Map tab).
+
+**Places marked** come from the town's data at load (`TownMapModel.pois`: landmarks and the glb landmarks by their
+kind, the shops by street.json's `kind`; gamma has 108), plus the app's own (`MapSession.extraPois`: the railway
+station's depot, and the player's rented room).
+
+**The full map** gets the same: the picture for its zoom, the icons (the names now under them), the view cone, the route
+chevrons, the pin, a **scale bar** and a **north compass** bottom left, and a **Legend** button (the colours and every
+kind of place marked here). Its minimap toggle moved to the menu's Map tab.
+
+**Renders** (desktop, from `MapsTest`, not S25 captures): `minimap_gps.png`, `minimap_gps_close.png`,
+`minimap_gps_wide.png`, `minimap_gps_headingup.png`, `minimap_gps_driving.png` (heading up at 45 mph, zoomed out),
+`minimap_paper_1952.png`, `fullmap_gps.png` (with the legend), `fullmap_gps_close.png`, `fullmap_paper_1952.png`,
+`fullmap_regional.png`, and the HUD: `hud_walk.png`, `hud_drive.png`, `hud_menu.png` (docs/HUD.md). All at the S25's
+2.81 px a dp.
+
+**Earlier renders** (desktop, from `MapsTest`, not S25 captures): `minimap_gps.png`, `fullmap_gps.png` (gamma, 2025, the route
 from Main Street to the police station), `minimap_paper_1952.png` (with the compass rose), `fullmap_paper_1952.png`,
 `fullmap_regional.png`, `regional_2025.png`, `world_2025.png`.
 
@@ -138,5 +180,6 @@ from Main Street to the police station), `minimap_paper_1952.png` (with the comp
 - The world map is unwrapped round the town, so a waypoint across the date line is the long way round.
 - The farms round the town and its rail line are not drawn on the city map yet; the shops are as deep as the town's
   collision holds them (their slot boxes).
-- Nothing measured on the S25 yet: the minimap's frame cost, the pictures' memory (the city map about 2.5 MB a look, the
+- The icons mark one place per building; a shop row's many small shops crowd Main Street close in on the full map.
+- Nothing measured on the S25 yet: the minimap's frame cost, the pictures' memory (the zoom steps up to about 35 MB each, 3 kept per look; the
   world map 7 MB, a road map about 4 MB).

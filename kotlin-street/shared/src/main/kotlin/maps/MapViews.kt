@@ -36,6 +36,10 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
@@ -83,60 +87,45 @@ fun MapButton(label: String, on: Boolean = false, enabled: Boolean = true, onCli
     ) { PixelText(label, 12, if (enabled) Color.White else DIM) }
 }
 
-/** The street units a pixel of the minimap's own picture for [layer] at the zoom step [zoom] (MapSettings.ZOOMS). */
-fun minimapUnits(layer: MapLayer, zoom: Int): Float {
-    val base = if (layer.tier == MapTier.CITY) 72f else layer.unitsPerPx
-    return base * MapSettings.ZOOMS[zoom.coerceIn(0, MapSettings.ZOOMS.size - 1)]
-}
-
 /**
- * The round minimap, [size] across: [layer] (the best map the player has here; null: the compass only) round the
- * player ([player] fills a [MapPlayer] each frame; false: the player is not known), redrawn with [tick] (the frame
- * clock); the waypoint as a pin or an edge arrow with its distance; the GPS route. Tap to open the full map ([onOpen]);
- * pinch or the +/- buttons to zoom.
+ * The round minimap, [size] across (docs/MAPS.md, "The minimap's look"): [layerFor] gives the map to draw at a number of
+ * metres a picture pixel (in town [MapData.cityFor]: the city map drawn for the zoom; on the road the road map), round
+ * the player ([player] fills a [MapPlayer] each frame; false: the player is not known), redrawn with [tick] (the frame
+ * clock); the waypoint as a pin or a rim arrow, its distance on the bezel; the GPS route; the camera's view cone; the
+ * places' icons ([MapLayer.pois] and [extra]: the player's room, the station). Tap to open the full map ([onOpen]);
+ * pinch to zoom, a long press steps the zoom out (round to the closest again). Without a map: the compass alone.
  */
 @Composable
-fun Minimap(layer: MapLayer?, access: MapAccess, tick: LongState, player: (MapPlayer) -> Boolean, waypoint: FloatArray?, nav: MapNav,
-            city: TownMapModel?, onOpen: () -> Unit, modifier: Modifier = Modifier, size: Dp = 150.dp) {
+fun Minimap(layerFor: (Float) -> MapLayer?, access: MapAccess, tick: LongState, player: (MapPlayer) -> Boolean, waypoint: FloatArray?, nav: MapNav,
+            city: TownMapModel?, onOpen: () -> Unit, modifier: Modifier = Modifier, size: Dp = 150.dp, extra: List<MapPoi> = emptyList(),
+            nanos: () -> Long = { System.nanoTime() }) {
     val painter = remember { MiniPainter() }
     val p = remember { MapPlayer() }
     val last = remember { MapPlayer() }
     val known = remember { floatArrayOf(0f) }
-    val tm = rememberTextMeasurer(16)
+    val tm = rememberTextMeasurer(64)
     val open by rememberUpdatedState(onOpen)
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Canvas(Modifier.size(size).pointerInput(Unit) {
-            detectTransformGestures { _, _, zoom, _ ->
-                if (zoom > 1.15f) MapSettings.minimapZoom = (MapSettings.minimapZoom - 1).coerceAtLeast(0)
-                else if (zoom < .87f) MapSettings.minimapZoom = (MapSettings.minimapZoom + 1).coerceAtMost(MapSettings.ZOOMS.size - 1)
-            }
-        }.pointerInput(Unit) { detectTapGestures(onTap = { open() }) }) {
-            if (tick.longValue < 0) return@Canvas
-            val have = player(p)
-            if (have && access.showPosition) { last.set(p.x, p.z, p.heading, p.yaw); known[0] = 1f }
-            if (layer == null || access.compassOnly) {
-                painter.drawCompass(p.yaw)
-            } else {
-                // (on paper the player's spot is known only where they can read a street sign: else the map stays where they last knew it)
-                val show = have && access.showPosition
-                val at = if (show || known[0] == 0f) p else last.also { it.yaw = p.yaw }
-                nav.update(city, access.gps, at.x, at.z, waypoint)
-                painter.draw(layer, at, minimapUnits(layer, MapSettings.minimapZoom), MapSettings.headingUp, show, waypoint, if (access.route) nav.route else null, nav.distanceM)
-            }
-            drawImage(painter.image, IntOffset.Zero, IntSize(painter.n, painter.n), IntOffset.Zero, IntSize(this.size.width.roundToInt(), this.size.height.roundToInt()), filterQuality = FilterQuality.None)
-            val e = painter.edgeAt
-            if (e[2] != MiniPainter.EDGE_NONE) {
-                val k = this.size.width / painter.n
-                val t = tm.measure(distanceText(e[2]), TextStyle(color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = MONO))
-                val cx = this.size.width / 2f; val inward = .78f
-                val x = cx + (e[0] * k - cx) * inward - t.size.width / 2f; val y = cx + (e[1] * k - cx) * inward - t.size.height / 2f
-                drawRect(Color(0xE6101420), Offset(x - 3f, y - 1f), androidx.compose.ui.geometry.Size(t.size.width + 6f, t.size.height + 2f))
-                drawText(t, topLeft = Offset(x, y))
-            }
+    val source by rememberUpdatedState(layerFor)
+    val more by rememberUpdatedState(extra)
+    val steps = MapSettings.MINIMAP_RADIUS_M.size
+    Canvas(modifier.size(size).pointerInput(Unit) {
+        detectTransformGestures { _, _, zoom, _ ->
+            if (zoom > 1.15f) MapSettings.minimapZoom = (MapSettings.minimapZoom - 1).coerceAtLeast(0)
+            else if (zoom < .87f) MapSettings.minimapZoom = (MapSettings.minimapZoom + 1).coerceAtMost(steps - 1)
         }
-        if (layer != null && !access.compassOnly) Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            MapButton(" - ") { MapSettings.minimapZoom = (MapSettings.minimapZoom + 1).coerceAtMost(MapSettings.ZOOMS.size - 1) }
-            MapButton(" + ") { MapSettings.minimapZoom = (MapSettings.minimapZoom - 1).coerceAtLeast(0) }
+    }.pointerInput(Unit) { detectTapGestures(onTap = { open() }, onLongPress = { MapSettings.minimapZoom = (MapSettings.minimapZoom + 1) % steps }) }) {
+        if (tick.longValue < 0) return@Canvas
+        val have = player(p)
+        if (have && access.showPosition) { last.set(p.x, p.z, p.heading, p.yaw, p.speed); known[0] = 1f }
+        if (access.compassOnly) {
+            painter.drawCompass(this, p.yaw, paper = !access.gps)
+        } else {
+            // (on paper the player's spot is known only where they can read a street sign: else the map stays where they last knew it)
+            val show = have && access.showPosition
+            val at = if (show || known[0] == 0f) p else last.also { it.yaw = p.yaw; it.speed = 0f }
+            nav.update(city, access.gps, at.x, at.z, waypoint)
+            painter.draw(this, source, at, MapSettings.minimapZoom, MapSettings.headingUp, MapSettings.autoZoom, show, waypoint,
+                if (access.route) nav.route else null, nav.distanceM, more, nanos(), tm)
         }
     }
 }
@@ -171,7 +160,8 @@ class FullMapView(tier: MapTier, cx: Float, cz: Float, zoom: Float) {
  */
 @Composable
 fun FullMap(data: MapData, access: MapAccess, townYear: Int, player: MapPlayer?, waypoint: FloatArray?, nav: MapNav,
-            onWaypoint: (Float?, Float?) -> Unit, onClose: () -> Unit, modifier: Modifier = Modifier, start: FullMapView? = null) {
+            onWaypoint: (Float?, Float?) -> Unit, onClose: () -> Unit, modifier: Modifier = Modifier, start: FullMapView? = null,
+            extra: List<MapPoi> = emptyList(), legendOpen: Boolean = false, nanos: () -> Long = { System.nanoTime() }) {
     val tm = rememberTextMeasurer(256)
     val first = access.opens ?: MapTier.CITY
     val view = remember { start ?: FullMapView(first, player?.x ?: (data.city.x0 + data.city.x1) / 2f, player?.z ?: (data.city.z0 + data.city.z1) / 2f, 0f) }
@@ -181,7 +171,10 @@ fun FullMap(data: MapData, access: MapAccess, townYear: Int, player: MapPlayer?,
     val layer = layerOf(view.tier)
     val routePath = remember { Path() }
     val paint = remember { Paint().apply { isAntiAlias = false; this.style = PaintingStyle.Stroke; strokeCap = StrokeCap.Square } }
+    val roundPaint = remember { Paint().apply { isAntiAlias = false; this.style = PaintingStyle.Stroke; strokeCap = StrokeCap.Round; strokeJoin = androidx.compose.ui.graphics.StrokeJoin.Round } }
     val fillPaint = remember { Paint().apply { isAntiAlias = false } }
+    val shapes = remember { FullMapShapes() }
+    var legend by remember { mutableStateOf(legendOpen) }
     val wp by rememberUpdatedState(waypoint)
     val tierOf by rememberUpdatedState({ t: MapTier -> layerOf(t) })
     val accessNow by rememberUpdatedState(access)
@@ -206,7 +199,12 @@ fun FullMap(data: MapData, access: MapAccess, townYear: Int, player: MapPlayer?,
         }) {
             if (layer == null) return@Canvas
             if (view.zoom <= 0f) view.zoom = fitZoom(layer, data.city, size.width, size.height)
-            drawLayer(layer, view)
+            val ap = MiniPainter.artPx(density)
+            shapes.build(ap)
+            val mppScreen = 1f / (view.zoom * VehicleWorld.U)
+            // the city map: the picture drawn for this zoom (each zoom step has its own, crisp at its scale)
+            val shown = if (view.tier == MapTier.CITY) data.cityFor(mppScreen * ap, style) ?: layer else layer
+            drawLayer(shown, view)
             val sx = { x: Float -> size.width / 2f + (x - view.cx) * view.zoom }
             val sy = { z: Float -> size.height / 2f + (z - view.cz) * view.zoom }
             // the route (GPS, in town) or the bearing (a straight dashed line from the player, when their spot is known)
@@ -219,8 +217,9 @@ fun FullMap(data: MapData, access: MapAccess, townYear: Int, player: MapPlayer?,
                     if (r != null) {
                         routePath.reset()
                         for (i in 0 until r.pts.size / 2) { val x = sx(r.pts[i * 2]); val y = sy(r.pts[i * 2 + 1]); if (i == 0) routePath.moveTo(x, y) else routePath.lineTo(x, y) }
-                        paint.color = MiniPainter.ROUTE_EDGE; paint.strokeWidth = 9f; c.drawPath(routePath, paint)
-                        paint.color = MiniPainter.ROUTE; paint.strokeWidth = 5f; c.drawPath(routePath, paint)
+                        roundPaint.color = MiniPainter.ROUTE_EDGE; roundPaint.strokeWidth = 7f * ap; c.drawPath(routePath, roundPaint)
+                        roundPaint.color = MiniPainter.ROUTE; roundPaint.strokeWidth = 4f * ap; c.drawPath(routePath, roundPaint)
+                        routeChevrons(c, shapes.chevron, roundPaint, r.pts, size.width / 2f, size.height / 2f, view.cx, view.cz, view.zoom, ap, nanos(), size.width / 2f, size.height / 2f, size.width)
                     } else if (pk) {
                         paint.color = Color(0xFFFF4FA3); paint.strokeWidth = 3f
                         val ax = sx(player.x); val ay = sy(player.z); val bx = sx(w[0]); val by = sy(w[1])
@@ -229,29 +228,53 @@ fun FullMap(data: MapData, access: MapAccess, townYear: Int, player: MapPlayer?,
                     }
                 }
             }
-            // (no names under the buttons and captions: the top band and the left column)
+            // (no names under the buttons and captions: the top band, the left column, the legend)
             val band = 64.dp.toPx()
-            drawLabels(layer, view, tm, style == MapStyle.PAPER, listOf(floatArrayOf(0f, 0f, size.width, band), floatArrayOf(0f, 0f, 200.dp.toPx(), 96.dp.toPx())))
-            // the waypoint's pin
-            if (w != null) {
-                val x = sx(w[0]).roundToInt().toFloat(); val y = sy(w[1]).roundToInt().toFloat()
-                drawIntoCanvas { c ->
-                    fillPaint.color = Color(0xFF101420); c.drawRect(x - 9f, y - 27f, x + 9f, y - 9f, fillPaint); c.drawRect(x - 3f, y - 11f, x + 3f, y + 1f, fillPaint)
-                    fillPaint.color = Color(0xFFFF4FA3); c.drawRect(x - 6f, y - 24f, x + 6f, y - 12f, fillPaint); c.drawRect(x - 1f, y - 12f, x + 1f, y - 1f, fillPaint)
+            val reserved = arrayListOf(floatArrayOf(0f, 0f, size.width, band), floatArrayOf(0f, 0f, 200.dp.toPx(), 96.dp.toPx()))
+            if (legend) reserved += floatArrayOf(size.width - 230.dp.toPx(), 0f, size.width, size.height)
+            // the places' icons (city tier), upright; the minor ones only close in; the names keep clear of them
+            if (view.tier == MapTier.CITY) {
+                val ip = MiniPainter.iconPx(density)
+                val half = MapIcons.BADGE * ip / 2f
+                val minRank = when { mppScreen < .7f -> 0; mppScreen < 1.6f -> 30; else -> 45 }
+                for (q in extra + shown.pois) {
+                    if (q.kind.rank < minRank) continue
+                    val x = sx(q.x).roundToInt().toFloat(); val y = sy(q.z).roundToInt().toFloat()
+                    if (x < -half || y < -half || x > size.width + half || y > size.height + half) continue
+                    val box = floatArrayOf(x - half - 2f, y - half - 2f, x + half + 2f, y + half + 2f)
+                    if (reserved.any { it[0] < box[2] && box[0] < it[2] && it[1] < box[3] && box[1] < it[3] }) continue
+                    reserved += box
+                    val img = MapIcons.badges.getValue(q.kind)
+                    drawImage(img, IntOffset.Zero, IntSize(img.width, img.height), IntOffset((x - half).roundToInt(), (y - half).roundToInt()), IntSize(img.width * ip, img.height * ip), filterQuality = FilterQuality.None)
                 }
             }
-            // the player's arrow (where they can tell where they are)
+            drawLabels(shown, view, tm, style == MapStyle.PAPER, reserved)
+            // the waypoint's pin
+            if (w != null) {
+                val ip = MiniPainter.iconPx(density) + 1
+                val x = sx(w[0]).roundToInt(); val y = sy(w[1]).roundToInt()
+                val pin = MapIcons.pin
+                drawImage(pin, IntOffset.Zero, IntSize(pin.width, pin.height), IntOffset(x - (5.5f * ip).roundToInt(), y - 13 * ip), IntSize(pin.width * ip, pin.height * ip), filterQuality = FilterQuality.None)
+            }
+            // the player's view cone and arrow (where they can tell where they are)
             if (pk) {
                 val x = sx(player!!.x); val y = sy(player.z)
-                rotate(Math.toDegrees(player.heading.toDouble()).toFloat(), Offset(x, y)) {
-                    val a = Path().apply { moveTo(x, y - 16f); lineTo(x + 12f, y + 12f); lineTo(x, y + 5f); lineTo(x - 12f, y + 12f); close() }
+                withTransform({ translate(x, y); rotate(player.yaw, Offset.Zero) }) {
+                    drawIntoCanvas { c -> fillPaint.color = Color(0x38FFFFFF); c.drawPath(shapes.cone, fillPaint) }
+                }
+                withTransform({ translate(x, y); rotate(Math.toDegrees(player.heading.toDouble()).toFloat(), Offset.Zero) }) {
                     drawIntoCanvas { c ->
-                        paint.color = Color(0xFF101420); paint.strokeWidth = 4f; c.drawPath(a, paint)
-                        fillPaint.color = Color.White; c.drawPath(a, fillPaint)
+                        paint.color = Color(0xFF0E1118); paint.strokeWidth = 3f * ap; c.drawPath(shapes.arrow, paint)
+                        fillPaint.color = if (style == MapStyle.PAPER) Color(0xFFB0281C) else Color.White; c.drawPath(shapes.arrow, fillPaint)
                     }
                 }
             }
+            // the scale bar (bottom left, over the compass's right): a round length near 90 dp long
+            scaleBar(tm, mppScreen, Offset(84.dp.toPx(), size.height - 22.dp.toPx()), 90.dp.toPx(), ap, style == MapStyle.PAPER || view.tier != MapTier.CITY)
         }
+        // north, bottom left (the full map is always north up)
+        CompassRose(androidx.compose.runtime.remember { androidx.compose.runtime.mutableLongStateOf(1L) }, { 0f }, Modifier.align(Alignment.BottomStart).padding(12.dp), 64.dp, paper = !access.gps)
+        if (legend && layer != null) MapLegend(layer, extra, style == MapStyle.PAPER, Modifier.align(Alignment.TopEnd).padding(top = 56.dp, end = 12.dp))
         // the top bar: the tier, the caption, the waypoint, the minimap's setting, close
         Column(Modifier.align(Alignment.TopStart).padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -269,9 +292,111 @@ fun FullMap(data: MapData, access: MapAccess, townYear: Int, player: MapPlayer?,
         }
         Row(Modifier.align(Alignment.TopEnd).padding(12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             if (waypoint != null) MapButton("Clear waypoint") { onWaypoint(null, null) }
-            MapButton(if (MapSettings.headingUp) "Minimap: heading up" else "Minimap: north up") { MapSettings.headingUp = !MapSettings.headingUp }
+            MapButton("Legend", on = legend) { legend = !legend }
             MapButton("Close") { onClose() }
         }
+    }
+}
+
+/** The full map's shapes, made once for the art pixel's size: the player's arrow, the view cone, a route chevron. */
+private class FullMapShapes {
+    val arrow = Path(); val cone = Path(); val chevron = Path()
+    private var at = -1f
+    fun build(ap: Float) {
+        if (at == ap) return
+        at = ap
+        arrow.reset(); arrow.moveTo(0f, -9f * ap); arrow.lineTo(7f * ap, 8f * ap); arrow.lineTo(0f, 4f * ap); arrow.lineTo(-7f * ap, 8f * ap); arrow.close()
+        cone.reset(); cone.moveTo(0f, 0f)
+        val half = Math.toRadians(32.0); val len = 70f * ap
+        for (i in 0..12) { val a = -half + 2 * half * i / 12.0; cone.lineTo((kotlin.math.sin(a) * len).toFloat(), (-kotlin.math.cos(a) * len).toFloat()) }
+        cone.close()
+        chevron.reset(); chevron.moveTo(-3f * ap, 2f * ap); chevron.lineTo(0f, -2f * ap); chevron.lineTo(3f * ap, 2f * ap)
+    }
+}
+
+/**
+ * Chevrons every so far along a route ([pts], street units), pointing the way to go and moving slowly toward its end:
+ * on screen at ([ox], [oy]) + (point - ([cx], [cz])) x [ku]; only within [limit] of ([lx], [ly]). Allocates nothing.
+ */
+internal fun routeChevrons(cv: androidx.compose.ui.graphics.Canvas, chevron: Path, paint: Paint, pts: FloatArray, ox: Float, oy: Float, cx: Float, cz: Float,
+                           ku: Float, ap: Float, nanos: Long, lx: Float, ly: Float, limit: Float) {
+    val gap = 22f * ap
+    var phase = gap - ((nanos / 1_000_000L) % 2000L) / 2000f * gap // one gap every 2 s
+    paint.color = MiniPainter.CHEVRON; paint.strokeWidth = 1.4f * ap
+    for (i in 0 until pts.size / 2 - 1) {
+        val ax = ox + (pts[i * 2] - cx) * ku; val ay = oy + (pts[i * 2 + 1] - cz) * ku
+        val bx = ox + (pts[i * 2 + 2] - cx) * ku; val by = oy + (pts[i * 2 + 3] - cz) * ku
+        val len = kotlin.math.hypot(bx - ax, by - ay)
+        if (len <= 0f) continue
+        var at = phase
+        while (at < len) {
+            val x = ax + (bx - ax) * at / len; val y = ay + (by - ay) * at / len
+            if (kotlin.math.hypot(x - lx, y - ly) < limit) {
+                cv.save(); cv.translate(x, y); cv.rotate(Math.toDegrees(kotlin.math.atan2((bx - ax).toDouble(), -(by - ay).toDouble())).toFloat())
+                cv.drawPath(chevron, paint); cv.restore()
+            }
+            at += gap
+        }
+        phase = at - len
+    }
+}
+
+/** A scale bar at [at] (its left end): a round length about [want] pixels long, black and white blocks, its length written. */
+private fun DrawScope.scaleBar(tm: TextMeasurer, metresPerPx: Float, at: Offset, want: Float, ap: Float, light: Boolean) {
+    val raw = want * metresPerPx
+    val nice = floatArrayOf(5f, 10f, 20f, 25f, 50f, 100f, 200f, 250f, 500f, 1000f, 2000f, 5000f, 10_000f, 20_000f, 50_000f, 100_000f, 200_000f, 500_000f, 1_000_000f)
+    val m = nice.lastOrNull { it <= raw } ?: nice[0]
+    val len = (m / metresPerPx).roundToInt().toFloat()
+    val h = 3f * ap
+    val ink = if (light) Color(0xFF2A1E12) else Color(0xFF0E1118)
+    val paperC = if (light) Color(0xFFF4ECD8) else Color.White
+    drawRect(ink, Offset(at.x - ap, at.y - ap), androidx.compose.ui.geometry.Size(len + 2 * ap, h + 2 * ap))
+    for (i in 0 until 4) drawRect(if (i % 2 == 0) paperC else ink, Offset(at.x + len * i / 4f, at.y), androidx.compose.ui.geometry.Size(len / 4f, h))
+    val t = tm.measure(distanceText(m), TextStyle(color = ink, fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = MONO))
+    for ((dx, dy) in HALO) drawText(t, color = paperC, topLeft = Offset(at.x + dx, at.y - t.size.height - 2f * ap + dy))
+    drawText(t, topLeft = Offset(at.x, at.y - t.size.height - 2f * ap))
+}
+
+/**
+ * The full map's legend: what the colours are (the buildings by kind, the parks, the water, the roads, the route, the
+ * waypoint), and each kind of place the map marks here, with its icon.
+ */
+@Composable
+fun MapLegend(layer: MapLayer, extra: List<MapPoi>, paper: Boolean, modifier: Modifier = Modifier) {
+    val pal = if (paper) TownMapModel.PAPER else TownMapModel.GPS
+    val kinds = (extra + layer.pois).map { it.kind }.distinct().sortedByDescending { it.rank }
+    Column(modifier.width(218.dp).heightIn(max = 290.dp).background(PANEL).border(2.dp, EDGE).verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        PixelText("Legend", 12)
+        if (layer.tier == MapTier.CITY) {
+            @Composable fun swatch(c: Int, edge: Int, label: String) = Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Box(Modifier.size(14.dp, 10.dp).background(Color(edge)).padding(2.dp).background(Color(c)))
+                PixelText(label, 10, DIM)
+            }
+            swatch(pal.home, MapRaster.shade(pal.home, .6f), "Homes")
+            swatch(pal.shop, MapRaster.shade(pal.shop, .6f), "Shops")
+            swatch(pal.landmark, MapRaster.shade(pal.landmark, .6f), "Landmarks")
+            swatch(pal.civic, MapRaster.shade(pal.civic, .6f), "Civic buildings")
+            swatch(pal.tree, pal.treeDark, "Trees, parks")
+            swatch(pal.water, pal.shore, "Water")
+            swatch(pal.mainRoad, pal.mainEdge, "Main road")
+            swatch(pal.road, pal.roadEdge, "Street")
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Box(Modifier.size(14.dp, 6.dp).background(MiniPainter.ROUTE_EDGE).padding(1.dp).background(MiniPainter.ROUTE)); PixelText("GPS route", 10, DIM)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { IconImage(MapIcons.pin, 14.dp); PixelText("Waypoint", 10, DIM) }
+        for (k in kinds) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            IconImage(MapIcons.badges.getValue(k), 14.dp); PixelText(k.word, 10, DIM)
+        }
+    }
+}
+
+/** One of the maps' pixel pictures, [size] tall, nearest filtered. */
+@Composable
+fun IconImage(img: androidx.compose.ui.graphics.ImageBitmap, size: Dp) {
+    Canvas(Modifier.size(size * img.width / img.height, size)) {
+        drawImage(img, IntOffset.Zero, IntSize(img.width, img.height), IntOffset.Zero, IntSize(this.size.width.roundToInt(), this.size.height.roundToInt()), filterQuality = FilterQuality.None)
     }
 }
 
@@ -338,7 +463,9 @@ private fun DrawScope.drawLabels(layer: MapLayer, view: FullMapView, tm: TextMea
         val a = Math.toRadians(l.angle.toDouble()); val ca = kotlin.math.abs(kotlin.math.cos(a)).toFloat(); val sa = kotlin.math.abs(kotlin.math.sin(a)).toFloat()
         val bw = tw * ca + th * sa; val bh = tw * sa + th * ca
         val dotted = l.kind == LabelKind.TOWN || l.kind == LabelKind.CITY || l.kind == LabelKind.CAPITAL
-        val ox = if (dotted) x + 7f else x - bw / 2f; val oy = if (dotted) y - bh / 2f else y - bh / 2f
+        val under = (l.kind == LabelKind.BUSINESS || l.kind == LabelKind.LANDMARK || l.kind == LabelKind.CIVIC) && layer.tier == MapTier.CITY
+        val ox = if (dotted) x + 7f else x - bw / 2f
+        val oy = if (under) y + 4f + MapIcons.BADGE * MiniPainter.iconPx(density) / 2f else y - bh / 2f
         val box = floatArrayOf(ox - 2f, oy - 1f, ox + bw + 2f, oy + bh + 1f)
         if (taken.any { it[0] < box[2] && box[0] < it[2] && it[1] < box[3] && box[1] < it[3] }) continue
         taken += box
@@ -350,13 +477,15 @@ private fun DrawScope.drawLabels(layer: MapLayer, view: FullMapView, tm: TextMea
             drawText(t, topLeft = Offset(x - tw / 2f, y - th / 2f))
             continue
         }
-        if (l.kind == LabelKind.BUSINESS || l.kind == LabelKind.LANDMARK || l.kind == LabelKind.CIVIC) {
-            // (a square dot on the building)
+        val place = l.kind == LabelKind.BUSINESS || l.kind == LabelKind.LANDMARK || l.kind == LabelKind.CIVIC
+        // (on the city map the place's icon marks the building and the name goes under it; elsewhere a square dot)
+        val iconHalf = if (layer.tier == MapTier.CITY) MapIcons.BADGE * MiniPainter.iconPx(density) / 2f else 0f
+        if (place && iconHalf == 0f) {
             drawRect(st.halo, Offset(x - 3f, y - 3f), androidx.compose.ui.geometry.Size(6f, 6f))
             drawRect(style.color, Offset(x - 2f, y - 2f), androidx.compose.ui.geometry.Size(4f, 4f))
         }
         val tx = if (dotted) x + 7f else x - tw / 2f
-        val ty = if (l.kind == LabelKind.BUSINESS || l.kind == LabelKind.LANDMARK || l.kind == LabelKind.CIVIC) y + 4f else y - th / 2f
+        val ty = if (place) y + 4f + iconHalf else y - th / 2f
         rotate(l.angle, Offset(x, y)) {
             // a hard one-pixel halo (four offsets), then the text
             for ((dx, dy) in HALO) drawText(t, color = st.halo, topLeft = Offset(tx + dx, ty + dy))
@@ -367,13 +496,12 @@ private fun DrawScope.drawLabels(layer: MapLayer, view: FullMapView, tm: TextMea
 
 private val HALO = listOf(-1.5f to 0f, 1.5f to 0f, 0f to -1.5f, 0f to 1.5f)
 
-/** The compass rose alone, [size] across, turned with the camera's [yaw] (the corner without a map). */
+/** The compass alone, [size] across, turned with the camera's [yaw] (the corner without a map; the full map's north). */
 @Composable
-fun CompassRose(tick: LongState, yaw: () -> Float, modifier: Modifier = Modifier, size: Dp = 56.dp) {
-    val painter = remember { MiniPainter(40) }
+fun CompassRose(tick: LongState, yaw: () -> Float, modifier: Modifier = Modifier, size: Dp = 56.dp, paper: Boolean = false) {
+    val painter = remember { MiniPainter() }
     Canvas(modifier.size(size)) {
         if (tick.longValue < 0) return@Canvas
-        painter.drawCompass(yaw())
-        drawImage(painter.image, IntOffset.Zero, IntSize(painter.n, painter.n), IntOffset.Zero, IntSize(this.size.width.roundToInt(), this.size.height.roundToInt()), filterQuality = FilterQuality.None)
+        painter.drawCompass(this, yaw(), paper)
     }
 }

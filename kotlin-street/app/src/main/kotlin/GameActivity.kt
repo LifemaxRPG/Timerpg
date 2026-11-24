@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lifemax.rpg.feature.habits.domain.HabitBlock
+import com.lifemax.rpg.feature.habits.hud.*
 import com.lifemax.rpg.feature.habits.domain.HabitKind
 import com.lifemax.rpg.feature.habits.domain.HabitLimits
 import com.lifemax.rpg.feature.habits.domain.HabitMaterial
@@ -554,7 +555,9 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     val people by engine.data.collectAsState()
     val ai by engine.status.collectAsState()
     var talk by remember { mutableStateOf<Talk?>(null) }
+    // the menu (docs/HUD.md: one button, top right; "aiPanel" for the playtest log and the back key) and its tab
     var aiPanel by remember { mutableStateOf(false) }
+    var menuTab by remember { mutableIntStateOf(0) }
     val here = if (townMode) townHere else street.sprites.getOrNull(near)
     val loopTown = LoopSession.town
     val atHere = remember(people, here, loopTown) {
@@ -1180,23 +1183,6 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 contentAlignment = Alignment.Center,
             ) { Text(if (bikeOn) "🚲✓" else "🚲", if (bikeOn) 18.sp else 24.sp) }
         }
-        // a test button (behind the 📷/🔖 switch): a car beside the player on the street, the next of the five each tap,
-        // replacing the last one spawned (docs/VEHICLES.md); its name shown for a moment
-        if (com.timerpg.street.shot.ShotSettings.buttonOn && townMode && StreetRenderer.view == StreetRenderer.OPEN && inside == null && !townLoading &&
-            doorTo == null && !com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.inCar && com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.cars != null) {
-            val conf = androidx.compose.ui.platform.LocalConfiguration.current
-            val stickW = minOf(conf.screenWidthDp / 3, 300)
-            Box(
-                Modifier.align(Alignment.BottomStart).padding(start = (stickW + 12 + 58 + 10).dp, bottom = 22.dp).size(58.dp)
-                    .background(Color(0x99101420), CircleShape)
-                    .pointerInput(Unit) {
-                        detectTapGestures(onTap = {
-                            com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.cars?.let { it.requestSpawn(); carAskAt = System.currentTimeMillis() }
-                        })
-                    },
-                contentAlignment = Alignment.Center,
-            ) { Text("🚗", 24.sp) }
-        }
         if (carAskAt != 0L) LaunchedEffect(carAskAt) {
             val vw = com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.cars
             val before = vw?.spawnCount ?: 0
@@ -1216,22 +1202,22 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         // the shop the player is standing at
         if (inside != null) {
             Text(inside!!.title + (inside!!.use.takeIf { it != inside!!.title && it != "Home" }?.let { "  ·  $it" } ?: ""), 15.sp,
-                Modifier.align(Alignment.TopCenter).padding(top = 62.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
+                Modifier.align(Alignment.TopCenter).padding(top = 10.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
         } else if (townMode) {
             // the town: at a corner, the street a turn leads into; else the building in front and who keeps it
             val label = if (turning) null else if (atCorner && townCorner != null) "▲  $townCorner"
                 else (townFront ?: townHere)?.let { sp -> townData?.names?.get(sp)?.let { (n, o) -> n + (o.takeIf { it.isNotBlank() }?.let { "  ·  $it" } ?: "") } }
             if (label != null) Text(label, 15.sp,
-                Modifier.align(Alignment.TopCenter).padding(top = 62.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
+                Modifier.align(Alignment.TopCenter).padding(top = 10.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
         } else if (atCorner && data.crossroads != null && !turning) {
             // at the corner: the other street, and the up key that turns into it (at the cross street's start walking on
             // against its end turns back too)
             Text(if (streetNo == 0) "▲  ${data.streets.getOrNull(1)?.name ?: "Side street"}" else "▲ ◀  ${data.streets[0].name}", 15.sp,
-                Modifier.align(Alignment.TopCenter).padding(top = 62.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
+                Modifier.align(Alignment.TopCenter).padding(top = 10.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
         } else if (near in shops.indices && shops[near].id != com.lifemax.rpg.feature.habits.domain.JUNCTION_ID && !turning) {
             val st = shops[near]
             Text(st.cue + (owners.getOrNull(near)?.takeIf { it.isNotBlank() }?.let { "  ·  $it" } ?: ""), 15.sp,
-                Modifier.align(Alignment.TopCenter).padding(top = 62.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
+                Modifier.align(Alignment.TopCenter).padding(top = 10.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
         }
         // the loop's shop panel, the last action's line, the arrest card
         if (loopShop && loopPlace != null && townData != null) LoopShopPanel(loopPlace, townData.town.year, hour, onAction = { what, arg ->
@@ -1395,37 +1381,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 }
             }
         }
-        // time of day
-        Row(
-            Modifier.align(Alignment.TopCenter).padding(top = 10.dp).background(Color(0x99101420), RoundedCornerShape(12.dp)).padding(horizontal = 14.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            // (the slider's end, 24, is midnight: 12:00 AM, not noon)
-            val h = hour.toInt() % 24; val m = ((hour - hour.toInt()) * 60).toInt()
-            Column {
-                Text("%d:%02d %s".format(((h + 11) % 12) + 1, m, if (h < 12) "AM" else "PM"))
-                // (the loop's calendar date, and a holiday: "Tue 14 Harvestmonth")
-                LoopSession.view?.let { v -> if (v.dateText.isNotEmpty()) Text(v.dateText + if (v.holidayText.isNotEmpty()) " · ${v.holidayText}" else "", 11.sp, color = DIM, maxLines = 1) }
-            }
-            Spacer(Modifier.width(10.dp))
-            // (to 23:59: the slider's end at 24 reached the sky and the light as an hour past the day's end, a sunset at
-            // midnight, while the clock read 12:00 PM)
-            Slider(hour, { hour = it.coerceAtMost(LAST_MINUTE) }, 0f, LAST_MINUTE, Modifier.width(240.dp))
-        }
-        // the minimap (or the compass rose), under the season and weather chips (docs/MAPS.md)
-        if (townMode && townData != null && inside == null && !mapOpen) MapCorner(townData.town.year, frameTick, onOpen = { MoveInput.holdUntilNeutral(); mapOpen = true },
-            Modifier.align(Alignment.TopEnd).padding(top = 92.dp, end = 12.dp))
         if (standOpen) LoopMapStandPanel(onBuy = { id -> LoopSession.buyMap(ctx, com.lifemax.rpg.feature.habits.loop.LoopMaps.STATION, id, hour) }, onClose = { standOpen = false },
             modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp, bottom = 40.dp))
-        // the season and the weather
-        Column(Modifier.align(Alignment.TopEnd).padding(10.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { SEASONS.forEachIndexed { i, (l, _) -> Chip(l, season == i) { season = i } } }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                // (tapping a weather sets it until "Auto" gives the sky back to the date: the loop's `weatherAt`)
-                if (sky != null) Chip("Auto" + if (weatherAuto) ": $sky" else "", weatherAuto) { weatherAuto = true }
-                WEATHERS.forEachIndexed { i, (l, _) -> Chip(l, !autoSky && weather == i) { weatherAuto = false; weather = i } }
-            }
-        }
         if (tuning) Column(
             Modifier.align(Alignment.Center).widthIn(max = 520.dp).background(PANEL, RoundedCornerShape(14.dp)).opaque().padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -1441,49 +1398,147 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             Chip("Stop tuning", false) { activity?.let { NpuTune.cancel(it) } }
         }
         if (backHint) Text("Back again to leave the game", 14.sp, Modifier.align(Alignment.Center).background(PANEL, RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 8.dp))
-        // the camera button (the AI panel's "Screenshots to Claude" switch): small, under the weather chips
-        if (com.timerpg.street.shot.ShotSettings.buttonOn && !shooting && shot == null) {
-            Box(
-                Modifier.align(Alignment.TopEnd).padding(top = 92.dp, end = 180.dp).size(38.dp).background(Color(0x66101420), CircleShape)
-                    .pointerInput(Unit) { awaitEachGesture { awaitFirstDown(); waitForUpOrCancellation()?.let { shooting = true } } },
-                contentAlignment = Alignment.Center,
-            ) { Text("📷", 16.sp) }
-            Box(
-                Modifier.align(Alignment.TopEnd).padding(top = 136.dp, end = 180.dp).size(38.dp).background(Color(0x66101420), CircleShape)
-                    .pointerInput(Unit) { awaitEachGesture { awaitFirstDown(); waitForUpOrCancellation()?.let { com.timerpg.street.play.PlayLog.mark(); marking = true; shooting = true } } },
-                contentAlignment = Alignment.Center,
-            ) { Text("🔖", 16.sp) }
-        }
         shot?.let { s -> com.timerpg.street.shot.ShotSheet(s, ears, onSend = { note, marks ->
             if (marking) com.timerpg.street.play.PlayLog.markNote(note)
             marking = false
             com.timerpg.street.shot.ShotUploader.sendShot(ctx, s.bmp, note, s.at, s.how, s.game, marks); shot = null
         }, onCancel = { marking = false; shot = null }) }
-        // the top left, one column so nothing overlaps (drawn last, so the AI panel is on top): where the player is (kept
-        // clear of the time bar in the middle: narrower, on two lines), then the dialogue AI's state at a glance (tap for
-        // the model file and the speed numbers) and, in the open world, "Behind me" (out of the way of the right thumb's
-        // drags and of the stick's corner), the always-listening mic under them
-        val leftMax = (androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp / 2 - 196).coerceIn(150, 460).dp
-        Column(Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Column(Modifier.widthIn(max = leftMax).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) {
-                if (townMode && townData != null) {
-                    Text(listOfNotNull(townStreet, townHood).joinToString(" · ").ifEmpty { townData.town.seed }, 14.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                    Text("${townData.town.seed} · ${townData.kind}", 11.sp, color = DIM, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                } else Text("${street.name} · ${data.town}", 14.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+        // ---- the HUD (docs/HUD.md): the minimap and where the player is, top left (clear of the left thumb on the stick);
+        // the time, the date, the money and the one menu button, top right, the player's condition, the mic and short
+        // notices under it; contextual buttons only where they apply (bottom right); everything else in the menu
+        if (shot == null && !townLoading && !aiPanel) {
+            HudMapCorner {
+                if (townMode && townData != null && inside == null && !mapOpen) MapCorner(townData.town.year, frameTick, onOpen = { MoveInput.holdUntilNeutral(); mapOpen = true }, size = 150.dp)
+                if (townMode && townData != null) HudLocation(townStreet ?: townHood ?: townData.town.seed, listOfNotNull(townHood.takeIf { townStreet != null }, townData.town.seed).joinToString(" · "))
+                else if (!townMode) HudLocation(street.name, data.town)
             }
-            if (townMode) LoopWallet(loopDebug) { loopDebug = !loopDebug }
-            if (loopDebug && townMode) LoopDebugPanel()
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Chip(aiChipLabel(ai), aiPanel) { aiPanel = !aiPanel }
-                if (orbiting) Chip("Behind me", false) {
-                    townPlay.walk?.let { com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.recentre(Math.toDegrees(it.heading.toDouble()).toFloat()) }
+            HudTopRight {
+                val v = LoopSession.view
+                val hh = hour.toInt() % 24; val mm = ((hour - hour.toInt()) * 60).toInt()
+                val money = if (!townMode) "" else when { LoopSession.error != null -> "loop off"; v == null -> "…"; else -> v.cashText }
+                val skyWord = (if (autoSky) sky else WEATHERS.getOrNull(weather)?.first)?.replaceFirstChar { it.uppercase() } ?: ""
+                HudStatus("%d:%02d %s".format(((hh + 11) % 12) + 1, mm, if (hh < 12) "AM" else "PM"),
+                    v?.let { it.dateText + if (it.holidayText.isNotEmpty()) " · ${it.holidayText}" else "" } ?: "",
+                    money, moneyHot = v?.items?.any { it.stolen } == true,
+                    onMenu = { MoveInput.holdUntilNeutral(); aiPanel = true }, menuBadge = updater.available != null, weather = skyWord,
+                    extra = {
+                        // the owner's screenshot and bookmark buttons (the Settings tab's "Screenshots to Claude" switch)
+                        if (com.timerpg.street.shot.ShotSettings.buttonOn && !shooting) {
+                            HudRoundButton("📷", { shooting = true })
+                            HudRoundButton("🔖", { com.timerpg.street.play.PlayLog.mark(); marking = true; shooting = true })
+                        }
+                    })
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    val tags = ArrayList<Pair<String, Boolean>>()
+                    v?.needs?.labels?.forEach { tags += it to (it == "starving" || it == "exhausted" || it == "ill") }
+                    if (v != null && v.items.isNotEmpty()) tags += "${v.items.size} item${if (v.items.size == 1) "" else "s"}" to v.items.any { it.stolen }
+                    HudTags(tags)
+                    if (micAlways) HudMicLamp(ears, canListen, micGranted) { requestMic() }
+                }
+                if (micAlways && canListen) ears.problem?.let { HudNote(it, true) }
+                if (micAlways && !micGranted) HudNote(com.timerpg.street.voice.MicAsk.label(micBlocked), true)
+                LoopSession.drivenCar?.let { c -> HudNote("${c.label}: fuel %.1f of %.0f gal · ${c.mileage} mi".format(c.fuel, c.tank), c.fuel < 1.0) }
+                v?.rent?.line?.let { HudNote(it, true) }
+                v?.jobs?.news?.takeIf { it.isNotEmpty() }?.let { HudNote(it) }
+            }
+        }
+        // the menu: the map, the player, the camera, the settings (the dialogue AI, voices, mic, renderer, screenshots),
+        // and the debug controls (the clock, the season, the weather, a test car, the loop's panel)
+        if (aiPanel) HudMenu(listOf("Map", "You", "Camera", "Settings", "Debug"), menuTab, { menuTab = it }, { aiPanel = false },
+            badges = if (updater.available != null) setOf(3) else emptySet()) {
+            when (menuTab) {
+                0 -> {
+                    HudText("Map", 16.sp)
+                    if (townMode && townData != null && inside == null) HudButton("Open the map") { aiPanel = false; mapOpen = true }
+                    HudRow("Minimap") {
+                        HudButton("North up", !com.lifemax.rpg.feature.habits.maps.MapSettings.headingUp) { com.lifemax.rpg.feature.habits.maps.MapSettings.headingUp = false }
+                        HudButton("Turns with the camera", com.lifemax.rpg.feature.habits.maps.MapSettings.headingUp) { com.lifemax.rpg.feature.habits.maps.MapSettings.headingUp = true }
+                    }
+                    HudRow("Zoom") {
+                        val ms = com.lifemax.rpg.feature.habits.maps.MapSettings
+                        HudButton(" − ") { ms.minimapZoom = (ms.minimapZoom + 1).coerceAtMost(ms.MINIMAP_RADIUS_M.size - 1) }
+                        HudText("${ms.MINIMAP_RADIUS_M[ms.minimapZoom.coerceIn(0, ms.MINIMAP_RADIUS_M.size - 1)].toInt()} m to the rim", 13.sp, mono = true)
+                        HudButton(" + ") { ms.minimapZoom = (ms.minimapZoom - 1).coerceAtLeast(0) }
+                    }
+                    HudRow("Driving") {
+                        val ms = com.lifemax.rpg.feature.habits.maps.MapSettings
+                        HudButton("Zooms out with speed", ms.autoZoom) { ms.autoZoom = true }
+                        HudButton("Stays", !ms.autoZoom) { ms.autoZoom = false }
+                    }
+                    HudText("Tap the minimap for the full map. Pinch it to zoom, or hold it to step the zoom out.", 12.sp, HudStyle.DIM, maxLines = 2)
+                    if (townMode && LoopSession.view?.maps?.waypoint != null) HudButton("Clear the waypoint") { LoopSession.setWaypoint(null, null) }
+                }
+                1 -> {
+                    HudText("You", 16.sp)
+                    val v = LoopSession.view
+                    if (v == null) HudText(LoopSession.error?.let { "The loop is off: $it" } ?: "Only in the walkable town.", 12.sp, HudStyle.DIM, maxLines = 3)
+                    else {
+                        HudRow("Money") { HudText(v.cashText, 15.sp, HudStyle.MONEY, mono = true) }
+                        HudRow("Carrying") { HudText(if (v.items.isEmpty()) "nothing" else "${v.items.size} item${if (v.items.size == 1) "" else "s"}" + if (v.items.any { it.stolen }) " (stolen goods)" else "", 13.sp, if (v.items.any { it.stolen }) HudStyle.HOT else HudStyle.TEXT) }
+                        HudRow("Condition") { HudText(v.needs?.labels.orEmpty().joinToString(" · ").ifEmpty { "fine" }, 13.sp) }
+                        v.rent?.line?.let { HudRow("Room") { HudText(it, 13.sp, HudStyle.HOT, maxLines = 2) } }
+                        v.jobs.news.takeIf { it.isNotEmpty() }?.let { HudRow("Work") { HudText(it, 13.sp, maxLines = 2) } }
+                        LoopSession.drivenCar?.let { c -> HudRow("Car") { HudText("${c.label}: fuel %.1f of %.0f gal · ${c.mileage} mi".format(c.fuel, c.tank), 13.sp) } }
+                    }
+                }
+                2 -> {
+                    HudText("Camera", 16.sp)
+                    if (orbiting) HudButton("Put the camera behind me") {
+                        townPlay.walk?.let { com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.recentre(Math.toDegrees(it.heading.toDouble()).toFloat()) }
+                        aiPanel = false
+                    }
+                    HudText("A double tap on the world puts the camera behind you too.", 12.sp, HudStyle.DIM)
+                    if (StreetRenderer.filament) HudRow("View") {
+                        HudButton("Open world", StreetRenderer.view == StreetRenderer.OPEN) { StreetRenderer.setView(ctx, StreetRenderer.OPEN) }
+                        HudButton("Street", StreetRenderer.view == StreetRenderer.STREET) { StreetRenderer.setView(ctx, StreetRenderer.STREET) }
+                    }
+                    if (StreetRenderer.filament && StreetRenderer.view == StreetRenderer.OPEN) {
+                        HudRow("Drag") {
+                            HudButton("Turns the camera", !StreetRenderer.grabWorld) { StreetRenderer.setGrab(ctx, false) }
+                            HudButton("Moves the world", StreetRenderer.grabWorld) { StreetRenderer.setGrab(ctx, true) }
+                        }
+                        HudRow("On the bike") {
+                            HudButton("Camera follows", StreetRenderer.bikeFollow) { StreetRenderer.setBikeFollow(ctx, true) }
+                            HudButton("Camera stays", !StreetRenderer.bikeFollow) { StreetRenderer.setBikeFollow(ctx, false) }
+                        }
+                    }
+                }
+                3 -> {
+                    HudText("Settings", 16.sp)
+                    HudText(aiChipLabel(ai), 13.sp, HudStyle.DIM)
+                    updater.available?.let { r -> HudText("⬆ Update ready: ${r.versionName}", 13.sp, HudStyle.MONEY) }
+                    AiPanel(ai, engine, voices, updater, micAlways, onMicAlways, ears, onPick = {
+                        try { pickModel.launch(arrayOf("*/*")) } catch (e: Exception) { /* no document picker on this device */ }
+                    }, inMenu = true)
+                }
+                else -> {
+                    HudText("Debug", 16.sp)
+                    HudText("Test controls: they set the world for a look; Auto gives the sky back to the calendar.", 12.sp, HudStyle.DIM, maxLines = 2)
+                    HudSection("Time of day")
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        val hh = hour.toInt() % 24; val mm = ((hour - hour.toInt()) * 60).toInt()
+                        HudText("%d:%02d %s".format(((hh + 11) % 12) + 1, mm, if (hh < 12) "AM" else "PM"), 14.sp, mono = true)
+                        // (to 23:59: the slider's end at 24 was a sunset at midnight)
+                        Slider(hour, { hour = it.coerceAtMost(LAST_MINUTE) }, 0f, LAST_MINUTE, Modifier.width(320.dp))
+                    }
+                    HudRow("Season") { SEASONS.forEachIndexed { i, (l, _) -> HudButton(l, season == i) { season = i } } }
+                    HudRow("Weather") {
+                        if (sky != null) HudButton("Auto" + if (weatherAuto) ": $sky" else "", weatherAuto) { weatherAuto = true }
+                        WEATHERS.forEachIndexed { i, (l, _) -> HudButton(l, !autoSky && weather == i) { weatherAuto = false; weather = i } }
+                    }
+                    if (townMode && StreetRenderer.view == StreetRenderer.OPEN && com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.cars != null && !com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.inCar)
+                        HudRow("Test car") {
+                            HudButton("🚗 A car beside me (the next of five)") {
+                                com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.cars?.let { it.requestSpawn(); carAskAt = System.currentTimeMillis() }
+                                aiPanel = false
+                            }
+                        }
+                    if (townMode) {
+                        HudRow("The loop") { HudButton(if (loopDebug) "Hide its debug panel" else "Show its debug panel", loopDebug) { loopDebug = !loopDebug } }
+                        if (loopDebug) LoopDebugPanel()
+                    }
                 }
             }
-            if (micAlways) MicLamp(ears, canListen, granted = micGranted, blocked = micBlocked) { requestMic() }
-            updater.available?.let { r -> if (!aiPanel) Chip("⬆ Update: ${r.versionName}", false) { aiPanel = true } }
-            if (aiPanel) AiPanel(ai, engine, voices, updater, micAlways, onMicAlways, ears, onPick = {
-                try { pickModel.launch(arrayOf("*/*")) } catch (e: Exception) { /* no document picker on this device */ }
-            })
         }
         // the full map over everything (pan, zoom, tap for the waypoint)
         if (mapOpen && townData != null) MapScreen(ctx, townData.town.year, onClose = { mapOpen = false })
@@ -1754,6 +1809,20 @@ private object Foreground {
     var resumed by mutableStateOf(false)
 }
 
+/** The always-listening mic as the HUD's small dot (docs/HUD.md): a tap asks for the microphone, or starts listening again. */
+@Composable
+private fun HudMicLamp(ears: com.timerpg.street.voice.PlayerVoice, live: Boolean, granted: Boolean, onAllow: () -> Unit) {
+    val state = when {
+        !granted -> MicDot.PROBLEM
+        live && ears.needsRetry -> MicDot.PROBLEM
+        !live -> MicDot.PAUSED
+        ears.writing > 0 -> MicDot.WRITING
+        ears.hearing -> MicDot.HEARING
+        else -> MicDot.LISTENING
+    }
+    HudMic(state, ears.level) { if (!granted) onAllow() else if (ears.needsRetry) ears.retry() }
+}
+
 /** The always-listening mic at a glance: listening, hearing the player (with the meter), writing it down, paused. */
 @Composable
 private fun MicLamp(ears: com.timerpg.street.voice.PlayerVoice, live: Boolean, granted: Boolean = true, blocked: Boolean = false, onAllow: () -> Unit = {}) {
@@ -1953,9 +2022,9 @@ private fun f0(v: Float) = String.format(java.util.Locale.US, "%.0f", v)
 /** The model (its file and state) and the speed numbers. */
 @Composable
 private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.street.voice.NpcVoiceService, updater: AppUpdater,
-                    micAlways: Boolean, onMicAlways: (Boolean) -> Unit, ears: com.timerpg.street.voice.PlayerVoice, onPick: () -> Unit) {
+                    micAlways: Boolean, onMicAlways: (Boolean) -> Unit, ears: com.timerpg.street.voice.PlayerVoice, onPick: () -> Unit, inMenu: Boolean = false) {
     Column(
-        Modifier.width(340.dp).heightIn(max = 240.dp).background(PANEL, RoundedCornerShape(12.dp)).opaque().verticalScroll(rememberScrollState())
+        (if (inMenu) Modifier.fillMaxWidth().heightIn(max = 300.dp) else Modifier.width(340.dp).heightIn(max = 240.dp)).background(PANEL, RoundedCornerShape(12.dp)).opaque().verticalScroll(rememberScrollState())
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
