@@ -39,3 +39,41 @@ export function securityOf(building: Building, year: number, seed: string): Secu
     ? { location: farm || building.kind === 'house' ? 'yard' : 'storeroom', resting: roll('rest') < .7 } as const : null;
   return { openings, alarm, safe: highValue && (building.kind === 'bank' || roll('safe') < .65 + .25 * wealth) ? profile : null, dog };
 }
+
+const lockDifficulty: Record<Lock, number> = { none: 0, latch: .15, pin_tumbler: .3, deadbolt: .65 };
+export type EntrySkills = Readonly<{ lockpicking?: number; safecracking?: number }>;
+export type EntryOption = Readonly<{
+  targetId: string; method: 'unlocked' | 'window' | 'pick' | 'force' | 'open_safe';
+  difficulty: number; skill: keyof EntrySkills | null; level: number | null;
+  noise: boolean; damage: boolean; evidence: boolean;
+}>;
+
+export function entryOptions(security: Security, skills: EntrySkills): EntryOption[] {
+  const options: EntryOption[] = security.openings.flatMap<EntryOption>(opening => {
+    const { id: targetId, unlocked, lock } = opening;
+    const difficulty = lockDifficulty[lock];
+    if (unlocked) return [{
+      targetId, method: opening.kind === 'window' ? 'window' : 'unlocked', difficulty: 0,
+      skill: null, level: null, noise: false, damage: false, evidence: false,
+    }];
+    return [
+      { targetId, method: 'pick', difficulty, skill: 'lockpicking', level: skills.lockpicking ?? 0,
+        noise: false, damage: false, evidence: false },
+      { targetId, method: 'force', difficulty: Math.min(1, difficulty + .2), skill: null, level: null,
+        noise: true, damage: true, evidence: true },
+    ];
+  });
+  if (security.safe) options.push({
+    targetId: 'safe', method: 'open_safe', difficulty: security.safe.difficulty,
+    skill: 'safecracking', level: skills.safecracking ?? 0,
+    noise: false, damage: false, evidence: false,
+  });
+  return options;
+}
+
+export function alarmResponse(alarm: Alarm, year: number) {
+  if (!safeProfile(year) || alarm === 'none' || year < 1910 || (alarm === 'monitored' && year < 1970)) return [];
+  return alarm === 'local_bell'
+    ? [{ responder: 'neighbours', minutes: year < 1950 ? 5 : 3 }]
+    : [{ responder: 'dispatch', minutes: 1 }, { responder: 'police', minutes: year < 1990 ? 8 : 5 }];
+}
