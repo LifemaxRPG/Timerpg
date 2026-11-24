@@ -7,7 +7,7 @@
 //
 // Every feature is evaluated in 3D WORLD sky direction (`+X` east, `+Y` up, `-Z` north, `+Z` south) so turning
 // the camera 90 degrees keeps stars, Milky Way, sun, moon, and drifting clouds completely fixed in the sky:
-//   - Hard stepped 16-bit pixel-art sky colour bands (zero smooth gradients), matching SkyColors / SkyDome
+//   - Smoothly blended sky colours (the owner asked for blending, 2026-11-24), matching SkyColors / SkyDome
 //   - Dusk sunset orange-to-deep-blue bands, Belt of Venus opposite sun, and night dusty city horizon glow
 //   - Pixel-art sun disc with stepped core, halo ring, and clear-sky cardinal shimmer
 //   - Nearest-filtered 32x32 pixel-art moon disc with lunar maria/craters, true 32-step phase terminator
@@ -260,12 +260,12 @@ fragment {
         highp float az = (dot(ray.xz, ray.xz) > 1e-8) ? atan(ray.x, -ray.z) : 0.0;
 
         // =====================================================================
-        // 1. STEPPED PIXEL-ART SKY BANDS (hard 16-bit colour steps, no gradients)
+        // 1. SKY GRADIENT (smoothly blended: the owner disliked the hard bands, 2026-11-24)
         // =====================================================================
         float hCurve = pow(clamp(elev / 1.05, 0.0, 1.0), 0.74);
         const float SKY_BANDS = 10.0;
         float vRaw = clamp(1.0 - hCurve, 0.0, 0.9999);
-        float vBand = floor(vRaw * SKY_BANDS) / (SKY_BANDS - 1.0); // 0 zenith -> 1 horizon
+        float vBand = vRaw; // 0 zenith -> 1 horizon (SKY_BANDS kept for reference: no longer stepped)
 
         // Smooth azimuthal alignment with sun (kept smooth so elevation rings stay level with zero radial spokes)
         vec2 rayH = normalize(ray.xz + vec2(1e-5, 0.0));
@@ -317,7 +317,7 @@ fragment {
             float moonIllum = materialParams.cloudLit.w;
             if (moonVis > 0.05 && moonIllum > 0.08) {
                 float mDot = max(0.0, dot(ray, materialParams.moonDir.xyz));
-                float mGlow = floor(pow(mDot, 8.0) * 4.0) / 4.0;
+                float mGlow = pow(mDot, 8.0);
                 col = mix(col, vec3(0.016, 0.036, 0.110), nightW * moonVis * moonIllum * mGlow * 0.42 * (1.0 - overcast * 0.8));
             }
         }
@@ -343,14 +343,14 @@ fragment {
         // =====================================================================
         if (starBright > 0.005 && ray.y > 0.025) {
             // (few stars low down: the town's glow and the haze hide them)
-            float horizFade = floor(smoothstep(0.06, 0.34, ray.y) * 4.0) / 4.0;
+            float horizFade = smoothstep(0.05, 0.30, ray.y);
             float starAlpha = starBright * horizFade;
             if (starAlpha > 0.01) {
                 if (starAlpha > 0.30 && overcast < 0.40) {
                     vec3 mwAxis = normalize(vec3(0.42, 0.56, -0.71));
                     float mwDist = abs(dot(ray, mwAxis));
                     float mwBand = 1.0 - smoothstep(0.03, 0.22, mwDist);
-                    float mwStep = floor(mwBand * 3.0) / 3.0;
+                    float mwStep = mwBand;
                     if (mwStep > 0.01) {
                         highp vec2 mwCell = floor(vec2(az * 135.0, elev * 135.0));
                         // (its dust: a few sparks, not a quarter of its cells, which read as a dot grid in the real render)
@@ -362,9 +362,12 @@ fragment {
 
                 // (thinned 2026-11-24: the real render's field was near a regular dot lattice at 0.25 and 0.20 of the
                 // cells; now fewer, jittered over whole cells, rings shifted, most of them faint)
-                vec3 s1 = evalStarLayer(ray, elev, az, 0.052, 9.0, 0.14, 1.0, timeSec, 1.0);
-                vec3 s2 = evalStarLayer(ray, elev, az, 0.031, 7.0, 0.08, 3.0, timeSec, 0.0);
-                vec3 stars = max(s1, s2 * 0.84);
+                // (denser again, 2026-11-24: the owner found the field sparse; a third fine layer of faint stars adds
+                // depth without bringing back the lattice, since every layer is jittered and ring-shifted)
+                vec3 s1 = evalStarLayer(ray, elev, az, 0.052, 9.0, 0.22, 1.0, timeSec, 1.0);
+                vec3 s2 = evalStarLayer(ray, elev, az, 0.031, 7.0, 0.16, 3.0, timeSec, 0.0);
+                vec3 s3 = evalStarLayer(ray, elev, az, 0.019, 5.0, 0.18, 5.0, timeSec, 0.0);
+                vec3 stars = max(max(s1, s2 * 0.84), s3 * 0.62);
                 col += stars * starAlpha;
             }
         }
@@ -478,7 +481,7 @@ fragment {
         if (cloudCov > 0.02 && cloudMaxA > 0.01 && elev > 0.04) {
             highp float azWrap = fract(az / SKY_TWO_PI);
 
-            float lowFade = floor(smoothstep(0.04, 0.16, elev) * 4.0) / 4.0;
+            float lowFade = smoothstep(0.04, 0.16, elev);
             float zenithFade = 1.0 - smoothstep(1.18, 1.45, elev);
             float cloudGate = lowFade * zenithFade;
 
@@ -546,7 +549,7 @@ fragment {
         float lowHaze = mist + rain * 0.38;
         if (lowHaze > 0.01) {
             float mistBand = 1.0 - smoothstep(0.0, 0.26 + 0.14 * mist, ray.y);
-            float mistStep = floor(mistBand * 5.0 + 0.2) / 5.0;
+            float mistStep = mistBand;
             vec3 mCol = materialParams.mistColor.rgb;
             if (rain > 0.01) {
                 mCol = mix(mCol, materialParams.overcastLo.rgb * 0.84, rain * 0.55);
@@ -559,6 +562,9 @@ fragment {
             col = mix(col, materialParams.skyBelow.rgb, seam * 0.45);
         }
 
+        // (a tiny per-pixel dither so the smooth gradient doesn't show 8-bit banding on the phone's surface)
+        float dith = hash21(floor(gl_FragCoord.xy)) - 0.5;
+        col += vec3(dith / 255.0);
         material.baseColor = vec4(max(col, vec3(0.0)), 1.0);
     }
 }
