@@ -1,0 +1,553 @@
+// Pixel-art sky dome for Filament (G016).
+//
+// Drawn in 1 draw call as a single full-screen triangle in `vertexDomain : device` placed on Filament's
+// reversed-Z far plane (`clip.z = 1.0 - 2e-6` -> `z' = 1e-6`, strictly > 0.0 cleared depth and strictly < every
+// world object including the 24 km ocean horizon skirt). `depthWrite : false` + `depthCulling : true` with
+// `priority(7)` ensures the sky renders strictly behind buildings, ground, and ocean with early-Z rejection.
+//
+// Every feature is evaluated in 3D WORLD sky direction (`+X` east, `+Y` up, `-Z` north, `+Z` south) so turning
+// the camera 90 degrees keeps stars, Milky Way, sun, moon, and drifting clouds completely fixed in the sky:
+//   - Hard stepped 16-bit pixel-art sky colour bands (zero smooth gradients), matching SkyColors / SkyDome
+//   - Dusk sunset orange-to-deep-blue bands, Belt of Venus opposite sun, and night dusty city horizon glow
+//   - Pixel-art sun disc with stepped core, halo ring, and clear-sky cardinal shimmer
+//   - Nearest-filtered 32x32 pixel-art moon disc with lunar maria/craters, true 32-step phase terminator
+//     (matching MoonPhase: lit on right when waxing), twilight-natural crescent, phase-gated lunar halo,
+//     and night earthshine + star occultation
+//   - World-fixed spherical pixel-art starfield (blue-white/white/cream/gold/amber + cross glints) and
+//     delicate tilted Milky Way star-dust band, fading in cleanly at dusk
+//   - Nearest-filtered 256x256 pixel-art drifting clouds mapped in world (azimuth, elevation) dome bands
+//     so every cloud stays upright, crisp, non-skewed, and completely fixed in world sky on 90-deg turns,
+//     with 3-tone stepped shading (lit top / body / shaded underside) and warm dusk under-belly
+//   - Overcast veil, stepped horizon mist bands, rain atmospheric dimming, and seamless below-horizon haze
+//
+// Compile with Filament v1.81.0 matc (same flags as ocean.mat and street_lit.mat):
+//   matc -p mobile -a opengl -o kotlin-street/app/src/main/assets/filament/sky.filamat \
+//       kotlin-street/filament/materials/sky.mat
+
+material {
+    name : SkyDome,
+    shadingModel : unlit,
+    blending : opaque,
+    vertexDomain : device,
+    depthWrite : false,
+    depthCulling : true,
+    culling : none,
+    doubleSided : false,
+    variables : [
+        skyNdc
+    ],
+    parameters : [
+        // Camera basis in world space (+X east, +Y up, -Z north, +Z south):
+        //   camRight = (rx, ry, rz, ySign)       (ySign: +1 TextureView / -1 headless desktop)
+        //   camUp    = (ux, uy, uz, artCellPx)
+        //   camFwd   = (fx, fy, fz, timeSec)
+        //   camLens  = (scaleX, scaleY, offsetX, offsetY)
+        { type : float4, name : camRight, precision : high },
+        { type : float4, name : camUp, precision : high },
+        { type : float4, name : camFwd, precision : high },
+        { type : float4, name : camLens, precision : high },
+
+        // Base sky palette in LINEAR RGB (for unlit + LinearToneMapper):
+        //   skyZenith  = (r, g, b, dark)         (dark: 0 day, ~0.55 dusk, 1 night)
+        //   skyMid     = (r, g, b, skyTone)      (0 night, 1 dusk, 2 day)
+        //   skyHorizon = (r, g, b, starBright)   (0..1 star visibility after weather attenuation)
+        //   skyGlow    = (r, g, b, glowAlpha)    (horizon glow / night city glow)
+        //   skyBelow   = (r, g, b, mist)         (below-horizon haze colour, mist 0..1)
+        { type : float4, name : skyZenith },
+        { type : float4, name : skyMid },
+        { type : float4, name : skyHorizon },
+        { type : float4, name : skyGlow },
+        { type : float4, name : skyBelow },
+
+        // Atmospheric accents & weather veils in LINEAR RGB:
+        //   duskEmber   = (r, g, b, duskWeight)  (0..1 golden/sunset peak)
+        //   duskBelt    = (r, g, b, rain)        (Belt of Venus rose, rain 0..1)
+        //   overcastHi  = (r, g, b, overcast)    (overcast upper grey, overcast veil 0..1)
+        //   overcastLo  = (r, g, b, cloudCov)    (overcast horizon grey, cloud coverage 0..1)
+        //   mistColor   = (r, g, b, winterCrisp) (mist horizon colour, winter crispness 0..1)
+        { type : float4, name : duskEmber },
+        { type : float4, name : duskBelt },
+        { type : float4, name : overcastHi },
+        { type : float4, name : overcastLo },
+        { type : float4, name : mistColor },
+
+        // Sun & moon directions (unit vectors pointing TOWARDS orb) and visual parameters:
+        //   sunDir    = (dx, dy, dz, sunVisibility)
+        //   sunColor  = (r, g, b, sunHaloStrength)
+        //   sunHalo   = (r, g, b, sunRadiusRad)
+        //   moonDir   = (dx, dy, dz, moonVisibility)
+        //   moonColor = (r, g, b, moonPhaseRad)  (0 new, PI/2 first quarter, PI full, 3PI/2 last quarter)
+        //   moonEarth = (r, g, b, moonRadiusRad) (earthshine tint + moon angular radius)
+        { type : float4, name : sunDir, precision : high },
+        { type : float4, name : sunColor },
+        { type : float4, name : sunHalo },
+        { type : float4, name : moonDir, precision : high },
+        { type : float4, name : moonColor },
+        { type : float4, name : moonEarth },
+
+        // Pixel-art clouds in LINEAR RGB + world wind drift:
+        //   cloudLit   = (r, g, b, moonIllum)
+        //   cloudBody  = (r, g, b, cloudUnderWarm)
+        //   cloudShade = (r, g, b, cloudAlphaMax)
+        //   cloudDrift = (driftX, driftZ, highDriftX, highDriftZ)
+        { type : float4, name : cloudLit },
+        { type : float4, name : cloudBody },
+        { type : float4, name : cloudShade },
+        { type : float4, name : cloudDrift, precision : high },
+
+        // Nearest-filtered pixel-art textures ONLY (MinFilter.NEAREST, MagFilter.NEAREST):
+        { type : sampler2d, name : cloudTex, precision : medium },
+        { type : sampler2d, name : moonTex, precision : medium }
+    ]
+}
+
+vertex {
+    void materialVertex(inout MaterialVertexInputs material) {
+        vec4 p = getPosition();
+        material.worldPosition = vec4(0.0, 0.0, 0.0, 1.0);
+        // Identity clip transform: vertex positions carry NDC (-1,-1), (3,-1), (-1,3) and z = 1.0 - 2e-6.
+        // In vertexDomain : device, Filament maps clip.z via z' = 0.5 - 0.5 * z = 1e-6 (far plane).
+        material.clipSpaceTransform = mat4(
+            vec4(1.0, 0.0, 0.0, 0.0),
+            vec4(0.0, 1.0, 0.0, 0.0),
+            vec4(0.0, 0.0, 1.0, 0.0),
+            vec4(0.0, 0.0, 0.0, 1.0)
+        );
+        material.skyNdc = vec4(p.xy, 0.0, 1.0);
+    }
+}
+
+fragment {
+    const float SKY_PI = 3.14159265359;
+    const float SKY_TWO_PI = 6.28318530718;
+
+    float hash21(vec2 p) {
+        vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
+        p3 += dot(p3, p3.yzx + 33.33);
+        return fract((p3.x + p3.y) * p3.z);
+    }
+
+    vec3 hash23(vec2 p) {
+        vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
+        p3 += dot(p3, p3.yxz + 33.33);
+        return fract((p3.xxy + p3.yzz) * p3.zyx);
+    }
+
+    float bell(float x, float center, float width) {
+        float d = (x - center) / width;
+        return exp(-d * d);
+    }
+
+    // World-fixed spherical star layer (immune to camera rotation; highp for mobile GPUs)
+    vec3 evalStarLayer(
+        highp vec3 ray,
+        highp float elev,
+        highp float az,
+        highp float cellAng,
+        float subGrid,
+        float density,
+        float seedOffset,
+        highp float timeSec,
+        float allowCross
+    ) {
+        highp float ring = floor(elev / cellAng);
+        highp float ringCenterEl = (ring + 0.5) * cellAng;
+        highp float cosEl = max(0.15, cos(ringCenterEl));
+        highp float cols = max(12.0, floor(SKY_TWO_PI * cosEl / cellAng));
+
+        highp float azNorm = fract(az / SKY_TWO_PI);
+        highp float col = floor(azNorm * cols);
+        highp float localU = fract(azNorm * cols);
+        highp float localV = fract(elev / cellAng);
+
+        vec2 cellId = vec2(col + seedOffset * 137.0, ring + seedOffset * 53.0);
+        vec3 rnd = hash23(cellId);
+        if (rnd.x > density) {
+            return vec3(0.0);
+        }
+
+        vec2 starPx = floor(vec2(0.15 + 0.70 * rnd.y, 0.15 + 0.70 * rnd.z) * subGrid);
+        vec2 curPx = floor(vec2(localU, localV) * subGrid);
+        vec2 dp = abs(curPx - starPx);
+
+        float mag = hash21(cellId + vec2(19.7, 7.3));
+        float hit = 0.0;
+        if (dp.x < 0.5 && dp.y < 0.5) {
+            hit = 1.0;
+        } else if (allowCross > 0.5 && mag > 0.82 && ((dp.x < 1.5 && dp.y < 0.5) || (dp.y < 1.5 && dp.x < 0.5))) {
+            hit = 0.45;
+        }
+        if (hit <= 0.0) {
+            return vec3(0.0);
+        }
+
+        float tick = floor(timeSec * 1.4 + mag * 17.0);
+        float tw = hash21(cellId + vec2(tick * 0.37, 4.1));
+        float twinkle = (tw > 0.86) ? 1.18 : ((tw < 0.14) ? 0.74 : 1.0);
+
+        float bright = (mag > 0.84) ? 1.00 : ((mag > 0.48) ? 0.64 : 0.34);
+        bright *= hit * twinkle;
+
+        float tintRoll = hash21(cellId + vec2(41.2, 23.8));
+        vec3 colStar = vec3(0.96, 0.98, 1.00);
+        if (tintRoll < 0.25) {
+            colStar = vec3(0.62, 0.78, 1.00);
+        } else if (tintRoll < 0.58) {
+            colStar = vec3(0.96, 0.97, 1.00);
+        } else if (tintRoll < 0.80) {
+            colStar = vec3(1.00, 0.91, 0.70);
+        } else if (tintRoll < 0.92) {
+            colStar = vec3(1.00, 0.74, 0.36);
+        } else {
+            colStar = vec3(1.00, 0.52, 0.24);
+        }
+        return colStar * bright;
+    }
+
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+
+        highp vec2 ndc = variable_skyNdc.xy;
+        highp float ySign = materialParams.camRight.w;
+        highp float screenUp = ndc.y * ySign;
+
+        highp vec3 camR = materialParams.camRight.xyz;
+        highp vec3 camU = materialParams.camUp.xyz;
+        highp vec3 camF = materialParams.camFwd.xyz;
+        highp float timeSec = materialParams.camFwd.w;
+        highp vec4 lens = materialParams.camLens;
+
+        // Exact world-space view ray for this pixel (matches TownPose & buildDeviceLookMatrix)
+        highp vec3 ray = normalize(
+            camF
+            + (ndc.x * lens.x + lens.z) * camR
+            + (screenUp * lens.y + lens.w) * camU
+        );
+
+        float dark = materialParams.skyZenith.w;
+        float starBright = materialParams.skyHorizon.w;
+        float glowAlpha = materialParams.skyGlow.w;
+        float mist = materialParams.skyBelow.w;
+
+        float duskW = materialParams.duskEmber.w;
+        float rain = materialParams.duskBelt.w;
+        float overcast = materialParams.overcastHi.w;
+        float cloudCov = materialParams.overcastLo.w;
+        float winterCrisp = materialParams.mistColor.w;
+
+        float dayW = 1.0 - smoothstep(0.04, 0.42, dark);
+        float nightW = smoothstep(0.60, 1.00, dark);
+
+        // Below-horizon pixels: seamless haze colour matching FilamentTown.haze (zero horizon seam)
+        if (ray.y < -0.004) {
+            vec3 belowCol = materialParams.skyBelow.rgb;
+            if (mist > 0.01) {
+                belowCol = mix(belowCol, materialParams.mistColor.rgb, mist * 0.65);
+            }
+            material.baseColor = vec4(belowCol, 1.0);
+            return;
+        }
+
+        // World spherical angles (100% invariant to camera yaw/pitch)
+        highp float elev = asin(clamp(ray.y, 0.0, 1.0));
+        highp float az = (dot(ray.xz, ray.xz) > 1e-8) ? atan(ray.x, -ray.z) : 0.0;
+
+        // =====================================================================
+        // 1. STEPPED PIXEL-ART SKY BANDS (hard 16-bit colour steps, no gradients)
+        // =====================================================================
+        float hCurve = pow(clamp(elev / 1.05, 0.0, 1.0), 0.74);
+        const float SKY_BANDS = 10.0;
+        float vRaw = clamp(1.0 - hCurve, 0.0, 0.9999);
+        float vBand = floor(vRaw * SKY_BANDS) / (SKY_BANDS - 1.0); // 0 zenith -> 1 horizon
+
+        // Smooth azimuthal alignment with sun (kept smooth so elevation rings stay level with zero radial spokes)
+        vec2 rayH = normalize(ray.xz + vec2(1e-5, 0.0));
+        vec2 sunH = normalize(materialParams.sunDir.xz + vec2(1e-5, 0.0));
+        float sunSide = 0.5 + 0.5 * dot(rayH, sunH);
+
+        // Quadratic light-space ramp through zenith -> mid -> horizon (matching SkyDome.kt)
+        vec3 zCol = materialParams.skyZenith.rgb;
+        vec3 mCol = materialParams.skyMid.rgb;
+        vec3 hCol = materialParams.skyHorizon.rgb;
+        vec3 bend = max(2.0 * mCol - 0.5 * (zCol + hCol), vec3(0.0));
+
+        float g = pow(vBand, 1.12);
+        float a = (1.0 - g) * (1.0 - g);
+        float b = 2.0 * g * (1.0 - g);
+        vec3 col = a * zCol + b * bend + g * g * hCol;
+
+        if (dayW > 0.001) {
+            vec3 dayZenith = vec3(0.013, 0.080, 0.340);
+            vec3 dayHaze = mix(hCol, vec3(1.0), 0.46);
+            vec3 daySunTint = mix(hCol, materialParams.sunHalo.rgb, 0.36);
+            col = mix(col, dayZenith, dayW * pow(1.0 - vBand, 2.2) * 0.34);
+            col = mix(col, dayHaze, dayW * pow(vBand, 4.5) * 0.40);
+            col = mix(col, daySunTint, dayW * sunSide * sunSide * (0.18 * smoothstep(0.18, 1.0, vBand)));
+        }
+
+        if (duskW > 0.001) {
+            vec3 glowRgb = materialParams.skyGlow.rgb;
+            vec3 ember = materialParams.duskEmber.rgb;
+            vec3 rose = materialParams.duskBelt.rgb;
+            vec3 deepTwilight = vec3(0.014, 0.032, 0.138);
+            vec3 gold = vec3(1.00, 0.62, 0.24);
+
+            vec3 hot = mix(glowRgb, ember, 0.40 + 0.45 * sunSide);
+            col = mix(col, hot, duskW * pow(vBand, 2.8) * (0.42 + 0.46 * sunSide));
+            float beltMask = bell(vBand, 0.66, 0.16);
+            col = mix(col, rose, duskW * beltMask * (0.16 + 0.26 * (1.0 - sunSide)));
+            col = mix(col, gold, duskW * pow(sunSide, 2.0) * smoothstep(0.45, 1.0, vBand) * 0.32);
+            col = mix(col, deepTwilight, duskW * pow(1.0 - vBand, 1.25) * 0.56);
+        }
+
+        if (nightW > 0.001) {
+            vec3 nightZenith = vec3(0.0012, 0.0022, 0.0068);
+            vec3 cityGlow = mix(vec3(0.042, 0.032, 0.085), materialParams.skyGlow.rgb, 0.30);
+            col = mix(col, nightZenith, nightW * pow(1.0 - vBand, 1.45) * 0.58);
+            col = mix(col, cityGlow, nightW * pow(vBand, 4.4) * (0.26 + 0.20 * glowAlpha));
+
+            float moonVis = materialParams.moonDir.w;
+            float moonIllum = materialParams.cloudLit.w;
+            if (moonVis > 0.05 && moonIllum > 0.08) {
+                float mDot = max(0.0, dot(ray, materialParams.moonDir.xyz));
+                float mGlow = floor(pow(mDot, 8.0) * 4.0) / 4.0;
+                col = mix(col, vec3(0.016, 0.036, 0.110), nightW * moonVis * moonIllum * mGlow * 0.42 * (1.0 - overcast * 0.8));
+            }
+        }
+
+        if (winterCrisp > 0.01) {
+            vec3 winterTint = mix(vec3(0.18, 0.28, 0.42), vec3(0.55, 0.66, 0.78), vBand);
+            col = mix(col, winterTint, winterCrisp * 0.16 * (1.0 - nightW * 0.7));
+        }
+
+        if (overcast > 0.005) {
+            vec3 ovCol = mix(materialParams.overcastHi.rgb, materialParams.overcastLo.rgb, pow(vBand, 1.35));
+            col = mix(col, ovCol, clamp(overcast * 0.90, 0.0, 0.94));
+        }
+
+        if (rain > 0.005) {
+            float luma = dot(col, vec3(0.2126, 0.7152, 0.0722));
+            col = mix(col, vec3(luma * 0.82, luma * 0.86, luma * 0.94), rain * 0.55);
+            col *= (1.0 - rain * 0.34);
+        }
+
+        // =====================================================================
+        // 2. WORLD-FIXED MILKY WAY & PIXEL-ART STARS (above horizon, before moon/clouds)
+        // =====================================================================
+        if (starBright > 0.005 && ray.y > 0.025) {
+            float horizFade = floor(smoothstep(0.03, 0.22, ray.y) * 4.0) / 4.0;
+            float starAlpha = starBright * horizFade;
+            if (starAlpha > 0.01) {
+                if (starAlpha > 0.30 && overcast < 0.40) {
+                    vec3 mwAxis = normalize(vec3(0.42, 0.56, -0.71));
+                    float mwDist = abs(dot(ray, mwAxis));
+                    float mwBand = 1.0 - smoothstep(0.03, 0.22, mwDist);
+                    float mwStep = floor(mwBand * 3.0) / 3.0;
+                    if (mwStep > 0.01) {
+                        highp vec2 mwCell = floor(vec2(az * 135.0, elev * 135.0));
+                        float mwSpark = step(0.76, hash21(mwCell));
+                        vec3 mwBase = vec3(0.006, 0.011, 0.032) + vec3(0.020, 0.028, 0.058) * mwSpark;
+                        col += mwBase * mwStep * starAlpha * (1.0 - overcast * 0.85);
+                    }
+                }
+
+                vec3 s1 = evalStarLayer(ray, elev, az, 0.052, 7.0, 0.25, 1.0, timeSec, 1.0);
+                vec3 s2 = evalStarLayer(ray, elev, az, 0.025, 5.0, 0.20, 3.0, timeSec, 0.0);
+                vec3 stars = max(s1, s2 * 0.84);
+                col += stars * starAlpha;
+            }
+        }
+
+        // =====================================================================
+        // 3. PIXEL-ART SUN DISC (world-pinned to sunDir)
+        // =====================================================================
+        float sunVis = materialParams.sunDir.w;
+        if (sunVis > 0.01) {
+            highp vec3 sDir = materialParams.sunDir.xyz;
+            float sDot = dot(ray, sDir);
+            float sunRad = max(materialParams.sunHalo.w, 0.02);
+            if (sDot > cos(sunRad * 1.45)) {
+                highp vec3 worldUp = (abs(sDir.y) < 0.98) ? vec3(0.0, 1.0, 0.0) : vec3(0.0, 0.0, 1.0);
+                highp vec3 sRight = normalize(cross(sDir, worldUp));
+                highp vec3 sUp = normalize(cross(sRight, sDir));
+                highp vec2 sLocal = vec2(dot(ray, sRight), dot(ray, sUp)) / sunRad;
+
+                vec2 sPx = (floor((sLocal + 1.0) * 10.0) + 0.5) / 10.0 - 1.0;
+                float sr = length(sPx);
+
+                float orbClear = (1.0 - overcast * 0.78) * (1.0 - rain * 0.85) * (1.0 - mist * 0.52);
+                float visEff = sunVis * clamp(orbClear, 0.0, 1.0);
+
+                if (visEff > 0.02) {
+                    vec3 sCore = materialParams.sunColor.rgb;
+                    vec3 sHalo = materialParams.sunHalo.rgb;
+                    float haloStr = materialParams.sunColor.w;
+
+                    bool spike = (overcast < 0.30 && mist < 0.30 && rain < 0.05)
+                        && ((abs(sPx.x) < 0.095 && abs(sPx.y) < 0.94) || (abs(sPx.y) < 0.095 && abs(sPx.x) < 0.94));
+
+                    if (sr < 0.44) {
+                        col = mix(col, sCore, visEff);
+                    } else if (sr < 0.60) {
+                        col = mix(col, mix(sCore, sHalo, 0.48), visEff * 0.94);
+                    } else if (sr < 0.84) {
+                        col = mix(col, sHalo, visEff * 0.46 * haloStr);
+                    } else if (spike) {
+                        col = mix(col, sHalo, visEff * 0.34 * haloStr);
+                    }
+                }
+            }
+        }
+
+        // =====================================================================
+        // 4. PIXEL-ART MOON DISC (nearest-filtered 32x32 moonTex + 32-step phase)
+        // =====================================================================
+        float moonVis = materialParams.moonDir.w;
+        if (moonVis > 0.01) {
+            highp vec3 mDir = materialParams.moonDir.xyz;
+            float mDot = dot(ray, mDir);
+            float moonRad = max(materialParams.moonEarth.w, 0.02);
+            if (mDot > cos(moonRad * 1.35)) {
+                highp vec3 worldUp = (abs(mDir.y) < 0.98) ? vec3(0.0, 1.0, 0.0) : vec3(0.0, 0.0, 1.0);
+                // right = cross(moonDir, up) -> viewer's RIGHT when facing the moon
+                highp vec3 mRight = normalize(cross(mDir, worldUp));
+                highp vec3 mUp = normalize(cross(mRight, mDir));
+                highp vec2 mLocal = vec2(dot(ray, mRight), dot(ray, mUp)) / moonRad;
+
+                if (abs(mLocal.x) <= 1.0 && abs(mLocal.y) <= 1.0) {
+                    highp vec2 mUv = vec2(0.5 + 0.5 * mLocal.x, 0.5 - 0.5 * mLocal.y);
+                    vec4 mTex = texture(materialParams_moonTex, mUv);
+
+                    float mClear = (1.0 - overcast * 0.80) * (1.0 - rain * 0.88) * (1.0 - mist * 0.55);
+                    float mEff = moonVis * clamp(mClear, 0.0, 1.0);
+                    float moonIllum = materialParams.cloudLit.w;
+
+                    if (mTex.g > 0.5 && mEff > 0.02) {
+                        vec2 cellUv = (floor(mUv * 32.0) + 0.5) / 32.0;
+                        vec2 mp = vec2(cellUv.x * 2.0 - 1.0, 1.0 - cellUv.y * 2.0);
+                        vec2 dn = mp / 0.84;
+                        float nz = sqrt(max(0.0, 1.0 - dot(dn, dn)));
+                        vec3 moonN = normalize(vec3(dn.x, dn.y, max(nz, 0.05)));
+
+                        // Phase light direction matching MoonPhase.kt (0 new, PI/2 1Q right-lit, PI full, 3PI/2 3Q left-lit)
+                        float phRad = materialParams.moonColor.w;
+                        vec3 phaseL = normalize(vec3(sin(phRad), 0.14 * sin(phRad), -cos(phRad)));
+                        float ndl = dot(moonN, phaseL);
+
+                        vec3 baseLit = materialParams.moonColor.rgb * (0.64 + 0.36 * mTex.r) * (0.88 + 0.12 * mTex.b);
+
+                        if (ndl > 0.14) {
+                            col = mix(col, baseLit, clamp(mEff * 0.96, 0.0, 1.0));
+                        } else if (ndl > -0.02) {
+                            col = mix(col, baseLit, clamp(mEff * 0.58, 0.0, 1.0));
+                        } else if (nightW > 0.15) {
+                            vec3 earthCol = mix(materialParams.skyZenith.rgb * 1.4, materialParams.moonEarth.rgb * (0.72 + 0.28 * mTex.r), 0.65);
+                            col = mix(col, earthCol, mEff * nightW * 0.82);
+                        }
+                    } else if (mTex.a > 0.5 && mEff > 0.05 && moonIllum > 0.08) {
+                        // Gate outer lunar halo to the sunlit limb so crescents never show a ring on their dark side
+                        vec2 cellUvH = (floor(mUv * 32.0) + 0.5) / 32.0;
+                        vec2 mpH = vec2(cellUvH.x * 2.0 - 1.0, 1.0 - cellUvH.y * 2.0);
+                        float phRadH = materialParams.moonColor.w;
+                        vec3 phaseLH = normalize(vec3(sin(phRadH), 0.14 * sin(phRadH), -cos(phRadH)));
+                        float limbLit = dot(normalize(vec3(mpH.x, mpH.y, 0.22)), phaseLH);
+                        if (limbLit > 0.02) {
+                            float haloAmt = mEff * (0.16 + 0.24 * moonIllum) * (0.35 + 0.65 * nightW);
+                            col = mix(col, materialParams.moonColor.rgb, haloAmt);
+                        }
+                    }
+                }
+            }
+        }
+
+        // =====================================================================
+        // 5. WORLD-FIXED HORIZONTAL PIXEL-ART DRIFTING CLOUDS (nearest 256x256 cloudTex)
+        // =====================================================================
+        float cloudMaxA = materialParams.cloudShade.w;
+        if (cloudCov > 0.02 && cloudMaxA > 0.01 && elev > 0.04) {
+            highp float azWrap = fract(az / SKY_TWO_PI);
+
+            float lowFade = floor(smoothstep(0.04, 0.16, elev) * 4.0) / 4.0;
+            float zenithFade = 1.0 - smoothstep(1.18, 1.45, elev);
+            float cloudGate = lowFade * zenithFade;
+
+            if (cloudGate > 0.01) {
+                // High-altitude cloud band (slower drift, tiled 3x around 360 deg, mainly visible when overcast)
+                highp float hiV = 1.0 - clamp((elev - 0.26) / 1.06, 0.0, 1.0);
+                highp vec2 uvHi = vec2(fract(azWrap * 3.0 + materialParams.cloudDrift.z + 0.37), hiV);
+                vec4 cHi = texture(materialParams_cloudTex, uvHi);
+
+                float hiThresh = mix(0.95, 0.20, cloudCov);
+                if (elev > 0.26 && elev < 1.32 && cHi.b > hiThresh) {
+                    vec3 hiCol = (cHi.g > 0.58 && overcast < 0.85) ? materialParams.cloudLit.rgb : materialParams.cloudBody.rgb;
+                    if (rain > 0.01) hiCol *= (1.0 - rain * 0.28);
+                    float hiAlpha = clamp((0.55 + 0.40 * overcast) * cloudGate * cloudMaxA, 0.0, 1.0);
+                    col = mix(col, hiCol, hiAlpha);
+                }
+
+                // Primary cumulus / overcast stratus deck (tiled 3x around 360 deg, covers 5..64 deg elev)
+                highp float mainV = 1.0 - clamp((elev - 0.08) / 0.96, 0.0, 1.0);
+                highp vec2 uvMain = vec2(fract(azWrap * 3.0 + materialParams.cloudDrift.x), mainV);
+                vec4 cMain = texture(materialParams_cloudTex, uvMain);
+
+                float mainThresh = mix(0.90, 0.14, cloudCov);
+                if (elev > 0.08 && elev < 1.04 && cMain.r > mainThresh) {
+                    float puffH = cMain.g;
+                    float underMask = cMain.a;
+
+                    vec3 cLit = materialParams.cloudLit.rgb;
+                    vec3 cBody = materialParams.cloudBody.rgb;
+                    vec3 cShade = materialParams.cloudShade.rgb;
+
+                    float warmUnder = materialParams.cloudBody.w;
+                    if (warmUnder > 0.01) {
+                        vec3 warmRim = mix(cShade, materialParams.duskEmber.rgb, 0.48 * sunSide + 0.16);
+                        cShade = mix(cShade, warmRim, warmUnder * 0.68);
+                        cLit = mix(cLit, mix(cLit, materialParams.duskEmber.rgb, 0.30), warmUnder * sunSide);
+                    }
+
+                    if (nightW > 0.1 && elev < 0.34) {
+                        cShade = mix(cShade, materialParams.skyGlow.rgb, nightW * 0.16 * (1.0 - elev / 0.34));
+                    }
+
+                    if (rain > 0.01) {
+                        cLit = mix(cLit, cBody * 0.78, rain * 0.62);
+                        cBody *= (1.0 - rain * 0.24);
+                        cShade *= (1.0 - rain * 0.36);
+                    }
+
+                    vec3 cCol = cBody;
+                    if (underMask > 0.52 || (overcast > 0.72 && puffH < 0.50)) {
+                        cCol = cShade;
+                    } else if (puffH > 0.62 && overcast < 0.84) {
+                        cCol = cLit;
+                    }
+
+                    float cAlpha = clamp(cloudGate * cloudMaxA, 0.0, 1.0);
+                    col = mix(col, cCol, cAlpha);
+                }
+            }
+        }
+
+        // =====================================================================
+        // 6. STEPPED HORIZON MIST BANDS & RAIN HAZE (matching Backdrop.kt)
+        // =====================================================================
+        float lowHaze = mist + rain * 0.38;
+        if (lowHaze > 0.01) {
+            float mistBand = 1.0 - smoothstep(0.0, 0.26 + 0.14 * mist, ray.y);
+            float mistStep = floor(mistBand * 5.0 + 0.2) / 5.0;
+            vec3 mCol = materialParams.mistColor.rgb;
+            if (rain > 0.01) {
+                mCol = mix(mCol, materialParams.overcastLo.rgb * 0.84, rain * 0.55);
+            }
+            col = mix(col, mCol, clamp(mistStep * lowHaze * 0.88, 0.0, 0.92));
+        }
+
+        if (ray.y < 0.024) {
+            float seam = 1.0 - smoothstep(0.0, 0.024, ray.y);
+            col = mix(col, materialParams.skyBelow.rgb, seam * 0.45);
+        }
+
+        material.baseColor = vec4(max(col, vec3(0.0)), 1.0);
+    }
+}
