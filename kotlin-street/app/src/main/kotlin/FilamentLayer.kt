@@ -303,6 +303,9 @@ fun FilamentLayer(modifier: Modifier = Modifier, town: Boolean = false) {
 
 /** Runs Filament on [view]: one frame each time the stage draws one (in its draw, so street and sky are the same frame). */
 private class FilamentHost(private val ctx: Context, view: TextureView, private val townMode: Boolean) {
+    /** The town draws its own sky (FilamentTown's SkySurface, when its material ships): the surface is opaque. */
+    private val ownSky: Boolean = townMode && com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown.sky3d &&
+        runCatching { ctx.assets.open("filament/sky.filamat").close(); true }.getOrDefault(false)
     private var engine: Engine? = null
     private var renderer: Renderer? = null
     private var street: FilamentStreet? = null
@@ -342,7 +345,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
                 .config(com.lifemax.rpg.feature.habits.presentation.scene3d.TownEngine.config()).build()
             engine = e
             renderer = e.createRenderer().also { r ->
-                r.clearOptions = Renderer.ClearOptions().apply { clear = true; setClearColor(0.0, 0.0, 0.0, 0.0) }
+                r.clearOptions = Renderer.ClearOptions().apply { clear = true; setClearColor(0.0, 0.0, 0.0, if (ownSky) 1.0 else 0.0) }
                 // the display's fastest refresh (the S25's 120 Hz), as the classic asks for; the automatic resolution
                 // (TownQuality.resolution) aims at a steady 60 a second: with frames 16.7 ms apart the GPU's budget
                 r.frameRateOptions = Renderer.FrameRateOptions().apply { interval = 1 }
@@ -356,11 +359,13 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             FilamentStats.loadMs = (System.nanoTime() - t0) / 1e6f
             com.timerpg.street.play.PlayLog.spanDone("filament.start", FilamentStats.loadMs.toDouble())
             com.timerpg.street.play.PlayLog.phase("filament.start")
-            ui.isOpaque = false
+            // (the town draws its own sky: an opaque surface, nothing composited under it; the crossroads draw over the
+            // stage's 2D sky, see-through)
+            ui.isOpaque = ownSky
             ui.renderCallback = object : UiHelper.RendererCallback {
                 override fun onNativeWindowChanged(surface: Surface) {
                     swap?.let { e.destroySwapChain(it) }
-                    swap = e.createSwapChain(surface, ui.swapChainFlags or SwapChainFlags.CONFIG_TRANSPARENT)
+                    swap = e.createSwapChain(surface, if (ownSky) ui.swapChainFlags else ui.swapChainFlags or SwapChainFlags.CONFIG_TRANSPARENT)
                     dirty = true
                 }
                 override fun onDetachedFromSurface() {
@@ -519,6 +524,8 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             }
         }
         farms?.day = farmDay()
+        // the sky: the stage's weather, season and date (the moon's phase); the stage stops drawing its own under it
+        town!!.let { t -> t.weather = f.weather; f.season?.let { t.season = it }; t.day = f.day; Stage3D.townSky3d = t.drawsSky && ownSky }
         // (a ride on the train asked for, under way or ending: RailTrip)
         RailTrip.frame(town!!)
         rn.draw(walk, w.toFloat(), h.toFloat(), f.hour, f.seconds, com.lifemax.rpg.feature.habits.presentation.scene.SpriteSheets.sheets)
@@ -557,7 +564,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
         alive = false
         com.timerpg.street.shot.Crumbs.add("Filament stop")
         if (Stage3D.onFrame === onFrame) Stage3D.onFrame = null
-        if (townMode) Stage3D.townBuilding = false
+        if (townMode) { Stage3D.townBuilding = false; Stage3D.townSky3d = false }
         // (the stage that filled it may be gone: a room; the next one fills it afresh)
         Stage3D.frame.clear()
         runCatching { ui.detach() }

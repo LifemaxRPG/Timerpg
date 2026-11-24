@@ -1065,3 +1065,27 @@ Desktop numbers (llvmpipe, the whole gamma town built as the app builds it), NOT
   the view: those within reach). No cache: before 13.7, 15.8 s; after 11.1 s. The ground and yards are the
   first view's longest path here (6.5-10 s). On the S25, to be measured: the play log's `town.firstView` and the
   `town.job.*` spans (how long each waited).
+
+## The sky in Filament (2026-11-24: Jeff's G016 wired in)
+
+- `FilamentTown` makes a `SkySurface` (sky.mat: one far-plane triangle, drawn last, behind everything) and a `SkyState`
+  and updates both each frame from the camera's pose (the pinhole's own lens and principal point, so the sky's horizon
+  is the town's), the hour, the date (`day`, the moon's phase), the season and the weather. The game sets those from the
+  stage's frame (`Frame3D.fillTown` now carries the stage's `weather`, `season` and `day`: the loop's `weatherAt` sky
+  when on Auto, or the chip tapped). The view is opaque over its own sky; the app's surface and swap chain are opaque
+  in town mode (`FilamentHost.ownSky`), and the stage draws nothing under it (`Stage3D.townSky3d`). Without
+  `sky.filamat`, or with `FilamentTown.sky3d` off, everything is as before (see-through over the 2D Backdrop).
+- The haze takes the sky's colour: `SkyState.belowHorizonLin` in the open world (the horizon and its glow, greyed by
+  overcast and rain: what the sky draws under the horizon, so the far ground meets it with no line), `horizonLin` in
+  the street view. The ocean (`OceanSurface`) is not in the game yet: when it is, feed it `SkyState.oceanSkyLin` and
+  the glint.
+- Stars: the delivered field was a near-regular dot grid in the real render. The cause was precision: the star cells'
+  hashes ran in mediump (fp16 on the phone; Mesa lowers it too), came out near constant, and every cell passed its
+  density test. Now highp, the cells' rings are shifted at random, the stars jittered over the whole cell, fewer
+  (0.14 and 0.08 of the cells), most faint, none in the haze low down, the Milky Way's dust sparser.
+- Previews: `-Dmode=filament-open` draws the town's sky (`-Dsky3d=0 -Dsky=stage`: the old 2D Backdrop under it, to
+  compare; `-DskyWeather=overcast|rain|mist|cloudy`, `-DskyDay=yyyy-MM-dd`).
+- Left: the street view in the town keeps its camera-relative key light, so its shadows do not follow the sky's sun
+  (the open world's do); the night sky reads more mauve than the Backdrop's warm brown; the backlight's glare into a
+  low sun (Backlight) is gone in town mode; check on the S25 that the opaque TextureView shows no black frame while
+  the town loads (the loading screen covers it).

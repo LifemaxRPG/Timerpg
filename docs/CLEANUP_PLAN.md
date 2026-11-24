@@ -16,6 +16,9 @@ Order (after W5a and the playtest recorder merge; the recorder measures before a
    - Make a sky dome from SkyColors and Backdrop's logic: sun, moon, stars and clouds in pixel art.
    - Make the swap chain opaque.
    - Stop composing HabitsStage in town mode.
+   - **Done 2026-11-24 (town mode)**: FilamentTown draws Jeff's SkySurface (sky.mat, SkyState) on an opaque view and
+     swap chain; HabitsStage is still composed (it drives the frame loop until step 1) but returns right after handing
+     the frame over (`Stage3D.townSky3d`), drawing no Backdrop. The crossroads (non-town) mode keeps the 2D sky.
 3. **Delete the classic renderer** (about 25-30k lines). First move the live bits out:
    - `StreetLooks`/`Bag`/`Wear`/`StreetLook` out of StreetRig.kt;
    - Habit* data types out of GameActivity and CornerWorld.

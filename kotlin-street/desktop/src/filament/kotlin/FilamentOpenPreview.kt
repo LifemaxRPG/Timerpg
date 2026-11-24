@@ -96,8 +96,19 @@ fun renderFilamentOpen(out: String) {
         com.lifemax.rpg.feature.habits.domain.CinemaSiteShape.parse(root), com.lifemax.rpg.feature.habits.domain.StoreLots.parse(root).map { it.sprite }.toSet())
     val storeSites = com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root)
     com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown.farLod = System.getProperty("townFar") != "0"
+    // the sky: the town's own (SkySurface; -Dsky3d=0: none, see-through over -Dsky=stage's 2D Backdrop as before), its
+    // weather (-DskyWeather=overcast, rain, mist, cloudy) and date (-DskyDay=yyyy-MM-dd: the moon's phase)
+    FilamentTown.sky3d = System.getProperty("sky3d") != "0"
     val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, cinema = cinema,
         stores = storeSites, collision = collision, rail = railNet, landmarks = landmarkAssets)
+    ft.weather = when (System.getProperty("skyWeather")) {
+        "cloudy" -> com.lifemax.rpg.feature.habits.domain.WeatherState(.45f, 0f, 0f, 0f)
+        "overcast" -> com.lifemax.rpg.feature.habits.domain.WeatherState(.85f, 0f, 0f, 0f)
+        "rain" -> com.lifemax.rpg.feature.habits.domain.WeatherState(.9f, .8f, .8f, 0f)
+        "mist" -> com.lifemax.rpg.feature.habits.domain.WeatherState(.4f, 0f, 0f, .75f)
+        else -> com.lifemax.rpg.feature.habits.domain.WeatherState.CLEAR
+    }
+    ft.day = System.getProperty("skyDay") ?: "2026-07-10"
     ft.nightBudgetNs = Long.MAX_VALUE
     // the farms round the town, as the app attaches them (-Dfarms=0 leaves them out)
     if (System.getProperty("farms") != "0") {

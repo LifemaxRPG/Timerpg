@@ -24,6 +24,12 @@ object Stage3D {
     @Volatile var onFrame: (() -> Unit)? = null
 
     internal fun drawn() { onFrame?.invoke() }
+
+    /**
+     * The 3D renderer draws the town's sky itself (SkySurface on an opaque surface, docs/CLEANUP_PLAN.md step 2): in
+     * the walkable town the stage then draws nothing at all under it, only fills [frame] and hands it over.
+     */
+    @Volatile var townSky3d = false
 }
 
 /** One frame of the crossroads as the stage drew it. [n] counts frames, so a renderer can tell a new one. */
@@ -42,6 +48,10 @@ class Frame3D {
     var ground = 0f; internal set
     var horizon = 0f; internal set
     var unit = 1f; internal set
+    /** The walkable town's weather, season and date (yyyy-MM-dd: the moon's phase) as the stage has them ([fillTown]). */
+    var weather: com.lifemax.rpg.feature.habits.domain.WeatherState = com.lifemax.rpg.feature.habits.domain.WeatherState.CLEAR; private set
+    var season: com.lifemax.rpg.feature.habits.domain.SeasonState? = null; private set
+    var day: String = ""; private set
     /** How dark it is (0 day, 1 night). */
     var dark = 0f; internal set
     /** The walkable town's frame ([fillTown]): no crossroads in it, only the hour, the clock, the sky and the screen. */
@@ -54,8 +64,11 @@ class Frame3D {
     /** A frame of the walkable town (TOWN.md T10): the stage drew only its sky, the town's renderer draws the rest. */
     internal fun fillTown(
         sky: SkyColors, light: KeyLight, hour: Float, seconds: Float, width: Float, height: Float, ground: Float, horizon: Float, unit: Float,
+        weather: com.lifemax.rpg.feature.habits.domain.WeatherState = com.lifemax.rpg.feature.habits.domain.WeatherState.CLEAR,
+        season: com.lifemax.rpg.feature.habits.domain.SeasonState? = null, day: String = "",
     ) {
         world = null; cr = null; sides = null; town = true
+        this.weather = weather; this.season = season; this.day = day
         this.sky = sky; this.light = light
         this.hour = hour; this.seconds = seconds; this.width = width; this.height = height
         this.ground = ground; this.horizon = horizon; this.unit = unit; this.dark = sky.dark

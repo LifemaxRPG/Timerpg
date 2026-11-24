@@ -952,8 +952,10 @@ private fun StageCanvas(
             Stage3D.frame.fill(world, cr, sides!!, sky, light, p.hour, seconds, this.size.width, this.size.height, f.ground, horizon, f.unit)
             Stage3D.drawn()
         } else if (townSky && Stage3D.listening) {
-            Stage3D.frame.fillTown(sky, light, p.hour, seconds, this.size.width, this.size.height, f.ground, horizon, f.unit)
+            Stage3D.frame.fillTown(sky, light, p.hour, seconds, this.size.width, this.size.height, f.ground, horizon, f.unit, weather, season, p.day)
             Stage3D.drawn()
+            // (the town draws its own sky, opaque: nothing of the stage's would show)
+            if (Stage3D.townSky3d) return@Canvas
         }
         val from = f.streetX(0f) - B.GAP
         val to = f.streetX(this.size.width) + B.GAP

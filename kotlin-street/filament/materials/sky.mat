@@ -121,14 +121,16 @@ fragment {
     const float SKY_PI = 3.14159265359;
     const float SKY_TWO_PI = 6.28318530718;
 
-    float hash21(vec2 p) {
-        vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
+    // (highp throughout: in mediump (fp16 on the phone's GPU, and Mesa's software GL lowers it too) these hashes of cell
+    // numbers in the hundreds come out nearly constant, and every star cell passed its density test: a dot grid)
+    highp float hash21(highp vec2 p) {
+        highp vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
         p3 += dot(p3, p3.yzx + 33.33);
         return fract((p3.x + p3.y) * p3.z);
     }
 
-    vec3 hash23(vec2 p) {
-        vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
+    highp vec3 hash23(highp vec2 p) {
+        highp vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
         p3 += dot(p3, p3.yxz + 33.33);
         return fract((p3.xxy + p3.yzz) * p3.zyx);
     }
@@ -155,26 +157,30 @@ fragment {
         highp float cosEl = max(0.15, cos(ringCenterEl));
         highp float cols = max(12.0, floor(SKY_TWO_PI * cosEl / cellAng));
 
+        // (each ring's columns shifted by its own random part of a cell, so the cells never line up ring over ring into
+        // a lattice)
+        highp float ringShift = hash21(vec2(ring * 1.731 + seedOffset * 11.3, seedOffset * 5.7 + 2.9));
         highp float azNorm = fract(az / SKY_TWO_PI);
-        highp float col = floor(azNorm * cols);
-        highp float localU = fract(azNorm * cols);
+        highp float col = floor(azNorm * cols + ringShift);
+        highp float localU = fract(azNorm * cols + ringShift);
         highp float localV = fract(elev / cellAng);
 
-        vec2 cellId = vec2(col + seedOffset * 137.0, ring + seedOffset * 53.0);
-        vec3 rnd = hash23(cellId);
+        highp vec2 cellId = vec2(col + seedOffset * 137.0, ring + seedOffset * 53.0);
+        highp vec3 rnd = hash23(cellId);
         if (rnd.x > density) {
             return vec3(0.0);
         }
 
-        vec2 starPx = floor(vec2(0.15 + 0.70 * rnd.y, 0.15 + 0.70 * rnd.z) * subGrid);
+        // (anywhere in its cell but the very edge: the jitter is the whole cell, not its middle)
+        vec2 starPx = floor(vec2(0.04 + 0.92 * rnd.y, 0.04 + 0.92 * rnd.z) * subGrid);
         vec2 curPx = floor(vec2(localU, localV) * subGrid);
         vec2 dp = abs(curPx - starPx);
 
-        float mag = hash21(cellId + vec2(19.7, 7.3));
+        highp float mag = hash21(cellId + vec2(19.7, 7.3));
         float hit = 0.0;
         if (dp.x < 0.5 && dp.y < 0.5) {
             hit = 1.0;
-        } else if (allowCross > 0.5 && mag > 0.82 && ((dp.x < 1.5 && dp.y < 0.5) || (dp.y < 1.5 && dp.x < 0.5))) {
+        } else if (allowCross > 0.5 && mag > 0.94 && ((dp.x < 1.5 && dp.y < 0.5) || (dp.y < 1.5 && dp.x < 0.5))) {
             hit = 0.45;
         }
         if (hit <= 0.0) {
@@ -185,7 +191,8 @@ fragment {
         float tw = hash21(cellId + vec2(tick * 0.37, 4.1));
         float twinkle = (tw > 0.86) ? 1.18 : ((tw < 0.14) ? 0.74 : 1.0);
 
-        float bright = (mag > 0.84) ? 1.00 : ((mag > 0.48) ? 0.64 : 0.34);
+        // (most stars faint, a few bright: 6% at full, a quarter at middling)
+        float bright = (mag > 0.92) ? 1.00 : ((mag > 0.70) ? 0.52 : 0.24);
         bright *= hit * twinkle;
 
         float tintRoll = hash21(cellId + vec2(41.2, 23.8));
@@ -335,7 +342,8 @@ fragment {
         // 2. WORLD-FIXED MILKY WAY & PIXEL-ART STARS (above horizon, before moon/clouds)
         // =====================================================================
         if (starBright > 0.005 && ray.y > 0.025) {
-            float horizFade = floor(smoothstep(0.03, 0.22, ray.y) * 4.0) / 4.0;
+            // (few stars low down: the town's glow and the haze hide them)
+            float horizFade = floor(smoothstep(0.06, 0.34, ray.y) * 4.0) / 4.0;
             float starAlpha = starBright * horizFade;
             if (starAlpha > 0.01) {
                 if (starAlpha > 0.30 && overcast < 0.40) {
@@ -345,14 +353,17 @@ fragment {
                     float mwStep = floor(mwBand * 3.0) / 3.0;
                     if (mwStep > 0.01) {
                         highp vec2 mwCell = floor(vec2(az * 135.0, elev * 135.0));
-                        float mwSpark = step(0.76, hash21(mwCell));
-                        vec3 mwBase = vec3(0.006, 0.011, 0.032) + vec3(0.020, 0.028, 0.058) * mwSpark;
+                        // (its dust: a few sparks, not a quarter of its cells, which read as a dot grid in the real render)
+                        float mwSpark = step(0.95, hash21(mwCell));
+                        vec3 mwBase = vec3(0.006, 0.011, 0.032) + vec3(0.014, 0.020, 0.042) * mwSpark;
                         col += mwBase * mwStep * starAlpha * (1.0 - overcast * 0.85);
                     }
                 }
 
-                vec3 s1 = evalStarLayer(ray, elev, az, 0.052, 7.0, 0.25, 1.0, timeSec, 1.0);
-                vec3 s2 = evalStarLayer(ray, elev, az, 0.025, 5.0, 0.20, 3.0, timeSec, 0.0);
+                // (thinned 2026-11-24: the real render's field was near a regular dot lattice at 0.25 and 0.20 of the
+                // cells; now fewer, jittered over whole cells, rings shifted, most of them faint)
+                vec3 s1 = evalStarLayer(ray, elev, az, 0.052, 9.0, 0.14, 1.0, timeSec, 1.0);
+                vec3 s2 = evalStarLayer(ray, elev, az, 0.031, 7.0, 0.08, 3.0, timeSec, 0.0);
                 vec3 stars = max(s1, s2 * 0.84);
                 col += stars * starAlpha;
             }

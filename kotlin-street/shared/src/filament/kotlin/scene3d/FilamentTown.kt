@@ -326,6 +326,23 @@ class FilamentTown(
     private val fog = View.FogOptions()
     private val grading: ColorGrading = ColorGrading.Builder().toneMapper(LinearToneMapper()).build(engine)
 
+    // ------------------------------------------------------------------ the sky (Jeff's G016: sky.mat, SkyState, SkySurface)
+    /**
+     * The sky dome drawn by the town itself, behind everything (one far-plane triangle), on an opaque view: the stage's 2D
+     * Backdrop no longer shows under it (docs/CLEANUP_PLAN.md step 2). Null: no sky material (an old asset set) or
+     * [sky3d] off; then the view stays see-through over the stage's sky, as before.
+     */
+    private val skyMat: Material? = if (!sky3d) null else runCatching { load("sky", materialBytes) }.getOrNull()
+    private val skySurface: SkySurface? = skyMat?.let { SkySurface(engine, scene, it) }
+    /** The sky's state this frame: its colours feed the haze too, so the far ground meets the horizon with no line. */
+    val skyState = SkyState()
+    /** The town draws its own sky. */
+    val drawsSky: Boolean get() = skySurface != null
+    /** The weather, season and date (yyyy-MM-dd, for the moon's phase; empty: a full moon) the sky shows, set each frame by the game. */
+    var weather: com.lifemax.rpg.feature.habits.domain.WeatherState = com.lifemax.rpg.feature.habits.domain.WeatherState.CLEAR
+    var season: com.lifemax.rpg.feature.habits.domain.SeasonState = com.lifemax.rpg.feature.habits.domain.Season.SUMMER
+    var day: String = ""
+
     /** Where the yards come from: the yard kit ([YardKitBuilder]), or [PlaceholderYards] (flat colours) to check the layout. */
     var yardBuilder: YardBuilder = YardKitBuilder
     private val ticks = ArrayList<(Double) -> Unit>()
@@ -653,7 +670,8 @@ class FilamentTown(
         view.dithering = View.Dithering.NONE
         view.antiAliasing = View.AntiAliasing.NONE
         view.sampleCount = 1
-        view.blendMode = View.BlendMode.TRANSLUCENT
+        // (opaque over its own sky; see-through over the stage's when it has none)
+        view.blendMode = if (skySurface != null) View.BlendMode.OPAQUE else View.BlendMode.TRANSLUCENT
         view.colorGrading = grading
         view.isShadowingEnabled = true
         view.shadowType = View.ShadowType.PCF
@@ -1263,6 +1281,13 @@ class FilamentTown(
         aim(pose)
         val sky = skyColors(hour)
         light(pose, hour, sky)
+        skySurface?.let { ss ->
+            if (day.isEmpty()) skyState.update(hour, .5f, weather, season, seconds.toFloat()) else skyState.update(hour, day, weather, season, seconds.toFloat())
+            // (the pinhole's ray through each pixel, as LookMatrix.pinhole projects: the principal point off the middle)
+            val fl = pose.fl.coerceAtLeast(1f)
+            ss.update(skyState, pose.rx, pose.ry, pose.rz, pose.ux, pose.uy, pose.uz, pose.fx, pose.fy, pose.fz,
+                pose.w / (2f * fl), pose.h / (2f * fl), (pose.w / 2f - pose.cx) / fl, (pose.cy - pose.h / 2f) / fl)
+        }
         haze(pose, sky)
         val dark = sky.dark
         crowd.dark = dark
@@ -1862,6 +1887,9 @@ class FilamentTown(
         // a dark sky, not the orange itself, which made midnight's haze a sunset)
         val low = sky.sky.lastOrNull() ?: return
         val tone = if (p.open) lerp(low, sky.glow.copy(alpha = 1f), sky.glow.alpha) else low
+        // (with the town's own sky: its colour under the horizon, the weather's greys and mist in it, already linear; the
+        // street view's, its horizon band)
+        val skyTone = if (skySurface == null) null else if (p.open) skyState.belowHorizonLin else skyState.horizonLin
         fog.enabled = !hazeOff
         fog.distance = p.hazeFrom
         fog.height = 0f
@@ -1879,7 +1907,7 @@ class FilamentTown(
             fog.inScatteringStart = 0f
             fog.inScatteringSize = -1f
             fog.fogColorFromIbl = false
-            fog.color = floatArrayOf(lin(tone.red), lin(tone.green), lin(tone.blue))
+            fog.color = skyTone?.copyOf() ?: floatArrayOf(lin(tone.red), lin(tone.green), lin(tone.blue))
             view.fogOptions = fog
             return
         }
@@ -1901,7 +1929,7 @@ class FilamentTown(
         fog.inScatteringStart = 0f
         fog.inScatteringSize = -1f
         fog.fogColorFromIbl = false
-        fog.color = floatArrayOf(lin(tone.red), lin(tone.green), lin(tone.blue))
+        fog.color = skyTone?.copyOf() ?: floatArrayOf(lin(tone.red), lin(tone.green), lin(tone.blue))
         view.fogOptions = fog
     }
 
@@ -1986,6 +2014,7 @@ class FilamentTown(
         for (m in extraMaterials.values) engine.destroyMaterial(m)
         extraMaterials.clear()
         engine.destroyColorGrading(grading)
+        skySurface?.destroy(); skyMat?.let { engine.destroyMaterial(it) }
         val ce = camera.entity
         engine.destroyCameraComponent(ce); em.destroy(ce)
         engine.destroyView(view)
@@ -1993,6 +2022,8 @@ class FilamentTown(
     }
 
     companion object {
+        /** The town draws its own sky ([SkySurface]); off: see-through over the stage's 2D Backdrop, as before 2026-11-24. */
+        @Volatile var sky3d = true
         /** The railroad's hand-made depot model (its catalogue kind), and where it stands: its platform's edge [DEPOT_PLATFORM_M]
          * behind its origin, [DEPOT_EDGE_M] from the track's centre (metres). */
         const val DEPOT_KIND = "landmark_glb_premier_railroad_depot"
