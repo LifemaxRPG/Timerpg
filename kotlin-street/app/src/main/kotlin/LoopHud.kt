@@ -74,6 +74,11 @@ fun LoopWallet(debugOpen: Boolean, onDebug: () -> Unit) {
             }
             LoopButton("Loop", on = debugOpen, onClick = onDebug)
         }
+        // (how the player is: hungry, tired ...; and the fuel of the car they drive)
+        v?.needs?.labels?.takeIf { it.isNotEmpty() }?.let { l -> Box(Modifier.widthIn(max = 300.dp).background(BG, RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) {
+            T(l.joinToString(" · "), 12.sp, if (l.any { it == "starving" || it == "exhausted" || it == "ill" }) HOT else DIM_TEXT) } }
+        LoopSession.drivenCar?.let { c -> Box(Modifier.widthIn(max = 300.dp).background(BG, RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) {
+            T("${c.label}: fuel %.1f of %.0f gal · ${c.mileage} mi".format(c.fuel, c.tank), 12.sp, if (c.fuel < 1.0) HOT else DIM_TEXT) } }
         v?.rent?.line?.let { Box(Modifier.widthIn(max = 300.dp).background(BG, RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) { T(it, 12.sp, HOT) } }
         v?.jobs?.news?.takeIf { it.isNotEmpty() }?.let { Box(Modifier.widthIn(max = 300.dp).background(BG, RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) { T(it, 12.sp, DIM_TEXT) } }
     }
@@ -142,11 +147,15 @@ fun LoopShopPanel(place: LoopPlace, year: Int, hour: Float, onAction: (String, A
             }
             jobs?.referencesText?.takeIf { it.isNotEmpty() }?.let { T(it, 11.sp, DIM_TEXT) }
         }
+        // food and care: a meal or a snack where they sell it, the pharmacist's treatment for each injury
+        v?.eat?.get(place.id)?.let { e -> LoopButton("${e.label} ${e.text}", enabled = !busy && open && ((v?.cash ?: 0) >= e.cents)) { onAction("eat", null) } }
+        if (place.shopKind == "pharmacy") for (inj in v?.needs?.injuries.orEmpty().filter { !it.treated })
+            LoopButton("Treat your ${inj.kind} ${inj.costText}", enabled = !busy && open && (v?.cash ?: 0) >= inj.costCents) { onAction("treat", inj.kind) }
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             // (the odd-job shift stays only where nothing is on offer: a shop that is hiring, or one the player works at, takes applications and shifts)
             if (place.isShop && !mine && ops.isEmpty()) LoopButton("Work a shift", enabled = !busy && open) { onAction("work", null) }
             LoopButton("Wait 1 h", enabled = !busy) { onAction("wait", null) }
-            LoopButton("Sleep till 7", enabled = !busy) { onAction("sleep", null) }
+            LoopButton("Sleep rough till 7", enabled = !busy) { onAction("sleep", null) }
             LoopButton("Close") { onClose() }
         }
     }
@@ -168,6 +177,11 @@ fun LoopLodgingPanel(lodging: com.lifemax.rpg.feature.habits.loop.LoopLodging, h
         } else {
             T("Your room: ${rent.rentText}; next ${rent.nextDue}; ${rent.nights} night${if (rent.nights == 1) "" else "s"} slept.", 12.sp, DIM_TEXT)
             rent.line?.let { T(it, 12.sp, HOT) }
+            v.boardLine.takeIf { it.isNotEmpty() }?.let { T(it, 12.sp, DIM_TEXT) }
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (v.boardLine.isNotEmpty()) LoopButton("Take your board", enabled = !busy && !rent.lockedOut) { onAction("board", null) }
+                LoopButton("Wash up", enabled = !busy && !rent.lockedOut) { onAction("wash", null) }
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (rent.owedCents > 0) LoopButton("Pay rent ${rent.owedText}", enabled = !busy && cash >= rent.owedCents) { onAction("pay", null) }
                 LoopButton("Sleep in your room till 7", enabled = !busy && !rent.lockedOut) { onAction("sleepRoom", null) }
@@ -238,6 +252,67 @@ fun LoopFencePanel(fence: com.lifemax.rpg.feature.habits.loop.LoopFence, hour: F
             }
         }
         LoopButton("Close") { onClose() }
+    }
+}
+
+/**
+ * The used-car lot at the gas station: the cars for sale (round asking prices), the papers, and the player's own cars (fuel by the gallon,
+ * a service, a repair, a tow), docs/LOOP.md "Needs, weather and cars".
+ */
+@Composable
+fun LoopCarLotPanel(place: LoopPlace, ctx: android.content.Context, hour: Float, onClose: () -> Unit, modifier: Modifier = Modifier) {
+    val v = LoopSession.view
+    val busy = LoopSession.busy
+    val cars = v?.cars
+    val cash = v?.cash ?: 0
+    Column(modifier.widthIn(max = 480.dp).heightIn(max = 420.dp).background(PANEL_BG, RoundedCornerShape(14.dp)).loopOpaque().verticalScroll(rememberScrollState()).padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        T("${place.name}: used cars", 15.sp)
+        if (cars == null) T("...", 12.sp, DIM_TEXT)
+        else {
+            T("For sale:", 13.sp, DIM_TEXT)
+            for (c in cars.lot) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                T("${c.label}, ${c.mileage} mi, ${c.conditionPct}%", 12.sp, Color.White, Modifier.widthIn(min = 200.dp, max = 250.dp))
+                LoopButton("Buy ${c.askingText}", enabled = !busy && cash >= c.askingCents) { LoopSession.buyCar(ctx, place, c.id, hour) }
+            }
+            T("Papers:", 13.sp, DIM_TEXT)
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                for (p in cars.papers) LoopButton(if (p.have) "${p.label} ok" else "${p.label} ${p.text}", enabled = !busy && !p.have && cash >= p.cents) { LoopSession.buyPaper(ctx, place, p.kind, hour) }
+            }
+            if (cars.papersLine.isNotEmpty()) T(cars.papersLine, 12.sp, HOT)
+            T("Fuel ${cars.fuelText} a gallon.", 12.sp, DIM_TEXT)
+            for (o in cars.owned) {
+                val near = LoopSession.carNear(o.id)
+                T("${o.label}: %.1f of %.0f gal, ${o.mileage} mi, ${o.conditionPct}%%".format(o.fuel, o.tank) + (o.blocked?.let { " - $it" } ?: "") + if (near) "" else " (not here)", 12.sp, if (o.blocked != null) HOT else Color.White)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    LoopButton("5 gal", enabled = !busy && near && o.fuel + .05 < o.tank) { LoopSession.refuel(ctx, o.id, 5.0) }
+                    LoopButton("Fill up", enabled = !busy && near && o.fuel + .05 < o.tank) { LoopSession.refuel(ctx, o.id, null) }
+                    LoopButton("Service ${o.serviceText}", enabled = !busy && near && cash >= o.serviceCents) { LoopSession.serviceCar(ctx, o.id) }
+                }
+                if (o.breakdown != null) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    LoopButton("Repair ${o.repairText}", enabled = !busy && (o.roadside || near) && cash >= o.repairCents) { LoopSession.repairCar(ctx, o.id) }
+                    if (!near) LoopButton("Tow ${o.towText}", enabled = !busy && cash >= o.towCents) { LoopSession.callTow(ctx, o.id) }
+                } else if (o.blocked != null && !near) LoopButton("Tow ${o.towText}", enabled = !busy && cash >= o.towCents) { LoopSession.callTow(ctx, o.id) }
+            }
+        }
+        LoopButton("Close") { onClose() }
+    }
+}
+
+/** The driven car stopped (a breakdown or an empty tank): what happened and the ways out, fixing it here (a flat, a dead battery) or a tow. */
+@Composable
+fun LoopBreakdownCard(ctx: android.content.Context, modifier: Modifier = Modifier) {
+    val c = LoopSession.drivenCar ?: return
+    val why = c.blocked ?: return
+    val busy = LoopSession.busy
+    val cash = LoopSession.view?.cash ?: 0
+    Column(modifier.widthIn(max = 420.dp).background(PANEL_BG, RoundedCornerShape(14.dp)).loopOpaque().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        T("Your ${c.label} has stopped: $why", 14.sp, HOT)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (c.breakdown != null && c.roadside) LoopButton("Fix it here ${c.repairText}", enabled = !busy && cash >= c.repairCents) { LoopSession.repairCar(ctx, c.id) }
+            LoopButton("Call a tow ${c.towText}", enabled = !busy && cash >= c.towCents) { LoopSession.callTow(ctx, c.id) }
+        }
+        T(if (c.breakdown != null && !c.roadside) "This is a garage job: the tow takes it to the lot (get out when it has stopped)." else "A tow takes the car to the lot (get out when it has stopped).", 11.sp, DIM_TEXT)
     }
 }
 

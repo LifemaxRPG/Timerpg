@@ -349,3 +349,76 @@ cached (dates per day, openings per place per week), precomputed into `LoopView`
 - **Gaps:** no choice of shift (always the opening's start hour); a shift is one fade of the clock, not played; papers and age are constants; the keeper's
   stance is the only reputation; no pay day (wages are paid at each shift's end); the job is not in the dialogue fact sheets (a coworker does not know of a warning);
   the clock window for starting a shift is 3 hours for all roles; a 23:00 night shift is not offered in the loop (no hotel or motel); not tried on the S25.
+
+## Needs, weather and cars (2026-11-24)
+
+Sam's `src/needs` (docs/NEEDS.md), `src/weather` (docs/WEATHER.md) and `src/cars` (docs/CARS.md) are in the loop through the same bridge:
+`Needs` (`needs.initialNeeds / tick / eat / sleep / wash / injure / treat / treatmentCost / effects`), `Weather` (`weather.weatherAt /
+weatherEffects / temperatureRange`) and `Cars` (`cars.carsForSale / papersFor / policeStop / runningCosts / drive / repairCost / serviceCar`) in
+`src/loop/bridge.ts`, routed by `simCall` like `economy.*`. Read in `LoopGame` on the sim thread only, cached, precomputed into `LoopView`
+(`needs`, `eat`, `sky`, `cars`, `walkMultiplier`, `boardLine`); the UI never calls the sim. Code: `LoopGame` ("needs", "the sky", "cars"
+sections), `LoopCars.kt` (views and tables), `LoopSession` (activity, `tickCars`, injuries), `LoopHud.kt` (`LoopCarLotPanel`,
+`LoopBreakdownCard`), `GameActivity` (Auto weather chip, panels), `VehicleWorld`, `OpenWalk`, `GameState.walkScale`. Tests:
+`LoopGameTest.needsTickHungryEatingRelievesAndASleepOnABenchRestoresLessThanABed`, `theSkyFollowsTheDateAndFogCutsTheWitnessRange`,
+`buyingACarPapersFuelWearBreakdownsAndATow`; `src/loop/bridge.needsweathercars.test.ts`.
+
+**Service places.** The capital's landmarks the loop now knows as shops (`LoopTown`, added after the homes so no earlier clerk changed): the gas
+station (`glb:modern_gas_station`, shop kind "gas station", econ `gas_station`), the diner (`glb:carhop_drive_in`, "diner") and the
+drugstore (`glb:corner_drugstore`, "pharmacy"), matched by landmark kind so other eras' (`main_street_service_station`, `junction_diner`) work.
+They get the usual panel (shelves, hours, work, theft), clerks and witnesses.
+
+**Needs**
+- `Needs` JSON in the loop state, saved (`needs`, `board`). Ticked in `LoopGame.advance` with an activity from what the player was doing:
+  walking/running from the walk (`LoopSession.noteMotion` each frame adds seconds to fading shares; the shares at the burst pick the activity, `idle`
+  in a car), `working` for a shift, `sleeping` on a bed type for sleep, `idle` for waits and rides. The cell hours (`arrest`) are a night on `cell`
+  (or `idle` under 6 h).
+- **Eat:** the shop panel has "Eat a meal" (diner) or "Have a snack" (general store, market, five-and-dime, gas station): paid
+  `dailyNeeds(year).dinerMealsPerDayCents / 3`, a snack 30% of that (no menu exists yet; ours). **Board:** a lodging with `includedMealsPerDay` (room and
+  board: 2) shows "Take your board" in the room panel, free, up to the included number a day (`LoopGame.lodgingKind` picks the lodging; the
+  boarding house has none). "Wash up" in the room (`needs.wash`).
+- **Sleep:** the rented room is a `bed` (`sleepInRoom`); "Sleep rough till 7" anywhere else is a `bench` (restores less: a 9 h night from tired
+  leaves 0.48 on the bench, 0.00 in the bed); the cell is `cell`.
+- **Effects:** the HUD labels ("hungry", "tired", ...) under the cash; `walkingSpeedMultiplier` x the sky's walk multiplier (floor .3) goes to
+  `GameState.walkScale`, which `OpenWalk.stepFoot` takes as a share of each step (the bicycle is not slowed); the social modifier becomes a note in
+  every fact sheet ("You notice this person looks unwashed and exhausted.", only when the modifier is below -0.05; cached facts are rebuilt when the
+  look changes). **Not used:** the social modifier in `jobs.apply`'s reputation (it would change existing results; a later step), `dozeChancePerHour`.
+- **Injuries:** a hard stop of the driven car (`VehicleWorld.onImpact`, the speed lost in one frame, at most one a second): above 10 m/s a bruise, above
+  16 a sprain; a fall (`OpenWalk.onFall`, landing speed): above 6 m/s a bruise, above 9 a sprain. The pharmacy panel offers "Treat your X" at
+  `treatmentCost` (it then heals twice as fast). Not tried on the S25: the impact is the per-frame speed drop of the Jolt car, a real crash may need tuning.
+
+**Weather**
+- The sky is `weatherAt('temperate_coast', day - 1, hour, town seed, startDate)` (`LoopGame.skyAt`, cached per hour; same date and seed, same sky).
+  `climate` is a field (gamma's: `temperate_coast`). The manual weather chips are an override: tap one and it holds until the new **Auto** chip is tapped
+  (it shows the sky's name). Mapping to the renderer's `WeatherState` (`skyState` in `GameActivity`): clear = none, cloudy = a light cloud, overcast and snow =
+  overcast (snow also shows the winter season while it lasts), rain = rain, storm = rain at its heaviest, fog = mist. The sound follows the same state.
+- `weatherEffects`: **faceRecognitionM** limits who can witness an act (`LoopScene.limitedTo` in `LoopGame.act`: outdoor bystanders beyond it get no line
+  of sight, `lastAct.sighted` counts those who still see; 35 m clear, 6 m in fog; indoors unchanged); **walkingSpeedMultiplier** is combined with the needs'
+  (above); **streetActivityMultiplier** is shown in the debug panel only: the stage already thins the crowd from the weather state (`TownPlay.outdoors` from the
+  rain, mist and cloud of the state it is given), so it follows the sky through the mapping; **carGripMultiplier** reaches `VehicleWorld.gripScale`, which
+  lessens the power put down (x(.5 + .5 grip)) and the steering (x(.7 + .3 grip)) of the driven car. **A stand-in:** the physics fixes tyre friction when a
+  car is made, so the real friction is not changed (it would need a native setter).
+- Officers' sight (30 m) is not yet cut by the weather.
+
+**Cars**
+- **The lot** is at the gas station (the capital's `Crossfield Fuel & Market`): a "Used cars" chip beside the shop chip opens `LoopCarLotPanel`.
+  Listings are `carsForSale(year, "<town>|lot|<month of 28 days>")` less the player's cars, asking prices rounded ($5 under $100, $10 under $1,000, $50
+  under $5,000, else $100). Bodies are drawn as V1 models (`LoopCars.specFor`): sedan, coupe and wagon by model year (alderwick before 1935, fenmere before
+  1950, northcairn before 1966, rowanvale after), pickup the tallmere (older ones as sedans), sports_car the torrel-1968 (torrel-1988 from 1980).
+- **Buying** debits the price, makes an owned car (the module's `Car` JSON, saved as `ownedCars` with its model, colour seed, fuel and spot) with 5 gallons
+  (or a smaller tank), parked at the lot by `LoopSession.tickCars` (twice a second, on the main thread; the world's changes are posted to the game loop,
+  `VehicleWorld.post`). A car left on the street keeps its spot (`parkCar`), a towed one goes back to the lot.
+- **Papers:** `papersFor(year)` prices for registration, licence, insurance (those the era has), bought at the lot, saved (`papers`). Nothing checks
+  them yet: **police stops on papers (`policeStop`) can wait for Jeff's facade** (no stop hook in `spotted` for a driver).
+- **Driving** accrues miles (`tickCars` measures the driven car's travelled distance twice a second and passes at least 0.05 mile to `driveMiles`): `cars.drive`
+  with the sky's temperature and the town's seed wears the car and may break it down (deterministic for the seed: a 2022 wagon of 63% condition broke at
+  about 21,600 miles in the test); fuel falls by miles / `runningCosts.mpg`; a breakdown or an empty tank sets `VehicleWorld.engineOff` (no throttle), and
+  a card (`LoopBreakdownCard`) names what happened. A flat tyre or a dead battery is a roadside job: **"Fix it here"** pays `repairCost`; anything
+  else (or out of fuel) is **"Call a tow"**: pays $6 in 1952 money scaled by the price index (the module has no tow price; ours), the car goes to the lot
+  once the player has got out, and "Repair" at the lot pays `repairCost`. A service (`serviceCar`) at the lot restores it.
+- **The flat tyre's repair** is a tenth of the module's ($1.50 in 1952 money rather than $15): `LoopGame.repairOf` (the module still says $15; its test is
+  left as it is).
+- **Fuel:** the pumps sell by the gallon at `gasolinePerGallonCents` (the economy's `gasoline`): "5 gal" or "Fill up", the car within 40 m of the station
+  or at the lot. Tank sizes by body are ours (`LoopCars.tank`, 13-18 gallons).
+- **Gaps:** the owned car is not matched to a physical key; its colour is a seed into the model's palette; no insurance rules, no repossession; breakdowns
+  stop the engine but the car does not smoke or show it; the tow does not drive anywhere; all untried on the S25, and the Android parts (HUD, the car lot panel,
+  the Auto chip, spawning at the lot, the fall and crash hooks) only compile (no instrumented test).

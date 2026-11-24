@@ -15,6 +15,9 @@ import kotlin.math.round
  * follows [x]. When [enabled] is false the stage behaves as the habit tab did.
  */
 object GameState {
+    /** What the loop's needs and the sky allow of the walking speed (1 normal, down to .3): the open walk's feet take this share of each step. Set by LoopSession. */
+    @Volatile var walkScale = 1f
+
     var enabled = false
     /** Where along the street (street units), how far out across the pavement, and which way they face (1 right, -1 left). */
     var x = 0f

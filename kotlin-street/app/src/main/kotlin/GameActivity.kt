@@ -464,6 +464,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     LaunchedEffect(hour) { if (townMode) LoopSession.clock(hour) }
     LoopSession.hourSet?.let { h -> LaunchedEffect(h) { hour = h.coerceIn(0f, LAST_MINUTE); LoopSession.hourSet = null } }
     var loopShop by remember { mutableStateOf(false) }
+    var carLotOpen by remember { mutableStateOf(false) }
     var loopDebug by remember { mutableStateOf(false) }
     // the fence the player stands by at night (LoopSession.fenceNear) and the one whose panel they closed (until they walk off)
     var fenceNear by remember { mutableStateOf<com.lifemax.rpg.feature.habits.loop.LoopFence?>(null) }
@@ -476,13 +477,24 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     var stopOpen by remember { mutableStateOf(false) }
     var season by remember { mutableIntStateOf(1) }
     var weather by remember { mutableIntStateOf(0) }
+    // the sky follows the date and the town's seed (the loop's `weatherAt`) until a weather chip is tapped; "Auto" gives it back
+    var weatherAuto by remember { mutableStateOf(true) }
+    val sky = LoopSession.view?.sky?.sky
+    val autoSky = weatherAuto && sky != null
+    val effWeather: WeatherState? = if (autoSky) skyState(sky) else WEATHERS[weather].second
+    // (snow falls as the winter look)
+    val effSeason = if (autoSky && sky == "snow") 3 else season
+    val weatherKey = if (autoSky) "auto:$sky" else "m:$weather"
+    // (read by the sound's loop, which starts once: the current ones)
+    val effWeatherNow = rememberUpdatedState(effWeather)
+    val effSeasonNow = rememberUpdatedState(effSeason)
     // (the stage takes both streets from the crossroads; the projection is the main street's, so turning the corner
     // rebuilds nothing)
-    val p = remember(hour, data, season, weather) {
+    val p = remember(hour, data, effSeason, weatherKey) {
         // the date sets the season (leaf, blossom, snow); the weather is forced
-        WeatherOverride.forced = WEATHERS[weather].second
+        WeatherOverride.forced = effWeather
         HabitsProjection(
-            day = SEASONS[season].second, hour = hour, who = "", whoHint = "", rough = false, built = 0, due = 0,
+            day = SEASONS[effSeason].second, hour = hour, who = "", whoHint = "", rough = false, built = 0, due = 0,
             reducedMotion = false, haptics = null, problem = "", limits = HabitLimits(40, 40, 40, 40, 40, 1, 12, 12),
             rules = HabitRules(10, 40, 100, 12), stacks = data.streets[0].shops, lapse = emptyList(), tokens = emptyMap(), light = false,
         )
@@ -502,6 +514,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             frameTick.longValue = now
             // how long each frame took, for the AI panel's frame line (is it really 120 Hz on the phone?)
             if (last != 0L) FrameStats.add((now - last) / 1e6f)
+            // what the player is doing, for their needs (the loop's sim reads the shares at each burst)
+            if (last != 0L && townMode) LoopSession.noteMotion((now - last) / 1e9f, GameState.walking, GameState.running, townPlay.inCar)
             last = now
             // moving (walking, a turn or a crossing): nothing new is written ahead until the player has stood a moment
             if (GameState.walking || (GameState.riding && GameState.motion.speed > 1f) || townPlay.walk?.transit != null ||
@@ -595,13 +609,14 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         var feet = GameState.footfalls; var foot = 0
         while (true) {
             androidx.compose.runtime.withFrameNanos { }
-            val w = WEATHERS[weather].second
-            sound.set(com.timerpg.street.audio.SoundRules.at(hour, w?.rain ?: 0f, w?.cloudiness ?: 0f, w?.mist ?: 0f, season, townKind))
+            val w = effWeatherNow.value
+            val seasonNow = effSeasonNow.value
+            sound.set(com.timerpg.street.audio.SoundRules.at(hour, w?.rain ?: 0f, w?.cloudiness ?: 0f, w?.mist ?: 0f, seasonNow, townKind))
             // the bicycle's tyres and freewheel follow the ride; no footsteps while riding (the ride adds none)
             townPlay.open?.let { o ->
                 sound.bike.on = o.riding && townPlay.walk === o
                 sound.bike.speed = o.bike.speed; sound.bike.pedalling = o.bike.pedalling; sound.bike.wheelRadius = o.bike.wheelRadius
-                sound.bike.surface = if (season == 3 && GameState.surface != com.lifemax.rpg.feature.habits.presentation.scene.Surface.WOOD) com.lifemax.rpg.feature.habits.presentation.scene.Surface.GRASS else GameState.surface
+                sound.bike.surface = if (seasonNow == 3 && GameState.surface != com.lifemax.rpg.feature.habits.presentation.scene.Surface.WOOD) com.lifemax.rpg.feature.habits.presentation.scene.Surface.GRASS else GameState.surface
             } ?: run { sound.bike.on = false }
             if (GameState.footfalls != feet) {
                 val fresh = GameState.footfalls - feet
@@ -609,7 +624,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 if (fresh > 0) {
                     foot = (foot + 1) % 5
                     // recorded steps by what is underfoot (the street, a lawn, a deck, a room's floor, snow in winter)
-                    val set = com.lifemax.rpg.feature.habits.presentation.scene.Surface.sound(GameState.surface, GameState.indoors, GameState.carpet, season == 3)
+                    val set = com.lifemax.rpg.feature.habits.presentation.scene.Surface.sound(GameState.surface, GameState.indoors, GameState.carpet, seasonNow == 3)
                     // one foot a little softer than the other, as real steps are: the ear hears a stride (two steps) as one
                     // beat, not a patter of equal ones
                     val accent = if (foot % 2 == 0) 1f else .7f
@@ -874,6 +889,12 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             val sp = LoopSession.stopNear(inRoomOrCar)
             if (sp?.id != stopHere?.id) stopHere = sp
             if (sp == null) stopOpen = false
+            // the owned cars in the world, the driven one's miles, engine and grip; a hard stop or a fall hurts
+            if (TownSession.ready) {
+                LoopSession.tickCars(ctx)
+                townPlay.cars?.onImpact = { d -> LoopSession.hurtByCrash(d) }
+                townPlay.open?.onFall = { v -> LoopSession.hurtByFall(v) }
+            }
         }
     }
     // the back gesture closes what is open (the crash report, a conversation, the AI panel) or leaves the room; on the street
@@ -1216,7 +1237,11 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 "shift" -> LoopSession.startShift(ctx, loopPlace, sc, hour)
                 "quit" -> LoopSession.quitJob(ctx)
             }
-            when (what) { "wait" -> LoopSession.waitHours(ctx, 1.0); "sleep" -> LoopSession.sleep(ctx) }
+            when (what) {
+                "wait" -> LoopSession.waitHours(ctx, 1.0); "sleep" -> LoopSession.sleepRough(ctx)
+                "eat" -> LoopSession.eat(ctx, loopPlace, hour)
+                "treat" -> LoopSession.treat(ctx, loopPlace, arg as String, hour)
+            }
         }, onClose = { loopShop = false }, modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp, bottom = 40.dp))
         if (loopPlace == null && loopShop) LaunchedEffect(Unit) { loopShop = false }
         // a fence, met at night by their cover spot: what they would pay for what the player carries
@@ -1231,6 +1256,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     "rent" -> LoopSession.rentRoom(ctx, hour)
                     "pay" -> LoopSession.payRent(ctx, hour)
                     "sleepRoom" -> LoopSession.sleepInRoom(ctx)
+                    "board" -> LoopSession.takeBoard(ctx)
+                    "wash" -> LoopSession.washUp(ctx)
                     "stash" -> LoopSession.stash(ctx, arg as com.lifemax.rpg.feature.habits.loop.LoopItem)
                     "retrieve" -> LoopSession.retrieve(ctx, arg as com.lifemax.rpg.feature.habits.loop.LoopItem)
                 }
@@ -1242,6 +1269,11 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 if (to != null) { stopOpen = false; LoopSession.ride(ctx, sp, to, hour) }
             }, onClose = { stopOpen = false }, modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp, bottom = 40.dp))
         }
+        // the used-car lot at the gas station, and the card of a stopped car
+        if (carLotOpen && loopPlace != null && loopPlace.shopKind == "gas station") LoopCarLotPanel(loopPlace, ctx, hour, onClose = { carLotOpen = false },
+            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp, bottom = 40.dp))
+        if (carLotOpen && (loopPlace == null || loopPlace.shopKind != "gas station")) LaunchedEffect(Unit) { carLotOpen = false }
+        if (townMode && townPlay.inCar) LoopBreakdownCard(ctx, Modifier.align(Alignment.BottomCenter).padding(bottom = 190.dp))
         LoopFade(Modifier.align(Alignment.Center))
         LoopSession.line?.let { l ->
             Text(l, 14.sp, Modifier.align(Alignment.BottomCenter).padding(bottom = 140.dp, start = 24.dp, end = 24.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 6.dp))
@@ -1279,7 +1311,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     talk = Talk(npc).also { t -> npc.topics.firstOrNull()?.let { t.ask(engine, it, voices) } }
                 }
                 // the loop's shop here (docs/LOOP.md): buy, take, sell, work a shift
-                if (townMode && loopPlace != null && LoopSession.view != null) Chip("🛒 ${loopPlace.name.take(22)}", loopShop) { loopShop = !loopShop; MoveInput.holdUntilNeutral() }
+                if (townMode && loopPlace != null && LoopSession.view != null) Chip("🛒 ${loopPlace.name.take(22)}", loopShop) { loopShop = !loopShop; carLotOpen = false; MoveInput.holdUntilNeutral() }
+                if (townMode && loopPlace != null && loopPlace.shopKind == "gas station" && LoopSession.view != null) Chip("🚗 Used cars", carLotOpen) { carLotOpen = !carLotOpen; loopShop = false; MoveInput.holdUntilNeutral() }
                 lodgeNear?.let { l -> if (inside == null) Chip("🛏 " + (if (LoopSession.view?.rent != null) "Your room" else "Rent a room"), lodgeOpen) { lodgeOpen = !lodgeOpen; stopOpen = false; MoveInput.holdUntilNeutral() } }
                 stopHere?.let { sp -> if (inside == null) Chip("🚏 ${LoopSession.view?.transit?.get(sp.id)?.mode?.takeIf { it.isNotEmpty() } ?: "Bus"} stop", stopOpen) { stopOpen = !stopOpen; lodgeOpen = false; MoveInput.holdUntilNeutral() } }
                 if (inside != null) Chip("Leave", false) { doorTo = false to null }
@@ -1360,7 +1393,11 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         // the season and the weather
         Column(Modifier.align(Alignment.TopEnd).padding(10.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { SEASONS.forEachIndexed { i, (l, _) -> Chip(l, season == i) { season = i } } }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { WEATHERS.forEachIndexed { i, (l, _) -> Chip(l, weather == i) { weather = i } } }
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                // (tapping a weather sets it until "Auto" gives the sky back to the date: the loop's `weatherAt`)
+                if (sky != null) Chip("Auto" + if (weatherAuto) ": $sky" else "", weatherAuto) { weatherAuto = true }
+                WEATHERS.forEachIndexed { i, (l, _) -> Chip(l, !autoSky && weather == i) { weatherAuto = false; weather = i } }
+            }
         }
         if (tuning) Column(
             Modifier.align(Alignment.Center).widthIn(max = 520.dp).background(PANEL, RoundedCornerShape(14.dp)).opaque().padding(14.dp),
@@ -2275,6 +2312,16 @@ private object FrameStats {
         return "Frames: %.1f ms (%.0f fps) · p95 %.1f ms · %.1f%% late".format(java.util.Locale.US, p50, 1000f / p50, p95, late) +
             (if (display > 0f) " · display %.0f Hz".format(java.util.Locale.US, display) else "")
     }
+}
+
+/** The renderer's weather for the loop's sky (`weather.weatherAt`): clear is none; storm is rain at its heaviest; snow shows with the winter look (see [effSeason]). */
+private fun skyState(sky: String?): WeatherState? = when (sky) {
+    "cloudy" -> WeatherState(.45f, 0f, 0f, 0f)
+    "overcast", "snow" -> WeatherState(.85f, 0f, 0f, 0f)
+    "rain" -> WeatherState(.9f, .8f, .8f, 0f)
+    "storm" -> WeatherState(1f, 1f, 1f, 0f)
+    "fog" -> WeatherState(.4f, 0f, 0f, .75f)
+    else -> null
 }
 
 private val SEASON_NAMES = listOf("spring", "summer", "autumn", "winter")

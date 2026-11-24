@@ -134,6 +134,25 @@ class VehicleWorld(
     /** The flat ground box's extent (street units: x0, z0, x1, z1). */
     private val flatRect: FloatArray = flat ?: collision?.let { floatArrayOf(it.minX, it.minZ, it.maxX, it.maxZ) } ?: floatArrayOf(-50000f, -50000f, 50000f, 50000f)
 
+    /**
+     * The loop's say over the driven car (docs/LOOP.md "Needs, weather and cars"): [engineOff] (a breakdown or an empty tank) takes the
+     * gas off; [gripScale] (the sky's `carGripMultiplier`, 1 dry .. .53 in snow) lessens the power put down and the steering at speed (a
+     * stand-in: the physics' tyre friction is fixed when the car is made); [onImpact] hears a hard stop of the driven car (the speed lost
+     * in one frame, m/s; at most one a second) so the player can be hurt.
+     */
+    @Volatile var engineOff = false
+    @Volatile var gripScale = 1f
+    @Volatile var onImpact: ((Float) -> Unit)? = null
+    private var lastDrivenSpeed = Float.NaN
+    private var impactAt = -1e9f
+
+    /** Changes to the world asked from another thread (a car added or taken away): done at the start of the next [step], on the game loop's thread. */
+    private val jobs = java.util.concurrent.ConcurrentLinkedQueue<() -> Unit>()
+    fun post(job: () -> Unit) { jobs.add(job) }
+
+    /** Takes a parked [c] out of the world (a car towed away); false while it is being driven. */
+    fun retire(c: Car): Boolean { if (c === driven) return false; remove(c); return true }
+
     /** Told of what happened to the cars worth a line in the log ("car: rescued from ..."): set by the app. */
     @Volatile var onEvent: ((String) -> Unit)? = null
 
@@ -350,6 +369,7 @@ class VehicleWorld(
         val a = active
         if (groundDirty) { groundDirty = false; dropStreamed() }
         if (resetWanted) { resetWanted = false; if (d != null && phase == Phase.DRIVING) rescue(d, "the player's reset") }
+        while (true) { val j = jobs.poll() ?: break; runCatching { j() } }
         if (spawnWanted) { spawnWanted = false; spawnNear(walk.wx, walk.wz) }
         if (bringWanted) { bringWanted = false; bringFirstNear(walk.wx, walk.wz) }
         when (phase) {
@@ -393,6 +413,13 @@ class VehicleWorld(
             acc -= STEP; n++
         }
         if (n > 0) { simT += n * STEP; for (i in cars.indices) watch(cars[i]) }
+        // (a hard stop of the driven car: the speed it lost this frame)
+        if (n > 0 && d != null && driven === d && phase == Phase.DRIVING) {
+            val sp = sqrt(d.now[VehicleState.VX] * d.now[VehicleState.VX] + d.now[VehicleState.VZ] * d.now[VehicleState.VZ])
+            val drop = lastDrivenSpeed - sp
+            if (!lastDrivenSpeed.isNaN() && drop > IMPACT_MIN && simT - impactAt > 1f) { impactAt = simT; onImpact?.invoke(drop) }
+            lastDrivenSpeed = sp
+        } else lastDrivenSpeed = Float.NaN
         if (n > 0) { val ms = (System.nanoTime() - t0) / 1e6f / n; stepMs = if (stepMs == 0f) ms else stepMs + (ms - stepMs) * .05f }
         stepsLast = n
         if (changedFrames > 0) changedFrames--
@@ -418,12 +445,14 @@ class VehicleWorld(
         var forward = 0f; var brake = 0f
         if (pedal > .02f) { if (v < -REVERSE_BRAKE) brake = pedal else forward = pedal }
         else if (pedal < -.02f) { if (v > REVERSE_BRAKE) brake = -pedal else forward = pedal }
+        // (no engine: a breakdown or an empty tank; the wet or the snow loses some of the power put down)
+        if (engineOff) forward = 0f else forward *= .5f + .5f * gripScale
         // the steering eased (a thumb is all or nothing), and turned less at speed (what a driver does)
         val k = 1f - kotlin.math.exp(-dt / STEER_TIME)
         c.steer += (steerIn.coerceIn(-1f, 1f) - c.steer) * k
         val atSpeed = 1f / (1f + (abs(v) / STEER_FADE) * (abs(v) / STEER_FADE))
         val hb = if (handbrake) 1f else 0f
-        physics.input(c.handle, forward, c.steer * atSpeed, brake, hb)
+        physics.input(c.handle, forward, c.steer * atSpeed * (.7f + .3f * gripScale), brake, hb)
         c.braking = brake > .05f || (hb > 0f && abs(v) > .5f)
         c.reversing = forward < 0f
         c.signal = if (abs(c.steer) > .6f && abs(v) < 9f) (if (c.steer > 0f) 1 else -1) else 0
@@ -654,6 +683,8 @@ class VehicleWorld(
         const val BRING_FROM_M = 60f
         /** The physics' fixed step (s). */
         const val STEP = 1f / 60f
+        /** The least speed (m/s) lost in one frame that counts as an impact of the driven car. */
+        const val IMPACT_MIN = 4f
         const val MAX_STEPS = 4
         /** The town's shapes are streamed into the physics within this of the car (m), again after it moved this far. */
         const val STREAM_M = 110f

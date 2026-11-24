@@ -107,6 +107,8 @@ object LoopSession {
         if (save) save(ctx)
         val t = sim
         sim = null; game = null; town = null; routes = null; walks = emptyList(); seed = null
+        com.lifemax.rpg.feature.habits.presentation.scene.GameState.walkScale = 1f
+        ownedWorld.clear(); atLotFlag.clear(); lastPark.clear(); drivenCar = null
         TownPlay.extras = emptyList()
         view = null
         t?.let { s -> Thread({ runCatching { s.close() } }, "sim-js-close").start() }
@@ -127,9 +129,18 @@ object LoopSession {
         }
     }
 
+    /** Runs [block] on the sim's thread without the buttons waiting (a car's miles, a fall's bruise); the view is published after. */
+    private fun quiet(block: (LoopGame) -> Unit) {
+        val g = game ?: return; val s = sim ?: return
+        g.walkActivity = activityNow()
+        s.run { _ -> runCatching { block(g) }.onFailure { com.timerpg.street.shot.Crumbs.add("loop: ${it.javaClass.simpleName}: ${it.message?.take(200)}") }; main.post { publish(g) } }
+    }
+
     private fun publish(g: LoopGame) {
         val v = g.view
         view = v
+        // (the needs and the sky slow the walk)
+        com.lifemax.rpg.feature.habits.presentation.scene.GameState.walkScale = v.walkMultiplier.toFloat().coerceIn(.3f, 1f)
         // the officers' plans, walked on the roads (a plan that did not change keeps its walker where it is)
         val r = routes
         if (r != null) {
@@ -146,10 +157,27 @@ object LoopSession {
         }
     }
 
+    // ------------------------------------------------------------------ what the player is doing (for the needs)
+
+    private var walkSec = 0f; private var runSec = 0f; private var idleSec = 0f
+
+    /** Each frame in the open town: what the player did for [dt] seconds. The shares fade over about a minute; only arithmetic, nothing for the sim. */
+    fun noteMotion(dt: Float, walking: Boolean, running: Boolean, inCar: Boolean) {
+        val f = kotlin.math.exp(-dt / 60f)
+        walkSec *= f; runSec *= f; idleSec *= f
+        if (inCar) idleSec += dt else if (running && walking) runSec += dt else if (walking) walkSec += dt else idleSec += dt
+    }
+
+    private fun activityNow(): String {
+        val total = walkSec + runSec + idleSec
+        return when { total < 1f -> "idle"; runSec > .3f * total -> "running"; walkSec + runSec > .3f * total -> "walking"; else -> "idle" }
+    }
+
     /** Runs [block] on the sim's thread; [then] gets its outcome on the main thread. */
     private fun <T> run(what: String, block: (LoopGame) -> T, then: (T) -> Unit = {}) {
         val g = game ?: return; val s = sim ?: return
         busy = true
+        g.walkActivity = activityNow()
         s.run { _ ->
             val r = runCatching { block(g) }
             main.post {
@@ -282,6 +310,121 @@ object LoopSession {
 
     /** Pays for the ticket (on the sim's thread); [onOk] runs on the main thread when it is bought (the train then leaves). */
     fun buyTicket(ctx: Context, km: Double, onOk: () -> Unit) = run("the ticket", { it.buyRailTicket(km) }) { shown(it, ctx); if (it.ok) onOk() }
+
+    // ------------------------------------------------------------------ needs, weather and cars (docs/LOOP.md "Needs, weather and cars")
+
+    fun eat(ctx: Context, place: LoopPlace, hour: Float) = run("eating", { it.eat(place, hour.toDouble()) }) { shown(it, ctx) }
+    fun treat(ctx: Context, place: LoopPlace, kind: String, hour: Float) = run("treating", { it.treat(place, kind, hour.toDouble()) }) { shown(it, ctx) }
+    fun sleepRough(ctx: Context) = run("sleeping", { it.sleepUntil(7.0, "bench") }) { shown(it, ctx) }
+    fun takeBoard(ctx: Context) = run("eating", { it.takeBoard() }) { shown(it, ctx) }
+    fun washUp(ctx: Context) = run("washing", { it.washUp() }) { shown(it, ctx) }
+
+    /** A hard stop of the driven car (the speed lost, m/s): above 10 a bruise, above 16 a sprain. */
+    fun hurtByCrash(drop: Float) { if (drop >= 10f) quiet { it.injure(if (drop >= 16f) "sprain" else "bruise", "a crash at ${(drop * 2.237f).toInt()} mph") } }
+
+    /** A fall (the speed it landed at, m/s): above 6 a bruise, above 9 a sprain. */
+    fun hurtByFall(speed: Float) { if (speed >= 6f) quiet { it.injure(if (speed >= 9f) "sprain" else "bruise", "a fall") } }
+
+    /** Where the gas station is (the used-car lot and the pumps), if the town has one. */
+    fun station(): LoopPlace? = town?.places?.firstOrNull { it.shopKind == "gas station" }
+
+    fun buyCar(ctx: Context, place: LoopPlace, lotId: String, hour: Float) = run("buying", { it.buyCar(place, lotId, hour.toDouble()) }) { shown(it, ctx) }
+    fun buyPaper(ctx: Context, place: LoopPlace, kind: String, hour: Float) = run("buying", { it.buyPaper(place, kind, hour.toDouble()) }) { shown(it, ctx) }
+    fun refuel(ctx: Context, id: String, gallons: Double?) = run("fuelling", { it.refuel(id, gallons, carNear(id)) }) { shown(it, ctx) }
+    fun serviceCar(ctx: Context, id: String) = run("servicing", { it.service(id, carNear(id)) }) { shown(it, ctx) }
+    fun repairCar(ctx: Context, id: String) = run("repairing", { it.repair(id, carNear(id)) }) { shown(it, ctx) }
+    fun callTow(ctx: Context, id: String) = run("towing", { it.callTow(id) }) { shown(it, ctx); TownPlay.cars?.let { w -> if (w.driven != null && w.canExit) w.exit() } }
+
+    // the cars in the world: each owned car's drawn car, where it was parked, the miles to pass on
+    private val ownedWorld = java.util.concurrent.ConcurrentHashMap<String, VehicleWorld.Car>()
+    /** Whether the drawn car stands at the lot (a bought or a towed one) rather than where the player left it. */
+    private val atLotFlag = java.util.concurrent.ConcurrentHashMap<String, Boolean>()
+    private val lastPark = HashMap<String, Pair<Float, Float>>()
+    private val triedAt = HashMap<String, Long>()
+    private var pendingMiles = 0.0
+    private var lastDrive: Triple<String, Float, Float>? = null
+    /** The owned car the player is driving now (null on foot or in another car), for the HUD's fuel line and the breakdown card. */
+    var drivenCar by mutableStateOf<com.lifemax.rpg.feature.habits.loop.OwnedCarView?>(null); private set
+
+    private fun ownedViewOf(id: String) = view?.cars?.owned?.firstOrNull { it.id == id }
+
+    /** Whether [id]'s car stands within [CAR_NEAR] of the pumps (or is parked at the lot): refuelling and service need it. */
+    fun carNear(id: String): Boolean {
+        val c = ownedWorld[id] ?: return ownedViewOf(id)?.atLot == true
+        val st = station() ?: return false
+        return hypot(c.x - st.doorX, c.z - st.doorZ) <= CAR_NEAR
+    }
+    val CAR_NEAR = 40f * VehicleWorld.U
+
+    /**
+     * Twice a second: the owned cars are put in the world (a new one at the lot beside the gas station, a towed one moved there, a saved one where
+     * it was left), the driven one's engine, grip and miles passed to the loop (wear, fuel, breakdowns), a parked one's spot remembered. Called on
+     * the main thread; the world's own changes are posted to its thread.
+     */
+    fun tickCars(ctx: Context) {
+        val w = TownPlay.cars ?: return; val t = town ?: return; val v = view ?: return
+        w.gripScale = v.sky?.grip?.toFloat() ?: 1f
+        val now = System.currentTimeMillis()
+        val st = station()
+        for (o in v.cars.owned) {
+            val have = ownedWorld[o.id]
+            if (have != null && o.atLot && atLotFlag[o.id] == false) {
+                // (towed: taken from where it broke down, put back at the lot)
+                if (w.driven !== have) { w.post { w.retire(have) }; ownedWorld.remove(o.id); lastPark.remove(o.id) }
+                continue
+            }
+            if (have != null) continue
+            if (now - (triedAt[o.id] ?: 0L) < 4000L) continue
+            triedAt[o.id] = now
+            val spec = w.specs.firstOrNull { it.key == o.specKey } ?: continue
+            val colour = spec.colours[Math.floorMod(o.colour, spec.colours.size)]
+            val classic = spec.era(t.year) == com.lifemax.rpg.feature.habits.vehicle.VehicleEra.CLASSIC
+            val yards = TownPlay.cars?.yards
+            w.post {
+                val spot = if (!o.atLot) com.lifemax.rpg.feature.habits.vehicle.VehicleSpots.Spot("owned:${o.id}", o.x, o.z, o.fx, o.fz, 99999f)
+                    else st?.let { p -> w.town?.let { tw -> w.spawnSpot(tw, spec, p.doorX, p.doorZ, yards)?.let { sp -> com.lifemax.rpg.feature.habits.vehicle.VehicleSpots.Spot("owned:${o.id}", sp.x, sp.z, sp.fx, sp.fz, sp.length) } } }
+                if (spot == null) { com.timerpg.street.shot.Crumbs.add("loop: no clear spot at the lot for ${o.label}"); return@post }
+                val c = w.add(spec, colour, classic, spot)
+                ownedWorld[o.id] = c; atLotFlag[o.id] = o.atLot
+                lastPark[o.id] = c.x to c.z
+                log("car_spawn", """{"car":"${o.id}","at":"${if (o.atLot) "lot" else "saved spot"}","model":"${o.specKey}"}""")
+            }
+        }
+        // the driven car: its engine, and the miles it covers
+        val driven = w.driven
+        val id = driven?.let { d -> ownedWorld.entries.firstOrNull { it.value === d }?.key }
+        if (id != null && w.driving) {
+            val o = ownedViewOf(id)
+            w.engineOff = o?.blocked != null
+            drivenCar = o
+            val prev = lastDrive
+            if (prev != null && prev.first == id) {
+                val d = hypot(driven.x - prev.second, driven.z - prev.third) / VehicleWorld.U
+                if (d < 100f) pendingMiles += d / 1609.34
+            }
+            lastDrive = Triple(id, driven.x, driven.z)
+            if (pendingMiles >= .05) { val m = pendingMiles; pendingMiles = 0.0; quiet { it.driveMiles(id, m) } }
+        } else {
+            w.engineOff = false
+            drivenCar = null
+            if (lastDrive != null) {
+                val lid = lastDrive!!.first
+                lastDrive = null
+                if (pendingMiles > 0.001) { val m = pendingMiles; quiet { it.driveMiles(lid, m) } }
+                pendingMiles = 0.0
+            }
+            // a car left on the street: where it stands is kept (saved with the loop)
+            for ((cid, c) in ownedWorld) {
+                if (c === driven) continue
+                val p = lastPark[cid]
+                if (p == null || hypot(c.x - p.first, c.z - p.second) > 3f * VehicleWorld.U) {
+                    lastPark[cid] = c.x to c.z; atLotFlag[cid] = false
+                    val x = c.x; val z = c.z; val fx = c.fx; val fz = c.fz
+                    quiet { it.parkCar(cid, x, z, fx, fz) }
+                }
+            }
+        }
+    }
 
     // ------------------------------------------------------------------ the fences
 

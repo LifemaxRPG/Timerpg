@@ -135,6 +135,9 @@ class OpenWalk(
     var yard: TownYard? = null
         private set
 
+    /** Told when the player lands from a fall: the speed (m/s) they hit the ground at (the loop hurts them above a few). */
+    @Volatile var onFall: ((Float) -> Unit)? = null
+
     /** How far the last step's move was cut short by something solid (0 free .. 1 stopped dead). */
     var blockedShare = 0f
         private set
@@ -323,7 +326,9 @@ class OpenWalk(
         val pz = rz * mx - fz * my
         m.drive(dt, px, pz)
         val t = min(dt, MoveTuning.dtMax)
-        val ax = m.vx * t; val az = m.vy * t
+        // (the loop's needs and the weather slow the walk: GameState.walkScale, 1 when nothing does)
+        val pace = GameState.walkScale
+        val ax = m.vx * t * pace; val az = m.vy * t * pace
         var walked = 0f
         if (ax != 0f || az != 0f) {
             val share = collision.move(wx, wz, ax, az, RADIUS, out, foot = true)
@@ -335,7 +340,7 @@ class OpenWalk(
             val asked = sqrt(ax * ax + az * az)
             blockedShare = (1f - walked / asked).coerceIn(0f, 1f)
             // what a wall took off is not kept in the legs: the velocity follows the slide (no speed builds up against it)
-            if (t > 0f && walked < asked * .999f) { m.vx = dx / t; m.vy = dz / t }
+            if (t > 0f && walked < asked * .999f) { m.vx = dx / t / pace; m.vy = dz / t / pace }
             if (share <= 0f && walked < 1e-3f) { m.vx = 0f; m.vy = 0f }
         } else blockedShare = 0f
         fall(t)
@@ -434,7 +439,7 @@ class OpenWalk(
         grounded = false
         vy -= WalkHeight.GRAVITY * t
         wy += vy * t
-        if (wy <= f) { wy = f; vy = 0f; grounded = true }
+        if (wy <= f) { onFall?.invoke(-vy / com.lifemax.rpg.feature.habits.vehicle.VehicleWorld.U); wy = f; vy = 0f; grounded = true }
     }
 
     // ------------------------------------------------------------------ riding
