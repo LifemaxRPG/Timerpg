@@ -80,6 +80,8 @@ object LoopSession {
                 val lt = LoopTown.build(d.town, street, dialogue)
                 val g = LoopGame(js, lt)
                 g.onEvent = { n, o -> log(n, o.toString()) }
+                // (the road maps' area: the landmass the town stands on, docs/MAPS.md)
+                d.world?.let { g.region = com.lifemax.rpg.feature.habits.maps.PlanetMapModel.regionOf(it) }
                 val f = file(app, d.seed)
                 val restored = f.isFile && runCatching { g.load(f.readText()) }.onFailure { e -> com.timerpg.street.shot.Crumbs.add("loop: the save did not load (${e.message}); a new game") }.isSuccess
                 if (!restored) g.init(hour.toDouble())
@@ -263,6 +265,10 @@ object LoopSession {
     fun applyFor(ctx: Context, place: LoopPlace, openingId: String, hour: Float) = run("applying", { it.applyFor(place, openingId, hour.toDouble()) }) { shown(it, ctx) }
     fun startShift(ctx: Context, place: LoopPlace, sc: LoopScene, hour: Float) = run("working", { it.startShift(place, sc, hour.toDouble()) }) { shown(it, ctx) }
     fun quitJob(ctx: Context) = run("quitting", { it.quitJob() }) { shown(it, ctx) }
+    /** Buys the map [offerId] at [placeId] (a loop place, or LoopMaps.STATION: the depot's rack). */
+    fun buyMap(ctx: Context, placeId: String, offerId: String, hour: Float) = run("buying", { it.buyMap(placeId, offerId, hour.toDouble()) }) { shown(it, ctx) }
+    /** Sets the waypoint (street x, z) or clears it (nulls); kept in the loop's save. */
+    fun setWaypoint(x: Float?, z: Float?) = quiet { it.setWaypoint(x, z) }
     /** What the pawn shop pays (cents; the sim's own number, precomputed in the view: the UI thread never calls the sim). */
     fun pawnPrice(item: com.lifemax.rpg.feature.habits.loop.LoopItem): Int = view?.pawnOffers?.get("${item.key}|${item.stolen}") ?: 0
     fun pawnPriceText(item: com.lifemax.rpg.feature.habits.loop.LoopItem): String = view?.pawnOfferTexts?.get("${item.key}|${item.stolen}") ?: ""

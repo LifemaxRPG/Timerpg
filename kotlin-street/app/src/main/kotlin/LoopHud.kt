@@ -160,6 +160,16 @@ fun LoopShopPanel(place: LoopPlace, year: Int, hour: Float, onAction: (String, A
                 }
             }
         }
+        // maps for sale (docs/MAPS.md): the city map, the road map (free at the gas station in the road-map era), the world map
+        val mapOffers = v?.maps?.offers?.get(place.id).orEmpty()
+        if (mapOffers.isNotEmpty() && own == null) {
+            T("Maps:", 13.sp, DIM_TEXT)
+            for (m in mapOffers) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                T("${m.label}  ${m.text}" + if (m.owned) "  (yours)" else "", 13.sp, if (m.owned) DIM_TEXT else Color.White, Modifier.widthIn(min = 200.dp))
+                if (!m.owned) LoopButton(if (m.cents == 0) "Get one" else "Buy", enabled = !busy && open && (v?.cash ?: 0) >= m.cents) { onAction("buyMap", m.id) }
+            }
+            if (v?.maps?.gps == true) T("Your phone has GPS maps; paper ones are still sold.", 11.sp, DIM_TEXT)
+        }
         // employment (src/jobs): the job here, or the openings this week to ask about and apply for
         if (place.kind != "police_station" && own == null) {
             if (mine && job != null) {
@@ -193,6 +203,21 @@ fun LoopShopPanel(place: LoopPlace, year: Int, hour: Float, onAction: (String, A
             LoopButton("Sleep rough till 7", enabled = !busy) { onAction("sleep", null) }
             LoopButton("Close") { onClose() }
         }
+    }
+}
+
+/** The railway station's map rack (docs/MAPS.md): the city map and the world map, from LoopView.maps. */
+@Composable
+fun LoopMapStandPanel(onBuy: (String) -> Unit, onClose: () -> Unit, modifier: Modifier = Modifier) {
+    val v = LoopSession.view
+    val busy = LoopSession.busy
+    Column(modifier.widthIn(max = 460.dp).background(PANEL_BG, RoundedCornerShape(14.dp)).loopOpaque().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        T("The station's map rack", 15.sp)
+        for (m in v?.maps?.offers?.get(com.lifemax.rpg.feature.habits.loop.LoopMaps.STATION).orEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            T("${m.label}  ${m.text}" + if (m.owned) "  (yours)" else "", 13.sp, if (m.owned) DIM_TEXT else Color.White, Modifier.widthIn(min = 200.dp))
+            if (!m.owned) LoopButton("Buy", enabled = !busy && (v?.cash ?: 0) >= m.cents) { onBuy(m.id) }
+        }
+        LoopButton("Close") { onClose() }
     }
 }
 

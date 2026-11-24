@@ -459,7 +459,10 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     var hour by remember { mutableFloatStateOf(17.6f) }
     // the first playable loop (docs/LOOP.md, LoopSession): the sim starts with the town; it follows the clock on each
     // hour crossed, and moves it (a shift, a wait, a night in the cell)
-    LaunchedEffect(townData) { if (townData != null) LoopSession.start(ctx, townData, hour) }
+    LaunchedEffect(townData) { if (townData != null) { LoopSession.start(ctx, townData, hour); MapSession.start(ctx, townData) } }
+    // the full map (docs/MAPS.md), opened from the minimap; the station's map rack
+    var mapOpen by remember { mutableStateOf(false) }
+    var standOpen by remember { mutableStateOf(false) }
     LaunchedEffect(engine) { engine.loopFacts = { id -> LoopSession.factsFor(id) } }
     LaunchedEffect(hour) { if (townMode) LoopSession.clock(hour) }
     LoopSession.hourSet?.let { h -> LaunchedEffect(h) { hour = h.coerceIn(0f, LAST_MINUTE); LoopSession.hourSet = null } }
@@ -1094,7 +1097,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             townMode && !TownSession.ready -> A.LOADING
             talk != null -> A.TALK
             inside != null -> A.INSIDE
-            aiPanel || shot != null || ticketOpen -> A.MENU
+            aiPanel || shot != null || ticketOpen || mapOpen -> A.MENU
             w?.transit != null || RailTrip.ride != null -> A.TRAIN
             GameState.riding -> A.RIDE
             GameState.walking -> A.WALK
@@ -1241,6 +1244,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 "apply" -> LoopSession.applyFor(ctx, loopPlace, arg as String, hour)
                 "shift" -> LoopSession.startShift(ctx, loopPlace, sc, hour)
                 "quit" -> LoopSession.quitJob(ctx)
+                "buyMap" -> LoopSession.buyMap(ctx, loopPlace.id, arg as String, hour)
             }
             when (what) {
                 "wait" -> LoopSession.waitHours(ctx, 1.0); "sleep" -> LoopSession.sleepRough(ctx)
@@ -1338,6 +1342,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 val pw = com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.walk
                 if (frameTick.longValue >= 0 && inside == null && rail != null && pw != null && RailTrip.ride == null && !ticketOpen && RailTrip.atDepot(rail, pw.wx, pw.wz))
                     Chip("Take the train", false) { MoveInput.holdUntilNeutral(); ticketOpen = true }
+                if (frameTick.longValue >= 0 && inside == null && rail != null && pw != null && RailTrip.ride == null && LoopSession.view != null && RailTrip.atDepot(rail, pw.wx, pw.wz))
+                    Chip("🗺 Maps", standOpen) { MoveInput.holdUntilNeutral(); standOpen = !standOpen }
             }
         }
         townData?.rail?.let { rail ->
@@ -1406,6 +1412,11 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             // midnight, while the clock read 12:00 PM)
             Slider(hour, { hour = it.coerceAtMost(LAST_MINUTE) }, 0f, LAST_MINUTE, Modifier.width(240.dp))
         }
+        // the minimap (or the compass rose), under the season and weather chips (docs/MAPS.md)
+        if (townMode && townData != null && inside == null && !mapOpen) MapCorner(townData.town.year, frameTick, onOpen = { MoveInput.holdUntilNeutral(); mapOpen = true },
+            Modifier.align(Alignment.TopEnd).padding(top = 92.dp, end = 12.dp))
+        if (standOpen) LoopMapStandPanel(onBuy = { id -> LoopSession.buyMap(ctx, com.lifemax.rpg.feature.habits.loop.LoopMaps.STATION, id, hour) }, onClose = { standOpen = false },
+            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp, bottom = 40.dp))
         // the season and the weather
         Column(Modifier.align(Alignment.TopEnd).padding(10.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { SEASONS.forEachIndexed { i, (l, _) -> Chip(l, season == i) { season = i } } }
@@ -1433,12 +1444,12 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         // the camera button (the AI panel's "Screenshots to Claude" switch): small, under the weather chips
         if (com.timerpg.street.shot.ShotSettings.buttonOn && !shooting && shot == null) {
             Box(
-                Modifier.align(Alignment.TopEnd).padding(top = 92.dp, end = 12.dp).size(38.dp).background(Color(0x66101420), CircleShape)
+                Modifier.align(Alignment.TopEnd).padding(top = 92.dp, end = 180.dp).size(38.dp).background(Color(0x66101420), CircleShape)
                     .pointerInput(Unit) { awaitEachGesture { awaitFirstDown(); waitForUpOrCancellation()?.let { shooting = true } } },
                 contentAlignment = Alignment.Center,
             ) { Text("📷", 16.sp) }
             Box(
-                Modifier.align(Alignment.TopEnd).padding(top = 136.dp, end = 12.dp).size(38.dp).background(Color(0x66101420), CircleShape)
+                Modifier.align(Alignment.TopEnd).padding(top = 136.dp, end = 180.dp).size(38.dp).background(Color(0x66101420), CircleShape)
                     .pointerInput(Unit) { awaitEachGesture { awaitFirstDown(); waitForUpOrCancellation()?.let { com.timerpg.street.play.PlayLog.mark(); marking = true; shooting = true } } },
                 contentAlignment = Alignment.Center,
             ) { Text("🔖", 16.sp) }
@@ -1474,6 +1485,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 try { pickModel.launch(arrayOf("*/*")) } catch (e: Exception) { /* no document picker on this device */ }
             })
         }
+        // the full map over everything (pan, zoom, tap for the waypoint)
+        if (mapOpen && townData != null) MapScreen(ctx, townData.town.year, onClose = { mapOpen = false })
     }
 }
 

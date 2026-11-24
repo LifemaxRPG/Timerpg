@@ -45,6 +45,8 @@ class TownData(
     val landmarks: com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkAssets? = null,
     /** The town placed on the planet (docs/WORLD_GEN.md W4: the baked skeleton, assets/world/<seed>/), or null where none is shipped. */
     val world: com.lifemax.rpg.feature.habits.domain.WorldSite? = null,
+    /** The city map's data (docs/MAPS.md: roads, buildings' footprints, the river, names), made at load; null if it failed. */
+    val map: com.lifemax.rpg.feature.habits.maps.TownMapModel? = null,
 )
 
 /**
@@ -261,8 +263,15 @@ object TownSession {
                     else "${it.report}, read in %.0f ms; ".format(java.util.Locale.US, (System.nanoTime() - w0) / 1e6f) + com.lifemax.rpg.feature.habits.domain.WorldMemory.line())
             }
         } catch (t: Throwable) { com.timerpg.street.shot.Crumbs.add("world: not loaded (${t.javaClass.simpleName}: ${t.message})"); null }
+        // the city map (docs/MAPS.md): its footprints read from the collision here, before the walk has it (it answers one thread at a time)
+        val map = try {
+            val m0 = System.nanoTime()
+            com.lifemax.rpg.feature.habits.maps.TownMapModel.build(town, com.lifemax.rpg.feature.habits.domain.GlbLandmarks.parse(root), yards,
+                com.lifemax.rpg.feature.habits.maps.TownMapModel.shopNames(root), collision)
+                .also { com.timerpg.street.shot.Crumbs.add("city map: ${it.labels.size} names, %.0f ms".format(java.util.Locale.US, (System.nanoTime() - m0) / 1e6f)) }
+        } catch (t: Throwable) { com.timerpg.street.shot.Crumbs.add("city map: not made (${t.javaClass.simpleName}: ${t.message})"); null }
         return TownData(seed, town, yards, art, building, names, root.optString("type"), dir,
             com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(root), collision,
-            com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root), farms, farmArt, rail, landmarks, world)
+            com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root), farms, farmArt, rail, landmarks, world, map)
     }
 }
