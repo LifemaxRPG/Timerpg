@@ -51,8 +51,21 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     val workBytes: Long get() = ((loadMem[2] + loadMem[3] + loadMem[4]) * 1048576.0).toLong()
     /** Where the loaded model runs. */
     val runsOn: Int get() = if (handle == 0L) CPU else runCatching { nativeDevice(handle) }.getOrDefault(CPU)
-    /** This phone and build's accelerators (after the native library loaded): bit 0 a GPU, bit 1 an NPU. */
-    val accelerators: Int get() = runCatching { nativeAccelerators() }.getOrDefault(0)
+    /**
+     * This phone and build's accelerators: bit 0 a GPU, bit 1 an NPU. The native side knows them only once llama.cpp's
+     * backends are loaded (libggml-opencl.so, libggml-hexagon.so: [initBackend], otherwise first done inside [load]);
+     * before that it reports none. So this loads them first (and the library if need be), except on the main
+     * thread (tens to hundreds of ms the first time), where it reports what is known so far. Build 0.1.848 asked before
+     * anything had loaded them, read "no NPU", and in play nothing then loads to load them: the NPU was never found.
+     */
+    val accelerators: Int get() {
+        if (!backendReady) {
+            if (isMainThread()) return runCatching { nativeAccelerators() }.getOrDefault(0)
+            if (libraryError != null) return 0
+            initBackend()
+        }
+        return runCatching { nativeAccelerators() }.getOrDefault(0)
+    }
     @Volatile override var error: String? = null
         private set
     @Volatile override var stats: LlmStats = LlmStats()
@@ -61,7 +74,25 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     @Volatile var lastGenerateError: String? = null
         private set
     /** Which CPU kernels llama.cpp runs on this phone, for the speed panel (e.g. "...armv8.6_1.so (...); cpu: neon dotprod fp16 i8mm"). */
-    val backendInfo: String get() = libraryError ?: runCatching { nativeBackendInfo() }.getOrNull() ?: "unknown"
+    val backendInfo: String get() = libraryError ?: initBackend()
+
+    /** Loads llama.cpp's backends once per process (the CPU kernels, then the GPU's and the NPU's libraries if this build
+     *  has them and the phone's drivers open them) and says what loaded; [accelerators] is right only after it. */
+    private fun initBackend(): String = (runCatching { nativeBackendInfo() }.getOrNull() ?: "unknown").also { backendReady = true }
+
+    /**
+     * Why [accelerators] has no NPU, specifically (for the HUD and the reports): the engine's library missing, the NPU's
+     * library not in this build, or in it but no HTP session opened (the backends' own line says what did load).
+     * Off the main thread.
+     */
+    fun npuMissingWhy(ctx: Context?): String {
+        libraryError?.let { return it }
+        val info = initBackend()
+        if (accelerators and 2 != 0) return "the NPU is there"
+        val lib = runCatching { (ctx?.classLoader as? dalvik.system.BaseDexClassLoader)?.findLibrary("ggml-hexagon") }.getOrNull()
+        return if (ctx != null && lib == null) "this build has no NPU library (libggml-hexagon.so is not in the APK: built without hexagon.sdk); backends: $info"
+        else "the NPU library loaded no HTP device (the phone's Hexagon driver or session did not open; GGML_HEXAGON_NDEV 2); backends: $info"
+    }
     /** Refuse to load when the phone has clearly too little free memory for the model (see [load]). */
     @Volatile var memoryCheck: Boolean = true
     /**
@@ -330,6 +361,9 @@ class NativeLlm(context: Context? = null) : LlmBackend {
          * Null once libtimerpg_llm.so (and the llama.cpp libraries it needs) loaded; otherwise why not. Lazy, so the
          * libraries load on the first [load] (a background thread), not when the class is first touched.
          */
+        /** llama.cpp's backends are loaded in this process ([initBackend]; native init_backend runs once per process). */
+        @Volatile private var backendReady = false
+
         private val libraryError: String? by lazy {
             try {
                 System.loadLibrary("timerpg_llm")
