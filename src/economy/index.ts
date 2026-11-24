@@ -163,3 +163,6 @@ export function restock(stock: ShopStock, days: number, year: number, seed: stri
   });
   return { shopKind: shop, elapsedDays, entries };
 }
+
+export { townFences, fenceLeads, fenceDeal, fenceRisk } from './fence';
+export type { Fence, FenceDeal, FenceLead, FencePerson } from './fence';
