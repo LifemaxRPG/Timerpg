@@ -35,8 +35,8 @@ export function priceIndex(year: number): number | null {
 }
 
 const WAGE_YEARS = [1880, 1925, 1929, 1933, 1946, 1952, 1968, 1978, 1990, 2010, 2025, 2030] as const;
-type WageRates = { readonly [Index in keyof typeof WAGE_YEARS]: number };
-type JobSpec = readonly [shiftHours: number, hourlyCents: WageRates];
+type RatesFor<Years extends readonly number[]> = { readonly [Index in keyof Years]: number };
+type JobSpec = readonly [shiftHours: number, hourlyCents: RatesFor<typeof WAGE_YEARS>];
 
 const JOBS = {
   odd_jobs: [2, [8, 30, 33, 24, 50, 75, 145, 275, 475, 850, 1500, 1690]],
