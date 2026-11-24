@@ -18,6 +18,7 @@ import kotlin.math.asin
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
+import kotlin.math.tan
 
 class SkyStateTest {
     @Test
@@ -42,12 +43,10 @@ class SkyStateTest {
             assertEquals("hour=$hour active orb dir Y", ey, activeDir[1], 1e-4f)
             assertEquals("hour=$hour active orb dir Z", ez, activeDir[2], 1e-4f)
 
-            // keyOrbDir must match the active orb identically
             assertEquals("hour=$hour keyOrbDir X", ex, state.keyOrbDir[0], 1e-4f)
             assertEquals("hour=$hour keyOrbDir Y", ey, state.keyOrbDir[1], 1e-4f)
             assertEquals("hour=$hour keyOrbDir Z", ez, state.keyOrbDir[2], 1e-4f)
 
-            // Both sunDir and moonDir must always be unit length
             val sLen = sqrt(state.sunDir[0] * state.sunDir[0] + state.sunDir[1] * state.sunDir[1] + state.sunDir[2] * state.sunDir[2])
             val mLen = sqrt(state.moonDir[0] * state.moonDir[0] + state.moonDir[1] * state.moonDir[1] + state.moonDir[2] * state.moonDir[2])
             assertEquals("sunDir unit length at hour=$hour", 1f, sLen, 1e-4f)
@@ -59,26 +58,22 @@ class SkyStateTest {
     fun cardinalSunAndMoonAzimuthsAndDuskMoonRiseContinuity() {
         val state = SkyState()
 
-        // Noon: sun due south (+Z), high elevation (52 deg peak near 13:00)
         state.update(12f, "2000-01-21")
         assertEquals(180f, state.sunAzimuthDeg, 1e-3f)
         assertTrue("noon sun should point south (+Z)", state.sunDir[2] > 0.5f)
         assertTrue("noon sun should be visible", state.sunVisibility > 0.99f)
         assertEquals("moon hidden at noon", 0f, state.moonVisibility, 1e-4f)
 
-        // Dawn 06:00: sun due east (+X)
         state.update(6f, "2000-01-21")
         assertEquals(90f, state.sunAzimuthDeg, 1e-3f)
         assertTrue("06:00 sun should point east (+X)", state.sunDir[0] > 0.85f)
 
-        // Dusk 19:25: sun setting in WNW while crescent moon is rising in ESE with first stars emerging
-        state.update(19.42f, "2000-01-10")
+        state.update(19.83f, "2000-01-10")
         assertEquals(SkyPhase.DUSK, state.phase)
         assertTrue("dusk sun visible in west", state.sunVisibility > 0.5f && state.sunDir[0] < -0.5f)
-        assertTrue("dusk crescent moon rising in east", state.moonVisibility > 0.7f && state.moonDir[0] > 0.5f && state.moonElevationDeg > 5f)
+        assertTrue("dusk crescent moon rising in east", state.moonVisibility > 0.8f && state.moonDir[0] > 0.5f && state.moonElevationDeg > 7f)
         assertTrue("first stars emerging at dusk", state.starBrightness > 0.25f)
 
-        // Continuity across 20:30 hand-over into night: moon elevation meets SceneLight.LOW (10 deg) seamlessly
         state.update(20.49f, "2000-01-10")
         val elBefore = state.moonElevationDeg
         state.update(20.51f, "2000-01-10")
@@ -90,7 +85,6 @@ class SkyStateTest {
     fun skyColorsMatchScenePaletteAcrossDayDuskNightAndWeather() {
         val state = SkyState()
 
-        // Noon clear -> exact DAY palette
         state.update(12f, "2000-01-21", WeatherState.CLEAR, Season.SUMMER)
         assertEquals(SkyPhase.DAY, state.phase)
         assertEquals(2f, state.tone, 1e-4f)
@@ -101,7 +95,6 @@ class SkyStateTest {
         assertEquals(SkyState.DAY_ORB, state.orbArgb)
         assertEquals(0f, state.starBrightness, 1e-4f)
 
-        // Dusk clear (19:00 -> skyTone == 1f) -> exact DUSK palette
         state.update(19f, "2000-01-10", WeatherState.CLEAR, Season.SUMMER)
         assertEquals(SkyPhase.DUSK, state.phase)
         assertEquals(1f, state.tone, 1e-4f)
@@ -111,7 +104,6 @@ class SkyStateTest {
         assertEquals(SkyState.DUSK_SKY_2, state.horizonArgb)
         assertEquals(starsShown(skyTone(19f)), state.starBrightness, 1e-4f)
 
-        // Midnight clear -> exact NIGHT palette & full stars
         state.update(0.5f, "2000-01-21", WeatherState.CLEAR, Season.SUMMER)
         assertEquals(SkyPhase.NIGHT, state.phase)
         assertEquals(0f, state.tone, 1e-4f)
@@ -121,7 +113,6 @@ class SkyStateTest {
         assertEquals(SkyState.NIGHT_SKY_2, state.horizonArgb)
         assertEquals(1f, state.starBrightness, 1e-4f)
 
-        // Overcast, rain, and mist must dim stars, raise cloud coverage/overcast, and cut ocean glint
         val clearGlint = state.oceanGlintStrength
         state.update(0.5f, "2000-01-21", WeatherState(0.90f, 0f, 0f, 0f))
         assertTrue("overcast suppresses stars", state.starBrightness < 0.25f)
@@ -141,28 +132,23 @@ class SkyStateTest {
     fun moonPhaseMatchesKnownCalendarDates() {
         val state = SkyState()
 
-        // Known new moon: 2000-01-06
         state.update(0.5f, "2000-01-06")
         assertTrue("2000-01-06 near new moon (ph=${state.moonPhase})", state.moonPhase < 0.04f || state.moonPhase > 0.96f)
         assertTrue("new moon illumination near 0", state.moonIllumination < 0.03f)
 
-        // Waxing crescent: 2000-01-10 (~3.7d after new moon -> fraction ~0.126)
         state.update(19.5f, "2000-01-10")
         assertTrue("2000-01-10 waxing crescent (ph=${state.moonPhase})", state.moonPhase in 0.09f..0.17f)
         assertTrue("crescent illumination in 0.08..0.25", state.moonIllumination in 0.08f..0.25f)
         assertEquals(MoonPhase.step(state.moonPhase), state.moonStep)
 
-        // First quarter: 2000-01-14 (~7.7d -> fraction ~0.26)
         state.update(0.5f, "2000-01-14")
         assertEquals(0.25f, state.moonPhase, 0.04f)
         assertEquals(0.50f, state.moonIllumination, 0.12f)
 
-        // Full moon: 2000-01-21 (~14.7d -> fraction ~0.50)
         state.update(0.5f, "2000-01-21")
         assertEquals(0.50f, state.moonPhase, 0.03f)
         assertTrue("full moon illumination near 1", state.moonIllumination > 0.97f)
 
-        // Last quarter: 2000-01-28 (~21.7d -> fraction ~0.74)
         state.update(0.5f, "2000-01-28")
         assertEquals(0.75f, state.moonPhase, 0.04f)
         assertEquals(0.50f, state.moonIllumination, 0.12f)
@@ -170,9 +156,6 @@ class SkyStateTest {
 
     @Test
     fun worldRayInvarianceAcross90DegreeCameraTurn() {
-        // Verify that a world sky ray reconstructed for a target world direction (e.g. a star at
-        // azimuth 45 deg, elevation 25 deg) maps to the exact same 3D world unit vector whether
-        // viewed from yaw=0 (right side of frame) or yaw=90 (left side of frame).
         val starAz = Math.toRadians(45.0)
         val starEl = Math.toRadians(25.0)
         val wx = (sin(starAz) * cos(starEl)).toFloat()
@@ -188,12 +171,11 @@ class SkyStateTest {
 
             val zc = wx * fx + wy * fy + wz * fz
             assertTrue("star must be in front of camera at yaw=$yawDeg", zc > 0.2f)
-            val scaleY = kotlin.math.tan(fovYDeg * (PI / 360.0)).toFloat()
+            val scaleY = tan(fovYDeg * (PI / 360.0)).toFloat()
             val scaleX = scaleY * aspect
             val ndcX = (wx * rx + wy * ry + wz * rz) / (zc * scaleX)
             val screenUp = (wx * ux + wy * uy + wz * uz) / (zc * scaleY)
 
-            // Exact shader ray reconstruction from sky.mat:
             var rxOut = fx + ndcX * scaleX * rx + screenUp * scaleY * ux
             var ryOut = fy + ndcX * scaleX * ry + screenUp * scaleY * uy
             var rzOut = fz + ndcX * scaleX * rz + screenUp * scaleY * uz
@@ -216,24 +198,19 @@ class SkyStateTest {
         val weather = WeatherState.CLEAR
         val season = Season.SUMMER
 
-        // Warm up JIT and date cache
         repeat(500) { i ->
             state.update((i % 240) * 0.1f, date, weather, season, i * 0.016f)
         }
 
-        val tmx = ManagementFactory.getThreadMXBean() as? com.sun.management.ThreadMXBean
-        val tid = Thread.currentThread().id
-        val before = tmx?.getThreadAllocatedBytes(tid) ?: -1L
+        val mx = ManagementFactory.getThreadMXBean() as? com.sun.management.ThreadMXBean ?: return
+        if (!mx.isThreadAllocatedMemorySupported) return
 
+        mx.currentThreadAllocatedBytes
+        val before = mx.currentThreadAllocatedBytes
         repeat(2000) { i ->
-            val hr = (i % 240) * 0.1f
-            state.update(hr, date, weather, season, i * 0.016f)
+            state.update((i % 240) * 0.1f, date, weather, season, i * 0.016f)
         }
-
-        val after = tmx?.getThreadAllocatedBytes(tid) ?: -1L
-        if (before >= 0L && after >= 0L) {
-            val allocated = after - before
-            assertEquals("SkyState.update must allocate 0 bytes over 2,000 frames (got $allocated B)", 0L, allocated)
-        }
+        val delta = mx.currentThreadAllocatedBytes - before
+        assertEquals("SkyState.update must allocate 0 bytes over 2,000 frames (got $delta B)", 0L, delta)
     }
 }

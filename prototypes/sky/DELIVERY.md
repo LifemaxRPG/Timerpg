@@ -1,76 +1,133 @@
-# G016 Delivery — Pixel-Art Sky Dome in Filament
+# G016 Delivery: The Sky in Filament (Pixel-Art Sky Dome)
 
-## What was built
+- **Task:** `G016` — The sky in Filament (a pixel-art sky dome)
+- **Branch:** `gemini/G016-sky`
+- **Author:** Jeff (Gemini)
 
-A standalone, single-draw-call pixel-art sky dome for Filament (`sky.mat`, `SkyState.kt`, `SkySurface.kt`), plus a headless desktop Filament preview (`-Dmode=sky`), JUnit tests (`SkyStateTest.kt`), and faithful offline pixel-art proof renders (`prototypes/sky/*.png`).
+---
 
-### Files created / modified
-- **New** `kotlin-street/filament/materials/sky.mat` — Filament 1.81 unlit opaque `vertexDomain : device` material (`depthWrite : false`, `depthCulling : true`, `culling : none`). Draws a single far-plane full-screen triangle (`z = 0.999998 -> z' = 1e-6` in Filament's reversed-Z buffer, strictly behind every town, terrain, and 24 km ocean pixel while strictly above the cleared `0.0` depth plane). Evaluates everything in 3D world sky direction (`+X` east, `+Y` up, `-Z` north, `+Z` south) so turning the camera 90° keeps stars, Milky Way, sun, moon, and clouds completely fixed in the sky:
-  - **11 hard stepped 16-bit sky bands** (no smooth gradients), matching `SkyColors` / `SkyDome` across dawn, day, dusk, and night (sunset orange-ember horizon rising into deep twilight cobalt-blue overhead, rose Belt of Venus, night town horizon glow, winter crispness, seamless below-horizon haze matching `FilamentTown.haze`).
-  - **Pixel-art sun disc** (quantized 20×20 pixel grid with stepped core, inner/outer halo rings, and clear-sky cardinal shimmer) pinned to `sunDir`.
-  - **Pixel-art moon disc** sampled from a nearest-filtered 32×32 `moonTex` (lunar maria, bright Tycho/Copernicus highlights, stepped limb relief) with a 32-step spherical phase terminator matching `MoonPhase` (lit on the right when waxing), phase-directed 2-pixel halo (no ghost ring on the dark limb of crescents), star occultation, and atmospheric dark side (subtle cool earthshine at night; never darkens the bright dusk sky).
-  - **World-fixed pixel-art starfield & delicate Milky Way dust ribbon** evaluated purely from world `(az, elev)` spherical cells (immune to camera rotation), fading in at dusk via `starsShown(skyTone(hour))`, with colour-varied stars (blue-white, white, cream, gold, amber), crisp `+` cross glints on the brightest stars, and gentle stepped twinkle.
-  - **World-fixed pixel-art drifting clouds** sampled with `MinFilter.NEAREST` / `MagFilter.NEAREST` from a seamless 512×256 spherical-panorama `cloudTex` (3 panoramas around 360° matching `OrbitCamera.skyPx`), keeping every cloud's flat base strictly level with the horizon at every camera yaw, with 2 parallax decks, 3-tone stepped shading (`cloudLit` / `cloudBody` / `cloudShade`), dusk warm coral under-belly, opaque cloud cores cleanly occluding stars, and scaling smoothly from sparse fair-weather cumulus to heavy overcast & storm decks.
-  - **Overcast, mist, and rain dimming** matching `Backdrop.kt` & `StreetWeather.kt` (overcast grey veil darker overhead and paler at horizon, 5-step pale horizon mist bands, rain atmospheric darkening/desaturation and darkened cloud undersides).
-- **New** `kotlin-street/shared/src/main/kotlin/scene3d/SkyState.kt` — Pure-Kotlin, zero-allocation-per-frame sky state (package `com.lifemax.rpg.feature.habits.presentation.scene3d`, no Compose/Filament dependency). Computes `sunDir`, `moonDir`, `keyOrbDir`, `moonPhase`/`moonStep`/`moonIllumination`, `starBrightness`, `cloudCoverage`, `overcast`, `mist`, `rain`, `winterCrisp`, all sRGB ARGB and linear RGB sky/cloud/weather colours, plus ocean/lighting bridge values (`oceanSkyLin`, `oceanGlintLin`, `oceanGlintStrength`). Caches parsed `MoonPhase.fraction(date)` so steady-state per-frame updates allocate **0 bytes**.
-- **New** `kotlin-street/shared/src/filament/kotlin/scene3d/SkySurface.kt` — Filament wrapper managing the 1-triangle far-plane mesh (`priority(7)`, `culling(false)`), one-time deterministic baking of the nearest-filtered 512×256 `cloudTex` and 32×32 `moonTex`, and zero-allocation per-frame uniform uploads (`update(...)`, `updateForCamera(...)`, `updateForLookAt(...)`) compatible with both `TownPose` off-center principal points and `OrbitCamera` / `FilamentOceanPreview`, honouring `LookMatrix.windowY` on both headless desktop and Android `TextureView`.
-- **New** `kotlin-street/desktop/src/filament/kotlin/FilamentSkyPreview.kt` — Standalone headless Filament preview (`-Dmode=sky`) rendering all 12 cases (dawn, noon, dusk crescent moon behind clock tower, dusk western sunset, midnight full moon, midnight crescent moon, day overcast, day rain, dawn mist, and midnight camera turn `yaw = 0° / 45° / 90°`) + 4×3 labeled `sky_contact_sheet.png` + `sky_bench.txt` (including 2,000-frame CPU allocation check) and a foreground rooftop/clock-tower silhouette (`street_lit.filamat`) proving far-plane reversed-Z occlusion.
-- **Modified (1 line)** `kotlin-street/desktop/build.gradle.kts` — Registered `"sky" -> "FilamentSkyPreviewKt"` in the `:desktop:preview` task. No other existing files were modified (`FilamentTown`, `FilamentLayer`, `Backdrop`, `ScenePalette`, and `OceanSurface` were left untouched per scope).
-- **New** `kotlin-street/desktop/src/crossroadsTest/kotlin/SkyStateTest.kt` — Unit tests checking sun/moon direction parity against `OrbitCamera.sunAzimuth` & `SceneLight.key`, dusk-to-night moon elevation continuity at 20:30, `SkyColors` / weather colour parity, known moon-phase calendar dates (`2000-01-06` new, `2000-01-10` waxing crescent, `2000-01-14` first quarter, `2000-01-21` full, `2000-01-28` last quarter), 90° camera-turn world-ray invariance, and strict 0 B per-frame allocation over 2,000 frames via `ThreadMXBean`.
-- **New** `prototypes/sky/*.png` — **Offline faithful proof renders** (12 individual shots + `sky_contact_sheet.png`) generated by executing the exact same `SkyState`, `bakeMoonPixels`, `bakeCloudPixels`, and `sky.mat` fragment math offline in Node so every visual requirement could be visually inspected and iterated across 3 rounds here. **Important:** these PNGs are **offline faithful proof renders, NOT Filament desktop or Android phone game captures**.
+## Summary of Deliverables
 
-## Build & Test Status (Honest Report)
+All work is confined to new files plus the single preview-mode dispatch line in `kotlin-street/desktop/build.gradle.kts` (`FilamentTown`, `FilamentLayer`, `Backdrop`, `ScenePalette`, `OceanSurface`, and `docs/queue/` are untouched):
 
-- **tests not run here: sandbox has no JDK/Gradle/matc/Filament** (no `java`, `javac`, `gradle`, or Filament `matc` binary is installed in this environment).
-- **No fake `.filamat` committed.** Compile `sky.filamat` with Filament v1.81.0 `matc` on the build server using the exact same flags as `ocean.mat`:
-  ```bash
-  matc -p mobile -a opengl \
-    -o kotlin-street/app/src/main/assets/filament/sky.filamat \
-    kotlin-street/filament/materials/sky.mat
-  ```
-- **Static & visual verification performed here:**
-  - Verified 100% 1:1 parameter parity across all 26 uniform/sampler names between `sky.mat` and `SkySurface.kt`.
-  - Verified balanced delimiters, zero unused imports, and Filament 1.81 API signatures (`Texture.Builder`, `TextureSampler.MinFilter.NEAREST`, `RenderableManager.Builder`, `MaterialInstance.setParameter`, `View.BlendMode.TRANSLUCENT`) against existing files (`OceanSurface.kt`, `FilamentOceanPreview.kt`, `WorldNear.kt`, `street_lit.mat`).
-  - Audited `sky.mat` for mobile GLSL ES 3.00 (`-p mobile`) precision safety (`highp` on spherical `elev`/`az`, cloud UVs, sun/moon tangent math, and zenith `atan(0,0)` guard).
-  - Visually inspected all 12 offline proof renders across 3 iterative rounds (fixing planar cloud skew -> spherical 512×256 horizon-level panorama, fixing dark-side dusk crescent darkening, adding phase-directed crescent halo, refining Milky Way pixel dust, and tuning clear-sky cloud coverage).
+1. **`kotlin-street/filament/materials/sky.mat`**
+   - Unlit, opaque, single-triangle far-plane pass (`vertexDomain : device`, `depthWrite : false`, `depthCulling : true`, `culling : none`, `priority(7)`).
+   - Evaluates exact 3D world-space rays (`+X` east, `+Y` up, `-Z` north, `+Z` south) from camera basis uniforms (`camRight`, `camUp`, `camFwd`, `camLens`) so every celestial body, star, Milky Way grain, and cloud bank stays fixed in the sky as the camera turns 90°.
+   - Hard 10-band stepped pixel-art sky ramp (matching `SkyColors` / `SkyDome.kt`, zero smooth gradients), sunset orange-to-deep-blue dusk bands, Belt of Venus opposite the sun, night city horizon glow, pixel-art sun disc with stepped core/halo/shimmer, nearest-filtered 32×32 pixel-art moon with lunar maria + 32-step phase terminator (`MoonPhase` convention: waxing lit on the right) + phase-gated halo + night earthshine + star occultation, world-fixed 2-layer spherical pixel-art starfield + fine Milky Way star-dust band, nearest-filtered 256×256 pixel-art drifting cumulus/stratus cloud deck mapped in world `(azimuth, elevation)` bands (upright, non-skewed, 3-tone stepped shading + warm dusk under-belly), overcast veil, stepped horizon mist bands, rain atmospheric dimming, and seamless below-horizon haze.
+   - Nearest-filtered textures only (`MinFilter.NEAREST`, `MagFilter.NEAREST`).
+2. **`kotlin-street/shared/src/main/kotlin/scene3d/SkyState.kt`**
+   - Pure-Kotlin, **0 B/frame allocation** state container matching `SkyColors`, `Backdrop.kt`, `SkyDome.kt`, `OrbitCamera.sunAzimuth`, `SceneLight.key`, `MoonPhase`, `WeatherState`, and `SeasonState`.
+   - Caches `MoonPhase.fraction(date)` across frames; exposes both packed sRGB ARGB and pre-converted linear RGB (`FloatArray(3)`), unit `sunDir`/`moonDir`/`keyOrbDir`, plus `oceanSkyLin`, `oceanGlintLin`, and `oceanGlintStrength` so town lighting and `OceanSurface` can share the same source of truth.
+3. **`kotlin-street/shared/src/filament/kotlin/scene3d/SkySurface.kt`**
+   - Single-draw-call Filament wrapper using a fullscreen far-plane triangle (`FAR_CLIP_Z = 0.999998f` -> Filament reversed-Z `z' = 1e-6f`, strictly `> 0.0` cleared depth and strictly `< 2.08e-5` 24 km ocean horizon skirt).
+   - Deterministically bakes `moonTex` (32×32 RGBA8) and `cloudTex` (256×256 RGBA8) once at init; uploads all 24 float4 uniforms with **0 B/frame allocation** via `update(...)`, `updateForCamera(...)`, or `updateForLookAt(...)`.
+4. **`kotlin-street/desktop/src/filament/kotlin/FilamentSkyPreview.kt`** (+ 1-line `"sky" -> "FilamentSkyPreviewKt"` in `kotlin-street/desktop/build.gradle.kts`)
+   - Headless Filament desktop preview (`-Dmode=sky`) rendering 12 shots covering dawn, noon, dusk crescent behind a clock tower silhouette (`PreviewSkyline` proving far-plane depth occlusion), dusk sunset, midnight full moon vs. crescent moon, overcast, heavy rain, morning mist, and 0° → 45° → 90° camera-turn star/cloud lock checks, plus a 4×3 contact sheet and `sky_bench.txt` allocation/timing report.
+5. **`kotlin-street/desktop/src/crossroadsTest/kotlin/SkyStateTest.kt`**
+   - Unit tests verifying sun/moon directions against `OrbitCamera.sunAzimuth` and `SceneLight.key`, sky colours & weather dimming vs `SkyColors`/`Backdrop`, known-date moon phases (new, first quarter, full, last quarter), 90° camera-turn ray invariance, and strict `0 B` allocation per frame via `ThreadMXBean.currentThreadAllocatedBytes`.
+6. **`prototypes/sky/*.png`**
+   - **Important honesty note:** These 12 individual PNGs (`01_dawn_clear.png` .. `12_turn_yaw90_east.png`) and `sky_contact_sheet.png` are **offline faithful proof renders** generated by a 1:1 JavaScript port of `SkyState.kt` + `SkySurface.kt` (`bakeMoonTex`/`bakeCloudTex`) + `sky.mat` (NOT Filament desktop or phone game captures).
 
-## How to Verify on the Build Server
+---
 
-1. Compile `sky.filamat` with Filament v1.81.0 `matc`:
-   ```bash
-   matc -p mobile -a opengl \
-     -o kotlin-street/app/src/main/assets/filament/sky.filamat \
-     kotlin-street/filament/materials/sky.mat
-   ```
-2. Run the `SkyStateTest` unit test suite (including the 0 B/frame allocation test):
-   ```bash
-   cd kotlin-street && gradle :desktop:crossroadsTest --tests "*SkyStateTest*"
-   ```
-3. Run the headless Filament sky preview (`-Dmode=sky`):
-   ```bash
-   cd kotlin-street && gradle :desktop:preview -Dmode=sky
-   ```
-   Outputs land in `kotlin-street/desktop/build/preview/sky/` (`01_dawn_clear.png` .. `12_turn_yaw90_east.png`, `sky_contact_sheet.png`, and `sky_bench.txt`).
+## Build & Verification Status
 
-## Self-review
+**tests not run here: sandbox has no JDK/Gradle/matc/Filament**
 
-- **Visual check (offline faithful proof renders, 3 rounds):**
-  - Round 1 caught planar `ray.xz` cloud skewing/giant texels, dusk crescent dark-side brown disc, blocky Milky Way grain, vertical azimuthal seams, and high noon/midnight orb cropping at `-24°` pitch.
-  - Round 2 switched clouds to a horizontally seamless 512×256 spherical panorama `(az, elev)` with crisp flat bases parallel to the horizon at every yaw, fixed atmospheric dark-limb moon shading (occludes stars without darkening dusk air), refined Milky Way dust, and framed noon/midnight orbs cleanly.
-  - Round 3 added phase-directed lunar halo weighting (eliminating the faint circular ring around the dark side of a crescent moon) and tightened clear-sky cloud thresholds so dusk bands, stars, and crescent moon breathe cleanly.
-- **Scope discipline:** Only new files plus the single mode-dispatch line in `kotlin-street/desktop/build.gradle.kts`. `FilamentTown`, `FilamentLayer`, `Backdrop`, `ScenePalette`, and `OceanSurface` remain completely untouched.
-- **Known caveats / things to double-check when compiled on the build server:**
-  - Confirm `sky.mat` compiles cleanly under `matc 1.81 -p mobile -a opengl` (specifically `depthCulling : true` alongside `depthWrite : false`, and `const float SKY_BANDS = 11.0;` inside `material()`).
-  - Confirm `FAR_CLIP_Z = 0.999998f` passes Filament's reversed-Z depth test behind the 24 km `OceanSurface` skirt and `FilamentTown` distant terrain on both desktop llvmpipe (`windowY = false`) and Android Adreno/Mali (`windowY = true`).
-  - Confirm `PreviewSkyline` rooftops in `FilamentSkyPreview.kt` align with the sky horizon vertically on llvmpipe (both share `LookMatrix.windowY` sign convention).
+Because this sandbox has no JDK, Gradle, `matc`, or Filament runtime, `sky.filamat` was **not** compiled or committed (no fake `.filamat`). To build, test, and verify on a machine with Filament v1.81.0 + JDK:
 
-## Ideas for the team
+```bash
+# 1. Compile the Filament material (same flags as ocean.mat and street_lit.mat)
+matc -p mobile -a opengl \
+  -o kotlin-street/app/src/main/assets/filament/sky.filamat \
+  kotlin-street/filament/materials/sky.mat
 
-1. **Single source of truth for sky + town lighting + ocean:** When wiring G016 into `FilamentTown` and `OceanSurface`, `SkyState` already computes `keyOrbDir`, `belowHorizonLin` (exact `FilamentTown.haze` colour), `oceanSkyLin`, `oceanGlintLin`, and `oceanGlintStrength` in linear RGB at 0 B/frame — both town fog/IBL and the G002 ocean can read from the exact same `SkyState` instance so sky, haze, and sea reflections never drift out of sync across weather or dusk transitions.
-2. **Dusk moon-rise handoff:** `SkyState` brings the moon up gently in the east from `6°` to `10°` (`SceneLight.LOW`) between `18:00` and `20:30` so the crescent can rise behind the clock tower while the sun is still setting in the west, then connects continuously into `SceneLight.key`'s night arc at `20:30`. If the team wants the moon's rise time to shift with lunar phase later (full moon rising at sunset, waxing crescent already higher at dusk, waning crescent rising before dawn), `SkyState` is isolated so that astronomy upgrade is a ~10-line change inside one function.
-3. **Optional pixel-art rain/snow overlay pass:** The sky dome intentionally stops at atmospheric dimming and brooding storm clouds; pairing it with a tiny screen-space or near-camera pixel rain/snow particle pass in Filament will make `08_day_rain` feel completely alive on the street.
+# 2. Run SkyState unit tests (including 0 B/frame allocation check)
+./gradlew -p kotlin-street :desktop:crossroadsTest --tests "*SkyStateTest"
+
+# 3. Render the 12-shot Filament desktop preview + contact sheet + bench
+./gradlew -p kotlin-street :desktop:preview -Dmode=sky
+```
+
+Static checks performed here before pushing:
+- Verified all 26 `sky.mat` parameters (`24 float4 + 2 sampler2d`) match `SkySurface.kt` `setParameter(...)` calls 1:1.
+- Verified `sky.mat` GLSL syntax, `materialParams.*` / `materialParams_*` / `variable_skyNdc` naming, and `vertexDomain : device` reversed-Z depth math (`FAR_CLIP_Z = 0.999998f` -> `z' = 1e-6f`).
+- Verified Kotlin signatures against existing repo files (`OrbitCamera.sunAzimuth`, `SceneLight.key`, `MoonPhase`, `WeatherState`, `Season`, `LookMatrix.windowY`, `assetsDir()`, and `ThreadMXBean.currentThreadAllocatedBytes`).
+- Visually inspected the offline proof renders across 2 critique-and-fix passes before finalizing `sky.mat`, `SkySurface.kt`, and `FilamentSkyPreview.kt`.
+
+---
 
 ## Usage
 
-- **Run summary:** One uninterrupted G016 implementation + 3-round offline visual critique pass (no Filament/Gradle/matc available in sandbox).
-- **Files written:** 6 code/material/test files (`sky.mat`, `SkyState.kt`, `SkySurface.kt`, `FilamentSkyPreview.kt`, `SkyStateTest.kt`, `DELIVERY.md`), 1 one-line edit (`kotlin-street/desktop/build.gradle.kts`), and 13 offline proof PNGs in `prototypes/sky/`.
+Once `sky.filamat` is compiled into `kotlin-street/app/src/main/assets/filament/sky.filamat`:
+
+```kotlin
+// Init (once, alongside OceanSurface / FilamentTown)
+val skyMatBytes = assetManager.open("filament/sky.filamat").readBytes()
+val skyMatBuf = ByteBuffer.allocateDirect(skyMatBytes.size)
+    .order(ByteOrder.nativeOrder()).put(skyMatBytes).flip()
+val skyMat = Material.Builder().payload(skyMatBuf, skyMatBytes.size).build(engine)
+val skyState = SkyState()
+val skySurface = SkySurface(engine, scene, skyMat)
+
+// Per frame (0 B allocated)
+skyState.update(hour, gameDate, weatherState, seasonState, elapsedSec)
+
+// Option A: TownPose / off-center principal point camera
+skySurface.update(
+    state = skyState,
+    rx = camRightX, ry = camRightY, rz = camRightZ,
+    ux = camUpX, uy = camUpY, uz = camUpZ,
+    fx = camFwdX, fy = camFwdY, fz = camFwdZ,
+    scaleX = tanHalfFovY * aspect,
+    scaleY = tanHalfFovY,
+    offsetX = principalOffsetX,
+    offsetY = principalOffsetY,
+    windowY = LookMatrix.windowY,
+)
+
+// Option B: OrbitCamera-style yaw/pitch camera
+skySurface.updateForCamera(skyState, yawDeg, pitchDeg, fovYDeg, aspect)
+
+// Option C: Arbitrary eye/target/up camera
+skySurface.updateForLookAt(skyState, ex, ey, ez, tx, ty, tz, upX, upY, upZ, fovYDeg, aspect)
+
+// Switch Filament View to opaque once Backdrop is retired:
+// view.blendMode = View.BlendMode.OPAQUE
+
+// Teardown
+skySurface.destroy()
+engine.destroyMaterial(skyMat)
+```
+
+---
+
+## Self-review
+
+1. **What is the single weakest part of this delivery, and what did you do about it?**
+   - **Weakest part:** I could not run `matc 1.81` or the live Filament OpenGL renderer in this sandbox, so `sky.mat` compilation, reversed-Z interaction with the real town + 24 km ocean skirt, and `LookMatrix.windowY` orientation on Android `TextureView` vs. headless desktop are verified by code audit and math rather than a live Filament frame.
+   - **What I did about it:**
+     - Audited every uniform name, type, and precision qualifier between `sky.mat` and `SkySurface.kt` (26/26 exact 1:1 match), and checked `LookMatrix.kt` + `ocean.mat` + `street_lit.mat` to match Filament's exact `vertexDomain : device` reversed-Z mapping (`z' = 0.5 - 0.5 * z = 1e-6f`, strictly between cleared `0.0` and the ocean's `2.08e-5`).
+     - Built a 1:1 offline JS proof renderer implementing the exact `SkyState.kt` math, `SkySurface.kt` `bakeMoonTex`/`bakeCloudTex` generators, and `sky.mat` fragment shader, then ran two visual review passes on the contact sheet and close-ups. That caught and fixed 5 real visual issues before pushing:
+       1. Replacing flat ceiling-plane clouds (which looked huge and skewed at 45°) with upright world-dome `(azimuth, elevation)` cumulus bands (5 fair-weather banks + 24 overcast/rain banks).
+       2. Pitching the noon and midnight preview cameras to `-38°` so high orbs (~51° elevation) sit cleanly in frame rather than clipping the top border.
+       3. Refining the Milky Way from coarse blocks into fine star-dust grain (`az * 135`) with a subtle stepped indigo glow.
+       4. Making core cloud opacity `1.0` so night stars no longer bleed faintly through solid clouds.
+       5. Gating the outer lunar halo (`moonTex.a`) by `limbLit > 0.02` so crescent moons never show a faint ring around their unlit limb.
+     - Also note a minor visual difference between the offline proof renders and `FilamentSkyPreview.kt`: the offline proof's `evalSkyline` draws a small warm glowing clock face on the silhouette tower to visualize the "crescent moon rises behind the clock tower" beat, while `PreviewSkyline` in `FilamentSkyPreview.kt` uses a plain dark silhouette (solid white albedo tinted dark with `street_lit.filamat`, zero mask) purely to test far-plane depth occlusion cleanly.
+
+2. **What did you check by looking (renders) or by running (tests), and what did you only reason about?**
+   - **Checked by looking (offline proof renders):** All 12 shots + 4×3 contact sheet (`prototypes/sky/sky_contact_sheet.png`) and full-size close-ups (`03_dusk_crescent_moon.png`, `05_midnight_full_moon.png`, `06_midnight_crescent_moon.png`, `02_noon_clear.png`, `07_day_overcast.png`) — confirmed 10-step orange-to-deep-blue dusk banding, crescent moon shape & right-side illumination, lunar maria on the full moon, twilight star fade-in, upright 3-tone pixel-art cumulus clouds, overcast/rain/mist dimming, and world-fixed star/cloud continuity across 0° → 45° → 90° camera yaw.
+   - **Only reasoned about (needs Claude's first build/run):** `matc -p mobile -a opengl` shader compilation, Filament runtime execution (`-Dmode=sky`), reversed-Z occlusion against real `FilamentTown` / `OceanSurface` geometry, `LookMatrix.windowY` flip on both desktop and Android `TextureView`, and JVM `SkyStateTest` execution + `ThreadMXBean` 0 B/frame measurement.
+
+3. **If the owner looked at this for 10 seconds, what would they notice first?**
+   - Shot 3 (`03_dusk_crescent_moon.png`): the stepped orange-to-indigo dusk sky bands behind the clock tower with the crisp pixel-art waxing crescent moon rising right beside the spire and the first stars twinkling above the rooftops — immediately reading as "SNES meets PS2" rather than a smooth mobile gradient. Immediately after that, comparing shots 5 & 6 (full moon with maria vs. crescent moon with subtle earthshine) and shots 10–12 (stars and clouds staying anchored in the sky as the camera sweeps 90°).
+
+---
+
+## Ideas for the team
+
+1. **Single source of truth for Sky + Town Light + Haze + Ocean (`SkyState` wiring):**
+   Once Claude wires `SkySurface` into `FilamentTown` and flips `View.BlendMode.OPAQUE`, `SkyState` already exposes `keyOrbDir`, `belowHorizonLin`, `oceanSkyLin`, `oceanGlintLin`, and `oceanGlintStrength`. Feeding `SkyState.belowHorizonLin` into the town's distance fog/haze and feeding `oceanSkyLin` / `oceanGlintLin` / `oceanGlintStrength` + `keyOrbDir` into `OceanSurface` will lock the sky horizon, distant blocks, building shadows, and ocean sun/moon glitter trail to the exact same colour, azimuth, and moon-phase brightness — including making a new-moon night genuinely dark on the water while a full moon throws a crisp silver path across the waves.
+2. **Distant weather-front & lightning flash hooks in `sky.mat`:**
+   Because the cloud deck is already world-fixed in `(azimuth, elevation)` with 3-tone shading, a single extra uniform (`stormFlash = vec4(flashAz, flashElev, intensity, 0)`) could light up the undersides of storm clouds from inside during heavy rain/thunderstorms — a tiny shader cost that would make walking Main Street in a rainstorm feel unforgettable on the phone.

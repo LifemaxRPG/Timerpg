@@ -59,9 +59,6 @@ class SkySurface(
     )
 
     init {
-        // Single full-screen triangle covering NDC [-1, 1]^2 at Filament's reversed-Z far plane:
-        // In vertexDomain : device, z' = 0.5 - 0.5 * z -> z = 0.999998 gives z' = 1e-6
-        // (strictly > 0.0 cleared depth and strictly < every world mesh including 24 km horizon).
         val vbData = ByteBuffer.allocateDirect(3 * 3 * 4).order(ByteOrder.nativeOrder())
         vbData.putFloat(-1f); vbData.putFloat(-1f); vbData.putFloat(FAR_CLIP_Z)
         vbData.putFloat(3f); vbData.putFloat(-1f); vbData.putFloat(FAR_CLIP_Z)
@@ -91,7 +88,6 @@ class SkySurface(
             .build(engine)
         indexBuffer.setBuffer(engine, ibData)
 
-        // Bake deterministic nearest-filtered pixel-art cloud & moon textures once at init
         cloudTexture = buildCloudTexture(engine)
         moonTexture = buildMoonTexture(engine)
         materialInstance.setParameter("cloudTex", cloudTexture, cloudSampler)
@@ -112,13 +108,7 @@ class SkySurface(
 
     /**
      * Uploads [state] and an arbitrary pinhole camera basis (compatible with both `TownPose`
-     * off-center principal points and standard centered pinhole cameras) with **0 bytes allocated**.
-     *
-     * World convention: `+X` east, `+Y` up, `-Z` north, `+Z` south.
-     * [scaleX] = `w / (2 * fl)` (or `tan(fovY/2) * aspect`),
-     * [scaleY] = `h / (2 * fl)` (or `tan(fovY/2)`),
-     * [offsetX] = `(w / 2 - cx) / fl` (0 when centered),
-     * [offsetY] = `(cy - h / 2) / fl` (0 when centered).
+     * off-center principal points and centered pinhole cameras) with **0 bytes allocated**.
      */
     fun update(
         state: SkyState,
@@ -168,8 +158,8 @@ class SkySurface(
     }
 
     /**
-     * Convenience zero-allocation update for an `OrbitCamera`-style camera given [yawDeg]
-     * (0 north, 90 east, 180 south, 270 west) and [pitchDeg] (positive = looking down, negative = looking up).
+     * Convenience zero-allocation update for an `OrbitCamera`-style camera (`yawDeg` 0 north /
+     * 90 east / 180 south / 270 west; `pitchDeg` positive down / negative up).
      */
     fun updateForCamera(
         state: SkyState,
@@ -187,19 +177,9 @@ class SkySurface(
         val sy = sin(ya).toFloat()
         val cy = cos(ya).toFloat()
 
-        // Matches OrbitCamera.orbAt exactly:
-        //   look = (sin(yaw)*cos(pitch), -sin(pitch), -cos(yaw)*cos(pitch))
-        //   right = (cos(yaw), 0, sin(yaw))
-        //   up = right x look
-        val fx = sy * cp
-        val fy = -sp
-        val fz = -cy * cp
-        val rx = cy
-        val ry = 0f
-        val rz = sy
-        val ux = -rz * fy
-        val uy = rz * fx - rx * fz
-        val uz = rx * fy
+        val fx = sy * cp; val fy = -sp; val fz = -cy * cp
+        val rx = cy; val ry = 0f; val rz = sy
+        val ux = -rz * fy; val uy = rz * fx - rx * fz; val uz = rx * fy
 
         val scaleY = tan(fovYDeg * (PI / 360.0)).toFloat()
         val scaleX = scaleY * aspect
@@ -218,15 +198,11 @@ class SkySurface(
         artCellPx: Float = 2f,
         windowY: Boolean = LookMatrix.windowY,
     ) {
-        var fx = tx - ex
-        var fy = ty - ey
-        var fz = tz - ez
+        var fx = tx - ex; var fy = ty - ey; var fz = tz - ez
         val fl = sqrt(fx * fx + fy * fy + fz * fz).coerceAtLeast(1e-6f)
         fx /= fl; fy /= fl; fz /= fl
 
-        var rx = -fz
-        val ry = 0f
-        var rz = fx
+        var rx = -fz; val ry = 0f; var rz = fx
         val rl = sqrt(rx * rx + rz * rz).coerceAtLeast(1e-6f)
         rx /= rl; rz /= rl
 
@@ -239,7 +215,6 @@ class SkySurface(
         update(state, rx, ry, rz, ux, uy, uz, fx, fy, fz, scaleX, scaleY, 0f, 0f, artCellPx, windowY)
     }
 
-    /** Releases Filament GPU buffers, textures, material instance, and scene entity. */
     fun destroy() {
         scene.removeEntity(entity)
         engine.destroyEntity(entity)
@@ -253,8 +228,7 @@ class SkySurface(
 
     companion object {
         private const val FAR_CLIP_Z = 0.999998f
-        const val CLOUD_TEX_W = 512
-        const val CLOUD_TEX_H = 256
+        const val CLOUD_TEX_SIZE = 256
         const val MOON_TEX_SIZE = 32
 
         private fun buildMoonTexture(engine: Engine): Texture {
@@ -263,55 +237,32 @@ class SkySurface(
             bakeMoonPixels(buf)
             buf.flip()
             val tex = Texture.Builder()
-                .width(s)
-                .height(s)
-                .levels(1)
+                .width(s).height(s).levels(1)
                 .sampler(Texture.Sampler.SAMPLER_2D)
                 .format(Texture.InternalFormat.RGBA8)
                 .build(engine)
-            tex.setImage(
-                engine,
-                0,
-                Texture.PixelBufferDescriptor(buf, Texture.Format.RGBA, Texture.Type.UBYTE, 1),
-            )
+            tex.setImage(engine, 0, Texture.PixelBufferDescriptor(buf, Texture.Format.RGBA, Texture.Type.UBYTE, 1))
             return tex
         }
 
         private fun buildCloudTexture(engine: Engine): Texture {
-            val w = CLOUD_TEX_W
-            val h = CLOUD_TEX_H
-            val buf = ByteBuffer.allocateDirect(w * h * 4).order(ByteOrder.nativeOrder())
+            val s = CLOUD_TEX_SIZE
+            val buf = ByteBuffer.allocateDirect(s * s * 4).order(ByteOrder.nativeOrder())
             bakeCloudPixels(buf)
             buf.flip()
             val tex = Texture.Builder()
-                .width(w)
-                .height(h)
-                .levels(1)
+                .width(s).height(s).levels(1)
                 .sampler(Texture.Sampler.SAMPLER_2D)
                 .format(Texture.InternalFormat.RGBA8)
                 .build(engine)
-            tex.setImage(
-                engine,
-                0,
-                Texture.PixelBufferDescriptor(buf, Texture.Format.RGBA, Texture.Type.UBYTE, 1),
-            )
+            tex.setImage(engine, 0, Texture.PixelBufferDescriptor(buf, Texture.Format.RGBA, Texture.Type.UBYTE, 1))
             return tex
         }
 
-        /**
-         * Bakes a crisp 32x32 pixel-art lunar disc into [out] (RGBA8):
-         *  - R: 4-step lunar surface albedo (dark maria, mid seas, bright highlands, Tycho crater ray)
-         *  - G: 255 inside disc (radius 13.4 px), 0 outside
-         *  - B: subtle stepped spherical relief shading
-         *  - A: 255 on a 2-pixel halo ring around the disc, 0 elsewhere
-         */
         fun bakeMoonPixels(out: ByteBuffer) {
             val s = MOON_TEX_SIZE
-            val cx = (s - 1) * 0.5f
-            val cy = (s - 1) * 0.5f
-            val discR = 13.4f
-            val haloR = 15.5f
-
+            val cx = (s - 1) * 0.5f; val cy = (s - 1) * 0.5f
+            val discR = 13.4f; val haloR = 15.5f
             val mariaX = floatArrayOf(-0.34f, -0.05f, 0.28f, 0.44f, -0.22f, 0.14f)
             val mariaY = floatArrayOf(-0.22f, -0.30f, -0.10f, 0.14f, 0.24f, 0.18f)
             val mariaR = floatArrayOf(0.36f, 0.26f, 0.30f, 0.22f, 0.24f, 0.20f)
@@ -319,43 +270,33 @@ class SkySurface(
 
             for (y in 0 until s) {
                 for (x in 0 until s) {
-                    val dx = x - cx
-                    val dy = y - cy
+                    val dx = x - cx; val dy = y - cy
                     val r = sqrt(dx * dx + dy * dy)
                     val inDisc = r <= discR
                     val inHalo = !inDisc && r <= haloR
-
-                    val nx = dx / discR
-                    val ny = dy / discR
-
+                    val nx = dx / discR; val ny = dy / discR
                     var mare = 0f
                     for (i in mariaX.indices) {
                         val mx = (nx - mariaX[i]) / mariaR[i]
                         val my = (ny - mariaY[i]) / (mariaR[i] * 0.85f)
                         val d2 = mx * mx + my * my
-                        if (d2 < 1f) {
-                            mare = max(mare, (1f - d2) * mariaD[i])
-                        }
+                        if (d2 < 1f) mare = max(mare, (1f - d2) * mariaD[i])
                     }
-
                     val tychoD = sqrt((nx - 0.08f) * (nx - 0.08f) + (ny - 0.56f) * (ny - 0.56f))
                     val copD = sqrt((nx + 0.18f) * (nx + 0.18f) + (ny + 0.02f) * (ny + 0.02f))
                     val brightSpot = (if (tychoD < 0.14f) 1f else 0f) + (if (copD < 0.11f) 0.7f else 0f)
-
                     val shade = when {
                         brightSpot > 0.5f -> 255
                         mare > 0.56f -> 136
                         mare > 0.26f -> 178
                         else -> 226
                     }
-
                     val rn = (r / discR).coerceIn(0f, 1f)
                     val relief = when {
                         rn < 0.58f -> 255
                         rn < 0.84f -> 226
                         else -> 196
                     }
-
                     out.put(if (inDisc) shade.toByte() else 0.toByte())
                     out.put(if (inDisc) 255.toByte() else 0.toByte())
                     out.put(if (inDisc) relief.toByte() else 0.toByte())
@@ -364,14 +305,6 @@ class SkySurface(
             }
         }
 
-        /**
-         * Bakes a horizontally seamless 512x256 spherical-panorama pixel-art cloud atlas into [out] (RGBA8):
-         *  - V = 0 is high upper sky, V = 1 is the horizon (clouds sit naturally in bands with crisp flat bases!)
-         *  - R: main cumulus & overcast stratus density (fair-weather puffs >= 0.78, overcast fills down to 0.16)
-         *  - G: puff crown height (drives 3-tone pixel-art shading: lit top / body / underside)
-         *  - B: secondary high-altitude wispy cirrus & upper stratus deck
-         *  - A: flat cloud-base underside shadow mask
-         */
         fun bakeCloudPixels(out: ByteBuffer) {
             val s = CLOUD_TEX_SIZE
             val mass = FloatArray(s * s)
@@ -379,10 +312,8 @@ class SkySurface(
             val under = FloatArray(s * s)
             val high = FloatArray(s * s)
 
-            // 1. Tileable overcast stratus foundation (only revealed when cloudCoverage > 0.65)
             for (y in 0 until s) {
                 val fy = y.toFloat() / s
-                // Taper gently at very top & bottom of the elevation band so there is never a hard UV seam
                 val edgeFade = (min(fy, 1f - fy) / 0.12f).coerceIn(0f, 1f)
                 for (x in 0 until s) {
                     val fx = x.toFloat() / s
@@ -392,10 +323,8 @@ class SkySurface(
                     val idx = y * s + x
                     mass[idx] = ((0.22f + 0.36f * n1) * edgeFade).coerceIn(0f, 0.62f)
                     dome[idx] = (0.36f + 0.30f * n1).coerceIn(0.15f, 0.72f)
-                    // Flat lower-band undersides on overcast stratus
                     under[idx] = (0.32f + 0.42f * fy - 0.18f * n1).coerceIn(0.10f, 0.85f)
 
-                    // Elongated horizontal wispy cirrus / high stratus ribbons in B channel
                     val c1 = tileWave(fx, fy, 2f, 6f, 1.1f) * 0.48f +
                         tileWave(fx, fy, 5f, 11f, 2.7f) * 0.32f +
                         tileWave(fx, fy, 9f, 16f, 4.3f) * 0.20f
@@ -403,16 +332,12 @@ class SkySurface(
                 }
             }
 
-            // 2. Stamp crisp horizontal pixel-art cumulus clouds (flat bottom, scalloped puffy top!)
-            //    Tiled seamlessly along X (azimuth); kept inside Y in [26..226] so no cloud clips a band edge.
             var seed = 0x51A7C0DE
             fun nextF(): Float {
                 seed = seed * 1664525 + 1013904223
                 return ((seed ushr 8) and 0xFFFFFF) / 16777216f
             }
 
-            // 5 airy fair-weather cumulus clouds (lower-mid sky so high sun/moon & starry zenith stay open!)
-            // + 24 secondary overcast/rain cumulus banks revealed cleanly as cloudiness increases.
             val totalBanks = 29
             for (b in 0 until totalBanks) {
                 val isPrimary = b < 5
@@ -425,7 +350,6 @@ class SkySurface(
                 val peakMass = if (isPrimary) 0.93f + nextF() * 0.07f else 0.58f + nextF() * 0.16f
                 val puffCount = if (isPrimary) 5 + (b % 3) else 4 + (b % 3)
 
-                // Stamp scalloped upper puffs with a crisp flat horizontal base cutoff at y = baseY!
                 for (p in 0 until puffCount) {
                     val u = if (puffCount == 1) 0f else (p.toFloat() / (puffCount - 1) - 0.5f) * 2f
                     val px = cx + u * bankW * 0.42f + (nextF() - 0.5f) * 3f
@@ -440,11 +364,9 @@ class SkySurface(
                         (0.68f + 0.30f * arch).coerceIn(0f, 1f),
                     )
                 }
-                // Crisp flat horizontal lower bar tying the puffs together with a shaded belly
                 stampCumulusBase(mass, dome, under, s, cx, baseY, bankW * 0.52f, bankH * 0.36f, peakMass * 0.94f)
             }
 
-            // 3. Crisp 1-texel quantized pixel-art output (no 2x2 coarsening; nearest sampler keeps it razor-sharp)
             for (i in 0 until s * s) {
                 out.put((quant(mass[i], 14) * 255f).toInt().coerceIn(0, 255).toByte())
                 out.put((quant(dome[i], 8) * 255f).toInt().coerceIn(0, 255).toByte())
@@ -454,18 +376,9 @@ class SkySurface(
         }
 
         private fun stampCumulusPuff(
-            mass: FloatArray,
-            dome: FloatArray,
-            under: FloatArray,
-            s: Int,
-            cx: Float,
-            cy: Float,
-            rx: Float,
-            ry: Float,
-            flatBaseY: Float,
-            bankH: Float,
-            peakMass: Float,
-            peakDome: Float,
+            mass: FloatArray, dome: FloatArray, under: FloatArray, s: Int,
+            cx: Float, cy: Float, rx: Float, ry: Float,
+            flatBaseY: Float, bankH: Float, peakMass: Float, peakDome: Float,
         ) {
             val x0 = floor(cx - rx - 1f).toInt()
             val x1 = floor(cx + rx + 1f).toInt()
@@ -483,27 +396,17 @@ class SkySurface(
                     val idx = yi * s + wx
                     val m = peakMass * (0.82f + 0.18f * sqrt(1f - d2))
                     if (m > mass[idx]) mass[idx] = m
-
-                    // Height above flat base drives crisp top-lit crown vs mid body vs flat shaded underside
                     val hFrac = ((flatBaseY - yi) / max(bankH * 1.15f, 4f)).coerceIn(0f, 1f)
                     val dVal = peakDome * (0.42f + 0.58f * hFrac)
                     if (dVal > dome[idx]) dome[idx] = dVal
-                    val uVal = if (hFrac < 0.26f) 0.78f else (if (hFrac < 0.42f) 0.34f else 0.10f)
-                    under[idx] = uVal
+                    under[idx] = if (hFrac < 0.26f) 0.78f else (if (hFrac < 0.42f) 0.34f else 0.10f)
                 }
             }
         }
 
         private fun stampCumulusBase(
-            mass: FloatArray,
-            dome: FloatArray,
-            under: FloatArray,
-            s: Int,
-            cx: Float,
-            flatBaseY: Float,
-            halfW: Float,
-            thickH: Float,
-            peakMass: Float,
+            mass: FloatArray, dome: FloatArray, under: FloatArray, s: Int,
+            cx: Float, flatBaseY: Float, halfW: Float, thickH: Float, peakMass: Float,
         ) {
             val x0 = floor(cx - halfW).toInt()
             val x1 = floor(cx + halfW).toInt()

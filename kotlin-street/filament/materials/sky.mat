@@ -5,15 +5,16 @@
 // world object including the 24 km ocean horizon skirt). `depthWrite : false` + `depthCulling : true` with
 // `priority(7)` ensures the sky renders strictly behind buildings, ground, and ocean with early-Z rejection.
 //
-// Every feature is evaluated in 3D WORLD sky direction (`+X` east, +Y up, -Z north, +Z south) so turning
+// Every feature is evaluated in 3D WORLD sky direction (`+X` east, `+Y` up, `-Z` north, `+Z` south) so turning
 // the camera 90 degrees keeps stars, Milky Way, sun, moon, and drifting clouds completely fixed in the sky:
 //   - Hard stepped 16-bit pixel-art sky colour bands (zero smooth gradients), matching SkyColors / SkyDome
 //   - Dusk sunset orange-to-deep-blue bands, Belt of Venus opposite sun, and night dusty city horizon glow
 //   - Pixel-art sun disc with stepped core, halo ring, and clear-sky cardinal shimmer
 //   - Nearest-filtered 32x32 pixel-art moon disc with lunar maria/craters, true 32-step phase terminator
-//     (matching MoonPhase: lit on right when waxing), twilight-natural crescent & night earthshine
+//     (matching MoonPhase: lit on right when waxing), twilight-natural crescent, phase-gated lunar halo,
+//     and night earthshine + star occultation
 //   - World-fixed spherical pixel-art starfield (blue-white/white/cream/gold/amber + cross glints) and
-//     delicate tilted Milky Way dust band, fading in cleanly at dusk
+//     delicate tilted Milky Way star-dust band, fading in cleanly at dusk
 //   - Nearest-filtered 256x256 pixel-art drifting clouds mapped in world (azimuth, elevation) dome bands
 //     so every cloud stays upright, crisp, non-skewed, and completely fixed in world sky on 90-deg turns,
 //     with 3-tone stepped shading (lit top / body / shaded underside) and warm dusk under-belly
@@ -119,7 +120,6 @@ vertex {
 fragment {
     const float PI = 3.14159265359;
     const float TWO_PI = 6.28318530718;
-    const float SKY_BANDS = 11.0;
 
     float hash21(vec2 p) {
         vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
@@ -181,7 +181,6 @@ fragment {
             return vec3(0.0);
         }
 
-        // Gentle deterministic 2-level stepped twinkle
         float tick = floor(timeSec * 1.4 + mag * 17.0);
         float tw = hash21(cellId + vec2(tick * 0.37, 4.1));
         float twinkle = (tw > 0.86) ? 1.18 : ((tw < 0.14) ? 0.74 : 1.0);
@@ -278,7 +277,6 @@ fragment {
         float b = 2.0 * g * (1.0 - g);
         vec3 col = a * zCol + b * bend + g * g * hCol;
 
-        // Day atmospheric accents
         if (dayW > 0.001) {
             vec3 dayZenith = vec3(0.013, 0.080, 0.340);
             vec3 dayHaze = mix(hCol, vec3(1.0), 0.46);
@@ -288,7 +286,6 @@ fragment {
             col = mix(col, daySunTint, dayW * sunSide * sunSide * (0.04 + 0.22 * vBand));
         }
 
-        // Dusk / dawn accents: glowing orange horizon fading in hard bands into deep twilight blue overhead
         if (duskW > 0.001) {
             vec3 glowRgb = materialParams.skyGlow.rgb;
             vec3 ember = materialParams.duskEmber.rgb;
@@ -301,11 +298,9 @@ fragment {
             float beltMask = bell(vBand, 0.66, 0.16);
             col = mix(col, rose, duskW * beltMask * (0.16 + 0.26 * (1.0 - sunSide)));
             col = mix(col, gold, duskW * pow(sunSide, 2.0) * smoothstep(0.45, 1.0, vBand) * 0.32);
-            // Deep cobalt twilight overhead so dusk transitions cleanly from orange to deep blue
             col = mix(col, deepTwilight, duskW * pow(1.0 - vBand, 1.25) * 0.56);
         }
 
-        // Night accents: near-black zenith, warm dusty town horizon glow, cool moonlight lift
         if (nightW > 0.001) {
             vec3 nightZenith = vec3(0.0012, 0.0022, 0.0068);
             vec3 cityGlow = mix(vec3(0.042, 0.032, 0.085), materialParams.skyGlow.rgb, 0.30);
@@ -344,7 +339,6 @@ fragment {
             float horizFade = floor(smoothstep(0.03, 0.22, ray.y) * 4.0) / 4.0;
             float starAlpha = starBright * horizFade;
             if (starAlpha > 0.01) {
-                // Delicate world-fixed tilted Milky Way star-dust river (fine pixel grain, subtle glow)
                 if (starAlpha > 0.30 && overcast < 0.40) {
                     vec3 mwAxis = normalize(vec3(0.42, 0.56, -0.71));
                     float mwDist = abs(dot(ray, mwAxis));
@@ -444,14 +438,10 @@ fragment {
                         vec3 baseLit = materialParams.moonColor.rgb * (0.64 + 0.36 * mTex.r) * (0.88 + 0.12 * mTex.b);
 
                         if (ndl > 0.14) {
-                            // Bright sunlit lunar face (always crisp & vivid, even at dusk!)
                             col = mix(col, baseLit, clamp(mEff * 0.96, 0.0, 1.0));
                         } else if (ndl > -0.02) {
-                            // Crisp 1-step pixel terminator edge
                             col = mix(col, baseLit, clamp(mEff * 0.58, 0.0, 1.0));
                         } else if (nightW > 0.15) {
-                            // At night, the unlit side shows faint cool earthshine & occults background stars;
-                            // at dusk, the unlit side naturally melts into the bright twilight sky (real astronomy!)
                             vec3 earthCol = mix(materialParams.skyZenith.rgb * 1.4, materialParams.moonEarth.rgb * (0.72 + 0.28 * mTex.r), 0.65);
                             col = mix(col, earthCol, mEff * nightW * 0.82);
                         }
@@ -474,25 +464,22 @@ fragment {
         // =====================================================================
         // 5. WORLD-FIXED HORIZONTAL PIXEL-ART DRIFTING CLOUDS (nearest 256x256 cloudTex)
         // =====================================================================
-        // Mapped in world spherical (azimuth, elevation) bands so EVERY cloud stays crisp, upright,
-        // non-skewed pixel art from every heading and remains 100% world-fixed on a 90-degree turn!
         float cloudMaxA = materialParams.cloudShade.w;
         if (cloudCov > 0.02 && cloudMaxA > 0.01 && elev > 0.04) {
             highp float azWrap = fract(az / TWO_PI);
 
-            // Fade clouds cleanly near horizon and very high zenith pole
             float lowFade = floor(smoothstep(0.04, 0.16, elev) * 4.0) / 4.0;
             float zenithFade = 1.0 - smoothstep(1.18, 1.45, elev);
             float cloudGate = lowFade * zenithFade;
 
             if (cloudGate > 0.01) {
-                // High-altitude cloud band (slower drift, tiled 3x around 360 deg, mainly visible when partly cloudy/overcast)
+                // High-altitude cloud band (slower drift, tiled 3x around 360 deg, mainly visible when overcast)
                 highp float hiV = 1.0 - clamp((elev - 0.26) / 1.06, 0.0, 1.0);
                 highp vec2 uvHi = vec2(fract(azWrap * 3.0 + materialParams.cloudDrift.z + 0.37), hiV);
                 vec4 cHi = texture(materialParams_cloudTex, uvHi);
 
                 float hiThresh = mix(0.95, 0.20, cloudCov);
-                if (elev > 0.24 && elev < 1.32 && cHi.b > hiThresh) {
+                if (elev > 0.26 && elev < 1.32 && cHi.b > hiThresh) {
                     vec3 hiCol = (cHi.g > 0.58 && overcast < 0.85) ? materialParams.cloudLit.rgb : materialParams.cloudBody.rgb;
                     if (rain > 0.01) hiCol *= (1.0 - rain * 0.28);
                     float hiAlpha = clamp((0.55 + 0.40 * overcast) * cloudGate * cloudMaxA, 0.0, 1.0);
@@ -500,7 +487,6 @@ fragment {
                 }
 
                 // Primary cumulus / overcast stratus deck (tiled 3x around 360 deg, covers 5..64 deg elev)
-                // Upright horizontal silhouettes: rounded scalloped tops, crisp flat bottoms!
                 highp float mainV = 1.0 - clamp((elev - 0.08) / 0.96, 0.0, 1.0);
                 highp vec2 uvMain = vec2(fract(azWrap * 3.0 + materialParams.cloudDrift.x), mainV);
                 vec4 cMain = texture(materialParams_cloudTex, uvMain);
@@ -510,12 +496,10 @@ fragment {
                     float puffH = cMain.g;
                     float underMask = cMain.a;
 
-                    // Crisp 3-tone 16-bit cloud shading (lit upper crown / mid body / flat shaded base)
                     vec3 cLit = materialParams.cloudLit.rgb;
                     vec3 cBody = materialParams.cloudBody.rgb;
                     vec3 cShade = materialParams.cloudShade.rgb;
 
-                    // Warm coral-amber under-belly and sunward rim at dusk/dawn
                     float warmUnder = materialParams.cloudBody.w;
                     if (warmUnder > 0.01) {
                         vec3 warmRim = mix(cShade, materialParams.duskEmber.rgb, 0.48 * sunSide + 0.16);
@@ -523,12 +507,10 @@ fragment {
                         cLit = mix(cLit, mix(cLit, materialParams.duskEmber.rgb, 0.30), warmUnder * sunSide);
                     }
 
-                    // Night low-cloud subtle warm town glow on underside
                     if (nightW > 0.1 && elev < 0.34) {
                         cShade = mix(cShade, materialParams.skyGlow.rgb, nightW * 0.16 * (1.0 - elev / 0.34));
                     }
 
-                    // Rain deepens cloud undersides into heavy storm slate
                     if (rain > 0.01) {
                         cLit = mix(cLit, cBody * 0.78, rain * 0.62);
                         cBody *= (1.0 - rain * 0.24);
@@ -542,7 +524,6 @@ fragment {
                         cCol = cLit;
                     }
 
-                    // Fully opaque in core so stars never bleed through solid cumulus clouds!
                     float cAlpha = clamp(cloudGate * cloudMaxA, 0.0, 1.0);
                     col = mix(col, cCol, cAlpha);
                 }

@@ -101,7 +101,7 @@ fun renderSky(outRoot: String) {
     val renderer = engine.createRenderer()
     renderer.clearOptions = Renderer.ClearOptions().apply {
         clear = true
-        setClearColor(0.0, 0.0, 0.0, 0.0)
+        setClearColor(0.0, 0.0, 0.0, 1.0)
     }
 
     val scene = engine.createScene()
@@ -111,7 +111,7 @@ fun renderSky(outRoot: String) {
     view.scene = scene
     view.camera = camera
     view.viewport = Viewport(0, 0, w, h)
-    view.blendMode = View.BlendMode.TRANSLUCENT
+    view.blendMode = View.BlendMode.OPAQUE
     view.isPostProcessingEnabled = true
     view.dithering = View.Dithering.NONE
     view.antiAliasing = View.AntiAliasing.NONE
@@ -155,19 +155,17 @@ fun renderSky(outRoot: String) {
     val weatherRain = WeatherState(cloudiness = 0.95f, rain = 0.88f, wet = 0.85f, mist = 0f)
     val weatherMist = WeatherState(cloudiness = 0.25f, rain = 0f, wet = 0f, mist = 0.86f)
 
-    // Known lunar dates matching MoonPhase.kt (new moon epoch 2000-01-06):
-    //   2000-01-10 -> waxing crescent (~0.125), 2000-01-14 -> first quarter (~0.25), 2000-01-21 -> full (~0.50)
     val dateCrescent = "2000-01-10"
     val dateQuarter = "2000-01-14"
     val dateFull = "2000-01-21"
 
     val shots = listOf(
         SkyShot("01_dawn_clear", "Dawn 06:15 Clear (East)", 6.25f, dateFull, WeatherState.CLEAR, Season.SUMMER, 96f, -10f, 12f),
-        SkyShot("02_noon_clear", "Noon 12:00 Clear (South)", 12.0f, dateFull, WeatherState.CLEAR, Season.SUMMER, 180f, -34f, 18f),
-        SkyShot("03_dusk_crescent_moon", "Dusk 19:45 Crescent Moon (East)", 19.75f, dateCrescent, WeatherState.CLEAR, Season.SUMMER, 112f, -12f, 24f),
+        SkyShot("02_noon_clear", "Noon 12:00 Clear (South)", 12.0f, dateFull, WeatherState.CLEAR, Season.SUMMER, 180f, -38f, 18f),
+        SkyShot("03_dusk_crescent_moon", "Dusk 19:50 Crescent Moon (East)", 19.83f, dateCrescent, WeatherState.CLEAR, Season.SUMMER, 114f, -12f, 24f),
         SkyShot("04_dusk_sunset_west", "Dusk 19:00 Sunset (West)", 19.0f, dateCrescent, WeatherState.CLEAR, Season.SUMMER, 282f, -10f, 24f),
-        SkyShot("05_midnight_full_moon", "Midnight 00:30 Full Moon (South)", 0.5f, dateFull, WeatherState.CLEAR, Season.SUMMER, 188f, -34f, 30f),
-        SkyShot("06_midnight_crescent_moon", "Midnight 00:30 Crescent (South)", 0.5f, dateCrescent, WeatherState.CLEAR, Season.SUMMER, 188f, -34f, 30f),
+        SkyShot("05_midnight_full_moon", "Midnight 00:30 Full Moon (South)", 0.5f, dateFull, WeatherState.CLEAR, Season.SUMMER, 188f, -38f, 30f),
+        SkyShot("06_midnight_crescent_moon", "Midnight 00:30 Crescent (South)", 0.5f, dateCrescent, WeatherState.CLEAR, Season.SUMMER, 188f, -38f, 30f),
         SkyShot("07_day_overcast", "Day 13:00 Overcast", 13.0f, dateFull, weatherOvercast, Season.SUMMER, 180f, -14f, 40f),
         SkyShot("08_day_rain", "Day 14:00 Heavy Rain", 14.0f, dateFull, weatherRain, Season.SUMMER, 180f, -14f, 45f),
         SkyShot("09_dawn_mist", "Dawn 06:30 Morning Mist", 6.5f, dateFull, weatherMist, Season.SUMMER, 98f, -9f, 15f),
@@ -180,7 +178,6 @@ fun renderSky(outRoot: String) {
         skyState.update(shot.hour, shot.date, shot.weather, shot.season, shot.timeSec)
         sky.updateForCamera(skyState, shot.yawDeg, shot.pitchDeg, fovYDeg, aspect, artCellPx = 2f, windowY = LookMatrix.windowY)
 
-        // Sync Filament camera & skyline look matrix with the exact same yaw/pitch basis
         val ya = shot.yawDeg * (PI / 180.0)
         val pa = shot.pitchDeg * (PI / 180.0)
         val cp = cos(pa).toFloat(); val sp = sin(pa).toFloat()
@@ -226,7 +223,6 @@ fun renderSky(outRoot: String) {
                 val g = readBuf.get().toInt() and 0xFF
                 val b = readBuf.get().toInt() and 0xFF
                 readBuf.get()
-                // Headless Filament readPixels is bottom-up when windowY == false
                 val dstY = if (LookMatrix.windowY) (h - 1 - py) else py
                 img.setRGB(px, dstY, (0xFF shl 24) or (r shl 16) or (g shl 8) or b)
             }
@@ -245,8 +241,7 @@ fun renderSky(outRoot: String) {
         val img = renderShot(shot)
         val dtMs = (System.nanoTime() - t0) / 1_000_000.0
         timesMs += dtMs
-        val outFile = File(outDir, "${shot.id}.png")
-        ImageIO.write(img, "PNG", outFile)
+        ImageIO.write(img, "PNG", File(outDir, "${shot.id}.png"))
         rendered += shot to img
         log(
             "  %-28s  %.1f ms  sun=(az=%.1f el=%.1f vis=%.2f) moon=(az=%.1f el=%.1f vis=%.2f ph=%.2f) stars=%.2f"
@@ -259,13 +254,8 @@ fun renderSky(outRoot: String) {
         )
     }
 
-    // Build 4x3 labeled contact sheet
-    val cols = 4
-    val rows = 3
-    val thumbW = 480
-    val thumbH = 270
-    val labelH = 26
-    val pad = 8
+    val cols = 4; val rows = 3
+    val thumbW = 480; val thumbH = 270; val labelH = 26; val pad = 8
     val sheetW = pad + cols * (thumbW + pad)
     val sheetH = pad + rows * (thumbH + labelH + pad)
     val sheet = BufferedImage(sheetW, sheetH, BufferedImage.TYPE_INT_ARGB)
@@ -277,10 +267,8 @@ fun renderSky(outRoot: String) {
 
     for ((idx, pair) in rendered.withIndex()) {
         val (shot, img) = pair
-        val c = idx % cols
-        val r = idx / cols
-        val x = pad + c * (thumbW + pad)
-        val y = pad + r * (thumbH + labelH + pad)
+        val c = idx % cols; val r = idx / cols
+        val x = pad + c * (thumbW + pad); val y = pad + r * (thumbH + labelH + pad)
         g2.drawImage(img, x, y, thumbW, thumbH, null)
         g2.color = Color(24, 28, 40)
         g2.fillRect(x, y + thumbH, thumbW, labelH)
@@ -290,28 +278,25 @@ fun renderSky(outRoot: String) {
     g2.dispose()
     ImageIO.write(sheet, "PNG", File(outDir, "sky_contact_sheet.png"))
 
-    // Benchmark 2,000 per-frame CPU updates for 0-byte allocation guarantee
     val benchState = SkyState()
     repeat(200) { i ->
         benchState.update(19.2f, dateCrescent, WeatherState.CLEAR, Season.SUMMER, i * 0.016f)
     }
-    val tmx = ManagementFactory.getThreadMXBean() as? com.sun.management.ThreadMXBean
-    val tid = Thread.currentThread().id
-    val allocBefore = tmx?.getThreadAllocatedBytes(tid) ?: -1L
+    val mx = ManagementFactory.getThreadMXBean() as? com.sun.management.ThreadMXBean
+    val canMeasure = mx != null && mx.isThreadAllocatedMemorySupported
+    val allocBefore = if (canMeasure) mx!!.currentThreadAllocatedBytes else -1L
     val b0 = System.nanoTime()
     repeat(2000) { i ->
-        val hr = (i % 240) * 0.1f
-        benchState.update(hr, dateCrescent, WeatherState.CLEAR, Season.SUMMER, i * 0.016f)
+        benchState.update((i % 240) * 0.1f, dateCrescent, WeatherState.CLEAR, Season.SUMMER, i * 0.016f)
     }
     val benchMs = (System.nanoTime() - b0) / 1_000_000.0
-    val allocAfter = tmx?.getThreadAllocatedBytes(tid) ?: -1L
-    val allocBytes = if (allocBefore >= 0 && allocAfter >= 0) allocAfter - allocBefore else -1L
+    val allocAfter = if (canMeasure) mx!!.currentThreadAllocatedBytes else -1L
+    val allocBytes = if (allocBefore >= 0L && allocAfter >= 0L) allocAfter - allocBefore else -1L
 
     log("CPU SkyState.update x2000: %.3f ms total (%.4f ms/frame), allocated=%d B".format(benchMs, benchMs / 2000.0, allocBytes))
     log("Avg Filament render time: %.1f ms/frame".format(timesMs.average()))
     File(outDir, "sky_bench.txt").writeText(report.toString())
 
-    // Clean up Filament resources
     sky.destroy()
     skyline.destroy()
     scene.removeEntity(sunEntity)
@@ -335,9 +320,7 @@ private fun buildSkyDeviceLook(
     rx: Float, ry: Float, rz: Float,
     ux: Float, uy: Float, uz: Float,
     fx: Float, fy: Float, fz: Float,
-    fovYDeg: Float,
-    aspect: Float,
-    near: Float,
+    fovYDeg: Float, aspect: Float, near: Float,
     out: FloatArray,
 ) {
     val fyScale = (1.0 / tan(fovYDeg * (PI / 360.0))).toFloat()
@@ -354,11 +337,6 @@ private fun buildSkyDeviceLook(
     out[3] = fx; out[7] = fy; out[11] = fz; out[15] = -fxE
 }
 
-/**
- * Simple foreground rooftop & clock-tower silhouette ring rendered with `street_lit.filamat` at radius ~65 m
- * around the camera so the sky preview proves reversed-Z far-plane depth occlusion and frames the Main Street
- * dusk crescent-moon encounter cleanly.
- */
 private class PreviewSkyline(
     private val engine: Engine,
     private val scene: Scene,
@@ -386,17 +364,15 @@ private class PreviewSkyline(
             .format(Texture.InternalFormat.RGBA8).build(engine)
         maskTex.setImage(engine, 0, Texture.PixelBufferDescriptor(zeroBuf, Texture.Format.RGBA, Texture.Type.UBYTE, 1))
 
-        // Build a 360-degree low town rooftop silhouette ring + a clock tower at azimuth 106 deg (ESE)
-        val quads = ArrayList<FloatArray>() // each: [azCenterDeg, widthDeg, baseH, topH]
+        val quads = ArrayList<FloatArray>()
         for (i in 0 until 36) {
             val az = i * 10f
-            val hRoof = 4.2f + ((i * 7) % 5) * 1.0f
+            val hRoof = 4.2f + ((i * 7) % 5) * 0.9f
             quads += floatArrayOf(az, 10.2f, -4f, hRoof)
         }
-        // Clock tower base + belfry + spire near azimuth 104 deg (framing the rising dusk crescent at 112 deg!)
-        quads += floatArrayOf(104f, 5.4f, -4f, 15.0f)
-        quads += floatArrayOf(104f, 3.8f, 15.0f, 18.8f)
-        quads += floatArrayOf(104f, 1.5f, 18.8f, 22.8f)
+        quads += floatArrayOf(107f, 5.2f, -4f, 14.5f)
+        quads += floatArrayOf(107f, 3.6f, 14.5f, 18.5f)
+        quads += floatArrayOf(107f, 1.5f, 18.5f, 22.5f)
 
         val vCount = quads.size * 4
         val iCount = quads.size * 6
@@ -414,7 +390,6 @@ private class PreviewSkyline(
             fun putVert(x: Float, y: Float, z: Float, u: Float, v: Float) {
                 vBuf.putFloat(x); vBuf.putFloat(y); vBuf.putFloat(z)
                 vBuf.putFloat(u); vBuf.putFloat(v)
-                // Identity tangent quaternion
                 vBuf.putFloat(0f); vBuf.putFloat(0f); vBuf.putFloat(0f); vBuf.putFloat(1f)
             }
             putVert(x0, y0, z0, 0f, 1f)
@@ -426,22 +401,17 @@ private class PreviewSkyline(
             iBuf.putShort(base); iBuf.putShort((base + 1).toShort()); iBuf.putShort((base + 2).toShort())
             iBuf.putShort(base); iBuf.putShort((base + 2).toShort()); iBuf.putShort((base + 3).toShort())
         }
-        vBuf.flip()
-        iBuf.flip()
+        vBuf.flip(); iBuf.flip()
 
         vb = VertexBuffer.Builder()
-            .vertexCount(vCount)
-            .bufferCount(1)
+            .vertexCount(vCount).bufferCount(1)
             .attribute(VertexBuffer.VertexAttribute.POSITION, 0, VertexBuffer.AttributeType.FLOAT3, 0, 36)
             .attribute(VertexBuffer.VertexAttribute.UV0, 0, VertexBuffer.AttributeType.FLOAT2, 12, 36)
             .attribute(VertexBuffer.VertexAttribute.TANGENTS, 0, VertexBuffer.AttributeType.FLOAT4, 20, 36)
             .build(engine)
         vb.setBufferAt(engine, 0, vBuf)
 
-        ib = IndexBuffer.Builder()
-            .indexCount(iCount)
-            .bufferType(IndexBuffer.Builder.IndexType.USHORT)
-            .build(engine)
+        ib = IndexBuffer.Builder().indexCount(iCount).bufferType(IndexBuffer.Builder.IndexType.USHORT).build(engine)
         ib.setBuffer(engine, iBuf)
 
         val nearest = TextureSampler(

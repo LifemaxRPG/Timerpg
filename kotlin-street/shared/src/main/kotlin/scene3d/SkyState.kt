@@ -15,7 +15,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.sin
-import kotlin.math.sqrt
 
 /**
  * Pure-Kotlin, zero-allocation-per-frame sky state for the Filament pixel-art sky dome (`sky.mat`),
@@ -33,7 +32,6 @@ import kotlin.math.sqrt
  *  - Calling [update] mutates pre-allocated fields in place and allocates **0 bytes per frame**.
  */
 class SkyState {
-    // ----------------------------------------------------------------- scalar state
     var hour: Float = 12f
         private set
     var timeSec: Float = 0f
@@ -98,9 +96,9 @@ class SkyState {
         private set
 
     /** Sun/moon angular radii in radians (crisp pixel-art discs readable on desktop & phone). */
-    var sunRadiusRad: Float = 0.056f
+    var sunRadiusRad: Float = 0.052f
         private set
-    var moonRadiusRad: Float = 0.052f
+    var moonRadiusRad: Float = 0.054f
         private set
 
     /** Horizon glow alpha (0..1, matching `SkyColors.glow.alpha`). */
@@ -129,7 +127,6 @@ class SkyState {
     var highCloudDriftZ: Float = 0f
         private set
 
-    // ----------------------------------------------------------------- 3D world unit directions
     /** Unit vector pointing TOWARDS the sun in world space (+X east, +Y up, -Z north, +Z south). */
     val sunDir: FloatArray = FloatArray(3)
 
@@ -142,7 +139,6 @@ class SkyState {
      */
     val keyOrbDir: FloatArray = FloatArray(3)
 
-    /** Azimuth in degrees (0 north, 90 east, 180 south, 270 west) for diagnostics & tests. */
     var sunAzimuthDeg: Float = 180f
         private set
     var sunElevationDeg: Float = 52f
@@ -152,7 +148,7 @@ class SkyState {
     var moonElevationDeg: Float = -10f
         private set
 
-    // ----------------------------------------------------------------- sRGB ARGB colours (0xAARRGGBB)
+    // Packed sRGB ARGB colours (0xAARRGGBB)
     var zenithArgb: Int = DAY_SKY_0
         private set
     var midArgb: Int = DAY_SKY_1
@@ -182,7 +178,7 @@ class SkyState {
     var mistArgb: Int = 0xFFE2EFF9.toInt()
         private set
 
-    // ----------------------------------------------------------------- LINEAR RGB (for Filament unlit)
+    // Pre-converted LINEAR RGB (for Filament unlit + LinearToneMapper)
     val zenithLin: FloatArray = FloatArray(3)
     val midLin: FloatArray = FloatArray(3)
     val horizonLin: FloatArray = FloatArray(3)
@@ -201,23 +197,16 @@ class SkyState {
     val cloudBodyLin: FloatArray = FloatArray(3)
     val cloudShadeLin: FloatArray = FloatArray(3)
 
-    // ----------------------------------------------------------------- Ocean & lighting bridge values
-    /** Linear RGB sky reflection tint ready for `OceanSurface` / town IBL. */
+    // Ocean & lighting convenience outputs (linear RGB)
     val oceanSkyLin: FloatArray = FloatArray(3)
-
-    /** Linear RGB sun/moon glint colour ready for `OceanSurface`. */
     val oceanGlintLin: FloatArray = FloatArray(3)
-
-    /** Sun/moon glint strength in 0..1 (suppressed by overcast/rain/mist). */
     var oceanGlintStrength: Float = 0.85f
         private set
 
-    // Cached date string so repeated per-frame calls with the same date allocate 0 bytes
     private var cachedDate: String? = null
     private var cachedMoonFraction: Float = 0.5f
 
     init {
-        // Pre-populate constant linear accents
         argbToLinear(EMBER_ARGB, duskEmberLin)
         argbToLinear(ROSE_ARGB, duskBeltLin)
         argbToLinear(MOON_EARTHSHINE_ARGB, moonEarthLin)
@@ -226,9 +215,7 @@ class SkyState {
 
     /**
      * Updates the sky state in place for [hour] (0..24), game [date] (`"yyyy-MM-dd"`), [weather],
-     * [season], and elapsed [timeSec] (for gentle cloud drift & subtle star twinkle).
-     *
-     * Caches the parsed moon phase for [date], so steady-state per-frame calls allocate **0 bytes**.
+     * [season], and elapsed [timeSec]. Caches parsed moon phase for [date] -> **0 bytes/frame**.
      */
     fun update(
         hour: Float,
@@ -262,7 +249,6 @@ class SkyState {
         val t = skyTone(h)
         this.tone = t
 
-        // 1. Interpolate base SkyColors palette (exact NIGHT / DUSK / DAY values from ScenePalette.kt)
         if (t <= 1f) {
             zenithArgb = lerpArgb(NIGHT_SKY_0, DUSK_SKY_0, t)
             midArgb = lerpArgb(NIGHT_SKY_1, DUSK_SKY_1, t)
@@ -288,7 +274,6 @@ class SkyState {
             dark = lerpF(DUSK_DARK, DAY_DARK, u)
         }
 
-        // Subtle autumn warmth in dusk/day sky tones
         val autumn = season.autumn.coerceIn(0f, 1f)
         if (autumn > 0.01f && dark < 0.85f) {
             val aMix = autumn * 0.12f * (1f - dark)
@@ -299,41 +284,31 @@ class SkyState {
         glowAlpha = ((glowArgb ushr 24) and 0xFF) / 255f
         haloAlpha = ((haloArgb ushr 24) and 0xFF) / 255f
         duskWeight = smooth(0.04f, 0.42f, dark) * (1f - smooth(0.68f, 0.97f, dark))
-
-        // Moon colour: crisp silver-white at night, softly warmed by dusk air when rising at twilight
         moonArgb = lerpArgb(NIGHT_ORB, 0xFFF5ECE2.toInt(), duskWeight * 0.45f)
 
-        // 2. Weather & season scalars
         val wCloud = weather.cloudiness.coerceIn(0f, 1f)
         val wRain = weather.rain.coerceIn(0f, 1f)
         val wMist = weather.mist.coerceIn(0f, 1f)
         this.rain = wRain
         this.mist = wMist
         this.winterCrisp = season.snow.coerceIn(0f, 1f)
-
-        // Overcast veil starts cleanly as cloudiness rises past fair-weather sky (matching Backdrop.kt)
         this.overcast = clamp01(wCloud * 0.92f + wRain * 0.20f)
-
-        // Cloud deck coverage: scattered fair-weather cumulus (~0.24) on clear days, up to 0.98 in rain/overcast
-        this.cloudCoverage = clamp01(0.20f + 0.78f * max(wCloud, wRain * 0.9f))
+        this.cloudCoverage = clamp01(0.24f + 0.74f * max(wCloud, wRain * 0.9f))
         this.cloudAlphaMax = clamp01(1f - wMist * 0.25f)
         this.cloudUnderWarm = duskWeight * (1f - overcast * 0.75f) * (1f - wRain * 0.85f)
 
-        // Overcast & mist colours matching Backdrop.kt
         val midDark = lerpArgb(midArgb, zenithArgb, 0.5f)
         val greyBase = lerpArgb(OVERCAST_BASE_ARGB, midDark, dark * 0.85f)
         overcastHiArgb = scaleRgbArgb(greyBase, 0.72f)
         overcastLoArgb = lerpArgb(greyBase, 0xFFFFFFFF.toInt(), 0.14f * (1f - dark))
         mistArgb = lerpArgb(horizonArgb, 0xFFFFFFFF.toInt(), 0.55f * (1f - dark * 0.55f))
 
-        // Below-horizon haze colour matching FilamentTown.haze(open = true): lerp(horizon, glow_rgb, glow_alpha)
         val openHaze = lerpArgb(horizonArgb, glowArgb or (0xFF shl 24), glowAlpha)
         belowHorizonArgb = lerpArgb(openHaze, overcastLoArgb, overcast * 0.82f)
         if (wRain > 0.01f) {
             belowHorizonArgb = scaleRgbArgb(belowHorizonArgb, 1f - wRain * 0.28f)
         }
 
-        // Mute cloud colours into overcast grey when overcast/rain is heavy
         if (overcast > 0.01f) {
             val ovCloud = overcast * 0.75f
             cloudLitArgb = lerpArgb(cloudLitArgb, lerpArgb(overcastLoArgb, 0xFFFFFFFF.toInt(), 0.25f * (1f - dark)), ovCloud)
@@ -341,37 +316,28 @@ class SkyState {
             cloudShadeArgb = lerpArgb(cloudShadeArgb, scaleRgbArgb(overcastHiArgb, 0.84f), ovCloud)
         }
 
-        // 3. Stars: fade in at dusk (`starsShown(tone)`), suppressed by clouds/mist/rain
         val baseStars = starsShown(t)
         val weatherClear = (1f - wCloud * 0.86f) * (1f - wMist * 0.82f) * (1f - wRain * 0.92f)
         this.starBrightness = clamp01(baseStars * clamp01(weatherClear))
 
-        // 4. Moon phase (0..1, 32 steps matching MoonPhase)
         val ph = ((moonPhaseFraction % 1f) + 1f) % 1f
         this.moonPhase = ph
         this.moonStep = MoonPhase.step(ph)
         this.moonIllumination = MoonPhase.illumination(ph)
 
-        // 5. Sun & moon 3D world directions matching OrbitCamera.sunAzimuth & SceneLight.key(hour)
-        //    World coordinates: +X east (az 90), +Y up, -Z north (az 0), +Z south (az 180)
         val sunAz = sunAzimuthDegOf(h, moon = false)
         val moonAz = sunAzimuthDegOf(h, moon = true)
         this.sunAzimuthDeg = sunAz
         this.moonAzimuthDeg = moonAz
 
-        // Day arc: [5.5, 20.5) -> matches orbAt(hour) & SceneLight.key(hour) exactly
         val sunEl: Float
         val sunVis: Float
         if (h >= 5.5f && h < 20.5f) {
             val uSun = ((h - 5.5f) / 15f).coerceIn(0f, 1f)
             val upSun = sin(uSun * PI).toFloat()
             sunEl = SceneLight.LOW + (SceneLight.HIGH - SceneLight.LOW) * upSun
-            // Fade smoothly only in the last 30 min of twilight (20:00..20:30) and first 15 min of dawn
-            val riseFade = smooth(5.5f, 5.85f, h)
-            val setFade = 1f - smooth(19.9f, 20.5f, h)
-            sunVis = riseFade * setFade
+            sunVis = smooth(5.5f, 5.85f, h) * (1f - smooth(19.9f, 20.5f, h))
         } else {
-            // Below horizon during night
             val nightMid = if (h >= 20.5f) (h - 20.5f) / 9f else (h + 3.5f) / 9f
             sunEl = -4f - 28f * sin(nightMid.coerceIn(0f, 1f) * PI).toFloat()
             sunVis = 0f
@@ -380,9 +346,6 @@ class SkyState {
         this.sunVisibility = sunVis
         dirFromAzEl(sunAz, sunEl, sunDir)
 
-        // Night arc: < 5.5 or >= 20.5 -> matches orbAt(hour) & SceneLight.key(hour) exactly.
-        // Dusk rise (18:00..20:30) rises smoothly from 4 deg to SceneLight.LOW (10 deg) in the east
-        // so the crescent moon can appear over the clock tower at dusk with zero jump at 20:30.
         val moonEl: Float
         val moonVis: Float
         if (h < 5.5f || h >= 20.5f) {
@@ -392,7 +355,7 @@ class SkyState {
             moonVis = 1f
         } else if (h >= 17.8f) {
             val uRise = ((h - 17.8f) / (20.5f - 17.8f)).coerceIn(0f, 1f)
-            moonEl = lerpF(6.0f, SceneLight.LOW, uRise)
+            moonEl = lerpF(3.5f, SceneLight.LOW, uRise)
             moonVis = smooth(17.8f, 19.1f, h) * 0.92f + 0.08f * smooth(19.1f, 20.5f, h)
         } else if (h <= 7.0f) {
             val uSet = ((h - 5.5f) / 1.5f).coerceIn(0f, 1f)
@@ -406,26 +369,19 @@ class SkyState {
         this.moonVisibility = moonVis
         dirFromAzEl(moonAz, moonEl, moonDir)
 
-        // Primary key-light orb direction (matches FilamentTown.light & OrbitCamera.orbAt)
         val isNight = phase == SkyPhase.NIGHT
         if (isNight) {
-            keyOrbDir[0] = moonDir[0]
-            keyOrbDir[1] = moonDir[1]
-            keyOrbDir[2] = moonDir[2]
+            keyOrbDir[0] = moonDir[0]; keyOrbDir[1] = moonDir[1]; keyOrbDir[2] = moonDir[2]
         } else {
-            keyOrbDir[0] = sunDir[0]
-            keyOrbDir[1] = sunDir[1]
-            keyOrbDir[2] = sunDir[2]
+            keyOrbDir[0] = sunDir[0]; keyOrbDir[1] = sunDir[1]; keyOrbDir[2] = sunDir[2]
         }
 
-        // 6. Gentle world-space cloud wind drift (slightly brisker during overcast/rain)
         val windBoost = 1f + 0.65f * wCloud + 0.75f * wRain
         cloudDriftX = ((timeSec * 0.0042f * windBoost) % 1f + 1f) % 1f
         cloudDriftZ = ((timeSec * 0.0014f * windBoost) % 1f + 1f) % 1f
         highCloudDriftX = ((timeSec * 0.0021f * windBoost) % 1f + 1f) % 1f
         highCloudDriftZ = ((timeSec * 0.0007f * windBoost) % 1f + 1f) % 1f
 
-        // 7. Convert all active colours to LINEAR RGB in place (0 allocations)
         argbToLinear(zenithArgb, zenithLin)
         argbToLinear(midArgb, midLin)
         argbToLinear(horizonArgb, horizonLin)
@@ -441,18 +397,15 @@ class SkyState {
         argbToLinear(cloudBodyArgb, cloudBodyLin)
         argbToLinear(cloudShadeArgb, cloudShadeLin)
 
-        // 8. Ocean & lighting convenience outputs (linear RGB)
         val oceanSkyArgb = lerpArgb(lerpArgb(midArgb, horizonArgb, 0.45f), overcastLoArgb, overcast * 0.85f)
         argbToLinear(oceanSkyArgb, oceanSkyLin)
-        val glintArgb = if (isNight) moonArgb else orbArgb
-        argbToLinear(glintArgb, oceanGlintLin)
+        argbToLinear(if (isNight) moonArgb else orbArgb, oceanGlintLin)
         val clearFactor = (1f - wCloud * 0.82f) * (1f - wMist * 0.65f) * (1f - wRain * 0.90f)
         val moonScale = if (isNight) (0.25f + 0.75f * moonIllumination) else 1f
         oceanGlintStrength = clamp01((0.85f + 0.15f * duskWeight) * clamp01(clearFactor) * moonScale)
     }
 
     companion object {
-        // Exact SkyColors hex palette from ScenePalette.kt (pure Kotlin, zero Compose dependency)
         const val NIGHT_SKY_0 = 0xFF050915.toInt()
         const val NIGHT_SKY_1 = 0xFF0B1330.toInt()
         const val NIGHT_SKY_2 = 0xFF1F2C5E.toInt()
@@ -486,24 +439,17 @@ class SkyState {
         const val DAY_CLOUD_SHADE = 0xFFA9BCD8.toInt()
         const val DAY_DARK = 0f
 
-        // SkyDome.kt & Backdrop.kt atmospheric accent colours
         private const val EMBER_ARGB = 0xFFFF7A3C.toInt()
         private const val ROSE_ARGB = 0xFFD98A9E.toInt()
         private const val OVERCAST_BASE_ARGB = 0xFF9CA3AF.toInt()
         private const val MOON_EARTHSHINE_ARGB = 0xFF233056.toInt()
 
-        /**
-         * Matches `OrbitCamera.sunAzimuth(hour, moon)` in degrees:
-         * 0 north, 90 east (sun at 06:00, moon at 18:00), 180 south (sun at 12:00, moon at 00:00),
-         * 270 west (sun at 18:00, moon at 06:00).
-         */
         fun sunAzimuthDegOf(hour: Float, moon: Boolean): Float {
             val shifted = if (moon) hour - 18f else hour - 6f
             val mod24 = ((shifted % 24f) + 24f) % 24f
             return 90f + mod24 * 15f
         }
 
-        /** Writes a unit world direction (+X east, +Y up, -Z north, +Z south) into [out] (3 floats). */
         fun dirFromAzEl(azDeg: Float, elDeg: Float, out: FloatArray) {
             val az = azDeg * (PI / 180.0)
             val el = elDeg * (PI / 180.0)
@@ -513,7 +459,6 @@ class SkyState {
             out[2] = (-cos(az) * cosEl).toFloat()
         }
 
-        /** Converts packed sRGB ARGB into linear RGB in [out] (3 floats) with 0 allocations. */
         fun argbToLinear(argb: Int, out: FloatArray) {
             out[0] = srgbByteToLinear((argb ushr 16) and 0xFF)
             out[1] = srgbByteToLinear((argb ushr 8) and 0xFF)
