@@ -78,6 +78,9 @@ files (docs/queue/reviews/) say what worked as well as what to change: read the 
     read clearly from the road.
   - Sam's first engineering task, the economy by era (C018), was accepted first try, and it's already in the game: every
     shelf, price, wage and pawn offer on the phone comes from it. The 1952 scene came out to the cent.
+  - Jeff's pixel-art sky (G016) was accepted on round 2, a blind graphics build where the ocean took three. The real
+    Filament render matches his proof sheet: dusk bands, a crescent by the clock tower, and stars fixed in the sky as
+    the camera turns.
 
 ## The team's next milestone
 
