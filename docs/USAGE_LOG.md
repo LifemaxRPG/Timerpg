@@ -125,3 +125,4 @@ his limit; G012 was trimmed to the one-police swap plus the wiring fixes. Plan a
 | C020 the fence | ChatGPT/Sam (Codex), low reasoning | engineering, extends C018 | ~2 min WIP to delivery (owner's reading); tokens not visible | 1 | revise: a fence refuses all hot goods until trusted, so a stranger can't sell stolen goods; heat should be graded |
 | C020 r1 the fence | ChatGPT/Sam (Codex), low reasoning | engineering, revision | ~1 run, WIP first; tokens not visible | 2 | accepted: graded heat, the stranger scene tested |
 | C021 opening hours | ChatGPT/Sam (Codex), low reasoning | engineering | ~1 min WIP to delivery; tokens not visible | 1 | accepted first try; 23/23 |
+| C022 cost of living | ChatGPT/Sam (Codex), low reasoning | engineering | ~1.5 min WIP to delivery; tokens not visible | 1 | accepted first try; 28/28 |
