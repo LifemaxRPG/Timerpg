@@ -229,7 +229,9 @@ fun FullMap(data: MapData, access: MapAccess, townYear: Int, player: MapPlayer?,
                     }
                 }
             }
-            drawLabels(layer, view, tm, style == MapStyle.PAPER)
+            // (no names under the buttons and captions: the top band and the left column)
+            val band = 64.dp.toPx()
+            drawLabels(layer, view, tm, style == MapStyle.PAPER, listOf(floatArrayOf(0f, 0f, size.width, band), floatArrayOf(0f, 0f, 200.dp.toPx(), 96.dp.toPx())))
             // the waypoint's pin
             if (w != null) {
                 val x = sx(w[0]).roundToInt().toFloat(); val y = sy(w[1]).roundToInt().toFloat()
@@ -307,11 +309,11 @@ private fun DrawScope.drawLayer(layer: MapLayer, view: FullMapView) {
  * zooms it belongs to: a street's name along its road when the road is long enough on screen to hold it, landmarks a
  * little closer in, businesses only close in; towns by rank on the road map.
  */
-private fun DrawScope.drawLabels(layer: MapLayer, view: FullMapView, tm: TextMeasurer, paper: Boolean) {
+private fun DrawScope.drawLabels(layer: MapLayer, view: FullMapView, tm: TextMeasurer, paper: Boolean, reserved: List<FloatArray> = emptyList()) {
     val st = styles(paper, layer.tier != MapTier.CITY)
     val z = view.zoom
     val metresPerPx = 1f / (z * VehicleWorld.U)
-    val taken = ArrayList<FloatArray>()
+    val taken = ArrayList<FloatArray>(reserved)
     val seen = HashMap<String, MutableList<Offset>>()
     for (l in layer.byPriority) {
         val style = when (l.kind) {
