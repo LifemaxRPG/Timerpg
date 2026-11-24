@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.lifemax.rpg.feature.habits.maps.CompassRose
 import com.lifemax.rpg.feature.habits.maps.FullMap
 import com.lifemax.rpg.feature.habits.maps.MapAccess
@@ -26,7 +27,7 @@ import com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera
 import com.lifemax.rpg.feature.habits.presentation.scene.TownPlay
 
 /*
- * The maps in the game (kotlin-street/docs/MAPS.md): the minimap in the HUD's top-right corner (or the compass rose
+ * The maps in the game (kotlin-street/docs/MAPS.md): the minimap in the HUD's top-left corner (or the compass rose
  * without a map), the full map it opens, and the rules between them: GPS from MapRules.GPS_YEAR, else the paper maps the
  * player owns (LoopView.maps, bought at the shops), the player's spot only where a street sign can be read. The town's
  * map data is made at load (TownData.map); the pictures on a worker of their own (MapData).
@@ -34,6 +35,8 @@ import com.lifemax.rpg.feature.habits.presentation.scene.TownPlay
 object MapSession {
     var data by mutableStateOf<MapData?>(null); private set
     private var seed: String? = null
+    /** The town's railway station (its depot), marked on the maps; null where the town has no railway. */
+    var station: com.lifemax.rpg.feature.habits.maps.MapPoi? = null; private set
     private val main = android.os.Handler(android.os.Looper.getMainLooper())
 
     /** The maps of the loaded town [d] (its city map and, with the planet, the regional and world maps). */
@@ -44,26 +47,38 @@ object MapSession {
         MapData.post = { f -> main.post(f) }
         MapData.onError = { com.timerpg.street.shot.Crumbs.add(it) }
         seed = d.seed
+        station = d.rail?.rail?.depot?.rect?.let { r -> com.lifemax.rpg.feature.habits.maps.MapPoi((r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f, com.lifemax.rpg.feature.habits.maps.PoiKind.STATION, "Station") }
         data = MapData(m, d.world, d.town.year).also { md ->
             // the look the year needs, made now on the maps' worker
             md.layer(com.lifemax.rpg.feature.habits.maps.MapTier.CITY, if (MapRules.gps(d.town.year)) MapStyle.GPS else MapStyle.PAPER, d.town.year)
         }
         val p = ctx.getSharedPreferences("maps", Context.MODE_PRIVATE)
         MapSettings.headingUp = p.getBoolean("headingUp", false)
-        MapSettings.minimapZoom = p.getInt("zoom", 2)
+        MapSettings.minimapZoom = p.getInt("zoom2", 2)
+        MapSettings.autoZoom = p.getBoolean("autoZoom", true)
     }
 
-    fun stop() { data?.close(); data = null; seed = null }
+    fun stop() { data?.close(); data = null; seed = null; station = null }
 
     fun saveSettings(ctx: Context) {
-        ctx.getSharedPreferences("maps", Context.MODE_PRIVATE).edit().putBoolean("headingUp", MapSettings.headingUp).putInt("zoom", MapSettings.minimapZoom).apply()
+        ctx.getSharedPreferences("maps", Context.MODE_PRIVATE).edit().putBoolean("headingUp", MapSettings.headingUp).putInt("zoom2", MapSettings.minimapZoom).putBoolean("autoZoom", MapSettings.autoZoom).apply()
     }
 
     /** The player in the open world now (street x, z, heading, the camera's yaw), into [p]; false when not walking the town. */
     fun player(p: MapPlayer): Boolean {
         val w = TownPlay.walk ?: return false
-        p.set(w.wx, w.wz, w.heading, if (TownPlay.openWorld) OrbitCamera.yaw else Math.toDegrees(w.heading.toDouble()).toFloat())
+        // (the speed, for the minimap's zoom: the car's when driving)
+        val speed = TownPlay.cars?.takeIf { TownPlay.inCar }?.driven?.forwardSpeed?.let { kotlin.math.abs(it) } ?: 0f
+        p.set(w.wx, w.wz, w.heading, if (TownPlay.openWorld) OrbitCamera.yaw else Math.toDegrees(w.heading.toDouble()).toFloat(), speed)
         return true
+    }
+
+    /** The places the app marks on the maps beside the town's own: the station, and the player's rented room. */
+    fun extraPois(): List<com.lifemax.rpg.feature.habits.maps.MapPoi> {
+        val out = ArrayList<com.lifemax.rpg.feature.habits.maps.MapPoi>(2)
+        if (LoopSession.view?.rent != null) LoopSession.town?.lodging?.let { out += com.lifemax.rpg.feature.habits.maps.MapPoi(it.doorX, it.doorZ, com.lifemax.rpg.feature.habits.maps.PoiKind.HOME, "Your room") }
+        station?.let { out += it }
+        return out
     }
 }
 
@@ -78,7 +93,7 @@ private fun accessNow(d: MapData, year: Int, onStreet: Boolean, inTown: Boolean)
  * zoom), or the compass rose alone. Where the player is (in the town, on a street) is looked at twice a second, not per frame.
  */
 @Composable
-fun MapCorner(year: Int, tick: LongState, onOpen: () -> Unit, modifier: Modifier = Modifier) {
+fun MapCorner(year: Int, tick: LongState, onOpen: () -> Unit, modifier: Modifier = Modifier, size: androidx.compose.ui.unit.Dp = 150.dp) {
     val d = MapSession.data ?: return
     var onStreet by remember { mutableStateOf(true) }
     var inTown by remember { mutableStateOf(true) }
@@ -95,10 +110,13 @@ fun MapCorner(year: Int, tick: LongState, onOpen: () -> Unit, modifier: Modifier
     val layer = tier?.let { t -> (if (a.gps) year else a.printYear(t))?.let { d.layer(t, if (a.gps) MapStyle.GPS else MapStyle.PAPER, it) } }
     val nav = remember { MapNav() }
     val ctx = androidx.compose.ui.platform.LocalContext.current
-    LaunchedEffect(MapSettings.headingUp, MapSettings.minimapZoom) { MapSession.saveSettings(ctx) }
-    Column(modifier, horizontalAlignment = Alignment.End) {
-        if (tier == null || layer == null) CompassRose(tick, { OrbitCamera.yaw })
-        else Minimap(layer, a, tick, { MapSession.player(it) }, LoopSession.view?.maps?.waypoint, nav, d.city, onOpen = onOpen)
+    LaunchedEffect(MapSettings.headingUp, MapSettings.minimapZoom, MapSettings.autoZoom) { MapSession.saveSettings(ctx) }
+    val style = if (a.gps) MapStyle.GPS else MapStyle.PAPER
+    val extra = MapSession.extraPois()
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        if (tier == null || layer == null) CompassRose(tick, { OrbitCamera.yaw }, size = size, paper = !a.gps)
+        else Minimap({ m -> if (tier == com.lifemax.rpg.feature.habits.maps.MapTier.CITY) d.cityFor(m, style) else layer }, a, tick, { MapSession.player(it) },
+            LoopSession.view?.maps?.waypoint, nav, d.city, onOpen = onOpen, size = size, extra = extra)
     }
 }
 
@@ -118,5 +136,5 @@ fun MapScreen(ctx: Context, year: Int, onClose: () -> Unit, modifier: Modifier =
     }
     FullMap(d, a, year, if (have) p else null, LoopSession.view?.maps?.waypoint, nav,
         onWaypoint = { x, z -> LoopSession.setWaypoint(x, z) },
-        onClose = { MapSession.saveSettings(ctx); onClose() }, modifier = modifier)
+        onClose = { MapSession.saveSettings(ctx); onClose() }, modifier = modifier, extra = MapSession.extraPois())
 }

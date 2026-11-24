@@ -46,6 +46,8 @@ class TownMapModel private constructor(
     private val bounds: FloatArray,
     /** The buildings' footprints: each a quad (x, z four times) or a circle (x, z, r), with the building's sprite. */
     private val feet: List<Pair<String, FloatArray>>,
+    /** The places marked with an icon (docs/MAPS.md: shops by kind, the police, landmarks...), most important first. */
+    val pois: List<MapPoi> = emptyList(),
 ) {
     /** The town's extent (x0, z0, x1, z1, street units), the forest round it left out. */
     val x0: Float get() = bounds[0]
@@ -155,50 +157,90 @@ class TownMapModel private constructor(
 
     // ------------------------------------------------------------------ the picture
 
-    /** The colours of each [MapStyle]. */
-    class Palette(val outside: Int, val ground: Int, val lot: Int, val home: Int, val shop: Int, val landmark: Int, val civic: Int,
-                  val plaza: Int, val paved: Int, val water: Int, val waterEdge: Int, val tree: Int, val road: Int, val mainRoad: Int,
-                  val roadEdge: Int, val lane: Int, val pool: Int, val buildingEdgeK: Float)
+    /** The colours of each [MapStyle] (docs/MAPS.md, "The minimap's look"). */
+    class Palette(
+        val outside: Int, val ground: Int, val groundAlt: Int, val lot: Int, val home: Int, val shop: Int, val landmark: Int, val civic: Int,
+        val plaza: Int, val plazaAlt: Int, val paved: Int, val water: Int, val waterAlt: Int, val shore: Int,
+        val tree: Int, val treeDark: Int, val treeLight: Int, val road: Int, val mainRoad: Int, val roadEdge: Int, val mainEdge: Int,
+        val line: Int, val mainLine: Int, val sidewalk: Int, val lane: Int, val pool: Int, val poolEdge: Int, val shed: Int, val patio: Int,
+        /** How dark a building's shadow makes what it falls on, its shaded edge and its lit edge. */
+        val shadowK: Float, val buildingEdgeK: Float, val buildingLightK: Float,
+    )
 
     val palette: (MapStyle) -> Palette = { s -> if (s == MapStyle.PAPER) PAPER else GPS }
 
     /**
-     * The city map as pixels, [unitsPerPx] street units a pixel (the default: about 1.7 m), north up, the town's extent
-     * and a margin. Drawn in layers: the ground, the lots, the paved downtown and the plaza, the river (its edge a pixel
-     * darker), the trees, the back lanes, the roads (an edge, then the road, main roads wider), the bridges, the
-     * buildings by kind (homes, shops, landmarks, civic buildings) with a darker edge, the yards' pools.
+     * The city map as pixels, [unitsPerPx] street units a pixel (the default [DEFAULT_UPP]: about 0.76 m; the minimap's
+     * zoom steps draw their own at [MapData.CITY_STEPS]), north up, the town's extent and a margin. Every width is worked
+     * out for the scale, so each zoom has its own crisp picture rather than one picture scaled. Layers, from the bottom:
+     * the ground (a sparse dither, the grass's texture), the lots, the paved downtown and the plaza (a checker of paving
+     * close in), the river (its shore a sand pixel, its surface rippled), the yards' patios and drives (close in), the
+     * trees (a canopy with its shadow and a lit pixel), the back lanes, the pavements, the kerb and the road (main roads
+     * wider and amber), the centre lines (dashed, clear of the junctions), the bridges, the buildings' drop shadows, the
+     * buildings by kind with a lit top-left edge and a shaded bottom-right edge (raised, lit from the top left as the
+     * game's buildings are), the sheds, the pools.
      */
     fun raster(style: MapStyle = MapStyle.GPS, unitsPerPx: Float = DEFAULT_UPP): MapRaster {
         val p = palette(style)
         val m = MARGIN
         val upp = max(unitsPerPx, max(x1 - x0 + 2 * m, z1 - z0 + 2 * m) / MAX_PX)
+        val mpp = upp / com.lifemax.rpg.feature.habits.vehicle.VehicleWorld.U
         val r = MapRaster(((x1 - x0 + 2 * m) / upp).toInt() + 1, ((z1 - z0 + 2 * m) / upp).toInt() + 1, upp, x0 - m, z0 - m)
+        val close = mpp <= 1.3f
         r.fill(p.ground)
+        r.dither(p.ground, p.groundAlt, if (style == MapStyle.PAPER) 4 else 3)
         // the lots (each building's ground and yard)
         for (l in town.lots) r.rectU(l.rect, p.lot)
         for ((rect, kind) in town.paved) r.rectU(rect, if (kind == "square") p.plaza else p.paved)
         town.plaza?.let { r.rectU(it, p.plaza) }
-        // the river (an edge a pixel wide)
-        val wet = HashSet<Int>()
+        if (mpp <= 1.8f) r.dither(p.plaza, p.plazaAlt, 2)
+        // the river: its surface rippled, a pixel of sand along its shore
         for (poly in town.water) { val a = FloatArray(poly.size * 2); poly.forEachIndexed { i, q -> a[i * 2] = q.x; a[i * 2 + 1] = q.z }; r.polyU(a, p.water) }
-        wet += p.water
-        r.outline({ it == p.water }, { p.waterEdge })
-        // the trees (the forest and the streets' trees: a pixel or two of dark green), not on water
-        val tr = max(.6f, 90f / upp)
+        if (mpp <= 2.5f) r.dither(p.water, p.waterAlt, 4)
+        val wet = { c: Int -> c == p.water || c == p.waterAlt }
+        for (land in intArrayOf(p.ground, p.groundAlt, p.lot)) r.rim(land, wet, p.shore)
+        // the yards close in: patios, decks, drives and car pads (under the trees)
+        if (close) yards?.yards?.forEach { y -> for (it in y.items) when (it.kind) {
+            "patio", "deck", "driveway", "parkingPad", "gravel", "frontPath" -> r.rectU(it.rect, p.patio)
+            else -> {}
+        } }
+        // the trees (the forest, the parks and the streets' trees): a canopy, its shadow down and right, a lit pixel
+        val tr = max(.7f, 70f / upp)
         for (pr in town.props) if (pr.kind == "tree" && r.contains(pr.x, pr.z)) {
             val cx = r.toPxX(pr.x); val cy = r.toPxY(pr.z)
             val under = r.get(cx.toInt(), cy.toInt())
-            if (under != p.water && under != p.waterEdge && under != p.paved && under != p.plaza) r.disc(cx, cy, tr, p.tree)
+            if (wet(under) || under == p.shore || under == p.paved || under == p.plaza || under == p.plazaAlt) continue
+            if (tr >= 1.6f) r.disc(cx + tr * .45f, cy + tr * .45f, tr, p.treeDark)
+            r.disc(cx, cy, tr, p.tree)
+            if (tr >= 1.6f) r.disc(cx - tr * .35f, cy - tr * .35f, max(.6f, tr * .38f), p.treeLight)
         }
         // back lanes (narrow)
         yards?.lanes?.forEach { l -> r.rectU(l.rect, p.lane) }
-        // the roads: an edge, then the road; main roads (Main Street, the civic avenue) a little wider
-        fun width(rd: com.lifemax.rpg.feature.habits.domain.Road) = (rd.width * (if (rd.main || rd.id == town.civicRoad) 1.35f else 1f)) / upp
-        for (e in edges) { val rd = town.road(e.road); r.polylineU(e.pts, width(rd) + 2f, p.roadEdge) }
-        for (e in edges) { val rd = town.road(e.road); r.polylineU(e.pts, width(rd), if (rd.main || rd.id == town.civicRoad) p.mainRoad else p.road) }
-        for (b in town.bridges) r.rectU(b.rect, p.road)
-        // the buildings by kind, each with an edge a shade darker: their solid parts as the walk meets them (the town's
-        // collision: the models' real walls, the cinema, the stores as built), else each slot's box
+        // the roads: the pavements, the kerb, then the road; main roads (Main Street, the civic avenue) wider
+        fun isMain(rd: com.lifemax.rpg.feature.habits.domain.Road) = rd.main || rd.id == town.civicRoad
+        fun width(rd: com.lifemax.rpg.feature.habits.domain.Road) = max(2f, (rd.width * (if (isMain(rd)) 1.35f else 1f)) / upp)
+        if (mpp <= 2.6f) for (e in edges) { val rd = town.road(e.road); r.polylineU(e.pts, width(rd) + 2f * SIDEWALK / upp, p.sidewalk) }
+        for (e in edges) { val rd = town.road(e.road); r.polylineU(e.pts, width(rd) + 2f, if (isMain(rd)) p.mainEdge else p.roadEdge) }
+        for (e in edges) { val rd = town.road(e.road); r.polylineU(e.pts, width(rd), if (isMain(rd)) p.mainRoad else p.road) }
+        // the centre lines, dashed, kept off the junctions (about a road's width from each end)
+        for (e in edges) {
+            val rd = town.road(e.road)
+            val wpx = width(rd)
+            if (wpx < (if (isMain(rd)) 5f else 7f)) continue
+            val trim = rd.width * 1.1f
+            if (e.len < trim * 2.5f) continue
+            val run = trimmed(e, trim)
+            val dash = max(2f, 3f / mpp); val gap = max(2f, if (isMain(rd)) 2.5f / mpp else 4f / mpp)
+            r.dashedU(run, if (wpx >= 14f) 2f else 1f, dash, gap, if (isMain(rd)) p.mainLine else p.line)
+        }
+        for (b in town.bridges) {
+            r.rectU(b.rect, p.roadEdge)
+            val h = b.horizontal
+            r.rectU(floatArrayOf(min(b.rect[0], b.rect[2]) + (if (h) 0f else upp), min(b.rect[1], b.rect[3]) + (if (h) upp else 0f),
+                max(b.rect[0], b.rect[2]) - (if (h) 0f else upp), max(b.rect[1], b.rect[3]) - (if (h) upp else 0f)), p.road)
+        }
+        // the buildings by kind: their solid parts as the walk meets them (the town's collision: the models' real walls,
+        // the cinema, the stores as built), else each slot's box. First their shadows, down and to the right
         val xs = FloatArray(4); val ys = FloatArray(4)
         val kindOf = HashMap<String, Int>()
         for (row in town.rows) for (b in row.buildings) kindOf[b.sprite] = when {
@@ -207,39 +249,85 @@ class TownMapModel private constructor(
             b.kind == PlacementKind.SHOP -> p.shop
             else -> p.home
         }
+        val built = setOf(p.home, p.shop, p.landmark, p.civic, p.shed)
+        val keep = { c: Int -> c in built }
+        val sh = (2.2f / mpp).coerceIn(1f, 4f)
+        val dxs = FloatArray(4); val dys = FloatArray(4)
+        fun quad(f: FloatArray) { for (i in 0..3) { xs[i] = r.toPxX(f[i * 2]); ys[i] = r.toPxY(f[i * 2 + 1]) } }
+        for ((_, f) in feet) {
+            if (f.size == 3) {
+                val cx = r.toPxX(f[0]) + sh; val cy = r.toPxY(f[1]) + sh; val rr = f[2] / upp
+                for (i in 0..3) { val a = i * Math.PI / 2 + Math.PI / 4; dxs[i] = cx + (kotlin.math.cos(a) * rr).toFloat(); dys[i] = cy + (kotlin.math.sin(a) * rr).toFloat() }
+                r.shadePoly(dxs, dys, 4, p.shadowK, keep); continue
+            }
+            quad(f)
+            for (i in 0..3) { dxs[i] = xs[i] + sh; dys[i] = ys[i] + sh }
+            r.shadePoly(dxs, dys, 4, p.shadowK, keep)
+        }
+        if (close) yards?.yards?.forEach { y -> for (it in y.items) if (it.kind == "shed" || it.kind == "garage") {
+            val q = it.rect
+            val ax = r.toPxX(min(q[0], q[2])) + 1f; val bx = r.toPxX(max(q[0], q[2])) + 1f; val ay = r.toPxY(min(q[1], q[3])) + 1f; val by = r.toPxY(max(q[1], q[3])) + 1f
+            dxs[0] = ax; dxs[1] = bx; dxs[2] = bx; dxs[3] = ax; dys[0] = ay; dys[1] = ay; dys[2] = by; dys[3] = by
+            r.shadePoly(dxs, dys, 4, p.shadowK, keep)
+            r.rectU(q, p.shed)
+        } }
         for ((sprite, f) in feet) {
             val c = kindOf[sprite] ?: p.home
             if (f.size == 3) { r.disc(r.toPxX(f[0]), r.toPxY(f[1]), f[2] / upp, c); continue }
-            for (i in 0..3) { xs[i] = r.toPxX(f[i * 2]); ys[i] = r.toPxY(f[i * 2 + 1]) }
+            quad(f)
             r.poly(xs, ys, 4, c)
         }
-        val built = setOf(p.home, p.shop, p.landmark, p.civic)
-        r.outline({ it in built }, { MapRaster.shade(it, p.buildingEdgeK) })
-        // the rich homes' pools
-        yards?.yards?.forEach { y -> for (it in y.items) if (it.kind == "pool") r.rectU(it.rect, p.pool) }
+        r.bevel({ it in built }, { MapRaster.tint(it, p.buildingLightK) }, { MapRaster.shade(it, p.buildingEdgeK) })
+        // the rich homes' pools, with a pale coping round the water close in
+        yards?.yards?.forEach { y -> for (it in y.items) if (it.kind == "pool") {
+            val q = it.rect; val k = if (mpp <= 2f) upp else 0f
+            if (k > 0f) r.rectU(q, p.poolEdge)
+            r.rectU(floatArrayOf(min(q[0], q[2]) + k, min(q[1], q[3]) + k, max(q[0], q[2]) - k, max(q[1], q[3]) - k), p.pool)
+        } }
         return r
+    }
+
+    /** [e]'s points with [d] street units cut from each end (the centre line's run, clear of the junctions). */
+    private fun trimmed(e: Edge, d: Float): FloatArray {
+        val out = ArrayList<Float>()
+        along(e, d, e.len - d, out)
+        return out.toFloatArray()
     }
 
     companion object {
         /** How far from a road's edge the player still reads its sign (street units: the pavement and a step; about 12 m). */
         const val PAVEMENT = 260f
-        const val DEFAULT_UPP = 36f
-        const val MAX_PX = 2400f
+        /** The city map's own scale: about 0.76 m a pixel (2.25 times the first minimap's 1.7 m). */
+        const val DEFAULT_UPP = 16f
+        /** The widest picture made (the closest zoom step of a big town stays under it). */
+        const val MAX_PX = 5000f
+        /** A pavement's width each side of a road (street units, about 2.4 m). */
+        const val SIDEWALK = 50f
         const val MARGIN = 1200f
 
+        /** The phone's look: a night-mode GPS (dark grass, pale streets, amber main roads, the buildings raised). */
         val GPS = Palette(
-            outside = MapRaster.argb(0x24331F), ground = MapRaster.argb(0x3F5A35), lot = MapRaster.argb(0x4B6A3E),
-            home = MapRaster.argb(0xC9B68E), shop = MapRaster.argb(0xE08A4C), landmark = MapRaster.argb(0xB86FA8), civic = MapRaster.argb(0x7FA6DB),
-            plaza = MapRaster.argb(0xB9B19F), paved = MapRaster.argb(0x5E5F63), water = MapRaster.argb(0x3D7FCB), waterEdge = MapRaster.argb(0x2A5C9C),
-            tree = MapRaster.argb(0x2C4526), road = MapRaster.argb(0xE9E9E4), mainRoad = MapRaster.argb(0xF7D774), roadEdge = MapRaster.argb(0x1E2024),
-            lane = MapRaster.argb(0x8A8C88), pool = MapRaster.argb(0x5FD0E8), buildingEdgeK = .62f,
+            outside = MapRaster.argb(0x1F2C1B), ground = MapRaster.argb(0x3A5532), groundAlt = MapRaster.argb(0x35502E), lot = MapRaster.argb(0x45623B),
+            home = MapRaster.argb(0xCDB894), shop = MapRaster.argb(0xE58B4E), landmark = MapRaster.argb(0xB873AE), civic = MapRaster.argb(0x7EA7E0),
+            plaza = MapRaster.argb(0xB5AC98), plazaAlt = MapRaster.argb(0xA69D89), paved = MapRaster.argb(0x5A5C61),
+            water = MapRaster.argb(0x2F6FB8), waterAlt = MapRaster.argb(0x4A8AD0), shore = MapRaster.argb(0xC9B98A),
+            tree = MapRaster.argb(0x24401F), treeDark = MapRaster.argb(0x1A2E17), treeLight = MapRaster.argb(0x3E6A33),
+            road = MapRaster.argb(0xE6E4DC), mainRoad = MapRaster.argb(0xF4C95D), roadEdge = MapRaster.argb(0x1C1E22), mainEdge = MapRaster.argb(0x5A4212),
+            line = MapRaster.argb(0xB4B1A6), mainLine = MapRaster.argb(0xFFF4CF), sidewalk = MapRaster.argb(0x8E918C), lane = MapRaster.argb(0x7D7F7A),
+            pool = MapRaster.argb(0x5FD0E8), poolEdge = MapRaster.argb(0xE8F0EC), shed = MapRaster.argb(0xA99A7C), patio = MapRaster.argb(0x8F8A7C),
+            shadowK = .58f, buildingEdgeK = .62f, buildingLightK = .3f,
         )
+        /** A printed paper map's look: cream paper, brown ink, pale washes of colour. */
         val PAPER = Palette(
-            outside = MapRaster.argb(0xE3D6B4), ground = MapRaster.argb(0xEFE4C6), lot = MapRaster.argb(0xE9DDBC),
+            outside = MapRaster.argb(0xE3D6B4), ground = MapRaster.argb(0xF0E6C8), groundAlt = MapRaster.argb(0xE9DEBE), lot = MapRaster.argb(0xEBE0C0),
             home = MapRaster.argb(0xD9B98F), shop = MapRaster.argb(0xD08C64), landmark = MapRaster.argb(0xB07A9C), civic = MapRaster.argb(0x9AA7C0),
-            plaza = MapRaster.argb(0xD8CBA8), paved = MapRaster.argb(0xD2C6A6), water = MapRaster.argb(0x9CC3DF), waterEdge = MapRaster.argb(0x5E8DB3),
-            tree = MapRaster.argb(0xB5C98F), road = MapRaster.argb(0xFFFBEF), mainRoad = MapRaster.argb(0xF3C66B), roadEdge = MapRaster.argb(0x7A5A3A),
-            lane = MapRaster.argb(0xC9B993), pool = MapRaster.argb(0x9CC3DF), buildingEdgeK = .72f,
+            plaza = MapRaster.argb(0xDDD0AD), plazaAlt = MapRaster.argb(0xD3C6A2), paved = MapRaster.argb(0xD7CBAA),
+            water = MapRaster.argb(0x9CC3DF), waterAlt = MapRaster.argb(0xB4D3EA), shore = MapRaster.argb(0x7A8FA8),
+            tree = MapRaster.argb(0xB9CC93), treeDark = MapRaster.argb(0xA8BC84), treeLight = MapRaster.argb(0xCCDCAA),
+            road = MapRaster.argb(0xFFFBEF), mainRoad = MapRaster.argb(0xF3C66B), roadEdge = MapRaster.argb(0x7A5A3A), mainEdge = MapRaster.argb(0x6E4A22),
+            line = MapRaster.argb(0xDCCFAE), mainLine = MapRaster.argb(0xC08A2C), sidewalk = MapRaster.argb(0xE6DABA), lane = MapRaster.argb(0xCDBD96),
+            pool = MapRaster.argb(0x9CC3DF), poolEdge = MapRaster.argb(0x7A5A3A), shed = MapRaster.argb(0xCDB792), patio = MapRaster.argb(0xE0D3AF),
+            shadowK = .86f, buildingEdgeK = .74f, buildingLightK = .18f,
         )
 
         private val CIVIC_WORDS = listOf("post_office", "fire_station", "police", "library", "school", "elementary", "church", "courthouse", "town_hall", "city_hall", "clocktower", "station")
@@ -249,7 +337,7 @@ class TownMapModel private constructor(
          * back lanes, [names] each building's business name by sprite (street.json's shops and the loop's places).
          */
         fun build(town: Town, glb: List<GlbPlaced> = emptyList(), yards: TownYards? = null, names: Map<String, String> = emptyMap(),
-                  collision: com.lifemax.rpg.feature.habits.domain.TownCollision? = null): TownMapModel {
+                  collision: com.lifemax.rpg.feature.habits.domain.TownCollision? = null, kinds: Map<String, String> = emptyMap()): TownMapModel {
             // the extent: the junctions, the buildings' rows and the river, not the forest round them
             var ax = Float.MAX_VALUE; var az = Float.MAX_VALUE; var bx = -Float.MAX_VALUE; var bz = -Float.MAX_VALUE
             fun grow(x: Float, z: Float) { ax = min(ax, x); az = min(az, z); bx = max(bx, x); bz = max(bz, z) }
@@ -281,7 +369,18 @@ class TownMapModel private constructor(
                 val (x, z) = at(sprite) ?: continue
                 labels += MapLabel(nm, x, z, LabelKind.BUSINESS, 0f, 300f); named += sprite
             }
-            return TownMapModel(town, labels, glb, yards, civic, floatArrayOf(ax, az, bx, bz), footprints(town, collision))
+            // the icons: each named place by its kind (a landmark's kind, a shop's kind from street.json), one per building
+            val pois = ArrayList<MapPoi>()
+            val marked = HashSet<String>()
+            fun poi(sprite: String, x: Float, z: Float, kind: String, name: String) {
+                if (!marked.add(sprite)) return
+                PoiKind.of(kind, name)?.let { pois += MapPoi(x, z, it, name) }
+            }
+            for (l in town.landmarks) poi(l.sprite, (l.rect[0] + l.rect[2]) / 2f, (l.rect[1] + l.rect[3]) / 2f, l.kind, names[l.sprite] ?: l.name)
+            for (g in glb) at(g.sprite)?.let { (x, z) -> poi(g.sprite, x, z, g.kind, names[g.sprite] ?: g.name) }
+            for ((sprite, nm) in names) at(sprite)?.let { (x, z) -> poi(sprite, x, z, kinds[sprite] ?: "", nm) }
+            pois.sortByDescending { it.kind.rank }
+            return TownMapModel(town, labels, glb, yards, civic, floatArrayOf(ax, az, bx, bz), footprints(town, collision), pois)
         }
 
         /**
@@ -357,6 +456,13 @@ class TownMapModel private constructor(
                     }
                 }
             }
+            return out
+        }
+
+        /** Each shop's kind ("Bakery", "Landmark") by its sprite, from street.json v2's root (its `shops`, not the homes): the icons. */
+        fun shopKinds(root: org.json.JSONObject): Map<String, String> {
+            val out = HashMap<String, String>()
+            root.optJSONArray("shops")?.let { a -> for (i in 0 until a.length()) a.optJSONObject(i)?.let { s -> if (!s.optBoolean("home")) out[s.optString("sprite")] = s.optString("kind") } }
             return out
         }
 

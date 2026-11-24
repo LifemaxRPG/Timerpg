@@ -143,8 +143,91 @@ class MapRaster(val w: Int, val h: Int, val unitsPerPx: Float, val x0: Float, va
         }
     }
 
+    /**
+     * A polygon (pixel coordinates) that darkens what is under it by [k] instead of painting over it: a drop shadow, hard
+     * edged, that falls on the ground, the pavement and the road alike. Pixels for which [keep] is true are left alone
+     * (the buildings themselves).
+     */
+    fun shadePoly(xs: FloatArray, ys: FloatArray, n: Int, k: Float, keep: (Int) -> Boolean) {
+        if (n < 3) return
+        var ymin = Float.MAX_VALUE; var ymax = -Float.MAX_VALUE
+        for (i in 0 until n) { ymin = min(ymin, ys[i]); ymax = max(ymax, ys[i]) }
+        val r0 = max(0, floor(ymin).toInt()); val r1 = min(h - 1, ceil(ymax).toInt())
+        val cross = FloatArray(n)
+        for (y in r0..r1) {
+            val sy = y + .5f
+            var k2 = 0
+            var j = n - 1
+            for (i in 0 until n) {
+                val ya = ys[i]; val yb = ys[j]
+                if ((ya <= sy && yb > sy) || (yb <= sy && ya > sy)) cross[k2++] = xs[i] + (sy - ya) / (yb - ya) * (xs[j] - xs[i])
+                j = i
+            }
+            if (k2 < 2) continue
+            cross.sort(0, k2)
+            var i = 0
+            while (i + 1 < k2) {
+                val a = max(0, Math.round(cross[i])); val b = min(w, Math.round(cross[i + 1]))
+                val o = y * w
+                for (x in a until b) { val c = px[o + x]; if (!keep(c)) px[o + x] = shade(c, k) }
+                i += 2
+            }
+        }
+    }
+
+    /**
+     * A raised look for areas whose colour is [inside] (the buildings): a pixel whose top or left neighbour is outside
+     * gets [light] (the lit edge), one whose bottom or right neighbour is outside gets [dark] (the shaded edge), the
+     * light from the top left as on the game's buildings. Hard pixels, no blending.
+     */
+    fun bevel(inside: (Int) -> Boolean, light: (Int) -> Int, dark: (Int) -> Int) {
+        val src = px.copyOf()
+        for (y in 0 until h) for (x in 0 until w) {
+            val c = src[y * w + x]
+            if (!inside(c)) continue
+            val br = (x < w - 1 && !inside(src[y * w + x + 1])) || (y < h - 1 && !inside(src[(y + 1) * w + x]))
+            val tl = (x > 0 && !inside(src[y * w + x - 1])) || (y > 0 && !inside(src[(y - 1) * w + x]))
+            if (br) px[y * w + x] = dark(c) else if (tl) px[y * w + x] = light(c)
+        }
+    }
+
+    /**
+     * An ordered dither over every pixel of colour [base]: one pixel in [every] (a 2 x 2 checker for 2, a sparse grid
+     * for 4) becomes [alt]. The ground's texture, crisp and repeatable (the same pixels every build).
+     */
+    fun dither(base: Int, alt: Int, every: Int = 4) {
+        for (y in 0 until h) {
+            val o = y * w
+            for (x in 0 until w) {
+                if (px[o + x] != base) continue
+                val on = when (every) {
+                    2 -> (x + y) and 1 == 0
+                    3 -> (x + 2 * y) % 3 == 0
+                    else -> (x and 3) == ((y shr 1) and 1) * 2 && (y and 1) == 0
+                }
+                if (on) px[o + x] = alt
+            }
+        }
+    }
+
+    /** Pixels of colour [c] next to (4-neighbour) a pixel for which [next] is true become [to]: a shore, a kerb. */
+    fun rim(c: Int, next: (Int) -> Boolean, to: Int) {
+        val src = px.copyOf()
+        for (y in 0 until h) for (x in 0 until w) {
+            if (src[y * w + x] != c) continue
+            val n = (x > 0 && next(src[y * w + x - 1])) || (x < w - 1 && next(src[y * w + x + 1])) ||
+                (y > 0 && next(src[(y - 1) * w + x])) || (y < h - 1 && next(src[(y + 1) * w + x]))
+            if (n) px[y * w + x] = to
+        }
+    }
+
     companion object {
         fun argb(rgb: Int): Int = (0xFF shl 24) or (rgb and 0xFFFFFF)
+        /** [c] made lighter by [k] (0..1 of the way to white). */
+        fun tint(c: Int, k: Float): Int {
+            val r = ((c shr 16) and 255); val g = ((c shr 8) and 255); val b = (c and 255)
+            return (c and 0xFF000000.toInt()) or ((r + (255 - r) * k).toInt() shl 16) or ((g + (255 - g) * k).toInt() shl 8) or (b + (255 - b) * k).toInt()
+        }
         /** [c] made darker by [k] (0..1). */
         fun shade(c: Int, k: Float): Int {
             val r = ((c shr 16) and 255) * k; val g = ((c shr 8) and 255) * k; val b = (c and 255) * k

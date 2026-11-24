@@ -23,11 +23,12 @@ import com.lifemax.rpg.feature.habits.maps.MapPlayer
 import com.lifemax.rpg.feature.habits.maps.MapRules
 import com.lifemax.rpg.feature.habits.maps.MapStyle
 import com.lifemax.rpg.feature.habits.maps.MapTier
-import com.lifemax.rpg.feature.habits.maps.MiniPainter
+import com.lifemax.rpg.feature.habits.maps.MapPoi
+import com.lifemax.rpg.feature.habits.maps.MapSettings
+import com.lifemax.rpg.feature.habits.maps.PoiKind
 import com.lifemax.rpg.feature.habits.maps.Minimap
 import com.lifemax.rpg.feature.habits.maps.OwnedMap
 import com.lifemax.rpg.feature.habits.maps.TownMapModel
-import com.lifemax.rpg.feature.habits.maps.minimapUnits
 import com.lifemax.rpg.feature.habits.simjs.SimJsThread
 import com.lifemax.rpg.feature.habits.vehicle.VehicleWorld
 import org.jetbrains.skia.EncodedImageFormat
@@ -209,50 +210,87 @@ class MapsTest {
         val player = MapPlayer().set(sp.x, sp.z, kotlin.math.atan2(dir.x, -dir.z), 30f)
         val wp = floatArrayOf(st.doorX, st.doorZ)
         val nav = MapNav()
-        // the minimap's own picture alone (allocation-free path), then the HUD's composables
+        // the city map at each zoom step: its own picture for its scale (timed: they are made on the maps' worker in the game)
+        for (i in MapData.CITY_STEPS.indices) {
+            val t2 = System.nanoTime()
+            val l = data.cityStepNow(i, MapStyle.GPS)
+            println("MapsTest: city step $i (%.2f m a pixel): ${l.w} x ${l.h} in %.0f ms".format(MapData.CITY_STEPS[i], (System.nanoTime() - t2) / 1e6))
+        }
         val city = data.layerNow(MapTier.CITY, MapStyle.GPS, town.year)!!
-        val mp = MiniPainter()
+        assertTrue("the city map has places to mark", city.pois.size >= 10)
+        println("MapsTest: ${city.pois.size} places with icons: " + city.pois.groupBy { it.kind }.entries.joinToString { "${it.key.name.lowercase()} ${it.value.size}" })
         nav.update(model, true, player.x, player.z, wp)
-        mp.draw(city, player, minimapUnits(city, 2), false, true, wp, nav.route, nav.distanceM)
         val tick = mutableLongStateOf(1L)
         val gpsAccess = MapRules.access(town.year, emptyList(), here)
-        fun scene(w: Int, h: Int, content: @androidx.compose.runtime.Composable () -> Unit): org.jetbrains.skia.Image {
-            val s = ImageComposeScene(w, h, Density(2f)) { content() }
+        // the station and the player's room, as the app marks them (here: beside the spawn, for the look)
+        val extra = listOf(MapPoi(player.x + 900f, player.z - 700f, PoiKind.HOME, "Your room"))
+        fun scene(w: Int, h: Int, density: Float = 2.81f, content: @androidx.compose.runtime.Composable () -> Unit): org.jetbrains.skia.Image {
+            val s = ImageComposeScene(w, h, Density(density)) { content() }
             var img2 = s.render(0L)
             for (i in 1..6) { Thread.sleep(30); img2 = s.render(i * 16_666_667L) }
             s.close(); return img2
         }
-        val mini = scene(560, 480) {
-            androidx.compose.foundation.layout.Row(androidx.compose.ui.Modifier.androidx_bg(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(androidx.compose.ui.unit.Dp(8f))) {
-                Minimap(city, gpsAccess, tick, { it.set(player.x, player.z, player.heading, player.yaw); true }, wp, nav, model, onOpen = {}, size = androidx.compose.ui.unit.Dp(150f))
+        val gpsLayers = { m: Float -> data.cityFor(m, MapStyle.GPS) }
+        // the minimap as the S25 shows it (2.81 px a dp, 150 dp), at three zooms, heading up, and driving at 45 mph
+        fun mini(name: String, zoom: Int, headingUp: Boolean, speed: Float = 0f, yaw: Float = 30f) {
+            MapSettings.minimapZoom = zoom; MapSettings.headingUp = headingUp
+            // (each zoom's picture made first, as the game's worker would have it ready)
+            for (i in MapData.CITY_STEPS.indices) data.cityStepNow(i, MapStyle.GPS)
+            val img = scene(480, 480) {
+                androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.androidx_bg()) {
+                    Minimap(gpsLayers, gpsAccess, tick, { it.set(player.x, player.z, player.heading, yaw, speed); true }, wp, nav, model, onOpen = {},
+                        size = androidx.compose.ui.unit.Dp(150f), extra = extra, nanos = { 1_000_000_000L })
+                }
             }
+            File(out, name).writeBytes(img.encodeToData(EncodedImageFormat.PNG)!!.bytes)
         }
-        File(out, "minimap_gps.png").writeBytes(mini.encodeToData(EncodedImageFormat.PNG)!!.bytes)
-        val full = scene(1560, 720) {
+        mini("minimap_gps.png", 2, false)
+        mini("minimap_gps_close.png", 0, false)
+        mini("minimap_gps_wide.png", 4, false)
+        mini("minimap_gps_headingup.png", 1, true, yaw = 30f)
+        mini("minimap_gps_driving.png", 2, true, speed = 20f, yaw = Math.toDegrees(player.heading.toDouble()).toFloat())
+        MapSettings.headingUp = false; MapSettings.minimapZoom = 2
+        val full = scene(2244, 1038) {
             FullMap(data, gpsAccess, town.year, player, wp, nav, onWaypoint = { _, _ -> }, onClose = {},
-                start = FullMapView(MapTier.CITY, (player.x + wp[0]) / 2f, (player.z + wp[1]) / 2f, 1560f / (hypot(wp[0] - player.x, wp[1] - player.z) * 1.6f + 8000f)))
+                start = FullMapView(MapTier.CITY, (player.x + wp[0]) / 2f, (player.z + wp[1]) / 2f, 2244f / (hypot(wp[0] - player.x, wp[1] - player.z) * 1.6f + 8000f)),
+                extra = extra, legendOpen = true, nanos = { 1_000_000_000L })
         }
         File(out, "fullmap_gps.png").writeBytes(full.encodeToData(EncodedImageFormat.PNG)!!.bytes)
+        val fullClose = scene(2244, 1038) {
+            FullMap(data, gpsAccess, town.year, player, wp, nav, onWaypoint = { _, _ -> }, onClose = {},
+                start = FullMapView(MapTier.CITY, player.x, player.z, 2.81f * 2.2f / VehicleWorld.U), extra = extra, nanos = { 1_000_000_000L })
+        }
+        File(out, "fullmap_gps_close.png").writeBytes(fullClose.encodeToData(EncodedImageFormat.PNG)!!.bytes)
         // a 1952 paper city map, close in (the businesses' names)
         val paperAccess = MapRules.access(1952, listOf(OwnedMap(MapTier.CITY, town.seed, 1952, "")), here)
-        val fullPaper = scene(1560, 720) {
+        val fullPaper = scene(2244, 1038) {
             FullMap(data, paperAccess, 1952, player, wp, MapNav(), onWaypoint = { _, _ -> }, onClose = {},
-                start = FullMapView(MapTier.CITY, player.x, player.z, 2f / VehicleWorld.U * .55f))
+                start = FullMapView(MapTier.CITY, player.x, player.z, 2.81f * 1.3f / VehicleWorld.U), legendOpen = true)
         }
         File(out, "fullmap_paper_1952.png").writeBytes(fullPaper.encodeToData(EncodedImageFormat.PNG)!!.bytes)
-        val miniPaper = scene(560, 480) {
+        for (i in MapData.CITY_STEPS.indices) data.cityStepNow(i, MapStyle.PAPER)
+        val miniPaper = scene(900, 480) {
             androidx.compose.foundation.layout.Row(androidx.compose.ui.Modifier.androidx_bg(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(androidx.compose.ui.unit.Dp(8f))) {
-                Minimap(data.layerNow(MapTier.CITY, MapStyle.PAPER, 1952), paperAccess, tick, { it.set(player.x, player.z, player.heading, player.yaw); true }, wp, MapNav(), model, onOpen = {}, size = androidx.compose.ui.unit.Dp(150f))
-                com.lifemax.rpg.feature.habits.maps.CompassRose(tick, { 30f })
+                Minimap({ m -> data.cityFor(m, MapStyle.PAPER) }, paperAccess, tick, { it.set(player.x, player.z, player.heading, player.yaw); true }, wp, MapNav(), model, onOpen = {}, size = androidx.compose.ui.unit.Dp(150f))
+                com.lifemax.rpg.feature.habits.maps.CompassRose(tick, { 30f }, size = androidx.compose.ui.unit.Dp(150f), paper = true)
             }
         }
         File(out, "minimap_paper_1952.png").writeBytes(miniPaper.encodeToData(EncodedImageFormat.PNG)!!.bytes)
         if (site != null) {
-            val reg = scene(1560, 720) {
+            val reg = scene(2244, 1038) {
                 FullMap(data, gpsAccess, town.year, player, wp, nav, onWaypoint = { _, _ -> }, onClose = {}, start = FullMapView(MapTier.REGIONAL, player.x, player.z, 0f))
             }
             File(out, "fullmap_regional.png").writeBytes(reg.encodeToData(EncodedImageFormat.PNG)!!.bytes)
         }
+        // the whole HUD as the S25 lays it out (2244 x 1038 px, 2.81 px a dp): walking, driving, and the menu open
+        for ((name, mode) in listOf("hud_walk.png" to HudMock.WALK, "hud_drive.png" to HudMock.DRIVE, "hud_menu.png" to HudMock.MENU)) {
+            MapSettings.headingUp = mode == HudMock.DRIVE; MapSettings.minimapZoom = 2
+            val img = scene(2244, 1038) {
+                hudMock(mode, { m -> data.cityFor(m, MapStyle.GPS) }, gpsAccess, tick, player, wp, nav, model, extra)
+            }
+            File(out, name).writeBytes(img.encodeToData(EncodedImageFormat.PNG)!!.bytes)
+        }
+        MapSettings.headingUp = false
         data.close()
         println("MapsTest: renders in ${out.absolutePath}")
     }
