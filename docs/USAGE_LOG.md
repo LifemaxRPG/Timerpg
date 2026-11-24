@@ -121,4 +121,4 @@ his limit; G012 was trimmed to the one-police swap plus the wiring fixes. Plan a
 | G010 trials | Gemini/Jeff (AI Studio Build) | engineering, court on G005/G008 | ~8 min, 1 run; tokens not visible | 1 | accepted first try; 10/10 court + 34 regression |
 | C015 gas station | ChatGPT/Sam (Codex) | model, 3 eras | ~11 min, one turn; tokens not visible | 1 | accepted first try (plain interiors: the game furnishes them) |
 | C018 economy by era | ChatGPT/Sam (Codex) | engineering, new TS system | one run, ~1 h from brief to delivery, WIP pushed first; tokens not visible | 1 | accepted first try; 11/11, compact (594 lines) |
-| C019 economy curves and stock | ChatGPT/Sam (Codex), **low** reasoning | engineering, extends C018 | one turn, ~8 min WIP to delivery; tokens not visible | 1 | accepted first try; 15/15, 183 lines |
+| C019 economy curves and stock | ChatGPT/Sam (Codex), **low** reasoning | engineering, extends C018 | one turn, ~8 min WIP to delivery; about 1% of the weekly allowance (18% -> 17% left, owner's reading) | 1 | accepted first try; 15/15, 183 lines |
