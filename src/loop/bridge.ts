@@ -10,6 +10,8 @@ import {
   spotted,
 } from './facade';
 import * as economy from '../economy';
+import { arrears, dailyBudget, dailyNeeds, dueOn, lodgingOf } from '../economy/living';
+import { classesOf, departures, fare, travelTime } from '../transit';
 import { fenceDeal, fenceLeads, fenceRisk, townFences } from '../economy/fence';
 import type {
   AdvanceOptions,
@@ -185,13 +187,27 @@ export const Economy = {
   fenceLeads,
   fenceDeal,
   fenceRisk,
+  // living costs (C022, docs/ECONOMY.md)
+  lodgingOf,
+  dailyNeeds,
+  dueOn,
+  arrears,
+  dailyBudget,
 } as const;
 (globalThis as Record<string, unknown>).Economy = Economy;
 
 /**
+ * Fares and timetables (src/transit, docs/TRANSIT.md) for the phone: `simCall({"method":"transit.fare","args":
+ * ["city_bus",2025,1.2]})`. Pure and stateless.
+ */
+export const Transit = { fare, departures, travelTime, classesOf } as const;
+(globalThis as Record<string, unknown>).Transit = Transit;
+
+/**
  * One entry for the phone (SimJs.kt calls a global function with one JSON string): `{"method": "advance", "args":
  * [24]}` calls `TimerpgSim.advance(24)` and returns its JSON string; a non-string argument is passed as JSON text
- * where the method takes JSON (e.g. `act`'s event as an object). `economy.*` methods go to [Economy].
+ * where the method takes JSON (e.g. `act`'s event as an object). `economy.*` methods go to [Economy], `transit.*`
+ * to [Transit].
  */
 export function simCall(json: string): string {
   const req = JSON.parse(json) as { method: string; args?: unknown[] };
@@ -199,6 +215,11 @@ export function simCall(json: string): string {
     const name = req.method.slice('economy.'.length);
     if (!Object.prototype.hasOwnProperty.call(Economy, name)) throw new Error(`Economy has no method "${name}"`);
     return JSON.stringify((Economy as Record<string, (...a: unknown[]) => unknown>)[name]!(...(req.args ?? [])) ?? null);
+  }
+  if (req.method.startsWith('transit.')) {
+    const name = req.method.slice('transit.'.length);
+    if (!Object.prototype.hasOwnProperty.call(Transit, name)) throw new Error(`Transit has no method "${name}"`);
+    return JSON.stringify((Transit as Record<string, (...a: unknown[]) => unknown>)[name]!(...(req.args ?? [])) ?? null);
   }
   const fn = (TimerpgSim as Record<string, unknown>)[req.method];
   if (typeof fn !== 'function') throw new Error(`TimerpgSim has no method "${req.method}"`);

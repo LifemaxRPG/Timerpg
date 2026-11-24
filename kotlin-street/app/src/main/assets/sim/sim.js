@@ -5413,6 +5413,83 @@
     return Math.round(1e3 * eraRate * clamp01(0.25 + fence.honesty + 0.35 * fence.greed)) / 1e3;
   }
 
+  // src/economy/living.ts
+  var lodgingKinds = {
+    boarding_house: [1880, 7, 800, 0, 0],
+    room_and_board: [1880, 7, 1250, 0, 2],
+    hotel: [1880, 1, 350, 0, 0],
+    flat: [1880, 30, 5300, 5300, 0],
+    motel: [1950, 1, 475, 0, 0]
+  };
+  function scale(cents1952, index) {
+    return Math.round(cents1952 * index / 0.085);
+  }
+  function lodgingOf(kind, year) {
+    const index = priceIndex(year);
+    if (index === null || !Object.prototype.hasOwnProperty.call(lodgingKinds, kind)) return null;
+    const [from, periodDays, rent, deposit, includedMealsPerDay] = lodgingKinds[kind];
+    if (year < from) return null;
+    return { kind, periodDays, rentCents: scale(rent, index), depositCents: scale(deposit, index), includedMealsPerDay };
+  }
+  function dailyNeeds(year) {
+    const index = priceIndex(year);
+    if (index === null) return null;
+    return {
+      dinerMealsPerDayCents: scale(200, index),
+      cookedMealsPerDayCents: scale(105, index),
+      boardingMealsPerDayCents: scale(65, index),
+      clothesWearPerDayCents: scale(14, index),
+      laundryPerLoadCents: scale(22, index),
+      carfarePerRideCents: scale(12, index),
+      transitPassPerWeekCents: year >= 1900 ? scale(95, index) : null,
+      telephoneLocalCallCents: year >= 1890 ? scale(5, index) : null,
+      car: year < 1905 ? null : {
+        gasPerGallonCents: priceIn("gasoline", year),
+        repairReservePerMileCents: Math.max(1, scale(2, index)),
+        insurancePerYearCents: year >= 1925 ? scale(4200, index) : null,
+        licencePerYearCents: year >= 1910 ? scale(500, index) : null
+      }
+    };
+  }
+  function dueOn(lodging, startDay, day) {
+    const elapsed = day - startDay;
+    if (!Number.isSafeInteger(startDay) || !Number.isSafeInteger(day) || elapsed < 0 || elapsed % lodging.periodDays !== 0) return 0;
+    return lodging.rentCents + (elapsed === 0 ? lodging.depositCents : 0);
+  }
+  function arrears({ lodging, startDay, day, paidCents }) {
+    const elapsed = day - startDay;
+    const periods = elapsed >= 0 ? 1 + Math.floor(elapsed / lodging.periodDays) : 0;
+    const billed = periods > 0 ? lodging.depositCents + periods * lodging.rentCents : 0;
+    const owedCents = Math.max(0, billed - paidCents);
+    if (owedCents === 0) {
+      return { owedCents, firstUnpaidDay: null, daysLate: 0, status: "current", belongingsHeld: false };
+    }
+    const paidRent = Math.max(0, paidCents - lodging.depositCents);
+    const firstUnpaidDay = startDay + Math.floor(paidRent / lodging.rentCents) * lodging.periodDays;
+    const daysLate = day - firstUnpaidDay;
+    const status = daysLate >= 7 ? "locked_out" : daysLate >= 1 ? "warning" : "due";
+    return { owedCents, firstUnpaidDay, daysLate, status, belongingsHeld: status === "locked_out" };
+  }
+  var brackets = {
+    poor: ["odd_jobs", 4, "boarding_house", "cookedMealsPerDayCents"],
+    working: ["labourer", 6, "flat", "cookedMealsPerDayCents"],
+    comfortable: ["mechanic", 7, "flat", "dinerMealsPerDayCents"]
+  };
+  function dailyBudget(bracket, year) {
+    if (!Object.prototype.hasOwnProperty.call(brackets, bracket)) return null;
+    const [job, paidHoursPerDay, kind, meals] = brackets[bracket];
+    const pay = wage(job, year);
+    const lodging = lodgingOf(kind, year);
+    const needs = dailyNeeds(year);
+    if (!pay || !lodging || !needs) return null;
+    const incomeCents = pay.hourlyCents * paidHoursPerDay;
+    const lodgingCents = Math.round(lodging.rentCents / lodging.periodDays);
+    const foodCents = needs[meals];
+    const otherCents = needs.clothesWearPerDayCents + Math.round(needs.laundryPerLoadCents / 7) + 2 * needs.carfarePerRideCents;
+    const spendingCents = lodgingCents + foodCents + otherCents;
+    return { incomeCents, lodgingCents, foodCents, otherCents, spendingCents, weeklyLivingCents: spendingCents * 7 };
+  }
+
   // src/economy/index.ts
   function stockOf(shopKind, year, seed) {
     const shop = shopKey(shopKind);
@@ -5478,6 +5555,91 @@
       return { ...entry, priceCents: Math.max(1, Math.round(entry.priceCents * (1 + adjustment))) };
     });
     return { shopKind: shop, elapsedDays, entries };
+  }
+
+  // src/transit/index.ts
+  var modes = {
+    horsecar: { from: 1880, to: 1915, speed: 10, wait: 3, pricing: [5, 0] },
+    streetcar: { from: 1888, to: 2030, speed: 19, wait: 3, pricing: [5, 0] },
+    motor_bus: { from: 1905, to: 1975, speed: 24, wait: 4, pricing: [7, 0] },
+    taxi: { from: 1907, to: 2030, speed: 32, wait: 1, pricing: [25, 13] },
+    interurban: { from: 1895, to: 1965, speed: 38, wait: 8, pricing: [6, 2] },
+    railway: { from: 1880, to: 2030, speed: 52, wait: 12, pricing: [25, 4] },
+    city_bus: { from: 1925, to: 2030, speed: 23, wait: 4, pricing: [8, 0] },
+    intercity_coach: { from: 1930, to: 2030, speed: 49, wait: 10, pricing: [21, 3] }
+  };
+  var classRate = { third: 1, second: 1.45, first: 2 };
+  function modeFor(mode, year) {
+    if (!Object.prototype.hasOwnProperty.call(modes, mode) || !Number.isInteger(year)) return null;
+    const spec = modes[mode];
+    return year >= spec.from && year <= spec.to ? spec : null;
+  }
+  function classesOf(year) {
+    if (!modeFor("railway", year)) return [];
+    return year < 1956 ? ["third", "second", "first"] : ["second", "first"];
+  }
+  function fare(mode, year, distanceKm, railClass) {
+    const spec = modeFor(mode, year);
+    const index = priceIndex(year);
+    if (!spec || index === null || !Number.isFinite(distanceKm) || distanceKm < 0) return null;
+    const classes = classesOf(year);
+    const ticketClass = railClass ?? classes[0];
+    if (railClass !== void 0 && (mode !== "railway" || !classes.includes(railClass))) return null;
+    const [base, perKm] = spec.pricing;
+    const relativeRate = year <= 1925 ? 1 : 1 + (year - 1925) * (mode === "taxi" ? 4e-3 : 15e-4);
+    const multiplier = mode === "railway" ? classRate[ticketClass] : 1;
+    const cents = Math.max(1, Math.round((base + perKm * distanceKm) * index / 0.065 * relativeRate * multiplier));
+    return Number.isSafeInteger(cents) ? cents : null;
+  }
+  function travelTime(mode, year, distanceKm) {
+    const spec = modeFor(mode, year);
+    if (!spec || !Number.isFinite(distanceKm) || distanceKm < 0) return null;
+    if (distanceKm === 0) return 0;
+    const gain = mode === "horsecar" ? 0 : Math.max(0, year - 1925) * 4e-3;
+    const minutes = Math.ceil(spec.wait + 60 * distanceKm / (spec.speed * (1 + gain)));
+    return Number.isSafeInteger(minutes) ? minutes : null;
+  }
+  var daytime = [360, 420, 540, 960, 1140, 1320, 1440];
+  var service = {
+    horsecar: [18, 24, 30, 1200],
+    streetcar: [12, 12, 20, 1420],
+    motor_bus: [12, 20, 30, 1360],
+    city_bus: [8, 15, 24, 1420],
+    interurban: [20, 30, 60, 1380],
+    intercity_coach: [45, 60, 90, 1380]
+  };
+  function validMinute(minute) {
+    return Number.isInteger(minute) && minute >= 0 && minute < 1440;
+  }
+  function departures(route, year, weekday, fromHour, seed) {
+    if (!modeFor(route.mode, year) || !Number.isInteger(weekday) || weekday < 0 || weekday > 6 || !Number.isFinite(fromHour) || fromHour < 0 || fromHour >= 24) return [];
+    const fromMinute = fromHour * 60;
+    if (route.mode === "railway") {
+      const trains = route.trainMinutes ?? [420, 750, 1050, 1335];
+      return [...new Set(trains.filter((minute) => validMinute(minute) && minute >= fromMinute))].sort((a, b) => a - b);
+    }
+    if (route.mode === "taxi") {
+      const pickup = Math.ceil(fromMinute);
+      return validMinute(pickup) ? [pickup] : [];
+    }
+    const [rush, midday, evening, last] = service[route.mode];
+    const weekend = weekday === 0 || weekday === 6;
+    const peak = weekend ? midday : rush;
+    const phase = Math.floor(rand(seed, "transit_phase", route.id, year) * 3);
+    const owl = year >= 1975 && (route.mode === "streetcar" || route.mode === "city_bus");
+    const minutes = [];
+    if (owl) {
+      for (let minute = 0; minute < daytime[0]; minute += 40) minutes.push(minute);
+    }
+    const headways = [midday, peak, midday, peak, evening, evening + 8];
+    for (let band = 0; band < headways.length; band++) {
+      const start = daytime[band];
+      const end = Math.min(daytime[band + 1], last);
+      const offset = band === 0 ? 0 : phase;
+      for (let minute = start + offset; minute < end; minute += headways[band]) minutes.push(minute);
+    }
+    minutes.push(last);
+    return minutes.filter((minute) => minute >= fromMinute);
   }
 
   // src/loop/smoke.ts
@@ -5717,15 +5879,28 @@
     townFences,
     fenceLeads,
     fenceDeal,
-    fenceRisk
+    fenceRisk,
+    // living costs (C022, docs/ECONOMY.md)
+    lodgingOf,
+    dailyNeeds,
+    dueOn,
+    arrears,
+    dailyBudget
   };
   globalThis.Economy = Economy;
+  var Transit = { fare, departures, travelTime, classesOf };
+  globalThis.Transit = Transit;
   function simCall(json) {
     const req = JSON.parse(json);
     if (req.method.startsWith("economy.")) {
       const name = req.method.slice("economy.".length);
       if (!Object.prototype.hasOwnProperty.call(Economy, name)) throw new Error(`Economy has no method "${name}"`);
       return JSON.stringify(Economy[name](...req.args ?? []) ?? null);
+    }
+    if (req.method.startsWith("transit.")) {
+      const name = req.method.slice("transit.".length);
+      if (!Object.prototype.hasOwnProperty.call(Transit, name)) throw new Error(`Transit has no method "${name}"`);
+      return JSON.stringify(Transit[name](...req.args ?? []) ?? null);
     }
     const fn = TimerpgSim[req.method];
     if (typeof fn !== "function") throw new Error(`TimerpgSim has no method "${req.method}"`);
