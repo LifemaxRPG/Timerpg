@@ -213,18 +213,22 @@ fun renderSky(outRoot: String) {
             }
             engine.flushAndWait()
         }
+        var guard = 0
+        while (!done.get() && guard++ < 400) {
+            engine.flushAndWait()
+            Thread.sleep(5)
+        }
         check(done.get()) { "readPixels did not complete for ${shot.id}" }
 
+        // readPixels delivers rows bottom-up (matching FilamentOceanPreview & FilamentYardsPreview)
         val img = BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)
-        readBuf.rewind()
-        for (py in 0 until h) {
-            for (px in 0 until w) {
-                val r = readBuf.get().toInt() and 0xFF
-                val g = readBuf.get().toInt() and 0xFF
-                val b = readBuf.get().toInt() and 0xFF
-                readBuf.get()
-                val dstY = if (LookMatrix.windowY) (h - 1 - py) else py
-                img.setRGB(px, dstY, (0xFF shl 24) or (r shl 16) or (g shl 8) or b)
+        for (y in 0 until h) {
+            for (x in 0 until w) {
+                val i = ((h - 1 - y) * w + x) * 4
+                val r = readBuf.get(i).toInt() and 0xFF
+                val g = readBuf.get(i + 1).toInt() and 0xFF
+                val b = readBuf.get(i + 2).toInt() and 0xFF
+                img.setRGB(x, y, (0xFF shl 24) or (r shl 16) or (g shl 8) or b)
             }
         }
         return img
@@ -299,7 +303,7 @@ fun renderSky(outRoot: String) {
 
     sky.destroy()
     skyline.destroy()
-    scene.removeEntity(sunEntity)
+    scene.remove(sunEntity)
     engine.destroyEntity(sunEntity)
     EntityManager.get().destroy(sunEntity)
     engine.destroyIndirectLight(ibl)
@@ -449,7 +453,7 @@ private class PreviewSkyline(
     fun setVisible(show: Boolean) {
         if (show == visible) return
         visible = show
-        if (show) scene.addEntity(entity) else scene.removeEntity(entity)
+        if (show) scene.addEntity(entity) else scene.remove(entity)
     }
 
     fun setLook(lookMat: FloatArray) {
@@ -464,7 +468,7 @@ private class PreviewSkyline(
     }
 
     fun destroy() {
-        if (visible) scene.removeEntity(entity)
+        if (visible) scene.remove(entity)
         engine.destroyEntity(entity)
         EntityManager.get().destroy(entity)
         engine.destroyVertexBuffer(vb)

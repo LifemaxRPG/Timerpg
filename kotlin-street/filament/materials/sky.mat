@@ -118,8 +118,8 @@ vertex {
 }
 
 fragment {
-    const float PI = 3.14159265359;
-    const float TWO_PI = 6.28318530718;
+    const float SKY_PI = 3.14159265359;
+    const float SKY_TWO_PI = 6.28318530718;
 
     float hash21(vec2 p) {
         vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
@@ -153,9 +153,9 @@ fragment {
         highp float ring = floor(elev / cellAng);
         highp float ringCenterEl = (ring + 0.5) * cellAng;
         highp float cosEl = max(0.15, cos(ringCenterEl));
-        highp float cols = max(12.0, floor(TWO_PI * cosEl / cellAng));
+        highp float cols = max(12.0, floor(SKY_TWO_PI * cosEl / cellAng));
 
-        highp float azNorm = fract(az / TWO_PI);
+        highp float azNorm = fract(az / SKY_TWO_PI);
         highp float col = floor(azNorm * cols);
         highp float localU = fract(azNorm * cols);
         highp float localV = fract(elev / cellAng);
@@ -260,11 +260,10 @@ fragment {
         float vRaw = clamp(1.0 - hCurve, 0.0, 0.9999);
         float vBand = floor(vRaw * SKY_BANDS) / (SKY_BANDS - 1.0); // 0 zenith -> 1 horizon
 
-        // Azimuthal alignment with sun quantized into crisp steps
+        // Smooth azimuthal alignment with sun (kept smooth so elevation rings stay level with zero radial spokes)
         vec2 rayH = normalize(ray.xz + vec2(1e-5, 0.0));
         vec2 sunH = normalize(materialParams.sunDir.xz + vec2(1e-5, 0.0));
-        float sunSideRaw = 0.5 + 0.5 * dot(rayH, sunH);
-        float sunSide = floor(sunSideRaw * 6.0 + 0.5) / 6.0;
+        float sunSide = 0.5 + 0.5 * dot(rayH, sunH);
 
         // Quadratic light-space ramp through zenith -> mid -> horizon (matching SkyDome.kt)
         vec3 zCol = materialParams.skyZenith.rgb;
@@ -283,7 +282,7 @@ fragment {
             vec3 daySunTint = mix(hCol, materialParams.sunHalo.rgb, 0.36);
             col = mix(col, dayZenith, dayW * pow(1.0 - vBand, 2.2) * 0.34);
             col = mix(col, dayHaze, dayW * pow(vBand, 4.5) * 0.40);
-            col = mix(col, daySunTint, dayW * sunSide * sunSide * (0.04 + 0.22 * vBand));
+            col = mix(col, daySunTint, dayW * sunSide * sunSide * (0.18 * smoothstep(0.18, 1.0, vBand)));
         }
 
         if (duskW > 0.001) {
@@ -466,7 +465,7 @@ fragment {
         // =====================================================================
         float cloudMaxA = materialParams.cloudShade.w;
         if (cloudCov > 0.02 && cloudMaxA > 0.01 && elev > 0.04) {
-            highp float azWrap = fract(az / TWO_PI);
+            highp float azWrap = fract(az / SKY_TWO_PI);
 
             float lowFade = floor(smoothstep(0.04, 0.16, elev) * 4.0) / 4.0;
             float zenithFade = 1.0 - smoothstep(1.18, 1.45, elev);

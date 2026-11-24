@@ -216,7 +216,7 @@ class SkySurface(
     }
 
     fun destroy() {
-        scene.removeEntity(entity)
+        scene.remove(entity)
         engine.destroyEntity(entity)
         EntityManager.get().destroy(entity)
         engine.destroyVertexBuffer(vertexBuffer)
