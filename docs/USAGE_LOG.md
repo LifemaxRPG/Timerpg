@@ -161,3 +161,4 @@ his limit; G012 was trimmed to the one-police swap plus the wiring fixes. Plan a
 - **Jeff can still do models now and then.** His Meridian monument (the suspended rings) is a standout, though his models are generally below Sam's.
 - **Sam's engineering result:** from about 18% weekly left, he delivered C019–C042, 24 systems, all accepted (21 first try, 3 after one revision), at about 1% each at low reasoning.
 - **The team-building experiment continues.** Jeff did better on the sky than on the ocean, but the difference can't be attributed with confidence.
+- G017 timeline engine (Jeff, Gemini, **default reasoning**, the first task at the new setting): one session, about 4,200 lines, accepted first try, 82/82. The lower reasoning setting cost nothing visible in quality.
