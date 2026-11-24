@@ -34,3 +34,54 @@ export function wardrobeOf(year: number, shop?: string): Garment[] {
     return priceCents === null ? [] : [{ id, label, slot, color, priceCents, shops }];
   });
 }
+
+export type Outfit = Readonly<{
+  garments: readonly Garment[];
+  dyedHair?: CulpritAppearance['hair'];
+}>;
+
+export function appearanceOf(base: CulpritAppearance, outfit: Outfit) {
+  const worn = (slot: Slot) => outfit.garments.find(item => item.slot === slot);
+  const dominant = worn('outerwear') ?? worn('uniform') ?? worn('workwear');
+  const appearance: CulpritAppearance = {
+    ...base, hair: outfit.dyedHair ?? base.hair, clothingColor: dominant?.color ?? base.clothingColor,
+  };
+  const visible: CulpritDescription = { ...appearance };
+  if (worn('hat')) delete visible.hair;
+  return {
+    appearance, visible,
+    faceRecognizability: (worn('glasses') ? .8 : 1) * (worn('scarf') ? .65 : 1),
+  };
+}
+
+const weights = { height: 2, build: 2, hair: 2, clothingColor: 3 } as const;
+
+export function matchScore(description: CulpritDescription, appearance: CulpritDescription): number {
+  let possible = 0;
+  let matched = 0;
+  for (const key of ['height', 'build', 'hair', 'clothingColor'] as const) {
+    if (description[key] === undefined) continue;
+    possible += weights[key];
+    if (appearance[key] === description[key]) matched += weights[key];
+    else if (appearance[key] === undefined) matched += weights[key] * .5;
+  }
+  if (description.vehicle) {
+    possible += 2;
+    matched += !appearance.vehicle ? 1 : Number(description.vehicle.kind === appearance.vehicle.kind)
+      + Number(description.vehicle.color === appearance.vehicle.color);
+  }
+  return possible ? matched / possible : 0;
+}
+
+export type PurchaseContext = Readonly<{
+  paidCash?: boolean; nervous?: boolean; publicCrimeDay?: number;
+}>;
+
+export function purchaseRecord(item: Garment, day: number, shop: string, context: PurchaseContext = {}) {
+  const publicCrimeDay = context.publicCrimeDay;
+  return {
+    itemId: item.id, slot: item.slot, color: item.color, day, shop,
+    paidCash: context.paidCash ?? null, nervous: context.nervous ?? null,
+    shortlyAfterPublicCrime: publicCrimeDay === undefined ? null : day >= publicCrimeDay && day - publicCrimeDay <= 2,
+  };
+}
