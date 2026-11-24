@@ -1,0 +1,244 @@
+{
+  "kind": "night",
+  "start": "2026-11-24T11:09:07.074-0500",
+  "end": "2026-11-24T11:09:32.798-0500",
+  "minutes": 0.4,
+  "how": "job",
+  "stopReason": "the system ended the job (its time was up, or a condition changed)",
+  "inPlainWords": "Wrote 8 lines and 0 variants with the light model on the NPU in under a minute of writing (under a minute in all). It stopped: the system ended the job (its time was up, or a condition changed).",
+  "app": {
+    "versionName": "0.1.848 (209b3fb)",
+    "versionCode": 848,
+    "git": "209b3fb",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "written": {
+    "lines": 8,
+    "variants": 0,
+    "rejected": 0,
+    "timedOut": 0,
+    "failed": 0,
+    "lastFailure": null,
+    "linesPerHour": 1119.6,
+    "linesPerWritingHour": 1145.1
+  },
+  "speed": {
+    "model": "light model on the NPU",
+    "runsOn": "NPU",
+    "genTokens": 196,
+    "genTokPerSec": 14.5,
+    "prefillTokens": 1220,
+    "prefillTokPerSec": 198.3
+  },
+  "time": {
+    "writingMin": 0.4,
+    "coolingMin": 0,
+    "hotPausedMin": 0,
+    "burstRestMin": 0,
+    "batteryWaitMin": 0,
+    "pausedByYouMin": 0,
+    "heldMin": 0,
+    "heldBy": null,
+    "closingGameMin": 0,
+    "modelLoadMin": 0
+  },
+  "model": {
+    "loaded": "light model on the NPU",
+    "problem": null,
+    "engineAtEnd": "ready: Ready: the light model answers in play. Lines ahead of time are written by the main model (overnight, or when it fits).",
+    "lastRejected": null,
+    "freeAtStartMb": 6366,
+    "freedByClosingGameMb": -1,
+    "freeBeforeLoadMb": 6366,
+    "androidThresholdMb": 216,
+    "mainCopyNeedsMb": 6839,
+    "lightCopyNeedsMb": 3751,
+    "freeAfterLoadMb": 3046
+  },
+  "heat": {
+    "coolDowns": 1,
+    "hotPauses": 0,
+    "maxThermalStatus": 1
+  },
+  "battery": {
+    "start": 37,
+    "end": 36,
+    "pluggedAtStart": true,
+    "pluggedAtEnd": true
+  },
+  "bank": {
+    "prompts": 1788,
+    "ready": 72,
+    "templates": 0,
+    "missing": 1716,
+    "lines": 72,
+    "variantsDone": 0,
+    "stale": 1,
+    "years": [
+      2025
+    ],
+    "light": 72,
+    "left": 1933,
+    "etaMin": 126.6
+  },
+  "queue": {
+    "byYear": {
+      "2025": 1932
+    },
+    "byPerson": {
+      "Ernest Reyes": 35,
+      "Betty Chen": 28,
+      "Clyde Novak": 26,
+      "Florence Moreau": 24,
+      "Harold Abbott": 24,
+      "Robert Kowalski": 24,
+      "Vera Singh": 24,
+      "William Kowalski": 24,
+      "others (141)": 1723
+    },
+    "byTopic": {
+      "your themes": 966,
+      "chat": 297,
+      "work": 176,
+      "family": 163,
+      "rumors": 163,
+      "secret": 163,
+      "follow-ups": 4
+    }
+  },
+  "recent": [
+    {
+      "who": "William Haddad",
+      "topic": "chat",
+      "how": "line",
+      "text": "Indeed it is, the sun shines just as it did when I first arrived here. It's a lovely day to walk around Mapleridge and see what new faces have come by since 1987."
+    },
+    {
+      "who": "Mary Moreau",
+      "topic": "chat",
+      "how": "line",
+      "text": "Indeed it is, the sun shines so brightly in Mapleridge. I was just thinking about how wonderful that new science fiction movie at Avalon 8 has been lately."
+    },
+    {
+      "who": "George Singh",
+      "topic": "chat",
+      "how": "line",
+      "text": "It's just a clear day. What do you want?"
+    },
+    {
+      "who": "Mildred Lund",
+      "topic": "chat",
+      "how": "line",
+      "text": "Yes, the sun is shining just right for a walk. What are you thinking about?"
+    },
+    {
+      "who": "William Reyes",
+      "topic": "chat",
+      "how": "line",
+      "text": "Yes, the sun is bright today. I hope you are enjoying your walk through Mapleridge."
+    },
+    {
+      "who": "Stanley Singh",
+      "topic": "chat",
+      "how": "line",
+      "text": "Yes, it is. I was just leaving the cinema after seeing a bad movie."
+    },
+    {
+      "who": "Mary Chen",
+      "topic": "chat",
+      "how": "line",
+      "text": "Lovely day for it, isn't it? Tell me, have you seen the new action film at Avalon 8 yet this week?"
+    },
+    {
+      "who": "Ernest Reyes",
+      "topic": "chat",
+      "how": "line",
+      "text": "Yes, the weather has been quite nice lately. I hope you are enjoying it as much as I am."
+    }
+  ],
+  "player": {
+    "themes": [
+      {
+        "label": "the town: secrets, town",
+        "kind": "the town",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: anyways, asking",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "flirting: nice, pretty",
+        "kind": "flirting",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: ask, asked",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: hear, yo",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "gossip: library, new",
+        "kind": "gossip",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "personal: baby, meet",
+        "kind": "personal",
+        "asked": 1,
+        "live": 0,
+        "people": 1
+      },
+      {
+        "label": "personal: name",
+        "kind": "personal",
+        "asked": 1,
+        "live": 0,
+        "people": 1
+      },
+      {
+        "label": "personal: baby, old",
+        "kind": "personal",
+        "asked": 1,
+        "live": 0,
+        "people": 1
+      }
+    ],
+    "answersByDay": [
+      {
+        "day": "2026-11-18",
+        "ready": 0,
+        "live": 0,
+        "template": 1,
+        "readyShare": 0
+      },
+      {
+        "day": "2026-11-23",
+        "ready": 0,
+        "live": 7,
+        "template": 0,
+        "readyShare": 0
+      }
+    ]
+  }
+}
