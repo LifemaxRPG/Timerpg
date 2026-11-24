@@ -49,6 +49,8 @@ object ModelRoles {
         val reclaimBytes: Long = 0,
         /** The phone (and build) has the NPU for the model in play. Without it nothing loads in play (no CPU). */
         val npu: Boolean = accelerated,
+        /** Without [npu]: why, specifically (the NPU library not in the build, no HTP session, ...), for the HUD and reports. */
+        val npuWhy: String = "",
     )
 
     sealed interface Choice
@@ -57,7 +59,7 @@ object ModelRoles {
     data class Load(val role: ModelRole, val copied: Boolean, val tried: Boolean = false) : Choice
     /** Load nothing now ([why]); try again later. [device]: in play, waiting for room for the NPU copy (never the CPU):
      *  the engine keeps looking every 30 s with no limit, and the HUD says so. */
-    data class Wait(val why: String, val needBytes: Long = 0, val device: Boolean = false) : Choice
+    data class Wait(val why: String, val needBytes: Long = 0, val device: Boolean = false, val noNpu: Boolean = false) : Choice
     object NoModel : Choice
     /**
      * In play without the light model on the phone, and the main model's copy does not fit beside the town: nothing
@@ -109,8 +111,10 @@ object ModelRoles {
             // for it beside the town (the best replies; the panel's switch: only it), else the light one's, tried with what
             // Android finds when asked; else wait for room, people speaking their lines written ahead meanwhile
             play -> {
-                if (!i.npu) return Wait("No NPU for the model in play on this phone or build, and in play it never runs on the CPU: " +
-                    "people speak their lines written ahead and their built-in ones.", device = true)
+                // (not memory: no NPU found at all. The engine says which part is missing and looks again)
+                if (!i.npu) return Wait("No NPU found for the model in play" + (if (i.npuWhy.isNotEmpty()) " (${i.npuWhy})" else "") +
+                    ", and in play it never runs on the CPU: people speak their lines written ahead and their built-in ones.",
+                    device = true, noNpu = true)
                 if (bank) tries += Load(ModelRole.BANK, true)
                 if (live && !(i.forceBank && bank)) tries += Load(ModelRole.LIVE, true)
             }
@@ -135,7 +139,9 @@ object ModelRoles {
             if (tryable(t)) return t.copy(tried = true)
         }
         val last = tries.last()
-        if (play) return Wait("Waiting for NPU memory (${i.freeBytes shr 20} MB free, ${need(last) shr 20} MB needed" +
+        // (the NPU is there: it is memory, now; the engine looks again every 30 s)
+        if (play) return Wait("The NPU is there, but the ${if (last.role == ModelRole.LIVE) "light" else "main"} model's copy does not fit yet: " +
+            "waiting for NPU memory (${i.freeBytes shr 20} MB free, ${need(last) shr 20} MB needed" +
             (if (i.reclaimBytes > 0) " counting ${i.reclaimBytes shr 20} MB Android is expected to find" else "") +
             (if (i.lowMemory) "; Android says memory is low" else "") + "): in play the model never runs on the CPU.", need(last), device = true)
         return Wait("Not enough free memory to load the model (${i.freeBytes shr 20} MB free, about ${need(last) shr 20} MB needed with room for the game).", need(last))

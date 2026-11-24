@@ -1201,10 +1201,20 @@ class DialogueEngine private constructor(private val app: Context) {
         // the device chosen in the panel; -1: the NPU when there is one
         // (writing the bank: the NPU when there is one, whatever the panel says, see [deviceFor])
         // (in play too: the NPU whenever there is one, whatever the panel was left on: in play the model never runs on the CPU)
-        val dev = nl?.let { n -> (if ((night || foreground) && n.accelerators and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else deviceWanted)
-            .let { if (it >= 0) it else if (n.accelerators and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU } }
+        // (the accelerators after llama.cpp's backends are loaded: [NativeLlm.accelerators] loads them first. Build 0.1.848
+        // read them before anything had, got none, waited for "no NPU" in play without ever loading them: never the NPU)
+        val accNow = nl?.accelerators ?: 0
+        if (accNow != 0) app.getSharedPreferences("ai", Context.MODE_PRIVATE).let { p -> if (p.getInt("accelerators", 0) != accNow) p.edit().putInt("accelerators", accNow).apply() }
+        _status.update { it.copy(hasGpu = accNow and 1 != 0, hasNpu = accNow and 2 != 0) }
+        val hasNpuNow = accNow and 2 != 0
+        val dev = nl?.let { n -> (if ((night || foreground) && hasNpuNow) com.timerpg.street.llm.NativeLlm.NPU else deviceWanted)
+            .let { if (it >= 0) it else if (hasNpuNow) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU } }
             ?: com.timerpg.street.llm.NativeLlm.CPU
         val onNpu = nl != null && dev == com.timerpg.street.llm.NativeLlm.NPU
+        // without it: why, specifically (no engine, the NPU library not in this build, no HTP session), for the HUD
+        val npuWhy = if (onNpu) "" else if (nl == null) "the AI engine here is not the native one (${b.javaClass.simpleName})"
+            else if (hasNpuNow) "the NPU is there but device ${listOf("CPU", "GPU", "NPU").getOrElse(dev) { "?" }} was chosen"
+            else nl.npuMissingWhy(app)
         // on the NPU or the GPU (or the CPU's repacked kernels) the whole model is copied into memory the system cannot
         // reclaim; from the file's mapping, about half of it has to fit
         val accelerated = nl != null && (dev != com.timerpg.street.llm.NativeLlm.CPU || fastCpuWanted)
@@ -1235,7 +1245,7 @@ class DialogueEngine private constructor(private val app: Context) {
                 accelerated = accelerated, forceBank = forceBankWanted, writing = night,
                 bankWorkBytes = workWanted(ModelRole.BANK), liveWorkBytes = workWanted(ModelRole.LIVE),
                 reclaimBytes = (reclaim?.reclaimMb ?: 0L) shl 20,
-                npu = onNpu,
+                npu = onNpu, npuWhy = npuWhy,
             ))
         }
         _status.update { it.copy(hasLive = liveOk, forceBank = forceBankWanted, needLive = false,
@@ -1305,15 +1315,24 @@ class DialogueEngine private constructor(private val app: Context) {
             memoryWaits = 0
             npuWaits++
             val free = memoryNow().first shr 20
-            val short = if (w.needBytes > 0) "waiting for NPU memory ($free MB free, ${w.needBytes shr 20} needed)" else "no NPU: lines written ahead only"
+            // the chip says which it is: no NPU found (and the part missing), or the NPU there and memory short (N of M MB)
+            val short = when {
+                w.noNpu -> "no NPU found: ${npuWhy.substringBefore("; backends:").take(80)}"
+                w.needBytes > 0 -> "NPU short of memory: $free of ${w.needBytes shr 20} MB free" +
+                    (gateNote?.substringBefore(" MB counted")?.toLongOrNull()?.takeIf { it > 0 }?.let { " (+$it Android may find)" } ?: "")
+                else -> "waiting for the NPU"
+            }
             if (npuWaits == 1 || npuWaits % 10 == 0)
-                com.timerpg.street.shot.Crumbs.add("dialogue model: in play, nothing on the CPU: ${w.why} (look ${npuWaits}, every ${DEVICE_RETRY_MS / 1000} s; ${gateNote ?: "no gate figure"})")
+                com.timerpg.street.shot.Crumbs.add("dialogue model: in play, nothing on the CPU: ${w.why} (look ${npuWaits}, every ${DEVICE_RETRY_MS / 1000} s; " +
+                    "${gateNote ?: "no gate figure"}; ${com.timerpg.street.llm.ModelRoom.residents().joinToString { "${it.first} ${it.second} MB" }.ifEmpty { "no other model resident" }})")
             gpuNote = null
             _status.update { it.copy(runsOn = 0, gpuNote = null) }
             main.removeCallbacks(retryLoad)
-            if (w.needBytes > 0) main.postDelayed(retryLoad, DEVICE_RETRY_MS)
-            return setNpuWait(short, w.why + " People speak their lines written ahead and their built-in ones meanwhile" +
-                (if (w.needBytes > 0) "; looking again every ${DEVICE_RETRY_MS / 1000} s." else "."))
+            // looked at again with no limit, the no-NPU case too, less often (0.1.848 never looked again after a "no NPU"
+            // read before the backends were loaded; a later look also re-reports the specific reason in the crumbs)
+            main.postDelayed(retryLoad, if (w.noNpu) DEVICE_RETRY_MS * 4 else DEVICE_RETRY_MS)
+            return setNpuWait(short, w.why + " People speak their lines written ahead and their built-in ones meanwhile; looking again every " +
+                "${(if (w.noNpu) DEVICE_RETRY_MS * 4 else DEVICE_RETRY_MS) / 1000} s.")
         }
         npuWaits = 0
         (choice as? ModelRoles.Wait)?.let { w ->

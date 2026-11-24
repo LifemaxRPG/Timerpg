@@ -94,6 +94,20 @@ class ModelRolesTest {
         assertEquals(Load(ModelRole.LIVE, copied = true, tried = true), pick(2804, liveWorkMb = 388, reclaimMb = 1514))
     }
 
+    @Test fun noNpuAndShortOfMemoryAreToldApart() {
+        // the S25's report of build 0.1.848: no NPU read (the backends not loaded yet), 3088 MB free. The wait says it is
+        // no NPU, and why; with the NPU there and memory short it says the NPU is there and gives the figures
+        val none = ModelRoles.pick(ModelRoles.Input(true, true, mb(3088), false, bank, live, accelerated = true,
+            liveWorkBytes = mb(388), npu = false, npuWhy = "this build has no NPU library"))
+        none as ModelRoles.Wait
+        assertTrue(none.noNpu && none.device && none.needBytes == 0L)
+        assertTrue(none.why, none.why.contains("this build has no NPU library"))
+        val short = pick(3088, liveWorkMb = 388)
+        short as ModelRoles.Wait
+        assertTrue(!short.noNpu && short.device && short.needBytes shr 20 == 3751L)
+        assertTrue(short.why, short.why.contains("The NPU is there") && short.why.contains("3088 MB free") && short.why.contains("3751 MB needed"))
+    }
+
     @Test fun inPlayWithoutAnNpuNothingLoads() {
         // the GPU (or the CPU's repacked kernels) but no NPU: in play nothing, people speak their lines written ahead
         assertTrue(waitsForNpu(pick(9000, npu = false)))
