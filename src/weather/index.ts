@@ -22,3 +22,65 @@ export function temperatureRange(climate: Climate, month: number): { minC: numbe
   const { means, spread } = climates[climate];
   return { minC: means[month - 1]! - spread, maxC: means[month - 1]! + spread };
 }
+
+const visibility: Record<Sky, number> = {
+  clear: 20000, cloudy: 15000, overcast: 10000, rain: 2500, storm: 700, snow: 450, fog: 75,
+};
+
+export function weatherAt(climate: Climate, dayNumber: number, hour: number, seed: string): Weather | null {
+  if (!Number.isFinite(hour) || hour < 0 || hour >= 24) return null;
+  const date = dateOf(dayNumber);
+  if (!date || !temperatureRange(climate, date.month)) return null;
+
+  const profile = climates[climate];
+  const totalHour = dayNumber * 24 + hour;
+  const block = Math.floor(totalHour / 48);
+  const split = 18 + Math.floor(rand(seed, 'weather_split', climate, block) * 13);
+  const segment = totalHour - block * 48 < split ? 0 : 1;
+  const frontDay = block * 2 + (segment === 1 && split >= 24 ? 1 : 0);
+  const front = dateOf(frontDay)!;
+  const roll = rand(seed, 'weather_front', climate, block, segment);
+  const mean = profile.means[date.month - 1]!;
+  const variation = 2 * rand(seed, 'weather_temperature', climate, block, segment) - 1;
+  const temperatureC = Math.round(mean + profile.spread * (
+    .5 * variation + .5 * Math.cos((hour - 15) * Math.PI / 12)
+  ));
+
+  const coldMonth = mean <= 6 && (date.season === 'winter' || date.month === 11 || date.month === 3);
+  const snowChance = coldMonth ? profile.snow : 0;
+  const rainChance = profile.rain[seasonIndex[front.season]] * (1 - snowChance);
+  let sky: Sky;
+  if (roll < snowChance) sky = 'snow';
+  else if (roll < snowChance + rainChance) {
+    sky = front.season === profile.storm && roll < snowChance + rainChance * .3 ? 'storm' : 'rain';
+  } else {
+    sky = roll < .77 ? 'overcast' : roll < .90 ? 'cloudy' : 'clear';
+  }
+
+  const fogDay = hour < 7 ? dayNumber - 1 : dayNumber;
+  const fogSeason = date.season === 'autumn' ? 1 : .35;
+  if ((hour >= 18 || hour < 7) && sky !== 'snow' && sky !== 'storm' && sky !== 'rain'
+    && rand(seed, 'weather_fog', climate, fogDay) < profile.fog * fogSeason) sky = 'fog';
+
+  const windRoll = rand(seed, 'weather_wind', climate, block, segment);
+  const windKph = sky === 'storm' ? Math.round(35 + windRoll * 40)
+    : sky === 'fog' ? Math.round(2 + windRoll * 6) : Math.round(5 + windRoll * 20);
+  return { sky, temperatureC: temperatureC + 0, windKph, visibilityM: visibility[sky] };
+}
+
+const effectsBySky: Record<Sky, readonly [faceM: number, walk: number, crowd: number, grip: number]> = {
+  clear: [35, 1, 1, 1], cloudy: [32, 1, .98, 1], overcast: [29, 1, .94, 1],
+  rain: [18, .94, .73, .81], storm: [10, .83, .40, .65], snow: [12, .79, .59, .53],
+  fog: [6, .96, .79, .9],
+};
+
+export function weatherEffects(weather: Weather) {
+  const [face, walk, crowd, grip] = effectsBySky[weather.sky];
+  const heat = Math.min(1, Math.max(0, (weather.temperatureC - 30) / 10));
+  return {
+    faceRecognitionM: Math.min(face, weather.visibilityM),
+    walkingSpeedMultiplier: walk,
+    streetActivityMultiplier: Math.round(crowd * (1 - .4 * heat) * 100) / 100,
+    carGripMultiplier: grip,
+  };
+}
