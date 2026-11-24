@@ -75,10 +75,10 @@ class LandmarkGroundsTest {
         // the stick pushed up, the camera as it was: towards the Great Meridian and the Night Keeper (+z)
         w.cameraYaw = YAW
         repeat(240) { w.step(1f / 60f, 0f, -1f) }
-        // held at the field's front fence, a shape of Lincoln High School's (b321), about a walker's radius south of it
+        // held at the field's front fence, a shape of Lincoln High School's (b319), about a walker's radius south of it
         val i = c.nearest(w.wx, w.wz + OpenWalk.RADIUS + 2f, 20f)
         assertTrue(i >= 0)
-        assertEquals("b321", c.owner(i))
+        assertEquals("b319", c.owner(i))
         assertTrue("held short of the road (${w.wz})", w.wz < 7190f)
         println("walked to (${w.wx}, ${w.wz}); held by ${c.owner(i)} ${c.shape(i, FloatArray(6)).joinToString()}")
         // the field has its gates: the spot is not shut in, nor the restore's to move
@@ -86,11 +86,11 @@ class LandmarkGroundsTest {
     }
 
     @Test fun theSchoolsBodyIsItsBuildingNotItsFields() {
-        val p = placed.first { it.sprite == "b321" }
+        val p = placed.first { it.sprite == "b319" }
         val body = assertNotNullBody(p)
         val fp = p.lm.model.footprint
         val me = local(p.at, PX, PZ)
-        println("b321 body ${body.joinToString()} of footprint ${fp.joinToString()}; the owner's spot at ${me.joinToString()}")
+        println("b319 body ${body.joinToString()} of footprint ${fp.joinToString()}; the owner's spot at ${me.joinToString()}")
         // the owner's spot (in the field) is outside the building's box, so the camera keeps the school, its fences drawn
         assertFalse(me[0] in body[0]..body[2] && me[1] in body[1]..body[3])
         // and the box is the building's: well under the lot (the spec's building 140 x 96 m, the lot 233 x 160 m)
