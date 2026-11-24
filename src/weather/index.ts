@@ -1,15 +1,15 @@
-import { dateOf, type Season } from '../calendar';
+import { dateOf, dayNumberOf, type CalendarDate, type Season } from '../calendar';
 import { rand } from '../sim/rng';
 
 const climates = {
   temperate_coast: { means: [5, 6, 8, 11, 15, 18, 21, 21, 18, 14, 9, 6], spread: 9,
-    rain: [.27, .24, .16, .27], snow: .12, fog: .32, storm: 'autumn' },
+    rain: [.27, .24, .16, .27], clear: [.22, .33, .52, .26], cloudy: .31, snow: .12, fog: .32, storm: 'autumn' },
   inland_plains: { means: [-5, -2, 4, 11, 17, 23, 27, 25, 19, 12, 4, -3], spread: 12,
-    rain: [.15, .31, .24, .18], snow: .4, fog: .11, storm: 'spring' },
+    rain: [.15, .31, .24, .18], clear: [.46, .49, .63, .55], cloudy: .27, snow: .4, fog: .11, storm: 'spring' },
   mountain: { means: [-9, -7, -3, 2, 8, 13, 16, 15, 10, 4, -3, -8], spread: 11,
-    rain: [.21, .31, .26, .24], snow: .65, fog: .2, storm: 'summer' },
+    rain: [.21, .31, .26, .24], clear: [.35, .43, .54, .46], cloudy: .28, snow: .65, fog: .2, storm: 'summer' },
   warm_south: { means: [14, 16, 19, 23, 26, 29, 31, 31, 28, 24, 19, 15], spread: 8,
-    rain: [.19, .21, .4, .24], snow: 0, fog: .18, storm: 'summer' },
+    rain: [.19, .21, .4, .24], clear: [.74, .78, .82, .79], cloudy: .13, snow: 0, fog: .18, storm: 'summer' },
 } as const;
 const seasonIndex: Record<Season, number> = { winter: 0, spring: 1, summer: 2, autumn: 3 };
 
@@ -27,13 +27,14 @@ const visibility: Record<Sky, number> = {
   clear: 20000, cloudy: 15000, overcast: 10000, rain: 2500, storm: 700, snow: 450, fog: 75,
 };
 
-export function weatherAt(climate: Climate, dayNumber: number, hour: number, seed: string): Weather | null {
+export function weatherAt(climate: Climate, dayNumber: number, hour: number, seed: string, startDate?: CalendarDate): Weather | null {
   if (!Number.isFinite(hour) || hour < 0 || hour >= 24) return null;
-  const date = dateOf(dayNumber);
+  const date = dateOf(dayNumber, startDate);
   if (!date || !temperatureRange(climate, date.month)) return null;
 
   const profile = climates[climate];
-  const totalHour = dayNumber * 24 + hour;
+  const absoluteDay = dayNumberOf(date)!;
+  const totalHour = absoluteDay * 24 + hour;
   const block = Math.floor(totalHour / 48);
   const split = 18 + Math.floor(rand(seed, 'weather_split', climate, block) * 13);
   const segment = totalHour - block * 48 < split ? 0 : 1;
@@ -50,14 +51,16 @@ export function weatherAt(climate: Climate, dayNumber: number, hour: number, see
   const snowChance = coldMonth ? profile.snow : 0;
   const rainChance = profile.rain[seasonIndex[front.season]] * (1 - snowChance);
   let sky: Sky;
-  if (roll < snowChance) sky = 'snow';
+  if (roll < snowChance) sky = temperatureC <= 1 ? 'snow' : 'rain';
   else if (roll < snowChance + rainChance) {
     sky = front.season === profile.storm && roll < snowChance + rainChance * .3 ? 'storm' : 'rain';
   } else {
-    sky = roll < .77 ? 'overcast' : roll < .90 ? 'cloudy' : 'clear';
+    const dryRoll = (roll - snowChance - rainChance) / (1 - snowChance - rainChance);
+    const clear = profile.clear[seasonIndex[front.season]];
+    sky = dryRoll < clear ? 'clear' : dryRoll < clear + profile.cloudy ? 'cloudy' : 'overcast';
   }
 
-  const fogDay = hour < 7 ? dayNumber - 1 : dayNumber;
+  const fogDay = hour < 7 ? absoluteDay - 1 : absoluteDay;
   const fogSeason = date.season === 'autumn' ? 1 : .35;
   if ((hour >= 18 || hour < 7) && sky !== 'snow' && sky !== 'storm' && sky !== 'rain'
     && rand(seed, 'weather_fog', climate, fogDay) < profile.fog * fogSeason) sky = 'fog';
