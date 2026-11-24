@@ -119,6 +119,7 @@ his limit; G012 was trimmed to the one-police swap plus the wiring fixes. Plan a
 | G009 police in action | Gemini/Jeff (AI Studio Build) | engineering, joins G005 + G007 | not visible | 1 | accepted first try; 9/9, 0.48 ms a tick for 30 officers |
 | G011 loop facade | Gemini/Jeff (AI Studio Build) | engineering, the game-facing API | ~1 session; tokens not visible | 1 | accepted first try; 10/10, 1.45 ms for 300 people a day |
 | G010 trials | Gemini/Jeff (AI Studio Build) | engineering, court on G005/G008 | ~8 min, 1 run; tokens not visible | 1 | accepted first try; 10/10 court + 34 regression |
+| G016 sky (the visual test) | Gemini/Jeff (AI Studio Build), max reasoning | engineering, Filament graphics (blind build) | one run, 3 offline proof rounds | 1 | revise: look excellent; sky.mat fails on `PI` (Filament macro); Kotlin doesn't compile (removeEntity, stale cloud bake) |
 | C015 gas station | ChatGPT/Sam (Codex) | model, 3 eras | ~11 min, one turn; tokens not visible | 1 | accepted first try (plain interiors: the game furnishes them) |
 | C018 economy by era | ChatGPT/Sam (Codex) | engineering, new TS system | one run, ~1 h from brief to delivery, WIP pushed first; tokens not visible | 1 | accepted first try; 11/11, compact (594 lines) |
 | C019 economy curves and stock | ChatGPT/Sam (Codex), **low** reasoning | engineering, extends C018 | one turn, ~8 min WIP to delivery; about 1% of the weekly allowance (18% -> 17% left, owner's reading) | 1 | accepted first try; 15/15, 183 lines |
