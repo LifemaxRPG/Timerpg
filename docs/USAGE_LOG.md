@@ -73,6 +73,11 @@ it can run Vitest and tsc itself (G005-G008: four first-try acceptances). Its Ko
 built blind, without a JVM, Gradle or Filament in its sandbox, and took more rounds; those stay with Claude unless its
 sandbox gains a JDK.
 
+ChatGPT's usage (2026-11-24, from the owner's reading of the usage display): C018 (the economy, an engineering task) took
+under 10% of a 5-hour window, and the weekly figure stayed at 18% left before and after it. Weekly usage went from about
+25% to 18% overnight with no task open: Sam's scheduled half-hourly queue checks cost more than the task did. So while
+Sam's queue is empty, pause his scheduled check or make it a minimal one (see the owner's chat, 2026-11-24).
+
 Gemini's daily limit (2026-11-23, reported by the owner): Jeff ran out of usage about 30 minutes into G012, after
 delivering G009, G011 and G010 that day (three engineering systems, all accepted first try). No G012 work in progress
 reached origin, so the task restarts from its brief when his usage resets. He works one task through and pushes once,
