@@ -154,3 +154,10 @@ his limit; G012 was trimmed to the one-police swap plus the wiring fixes. Plan a
 | C040 carrying and searches | ChatGPT/Sam (Codex), low reasoning | engineering | one run | 1 | accepted first try; 5/5 |
 | C041 town politics | ChatGPT/Sam (Codex), low reasoning | engineering | one run | 1 | accepted first try; 5/5 |
 | C042 life on the road | ChatGPT/Sam (Codex), low reasoning | engineering | one run | 1 | accepted first try; 5/5 |
+
+**Team assignments (the owner's decision, 2026-11-24):**
+- **Jeff (Gemini)** returns to TypeScript systems work, his preferred work, which he can test himself. From G017 on he runs at **default reasoning** instead of max.
+- **No more graphics tasks for Jeff** like the ocean or the sky. He can't test them, and the sky wouldn't have passed on the first build at the standard we want. Graphics goes to Claude, or to Sam, who can fill in cheaply.
+- **Jeff can still do models now and then.** His Meridian monument (the suspended rings) is a standout, though his models are generally below Sam's.
+- **Sam's engineering result:** from about 18% weekly left, he delivered C019–C042, 24 systems, all accepted (21 first try, 3 after one revision), at about 1% each at low reasoning.
+- **The team-building experiment continues.** Jeff did better on the sky than on the ocean, but the difference can't be attributed with confidence.
