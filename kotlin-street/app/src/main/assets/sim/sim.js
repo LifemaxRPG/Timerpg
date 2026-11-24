@@ -4928,6 +4928,41 @@
     return `${sign}$${Math.floor(amount / 100)}.${String(amount % 100).padStart(2, "0")}`;
   }
 
+  // src/economy/curves.ts
+  var curves = {
+    electronics: [[0, 4], [5, 2.5], [12, 1.5], [25, 1]],
+    calculator: [[1971, 110], [1978, 41], [1985, 8], [1995, 2], [2005, 1.22], [2025, 1]],
+    appliances: [[1880, 2.5], [1952, 2], [1978, 1.6], [2005, 1.15], [2025, 1]],
+    clothing: [[1880, 1.5], [1952, 1.3], [1978, 1.18], [2025, 1]],
+    food: [[1880, 1.16], [1925, 1.04], [1952, 1], [1978, 1.06], [2025, 1]],
+    fuel: [[1905, 1.34], [1952, 0.84], [1973, 0.74], [1981, 1.45], [1998, 0.72], [2025, 1]],
+    services: [[1880, 0.63], [1925, 0.91], [1952, 0.94], [1978, 0.99], [2025, 1], [2030, 1.07]],
+    tools: [[1880, 1.75], [1952, 1.32], [1978, 1.17], [2025, 1]]
+  };
+  function relativePrice(item, year) {
+    switch (item.category) {
+      case "electronics":
+        if (item.id === "pocket_calculator") return interpolate(curves.calculator, year);
+        if (item.id === "radio") return interpolate([[1922, 2.4], [1952, 1], [1970, 0.65]], year);
+        return interpolate(curves.electronics, year - item.from) / interpolate(curves.electronics, 2025 - item.from);
+      case "appliances":
+      case "clothing":
+      case "fuel":
+        return interpolate(curves[item.category], year);
+      case "pantry":
+      case "produce":
+        return interpolate(curves.food, year);
+      case "counter":
+        return interpolate(curves.services, year);
+      case "hardware_supply":
+      case "hand_tools":
+      case "power_tools":
+        return interpolate(curves.tools, year);
+      default:
+        return 1;
+    }
+  }
+
   // src/economy/catalogue.ts
   var SHOP_KINDS = [
     "general",
@@ -5002,6 +5037,10 @@
       ["lime_soda", "Glass of lime soda", 260, 1895],
       ["milkshake", "Ice cream milkshake", 555, 1922],
       ["chili_bowl", "Bowl of chili", 660]
+    ] },
+    fuel: { shops: ["gas_station"], weight: "handheld", pawnShare: 0, stock: [24, 64], rows: [
+      ["gasoline", "Gallon of gasoline", 325, 1905],
+      ["diesel", "Gallon of diesel", 365, 1930]
     ] },
     roadside: { shops: ["gas_station"], weight: "pocket", pawnShare: 0, stock: [4, 14], rows: [
       ["paper_road_map", "Folded highway map", 395, 1915, 2015],
@@ -5232,13 +5271,13 @@
   function forSale(item, year) {
     return year >= item.from && year <= item.to;
   }
-  function retailPrice(item, index) {
-    return Math.max(1, Math.round(item.cents2025 * index));
+  function retailPrice(item, index, year) {
+    return Math.max(1, Math.round(item.cents2025 * index * relativePrice(item, year)));
   }
   function listedItem(itemId, year) {
     const item = ITEMS_BY_ID.get(itemId);
     const index = priceIndex(year);
-    return item && index !== null && forSale(item, year) ? { item, price: retailPrice(item, index) } : null;
+    return item && index !== null && forSale(item, year) ? { item, price: retailPrice(item, index, year) } : null;
   }
   function priceIn(itemId, year) {
     return listedItem(itemId, year)?.price ?? null;
@@ -5285,7 +5324,7 @@
       if (!primary && (!used || item.pawnShare === 0 || rand(seed, "economy", shop, year, item.id, "used") >= 0.15)) {
         continue;
       }
-      const price = retailPrice(item, index);
+      const price = retailPrice(item, index, year);
       const [min, max] = used ? [1, 2] : item.stock;
       const roll = rand(seed, "economy", shop, year, item.id, "quantity");
       stock.push({
@@ -5299,6 +5338,44 @@
       });
     }
     return stock;
+  }
+  var deliveryDays = {
+    general: 7,
+    market: 1,
+    hardware: 7,
+    pharmacy: 3,
+    five_and_dime: 7,
+    pawn: 7,
+    gas_station: 3,
+    diner: 1,
+    clothing: 14
+  };
+  function openStock(shopKind, year, seed) {
+    return { shopKind: shopKey(shopKind) ?? null, elapsedDays: 0, entries: stockOf(shopKind, year, seed) };
+  }
+  function quantityOf(stock, itemId) {
+    return stock.entries.find((entry) => entry.itemId === itemId)?.quantity ?? 0;
+  }
+  function take(stock, itemId, n) {
+    if (!Number.isSafeInteger(n) || n <= 0 || quantityOf(stock, itemId) < n) return stock;
+    return {
+      ...stock,
+      entries: stock.entries.map((entry) => entry.itemId === itemId ? { ...entry, quantity: entry.quantity - n } : entry)
+    };
+  }
+  function restock(stock, days, year, seed) {
+    const elapsedDays = stock.elapsedDays + days;
+    const shop = stock.shopKind;
+    if (!shop || !Number.isSafeInteger(days) || days <= 0 || !Number.isSafeInteger(elapsedDays) || priceIndex(year) === null) return stock;
+    const interval = deliveryDays[shop];
+    const delivery = Math.floor(elapsedDays / interval);
+    if (delivery === Math.floor(stock.elapsedDays / interval)) return { ...stock, elapsedDays };
+    const deliverySeed = JSON.stringify([seed, delivery]);
+    const entries = stockOf(shop, year, deliverySeed).map((entry) => {
+      const adjustment = rand(seed, "economy_delivery_price", shop, year, delivery, entry.itemId) * 0.08 - 0.03;
+      return { ...entry, priceCents: Math.max(1, Math.round(entry.priceCents * (1 + adjustment))) };
+    });
+    return { shopKind: shop, elapsedDays, entries };
   }
 
   // src/loop/smoke.ts
@@ -5523,6 +5600,10 @@
     priceIn,
     priceIndex,
     stockOf,
+    openStock,
+    take,
+    restock,
+    quantityOf,
     wage,
     pawnOffer,
     pawnPrice,

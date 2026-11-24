@@ -85,9 +85,12 @@ fun LoopShopPanel(place: LoopPlace, year: Int, hour: Float, onAction: (String, A
         if (place.kind != "police_station") {
             Column(Modifier.heightIn(max = 240.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 for (s in LoopSession.stockFor(place)) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    T("${s.label}  ${s.priceText}", 13.sp, modifier = Modifier.widthIn(min = 200.dp))
-                    LoopButton("Buy", enabled = !busy && open && (v?.cash ?: 0) >= s.priceCents) { onAction("buy", s) }
-                    LoopButton("Take", enabled = !busy && open) { onAction("take", s) }
+                    val out = s.quantity <= 0
+                    T("${s.label}  ${s.priceText}" + if (out) "  sold out" else "  x${s.quantity}", 13.sp, if (out) DIM_TEXT else Color.White, Modifier.widthIn(min = 200.dp))
+                    if (!out) {
+                        LoopButton("Buy", enabled = !busy && open && (v?.cash ?: 0) >= s.priceCents) { onAction("buy", s) }
+                        LoopButton("Take", enabled = !busy && open) { onAction("take", s) }
+                    }
                 }
             }
             if (place.kind == "pawn_shop") {

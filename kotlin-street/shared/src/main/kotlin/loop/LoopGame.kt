@@ -76,8 +76,6 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     // ------------------------------------------------------------------ the era economy (src/economy via simCall "economy.*")
 
     private val moneyText = HashMap<Int, String>()
-    private val stockCache = HashMap<String, List<StockItem>>()
-    private var stockDay = -1
     private val pawnCache = HashMap<String, Int>()
     private var indexCache: Double? = null
 
@@ -98,15 +96,47 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     /** The facade works in whole dollars (item value, pay): cents rounded to dollars, at least 1. */
     private fun dollars(cents: Int): Int = max(1, (cents / 100.0).roundToInt())
 
-    /** [place]'s shelves today (`stockOf`, seeded by the town, the place and the day; cached per day). */
+    /** Each shop place's `ShopStock` (economy.openStock, plain JSON), opened the first time it is looked at; saved with the loop. */
+    private val stocks = HashMap<String, JSONObject>()
+    /** The part of a day the clock has moved since the last whole day passed on to `restock`. */
+    private var dayFrac = 0.0
+
+    private fun stockSeed(place: LoopPlace) = "${town.seed}|${place.id}"
+
+    private fun stockState(place: LoopPlace): JSONObject? = stocks[place.id] ?: (econ("openStock", LoopItems.econKind(place.shopKind), town.year, stockSeed(place)) as? JSONObject)?.also { stocks[place.id] = it }
+
+    /** [place]'s shelves now (its `ShopStock` entries, sold-out ones with quantity 0). */
     fun stockFor(place: LoopPlace): List<StockItem> {
-        if (stockDay != day) { stockCache.clear(); stockDay = day }
-        return stockCache.getOrPut(place.id) {
-            val a = econ("stockOf", LoopItems.econKind(place.shopKind), town.year, "${town.seed}|${place.id}|d$day") as? JSONArray ?: return@getOrPut emptyList()
-            (0 until a.length()).map { k ->
-                val e = a.getJSONObject(k)
-                StockItem(e.getString("itemId"), e.getString("label"), e.getInt("priceCents"), e.optBoolean("serial"), e.optInt("quantity", 1), money(e.getInt("priceCents")))
-            }
+        val a = stockState(place)?.optJSONArray("entries") ?: return emptyList()
+        return (0 until a.length()).map { k ->
+            val e = a.getJSONObject(k)
+            StockItem(e.getString("itemId"), e.getString("label"), e.getInt("priceCents"), e.optBoolean("serial"), e.optInt("quantity", 0), money(e.getInt("priceCents")))
+        }
+    }
+
+    private fun quantityIn(stock: JSONObject, key: String): Int =
+        stock.optJSONArray("entries")?.let { a -> (0 until a.length()).map { a.getJSONObject(it) }.firstOrNull { it.optString("itemId") == key }?.optInt("quantity", 0) } ?: 0
+
+    /** Takes one [key] off [place]'s shelf (`economy.take`); false (shelf unchanged) when it is sold out. */
+    private fun takeFromShelf(place: LoopPlace, key: String): Boolean {
+        val st = stockState(place) ?: return false
+        val before = quantityIn(st, key)
+        if (before <= 0) return false
+        val next = econ("take", st, key, 1) as? JSONObject ?: return false
+        if (quantityIn(next, key) >= before) return false
+        stocks[place.id] = next
+        return true
+    }
+
+    /** Moves every known shop's stock on by the whole days [hours] of the clock came to (`economy.restock`), the rest kept for later. */
+    private fun restockFor(hours: Double) {
+        dayFrac += hours / 24.0
+        val whole = floor(dayFrac + 1e-9).toInt()
+        if (whole <= 0) return
+        dayFrac = max(0.0, dayFrac - whole)
+        for (place in town.places) {
+            val st = stocks[place.id] ?: continue
+            (econ("restock", st, whole, town.year, stockSeed(place)) as? JSONObject)?.let { stocks[place.id] = it }
         }
     }
 
@@ -147,7 +177,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         day = res.optInt("day", 1); hour = res.optDouble("hour", startHour)
         cash = startingCash()
         items.clear(); nextItem = 1
-        attitudes.clear(); facts.clear()
+        attitudes.clear(); facts.clear(); stocks.clear(); dayFrac = 0.0
         say("Arrived in ${town.townName} with ${money(cash)}.")
         event("init", JSONObject(res.toString()).put("cash", cash).put("places", town.places.count { it.kind != "home" }).put("ms", timings["init"]?.first))
         refreshPolice()
@@ -159,6 +189,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     fun save(): String {
         val o = JSONObject().put("version", 1).put("town", town.seed).put("sim", call("save"))
             .put("cash", cash).put("nextItem", nextItem).put("items", JSONArray().also { a -> for (i in items) a.put(itemJson(i)) })
+            .put("stocks", JSONObject().also { m -> for ((k, v) in stocks) m.put(k, v) }).put("dayFrac", dayFrac)
         return o.toString()
     }
 
@@ -171,7 +202,9 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         cash = o.optInt("cash", 0); nextItem = o.optInt("nextItem", 1)
         items.clear()
         o.optJSONArray("items")?.let { a -> for (k in 0 until a.length()) items += itemOf(a.getJSONObject(k)) }
-        attitudes.clear(); facts.clear()
+        attitudes.clear(); facts.clear(); stocks.clear()
+        o.optJSONObject("stocks")?.let { m -> for (k in m.keys()) stocks[k] = m.getJSONObject(k) }
+        dayFrac = o.optDouble("dayFrac", 0.0)
         say("Back in ${town.townName}.")
         event("load", JSONObject().put("day", day).put("hour", hour).put("cash", cash).put("items", items.size).put("ms", timings["load"]?.first))
         refreshPolice()
@@ -189,6 +222,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val res = JSONObject(call("advance", hours))
         day = res.optInt("toDay", day); hour = res.optDouble("toHour", hour)
         lastAdvance = res
+        restockFor(hours)
         val changes = res.optJSONArray("attitudeChanges") ?: JSONArray()
         // (Jeff's idea: a person's facts are kept until their attitude changes; a new day's gossip can add to what someone
         // already wary knows without changing their stance, so then everyone cached is looked up again too)
@@ -311,6 +345,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         if (no != null) return done(false, no)
         val price = s.priceCents
         if (cash < price) return done(false, "You can't afford ${s.label} (${money(price)}; you have ${money(cash)}).")
+        if (!takeFromShelf(place, s.key)) return done(false, "Sold out.")
         val item = newItem(place, s, false, null, null)
         act(JSONObject().put("kind", "buy").put("placeId", place.id).put("item", itemPayload(item)).also { o -> place.keeperId?.let { o.put("clerkId", it) } }, scene)
         cash -= price
@@ -321,6 +356,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     fun take(place: LoopPlace, s: StockItem, scene: LoopScene, gameHour: Double): LoopOutcome {
         clockTo(gameHour, exact = true)
         if (!place.openAt(hour)) return done(false, "The door of ${place.name} is locked.")
+        if (!takeFromShelf(place, s.key)) return done(false, "Sold out.")
         val proto = newItem(place, s, true, null, null)
         val res = act(JSONObject().put("kind", "take").put("subkind", "shoplift").put("placeId", place.id).put("item", itemPayload(proto))
             .also { o -> place.keeperId?.let { o.put("ownerId", it) } }, scene)
@@ -430,6 +466,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val total = hour + jailH
         day += floor(total / 24.0).toInt(); hour = total - 24.0 * floor(total / 24.0)
         val passed = jailH
+        restockFor(jailH)
         event("arrest", JSONObject().put("officerId", officerId).put("why", why).put("penalty", r.optString("penalty")).put("fine", fine)
             .put("confiscated", JSONArray(gone.toList())).put("charges", r.optJSONArray("charges")).put("summary", r.optString("summary"))
             .put("fromHour", before).put("hoursPassed", passed).put("ms", timings["arrest"]?.first))

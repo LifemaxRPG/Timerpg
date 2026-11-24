@@ -82,7 +82,8 @@ class LoopGameTest {
                 assertEquals(6000, cash0)
                 assertEquals("\$60.00", g.money(cash0))
                 val stock = g.stockFor(antiques)
-                assertEquals(econStock(js, "pawn", 2025, "${loop.seed}|${antiques.id}|d${g.day}"), stock.map { it.key to it.priceCents })
+                val opened = org.json.JSONObject(js.call("simCall", "{\"method\":\"economy.openStock\",\"args\":[\"pawn\",2025,\"${loop.seed}|${antiques.id}\"]}")).getJSONArray("entries")
+                assertEquals((0 until opened.length()).map { opened.getJSONObject(it).let { e -> e.getString("itemId") to e.getInt("priceCents") } }, stock.map { it.key to it.priceCents })
                 assertTrue("a shelf of many things", stock.size > 5)
                 assertEquals("stock is cached per day", stock, g.stockFor(antiques))
                 // 1. a purchase at the general store's successor (the antiques dealer in 2025)
@@ -154,6 +155,42 @@ class LoopGameTest {
                     // and the keeper still refuses
                     val again = g2.buy(antiques, g2.stockFor(antiques).minBy { it.priceCents }, facing(antiques), g2.hour + .1)
                     assertFalse(again.line, again.ok)
+                }.get()
+            }
+        }
+    }
+
+    @Test fun shelvesDepleteRestockAndSave() {
+        val shop = loop.places.first { it.id.startsWith("shop:") && it.shopKind == "bakery" }
+        SimJsThread().use { t ->
+            t.load(bundle).get()
+            val saved = t.run { js ->
+                val g = LoopGame(js, loop)
+                g.init(10.0)
+                val item = g.stockFor(shop).first { it.quantity > 0 }
+                // buy every unit, then one more
+                repeat(item.quantity) {
+                    val r = g.take(shop, g.stockFor(shop).first { s -> s.key == item.key }, behind(shop), 10.1)
+                    assertTrue(r.line, r.ok)
+                }
+                assertEquals(0, g.stockFor(shop).first { it.key == item.key }.quantity)
+                val again = g.take(shop, g.stockFor(shop).first { it.key == item.key }, behind(shop), 10.2)
+                assertFalse(again.ok); assertTrue(again.line, again.line.contains("Sold out", true))
+                val cash = g.cash
+                val buy = g.buy(shop, g.stockFor(shop).first { it.key == item.key }, facing(shop), 10.3)
+                assertFalse(buy.ok); assertTrue(buy.line, buy.line.contains("Sold out", true)); assertEquals(cash, g.cash)
+                g.save() to item
+            }.get()
+            // saved empty shelf survives a load
+            SimJsThread().use { t2 ->
+                t2.load(bundle).get()
+                t2.run { js ->
+                    val g2 = LoopGame(js, loop)
+                    g2.load(saved.first)
+                    assertEquals(0, g2.stockFor(shop).first { it.key == saved.second.key }.quantity)
+                    // a market-like bakery delivers daily: a few days on, the shelf is full again
+                    g2.advance(24.0 * 3, "test")
+                    assertTrue("restocked", g2.stockFor(shop).first { it.key == saved.second.key }.quantity > 0)
                 }.get()
             }
         }

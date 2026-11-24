@@ -102,7 +102,7 @@ desktop) and `app/src/main/kotlin/LoopSession.kt` (the game's side), `LoopHud.kt
   brought to the minute. Never per frame; all on the sim's thread. A clock set back (the debug slider) is not followed.
 - **Wallet and inventory:** the wallet is **integer cents** of the town's year. Money comes from the era economy
   (`src/economy`, docs/ECONOMY.md), exposed through the same bundle as `simCall({"method":"economy.<name>","args":[...]})`
-  (`Economy` in `src/loop/bridge.ts`: priceIn, priceIndex, stockOf, wage, pawnOffer, pawnPrice, fenceOffer,
+  (`Economy` in `src/loop/bridge.ts`: priceIn, priceIndex, stockOf, openStock, take, restock, quantityOf, wage, pawnOffer, pawnPrice, fenceOffer,
   formatMoney) and read in `LoopGame` (sim thread only; cached, never per frame): starting cash is $60 of 2025 money
   times `priceIndex(year)` (6000 cents in 2025, at least 200); every amount shown goes through `formatMoney` ("23¢",
   "$29.95"), made into text on the sim thread and handed to the UI in `LoopView` (`cashText`, `stock`, `pawnOffers`,
@@ -110,8 +110,12 @@ desktop) and `app/src/main/kotlin/LoopSession.kt` (the game's side), `LoopHud.kt
   whether they are hot (stolen, with the crime id); the cash readout is top left (orange when carrying something hot).
   The facade itself takes whole dollars (item `value`, shift `pay`, `fineAmount`, `playerCash`): Kotlin converts (cents
   rounded to dollars going in; a fine, a 2025-dollar number, is scaled by the price index into era cents coming out).
-- **The shops** (shelves: `stockOf(econKind(shopKind), year, "<town>|<place>|d<day>")`, so a shop's stock is fixed within a day and
-  changes the next; `LoopItems.econKind` maps general/antiques(pawn)/market, bakery and butcher(market), toy and music
+- **The shops** (shelves: each place keeps a `ShopStock` (`openStock(econKind(shopKind), year, "<town>|<place>")`, plain JSON, opened on
+  first look) in `LoopGame`, saved with the loop (`stocks`, `dayFrac`) and loaded back. Buy and Take call `take(stock, id, 1)`;
+  if the quantity did not drop the action fails with "Sold out." (no money, no crime). Every clock advance (hours, shifts,
+  sleep, waits, the jail hours) adds to a fractional-day counter and passes the whole days to `restock(stock, days, year, seed)`
+  for every opened shop, each exactly once, so each shop's delivery interval decides when shelves refill. The HUD shows
+  "x2" and "sold out" (no buttons) at zero; `LoopItems.econKind` maps general/antiques(pawn)/market, bakery and butcher(market), toy and music
   (five_and_dime), clothing and dress (clothing), bait (hardware), ice cream (diner)): standing at a loop place's door or inside its room, a "🛒" chip opens its panel: **Buy** (pays the economy's price, gets
   the item; `act buy`), **Take** (shoplift: `act take`, no payment), **Sell** at the pawn shop (`pawnOffer(item, year, hot)`: hot is half the clean offer, 0 when they won't
   take it: `act sell`), **Work a shift** (up to 4 h, not past closing, paid `hours x wage(job, year).hourlyCents`, `shop_clerk` at counters and `odd_jobs` for crates,
