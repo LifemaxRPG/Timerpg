@@ -101,3 +101,5 @@ export function restock(stock: ShopStock, days: number, year: number, seed: stri
 export { townFences, fenceLeads, fenceDeal, fenceRisk } from './fence';
 export type { Fence, FenceDeal, FenceLead, FencePerson } from './fence';
 export { hoursOf, isOpen, staffed, type OpeningSpan, type ShopDate } from './hours';
+export { lodgingOf, dailyNeeds, dueOn, arrears, dailyBudget } from './living';
+export type { Lodging, LodgingKind, RentLedger, IncomeBracket } from './living';

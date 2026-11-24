@@ -82,3 +82,20 @@ Use local game time. Weekdays are integers from 0 (Sunday) to 6 (Saturday). A sp
 Pass the same stable outlet seed and optional local calendar date to all three calls. Staffing defaults to an empty seed for callers using the four-argument form. Supply the calendar date to enable holiday closures. Retail observes December 25 throughout, January 1 from 1900, and July 4 from 1900 through 1970. Diners and fuel stations keep their usual holiday schedule.
 
 Schedules are authored gameplay defaults. Early retail closes Sunday and takes a Saturday half-day before 1950. Ordinary retail starts opening reduced Sundays from 1965. Selected retail kinds extend Fridays as a payday convention, and gas stations switch to all-night operation in 1975. Staffing estimates workers inside during opening hours, with one at opening or overnight and a lunch peak from 11 to 14. It does not assign specific NPCs or schedule anyone after closing.
+
+## Cost of living
+
+All amounts are nominal integer cents. Lodging and needs use authored 1952 anchors and the era price index, with gasoline taken from its retail curve. Use absolute game days. The first due date is set by the caller, for example a Saturday for a boarding house. Flats use fixed 30-day periods. Rates are locked for a saved lease.
+
+| Call | Example result |
+|---|---|
+| `lodgingOf("boarding_house", 1952)` | `{"kind":"boarding_house","periodDays":7,"rentCents":800,"depositCents":0,"includedMealsPerDay":0}` |
+| `lodgingOf("room_and_board", 1952)` | 1250 cents weekly, including two meals a day |
+| `dailyNeeds(1952)` | Includes `"dinerMealsPerDayCents":200` for three meals, `"boardingMealsPerDayCents":65` for a day of boarding-house meals purchased separately, and per-use, weekly and annual quotes named by unit |
+| `dueOn(lodging, 6, 13)` | 800 for the boarding-house lease starting day 6 |
+| `arrears({ lodging, startDay:6, day:7, paidCents:0 })` | `{"owedCents":800,"firstUnpaidDay":6,"daysLate":1,"status":"warning","belongingsHeld":false}` |
+| `dailyBudget("poor", 1952)` | `{"incomeCents":300,"lodgingCents":114,"foodCents":105,"otherCents":41,"spendingCents":260,"weeklyLivingCents":1820}` |
+
+Save one ledger per lease. Use a lodging quote from this module, whole game days, and cumulative nonnegative cents paid so the oldest charges clear first. The deposit is billed once, with the first rent. Same-day arrears are due, warning starts after one day, and lockout with belongings held starts after seven days. The game owns payment processing, notice delivery, property custody, deposit refunds and lease termination. Clearing overdue charges releases the lockout. Budget figures are per-person estimates for a typical game day.
+
+The 1952 calibration targets are $7–$9 per week for a room and $11.50–$14 for a room with board. At $8 rent and $2 for three diner meals, a player with $11 has $1 left after the first day.
