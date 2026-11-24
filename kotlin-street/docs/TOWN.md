@@ -1030,3 +1030,38 @@ Desktop numbers (llvmpipe, the whole gamma town built as the app builds it), NOT
   Meridian's model walked up its steps for 300 frames and stood on for 300: no new texture, buffer or page; memory level).
 - Desktop runs only; to check on the S25: walk the town for a few minutes and up the Meridian's steps; the play log's
   `mem` lines keep native under ~200 MB.
+
+## The first view first (2026-11-24, after the S25's 54 s first view in 0.1.805)
+
+- **What the phone showed**: for some 28 s before the loading screen lifted the view already looked complete and the main
+  thread sat idle, waiting on the `town-build` workers: one FIFO queue, and every landmark model (GLB read and built, its
+  far silhouette, since the walk levels its height field: up to 350-600 ms each), the stores and the cinema were queued at
+  the first frame ahead of the nearby buildings the first view waits for.
+- **The workers' queue goes by priority** (`TownWorkers`: a fixed pool over a priority queue, lower first, then in the
+  order given): the ground and the yards (`NOW`), the buildings by their distance from the player, the cinema, stores and
+  landmark models within `TownRun.READY_RADIUS` by theirs, everything further off at `LATER` (the ready radius) plus its
+  distance, the landmarks' height fields once the town is built at `IDLE`.
+- **While the first view is built** (`FilamentTown.holdLater`, set by `TownRun` until its view is ready) only its own work
+  goes to the workers at all: the ground, the yards and what stands within the ready radius. The buildings, landmarks,
+  stores and cinema further off, the farms and the world round the town (the extras), and the height fields wait: on the
+  4-core build server they took the cores from the ground and the yards, which are the first view's longest path there.
+  The first view now also waits for the cinema, stores and landmark models within the ready radius (`nearPending`), so
+  none pops in after the loading screen.
+- **Height fields on demand**: a landmark's field (`LevelField.Builder.build`) is made when the player comes within
+  `TownLandmark.LEVELS_NEAR` (150 m) of it, ahead of all other work, or when the workers are idle after the whole town;
+  until then its outlines block the walk on foot as solid (not `STEPPED`). Previews and tests that walk steps straight
+  after a build call `FilamentTown.finishLevels()`.
+- **The yards bake ahead**: the next lots bake on the common pool while the yards' worker packs the last ones (it was bake
+  then pack, one after the other: 4.7 s and 4.5 s for gamma's 2062 lots on the build server). `StreetTextures.maskFormat`
+  stops at the first blue or lit pixel (it was 16% of the workers' samples in a profile).
+- **The play log**: every worker job is a `span` line, `town.job.<kind>` (ground, building, landmark, landmark-heights,
+  landmark-heights-near, store, cinema, later, far, job), `ms` how long it ran, `d` what it was, how long it waited in the
+  queue and its priority (unnamed jobs only from 20 ms: `TownJobs`). The cold-start preview writes the same lines to
+  `cold_jobs.txt` and sums them by kind in town.txt, at the first view and in all.
+- **The cold-start preview now builds the town as the app does**, with the landmark models and the walk's collision
+  (`-DcoldLandmarks=0` leaves them out, as before); so does `townMemoryCheck`.
+- **Measured (desktop, the 4-core build server, software GL, `-Dshots=cold -DcoldOnly=1`, the shipped gamma; noisy)**:
+  warm ASTC cache: before 8.3, 10.6, 17.1 s; after 7.3, 8.2 s (17 of 322 buildings and 5 of 35 landmarks built at
+  the view: those within reach). No cache: before 13.7, 15.8 s; after 11.1 s. The ground and yards are the
+  first view's longest path here (6.5-10 s). On the S25, to be measured: the play log's `town.firstView` and the
+  `town.job.*` spans (how long each waited).

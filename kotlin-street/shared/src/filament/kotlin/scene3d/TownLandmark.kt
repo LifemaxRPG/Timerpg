@@ -47,7 +47,7 @@ internal class TownLandmark(
     private var animator: LandmarkAnimator? = null
     private var lastSeconds = 0.0
     private class Built(val far: List<CinemaLayer.Packed>?, val front: Float, val parts: List<CinemaLayer.Packed>, val animated: LandmarkAnimator.PackedSet?, val at: FloatArray, val box: FloatArray, val body: FloatArray, val lights: List<CinemaLight>, val solids: FloatArray, val doors: List<LandmarkDoor>, val triangles: Int,
-                        val levels: com.lifemax.rpg.feature.habits.domain.LevelField?)
+                        val levels: com.lifemax.rpg.feature.habits.domain.LevelField.Builder?)
     private var job: java.util.concurrent.Future<Built>? = null
     private var at: FloatArray = frameOf(0f, 0f)
     var done = false; private set
@@ -68,9 +68,10 @@ internal class TownLandmark(
     var front = 0f; private set
     var lot: FloatArray? = null; private set
 
-    fun start(pool: java.util.concurrent.ExecutorService) {
+    /** Starts building it on [pool] (once), at [priority] there ([TownWorkers]: after the first view's buildings). */
+    fun start(pool: TownWorkers, priority: Float) {
         if (job != null || done) return
-        job = pool.submit(java.util.concurrent.Callable {
+        job = pool.submit(priority, "landmark", spec.kind, java.util.concurrent.Callable {
             val lm = LandmarkKit.build(GlbFile.read(bytes()), spec, year, seed, hide = hide, info = info(), clockHours = clockHours())
             val m = lm.model
             val a = frameOf(spec.centre?.let { it * LandmarkKit.UNITS_PER_METRE } ?: ((m.footprint[0] + m.footprint[2]) / 2f), lm.front)
@@ -88,8 +89,10 @@ internal class TownLandmark(
             val far = farBytes?.invoke()?.takeIf { it.isNotEmpty() }?.let { fb -> CinemaLayer.pack(LandmarkKit.build(GlbFile.read(fb), spec, year, seed, hide = hide).model, a) }
             val totalTris = m.triangles + lm.animated.sumOf { it.triangles }
             Built(far, lm.front, CinemaLayer.pack(m, a), LandmarkAnimator.pack(lm, a), a, fp, if (b[0] < b[2]) b else fp, m.lights, StoreSolids.world(lm.solids, a), lm.doors, totalTris,
-                // (its steps, terraces and plaza as heights in the town's frame: the walk climbs them)
-                lm.levels?.build(a))
+                // (its steps, terraces and plaza, to be made heights in the town's frame for the walk to climb: not
+                // here, but once the player comes near ([stepLevels]), so the far landmarks' fields keep no worker from
+                // the first view)
+                lm.levels?.takeUnless { it.isEmpty })
         })
     }
 
@@ -117,11 +120,11 @@ internal class TownLandmark(
         r = sqrt((fp[2] - fp[0]) * (fp[2] - fp[0]) + (fp[3] - fp[1]) * (fp[3] - fp[1]) + fp[4] * fp[4]) / 2f
         body = b.body; front = b.front; lot = b.box
         triangles = b.triangles; solidCount = b.solids.size / 6; doorCount = b.doors.size
-        levelBytes = b.levels?.bytes ?: 0L
+        solids = b.solids
+        levelsSrc = b.levels
         collision?.let { col ->
-            // (with its heights in a field the walk on foot takes them from there: the outlines are for the cars and people)
-            col.setLevels(KEY + sprite, b.levels)
-            col.setExtra(KEY + sprite, b.solids, SolidKind.BUILDING, sprite, if (b.levels != null) TownCollision.STEPPED else null)
+            // (until its heights are made ([stepLevels]) its outlines stand whole for the walk on foot too)
+            col.setExtra(KEY + sprite, b.solids, SolidKind.BUILDING, sprite, null)
             col.setExtraDoors(KEY + sprite, b.doors.map { d ->
                 val wx = at[0] + at[2] * d.x + at[4] * d.z; val wz = at[1] + at[3] * d.x + at[5] * d.z
                 val ox = at[2] * d.outX + at[4] * d.outZ; val oz = at[3] * d.outX + at[5] * d.outZ
@@ -130,6 +133,58 @@ internal class TownLandmark(
         }
         done = true
         return true
+    }
+
+    private var solids: FloatArray? = null
+    /** Its steps', terraces' and plaza's triangles and boxes, until made a height field ([stepLevels]). */
+    @Volatile private var levelsSrc: com.lifemax.rpg.feature.habits.domain.LevelField.Builder? = null
+    private var levelsJob: java.util.concurrent.Future<com.lifemax.rpg.feature.habits.domain.LevelField?>? = null
+    private var levelsIdle: java.util.concurrent.Future<com.lifemax.rpg.feature.habits.domain.LevelField?>? = null
+    private var levelsMade: com.lifemax.rpg.feature.habits.domain.LevelField? = null
+    private var levelsTried = false
+    /** Its height field is still to be made ([stepLevels]). */
+    val levelsPending: Boolean get() = levelsSrc != null
+    /** How long making its height field took on a worker (ms; 0 until made). */
+    var levelsMs = 0f; private set
+
+    // (made once, by whichever of its two jobs runs first)
+    private val levelsLock = Any()
+    private fun makeLevels(src: com.lifemax.rpg.feature.habits.domain.LevelField.Builder, a: FloatArray): com.lifemax.rpg.feature.habits.domain.LevelField? = synchronized(levelsLock) {
+        if (levelsTried) return levelsMade
+        val t0 = System.nanoTime()
+        try { levelsMade = src.build(a) } finally { levelsTried = true; levelsMs = (System.nanoTime() - t0) / 1e6f }
+        levelsMade
+    }
+
+    /**
+     * Makes its height field (its steps, terraces and plaza, for the walk on foot to climb) on [pool] once the player at
+     * ([px], [pz]) comes within [LEVELS_NEAR] of it (ahead of any other work there), or, before that, once the town is
+     * built ([idle]) when the workers have nothing else to do ([TownWorkers.IDLE]); hands it to the walk once made (the engine's thread, a frame). [now]: made
+     * here and now, waiting (a preview's, a test's).
+     */
+    fun stepLevels(pool: TownWorkers, px: Float, pz: Float, idle: Boolean, now: Boolean = false) {
+        val src = levelsSrc ?: return
+        val a = at
+        if (levelsIdle == null && idle) levelsIdle = pool.submit(TownWorkers.IDLE, "landmark-heights", spec.kind, java.util.concurrent.Callable { makeLevels(src, a) })
+        val near = now || kotlin.math.hypot(px - cx, pz - cz) - r < LEVELS_NEAR
+        val idleJob = levelsIdle
+        if (near && levelsJob == null && idleJob?.isDone != true) levelsJob = pool.submit(TownWorkers.NOW, "landmark-heights-near", spec.kind, java.util.concurrent.Callable { makeLevels(src, a) })
+        val f = if (idleJob?.isDone == true) idleJob else levelsJob ?: return
+        if (now) runCatching { f.get() }
+        if (!f.isDone) return
+        val field = try { f.get() } catch (e: java.util.concurrent.ExecutionException) {
+            val c = e.cause ?: e
+            if (c is VirtualMachineError) throw BuildFailure("making a landmark's height field on a worker", c)
+            null
+        } catch (e: java.util.concurrent.CancellationException) { null }
+        levelsSrc = null; levelsJob = null; levelsIdle = null
+        if (field == null) return
+        levelBytes = field.bytes
+        collision?.let { col ->
+            // (with its heights in a field the walk on foot takes them from there: the outlines are for the cars and people)
+            col.setLevels(KEY + sprite, field)
+            col.setExtra(KEY + sprite, solids, SolidKind.BUILDING, sprite, TownCollision.STEPPED)
+        }
     }
 
     /** The model's frame: x, z of its origin, its x axis, its z axis (for previews). */
@@ -209,7 +264,7 @@ internal class TownLandmark(
     }
 
     fun destroy() {
-        job?.cancel(true); layer.destroy(); farLayer?.destroy(); lamps.destroy()
+        job?.cancel(true); levelsJob?.cancel(true); levelsIdle?.cancel(true); layer.destroy(); farLayer?.destroy(); lamps.destroy()
         collision?.setExtra(KEY + sprite, null); collision?.setExtraDoors(KEY + sprite, null); collision?.setLevels(KEY + sprite, null)
     }
 
@@ -219,6 +274,11 @@ internal class TownLandmark(
         const val FAR = 12000f
         /** Past this (street units beyond its reach) a model with a distant silhouette ([LandmarkSpec.far]) draws that instead. */
         const val LOD = 3000f
+        /**
+         * Its height field is made once the player comes this near its reach (street units: 150 m), ahead of any other
+         * work: a few hundred ms on a worker at most, long before anyone on foot (or on the bike) reaches its steps.
+         */
+        val LEVELS_NEAR = 150f * LandmarkKit.UNITS_PER_METRE
 
         /** A row slot's frame: the lot's front edge on the building line [setback] back, its middle on the slot's. */
         fun rowFrame(place: TownPlace, setback: Float): (Float, Float) -> FloatArray = { xMid, front ->

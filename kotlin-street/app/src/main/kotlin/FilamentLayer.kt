@@ -472,6 +472,12 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             com.timerpg.street.shot.Crumbs.add("town scene: building ${data.town.seed}; Java heap limit ${rt.maxMemory() shr 20} MB, ${(rt.totalMemory() - rt.freeMemory()) shr 20} MB used")
             StreetRenderer.townBuilding(ctx, true)
             buildMarked = true
+            // each of the town's worker jobs to the play log (TOWN.md, "The first view first"): {"k":"span","n":"town.job.<kind>",
+            // "ms": how long it ran, "d": what, how long it waited in the queue, its priority}
+            com.lifemax.rpg.feature.habits.presentation.scene3d.TownJobs.onJob = { kind, name, waitMs, runMs, priority ->
+                com.timerpg.street.play.PlayLog.spanDone("town.job.$kind", runMs.toDouble(),
+                    "%s waited %.0f ms, priority %.0f".format(java.util.Locale.US, name ?: "-", waitMs, priority))
+            }
             val ft = com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown(e, mats, data.town, data.yards, data.art, data.building, cinema = data.cinema,
                 stores = data.stores, collision = data.collision, rail = data.rail, landmarks = data.landmarks)
             // the farms round the town, their fields as they are today

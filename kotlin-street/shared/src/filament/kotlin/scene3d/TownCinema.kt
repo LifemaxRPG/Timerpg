@@ -91,11 +91,11 @@ internal class TownCinema(
         cx = c.x; cz = c.z; r = hypot(max(site.info.width, 300f) / 2f, max(site.info.depth, 300f) / 2f) + 60f
     }
 
-    /** Starts building it on [pool] (once). */
-    fun start(pool: java.util.concurrent.ExecutorService) {
+    /** Starts building it on [pool] (once), at [priority] there ([TownWorkers]). */
+    fun start(pool: TownWorkers, priority: Float) {
         if (job != null || done) return
         val a = at
-        job = pool.submit(java.util.concurrent.Callable {
+        job = pool.submit(priority, "cinema", null, java.util.concurrent.Callable {
             val m = CinemaKit.build(site.info, seed)
             Triple(CinemaLayer.pack(m, a), floatArrayOf(m.footprint[0], m.footprint[1], m.footprint[2], m.footprint[3], m.height), m.lights)
         })

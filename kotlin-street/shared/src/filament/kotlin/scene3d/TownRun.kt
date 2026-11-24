@@ -36,6 +36,8 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
     init {
         // (the heap is watched from here to the whole town's end: the breadcrumbs and the AI panel's RAM line say it)
         TownMemory.start()
+        // (until the first view is ready, only its own work goes to the town's workers: FilamentTown.holdLater)
+        town.holdLater = true
         town.startGround()
         // the character sheets read on a worker while the first view is built (the people stand only once it is ready)
         town.warm(sheets)
@@ -55,15 +57,18 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
         val left = budgetMs - (System.nanoTime() - s) / 1e6f
         if (groundDone || left > 1f) town.buildNearest(x, z, left.coerceAtLeast(1f))
         val ok = ready(x, z)
-        if (ok && firstViewMs < 0f) { firstViewMs = (System.nanoTime() - t0) / 1e6f; TownMemory.mark("first view") }
+        if (ok && firstViewMs < 0f) { firstViewMs = (System.nanoTime() - t0) / 1e6f; TownMemory.mark("first view"); town.holdLater = false }
         if (ok && !finished && done) { finished = true; TownMemory.mark("all built"); TownMemory.stop() }
         if (finished) com.lifemax.rpg.feature.habits.presentation.scene.Stage3D.townBuilding = false
         return ok
     }
 
-    /** The ground in and every building within [READY_RADIUS] of ([x], [z]) built (or known to have no art). */
+    /**
+     * The ground in and every building within [READY_RADIUS] of ([x], [z]) built (or known to have no art), and the cinema,
+     * stores and landmark models that near.
+     */
     fun ready(x: Float, z: Float): Boolean =
-        groundDone && town.slots.none { !it.isBuilt && !it.missing && hypot(it.cx - x, it.cz - z) < READY_RADIUS }
+        groundDone && town.slots.none { !it.isBuilt && !it.missing && hypot(it.cx - x, it.cz - z) < READY_RADIUS } && !town.nearPending(x, z, READY_RADIUS)
 
     /** How far the first view's building has come (0..1): the ground counts half, the buildings near the player the rest. */
     fun progress(x: Float, z: Float): Float {

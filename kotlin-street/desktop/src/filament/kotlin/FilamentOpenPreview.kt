@@ -120,6 +120,7 @@ fun renderFilamentOpen(out: String) {
     ft.startGround()
     while (!ft.uploadGround(8f)) Thread.sleep(1)
     while (ft.pending > 0) { if (ft.buildNearest(0f, 0f, 8f) == 0) Thread.sleep(1) }
+    ft.finishLevels()
     // (the whole town from the start of its ground to its last building, as built here: the build server's time, not the phone's)
     report.appendLine("town built in %.0f ms (wall clock, this machine)".format((System.nanoTime() - buildStart) / 1e6))
     report.appendLine(ft.farReport)
@@ -504,6 +505,7 @@ fun renderFilamentOpen(out: String) {
         for (yr in years) {
             ft.storeYear = yr
             while (ft.pending > 0) { if (ft.buildNearest(0f, 0f, 8f) == 0) Thread.sleep(1) }
+            ft.finishLevels()
             report.appendLine("stores in $yr: " + ft.storeReport.joinToString("; ") + "; collision + ${collision.extraSize} shapes, ${collision.extraDoors.size} store doors")
             for (st in storeSites) {
                 val s = ft.slots.firstOrNull { it.b.sprite == st.sprite } ?: continue
@@ -541,6 +543,7 @@ fun renderFilamentOpen(out: String) {
         }
         ft.storeYear = 0
         while (ft.pending > 0) { if (ft.buildNearest(0f, 0f, 8f) == 0) Thread.sleep(1) }
+        ft.finishLevels()
     }
     // --- Woodside: behind the player on a quiet street
     run {

@@ -588,7 +588,7 @@ class FilamentTown(
     }
     private val landmarkOut = IntArray(3)
     /** The landmark models as built (for previews and tests): sprite, kind, triangles, solid shapes, doors, whether drawn. */
-    val landmarkReport: List<String> get() = (landmarkDraws + listOfNotNull(depotDraw)).map { "${it.sprite} ${it.spec.kind}: ${if (it.done) "${it.triangles} triangles, ${it.solidCount} solid shapes, ${it.doorCount} doors, heights %.1f MB".format(it.levelBytes / 1048576.0) else "building"}${if (it.closed) ", closed" else ""}${if (it.shown) ", shown" else ""}" }
+    val landmarkReport: List<String> get() = (landmarkDraws + listOfNotNull(depotDraw)).map { "${it.sprite} ${it.spec.kind}: ${if (it.done) "${it.triangles} triangles, ${it.solidCount} solid shapes, ${it.doorCount} doors, ${if (it.levelsPending) "heights to make" else "heights %.1f MB".format(it.levelBytes / 1048576.0)}" else "building"}${if (it.closed) ", closed" else ""}${if (it.shown) ", shown" else ""}" }
     /** The frame (origin x, z; x axis; z axis) of the landmark model in slot [sprite] ("rail-depot": the depot's), once built. */
     fun landmarkFrame(sprite: String): FloatArray? = (landmarkDraws + listOfNotNull(depotDraw)).firstOrNull { it.sprite == sprite && it.done }?.frame
     /** The lot of the landmark model in slot [sprite] in its frame (x0, z0, x1, z1, height), once built. */
@@ -632,7 +632,7 @@ class FilamentTown(
     private val extras = ArrayList<TownExtra>()
     /** Adds something more the town draws ([TownExtra]: the farms), made with the town's engine, scene, materials and workers. */
     internal fun <T : TownExtra> addExtra(make: (TownExtra.Kit) -> T): T =
-        make(TownExtra.Kit(engine, scene, lit, proxyMat, textures, pool, ::extraMaterial, art)).also { extras += it }
+        make(TownExtra.Kit(engine, scene, lit, proxyMat, textures, later, ::extraMaterial, art)).also { extras += it }
     private val extraMaterials = HashMap<String, Material>()
     private val materialBytesOf = materialBytes
     private fun extraMaterial(name: String): Material = extraMaterials.getOrPut(name) { load(name, materialBytesOf) }
@@ -815,28 +815,36 @@ class FilamentTown(
     /** Adds [j] to [jobs] (a worker), first waiting while the queue holds [QUEUE_BYTES] (unless it is empty). */
     private fun offer(j: Job) {
         val b = j.packed.heldBytes
+        val w0 = System.nanoTime()
         synchronized(queueLock) {
             while (!closed && queued.get() > 0 && queued.get() + b > QUEUE_BYTES) queueLock.wait(50)
+            offerWaitNs.addAndGet(System.nanoTime() - w0)
             val now = queued.addAndGet(b)
             if (now > queuedPeak) queuedPeak = now
         }
         jobs += j
     }
     private val running = java.util.concurrent.atomic.AtomicInteger(0)
+    /** How long the ground's workers waited, all told, for the engine's thread to take what they had made (ns). */
+    val offerWaitNs = java.util.concurrent.atomic.AtomicLong()
     @Volatile private var failure: Throwable? = null
     @Volatile private var lampSpots: List<FloatArray>? = null
     private var groundStarted = 0L
-    /** The workers: every core but one (the engine's thread keeps its own); daemon threads, so a quit is never held. */
-    private val pool: java.util.concurrent.ExecutorService = java.util.concurrent.Executors.newFixedThreadPool(
-        max(2, Runtime.getRuntime().availableProcessors() - 1),
-    ) { r -> Thread(r, "town-build").also { it.isDaemon = true; it.priority = Thread.NORM_PRIORITY - 1 } }
+    /**
+     * The workers: every core but one (the engine's thread keeps its own); daemon threads, so a quit is never held. Their
+     * queue goes by priority ([TownWorkers]): the ground and the buildings nearest the player first, the landmarks, stores,
+     * cinema, farms and the world round the town after the first view's buildings, the landmarks' height fields last.
+     */
+    private val pool = TownWorkers(max(2, Runtime.getRuntime().availableProcessors() - 1))
+    /** The workers for what the first view does not wait for (the stores' cars, the far boxes, the extras). */
+    private val later by lazy { pool.lane(TownWorkers.LATER, "later") }
     /** How long the workers took to make the ground ready (ms), and the engine's thread to upload it (ms, all batches). */
     var groundPrepareMs = 0f; private set
     var groundUploadMs = 0f; private set
     /** The longest single upload step [uploadGround] took (ms). */
     var groundUploadWorst = 0f; private set
     /** The buildings far off: a cheap box each, merged by cells ([TownFar]), out to the far end of the world. */
-    private val far by lazy { TownFar(engine, scene, lit, textures, pool) }
+    private val far by lazy { TownFar(engine, scene, lit, textures, pool.lane(TownWorkers.LATER, "far")) }
     /** Each building's far pictures, made on the worker that made it ready. */
     private val farPics = java.util.concurrent.ConcurrentHashMap<Slot, TownFar.Pics>()
     private val farOut = IntArray(2)
@@ -850,8 +858,8 @@ class FilamentTown(
         if (groundStarted != 0L || groundBuilt) return
         groundStarted = System.nanoTime()
         running.set(2)
-        pool.execute { work("the ground, greenery, furniture and props") { prepareGround() } }
-        pool.execute { work("the yards") { prepareYards() } }
+        pool.execute(TownWorkers.NOW, "ground", "ground") { work("the ground, greenery, furniture and props") { prepareGround() } }
+        pool.execute(TownWorkers.NOW, "ground", "yards") { work("the yards") { prepareYards() } }
     }
 
     private fun work(what: String, f: () -> Unit) {
@@ -1041,13 +1049,19 @@ class FilamentTown(
     fun buildNearest(x: Float, z: Float, budgetMs: Float): Int {
         if (!farCounted) { farCounted = true; if (farLod) for (s in slots) if (!s.missing && s.built == null) s.farCell = far.expect(s.cx, s.cz) }
         if (far.upload()) engine.flush()
-        cinemaDraw?.let { c -> c.start(pool); if (!c.done && c.step()) engine.flush() }
-        for (st in storeDraws) { st.start(pool, lastHour, weekday); if (!st.done && st.step()) engine.flush() }
+        // (the cinema, the stores and the landmark models within the first view's reach are its work, by their distance
+        // like the buildings; those further off wait while [holdLater] holds, then go after every building the first view
+        // waits for, nearest first: TownWorkers.LATER plus their distance)
+        cinemaDraw?.let { c -> if (!c.done) { laterPriority(c.cx, c.cz, x, z)?.let { c.start(pool, it) }; if (c.step()) engine.flush() } }
+        for (st in storeDraws) if (!st.done) { laterPriority(st.cx, st.cz, x, z)?.let { st.start(pool, it, lastHour, weekday) }; if (st.step()) engine.flush() }
         if (depotDraw == null && depotSpec != null && !depotTried) { depotTried = true; depotDraw = makeDepot() }
-        for (lm in landmarkDraws) { lm.start(pool); if (!lm.done && lm.step()) engine.flush() }
-        depotDraw?.let { lm -> lm.start(pool); if (!lm.done && lm.step()) engine.flush() }
-        // (the extras' work waits for the ground: the first view comes first)
-        if (groundBuilt) for (x in extras) x.step()
+        // (a landmark's height field: once the player comes near it, or the workers are idle after the whole town; none
+        // while the first view is built: the player stands still behind the loading screen)
+        val idle = todo == 0 && groundBuilt
+        for (lm in landmarkDraws) { if (!lm.done) { laterPriority(lm.cx, lm.cz, x, z)?.let { lm.start(pool, it) }; if (lm.step()) engine.flush() } else if (!holdLater) lm.stepLevels(pool, x, z, idle) }
+        depotDraw?.let { lm -> if (!lm.done) { laterPriority(lm.cx, lm.cz, x, z)?.let { lm.start(pool, it) }; if (lm.step()) engine.flush() } else if (!holdLater) lm.stepLevels(pool, x, z, idle) }
+        // (the extras' work (the farms, the world round the town) waits for the ground and the first view: the first view comes first)
+        if (groundBuilt && !holdLater) for (x in extras) x.step()
         if (todo == 0 && chunksTodo == 0 && groundBuilt) return 0
         val t0 = System.nanoTime()
         var n = 0
@@ -1061,9 +1075,11 @@ class FilamentTown(
             // all 98 were started at once and the finished-but-waiting ones piled up on the phone's Java heap)
             for (s in order) if (s !in readyOf) {
                 if (readyOf.size >= readyAhead) break
+                // (while the first view is built only its own buildings: the rest would take the cores from its ground and yards)
+                if (holdLater && hypot(s.cx - x, s.cz - z) >= TownRun.READY_RADIUS) break
                 val yarded = s.b.kind != PlacementKind.LANDMARK && yards.of(s.b.sprite) != null
                 val sprite = s.b.sprite; val setback = s.b.setback
-                readyOf[s] = pool.submit(java.util.concurrent.Callable {
+                readyOf[s] = pool.submit(hypot(s.cx - x, s.cz - z), "building", sprite, java.util.concurrent.Callable {
                     val r0 = System.nanoTime()
                     val sb = building(sprite)
                     val r = sb?.let { meshes.prepare(it, setback, yarded, sprite.hashCode()) }
@@ -1123,11 +1139,40 @@ class FilamentTown(
         return n
     }
 
+    /**
+     * The first view is being built ([TownRun] sets it until its view is ready): only its own work goes to the workers
+     * (the ground, the yards, and the buildings, cinema, stores and landmark models within [TownRun.READY_RADIUS]); the
+     * rest (those further off, the landmarks' height fields, the farms and the world round the town) waits, so it takes
+     * no worker or core from it. Off by default (previews and tests that build the whole town at once).
+     */
+    var holdLater = false
+
+    /** The workers' priority for a cinema, store or landmark at ([cx], [cz]) with the player at ([x], [z]); null: not yet ([holdLater]). */
+    private fun laterPriority(cx: Float, cz: Float, x: Float, z: Float): Float? {
+        val d = hypot(cx - x, cz - z)
+        return if (d < TownRun.READY_RADIUS) d else if (holdLater) null else TownWorkers.LATER + d
+    }
+
+    /** The cinema, stores and landmark models within [radius] of ([x], [z]) not yet built (the first view waits for them too). */
+    fun nearPending(x: Float, z: Float, radius: Float): Boolean =
+        cinemaDraw?.let { !it.done && hypot(it.cx - x, it.cz - z) < radius } == true ||
+            storeDraws.any { !it.done && hypot(it.cx - x, it.cz - z) < radius } ||
+            landmarkDraws.any { !it.done && hypot(it.cx - x, it.cz - z) < radius } ||
+            depotDraw?.let { !it.done && hypot(it.cx - x, it.cz - z) < radius } == true
+
     /** Buildings not yet built (a count kept by [buildNearest], so a frame with nothing left does no work). */
     private var todo = Int.MAX_VALUE
     /** Chunks whose 3D greenery is not made yet (as last counted; once the ground is in). */
     private var chunksTodo = Int.MAX_VALUE
     private val order = ArrayList<Slot>()
+
+    /**
+     * Makes every landmark's height field now, waiting (previews and tests that walk a landmark's steps straight after
+     * the build; the game makes each as the player comes near: [TownLandmark.stepLevels]).
+     */
+    fun finishLevels() {
+        for (lm in landmarkDraws + listOfNotNull(depotDraw)) if (lm.done) lm.stepLevels(pool, lm.cx, lm.cz, idle = true, now = true)
+    }
 
     /** Nothing is left to build: every building, and every chunk's 3D greenery. */
     val allBuilt: Boolean get() = groundBuilt && pending == 0 && chunks.values.none { it.near == null && it.hasNear }
@@ -1369,7 +1414,7 @@ class FilamentTown(
         cinemaDraw?.frame(pose, look, dark, seconds, { x, z -> if (pose.cut > 0f) fadeOf(pose, x, z) else 1f }, cinemaOut)?.let { o ->
             if (o[0] > 0) { visible++; renderables += o[0]; draws += o[0]; tris += o[1] }; casters += o[2] }
         for (st in storeDraws) {
-            st.stepCars(pool, hour, weekday)
+            st.stepCars(later, hour, weekday)
             st.occFade = if (pose.open && st.occluded) max(OCCLUDED, st.occFade - occStep) else min(1f, st.occFade + occStep)
             val o = st.frame(pose, look, dark, seconds, { x, z -> if (pose.cut > 0f) fadeOf(pose, x, z) else 1f }, storeOut)
             if (o[0] > 0) { visible++; renderables += o[0]; draws += o[0]; tris += o[1] }; casters += o[2]

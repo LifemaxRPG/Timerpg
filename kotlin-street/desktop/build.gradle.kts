@@ -166,7 +166,7 @@ tasks.register<JavaExec>("preview") {
     for (k in listOf("landmarks", "year", "movingDemo", "movingOut")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // the whole town's preview (-Dmode=filament-town): which town folder, where the pack's pictures are, the yards'
     // builder (kit, or placeholder: flat colours)
-    for (k in listOf("town", "assetsRoot", "townYards", "memtrace", "heapBudget", "memlive", "coldOnly")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    for (k in listOf("town", "assetsRoot", "townYards", "memtrace", "heapBudget", "memlive", "coldOnly", "coldLandmarks")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // the open world's preview (-Dmode=filament-open): -DtownLod=0 bakes no far yards (to compare)
     for (k in listOf("at", "levelProbe", "seqCount", "seqNoShadow", "treeLevel", "seqScales", "seqViews", "world", "worldFile", "worldYear", "worldNear", "townLod", "townFar", "folk", "see", "farmTag", "farms", "debugeye", "bench", "benchSecs", "gpucost", "rail", "texStats", "astc", "astcExact", "astcCache", "maskFormats", "glbAs", "glbTag", "glbFile", "gpuOnly")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     if (withFilament) {

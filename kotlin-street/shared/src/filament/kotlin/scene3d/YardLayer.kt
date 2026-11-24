@@ -146,15 +146,24 @@ object YardKitBuilder : YardBuilder {
         val at = listOf(floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f))
         // baked a few lots at a time on the common pool (the kit's caches are shared under locks), handed to the sink in
         // order, so only those few lots' meshes are held at once (each lot's atlases and vertices: up to some 5 MB); the
-        // sink packs them for the GPU and waits while the engine's thread is behind (FilamentTown.offer). The whole
-        // town's yards bake in under a second of one core, so more lots at once would only hold more memory.
+        // sink packs them for the GPU and waits while the engine's thread is behind (FilamentTown.offer). The next few
+        // lots bake while the sink packs these (the gamma town's 2062: some 4.7 s of baking and 4.5 s of packing on the
+        // build server, one after the other until 2026-11-24): two groups held at once
         val step = maxOf(2, Runtime.getRuntime().availableProcessors() / 4)
+        // (each lot twice: as near by, and its far version for the open world's distance, [YardKit.bake] far)
+        fun bake(from: Int): java.util.concurrent.Future<MutableList<Pair<List<YardBatch>, List<YardBatch>>?>> {
+            val group = work.subList(from, minOf(work.size, from + step))
+            return java.util.concurrent.ForkJoinPool.commonPool().submit(java.util.concurrent.Callable {
+                group.parallelStream().map { w ->
+                    YardKit.bake(w.near, perKind = false) to (if (far && w.far != null) YardKit.bake(w.far, perKind = false, far = true) else emptyList())
+                }.collect(java.util.stream.Collectors.toList<Pair<List<YardBatch>, List<YardBatch>>?>())
+            })
+        }
+        var next = if (work.isEmpty()) null else bake(0)
         for (from in work.indices step step) {
             val group = work.subList(from, minOf(work.size, from + step))
-            // (each lot twice: as near by, and its far version for the open world's distance, [YardKit.bake] far)
-            val baked: MutableList<Pair<List<YardBatch>, List<YardBatch>>?> = group.parallelStream().map { w ->
-                YardKit.bake(w.near, perKind = false) to (if (far && w.far != null) YardKit.bake(w.far, perKind = false, far = true) else emptyList())
-            }.collect(java.util.stream.Collectors.toList())
+            val baked = try { next!!.get() } catch (e: java.util.concurrent.ExecutionException) { throw e.cause ?: e }
+            next = if (from + step < work.size) bake(from + step) else null
             for (k in baked.indices) {
                 val patch = group[k].patch
                 val (near, farOnes) = baked[k]!!

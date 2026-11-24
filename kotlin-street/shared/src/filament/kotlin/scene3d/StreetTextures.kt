@@ -268,16 +268,16 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
          */
         fun maskFormat(px: IntArray): Fmt? {
             if (!TownQuality.maskFormats) return Fmt.RGBA8
-            var g = false; var b = false; var r = false
+            var g = false; var r = false
             for (c in px) {
                 val a = c ushr 24
-                // (an alpha from 64 to 191 is a light in its own colour: street_lit.mat's step(0.25) and step(0.75))
-                if (a in 64..191) return Fmt.RGBA8
-                if (c and 0xFF != 0) b = true
+                // (an alpha from 64 to 191 is a light in its own colour: street_lit.mat's step(0.25) and step(0.75); any
+                // blue needs all four channels: either settles it, the rest unread)
+                if (a in 64..191 || c and 0xFF != 0) return Fmt.RGBA8
                 if (c and 0xFF00 != 0) g = true
                 if (c and 0xFF0000 != 0) r = true
             }
-            return if (b) Fmt.RGBA8 else if (g) Fmt.RG8 else if (r) Fmt.R8 else null
+            return if (g) Fmt.RG8 else if (r) Fmt.R8 else null
         }
 
         /**

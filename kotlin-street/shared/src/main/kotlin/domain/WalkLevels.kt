@@ -148,6 +148,12 @@ class LevelField internal constructor(
             x0 = min(x0, bx0); x1 = max(x1, bx1); z0 = min(z0, bz0); z1 = max(z1, bz1)
         }
 
+        /** Nothing added: [build] would make no field. */
+        val isEmpty: Boolean get() = x0 > x1 || z0 > z1
+
+        /** About what it holds until built (its triangles' and boxes' floats), for the memory's accounts. */
+        val heldBytes: Long get() = tris.sumOf { it.size * 4L } + pos.size * 4L + boxes.size * 40L
+
         /** The field in [frame] (x, z of the origin, its x axis, its z axis: as the landmarks' frames), or null if empty. */
         fun build(frame: FloatArray): LevelField? {
             flush()

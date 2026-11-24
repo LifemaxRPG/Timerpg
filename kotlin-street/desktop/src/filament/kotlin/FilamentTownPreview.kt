@@ -97,10 +97,21 @@ fun renderFilamentTown(out: String) {
         val farms = com.lifemax.rpg.feature.habits.domain.TownFarmsData.parse(root)
         // (the memory check: as the app's load (TownSession) lets the parsed street.json go before the town builds, and
         // builds one town, not this preview's second one for its other shots)
+        // (the hand-made landmark models and the walk's collision, as the app builds the town with them: their work shares
+        // the town's workers with the first view's; -DcoldLandmarks=0 leaves them out, as this preview did before)
+        val withLandmarks = System.getProperty("coldLandmarks") != "0"
+        val lmDir = File("../app/src/main/assets/landmarks")
+        val coldLandmarks = if (!withLandmarks || !File(lmDir, "landmarks.json").exists()) null else com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkAssets(
+            com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkSpec.catalogue(File(lmDir, "landmarks.json").readText()),
+            { p -> File(lmDir, p).takeIf { it.exists() }?.readBytes() }, com.lifemax.rpg.feature.habits.domain.GlbLandmarks.parse(root))
+        val coldCollision = if (!withLandmarks) null else com.lifemax.rpg.feature.habits.domain.TownCollision.build(town, yards,
+            com.lifemax.rpg.feature.habits.domain.ModelShape.parseAll(File(bdir, "models.json").takeIf { it.exists() }?.readText()),
+            com.lifemax.rpg.feature.habits.domain.CinemaSiteShape.parse(root), com.lifemax.rpg.feature.habits.domain.StoreLots.parse(root).map { it.sprite }.toSet())
         if (coldOnly) { json = ""; root = org.json.JSONObject() }
         coldStart(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, report, dir, 2340, 1080, cinema, storeSites,
             farms, farmArt,
-            File(townDir, "rail.json").takeIf { it.exists() }?.let { com.lifemax.rpg.feature.habits.domain.RailNet.parse(it.readText()) })
+            File(townDir, "rail.json").takeIf { it.exists() }?.let { com.lifemax.rpg.feature.habits.domain.RailNet.parse(it.readText()) },
+            coldLandmarks, coldCollision)
     }
     // (the memory check: the cold start alone)
     if (coldOnly) { File(dir, "town.txt").writeText(report.toString()); return }
@@ -556,11 +567,24 @@ private fun coldStart(
     farms: com.lifemax.rpg.feature.habits.domain.TownFarmsData = com.lifemax.rpg.feature.habits.domain.TownFarmsData.NONE,
     farmArt: com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt? = null,
     rail: com.lifemax.rpg.feature.habits.domain.RailNet? = null,
+    landmarks: com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkAssets? = null,
+    collision: com.lifemax.rpg.feature.habits.domain.TownCollision? = null,
 ) {
     val t0 = System.nanoTime()
+    // (the town's worker jobs as the app logs them: by kind, and each into cold_jobs.txt with when it ended)
+    val jobLines = java.util.concurrent.ConcurrentLinkedQueue<String>()
+    class Tally { var n = 0; var run = 0.0; var wait = 0.0; var worst = 0f; var worstName = "" }
+    val tallies = java.util.concurrent.ConcurrentHashMap<String, Tally>()
+    com.lifemax.rpg.feature.habits.presentation.scene3d.TownJobs.onJob = { kind, name, waitMs, runMs, priority ->
+        jobLines += "%7.0f ms  %-22s %-40s ran %6.1f ms, waited %6.0f ms, priority %.0f".format((System.nanoTime() - t0) / 1e6, kind, name ?: "-", runMs, waitMs, priority)
+        val t = tallies.getOrPut(kind) { Tally() }
+        synchronized(t) { t.n++; t.run += runMs; t.wait += waitMs; if (runMs > t.worst) { t.worst = runMs; t.worstName = name ?: "-" } }
+    }
+    fun tallyLine() = tallies.entries.sortedByDescending { it.value.run }.joinToString("; ") { (k, t) ->
+        "%s %d jobs %.0f ms (longest %s %.0f ms, mean wait %.0f ms)".format(k, t.n, t.run, t.worstName, t.worst, if (t.n > 0) t.wait / t.n else 0.0) }
     // (the railroad, as the app adds it: its bed kept clear of the forest before the ground is made)
     rail?.let { r -> town.keepClear = com.lifemax.rpg.feature.habits.domain.RailScene(r, town.year)::onBed }
-    val ft = FilamentTown(engine, mats, town, yards, art, building, cinema = cinema, stores = stores, rail = rail)
+    val ft = FilamentTown(engine, mats, town, yards, art, building, cinema = cinema, stores = stores, rail = rail, collision = collision, landmarks = landmarks)
     // (the farms round the town, as the app adds them)
     val farmDraw = farmArt?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownFarms.attach(ft, farms, it, null) }
     // (the world round the town, as the app adds it: the baked skeleton read and held, its far view built on the workers;
@@ -600,6 +624,8 @@ private fun coldStart(
     }
     val firstView = (System.nanoTime() - t0) / 1e6f
     val builtAtView = ft.slots.count { it.isBuilt }
+    report.appendLine("cold start, the workers' jobs by the first view: " + tallyLine() + "; the ground's workers waited %.0f ms for the uploads".format(ft.offerWaitNs.get() / 1e6))
+    ft.landmarkReport.takeIf { it.isNotEmpty() }?.let { r -> report.appendLine("cold start: %d of %d landmark models built at the first view".format(r.count { !it.contains(": building") }, r.size)) }
     fun pct(a: List<Float>, q: Int): Float { val s = a.sorted(); return if (s.isEmpty()) 0f else s[(s.size * q / 100).coerceAtMost(s.size - 1)] }
     report.appendLine("cold start: first view ready after %.0f ms over %d frames (loading budget 14 ms; frame work p50 %.1f ms, p95 %.1f ms, worst %.1f ms at frame %d: building %.1f, the frame's setup %.1f; %d frames over 20 ms); %d of %d buildings built then, the ground's workers %s"
         .format(firstView, frames, pct(loading, 50), pct(loading, 95), worst, worstAt, worstBuild, worstDraw, loading.count { it > 20f },
@@ -637,6 +663,9 @@ private fun coldStart(
         .format(if (busyAtView) "the rest of the town in %.0f ms more".format(restMs) else "nothing left to build when the view was ready", playing.size, pct(playing, 50), pct(playing, 95), playing.maxOrNull() ?: 0f, over,
             ft.buildingsMs, ft.slowest.first, ft.slowest.second, ft.prepareMs, ft.slowestPrepare.first, ft.slowestPrepare.second, ft.groundMs))
     report.appendLine("(cold start: main-thread work only, on the build server's CPU with software GL; the render itself and the S25 are not measured)")
+    report.appendLine("cold start, the workers' jobs in all: " + tallyLine())
+    com.lifemax.rpg.feature.habits.presentation.scene3d.TownJobs.onJob = null
+    File(dir, "cold_jobs.txt").writeText(jobLines.joinToString("\n"))
     farmDraw?.let { report.appendLine("cold start, " + it.report) }
     worldDraw?.let { report.appendLine("cold start, " + it.report + "; " + (worldSite?.report ?: "")) }
     TownMemory.stop()

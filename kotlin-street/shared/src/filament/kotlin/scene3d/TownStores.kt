@@ -124,11 +124,11 @@ internal class TownStore(
         cx = c.x; cz = c.z; r = hypot(lot / 2f, deep / 2f) + 60f
     }
 
-    /** Starts building it on [pool] (once), the cars for [hour] of [weekday]. */
-    fun start(pool: java.util.concurrent.ExecutorService, hour: Float, weekday: Int) {
+    /** Starts building it on [pool] (once), at [priority] there ([TownWorkers]), the cars for [hour] of [weekday]. */
+    fun start(pool: TownWorkers, priority: Float, hour: Float, weekday: Int) {
         if (job != null || done) return
         val a = at; val s = site; val y = year; val l = lot; val d = deep
-        job = pool.submit(java.util.concurrent.Callable {
+        job = pool.submit(priority, "store", site.sprite, java.util.concurrent.Callable {
             val inf = s.at(y, hour, weekday)
             if (inf == null) {
                 val m = s.placeholder(y) ?: CinemaModel(CinemaEra.PALACE, emptyList(), floatArrayOf(0f, 0f, 0f, 0f), 0f, l, d)
