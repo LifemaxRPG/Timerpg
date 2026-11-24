@@ -15,7 +15,9 @@
 //     and night earthshine + star occultation
 //   - World-fixed spherical pixel-art starfield (blue-white/white/cream/gold/amber + cross glints) and
 //     delicate tilted Milky Way star-dust band, fading in cleanly at dusk
-//   - Nearest-filtered 256x256 pixel-art drifting clouds mapped in world (azimuth, elevation) dome bands
+//   - Pixel-art cumulus worked out per art pixel in three world-fixed bands low over the horizon (where the in-game
+//     camera sees sky), a few on a fair day, more as it clouds over, a deck when overcast (cumulusBand); and the
+//     nearest-filtered 256x256 cloud texture's high band, mapped in world (azimuth, elevation) dome bands
 //     so every cloud stays upright, crisp, non-skewed, and completely fixed in world sky on 90-deg turns,
 //     with 3-tone stepped shading (lit top / body / shaded underside) and warm dusk under-belly
 //   - Overcast veil, stepped horizon mist bands, rain atmospheric dimming, and seamless below-horizon haze
@@ -209,6 +211,63 @@ fragment {
             colStar = vec3(1.00, 0.52, 0.24);
         }
         return colStar * bright;
+    }
+
+    // One band of pixel-art cumulus over the whole horizon (the clouds a player sees: the in-game camera looks along the
+    // ground, its sky from the horizon to 15 deg up at the lowest pitch). The ring is cut into slots of [slotW] radians,
+    // each holding a cloud or not (its hash against [cov]); a cloud is a flat-bottomed row of 4-6 round puffs, highest in
+    // the middle, squashed by [flatK] (the far ones flatter, as in perspective), [widen] wider (merging when overcast).
+    // Worked out at the middle of the art pixel ([pix] radians) the ray falls in: crisp, world-fixed pixels, the same at
+    // any screen size. Returns its tone there: 0 none, 1 lit top, 2 body, 3 shaded underside.
+    float cumulusBand(highp float az, highp float elev, highp float slotW, highp float pix, highp float base0,
+                      highp float baseJit, float flatK, float cov, float widen, float seed, highp float drift, float sunX) {
+        highp float slots = floor(SKY_TWO_PI / slotW);
+        highp float sw = SKY_TWO_PI / slots;
+        highp float a = mod(az + drift, SKY_TWO_PI);
+        highp float qa = (floor(a / pix) + 0.5) * pix;
+        highp float qe = (floor(elev / pix) + 0.5) * pix;
+        highp float si = floor(qa / sw);
+        float tone = 0.0;
+        for (int dj = -1; dj <= 1; dj++) {
+            highp float j = si + float(dj);
+            highp float jw = mod(j + slots, slots);
+            highp vec3 h = hash23(vec2(jw * 1.37 + seed * 17.0, seed * 3.1 + 0.7));
+            if (h.x > cov) continue;
+            highp float h4 = hash21(vec2(jw * 2.11 + seed * 5.3, seed + 9.1));
+            highp float w = sw * mix(0.42, 0.95, h.z) * widen;
+            highp float cx = (j + 0.5 + (h.y - 0.5) * 0.45) * sw;
+            highp float base = base0 + h4 * baseJit;
+            highp float dy = qe - base;
+            if (abs(qa - cx) > w * 0.8 || dy < 0.0 || dy > w * flatK) continue;
+            bool inside = false;
+            bool lit = false;
+            // the flat base slab under the puffs
+            highp float bx = (qa - cx) / (w * 0.46);
+            highp float by = dy / (w * 0.09 * flatK);
+            if (bx * bx + by * by < 1.0) inside = true;
+            int n = 4 + int(h4 * 2.99);
+            for (int k = 0; k < 6; k++) {
+                if (k >= n) break;
+                float u = (float(k) / float(n - 1) - 0.5) * 2.0;
+                float arch = 1.0 - u * u * 0.76;
+                highp float hk = hash21(vec2(jw * 3.7 + float(k) * 1.9, seed * 7.7 + 2.3));
+                highp float pr = w * (0.13 + 0.14 * arch) * (0.85 + 0.30 * hk);
+                highp float px = cx + u * w * 0.34 + (hk - 0.5) * w * 0.08;
+                highp float py = base + pr * (0.30 + 0.34 * arch) * flatK;
+                highp float ex = (qa - px) / pr;
+                highp float ey = (qe - py) / (pr * flatK);
+                if (ex * ex + ey * ey < 1.0) {
+                    inside = true;
+                    // (a puff's upper part, leaning to the sun's side, is lit)
+                    if (ey > 0.18 - 0.30 * ex * sunX) lit = true;
+                }
+            }
+            if (!inside) continue;
+            float t = (dy < w * 0.055 * flatK) ? 3.0 : (lit ? 1.0 : 2.0);
+            // (a nearer cloud of the band over a farther one: the later slot wins only where the earlier has none)
+            if (tone == 0.0) tone = t;
+        }
+        return tone;
     }
 
     void material(inout MaterialInputs material) {
@@ -499,47 +558,48 @@ fragment {
                     col = mix(col, hiCol, hiAlpha);
                 }
 
-                // Primary cumulus / overcast stratus deck (tiled 3x around 360 deg, covers 5..64 deg elev)
-                highp float mainV = 1.0 - clamp((elev - 0.08) / 0.96, 0.0, 1.0);
-                highp vec2 uvMain = vec2(fract(azWrap * 3.0 + materialParams.cloudDrift.x), mainV);
-                vec4 cMain = texture(materialParams_cloudTex, uvMain);
+            }
+        }
 
-                float mainThresh = mix(0.90, 0.14, cloudCov);
-                if (elev > 0.08 && elev < 1.04 && cMain.r > mainThresh) {
-                    float puffH = cMain.g;
-                    float underMask = cMain.a;
-
-                    vec3 cLit = materialParams.cloudLit.rgb;
-                    vec3 cBody = materialParams.cloudBody.rgb;
-                    vec3 cShade = materialParams.cloudShade.rgb;
-
-                    float warmUnder = materialParams.cloudBody.w;
-                    if (warmUnder > 0.01) {
-                        vec3 warmRim = mix(cShade, materialParams.duskEmber.rgb, 0.48 * sunSide + 0.16);
-                        cShade = mix(cShade, warmRim, warmUnder * 0.68);
-                        cLit = mix(cLit, mix(cLit, materialParams.duskEmber.rgb, 0.30), warmUnder * sunSide);
-                    }
-
-                    if (nightW > 0.1 && elev < 0.34) {
-                        cShade = mix(cShade, materialParams.skyGlow.rgb, nightW * 0.16 * (1.0 - elev / 0.34));
-                    }
-
-                    if (rain > 0.01) {
-                        cLit = mix(cLit, cBody * 0.78, rain * 0.62);
-                        cBody *= (1.0 - rain * 0.24);
-                        cShade *= (1.0 - rain * 0.36);
-                    }
-
-                    vec3 cCol = cBody;
-                    if (underMask > 0.52 || (overcast > 0.72 && puffH < 0.50)) {
-                        cCol = cShade;
-                    } else if (puffH > 0.62 && overcast < 0.84) {
-                        cCol = cLit;
-                    }
-
-                    float cAlpha = clamp(cloudGate * cloudMaxA, 0.0, 1.0);
-                    col = mix(col, cCol, cAlpha);
+        // Pixel-art cumulus in three bands, far to near (the owner's 100510, 0.1.848: "can't see any clouds": the
+        // texture deck sat 13-60 deg up, above the in-game view): a few scattered on a fair day, more as it clouds over,
+        // merged into a deck when overcast; drifting with the wind, the far ones slowest
+        if (cloudMaxA > 0.01 && elev > 0.004 && elev < 0.62) {
+            float cov = clamp(0.06 + 0.95 * cloudCov, 0.0, 1.0);
+            float widen = mix(1.0, 2.3, smoothstep(0.55, 0.95, cloudCov));
+            vec2 sunH2 = normalize(materialParams.sunDir.xz + vec2(1e-5, 0.0));
+            float sunAz = atan(sunH2.x, -sunH2.y);
+            float sunX = sin(sunAz - az) * (1.0 - nightW);
+            highp float wind = timeSec * (1.0 + 0.65 * cloudCov);
+            float tFar = cumulusBand(az, elev, 0.10, 0.0026, 0.010, 0.035, 0.55, cov, widen, 1.0, wind * 0.0009, sunX);
+            float tMid = cumulusBand(az, elev, 0.19, 0.0036, 0.048, 0.070, 0.68, cov, widen, 2.0, wind * 0.0015, sunX);
+            float tNear = cumulusBand(az, elev, 0.36, 0.0052, 0.125, 0.140, 0.82, cov * 0.9, widen, 3.0, wind * 0.0024, sunX);
+            float tone = tNear > 0.0 ? tNear : (tMid > 0.0 ? tMid : tFar);
+            if (tone > 0.0) {
+                vec3 cLit = materialParams.cloudLit.rgb;
+                vec3 cBody = materialParams.cloudBody.rgb;
+                vec3 cShade = materialParams.cloudShade.rgb;
+                float warmUnder = materialParams.cloudBody.w;
+                if (warmUnder > 0.01) {
+                    vec3 warmRim = mix(cShade, materialParams.duskEmber.rgb, 0.48 * sunSide + 0.16);
+                    cShade = mix(cShade, warmRim, warmUnder * 0.68);
+                    cLit = mix(cLit, mix(cLit, materialParams.duskEmber.rgb, 0.30), warmUnder * sunSide);
                 }
+                if (nightW > 0.1) {
+                    cShade = mix(cShade, materialParams.skyGlow.rgb, nightW * 0.16);
+                }
+                if (rain > 0.01) {
+                    cLit = mix(cLit, cBody * 0.78, rain * 0.62);
+                    cBody *= (1.0 - rain * 0.24);
+                    cShade *= (1.0 - rain * 0.36);
+                }
+                vec3 cCol = tone < 1.5 ? cLit : (tone < 2.5 ? cBody : cShade);
+                if (overcast > 0.72 && tone < 1.5) cCol = mix(cLit, cBody, 0.6);
+                // (the far ones paler, into the horizon's haze)
+                float far = tNear > 0.0 ? 0.0 : (tMid > 0.0 ? 0.18 : 0.40);
+                cCol = mix(cCol, materialParams.skyHorizon.rgb, far * (1.0 - nightW * 0.6));
+                float cAlpha = clamp(smoothstep(0.004, 0.030, elev) * cloudMaxA, 0.0, 1.0);
+                col = mix(col, cCol, cAlpha);
             }
         }
 
