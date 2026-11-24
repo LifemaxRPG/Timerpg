@@ -75,8 +75,12 @@ sandbox gains a JDK.
 
 ChatGPT's usage (2026-11-24, from the owner's reading of the usage display): C018 (the economy, an engineering task) took
 under 10% of a 5-hour window, and the weekly figure stayed at 18% left before and after it. Weekly usage went from about
-25% to 18% overnight with no task open: Sam's scheduled half-hourly queue checks cost more than the task did. So while
+25% to 18% overnight with no task open: Sam's scheduled half-hourly queue checks cost more than the task did. It ran at **medium** reasoning (the owner's setting). So while
 Sam's queue is empty, pause his scheduled check or make it a minimal one (see the owner's chat, 2026-11-24).
+
+Reasoning settings (from the owner, 2026-11-24): Jeff's deliveries so far ran at **max** reasoning. Plan: G016 (the
+sky, the visual test) at max, then his TypeScript work at a lower setting, to see if first-try quality holds for less.
+Record each delivery's setting here.
 
 Gemini's daily limit (2026-11-23, reported by the owner): Jeff ran out of usage about 30 minutes into G012, after
 delivering G009, G011 and G010 that day (three engineering systems, all accepted first try). No G012 work in progress
