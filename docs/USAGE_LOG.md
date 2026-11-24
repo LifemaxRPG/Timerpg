@@ -78,6 +78,10 @@ under 10% of a 5-hour window, and the weekly figure stayed at 18% left before an
 25% to 18% overnight with no task open: Sam's scheduled half-hourly queue checks cost more than the task did. It ran at **medium** reasoning (the owner's setting). So while
 Sam's queue is empty, pause his scheduled check or make it a minimal one (see the owner's chat, 2026-11-24).
 
+Sam's engineering week (2026-11-24, from the owner's readings): from 17% to 5% weekly left over C020-C034, 15 tasks
+plus 3 revisions, all at low reasoning. That's under 1% per finished system, with 12 accepted first try. The owner's
+call: let him run it out before the reset.
+
 Reasoning settings (from the owner, 2026-11-24): Jeff's deliveries so far ran at **max** reasoning. Plan: G016 (the
 sky, the visual test) at max, then his TypeScript work at a lower setting, to see if first-try quality holds for less.
 Record each delivery's setting here.
