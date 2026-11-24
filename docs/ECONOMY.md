@@ -19,7 +19,7 @@ Unsupported or non-integer years return `null`, or `[]` for stock. Unknown IDs o
 
 ## Stock and resale
 
-Use the same stable seed for repeated reads of a shop. Include the world seed and outlet ID in the seed string to distinguish outlets. Stock is a starting shelf snapshot. The caller owns purchases, depleted stock, restocking, and the pawn ledger. The `serial` flag says whether that year's item normally carries a serial number. The caller assigns and preserves the number on the individual inventory item.
+Use the same stable seed for repeated reads of a shop. Include the world seed and outlet ID in the seed string to distinguish outlets. `stockOf` still gives the starting shelf snapshot. Use the stateful API below to track depletion and deliveries. The caller owns money, individual inventory, and the pawn ledger. The `serial` flag says whether that year's item normally carries a serial number. The caller assigns and preserves the number on the individual inventory item.
 
 Canonical shop kinds are `general`, `market`, `hardware`, `pharmacy`, `five_and_dime`, `pawn`, `gas_station`, `diner`, and `clothing`. Names accept spaces or hyphens in place of underscores, with aliases such as `general store`, `grocer` and `pawn shop`. An unrecognized shop returns an empty shelf. Pawn shops stock a small core plus a seeded selection of currently available goods. A retired item can remain in the player's saved inventory, but the catalogue provides no new listing or quote beyond its sale years.
 
@@ -29,11 +29,26 @@ The eight job IDs are `odd_jobs`, `shop_clerk`, `labourer`, `mechanic`, `clerk`,
 
 ## Calibration
 
-The index and 230 catalogue entries are authored gameplay data. The reference price is a modelling input even when an item has gone out of sale by 2025. Linear interpolation fills years between anchors. The current model uses a common index across categories.
+The index and 232 catalogue entries are authored gameplay data. The reference price is a modelling input even when an item has gone out of sale by 2025. Linear interpolation fills years between anchors. Retail prices multiply the common index by a relative category curve. Electronics fall in relative price as their product generations mature. The table radio and pocket calculator use their own curves. Food, fuel, tools, clothing, appliances and diner meals have separate anchors. Wages retain the occupation-specific curves.
 
 | Year | Coffee, cents | Canned peaches, cents | Odd jobs, cents/hour |
 |---|---:|---:|---:|
 | 1925 | 5 (4–7) | 18 (15–25) | 30 (25–35) |
-| 1952 | 7 (5–10) | 23 (20–29) | 75 (65–90) |
+| 1952 | 6 (5–10) | 23 (20–29) | 75 (65–90) |
 | 1978 | 16 (12–21) | 56 (45–70) | 275 (250–320) |
 | 2025 | 77 (65–130) | 271 (240–330) | 1500 (1400–1800) |
+
+## Persistent shelves
+
+The bridge can expose the following calls as JSON inputs and outputs. Keep one serialized `ShopStock` per outlet, and supply its stable outlet seed on every restock.
+
+| Call | Example |
+|---|---|
+| `openStock("general", 1952, "main-street-5")` | Save the returned `{"shopKind":"general","elapsedDays":0,"entries":[...]}`. The radio row has quantity 1 and price 2995. |
+| `take(stock, "radio", 1)` | Returns a copy with the radio row at quantity 0. Save this result after buying or stealing. |
+| `quantityOf(stock, "radio")` | Returns 0 on the depleted shelf or for an unknown item. |
+| `restock(stock, 1, 1952, "main-street-5")` | Returns day 1 with the radio still sold out. Calling again with 6 days returns day 7 with three radios at 3048 cents each. |
+
+`take` is all-or-nothing. Confirm sufficient quantity before charging the player or recording a theft. Invalid and oversized requests leave the stock unchanged. Persist the stock with the corresponding inventory and wallet changes.
+
+Advance by whole elapsed days since the previous call. Delivery intervals are one day for markets and diners, three for pharmacies and gas stations, seven for general stores, hardware stores, five-and-dimes and pawn shops, and fourteen for clothing. A delivery resets quantities to seeded shelf capacity and refreshes the assortment from the supplied year. The caller should open the shelf for the destination timeline when switching timelines. If an advance crosses several deliveries in one year, only the last matters. Split advances using the same year and seed yield the same shelf as a single advance. Delivery prices vary from −3% to +5% of the current base quote, with all prices rounded to cents. Use the row's `priceCents` for checkout.

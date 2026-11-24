@@ -114,3 +114,52 @@ export function stockOf(shopKind: string, year: number, seed: string): StockEntr
   }
   return stock;
 }
+
+export type ShopStock = Readonly<{
+  shopKind: ShopKind | null;
+  elapsedDays: number;
+  entries: readonly StockEntry[];
+}>;
+
+const deliveryDays: Record<ShopKind, number> = {
+  general: 7, market: 1, hardware: 7, pharmacy: 3, five_and_dime: 7,
+  pawn: 7, gas_station: 3, diner: 1, clothing: 14,
+};
+
+export function openStock(shopKind: string, year: number, seed: string): ShopStock {
+  return { shopKind: shopKey(shopKind) ?? null, elapsedDays: 0, entries: stockOf(shopKind, year, seed) };
+}
+
+export function quantityOf(stock: ShopStock, itemId: string): number {
+  return stock.entries.find(entry => entry.itemId === itemId)?.quantity ?? 0;
+}
+
+/** All-or-nothing. Compare the returned quantity before moving money or recording a theft. */
+export function take(stock: ShopStock, itemId: string, n: number): ShopStock {
+  if (!Number.isSafeInteger(n) || n <= 0 || quantityOf(stock, itemId) < n) return stock;
+  return {
+    ...stock,
+    entries: stock.entries.map(entry => entry.itemId === itemId
+      ? { ...entry, quantity: entry.quantity - n }
+      : entry),
+  };
+}
+
+/** Advance by whole elapsed days, retaining the shelf until a delivery crosses the clock. */
+export function restock(stock: ShopStock, days: number, year: number, seed: string): ShopStock {
+  const elapsedDays = stock.elapsedDays + days;
+  const shop = stock.shopKind;
+  if (!shop || !Number.isSafeInteger(days) || days <= 0 || !Number.isSafeInteger(elapsedDays)
+    || priceIndex(year) === null) return stock;
+  const interval = deliveryDays[shop];
+  const delivery = Math.floor(elapsedDays / interval);
+  if (delivery === Math.floor(stock.elapsedDays / interval)) return { ...stock, elapsedDays };
+
+  // The last delivery sets the shelf to capacity. Absolute delivery numbers keep split calls equivalent.
+  const deliverySeed = JSON.stringify([seed, delivery]);
+  const entries = stockOf(shop, year, deliverySeed).map(entry => {
+    const adjustment = rand(seed, 'economy_delivery_price', shop, year, delivery, entry.itemId) * .08 - .03;
+    return { ...entry, priceCents: Math.max(1, Math.round(entry.priceCents * (1 + adjustment))) };
+  });
+  return { shopKind: shop, elapsedDays, entries };
+}

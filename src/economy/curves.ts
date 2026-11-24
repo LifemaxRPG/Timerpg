@@ -3,7 +3,7 @@ import type { Item } from './catalogue';
 
 type Curve = readonly (readonly [number, number])[];
 const curves = {
-  electronics: [[1895, 2], [1952, 1], [1978, 3], [1995, 1.8], [2025, 1]],
+  electronics: [[0, 4], [5, 2.5], [12, 1.5], [25, 1]],
   calculator: [[1971, 110], [1978, 41], [1985, 8], [1995, 2], [2005, 1.22], [2025, 1]],
   appliances: [[1880, 2.5], [1952, 2], [1978, 1.6], [2005, 1.15], [2025, 1]],
   clothing: [[1880, 1.5], [1952, 1.3], [1978, 1.18], [2025, 1]],
@@ -19,7 +19,8 @@ export function relativePrice(item: Item, year: number): number {
       if (item.id === 'pocket_calculator') return interpolate(curves.calculator, year);
       // The table radio's own generation matures before it leaves the catalogue.
       if (item.id === 'radio') return interpolate([[1922, 2.4], [1952, 1], [1970, .65]], year);
-      return interpolate(curves.electronics, year);
+      return interpolate(curves.electronics, year - item.from)
+        / interpolate(curves.electronics, 2025 - item.from);
     case 'appliances': case 'clothing': case 'fuel':
       return interpolate(curves[item.category], year);
     case 'pantry': case 'produce':
