@@ -17,6 +17,8 @@ import { apply, openings, shift } from '../jobs';
 import { effects as needEffects, eat as needEat, initialNeeds, injure, sleep as needSleep, tick as needTick, treat, treatmentCost, wash } from '../needs';
 import { temperatureRange, weatherAt, weatherEffects } from '../weather';
 import { carsForSale, drive as carDrive, papersFor, policeStop, repairCost, runningCosts, serviceCar } from '../cars';
+import { businessesForSale, openBusiness, runDay, valuation } from '../business';
+import { lodgingOffers, menuOf, placeHours } from '../places';
 import { fenceDeal, fenceLeads, fenceRisk, townFences } from '../economy/fence';
 import type {
   AdvanceOptions,
@@ -244,13 +246,31 @@ export const Weather = { weatherAt, weatherEffects, temperatureRange } as const;
 export const Cars = { carsForSale, papersFor, policeStop, runningCosts, drive: carDrive, repairCost, serviceCar } as const;
 (globalThis as Record<string, unknown>).Cars = Cars;
 
-const namespaces: Record<string, Record<string, unknown>> = { economy: Economy, transit: Transit, calendar: Calendar, jobs: Jobs, needs: Needs, weather: Weather, cars: Cars };
+/**
+ * Small businesses (src/business, docs/BUSINESS.md) for the phone: `business.businessesForSale([{"id":"p","kind":"general","name":"X"}], 2025, "seed")`,
+ * `business.openBusiness(offer, "buy", cashCents, "seed")`, `business.runDay(business, absoluteDay, "seed", {"streetActivity":1,"events":[...]})`,
+ * `business.valuation(business, 2025)`. Pure and stateless: the game keeps the Business JSON (saved) and passes it back after each day.
+ */
+export const Business = { businessesForSale, openBusiness, runDay, valuation } as const;
+(globalThis as Record<string, unknown>).Business = Business;
+
+/**
+ * Food and lodging places (src/places, docs/PLACES.md) for the phone: `places.menuOf("diner", 2025, "seed")`,
+ * `places.lodgingOffers("grand_hotel", 2025, "seed")`, `places.placeHours("bar", 1952, 2, "seed")`. Pure and stateless.
+ */
+export const Places = { menuOf, lodgingOffers, placeHours } as const;
+(globalThis as Record<string, unknown>).Places = Places;
+
+const namespaces: Record<string, Record<string, unknown>> = {
+  economy: Economy, transit: Transit, calendar: Calendar, jobs: Jobs, needs: Needs, weather: Weather, cars: Cars, business: Business, places: Places,
+};
 
 /**
  * One entry for the phone (SimJs.kt calls a global function with one JSON string): `{"method": "advance", "args":
  * [24]}` calls `TimerpgSim.advance(24)` and returns its JSON string; a non-string argument is passed as JSON text
  * where the method takes JSON (e.g. `act`'s event as an object). `economy.*` methods go to [Economy], `transit.*`
- * to [Transit], `calendar.*` to [Calendar], `jobs.*` to [Jobs], `needs.*` to [Needs], `weather.*` to [Weather], `cars.*` to [Cars].
+ * to [Transit], `calendar.*` to [Calendar], `jobs.*` to [Jobs], `needs.*` to [Needs], `weather.*` to [Weather], `cars.*` to [Cars],
+ * `business.*` to [Business], `places.*` to [Places].
  */
 export function simCall(json: string): string {
   const req = JSON.parse(json) as { method: string; args?: unknown[] };

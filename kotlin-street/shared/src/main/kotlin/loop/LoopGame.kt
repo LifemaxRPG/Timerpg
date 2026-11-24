@@ -70,6 +70,12 @@ class LoopView(
     val walkMultiplier: Double = 1.0,
     /** "Take your board (2 meals a day included)": the room's board, or "" when the lodging has none. */
     val boardLine: String = "",
+    /** What each food place serves (place id -> menu; `places.menuOf`), the shops for sale or to let and the player's own shops (place id -> ...; `business.*`), "Rooms elsewhere: ..." (`places.lodgingOffers`), the speakeasy's back door when the year has one. */
+    val menus: Map<String, MenuView> = emptyMap(),
+    val forSale: Map<String, SaleView> = emptyMap(),
+    val owned: Map<String, OwnedShopView> = emptyMap(),
+    val roomsElsewhere: String = "",
+    val speakeasy: SpeakeasyView? = null,
 )
 
 /**
@@ -202,7 +208,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
 
     private fun stockSeed(place: LoopPlace) = "${town.seed}|${place.id}"
 
-    private fun stockState(place: LoopPlace): JSONObject? = stocks[place.id] ?: (econ("openStock", LoopItems.econKind(place.shopKind), town.year, stockSeed(place)) as? JSONObject)?.also { stocks[place.id] = it }
+    private fun stockState(place: LoopPlace): JSONObject? = businesses[place.id]?.biz?.optJSONObject("stock") ?: stocks[place.id] ?: (econ("openStock", LoopItems.econKind(place.shopKind), town.year, stockSeed(place)) as? JSONObject)?.also { stocks[place.id] = it }
 
     /** [place]'s shelves now (its `ShopStock` entries, sold-out ones with quantity 0). */
     fun stockFor(place: LoopPlace): List<StockItem> {
@@ -221,6 +227,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val st = stockState(place) ?: return false
         val before = quantityIn(st, key)
         if (before <= 0) return false
+        // (the player's own shop: the shelf is the business's; a loss comes off it at the day's end, as an event of `runDay`, not now)
+        if (businesses.containsKey(place.id)) return before - pendingEvents.count { it.optString("placeId") == place.id && it.optString("kind") == "stock_theft" && it.optString("itemId") == key && it.optInt("day") == day } > 0
         val next = econ("take", st, key, 1) as? JSONObject ?: return false
         if (quantityIn(next, key) >= before) return false
         stocks[place.id] = next
@@ -282,6 +290,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         fenceTrust.clear(); tips.clear(); buildFences()
         rental = null; roomItems.clear(); lastRentStatus = null; arrearsKey = ""
         job = null; references.clear(); takenOpenings.clear(); jobNews = ""
+        businesses.clear(); pendingEvents.clear(); menuCache.clear()
         resetPersonal()
         say("Arrived in ${town.townName} with ${money(cash)}.")
         event("init", JSONObject(res.toString()).put("cash", cash).put("places", town.places.count { it.kind != "home" }).put("ms", timings["init"]?.first))
@@ -305,6 +314,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         o.put("startDate", JSONArray(startDate.toList()))
         job?.let { j -> o.put("job", JSONObject().put("emp", j.emp).put("placeId", j.placeId).put("title", j.title).put("startHour", j.startHour)
             .put("shiftHours", j.shiftHours).put("fromDay", j.fromDay).put("lastWorked", j.lastWorked)) }
+        o.put("businesses", JSONObject().also { m -> for ((k, ob) in businesses) m.put(k, JSONObject().put("biz", ob.biz).put("tenure", ob.tenure).put("since", ob.sinceDay).put("log", JSONArray(ob.log)).put("warning", ob.warning)) })
+        o.put("bizEvents", JSONArray(pendingEvents))
         o.put("references", JSONArray(references)).put("takenOpenings", JSONArray(takenOpenings.toList())).put("jobNews", jobNews)
         savePersonal(o)
         return o.toString()
@@ -342,6 +353,12 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         references.clear(); o.optJSONArray("references")?.let { a -> for (k in 0 until a.length()) references += a.getJSONObject(k) }
         takenOpenings.clear(); o.optJSONArray("takenOpenings")?.let { a -> for (k in 0 until a.length()) takenOpenings += a.getString(k) }
         jobNews = o.optString("jobNews")
+        businesses.clear(); pendingEvents.clear(); menuCache.clear()
+        o.optJSONObject("businesses")?.let { m -> for (k in m.keys()) m.getJSONObject(k).let { e ->
+            businesses[k] = OwnedBiz(e.getJSONObject("biz"), e.optString("tenure", "buy"), e.optInt("since")).also { ob ->
+                e.optJSONArray("log")?.let { a -> for (i in 0 until a.length()) ob.log += a.getJSONObject(i) }; ob.warning = e.optString("warning") }
+        } }
+        o.optJSONArray("bizEvents")?.let { a -> for (i in 0 until a.length()) pendingEvents += a.getJSONObject(i) }
         loadPersonal(o)
         say("Back in ${town.townName}.")
         event("load", JSONObject().put("day", day).put("hour", hour).put("cash", cash).put("items", items.size).put("ms", timings["load"]?.first))
@@ -365,6 +382,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         lastAdvance = res
         restockFor(hours)
         daysEnded(fromDay)
+        businessDaysEnded(fromDay)
         val changes = res.optJSONArray("attitudeChanges") ?: JSONArray()
         // (Jeff's idea: a person's facts are kept until their attitude changes; a new day's gossip can add to what someone
         // already wary knows without changing their stance, so then everyone cached is looked up again too)
@@ -533,7 +551,10 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val di = dayInfo(d)
         if (di.closesShops) return emptyList()
         return spanCache.getOrPut("${place.id}|$d") {
-            val a = econ("hoursOf", LoopItems.econKind(place.shopKind), town.year, di.weekday, hoursSeed(place), shopDate(di)) as? JSONArray ?: JSONArray()
+            // (food venues take their hours from src/places: a bar opens at 5 p.m. and shuts at midnight)
+            val venue = LoopPlaces.hoursVenue(place.shopKind)
+            val a = (if (venue != null) org.json.JSONTokener(call("places.placeHours", venue, town.year, di.weekday, hoursSeed(place), shopDate(di))).nextValue()
+                else econ("hoursOf", LoopItems.econKind(place.shopKind), town.year, di.weekday, hoursSeed(place), shopDate(di))) as? JSONArray ?: JSONArray()
             (0 until a.length()).map { a.getJSONObject(it).let { o -> intArrayOf(o.optInt("open"), o.optInt("close")) } }
         }
     }
@@ -547,6 +568,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val h = floor(hour).toInt() % 24
         val di = dayInfo(day)
         if (di.closesShops) return false
+        if (LoopPlaces.hoursVenue(place.shopKind) != null) return openCache.getOrPut("${place.id}|$h") { spansOn(place, day).any { h >= it[0] && h < it[1] } }
         return openCache.getOrPut("${place.id}|$h") {
             econ("isOpen", LoopItems.econKind(place.shopKind), town.year, di.weekday, h, hoursSeed(place), shopDate(di)) as? Boolean ?: false
         }
@@ -559,6 +581,10 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val h = floor(hour).toInt() % 24
         val di = dayInfo(day)
         if (di.closesShops) return 0
+        if (LoopPlaces.hoursVenue(place.shopKind) != null) return staffCache.getOrPut("${place.id}|$h") {
+            if (!spansOn(place, day).any { h >= it[0] && h < it[1] }) 0
+            else max(1, (econ("staffed", "diner", town.year, di.weekday, h, hoursSeed(place), shopDate(di)) as? Number)?.toInt() ?: 1)
+        }
         return staffCache.getOrPut("${place.id}|$h") {
             (econ("staffed", LoopItems.econKind(place.shopKind), town.year, di.weekday, h, hoursSeed(place), shopDate(di)) as? Number)?.toInt() ?: 0
         }
@@ -637,6 +663,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
 
     fun buy(place: LoopPlace, s: StockItem, scene: LoopScene, gameHour: Double): LoopOutcome {
         clockTo(gameHour, exact = true)
+        if (businesses.containsKey(place.id)) return done(false, "It's your own shop: take what you need from the shelves in the back.")
         if (!isOpenNow(place)) return done(false, closed(place))
         val (no, wary) = refusal(place, "serve")
         if (no != null) return done(false, no)
@@ -662,6 +689,11 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
             .also { o -> place.keeperId?.let { o.put("ownerId", it) } }, scene)
         val item = proto.copy(crimeId = res.optString("crimeId").ifEmpty { null }, serial = res.optString("stolenSerialNumber").ifEmpty { proto.serial })
         items += item
+        // (a theft at the player's own shop is a loss on its books: the stock gone, and a forced door's repair)
+        if (businesses.containsKey(place.id)) {
+            if (breakIn != null) shopIncident(place.id, "breakage", cents = breakInCents())
+            shopIncident(place.id, "stock_theft", itemId = s.key, quantity = 1)
+        }
         val w = res.optJSONArray("witnessedBy") ?: JSONArray()
         val victim = (0 until w.length()).map { w.getJSONObject(it) }.firstOrNull { it.optBoolean("isVictim") }
         val fired = theftAtWork(place, w)
@@ -677,6 +709,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     fun sell(place: LoopPlace, item: LoopItem, scene: LoopScene, gameHour: Double): LoopOutcome {
         clockTo(gameHour, exact = true)
         if (place.kind != "pawn_shop") return done(false, "${place.name} doesn't buy things.")
+        if (businesses.containsKey(place.id)) return done(false, "It's your own shop.")
         if (!isOpenNow(place)) return done(false, closed(place))
         val (no, wary) = refusal(place, "deal with")
         if (no != null) return done(false, no)
@@ -728,6 +761,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     /** A shift at [place]: up to 4 hours (not past closing), paid at the end; the clock moves on by it. */
     fun work(place: LoopPlace, scene: LoopScene, gameHour: Double): LoopOutcome {
         clockTo(gameHour, exact = true)
+        if (businesses.containsKey(place.id)) return done(false, "It's your own shop.")
         if (!isOpenNow(place)) return done(false, closed(place))
         if (active()?.placeId == place.id) return done(false, "You work here: start your shift instead.")
         if (openingsAt(place).isNotEmpty()) return done(false, "They're hiring: ask about work.")
@@ -819,6 +853,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     fun applyFor(place: LoopPlace, openingId: String, gameHour: Double): LoopOutcome {
         clockTo(gameHour, exact = true)
         active()?.let { return done(false, "You already work at ${workedAt()?.name ?: "a shop"}.") }
+        if (businesses.containsKey(place.id)) return done(false, "It's your own shop.")
         val opening = openingsAt(place).firstOrNull { it.getString("id") == openingId } ?: return done(false, "That position has been filled.")
         val rep = reputationAt(place)
         val res = JSONObject(call("jobs.apply", opening, JSONObject().put("age", PLAYER_AGE).put("references", refsJson()).put("reputation", rep).put("hasPapers", PLAYER_HAS_PAPERS)))
@@ -1213,6 +1248,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val fromDay = day
         day += floor(total / 24.0).toInt(); hour = total - 24.0 * floor(total / 24.0)
         daysEnded(fromDay)
+        businessDaysEnded(fromDay)
         val passed = jailH
         restockFor(jailH)
         // (hours held: a night on the cell's bunk, else sitting about)
@@ -1298,23 +1334,279 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
 
     /** What [place] offers to eat: a meal at a diner, a snack at a general store, market, five-and-dime or gas station; null elsewhere. */
     fun eatOption(place: LoopPlace): EatView? {
+        if (LoopPlaces.spec(place.shopKind) != null) return null // (a food place has its menu: [menuOf])
         val meal = when (LoopItems.econKind(place.shopKind)) { "diner" -> "diner"; "general", "market", "five_and_dime", "gas_station" -> "snack"; else -> return null }
         val c = mealCents(meal)
         return EatView(if (meal == "diner") "Eat a meal" else "Have a snack", c, money(c), meal)
     }
 
-    /** "Eat" at [place]: pays the meal's price, relieves hunger (`needs.eat`). */
+    /** "Eat" at [place]: pays the meal's price, relieves hunger (`needs.eat`). At the player's own shop it is free. */
     fun eat(place: LoopPlace, gameHour: Double): LoopOutcome {
         clockTo(gameHour, exact = true)
         val opt = eatOption(place) ?: return done(false, "${place.name} doesn't serve food.")
         if (!isOpenNow(place)) return done(false, closed(place))
-        val (no, wary) = refusal(place, "serve")
+        val own = businesses.containsKey(place.id)
+        val (no, wary) = if (own) null to null else refusal(place, "serve")
         if (no != null) return done(false, no)
-        if (cash < opt.cents) return done(false, "${opt.label} costs ${opt.text}; you have ${money(cash)}.")
-        cash -= opt.cents
+        if (!own && cash < opt.cents) return done(false, "${opt.label} costs ${opt.text}; you have ${money(cash)}.")
+        if (!own) cash -= opt.cents
         setNeeds(nd("eat", needsState(), opt.meal) as JSONObject)
-        event("eat", JSONObject().put("place", place.id).put("meal", opt.meal).put("cents", opt.cents))
-        return done(true, "${if (opt.meal == "diner") "You eat a meal" else "You have a snack"} at ${place.name} for ${opt.text}." + needsNote(), wary = wary)
+        event("eat", JSONObject().put("place", place.id).put("meal", opt.meal).put("cents", if (own) 0 else opt.cents))
+        return done(true, "${if (opt.meal == "diner") "You eat a meal" else "You have a snack"} at ${place.name}" + (if (own) " (your own, on the house)" else " for ${opt.text}") + "." + needsNote(), wary = wary)
+    }
+
+    // ------------------------------------------------------------------ menus and lodging (src/places, docs/PLACES.md: places.menuOf / lodgingOffers / placeHours)
+
+    private val menuCache = HashMap<String, List<MenuItemView>>()
+
+    /** The era's menu for a [kind] of venue (`places.menuOf` with the venue's [seed]): the items in the town's year, empty when the venue does not exist then (a legal bar under Prohibition). */
+    fun menuOf(kind: String, seed: String = "${town.seed}|$kind", year: Int = town.year): List<MenuItemView> {
+        val a = org.json.JSONTokener(call("places.menuOf", kind, year, seed)).nextValue() as? JSONArray ?: return emptyList()
+        return (0 until a.length()).map { a.getJSONObject(it) }.map { MenuItemView(it.getString("id"), it.getString("label"), it.getInt("priceCents"), money(it.getInt("priceCents")), it.getString("meal")) }
+    }
+
+    /** What [place] serves (its venue's menu, ice cream parlors keeping only the snacks), cached; null for a shop that sells goods. */
+    fun menuFor(place: LoopPlace): MenuView? {
+        val spec = LoopPlaces.spec(place.shopKind) ?: return null
+        val items = menuCache.getOrPut(place.id) {
+            spec.kinds.firstNotNullOfOrNull { k -> menuOf(k, "${town.seed}|${place.id}").filter { !spec.snacksOnly || it.meal == "snack" }.takeIf { it.isNotEmpty() } }.orEmpty()
+        }
+        val note = if (items.isNotEmpty()) "" else if (LoopPlaces.isBar(place.shopKind) && town.year in 1920..1933) "No legal drink: Prohibition." else "Nothing is served."
+        return MenuView(spec.kinds.first(), items, note)
+    }
+
+    /** Orders [itemId] from [place]'s menu: pays its price (free at the player's own place) and relieves hunger by the item's meal kind (`needs.eat`). */
+    fun eatItem(place: LoopPlace, itemId: String, gameHour: Double): LoopOutcome {
+        clockTo(gameHour, exact = true)
+        val menu = menuFor(place) ?: return done(false, "${place.name} doesn't serve food.")
+        val item = menu.items.firstOrNull { it.id == itemId } ?: return done(false, if (menu.items.isEmpty()) menu.note else "They don't have that.")
+        if (!isOpenNow(place)) return done(false, closed(place))
+        val own = businesses.containsKey(place.id)
+        val (no, wary) = if (own) null to null else refusal(place, "serve")
+        if (no != null) return done(false, no)
+        if (!own && cash < item.cents) return done(false, "${item.label} costs ${item.text}; you have ${money(cash)}.")
+        if (!own) cash -= item.cents
+        setNeeds(nd("eat", needsState(), item.meal) as JSONObject)
+        event("eat", JSONObject().put("place", place.id).put("item", item.id).put("meal", item.meal).put("cents", if (own) 0 else item.cents))
+        return done(true, "You have ${item.label.replaceFirstChar { it.lowercase() }} at ${place.name}" + (if (own) " (your own, on the house)" else " for ${item.text}") + "." + needsNote(), wary = wary)
+    }
+
+    /** "Rooms elsewhere: Grand hotel $X a night (private bath); ..." (`places.lodgingOffers` for each hotel kind the year has): info only, the town has no hotel. */
+    val roomsElsewhere: String by lazy {
+        val parts = LoopPlaces.LODGING.mapNotNull { (kind, name) ->
+            val a = org.json.JSONTokener(call("places.lodgingOffers", kind, town.year, "${town.seed}|$kind")).nextValue() as? JSONArray ?: return@mapNotNull null
+            val o = a.optJSONObject(0) ?: return@mapNotNull null
+            val days = o.optInt("billingDays", 1); val rate = o.optInt("rateCents")
+            "$name ${money(rate)}" + (if (days <= 1) " a night" else " every $days days") + " (${o.optString("bathroom")} bath" + (if (o.optInt("depositCents") > 0) ", ${money(o.optInt("depositCents"))} deposit" else "") + ")"
+        }
+        if (parts.isEmpty()) "" else "Rooms elsewhere: " + parts.joinToString("; ") + "."
+    }
+
+    // ------------------------------------------------------------------ the speakeasy (1920-1933: places.menuOf('speakeasy') / placeHours)
+
+    private fun speakeasyHours(d: Int): List<IntArray> {
+        val di = dayInfo(d)
+        val a = org.json.JSONTokener(call("places.placeHours", "speakeasy", town.year, di.weekday, "${town.seed}|speakeasy", shopDate(di))).nextValue() as? JSONArray ?: return emptyList()
+        return (0 until a.length()).map { a.getJSONObject(it).let { o -> intArrayOf(o.optInt("open"), o.optInt("close")) } }
+    }
+
+    /** Whether the back door is open at the clock now (night hours only). */
+    fun speakeasyOpen(): Boolean { val h = floor(hour).toInt() % 24; return speakeasyHours(day).any { h >= it[0] && h < it[1] } }
+
+    /** The speakeasy's menu (empty outside the Prohibition years). */
+    fun speakeasyMenu(): List<MenuItemView> = if (town.speakeasy == null) emptyList() else menuCache.getOrPut("speakeasy") { menuOf("speakeasy", "${town.seed}|speakeasy") }
+
+    /** Orders [itemId] at the back door: only at night, paid, relieves hunger by the item's meal kind. (Drinking is against the law then; the facade has no hook for it, see docs/LOOP.md.) */
+    fun orderAtSpeakeasy(itemId: String, gameHour: Double): LoopOutcome {
+        clockTo(gameHour, exact = true)
+        val sp = town.speakeasy ?: return done(false, "There is nothing behind that door.")
+        val item = speakeasyMenu().firstOrNull { it.id == itemId } ?: return done(false, "They don't have that.")
+        if (!speakeasyOpen()) return done(false, "The back door is shut. Try after dark.")
+        if (cash < item.cents) return done(false, "${item.label} costs ${item.text}; you have ${money(cash)}.")
+        cash -= item.cents
+        setNeeds(nd("eat", needsState(), item.meal) as JSONObject)
+        event("eat", JSONObject().put("place", sp.placeId).put("speakeasy", true).put("item", item.id).put("meal", item.meal).put("cents", item.cents))
+        return done(true, "Behind the back door of ${town.placeById[sp.placeId]?.name ?: "the shop"} you have ${item.label.replaceFirstChar { it.lowercase() }} for ${item.text}." + needsNote())
+    }
+
+    private fun speakeasyView(): SpeakeasyView? {
+        val sp = town.speakeasy ?: return null
+        val menu = speakeasyMenu().takeIf { it.isNotEmpty() } ?: return null
+        val spans = speakeasyHours(day)
+        return SpeakeasyView(sp.name, speakeasyOpen(), if (spans.isEmpty()) "Shut today" else "Open " + spans.joinToString(", ") { "${hourText(it[0])}-${hourText(it[1])}" }, menu)
+    }
+
+    // ------------------------------------------------------------------ small businesses (src/business, docs/BUSINESS.md)
+
+    /** A shop the player owns: its `Business` JSON (the module's, saved), how it was taken ("buy" / "lease"), the day taken, a log of the days run (newest last), the last warning from the landlord or the bank. */
+    private class OwnedBiz(biz: JSONObject, val tenure: String, val sinceDay: Int) {
+        var biz: JSONObject = biz; set(v) { field = v; valuation = null }
+        var valuation: Int? = null
+        val log = ArrayList<JSONObject>()
+        var warning = ""
+    }
+    private val businesses = LinkedHashMap<String, OwnedBiz>()
+    /** Events at the player's shops not yet run through `runDay`: place id, day, kind (`stock_theft` itemId quantity / `cash_theft` / `breakage` cents). */
+    private val pendingEvents = ArrayList<JSONObject>()
+    /** The most clerks a shop takes on. */
+    val MAX_CLERKS = 3
+
+    /** The offers (`business.businessesForSale` for the town's shops, the town's seed), made once. */
+    private val offers: Map<String, JSONObject> by lazy {
+        val shops = JSONArray()
+        for (p in town.places) if (p.kind != "home" && p.kind != "police_station") shops.put(JSONObject().put("id", p.id).put("kind", LoopItems.econKind(p.shopKind)).put("name", p.name))
+        val a = org.json.JSONTokener(call("business.businessesForSale", shops, town.year, town.seed)).nextValue() as? JSONArray ?: JSONArray()
+        (0 until a.length()).map { a.getJSONObject(it) }.associateBy { it.getJSONObject("place").getString("id") }
+    }
+
+    fun ownsShop(placeId: String) = businesses.containsKey(placeId)
+    val ownedShopIds: List<String> get() = businesses.keys.toList()
+
+    /** The till float the player puts in the drawer when they take a shop: about a week of the lease (at least a dollar). */
+    private fun floatCents(offer: JSONObject): Int = max(100, offer.optInt("leaseMonthlyCents") / 4)
+    /** What taking [offer] costs now: [buy] the asking price, else the opening stock (the lease's rent accrues daily from the drawer), and the float. */
+    private fun dueFor(offer: JSONObject, buy: Boolean): Int = (if (buy) offer.optInt("askingCents") else offer.optInt("stockCents")) + floatCents(offer)
+
+    /** A forced door's repair (`breakage`): $35 of 1952 money scaled by the price index. */
+    private fun breakInCents(): Int = max(1, (3500.0 * priceIndex / ((econ("priceIndex", 1952) as? Number)?.toDouble() ?: 1.0)).roundToInt())
+
+    /** Takes [place] by [tenure] ("buy" or "lease"): pays from the wallet (refused if short), puts the float in the drawer, and the shop is the player's (saved). */
+    fun buyBusiness(place: LoopPlace, tenure: String, gameHour: Double): LoopOutcome {
+        clockTo(gameHour, exact = true)
+        if (businesses.containsKey(place.id)) return done(false, "You already own ${place.name}.")
+        val offer = offers[place.id] ?: return done(false, "${place.name} is not for sale.")
+        val buy = tenure == "buy"
+        val due = dueFor(offer, buy)
+        if (cash < due) return done(false, "${if (buy) "Buying" else "Leasing"} ${place.name} costs ${money(due)} now (${if (buy) "the price and a till float" else "the stock and a till float"}); you have ${money(cash)}.")
+        val b = org.json.JSONTokener(call("business.openBusiness", offer, if (buy) "buy" else "lease", floatCents(offer), town.seed)).nextValue() as? JSONObject
+            ?: return done(false, "The deal falls through.")
+        cash -= due
+        businesses[place.id] = OwnedBiz(b, if (buy) "buy" else "lease", day)
+        stocks.remove(place.id)
+        event("business", JSONObject().put("what", tenure).put("place", place.id).put("paid", due).put("day", day))
+        return done(true, if (buy) "You buy ${place.name} for ${money(due)} (with ${money(floatCents(offer))} in the till)." else "You lease ${place.name}: ${money(due)} for the stock and the till, then ${money(offer.optInt("leaseMonthlyCents"))} a month.")
+    }
+
+    /** Records an event at an owned shop for the day's `runDay` ([kind]: `stock_theft` with [itemId] and [quantity], `cash_theft` or `breakage` with [cents]). A no-op at a shop the player does not own. */
+    fun shopIncident(placeId: String, kind: String, itemId: String = "", quantity: Int = 1, cents: Int = 0) {
+        if (!businesses.containsKey(placeId)) return
+        pendingEvents += JSONObject().put("placeId", placeId).put("day", day).put("kind", kind).also { if (kind == "stock_theft") it.put("itemId", itemId).put("quantity", quantity) else it.put("cents", cents) }
+        event("business", JSONObject().put("what", "incident").put("place", placeId).put("kind", kind).put("item", itemId).put("cents", cents).put("day", day))
+    }
+
+    /** The calendar's absolute number of in-game day [d] (`dayNumberOf(startDate)` + the days since), what `runDay` takes. */
+    private fun absoluteDay(d: Int): Int = ((cal("dayNumberOf", dateJson(startDate[0], startDate[1], startDate[2])) as? Number)?.toInt() ?: 0) + d - 1
+
+    /** Runs every owned shop's books for each day that ended between [fromDay] and now (`runDay`, one day at a time). */
+    private fun businessDaysEnded(fromDay: Int) {
+        if (businesses.isEmpty()) return
+        for (d in fromDay until day) for (pid in businesses.keys.toList()) runBusinessDay(pid, d)
+    }
+
+    private fun runBusinessDay(pid: String, d: Int) {
+        val ob = businesses[pid] ?: return
+        val place = town.placeById[pid]
+        val closed = place == null || spansOn(place, d).isEmpty()
+        val crowd = skyAt(d, 12.0)?.let { skyEffectsOf(it).optDouble("streetActivityMultiplier", 1.0) } ?: 1.0
+        val events = JSONArray()
+        val today = pendingEvents.filter { it.optString("placeId") == pid && it.optInt("day") <= d }
+        for (e in today) events.put(if (e.optString("kind") == "stock_theft") JSONObject().put("kind", "stock_theft").put("itemId", e.optString("itemId")).put("quantity", e.optInt("quantity"))
+            else JSONObject().put("kind", e.optString("kind")).put("cents", e.optInt("cents")))
+        pendingEvents.removeAll(today.toSet())
+        val cond = JSONObject().put("streetActivity", crowd).put("closed", closed).put("events", events)
+        val r = org.json.JSONTokener(call("business.runDay", ob.biz, absoluteDay(d), town.seed, cond)).nextValue() as? JSONObject ?: return
+        ob.biz = r.getJSONObject("business")
+        ob.log += JSONObject().put("day", d).put("sales", r.optInt("salesCents")).put("profit", r.optInt("profitCents")).put("customers", r.optInt("customers"))
+            .put("goods", r.optInt("costOfGoodsCents")).put("restock", r.optInt("restockCents")).put("wages", r.optInt("wagesCents")).put("rent", r.optInt("rentCents"))
+            .put("bank", r.optInt("bankCents")).put("loss", r.optInt("lossCents")).put("closed", closed)
+        while (ob.log.size > 28) ob.log.removeAt(0)
+        val landlord = if (r.isNull("landlord")) "" else r.optString("landlord")
+        val bank = if (r.isNull("bank")) "" else r.optString("bank")
+        val name = place?.name ?: "your shop"
+        event("business", JSONObject().put("what", "day").put("place", pid).put("day", d).put("sales", r.optInt("salesCents")).put("profit", r.optInt("profitCents")).put("loss", r.optInt("lossCents")).put("customers", r.optInt("customers"))
+            .put("wages", r.optInt("wagesCents")).put("rent", r.optInt("rentCents")).put("restock", r.optInt("restockCents")).put("goods", r.optInt("costOfGoodsCents")).put("crowd", crowd).put("closed", closed)
+            .put("landlord", landlord).put("bank", bank).put("ms", timings["business.runDay"]?.first))
+        when {
+            landlord == "lockout" -> { businesses.remove(pid); say("The landlord has locked you out of $name: the rent was not paid. The shop is gone."); return }
+            bank == "repossess" -> { businesses.remove(pid); say("The bank has repossessed $name: the payments were missed. The shop is gone."); return }
+        }
+        val warn = when { landlord == "warning" -> "The landlord is waiting for the rent (${ob.biz.optInt("missedRentDays")} day(s) late)."; bank == "warning" -> "The bank is waiting for a payment."; else -> "" }
+        if (warn.isNotEmpty() && warn != ob.warning) say("$name: $warn")
+        ob.warning = warn
+    }
+
+    private fun clerkWageCents(): Int = (econ("wage", "shop_clerk", town.year) as? JSONObject)?.optInt("hourlyCents", 0) ?: 0
+
+    /** Takes on a clerk at an owned shop (`{job: shop_clerk, hours: 8}`, paid by `runDay` for the hours it is open), up to [MAX_CLERKS]. */
+    fun hireClerk(place: LoopPlace): LoopOutcome {
+        val ob = businesses[place.id] ?: return done(false, "It is not your shop.")
+        val staff = ob.biz.optJSONArray("staff") ?: JSONArray()
+        if (staff.length() >= MAX_CLERKS) return done(false, "${place.name} has all the clerks it can use.")
+        val next = JSONObject(ob.biz.toString())
+        next.put("staff", JSONArray(staff.toString()).put(JSONObject().put("job", "shop_clerk").put("hours", 8)))
+        ob.biz = next
+        return done(true, "You hire a clerk at ${place.name}: ${money(clerkWageCents())} an hour, up to 8 hours a day.")
+    }
+
+    /** Lets the last clerk go. */
+    fun letClerkGo(place: LoopPlace): LoopOutcome {
+        val ob = businesses[place.id] ?: return done(false, "It is not your shop.")
+        val staff = ob.biz.optJSONArray("staff") ?: JSONArray()
+        if (staff.length() == 0) return done(false, "You have no one to let go.")
+        val next = JSONObject(ob.biz.toString())
+        val kept = JSONArray(); for (k in 0 until staff.length() - 1) kept.put(staff.getJSONObject(k))
+        next.put("staff", kept)
+        ob.biz = next
+        return done(true, "You let a clerk go at ${place.name}.")
+    }
+
+    /** Moves the drawer's cash to the wallet. */
+    fun takeCashOut(place: LoopPlace): LoopOutcome {
+        val ob = businesses[place.id] ?: return done(false, "It is not your shop.")
+        val c = ob.biz.optInt("cashCents")
+        if (c <= 0) return done(false, "The drawer is empty.")
+        ob.biz = JSONObject(ob.biz.toString()).put("cashCents", 0)
+        cash += c
+        event("business", JSONObject().put("what", "cash_out").put("place", place.id).put("cents", c))
+        return done(true, "You take ${money(c)} out of the drawer at ${place.name}.")
+    }
+
+    private fun valuationOf(ob: OwnedBiz): Int = ob.valuation ?: ((org.json.JSONTokener(call("business.valuation", ob.biz, town.year)).nextValue() as? Number)?.toInt() ?: 0).also { ob.valuation = it }
+
+    /** Sells the shop for its going-concern value (`valuation`: fixtures, stock and 90 days of the average profit, less what is owed) and takes the drawer's cash too. */
+    fun sellUp(place: LoopPlace): LoopOutcome {
+        val ob = businesses[place.id] ?: return done(false, "It is not your shop.")
+        val v = valuationOf(ob); val drawer = ob.biz.optInt("cashCents")
+        businesses.remove(place.id)
+        pendingEvents.removeAll { it.optString("placeId") == place.id }
+        cash += v + drawer
+        event("business", JSONObject().put("what", "sold").put("place", place.id).put("paid", v).put("drawer", drawer).put("day", day))
+        return done(true, "You sell ${place.name} for ${money(v)}" + (if (drawer > 0) " and take the ${money(drawer)} from the drawer" else "") + ".")
+    }
+
+    private fun signed(c: Int): String = if (c < 0) "-" + money(-c) else money(c)
+
+    private fun saleViews(shops: List<LoopPlace>): Map<String, SaleView> = shops.mapNotNull { p ->
+        if (businesses.containsKey(p.id)) return@mapNotNull null
+        val o = offers[p.id] ?: return@mapNotNull null
+        val weekly = o.optJSONArray("recentWeeklyTakingsCents")?.let { a -> if (a.length() == 0) 0 else (0 until a.length()).sumOf { a.getInt(it) } / a.length() } ?: 0
+        val ask = o.optInt("askingCents"); val lease = o.optInt("leaseMonthlyCents")
+        val buyDue = dueFor(o, true); val leaseDue = dueFor(o, false)
+        p.id to SaleView(ask, money(ask), lease, money(lease), buyDue, money(buyDue), leaseDue, money(leaseDue), "about ${money(weekly)} a week",
+            "For sale ${money(ask)} / To let ${money(lease)} a month")
+    }.toMap()
+
+    private fun ownedViews(): Map<String, OwnedShopView> = businesses.mapValues { (_, ob) ->
+        val b = ob.biz
+        val last = ob.log.lastOrNull()
+        val week = ob.log.takeLast(7)
+        fun costs(r: JSONObject) = r.optInt("sales") - r.optInt("profit")
+        val lastText = if (last == null) "No day has been run yet: the books close at the end of the day." else
+            "Last day (${dayInfo(last.optInt("day")).text})" + (if (last.optBoolean("closed")) ", shut" else "") + ": takings ${money(last.optInt("sales"))}, costs ${money(costs(last))}, profit ${signed(last.optInt("profit"))}"
+        val weekText = if (week.size < 2) "" else "Last ${week.size} days: takings ${money(week.sumOf { it.optInt("sales") })}, costs ${money(week.sumOf { costs(it) })}, profit ${signed(week.sumOf { it.optInt("profit") })}"
+        val staff = b.optJSONArray("staff")?.length() ?: 0
+        val v = valuationOf(ob)
+        OwnedShopView(ob.tenure, b.optInt("cashCents"), money(b.optInt("cashCents")), staff, MAX_CLERKS, money(clerkWageCents()) + "/h", lastText, weekText, v, money(v), ob.warning)
     }
 
     /** The meals the room's lodging includes a day (`includedMealsPerDay`: 0 for a boarding house, 2 for room and board), 0 without a room or while locked out. */
@@ -1636,7 +1928,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
             fences, fenceTrust.toMap(), quotes, shops.associate { it.id to hoursOf(it) },
             rentView(), lodgingOffer(), roomCost(), livingLine(), transitInfo(), railCoef(),
             dayInfo(day).text, dayInfo(day).holiday.orEmpty(), jobsView(shops),
-            needsView(), shops.mapNotNull { p -> eatOption(p)?.let { p.id to it } }.toMap(), skyView(), carsView(), walkMultiplier(), boardLine())
+            needsView(), shops.mapNotNull { p -> eatOption(p)?.let { p.id to it } }.toMap(), skyView(), carsView(), walkMultiplier(), boardLine(),
+            menus = shops.mapNotNull { p -> menuFor(p)?.let { p.id to it } }.toMap(), forSale = saleViews(shops), owned = ownedViews(), roomsElsewhere = roomsElsewhere, speakeasy = speakeasyView())
     }
 
     private fun lodgingOffer(): String = lodgingTerms()?.let { t ->

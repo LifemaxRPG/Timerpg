@@ -746,19 +746,29 @@ class LoopGameTest {
                 assertTrue(g.view.walkMultiplier < 1.0)
                 // 2. a meal at the diner (a third of the era's diner day), paid, relieves it
                 if (!g.isOpenNow(diner)) toDayHour(g, g.day + 1, 12.0)
-                val dn = org.json.JSONObject(js.call("simCall", "{\"method\":\"economy.dailyNeeds\",\"args\":[2025]}"))
-                val price = dn.getInt("dinerMealsPerDayCents") / 3
-                assertEquals(price, g.eatOption(diner)!!.cents)
+                // (the diner's menu is the places module's era menu: each item's price from the bundle, its meal kind feeds `needs.eat`)
+                val bundleMenu = org.json.JSONArray(js.call("simCall", "{\"method\":\"places.menuOf\",\"args\":[\"diner\",2025,\"${loop.seed}|${diner.id}\"]}"))
+                val menu = g.view.menus.getValue(diner.id)
+                assertEquals(bundleMenu.length(), menu.items.size)
+                for (k in 0 until bundleMenu.length()) { assertEquals(bundleMenu.getJSONObject(k).getInt("priceCents"), menu.items[k].cents); assertEquals(bundleMenu.getJSONObject(k).getString("meal"), menu.items[k].meal) }
+                assertNull("a food place has a menu, not a snack", g.eatOption(diner))
+                val meal = menu.items.first { it.meal == "diner" }
                 val hungerBefore = g.view.needs!!.hunger; val cash0 = g.cash
-                val e = g.eat(diner, g.hour)
-                println("LoopGameTest: ${e.line}")
+                val e = g.eatItem(diner, meal.id, g.hour)
+                println("LoopGameTest: ${e.line} (${menu.items.joinToString { it.label + " " + it.text }})")
                 assertTrue(e.line, e.ok)
-                assertEquals(cash0 - price, g.cash)
-                assertTrue(g.view.needs!!.hunger < hungerBefore - .3)
+                assertEquals(cash0 - meal.cents, g.cash)
+                assertEquals("a diner meal relieves .37", Math.max(0.0, hungerBefore - .37), g.view.needs!!.hunger, 1e-6)
                 assertTrue(g.view.needs!!.labels.none { it == "hungry" })
+                // (a snack from the menu relieves less, by its kind)
+                g.advance(8.0, "hour")
+                val snack = menu.items.first { it.meal == "snack" }
+                val hs = g.view.needs!!.hunger
+                assertTrue(g.eatItem(diner, snack.id, g.hour).ok || !g.isOpenNow(diner))
+                if (g.isOpenNow(diner)) assertEquals(Math.max(0.0, hs - .16), g.view.needs!!.hunger, 1e-6)
                 // 3. a snack at a general store is cheaper; the pawn shop serves nothing
                 val shop = loop.places.first { it.kind == "market" }
-                assertTrue(g.eatOption(shop)!!.cents < price); assertNull(g.eatOption(loop.placeById.getValue("glb:pawn_shop")))
+                assertTrue(g.eatOption(shop)!!.cents < meal.cents * 3); assertNull(g.eatOption(loop.placeById.getValue("glb:pawn_shop")))
                 // 4. a day unwashed and tired: the look goes into what people know of the player
                 g.advance(30.0, "hour")
                 println("LoopGameTest: after 40 h: ${g.view.needs!!.labels} looks: ${g.view.needs!!.look}")
@@ -912,6 +922,176 @@ class LoopGameTest {
                 assertTrue(g.repair(car.id, atLot = true).ok)
                 assertEquals(c4 - broke.repairCents, g.cash)
                 assertNull(g.view.cars.owned.single().blocked)
+            }.get()
+        }
+    }
+
+    // ------------------------------------------------------------------ menus, lodging, the speakeasy and small businesses (docs/LOOP.md)
+
+    private fun bundleCall(js: com.lifemax.rpg.feature.habits.simjs.SimJs, method: String, args: String): Any =
+        org.json.JSONTokener(js.call("simCall", "{\"method\":\"$method\",\"args\":[$args]}")).nextValue()
+
+    @Test fun menusProhibitionTheSpeakeasyAndRoomsElsewhere() {
+        val bakery = loop.places.first { it.shopKind == "bakery" }
+        val parlor = loop.places.firstOrNull { it.shopKind == "ice cream parlor" }
+        SimJsThread().use { t ->
+            t.load(bundle).get()
+            t.run { js ->
+                // 1. the bundle: a bar has no legal drink in a Prohibition year, a speakeasy does; 2025 has no speakeasy
+                assertEquals(0, (bundleCall(js, "places.menuOf", "\"bar\",1925,\"x\"") as JSONArray).length())
+                assertEquals(0, (bundleCall(js, "places.menuOf", "\"tavern\",1930,\"x\"") as JSONArray).length())
+                assertTrue((bundleCall(js, "places.menuOf", "\"speakeasy\",1925,\"x\"") as JSONArray).length() > 0)
+                assertTrue((bundleCall(js, "places.menuOf", "\"bar\",1935,\"x\"") as JSONArray).length() > 0)
+                assertEquals(0, (bundleCall(js, "places.menuOf", "\"speakeasy\",2025,\"x\"") as JSONArray).length())
+                assertNull("no back door in 2025", loop.speakeasy)
+                // 2. the 2025 capital: the bakery and the ice cream parlor have menus of their own kind; the shop's snack option is gone
+                val g = LoopGame(js, loop)
+                g.init(8.0)
+                val bm = g.view.menus.getValue(bakery.id)
+                assertEquals("bakery", bm.kind); assertTrue(bm.items.isNotEmpty())
+                val bundleBakery = bundleCall(js, "places.menuOf", "\"bakery\",2025,\"${loop.seed}|${bakery.id}\"") as JSONArray
+                assertEquals(bundleBakery.length(), bm.items.size); assertEquals(bundleBakery.getJSONObject(0).getInt("priceCents"), bm.items[0].cents)
+                assertNull(g.eatOption(bakery))
+                if (parlor != null) { val pm = g.view.menus.getValue(parlor.id); assertTrue(pm.items.isNotEmpty() && pm.items.all { it.meal == "snack" }); println("LoopGameTest: ice cream parlor: " + pm.items.joinToString { it.label + " " + it.text }) }
+                println("LoopGameTest: bakery: " + bm.items.joinToString { it.label + " " + it.text } + " | " + g.view.roomsElsewhere)
+                // a bakery's loaf feeds as 'grocery_cooked' (.35), a roll as a snack (.16): by the item's kind
+                g.walkActivity = "walking"; g.advance(12.0, "hour")
+                if (!g.isOpenNow(bakery)) toDayHour(g, g.day + 1, 10.0)
+                val loaf = bm.items.first { it.meal == "grocery_cooked" }
+                val h0 = g.view.needs!!.hunger
+                assertTrue(g.eatItem(bakery, loaf.id, g.hour).ok)
+                assertEquals(Math.max(0.0, h0 - .35), g.view.needs!!.hunger, 1e-6)
+                assertFalse("an item the menu does not have", g.eatItem(bakery, "no_such_thing", g.hour).ok)
+                // 3. rooms elsewhere: hotel offers listed as info on the boarding house (the capital has no hotel)
+                assertTrue(g.view.roomsElsewhere.startsWith("Rooms elsewhere: ") || g.view.roomsElsewhere.isEmpty())
+                assertTrue(g.view.roomsElsewhere.isEmpty() || g.view.roomsElsewhere.contains("Motel") || g.view.roomsElsewhere.contains("hotel", true))
+            }.get()
+            // 4. the same capital in 1925 (Prohibition): a bar shows nothing legal, the back door is a speakeasy at night
+            val loop25 = LoopTown(loop.town, loop.seed, 1925, loop.townName, loop.jurisdictionId, loop.places, loop.people, loop.nodes, loop.edges, loop.lamps)
+            val sp = loop25.speakeasy!!
+            println("LoopGameTest: speakeasy: ${sp.name} at (${sp.x}, ${sp.z})")
+            assertTrue(sp.name.startsWith("A back door behind "))
+            t.run { js ->
+                val g = LoopGame(js, loop25)
+                g.init(10.0)
+                val bar = com.lifemax.rpg.feature.habits.loop.LoopPlace("bar:test", "x", "The Rail Bar", "general_store", "bar", 0f, 0f, emptyList(), 17, 24)
+                val mv = g.menuFor(bar)!!
+                assertTrue(mv.items.isEmpty()); assertEquals("No legal drink: Prohibition.", mv.note)
+                assertTrue("a legal bar elsewhere in time", g.menuOf("bar", year = 1935).isNotEmpty())
+                val view = g.view.speakeasy!!
+                assertTrue(view.menu.isNotEmpty()); assertFalse("shut by day", view.open)
+                println("LoopGameTest: ${view.name}: ${view.hoursText}: " + view.menu.joinToString { it.label + " " + it.text })
+                val by = g.orderAtSpeakeasy(view.menu.first().id, 10.0)
+                assertFalse(by.line, by.ok); assertTrue(by.line, by.line.contains("shut"))
+                toDayHour(g, g.day, 20.0)
+                g.walkActivity = "walking"; g.advance(10.0, "hour"); toDayHour(g, g.day + 1, 20.0)
+                assertTrue(g.view.speakeasy!!.open)
+                val item = view.menu.first { it.cents <= g.cash }
+                val before = g.cash; val h0 = g.view.needs!!.hunger
+                val ok = g.orderAtSpeakeasy(item.id, g.hour)
+                println("LoopGameTest: ${ok.line}")
+                assertTrue(ok.line, ok.ok); assertEquals(before - item.cents, g.cash)
+                assertTrue(g.view.needs!!.hunger < h0)
+                // (a menu price in the 1925 money: the bundle's)
+                val bundle = bundleCall(js, "places.menuOf", "\"speakeasy\",1925,\"${loop25.seed}|speakeasy\"") as JSONArray
+                assertEquals(bundle.getJSONObject(0).getInt("priceCents"), view.menu[0].cents)
+            }.get()
+        }
+    }
+
+    @Test fun buyingAShopRunsItsBooksAThiefCostsAndSellingUpPays() {
+        SimJsThread().use { t ->
+            t.load(bundle).get()
+            t.run { js ->
+                val g = LoopGame(js, loop)
+                val days = ArrayList<JSONObject>()
+                g.onEvent = { n, d -> if (n == "business" && d.optString("what") == "day") days += d }
+                g.init(10.0)
+                val sale = g.view.forSale
+                println("LoopGameTest: for sale: " + sale.entries.joinToString { (id, v) -> "${loop.placeById[id]?.name}: ${v.line}" })
+                assertTrue("some shops are for sale", sale.size >= 2)
+                // pick two open shops with a keeper that are for sale: one to buy outright, one to lease
+                val ids = sale.keys.filter { loop.placeById.getValue(it).keeperId != null && loop.placeById.getValue(it).kind != "pawn_shop" }.sorted()
+                val shop = loop.placeById.getValue(ids[0]); val shop2 = loop.placeById.getValue(ids[1])
+                val offer = sale.getValue(shop.id)
+                assertTrue(offer.line.startsWith("For sale ") && offer.line.contains(" / To let "))
+                // 1. too poor: refused, nothing changes
+                val no = g.buyBusiness(shop, "buy", 10.0)
+                assertFalse(no.line, no.ok); assertEquals(6000, g.cash); assertTrue(g.view.owned.isEmpty())
+                // 2. buying debits the price and the till float, the shop is the player's and no longer for sale
+                g.addCash(50_000_000)
+                val c0 = g.cash
+                val bought = g.buyBusiness(shop, "buy", 10.0)
+                println("LoopGameTest: ${bought.line}")
+                assertTrue(bought.line, bought.ok)
+                assertEquals(c0 - offer.buyDueCents, g.cash)
+                val mine = g.view.owned.getValue(shop.id)
+                assertFalse(shop.id in g.view.forSale); assertEquals("buy", mine.tenure)
+                val float = mine.cashCents
+                assertTrue(float > 0 && offer.buyDueCents - float == offer.askingCents)
+                assertFalse("you don't buy from your own shop", g.buy(shop, g.stockFor(shop).first { it.quantity > 0 }, facing(shop), 10.1).ok)
+                // 3. saved with the loop and loaded back
+                val saved = g.save()
+                val g2 = LoopGame(js, loop); g2.load(saved)
+                assertEquals(float, g2.view.owned.getValue(shop.id).cashCents); assertEquals("buy", g2.view.owned.getValue(shop.id).tenure)
+                assertEquals(g.cash, g2.cash)
+                // 4. a theft at the shop (recorded by the loop's take) and a day's end: takings in the drawer, the theft as a loss
+                val item = g.stockFor(shop).first { it.quantity >= 2 }
+                val tk = g.take(shop, item, facing(shop), 10.2)
+                assertTrue(tk.line, tk.ok)
+                val wholesale = Math.ceil(item.priceCents * .55).toInt()
+                g.advance(24.0 - g.hour + 6.0, "test") // to 06:00 the next day: day 1 has ended
+                assertEquals(1, days.size)
+                val d1 = days[0]
+                println("LoopGameTest: day 1 of ${shop.name}: $d1")
+                assertEquals(shop.id, d1.getString("place")); assertFalse(d1.getBoolean("closed"))
+                assertEquals("the loop's take is the day's theft loss at wholesale", wholesale, d1.getInt("loss"))
+                assertTrue("a day of takings", d1.getInt("sales") > 0 && d1.getInt("customers") > 0)
+                val crowd = d1.getDouble("crowd"); assertTrue(crowd > 0.0)
+                val after1 = g.view.owned.getValue(shop.id)
+                assertEquals("the drawer: float + takings - delivery", float + d1.getInt("sales") - d1.getInt("restock"), after1.cashCents)
+                assertTrue(after1.lastDayText, after1.lastDayText.startsWith("Last day (") && after1.lastDayText.contains("takings"))
+                // the same day without the theft would have made `wholesale` more profit (the module's: sales - goods - wages - rent - bank - loss)
+                assertEquals(d1.getInt("sales") - d1.getInt("goods") - d1.getInt("wages") - d1.getInt("rent") - wholesale, d1.getInt("profit"))
+                // 5. a clerk is paid from the drawer; the next day shows wages
+                assertTrue(g.hireClerk(shop).ok)
+                assertEquals(1, g.view.owned.getValue(shop.id).staff)
+                g.advance(24.0, "test")
+                assertEquals(2, days.size); assertTrue("wages", days[1].getInt("wages") > 0)
+                assertEquals(0, days[1].getInt("loss"))
+                assertTrue(g.letClerkGo(shop).ok); assertFalse(g.letClerkGo(shop).ok); assertEquals(0, g.view.owned.getValue(shop.id).staff)
+                // 6. a break-in is breakage (a forced door's repair) on the day's books
+                g.shopIncident(shop.id, "breakage", cents = 5000)
+                g.advance(24.0, "test")
+                assertEquals(5000, days[2].getInt("loss"))
+                // 7. taking the cash out moves it to the wallet
+                val drawer = g.view.owned.getValue(shop.id).cashCents
+                assertTrue(drawer > 0)
+                val w0 = g.cash
+                assertTrue(g.takeCashOut(shop).ok)
+                assertEquals(w0 + drawer, g.cash); assertEquals(0, g.view.owned.getValue(shop.id).cashCents)
+                assertFalse(g.takeCashOut(shop).ok)
+                // 8. leasing another shop: the stock and the float now, rent accrues daily from the drawer
+                val offer2 = sale.getValue(shop2.id)
+                val l0 = g.cash
+                assertTrue(g.buyBusiness(shop2, "lease", g.hour).ok)
+                assertEquals(l0 - offer2.leaseDueCents, g.cash)
+                assertEquals("lease", g.view.owned.getValue(shop2.id).tenure)
+                g.advance(24.0, "test")
+                val lease = days.last { it.getString("place") == shop2.id }
+                assertTrue("rent accrues", lease.getInt("rent") > 0)
+                // 9. selling up pays the valuation (the module's: checked against the bundle) and the drawer's cash
+                val biz = JSONObject(g.save()).getJSONObject("businesses").getJSONObject(shop.id).getJSONObject("biz")
+                val quote = (bundleCall(js, "business.valuation", "$biz,2025") as Number).toInt()
+                assertEquals(quote, g.view.owned.getValue(shop.id).valuationCents)
+                assertTrue(quote > 0)
+                val d0 = g.view.owned.getValue(shop.id).cashCents
+                val s0 = g.cash
+                val sold = g.sellUp(shop)
+                println("LoopGameTest: ${sold.line}")
+                assertTrue(sold.line, sold.ok); assertEquals(s0 + quote + d0, g.cash)
+                assertFalse(shop.id in g.view.owned); assertTrue(shop.id in g.view.forSale)
+                assertFalse(g.sellUp(shop).ok)
             }.get()
         }
     }

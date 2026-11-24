@@ -99,11 +99,46 @@ fun LoopShopPanel(place: LoopPlace, year: Int, hour: Float, onAction: (String, A
     val job = jobs?.job
     val mine = job != null && job.placeId == place.id
     val ops = jobs?.openings?.get(place.id).orEmpty()
+    val own = v?.owned?.get(place.id)
+    val sale = v?.forSale?.get(place.id)
+    val menu = v?.menus?.get(place.id)
     Column(modifier.widthIn(max = 460.dp).background(PANEL_BG, RoundedCornerShape(14.dp)).loopOpaque().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         T(place.name, 15.sp)
         // (on a holiday the shut door says why: "Closed for Hearth Day. Opens tomorrow at 8 a.m.")
         if (hrs != null) T(if (open) hrs.today else if (hrs.holiday.isNotEmpty()) hrs.closedLine else "${hrs.today}  -  ${hrs.closedLine}", 12.sp, if (open) DIM_TEXT else HOT)
-        if (place.kind != "police_station") {
+        // a shop for sale or to let (src/business): buy or lease it
+        if (sale != null && own == null) {
+            T(sale.line + "  ·  takes " + sale.takingsText, 12.sp, DIM_TEXT)
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                LoopButton("Buy ${sale.buyDueText}", enabled = !busy && (v?.cash ?: 0) >= sale.buyDueCents) { onAction("buyShop", null) }
+                LoopButton("Lease ${sale.leaseDueText}", enabled = !busy && (v?.cash ?: 0) >= sale.leaseDueCents) { onAction("leaseShop", null) }
+            }
+        }
+        // the player's own shop: the books, the drawer, the clerks, selling up
+        if (own != null) {
+            T("Your shop (${if (own.tenure == "buy") "owned" else "leased"})", 13.sp, Color.White)
+            T(own.lastDayText, 12.sp, DIM_TEXT)
+            if (own.weekText.isNotEmpty()) T(own.weekText, 12.sp, DIM_TEXT)
+            if (own.warning.isNotEmpty()) T(own.warning, 12.sp, HOT)
+            T("Cash drawer ${own.cashText}  ·  ${own.staff} clerk${if (own.staff == 1) "" else "s"} (${own.clerkWageText} each)  ·  worth ${own.valuationText}", 12.sp, Color.White)
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                LoopButton("Hire a clerk", enabled = !busy && own.staff < own.maxStaff) { onAction("hire", null) }
+                LoopButton("Let go", enabled = !busy && own.staff > 0) { onAction("fire", null) }
+                LoopButton("Take cash out", enabled = !busy && own.cashCents > 0) { onAction("takeCash", null) }
+                LoopButton("Sell up ${own.valuationText}", enabled = !busy) { onAction("sellUp", null) }
+            }
+        }
+        // a food place's menu (src/places): each item's price, the meal kind decides how much it feeds
+        if (menu != null) {
+            if (menu.items.isEmpty()) T(menu.note, 12.sp, HOT)
+            Column(Modifier.heightIn(max = 200.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                for (m in menu.items) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    T("${m.label}  ${if (own != null) "(free)" else m.text}", 13.sp, Color.White, Modifier.widthIn(min = 200.dp))
+                    LoopButton("Order", enabled = !busy && open && (own != null || (v?.cash ?: 0) >= m.cents)) { onAction("eatItem", m.id) }
+                }
+            }
+        }
+        if (place.kind != "police_station" && own == null && menu == null) {
             Column(Modifier.heightIn(max = 240.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 for (s in LoopSession.stockFor(place)) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     val out = s.quantity <= 0
@@ -114,7 +149,7 @@ fun LoopShopPanel(place: LoopPlace, year: Int, hour: Float, onAction: (String, A
                     }
                 }
             }
-            if (place.kind == "pawn_shop") {
+            if (place.kind == "pawn_shop" && own == null) {
                 T("Sell:", 13.sp, DIM_TEXT)
                 val items = v?.items.orEmpty()
                 if (items.isEmpty()) T("(you carry nothing to sell)", 12.sp, DIM_TEXT)
@@ -126,7 +161,7 @@ fun LoopShopPanel(place: LoopPlace, year: Int, hour: Float, onAction: (String, A
             }
         }
         // employment (src/jobs): the job here, or the openings this week to ask about and apply for
-        if (place.kind != "police_station") {
+        if (place.kind != "police_station" && own == null) {
             if (mine && job != null) {
                 T(job.line, 12.sp, DIM_TEXT)
                 val can = !busy && (v?.day ?: 0) != job.lastWorkedDay && hour >= job.startHour && hour < job.windowEnd
@@ -153,7 +188,7 @@ fun LoopShopPanel(place: LoopPlace, year: Int, hour: Float, onAction: (String, A
             LoopButton("Treat your ${inj.kind} ${inj.costText}", enabled = !busy && open && (v?.cash ?: 0) >= inj.costCents) { onAction("treat", inj.kind) }
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             // (the odd-job shift stays only where nothing is on offer: a shop that is hiring, or one the player works at, takes applications and shifts)
-            if (place.isShop && !mine && ops.isEmpty()) LoopButton("Work a shift", enabled = !busy && open) { onAction("work", null) }
+            if (place.isShop && !mine && ops.isEmpty() && own == null) LoopButton("Work a shift", enabled = !busy && open) { onAction("work", null) }
             LoopButton("Wait 1 h", enabled = !busy) { onAction("wait", null) }
             LoopButton("Sleep rough till 7", enabled = !busy) { onAction("sleep", null) }
             LoopButton("Close") { onClose() }
@@ -170,6 +205,7 @@ fun LoopLodgingPanel(lodging: com.lifemax.rpg.feature.habits.loop.LoopLodging, h
     val cash = v?.cash ?: 0
     Column(modifier.widthIn(max = 460.dp).background(PANEL_BG, RoundedCornerShape(14.dp)).loopOpaque().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         T(lodging.name, 15.sp)
+        v?.roomsElsewhere?.takeIf { it.isNotEmpty() }?.let { T(it, 11.sp, DIM_TEXT) }
         if (rent == null) {
             T(v?.lodgingOffer ?: "", 12.sp, DIM_TEXT)
             T("To take it now: ${v?.let { LoopSession.eraMoneyText(it.lodgingDueCents) } ?: ""}", 12.sp, DIM_TEXT)
@@ -196,6 +232,25 @@ fun LoopLodgingPanel(lodging: com.lifemax.rpg.feature.habits.loop.LoopLodging, h
             if (!rent.lockedOut) for (i in carried) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 T(i.label + if (i.stolen) " (hot)" else "", 13.sp, if (i.stolen) HOT else Color.White, Modifier.widthIn(min = 200.dp))
                 LoopButton("Leave", enabled = !busy) { onAction("stash", i) }
+            }
+        }
+        LoopButton("Close") { onClose() }
+    }
+}
+
+/** The unmarked back door of the Prohibition years: open at night, a menu of what is poured and served. */
+@Composable
+fun LoopSpeakeasyPanel(onOrder: (String) -> Unit, onClose: () -> Unit, modifier: Modifier = Modifier) {
+    val v = LoopSession.view
+    val busy = LoopSession.busy
+    val sp = v?.speakeasy
+    Column(modifier.widthIn(max = 460.dp).background(PANEL_BG, RoundedCornerShape(14.dp)).loopOpaque().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        T(sp?.name ?: "A back door", 15.sp)
+        if (sp != null) {
+            T(if (sp.open) sp.hoursText else "${sp.hoursText}  -  the door is shut by day", 12.sp, if (sp.open) DIM_TEXT else HOT)
+            for (m in sp.menu) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                T("${m.label}  ${m.text}", 13.sp, Color.White, Modifier.widthIn(min = 200.dp))
+                LoopButton("Order", enabled = !busy && sp.open && (v.cash >= m.cents)) { onOrder(m.id) }
             }
         }
         LoopButton("Close") { onClose() }

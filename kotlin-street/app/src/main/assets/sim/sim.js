@@ -5793,8 +5793,8 @@
       if (!Object.prototype.hasOwnProperty.call(shopRoles, kind)) return [];
       const primary = shopRoles[kind];
       if (kind === "motel" && year < 1950 || kind === "gas_station" && year < 1910) return [];
-      const available = kind === "gas_station" && year >= 1975 ? [primary, "night_clerk"] : [primary];
-      return available.flatMap((role) => {
+      const available2 = kind === "gas_station" && year >= 1975 ? [primary, "night_clerk"] : [primary];
+      return available2.flatMap((role) => {
         const [title, payJob, share, startHour, minAge] = roles[role];
         const pay = wage(payJob, year);
         if (!pay || rand(seed, "job_opening", place.id, role, year, week) >= 0.65) return [];
@@ -6186,6 +6186,273 @@
     return { ...car, condition: Math.max(car.condition, 0.85), milesSinceService: 0, breakdown: null };
   }
 
+  // src/business/index.ts
+  var traffic = {
+    general: 32,
+    market: 42,
+    hardware: 23,
+    pharmacy: 30,
+    five_and_dime: 46,
+    pawn: 10,
+    gas_station: 36,
+    diner: 54,
+    clothing: 22
+  };
+  var wholesale = (retail) => Math.ceil(retail * 0.55);
+  function businessesForSale(places, year, seed) {
+    const index = priceIndex(year);
+    if (index === null) return [];
+    const cents = (value) => Math.round(value * index / priceIndex(1952));
+    return places.flatMap((place) => {
+      const stock = openStock(place.kind, year, JSON.stringify([seed, place.id, "offer"]));
+      const kind = stock.shopKind;
+      if (!kind || stock.entries.length === 0 || rand(seed, "business_listing", place.id, year) >= 0.6) return [];
+      const stockCents = stock.entries.reduce((sum, entry) => sum + wholesale(entry.priceCents) * entry.quantity, 0);
+      const fixturesCents = cents(kind === "five_and_dime" ? 14e4 : 9e4 + 900 * traffic[kind]);
+      const goodwillCents = kind === "five_and_dime" ? Math.max(0, cents(1e5) - stockCents) : cents(25e3 + 850 * traffic[kind]);
+      return [{
+        place,
+        year,
+        askingCents: stockCents + fixturesCents + goodwillCents,
+        leaseMonthlyCents: cents(kind === "five_and_dime" ? 6e3 : 4200 + 42 * traffic[kind]),
+        stockCents,
+        fixturesCents,
+        goodwillCents,
+        recentWeeklyTakingsCents: Array.from({ length: 4 }, (_, week) => cents(Math.round(traffic[kind] * (600 + 150 * rand(seed, "business_takings", place.id, year, week)))))
+      }];
+    });
+  }
+  function openBusiness(offer, tenure, cashCents, seed, bankDailyCents = 0) {
+    return {
+      place: offer.place,
+      stock: openStock(offer.place.kind, offer.year, JSON.stringify([seed, offer.place.id, "offer"])),
+      staff: [],
+      fixturesCents: offer.fixturesCents,
+      cashCents,
+      leaseMonthlyCents: tenure === "lease" ? offer.leaseMonthlyCents : 0,
+      bankDailyCents,
+      rentOwedCents: 0,
+      bankOwedCents: 0,
+      operatingOwedCents: 0,
+      missedRentDays: 0,
+      missedBankDays: 0,
+      lastDay: null,
+      recentProfitCents: []
+    };
+  }
+  function runDay(business, day, seed, conditions = {}) {
+    const date = dateOf(day);
+    const kind = business.stock.shopKind;
+    if (!date || !kind || priceIndex(date.year) === null || business.lastDay !== null && day !== business.lastDay + 1) return null;
+    const outletSeed = JSON.stringify([seed, business.place.id]);
+    const closed = conditions.closed || holidaysOn(date).some((holiday) => holiday.closes.includes("shops"));
+    const spans = closed ? [] : hoursOf(kind, date.year, date.weekday, outletSeed);
+    const openHours = spans.reduce((sum, span) => sum + Math.max(
+      0,
+      Math.min(span.close, business.schedule?.close ?? 24) - Math.max(span.open, business.schedule?.open ?? 0)
+    ), 0);
+    const activity = conditions.streetActivity ?? 1;
+    const demand = Number.isFinite(activity) ? Math.max(0, Math.min(2, activity)) : 1;
+    const weekends = date.weekday === 0 ? 0.66 : date.weekday === 6 ? 1.22 : 1;
+    const customers = Math.round(traffic[kind] * (openHours / 10) * demand * weekends * (0.8 + 0.4 * rand(outletSeed, "business_customers", day)));
+    let stock = business.stock;
+    let salesCents = 0;
+    let costOfGoodsCents = 0;
+    let lossCents = 0;
+    let cashTheftCents = 0;
+    let breakageCents = 0;
+    for (const event of conditions.events ?? []) {
+      if (event.kind === "stock_theft") {
+        if (!Number.isSafeInteger(event.quantity) || event.quantity <= 0) continue;
+        const removed = Math.min(quantityOf(stock, event.itemId), event.quantity);
+        const price = stock.entries.find((entry) => entry.itemId === event.itemId)?.priceCents ?? 0;
+        stock = take(stock, event.itemId, removed);
+        lossCents += removed * wholesale(price);
+      } else if (Number.isSafeInteger(event.cents) && event.cents > 0) {
+        if (event.kind === "breakage") breakageCents += event.cents;
+        else cashTheftCents += Math.min(Math.max(0, business.cashCents - cashTheftCents), event.cents);
+      }
+    }
+    lossCents += breakageCents + cashTheftCents;
+    for (let i = 0; i < customers; i++) {
+      const available2 = stock.entries.filter((entry) => entry.quantity > 0);
+      const chosen = available2[Math.floor(rand(outletSeed, "business_purchase", day, i) * available2.length)];
+      if (!chosen) break;
+      stock = take(stock, chosen.itemId, 1);
+      salesCents += chosen.priceCents;
+      costOfGoodsCents += wholesale(chosen.priceCents);
+    }
+    const delivery = restock(stock, 1, date.year, outletSeed);
+    const delivered = delivery.entries !== stock.entries;
+    const restockCents = delivered ? delivery.entries.reduce((sum, row) => sum + wholesale(row.priceCents) * Math.max(0, row.quantity - quantityOf(stock, row.itemId)), 0) : 0;
+    const wagesCents = business.staff.reduce((sum, worker) => sum + Math.round(Math.max(0, Math.min(openHours, worker.hours)) * (wage(worker.job, date.year)?.hourlyCents ?? 0)), 0);
+    const rentDay = stock.elapsedDays % 30 + 1;
+    const rentCents = Math.floor(business.leaseMonthlyCents * rentDay / 30) - Math.floor(business.leaseMonthlyCents * (rentDay - 1) / 30);
+    const bankCents = business.bankDailyCents;
+    let cashCents = business.cashCents + salesCents - cashTheftCents;
+    const settle = (owed) => {
+      const paid = Math.min(cashCents, owed);
+      cashCents -= paid;
+      return owed - paid;
+    };
+    const rentOwedCents = settle(business.rentOwedCents + rentCents);
+    const bankOwedCents = settle(business.bankOwedCents + bankCents);
+    const operatingOwedCents = settle(business.operatingOwedCents + wagesCents + breakageCents);
+    const paidDelivery = restockCents <= cashCents;
+    if (paidDelivery) cashCents -= restockCents;
+    const missedRentDays = rentOwedCents > 0 ? business.missedRentDays + 1 : 0;
+    const missedBankDays = bankOwedCents > 0 ? business.missedBankDays + 1 : 0;
+    const profitCents = salesCents - costOfGoodsCents - wagesCents - rentCents - bankCents - lossCents;
+    const next = {
+      ...business,
+      cashCents,
+      rentOwedCents,
+      bankOwedCents,
+      operatingOwedCents,
+      missedRentDays,
+      missedBankDays,
+      lastDay: day,
+      recentProfitCents: [...business.recentProfitCents, profitCents].slice(-28),
+      stock: paidDelivery && delivered ? {
+        ...delivery,
+        entries: delivery.entries.map((row) => ({ ...row, quantity: Math.max(row.quantity, quantityOf(stock, row.itemId)) }))
+      } : { ...stock, elapsedDays: delivery.elapsedDays }
+    };
+    return {
+      business: next,
+      customers,
+      salesCents,
+      costOfGoodsCents,
+      restockCents: paidDelivery ? restockCents : 0,
+      wagesCents,
+      rentCents,
+      bankCents,
+      lossCents,
+      profitCents,
+      landlord: missedRentDays >= 7 ? "lockout" : missedRentDays > 0 ? "warning" : null,
+      bank: missedBankDays >= 14 ? "repossess" : missedBankDays > 0 ? "warning" : null
+    };
+  }
+  function valuation(business, year) {
+    if (priceIndex(year) === null) return null;
+    const inventory = business.stock.entries.reduce((sum, row) => sum + wholesale(row.priceCents) * row.quantity, 0);
+    const profits = business.recentProfitCents;
+    const goodwill = profits.length > 0 ? Math.round(Math.max(0, profits.reduce((a, b) => a + b, 0) / profits.length) * 90) : 0;
+    return Math.max(0, business.fixturesCents + inventory + goodwill - business.rentOwedCents - business.bankOwedCents - business.operatingOwedCents);
+  }
+
+  // src/places/index.ts
+  var menuKinds = {
+    diner: [1880, 2030],
+    lunch_counter: [1890, 2030],
+    automat: [1902, 1991],
+    drive_in: [1921, 2030],
+    cafeteria: [1890, 2030],
+    bakery: [1880, 2030],
+    bar: [1880, 2030],
+    tavern: [1880, 2030],
+    speakeasy: [1920, 1933]
+  };
+  var coffee = ["diner_coffee", "Counter coffee", "snack", 10];
+  var pie = ["apple_pie", "Apple pie slice", "snack", 20];
+  var sandwich = ["ham_sandwich", "Ham sandwich", "diner", "ham_sandwich"];
+  var barMenu = [
+    ["house_beer", "House beer", "snack", 20],
+    ["pretzels", "Salted pretzels", "snack", 12]
+  ];
+  var menus = {
+    diner: [coffee, ["blue_plate", "Blue-plate special", "diner", 65], pie, ["breakfast", "Egg-and-toast breakfast", "diner", 35]],
+    lunch_counter: [coffee, sandwich, pie],
+    automat: [coffee, pie, ["baked_mac", "Baked macaroni", "diner", 32]],
+    drive_in: [
+      ["burger", "Hamburger", "diner", "burger"],
+      ["fries", "Basket of fries", "snack", "fries"],
+      ["milkshake", "Milkshake", "snack", "milkshake"]
+    ],
+    cafeteria: [sandwich, ["soup_bowl", "Bowl of vegetable soup", "diner", "soup_bowl"], pie],
+    bakery: [["bread", "Loaf of bread", "grocery_cooked", "bread"], ["roll", "Sweet roll", "snack", 12], pie],
+    bar: barMenu,
+    tavern: [...barMenu, sandwich],
+    speakeasy: barMenu
+  };
+  var eraItems = [
+    ["diner", 1880, 1940, ["oatmeal_bowl", "Bowl of oatmeal", "diner", "oatmeal_bowl"]],
+    ["diner", 1935, 1985, ["milkshake", "Milkshake", "snack", "milkshake"]],
+    ["diner", 1975, 2030, ["salad_plate", "Garden salad plate", "diner", 45]],
+    ["drive_in", 1950, 2030, ["onion_rings", "Onion rings", "snack", 24]],
+    ["bakery", 1970, 2030, ["granola_square", "Granola square", "snack", 15]]
+  ];
+  var specials = [
+    ["custard", "Baked custard", "snack", 16],
+    ["ginger_cake", "Ginger cake", "snack", 18],
+    ["rice_pudding", "Rice pudding", "snack", 14]
+  ];
+  function available(kind, year) {
+    if (!Object.prototype.hasOwnProperty.call(menuKinds, kind)) return false;
+    const [from, through] = menuKinds[kind];
+    return Number.isInteger(year) && year >= from && year <= through && !((kind === "bar" || kind === "tavern") && year >= 1920 && year <= 1933);
+  }
+  function menuOf(kind, year, seed) {
+    const index = priceIndex(year);
+    if (index === null || !available(kind, year)) return [];
+    const special = specials[Math.floor(rand(seed, "menu_special", kind, year) * specials.length)];
+    const eraRows = eraItems.filter(([venue, from, through]) => venue === kind && year >= from && year <= through).map(([, , , row]) => row);
+    const rows = kind === "bar" || kind === "tavern" || kind === "speakeasy" ? menus[kind] : [...menus[kind], ...eraRows, special];
+    return rows.flatMap(([id, label, meal, pricing]) => {
+      const priceCents = typeof pricing === "string" ? priceIn(pricing, year) : Math.max(1, Math.round(pricing * index / priceIndex(1952)));
+      return priceCents === null ? [] : [{ id, label, priceCents, meal }];
+    });
+  }
+  var lodgingKinds2 = {
+    grand_hotel: ["hotel", 2.4, "private", "porter service"],
+    commercial_hotel: ["hotel", 1.15, "private", "writing desk"],
+    station_hotel: ["hotel", 5 / 7, "shared", "washbasin"],
+    flophouse: ["hotel", 0.29, "shared", "bunk and locker"],
+    motel: ["motel", 1, "private", "parking"],
+    boarding_house: ["room_and_board", 1, "shared", "two meals per day"]
+  };
+  function lodgingOffers(kind, year, seed) {
+    if (!Object.prototype.hasOwnProperty.call(lodgingKinds2, kind)) return [];
+    const [category, multiplier, bathroom, amenity] = lodgingKinds2[kind];
+    const lodging = lodgingOf(category, year);
+    if (!lodging) return [];
+    const rooms = 2 + Math.floor(rand(seed, "lodging_rooms", kind, year) * (kind === "grand_hotel" ? 24 : 8));
+    const rateCents = Math.max(1, Math.round(lodging.rentCents * multiplier));
+    return [{
+      id: kind,
+      rooms,
+      bathroom,
+      included: [amenity],
+      nightlyCents: Math.round(rateCents / lodging.periodDays),
+      billingDays: lodging.periodDays,
+      rateCents,
+      depositCents: lodging.depositCents,
+      includedMealsPerDay: lodging.includedMealsPerDay
+    }];
+  }
+  function placeHours(kind, year, weekday, seed, date) {
+    if (!available(kind, year)) return [];
+    const retail = kind === "bakery" || kind === "cafeteria";
+    const standard = hoursOf(retail ? "general" : "diner", year, weekday, seed, date);
+    return standard.map((span) => {
+      switch (kind) {
+        case "bar":
+        case "tavern":
+        case "speakeasy":
+          return { open: 17, close: 24 };
+        case "drive_in":
+          return { open: 11, close: 23 };
+        case "automat":
+          return { open: span.open, close: 23 };
+        case "lunch_counter":
+        case "cafeteria":
+          return { open: Math.max(8, span.open), close: Math.min(17, span.close) };
+        default:
+          return span;
+      }
+    });
+  }
+
   // src/loop/smoke.ts
   var smoke;
   function need() {
@@ -6444,7 +6711,21 @@
   globalThis.Weather = Weather;
   var Cars = { carsForSale, papersFor, policeStop, runningCosts, drive, repairCost, serviceCar };
   globalThis.Cars = Cars;
-  var namespaces = { economy: Economy, transit: Transit, calendar: Calendar, jobs: Jobs, needs: Needs, weather: Weather, cars: Cars };
+  var Business = { businessesForSale, openBusiness, runDay, valuation };
+  globalThis.Business = Business;
+  var Places = { menuOf, lodgingOffers, placeHours };
+  globalThis.Places = Places;
+  var namespaces = {
+    economy: Economy,
+    transit: Transit,
+    calendar: Calendar,
+    jobs: Jobs,
+    needs: Needs,
+    weather: Weather,
+    cars: Cars,
+    business: Business,
+    places: Places
+  };
   function simCall(json) {
     const req = JSON.parse(json);
     const dot = req.method.indexOf(".");

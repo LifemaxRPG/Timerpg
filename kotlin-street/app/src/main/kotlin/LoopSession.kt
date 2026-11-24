@@ -314,6 +314,21 @@ object LoopSession {
     // ------------------------------------------------------------------ needs, weather and cars (docs/LOOP.md "Needs, weather and cars")
 
     fun eat(ctx: Context, place: LoopPlace, hour: Float) = run("eating", { it.eat(place, hour.toDouble()) }) { shown(it, ctx) }
+    fun eatItem(ctx: Context, place: LoopPlace, itemId: String, hour: Float) = run("eating", { it.eatItem(place, itemId, hour.toDouble()) }) { shown(it, ctx) }
+    fun orderAtSpeakeasy(ctx: Context, itemId: String, hour: Float) = run("ordering", { it.orderAtSpeakeasy(itemId, hour.toDouble()) }) { shown(it, ctx) }
+    fun buyBusiness(ctx: Context, place: LoopPlace, tenure: String, hour: Float) = run("buying", { it.buyBusiness(place, tenure, hour.toDouble()) }) { shown(it, ctx) }
+    fun hireClerk(ctx: Context, place: LoopPlace) = run("hiring", { it.hireClerk(place) }) { shown(it, ctx) }
+    fun letClerkGo(ctx: Context, place: LoopPlace) = run("letting go", { it.letClerkGo(place) }) { shown(it, ctx) }
+    fun takeCashOut(ctx: Context, place: LoopPlace) = run("counting", { it.takeCashOut(place) }) { shown(it, ctx) }
+    fun sellUp(ctx: Context, place: LoopPlace) = run("selling", { it.sellUp(place) }) { shown(it, ctx) }
+
+    /** The speakeasy's back door, when the player stands within 4 m of it (the Prohibition years only; not inside or in a car). */
+    fun speakeasyNear(inside: Boolean): com.lifemax.rpg.feature.habits.loop.LoopSpeakeasy? {
+        if (inside || scene != null) return null
+        val s = town?.speakeasy ?: return null
+        val w = TownPlay.walk ?: return null
+        return s.takeIf { hypot(it.x - w.wx, it.z - w.wz) <= 4f * VehicleWorld.U }
+    }
     fun treat(ctx: Context, place: LoopPlace, kind: String, hour: Float) = run("treating", { it.treat(place, kind, hour.toDouble()) }) { shown(it, ctx) }
     fun sleepRough(ctx: Context) = run("sleeping", { it.sleepUntil(7.0, "bench") }) { shown(it, ctx) }
     fun takeBoard(ctx: Context) = run("eating", { it.takeBoard() }) { shown(it, ctx) }

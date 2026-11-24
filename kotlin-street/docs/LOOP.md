@@ -422,3 +422,54 @@ They get the usual panel (shelves, hours, work, theft), clerks and witnesses.
 - **Gaps:** the owned car is not matched to a physical key; its colour is a seed into the model's palette; no insurance rules, no repossession; breakdowns
   stop the engine but the car does not smoke or show it; the tow does not drive anywhere; all untried on the S25, and the Android parts (HUD, the car lot panel,
   the Auto chip, spawning at the lot, the fall and crash hooks) only compile (no instrumented test).
+
+## Menus, lodging and small businesses (2026-11-24)
+
+Sam's `src/places` (docs/PLACES.md) and `src/business` (docs/BUSINESS.md) are in the loop through the same bridge: `Places` (`places.menuOf /
+lodgingOffers / placeHours`) and `Business` (`business.businessesForSale / openBusiness / runDay / valuation`) in `src/loop/bridge.ts`, routed by
+`simCall`. Read in `LoopGame` on the sim thread only, cached, precomputed into `LoopView` (`menus`, `forSale`, `owned`, `roomsElsewhere`,
+`speakeasy`); the UI never calls the sim. Code: `LoopBusiness.kt` (views, the shop-kind -> venue table `LoopPlaces`), `LoopGame` ("menus and lodging",
+"the speakeasy", "small businesses" sections), `LoopLiving.speakeasy`, `LoopSession`, `LoopHud.kt` (`LoopShopPanel`, `LoopSpeakeasyPanel`),
+`GameActivity`. Tests: `LoopGameTest.menusProhibitionTheSpeakeasyAndRoomsElsewhere`, `buyingAShopRunsItsBooksAThiefCostsAndSellingUpPays` (and the
+diner part of the needs test); `src/loop/bridge.businessplaces.test.ts`.
+
+**Menus**
+- A food place shows its era menu instead of "Eat a meal" / "Have a snack": `menuOf(kind, year, "<town>|<place>")`, each item with its price in
+  cents (`formatMoney` text) and the meal kind (`snack` / `diner` / `grocery_cooked`) that goes to `needs.eat` (a diner meal relieves .37, a snack
+  .16, bread .35). "Order" calls `LoopGame.eatItem` (`eat` is kept for the snack places: general store, market, five-and-dime, gas station).
+  Kinds: diner -> `diner` (the capital's drive-in diner uses the diner menu); bakery -> `bakery`; ice cream parlor -> `drive_in` (else `diner`) keeping
+  only the snacks; a `cafe` -> `cafeteria`; `bar` / `tavern` -> themselves (the capital has none yet, the mapping is ready: `LoopPlaces.spec`).
+  A bar in 1920-1933 has an empty menu and the panel says "No legal drink: Prohibition."
+- **Hours**: diners, ice cream parlors, bars, taverns and cafes take their hours from `places.placeHours` (a bar 5 p.m.-midnight); the bakery keeps
+  the economy's market hours (its stock kind), so existing shelves and tests are unchanged.
+- **The speakeasy** (`LoopLiving.speakeasy`, `LoopTown.speakeasy`, only in 1920-1933): one unmarked back door two metres past the back wall of the
+  dress shop (else a clothing store, toy store, music store, butcher, bakery, any small shop), no sign. A "Back door" chip appears within 4 m only
+  while it is open (`placeHours('speakeasy')`: 5 p.m.-midnight); the panel lists `menuOf('speakeasy')` and "Order" pays and feeds by the item's kind.
+  In 2025 there is none. (Tested with the same capital as a 1925 town.)
+- **Lodging**: the capital has no hotel, so the boarding house panel shows "Rooms elsewhere: Grand hotel $98.83 a night (private bath); ..." from
+  `lodgingOffers` for each hotel kind the year has (info only; `LoopView.roomsElsewhere`). The boarding house keeps its room (`economy.lodgingOf`).
+
+**Small business**
+- **For sale**: `businessesForSale` for every shop of the town (kind = the economy's, seed = the town's) once per game; a shop with an offer shows
+  "For sale $X / To let $Y a month" and about what it takes a week, with **Buy** and **Lease**. Buying pays the asking price (it includes the stock)
+  and a **till float** (a quarter of the monthly lease, at least $1) that goes into the drawer; leasing pays the opening stock (the module says to
+  acquire it separately) and the float, and the rent accrues daily from the drawer. Short of cash is refused with the amount. The shop is then
+  the player's (`businesses`, the module's `Business` JSON, a day log, the last landlord or bank warning; saved as `businesses` and `bizEvents`).
+  The shop's shelves are the business's stock; Buy / Take / Work / Apply / pawn Sell are refused at your own shop (the panel hides them), eating
+  there is free.
+- **Every day end** (`advance`, shifts, sleep, the cell's hours: any clock move across midnight) runs `runDay` for each owned shop and each ended
+  day, one at a time, with the **absolute** day number (`calendar.dayNumberOf(startDate)` + loop day - 1): `closed` when the shop's hours (the economy's,
+  the holiday closures included) give no span that day, `streetActivity` = the sky's `streetActivityMultiplier` at noon, and the day's `events`:
+  `stock_theft` for any `take` the loop records at the shop (item, 1), `breakage` ($35 of 1952 money scaled) for a forced entry. `LoopGame.shopIncident`
+  records `stock_theft` / `cash_theft` / `breakage` for the day (an NPC robbery will use it). The result goes into the log and PlayLog
+  (`business` events: day, sales, goods, wages, rent, restock, loss, profit); a landlord `lockout` or a bank `repossess` takes the shop away with a
+  line, warnings are lines and shown in the panel.
+- **Your shop panel**: last day's takings, costs (takings less profit) and profit, the last 7 days' totals, the cash drawer, staff count with
+  **Hire a clerk** / **Let go** (`{job: shop_clerk, hours: 8}`, up to 3, paid by `runDay` from the drawer), **Take cash out** (all of it to the wallet),
+  **Sell up** (pays `valuation` and takes the drawer's cash too; the shop goes back for sale). Test numbers (2025): a drugstore for $20,256.72 took
+  $130.45 in 25 customers on day 1 (profit $56.49 after $2.14 of theft loss); sold at $15,629.66 two days later (fixtures + stock + goodwill).
+- **Gaps:** an NPC robbery of the player's shop waits; the old keeper still stands in the shop (it is a place with a keeper in the facade, so the
+  player's own `take` there is still a recorded theft, only the panel hides it); the player pays no tax or licence; the lease has no deposit and
+  no way to give it up except selling; clerks are anonymous (not townspeople); no choice of what to stock or the prices; the speakeasy is not a
+  crime (drinking under Prohibition has no hook in the facade), its spot is not checked for reachability, and it only exists when the town's year is
+  1920-1933 (the capital is 2025); the bakery keeps market hours; not tried on the S25, and the Android parts (the panels, chips) only compile.

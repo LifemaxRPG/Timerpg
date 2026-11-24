@@ -96,6 +96,8 @@ class LoopTown(
     /** The room to rent and the street transit lines (docs/LOOP.md "Living costs and transit"). */
     val lodging: LoopLodging? by lazy { LoopLiving.lodging(this) }
     val lines: List<LoopLine> by lazy { LoopLiving.lines(this) }
+    /** The unmarked back door of the Prohibition years (1920-1933), null in any other year. */
+    val speakeasy: LoopSpeakeasy? by lazy { LoopLiving.speakeasy(this) }
 
     private val passerPool: List<String> = people.filter { p -> places.none { it.kind != "home" && it.keeperId == p.id } }.map { it.id }.ifEmpty { people.map { it.id } }
 

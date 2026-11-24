@@ -475,6 +475,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     var lodgeOpen by remember { mutableStateOf(false) }
     var stopHere by remember { mutableStateOf<com.lifemax.rpg.feature.habits.loop.LoopStop?>(null) }
     var stopOpen by remember { mutableStateOf(false) }
+    var speakNear by remember { mutableStateOf<com.lifemax.rpg.feature.habits.loop.LoopSpeakeasy?>(null) }
+    var speakOpen by remember { mutableStateOf(false) }
     var season by remember { mutableIntStateOf(1) }
     var weather by remember { mutableIntStateOf(0) }
     // the sky follows the date and the town's seed (the loop's `weatherAt`) until a weather chip is tapped; "Auto" gives it back
@@ -886,6 +888,9 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             val lg = LoopSession.lodgingNear(inRoomOrCar)
             if (lg?.placeId != lodgeNear?.placeId) lodgeNear = lg
             if (lg == null) lodgeOpen = false
+            val sk = LoopSession.speakeasyNear(inRoomOrCar)
+            if (sk?.placeId != speakNear?.placeId) speakNear = sk
+            if (sk == null) speakOpen = false
             val sp = LoopSession.stopNear(inRoomOrCar)
             if (sp?.id != stopHere?.id) stopHere = sp
             if (sp == null) stopOpen = false
@@ -1240,6 +1245,13 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             when (what) {
                 "wait" -> LoopSession.waitHours(ctx, 1.0); "sleep" -> LoopSession.sleepRough(ctx)
                 "eat" -> LoopSession.eat(ctx, loopPlace, hour)
+                "eatItem" -> LoopSession.eatItem(ctx, loopPlace, arg as String, hour)
+                "buyShop" -> LoopSession.buyBusiness(ctx, loopPlace, "buy", hour)
+                "leaseShop" -> LoopSession.buyBusiness(ctx, loopPlace, "lease", hour)
+                "hire" -> LoopSession.hireClerk(ctx, loopPlace)
+                "fire" -> LoopSession.letClerkGo(ctx, loopPlace)
+                "takeCash" -> LoopSession.takeCashOut(ctx, loopPlace)
+                "sellUp" -> LoopSession.sellUp(ctx, loopPlace)
                 "treat" -> LoopSession.treat(ctx, loopPlace, arg as String, hour)
             }
         }, onClose = { loopShop = false }, modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp, bottom = 40.dp))
@@ -1263,6 +1275,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 }
             }, onClose = { lodgeOpen = false }, modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp, bottom = 40.dp))
         }
+        if (speakOpen && speakNear != null) LoopSpeakeasyPanel(onOrder = { id -> LoopSession.orderAtSpeakeasy(ctx, id, hour) }, onClose = { speakOpen = false },
+            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp, bottom = 40.dp))
         stopHere?.let { sp ->
             if (stopOpen) LoopStopPanel(sp, onRide = { r ->
                 val to = LoopSession.town?.lines?.flatMap { it.stops }?.firstOrNull { it.id == r.toId }
@@ -1314,6 +1328,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 if (townMode && loopPlace != null && LoopSession.view != null) Chip("🛒 ${loopPlace.name.take(22)}", loopShop) { loopShop = !loopShop; carLotOpen = false; MoveInput.holdUntilNeutral() }
                 if (townMode && loopPlace != null && loopPlace.shopKind == "gas station" && LoopSession.view != null) Chip("🚗 Used cars", carLotOpen) { carLotOpen = !carLotOpen; loopShop = false; MoveInput.holdUntilNeutral() }
                 lodgeNear?.let { l -> if (inside == null) Chip("🛏 " + (if (LoopSession.view?.rent != null) "Your room" else "Rent a room"), lodgeOpen) { lodgeOpen = !lodgeOpen; stopOpen = false; MoveInput.holdUntilNeutral() } }
+                // the unmarked back door (1920-1933): no sign, a chip only close to it, when it is open
+                speakNear?.let { if (inside == null && LoopSession.view?.speakeasy?.open == true) Chip("🚪 Back door", speakOpen) { speakOpen = !speakOpen; lodgeOpen = false; stopOpen = false; MoveInput.holdUntilNeutral() } }
                 stopHere?.let { sp -> if (inside == null) Chip("🚏 ${LoopSession.view?.transit?.get(sp.id)?.mode?.takeIf { it.isNotEmpty() } ?: "Bus"} stop", stopOpen) { stopOpen = !stopOpen; lodgeOpen = false; MoveInput.holdUntilNeutral() } }
                 if (inside != null) Chip("Leave", false) { doorTo = false to null }
                 else if (roomHere != null) Chip("Go inside", false) { doorTo = true to roomHere }

@@ -42,7 +42,7 @@ object LoopItems {
         "toy store", "music store" -> "five_and_dime"
         "clothing store", "dress shop" -> "clothing"
         "bait shop" -> "hardware"
-        "ice cream parlor", "diner" -> "diner"
+        "ice cream parlor", "diner", "bar", "tavern", "cafe" -> "diner"
         "gas station" -> "gas_station"
         "pharmacy" -> "pharmacy"
         else -> "general"

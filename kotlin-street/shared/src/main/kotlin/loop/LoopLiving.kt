@@ -63,6 +63,22 @@ object LoopLiving {
     }
 
     /**
+     * The speakeasy's back door (1920-1933 only): behind a shop that makes a plausible front (a dress shop, a clothing store,
+     * a toy store, a music store, a butcher, a bakery, in that order; else any small shop), two metres past its back wall,
+     * facing away from it. Null outside the Prohibition years or when no such shop has a placement.
+     */
+    fun speakeasy(t: LoopTown): LoopSpeakeasy? {
+        if (t.year !in 1920..1933) return null
+        val shops = t.places.filter { it.kind == "general_store" && it.keeperId != null }
+        val order = listOf("dress shop", "clothing store", "toy store", "music store", "butcher", "bakery")
+        val pick = order.firstNotNullOfOrNull { k -> shops.filter { it.shopKind == k }.minByOrNull { it.id } } ?: shops.minByOrNull { it.id } ?: return null
+        val (r, b) = t.town.placement(pick.sprite) ?: return null
+        val front = r.pointAt(b.mid, 0f); val n = r.normalAt(b.mid)
+        val d = b.setback + b.depth + 2f * U
+        return LoopSpeakeasy(pick.id, "A back door behind ${pick.name}", front.x + n.x * d, front.z + n.z * d, n.x, n.z)
+    }
+
+    /**
      * The lines: Main Street and the two other streets with the most shop doors beside them (up to 4, 3 and 3 stops, at
      * least 200 m apart, nearest the shops), each stop on the pavement just off the road, named for the shop it is by.
      */
