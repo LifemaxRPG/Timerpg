@@ -21,6 +21,8 @@ class LoopOutcome(
     val moveTo: LoopPlace? = null,
     /** A wary shopkeeper: shown beside the line. */
     val wary: String? = null,
+    /** The player is taken to this transit stop (a ride's end). */
+    val moveToStop: LoopStop? = null,
 )
 
 /** What the HUD and the debug panel show, made after each burst on the sim's thread (read anywhere). */
@@ -46,6 +48,15 @@ class LoopView(
     val fenceQuotes: Map<String, FenceQuote> = emptyMap(),
     /** Each shop's opening hours today and now (place id -> hours; `economy.hoursOf / isOpen / staffed`), made on the sim's thread. */
     val hours: Map<String, PlaceHours> = emptyMap(),
+    /** The rented room (null until the player rents one), the offer to rent, and "most people here live on about $X a week" (`dailyBudget`); made on the sim's thread. */
+    val rent: RentView? = null,
+    val lodgingOffer: String = "",
+    val lodgingDueCents: Int = 0,
+    val livingLine: String = "",
+    /** What each stop's panel shows (stop id -> info: next departures, fares; `transit.*`). */
+    val transit: Map<String, StopInfo> = emptyMap(),
+    /** The train fare for a trip of km kilometres is about `railFare[0] + railFare[1] * km` cents (`transit.fare('railway')`, class: cheapest), null with no train service in the year. */
+    val railFare: DoubleArray? = null,
 )
 
 /**
@@ -233,12 +244,16 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         items.clear(); nextItem = 1
         attitudes.clear(); facts.clear(); stocks.clear(); dayFrac = 0.0
         fenceTrust.clear(); tips.clear(); buildFences()
+        rental = null; roomItems.clear(); lastRentStatus = null; arrearsKey = ""
         say("Arrived in ${town.townName} with ${money(cash)}.")
         event("init", JSONObject(res.toString()).put("cash", cash).put("places", town.places.count { it.kind != "home" }).put("ms", timings["init"]?.first))
         refreshPolice()
         publish()
         return res
     }
+
+    /** Gives (or takes, when negative) [cents]: a debug and test hook; the game earns money by working or crime. */
+    fun addCash(cents: Int, why: String = "debug") { cash = max(0, cash + cents); event("cash", JSONObject().put("delta", cents).put("why", why)); publish() }
 
     /** The whole loop as one JSON string: the facade's sim, the wallet and the inventory. */
     fun save(): String {
@@ -247,6 +262,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
             .put("stocks", JSONObject().also { m -> for ((k, v) in stocks) m.put(k, v) }).put("dayFrac", dayFrac)
             .put("fences", JSONArray(fences.map { it.json })).put("leads", JSONArray(leads))
             .put("fenceTrust", JSONObject().also { m -> for ((k, v) in fenceTrust) m.put(k, v) }).put("tips", JSONArray(tips))
+        rental?.let { r -> o.put("rental", JSONObject().put("kind", r.kind).put("startDay", r.startDay).put("paidCents", r.paidCents).put("nights", r.nights).put("lastNight", r.lastNight)) }
+        o.put("roomItems", JSONArray().also { a -> for (i in roomItems) a.put(itemJson(i)) })
         return o.toString()
     }
 
@@ -271,6 +288,10 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
             leads = o.optJSONArray("leads")?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } }.orEmpty()
             quoteCache.clear()
         } else buildFences() // (a save from before the fences: the town's are the same ones, from its seed)
+        rental = o.optJSONObject("rental")?.let { Rental(it.getString("kind"), it.getInt("startDay"), it.getInt("paidCents"), it.optInt("nights"), it.optInt("lastNight")) }
+        roomItems.clear()
+        o.optJSONArray("roomItems")?.let { a -> for (k in 0 until a.length()) roomItems += itemOf(a.getJSONObject(k)) }
+        arrearsKey = ""; lastRentStatus = rentArrears()?.optString("status")
         say("Back in ${town.townName}.")
         event("load", JSONObject().put("day", day).put("hour", hour).put("cash", cash).put("items", items.size).put("ms", timings["load"]?.first))
         refreshPolice()
@@ -624,10 +645,239 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         return done(true, "You worked ${hours.toInt()} hours $task at ${place.name}: ${money(pay)}.", hours, wary = wary)
     }
 
-    private fun done(ok: Boolean, line: String, hours: Double = 0.0, moveTo: LoopPlace? = null, wary: String? = null): LoopOutcome {
+    private fun done(ok: Boolean, line: String, hours: Double = 0.0, moveTo: LoopPlace? = null, wary: String? = null, moveToStop: LoopStop? = null): LoopOutcome {
         say(line + (wary?.let { " $it" } ?: ""))
         publish()
-        return LoopOutcome(ok, line, hour, hours, moveTo, wary)
+        return LoopOutcome(ok, line, hour, hours, moveTo, wary, moveToStop)
+    }
+
+
+    // ------------------------------------------------------------------ living costs (C022: economy.lodgingOf / dueOn / arrears / dailyBudget)
+
+    /** The room the player rents: [kind] of lodging, the day it began, what has been paid (deposit and rent, oldest first), the nights slept in it. */
+    private class Rental(val kind: String, val startDay: Int, var paidCents: Int, var nights: Int = 0, var lastNight: Int = 0)
+    private var rental: Rental? = null
+    /** Items left in the room: held (not given back) while the player is locked out. */
+    private val roomItems = ArrayList<LoopItem>()
+    private var lastRentStatus: String? = null
+    private val termsCache = HashMap<String, JSONObject>()
+    private var arrearsKey = ""; private var arrearsCache: JSONObject? = null
+    private var livingCache: String? = null
+
+    /** The era's terms of a [kind] of lodging (`lodgingOf`), null when there are none in the town's year. */
+    fun lodgingTerms(kind: String = "boarding_house"): JSONObject? = termsCache[kind] ?: (econ("lodgingOf", kind, town.year) as? JSONObject)?.also { termsCache[kind] = it }
+
+    /** Where rent stands today (`arrears`), cached per day and payment; null without a room. */
+    fun rentArrears(): JSONObject? {
+        val r = rental ?: return null
+        val t = lodgingTerms(r.kind) ?: return null
+        val key = "$day|${r.paidCents}|${r.startDay}"
+        if (key == arrearsKey) return arrearsCache
+        val a = econ("arrears", JSONObject().put("lodging", t).put("startDay", r.startDay).put("day", day).put("paidCents", r.paidCents)) as? JSONObject
+        arrearsKey = key; arrearsCache = a
+        return a
+    }
+
+    val renting: Boolean get() = rental != null
+    val lockedOut: Boolean get() = rentArrears()?.optBoolean("belongingsHeld") == true
+    val nightsInRoom: Int get() = rental?.nights ?: 0
+    val itemsInRoom: List<LoopItem> get() = roomItems.toList()
+
+    /** The place's one-line summary of what most people live on (`dailyBudget('working')`), cached. */
+    fun livingLine(): String = livingCache ?: ((econ("dailyBudget", "working", town.year) as? JSONObject)?.optInt("weeklyLivingCents", 0)?.takeIf { it > 0 }
+        ?.let { "Most people here live on about ${money(it)} a week." } ?: "").also { livingCache = it }
+
+    /** Rent due now to take the room (`dueOn` on the first day: deposit and the first period), in cents; 0 without terms. */
+    fun roomCost(): Int = lodgingTerms()?.let { (econ("dueOn", it, day, day) as? Number)?.toInt() } ?: 0
+
+    private fun lodgingName() = town.lodging?.name ?: "the boarding house"
+
+    /** "Rent a room": pays the deposit and the first period (`lodgingOf`, `dueOn`); the rent then falls due every period. */
+    fun rentRoom(gameHour: Double): LoopOutcome {
+        clockTo(gameHour, exact = true)
+        if (rental != null) return done(false, "You already rent a room at ${lodgingName()}.")
+        val t = lodgingTerms() ?: return done(false, "There are no rooms to let in ${town.year}.")
+        val due = roomCost()
+        if (cash < due) return done(false, "A room costs ${money(due)} now (${money(t.getInt("rentCents"))} every ${t.getInt("periodDays")} days); you have ${money(cash)}.")
+        cash -= due
+        rental = Rental(t.getString("kind"), day, due)
+        lastRentStatus = "current"
+        event("rent", JSONObject().put("what", "rented").put("day", day).put("paid", due).put("kind", t.getString("kind")))
+        return done(true, "You rent a room at ${lodgingName()} for ${money(due)}; the next rent is due in ${t.getInt("periodDays")} days.")
+    }
+
+    /** Pays what is owed (`arrears`): the oldest periods first. */
+    fun payRent(gameHour: Double): LoopOutcome {
+        clockTo(gameHour, exact = true)
+        val r = rental ?: return done(false, "You have no room to pay for.")
+        val owed = rentArrears()?.optInt("owedCents") ?: 0
+        if (owed <= 0) return done(false, "Nothing owed: the rent is paid up.")
+        if (cash < owed) return done(false, "You owe ${money(owed)} and have ${money(cash)}.")
+        cash -= owed; r.paidCents += owed
+        arrearsKey = ""
+        event("rent", JSONObject().put("what", "paid").put("day", day).put("paid", owed))
+        return done(true, "You pay ${money(owed)} rent.")
+    }
+
+    /** Sleeps the night in the rented room (till 7): it restores like a bed (only recorded for now); not while locked out. */
+    fun sleepInRoom(): LoopOutcome {
+        val r = rental ?: return done(false, "You have no room to sleep in.")
+        if (lockedOut) return done(false, "The landlady has locked you out: ${money(rentArrears()?.optInt("owedCents") ?: 0)} is owed.")
+        val o = sleepUntil(7.0)
+        r.nights++; r.lastNight = day
+        event("rent", JSONObject().put("what", "slept").put("day", day).put("nights", r.nights))
+        say("(slept in the rented room: night ${r.nights})")
+        publish()
+        return LoopOutcome(true, "You sleep in your room at ${lodgingName()}.", hour, o.hoursPassed)
+    }
+
+    /** Leaves [item] in the room (held for the player while they pay; kept by the landlady when locked out). */
+    fun stash(item: LoopItem): LoopOutcome {
+        if (rental == null) return done(false, "You have no room to keep things in.")
+        if (lockedOut) return done(false, "The room is locked: you can't leave anything there.")
+        items.removeAll { it.id == item.id }; roomItems += item
+        return done(true, "You leave ${item.label} in your room.")
+    }
+
+    /** Takes [item] back out of the room; not while locked out (the things are held until the rent is paid). */
+    fun retrieve(item: LoopItem): LoopOutcome {
+        if (lockedOut) return done(false, "The landlady is holding your things until you pay ${money(rentArrears()?.optInt("owedCents") ?: 0)}.")
+        if (!roomItems.removeAll { it.id == item.id }) return done(false, "That is not in your room.")
+        items += item
+        return done(true, "You take ${item.label} out of your room.")
+    }
+
+    /** What the HUD says of the room, or null without one. */
+    private fun rentView(): RentView? {
+        val r = rental ?: return null
+        val t = lodgingTerms(r.kind) ?: return null
+        val a = rentArrears() ?: return null
+        val status = a.optString("status"); val owed = a.optInt("owedCents"); val late = a.optInt("daysLate")
+        val period = t.getInt("periodDays")
+        val next = r.startDay + ((day - r.startDay) / period + 1) * period
+        val nextAmt = (econ("dueOn", t, r.startDay, next) as? Number)?.toInt() ?: t.getInt("rentCents")
+        val line = when (status) {
+            "due" -> "Rent due today: ${money(owed)} for your room."
+            "warning" -> "Rent is $late day${if (late == 1) "" else "s"} late: ${money(owed)}. You will be locked out in ${(7 - late).coerceAtLeast(0)} day${if (7 - late == 1) "" else "s"}."
+            "locked_out" -> "Locked out of your room: ${money(owed)} owed. Your things are held."
+            else -> null
+        }
+        return RentView(status, owed, money(owed), "${money(t.getInt("rentCents"))} every $period days", "${money(nextAmt)} on day $next", line, status == "locked_out", r.nights, roomItems.toList())
+    }
+
+    /** Announces a change in how the rent stands (a new day can turn due into late, late into locked out). */
+    private fun rentTick() {
+        if (rental == null) return
+        val st = rentArrears()?.optString("status") ?: return
+        if (st == lastRentStatus) return
+        lastRentStatus = st
+        when (st) {
+            "due" -> say("Your rent is due: ${money(rentArrears()!!.optInt("owedCents"))}.")
+            "warning" -> say("Your rent is late (${rentArrears()!!.optInt("daysLate")} day(s)).")
+            "locked_out" -> say("You are locked out of your room; ${roomItems.size} item(s) of yours are held.")
+        }
+        event("rent", JSONObject().put("what", st).put("day", day).put("owed", rentArrears()?.optInt("owedCents")).put("held", roomItems.size))
+    }
+
+    // ------------------------------------------------------------------ transit (C024: transit.fare / departures / travelTime)
+
+    /** The service in the town's year: a horsecar, then the streetcar, then the city bus; null when `fare` knows none. */
+    val transitMode: String? by lazy {
+        val m = when { town.year < 1888 -> "horsecar"; town.year < 1930 -> "streetcar"; else -> "city_bus" }
+        m.takeIf { (call("transit.fare", m, town.year, 1.0).toDoubleOrNull() != null) }
+    }
+    val transitWord: String get() = when (transitMode) { "horsecar" -> "horsecar"; "streetcar" -> "streetcar"; else -> "bus" }
+
+    private fun tr(method: String, vararg args: Any): Any = org.json.JSONTokener(call("transit.$method", *args)).nextValue()
+    private val fareCache = HashMap<String, Int>()
+    private val timeCache = HashMap<String, Int>()
+    private val depCache = HashMap<String, List<Int>>()
+
+    private fun km(a: LoopStop, b: LoopStop): Double = (kotlin.math.hypot((a.x - b.x).toDouble(), (a.z - b.z).toDouble()) / VehicleWorld.U / 1000.0).coerceAtLeast(0.05)
+    private fun kmKey(d: Double) = Math.round(d * 1000).toString()
+
+    /** What a ride of [km] costs (`fare`, cents). */
+    private fun fareCents(mode: String, km: Double): Int = fareCache.getOrPut("$mode|${kmKey(km)}") { (tr("fare", mode, town.year, km) as? Number)?.toInt() ?: 0 }
+    /** Minutes on board (`travelTime`, the mode's wait at the stop included). */
+    private fun rideMinutes(mode: String, km: Double): Int = timeCache.getOrPut("$mode|${kmKey(km)}") { (tr("travelTime", mode, town.year, km) as? Number)?.toInt() ?: 0 }
+
+    /** [line]'s remaining departures (minute of day) on in-game day [d] from [fromHour] (`departures`, the weekday of that day); cached. */
+    private fun departuresOn(line: LoopLine, mode: String, d: Int, fromHour: Double): List<Int> {
+        val h = fromHour.coerceIn(0.0, 23.999)
+        return depCache.getOrPut("${line.id}|$d|${(h * 60).toInt()}") {
+            if (depCache.size > 400) depCache.clear()
+            val a = tr("departures", JSONObject().put("id", line.id).put("mode", mode), town.year, weekdayOf(d), h, town.seed) as? JSONArray ?: JSONArray()
+            (0 until a.length()).map { a.getInt(it) }
+        }
+    }
+
+    /** The next departure of [line] from now: (days from today, minute of day), the first of tomorrow when today's service is over. */
+    private fun nextDeparture(line: LoopLine, mode: String): Pair<Int, Int>? {
+        departuresOn(line, mode, day, hour).firstOrNull()?.let { return 0 to it }
+        return departuresOn(line, mode, day + 1, 0.0).firstOrNull()?.let { 1 to it }
+    }
+
+    private fun clockText(minute: Int): String {
+        val m = Math.floorMod(minute, 1440); val h = m / 60
+        return "${if (h % 12 == 0) 12 else h % 12}:%02d ${if (h < 12) "a.m." else "p.m."}".format(m % 60)
+    }
+
+    private fun lineOf(stop: LoopStop): LoopLine? = town.lines.firstOrNull { it.street == stop.line }
+
+    /** What each stop's panel shows now: the next departures and the fare, minutes and text of each ride along the line. */
+    private fun transitInfo(): Map<String, StopInfo> {
+        val mode = transitMode
+        val out = HashMap<String, StopInfo>()
+        for (line in town.lines) for (stop in line.stops) {
+            if (mode == null) { out[stop.id] = StopInfo(stop, "", emptyList(), emptyList(), "No streetcar or bus runs in ${town.year}."); continue }
+            val today = departuresOn(line, mode, day, hour)
+            val deps = if (today.isNotEmpty()) today.take(4).map { clockText(it) }
+                else departuresOn(line, mode, day + 1, 0.0).take(3).map { "tomorrow " + clockText(it) }
+            val rides = line.stops.filter { it.id != stop.id }.map { to ->
+                val d = km(stop, to); val c = fareCents(mode, d)
+                RideOption(to.id, to.name, c, money(c), rideMinutes(mode, d))
+            }
+            out[stop.id] = StopInfo(stop, transitWord, deps, rides, if (deps.isEmpty()) "No service." else null)
+        }
+        return out
+    }
+
+    /**
+     * Rides the line from [from] to [to]: pays the fare (`fare`), waits for the next departure (`departures`, the
+     * weekday of the loop's clock as the opening hours use) and rides `travelTime`: the clock moves by both in one
+     * advance, then the player is taken to [to].
+     */
+    fun ride(from: LoopStop, to: LoopStop, gameHour: Double): LoopOutcome {
+        clockTo(gameHour, exact = true)
+        val mode = transitMode ?: return done(false, "No streetcar or bus runs in ${town.year}.")
+        val line = lineOf(from) ?: return done(false, "There is no line here.")
+        if (to.line != from.line || to.id == from.id) return done(false, "That line does not go there.")
+        val d = km(from, to); val fare = fareCents(mode, d)
+        if (cash < fare) return done(false, "The fare is ${money(fare)}; you have ${money(cash)}.")
+        val dep = nextDeparture(line, mode) ?: return done(false, "No service.")
+        val waitH = (dep.first * 24 + dep.second / 60.0 - hour).coerceAtLeast(0.0)
+        val minutes = rideMinutes(mode, d)
+        cash -= fare
+        val total = waitH + minutes / 60.0
+        advance(total, "transit")
+        val arrive = (hour * 60).toInt()
+        event("ride", JSONObject().put("from", from.id).put("to", to.id).put("fare", fare).put("waitMin", Math.round(waitH * 60)).put("minutes", minutes).put("arriveDay", day).put("arriveHour", hour))
+        return done(true, "You take the ${clockText(dep.second)} $transitWord to ${to.name}: ${money(fare)}, waited ${Math.round(waitH * 60)} min, rode $minutes min. Arrived ${clockText(arrive)}", total, moveToStop = to)
+    }
+
+    /** What a train ticket for [km] costs (`transit.fare('railway')`, the cheapest class of the year), or null when there is no train service in the year. */
+    fun railFare(km: Double): Int? {
+        val cls = (tr("classesOf", town.year) as? JSONArray)?.takeIf { it.length() > 0 }?.getString(0) ?: return null
+        return (tr("fare", "railway", town.year, km, cls) as? Number)?.toInt()
+    }
+
+    /** Buys the ticket for a trip of [km] at the depot's window: pays `railFare` (the ride then starts), or says why not. A year without train fares charges nothing. */
+    fun buyRailTicket(km: Double): LoopOutcome {
+        val f = railFare(km) ?: return done(true, "No fare is set for trains in ${town.year}: you board.")
+        if (cash < f) return done(false, "The ticket costs ${money(f)}; you have ${money(cash)}.")
+        cash -= f
+        event("rail_ticket", JSONObject().put("km", km).put("fare", f))
+        return done(true, "Ticket ${money(f)}.")
     }
 
     // ------------------------------------------------------------------ the police
@@ -702,6 +952,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     // ------------------------------------------------------------------ the debug view
 
     private fun publish() {
+        rentTick()
         val shops = town.places.filter { it.kind != "home" && it.kind != "police_station" }
         val stock = shops.associate { it.id to stockFor(it) }
         val offers = HashMap<String, Int>(); val offerTexts = HashMap<String, String>()
@@ -709,12 +960,27 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val quotes = HashMap<String, FenceQuote>()
         for (f in fences) for (i in items) quotes["${f.personId}|${i.id}"] = fenceQuote(f, i)
         view = LoopView(cash, money(cash), stock, offers, offerTexts, items.toList(), day, hour, debugLines(), officerPlans, messages.toList(),
-            fences, fenceTrust.toMap(), quotes, shops.associate { it.id to hoursOf(it) })
+            fences, fenceTrust.toMap(), quotes, shops.associate { it.id to hoursOf(it) },
+            rentView(), lodgingOffer(), roomCost(), livingLine(), transitInfo(), railCoef())
+    }
+
+    private fun lodgingOffer(): String = lodgingTerms()?.let { t ->
+        "Room at ${lodgingName()}: ${money(t.getInt("rentCents"))} every ${t.getInt("periodDays")} days" + (if (t.getInt("depositCents") > 0) ", ${money(t.getInt("depositCents"))} deposit" else "") + "."
+    } ?: "No rooms to let in ${town.year}."
+
+    private var railCoefCache: DoubleArray? = null; private var railCoefDone = false
+    /** The train fare as a line of cents (base + per km), for the UI thread's ticket window. */
+    private fun railCoef(): DoubleArray? {
+        if (!railCoefDone) { railCoefDone = true; val a = railFare(0.0); val b = railFare(1000.0); if (a != null && b != null) railCoefCache = doubleArrayOf(a.toDouble(), (b - a) / 1000.0) }
+        return railCoefCache
     }
 
     private fun debugLines(): List<String> {
         val out = ArrayList<String>()
         out += "Day $day, %02d:%02d · cash ${money(cash)} · ${items.size} item(s)".format(hour.toInt() % 24, ((hour - floor(hour)) * 60).toInt())
+        livingLine().takeIf { it.isNotEmpty() }?.let { out += it }
+        rentView()?.let { r -> out += "Room: ${r.status}, ${r.rentText}, next ${r.nextDue}, ${r.nights} night(s) slept, ${r.roomItems.size} item(s) kept" + (if (r.owedCents > 0) ", owed ${r.owedText}" else "") }
+            ?: town.lodging?.let { out += "Room to rent: ${it.name} (${lodgingOffer()})" }
         for (i in items) out += "  ${i.label} (${money(i.value)})" + (if (i.stolen) " HOT ${i.crimeId ?: ""}" else "") + (i.serial?.let { " #$it" } ?: "")
         lastAct?.let { a ->
             out += "Last act: ${a.optString("summary")} (${a.optInt("bystanders")} near${if (a.optBoolean("inside")) ", inside" else ""})"
@@ -754,6 +1020,12 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     }
 
     companion object {
+        /** [cents] as the era writes them (the rule of `formatMoney`: under a dollar before 1980 is "23c"), for the UI thread, which cannot call the sim. */
+        fun eraMoney(cents: Int, year: Int): String {
+            val a = Math.abs(cents); val sign = if (cents < 0) "-" else ""
+            return if (a in 1..99 && year < 1980) sign + a + "¢" else sign + "$" + (a / 100) + "." + "%02d".format(a % 100)
+        }
+
         /** A fact from [name]'s fact sheet ("You saw this person steal ...") told to the player ("Mildred saw you steal ..."). */
         fun toPlayer(fact: String, name: String): String = fact.replace("You saw this person", "$name saw you")
             .replace("You heard this person", "$name heard you").replace(" told you this person", " told $name you")

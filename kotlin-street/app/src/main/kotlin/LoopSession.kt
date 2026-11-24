@@ -48,6 +48,8 @@ object LoopSession {
     /** Something being done on the sim's thread (the buttons wait). */
     var busy by mutableStateOf(false); private set
     var error by mutableStateOf<String?>(null); private set
+    /** When the last ride began (the screen fades from black over it). */
+    var fadeAt by mutableLongStateOf(0L); private set
 
     private var routes: LoopRoutes? = null
     @Volatile private var walks: List<LoopOfficerWalk> = emptyList()
@@ -169,6 +171,13 @@ object LoopSession {
         line = o.line + (o.wary?.let { "  $it" } ?: ""); lineAt = System.currentTimeMillis()
         if (o.hoursPassed > 0.0) hourSet = o.hour.toFloat()
         lastHour = o.hour.toFloat()
+        // (a ride's end: the player stands at the stop, facing along the line, under a fade)
+        o.moveToStop?.let { s ->
+            val other = town?.lines?.firstOrNull { it.street == s.line }?.stops?.firstOrNull { it.id != s.id }
+            val dx = (other?.x ?: (s.x + 1f)) - s.x; val dz = (other?.z ?: s.z) - s.z; val l = hypot(dx, dz).coerceAtLeast(1f)
+            TownPlay.placeAt(s.x, s.z, dx / l, dz / l)
+            fadeAt = System.currentTimeMillis()
+        }
         if (o.moveTo != null) scene = o
         save(ctx)
     }
@@ -232,6 +241,43 @@ object LoopSession {
 
     /** What [personId] knows of the player, for the dialogue's fact sheet (cached; empty until looked up). */
     fun factsFor(personId: String): List<String> = game?.facts?.get(personId).orEmpty()
+
+    // ------------------------------------------------------------------ living costs and transit (docs/LOOP.md)
+
+    /** How near the player stands to the boarding house's door or a stop to use it (street units: 8 m). */
+    val NEAR_REACH = 8f * VehicleWorld.U
+
+    /** The boarding house, when the player stands at its door; not inside or in a car. */
+    fun lodgingNear(inside: Boolean): com.lifemax.rpg.feature.habits.loop.LoopLodging? {
+        if (inside || scene != null) return null
+        val l = town?.lodging ?: return null
+        val w = TownPlay.walk ?: return null
+        return l.takeIf { hypot(it.doorX - w.wx, it.doorZ - w.wz) <= NEAR_REACH }
+    }
+
+    /** The transit stop the player stands at, if any. */
+    fun stopNear(inside: Boolean): com.lifemax.rpg.feature.habits.loop.LoopStop? {
+        if (inside || scene != null) return null
+        val t = town ?: return null
+        val w = TownPlay.walk ?: return null
+        return t.lines.flatMap { it.stops }.filter { hypot(it.x - w.wx, it.z - w.wz) <= NEAR_REACH }.minByOrNull { hypot(it.x - w.wx, it.z - w.wz) }
+    }
+
+    fun rentRoom(ctx: Context, hour: Float) = run("renting", { it.rentRoom(hour.toDouble()) }) { shown(it, ctx) }
+    fun payRent(ctx: Context, hour: Float) = run("paying", { it.payRent(hour.toDouble()) }) { shown(it, ctx) }
+    fun sleepInRoom(ctx: Context) = run("sleeping", { it.sleepInRoom() }) { shown(it, ctx) }
+    fun stash(ctx: Context, item: com.lifemax.rpg.feature.habits.loop.LoopItem) = run("keeping", { it.stash(item) }) { shown(it, ctx) }
+    fun retrieve(ctx: Context, item: com.lifemax.rpg.feature.habits.loop.LoopItem) = run("taking back", { it.retrieve(item) }) { shown(it, ctx) }
+    fun ride(ctx: Context, from: com.lifemax.rpg.feature.habits.loop.LoopStop, to: com.lifemax.rpg.feature.habits.loop.LoopStop, hour: Float) =
+        run("riding", { it.ride(from, to, hour.toDouble()) }) { shown(it, ctx) }
+
+    /** What a train ticket for [km] costs (cents, from the view's line of `transit.fare('railway')`), null with no fare; the UI thread never calls the sim. */
+    fun railFareCents(km: Double): Int? = view?.railFare?.let { Math.round(it[0] + it[1] * km).toInt().coerceAtLeast(1) }
+    fun eraMoneyText(cents: Int): String = LoopGame.eraMoney(cents, town?.year ?: 2025)
+    fun railFareText(km: Double): String? = railFareCents(km)?.let { LoopGame.eraMoney(it, town?.year ?: 2025) }
+
+    /** Pays for the ticket (on the sim's thread); [onOk] runs on the main thread when it is bought (the train then leaves). */
+    fun buyTicket(ctx: Context, km: Double, onOk: () -> Unit) = run("the ticket", { it.buyRailTicket(km) }) { shown(it, ctx); if (it.ok) onOk() }
 
     // ------------------------------------------------------------------ the fences
 

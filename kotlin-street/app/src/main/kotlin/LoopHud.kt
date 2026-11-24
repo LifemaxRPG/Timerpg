@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -16,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,17 +59,20 @@ fun LoopButton(label: String, enabled: Boolean = true, on: Boolean = false, onCl
 
 private fun Modifier.loopOpaque(): Modifier = pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent() } }
 
-/** The cash readout (and the debug panel's switch). */
+/** The cash readout (and the debug panel's switch), with the rent warning under it when the room's rent is due, late or locked out. */
 @Composable
 fun LoopWallet(debugOpen: Boolean, onDebug: () -> Unit) {
     val v = LoopSession.view
     val err = LoopSession.error
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.background(BG, RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 5.dp)) {
-            T(when { err != null -> "loop: off"; v == null -> "…"; else -> v.cashText + if (v.items.isNotEmpty()) "  ·  ${v.items.size} item${if (v.items.size == 1) "" else "s"}" else "" },
-                14.sp, if (v != null && v.items.any { it.stolen }) HOT else Color.White)
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.background(BG, RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 5.dp)) {
+                T(when { err != null -> "loop: off"; v == null -> "…"; else -> v.cashText + if (v.items.isNotEmpty()) "  ·  ${v.items.size} item${if (v.items.size == 1) "" else "s"}" else "" },
+                    14.sp, if (v != null && v.items.any { it.stolen }) HOT else Color.White)
+            }
+            LoopButton("Loop", on = debugOpen, onClick = onDebug)
         }
-        LoopButton("Loop", on = debugOpen, onClick = onDebug)
+        v?.rent?.line?.let { Box(Modifier.widthIn(max = 300.dp).background(BG, RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) { T(it, 12.sp, HOT) } }
     }
 }
 
@@ -113,6 +118,73 @@ fun LoopShopPanel(place: LoopPlace, year: Int, hour: Float, onAction: (String, A
             LoopButton("Close") { onClose() }
         }
     }
+}
+
+/** The boarding house: rent a room, pay the rent, sleep there, leave things in it (held while the rent is unpaid). */
+@Composable
+fun LoopLodgingPanel(lodging: com.lifemax.rpg.feature.habits.loop.LoopLodging, hour: Float, onAction: (String, Any?) -> Unit, onClose: () -> Unit, modifier: Modifier = Modifier) {
+    val v = LoopSession.view
+    val busy = LoopSession.busy
+    val rent = v?.rent
+    val cash = v?.cash ?: 0
+    Column(modifier.widthIn(max = 460.dp).background(PANEL_BG, RoundedCornerShape(14.dp)).loopOpaque().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        T(lodging.name, 15.sp)
+        if (rent == null) {
+            T(v?.lodgingOffer ?: "", 12.sp, DIM_TEXT)
+            T("To take it now: ${v?.let { LoopSession.eraMoneyText(it.lodgingDueCents) } ?: ""}", 12.sp, DIM_TEXT)
+            LoopButton("Rent a room", enabled = !busy && v != null && v.lodgingDueCents > 0 && cash >= v.lodgingDueCents) { onAction("rent", null) }
+        } else {
+            T("Your room: ${rent.rentText}; next ${rent.nextDue}; ${rent.nights} night${if (rent.nights == 1) "" else "s"} slept.", 12.sp, DIM_TEXT)
+            rent.line?.let { T(it, 12.sp, HOT) }
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (rent.owedCents > 0) LoopButton("Pay rent ${rent.owedText}", enabled = !busy && cash >= rent.owedCents) { onAction("pay", null) }
+                LoopButton("Sleep in your room till 7", enabled = !busy && !rent.lockedOut) { onAction("sleepRoom", null) }
+            }
+            val carried = v.items
+            if (rent.roomItems.isNotEmpty()) T(if (rent.lockedOut) "Held by the landlady:" else "In your room:", 12.sp, DIM_TEXT)
+            for (i in rent.roomItems) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                T(i.label, 13.sp, Color.White, Modifier.widthIn(min = 200.dp))
+                LoopButton("Take back", enabled = !busy && !rent.lockedOut) { onAction("retrieve", i) }
+            }
+            if (carried.isNotEmpty() && !rent.lockedOut) T("Leave in your room:", 12.sp, DIM_TEXT)
+            if (!rent.lockedOut) for (i in carried) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                T(i.label + if (i.stolen) " (hot)" else "", 13.sp, if (i.stolen) HOT else Color.White, Modifier.widthIn(min = 200.dp))
+                LoopButton("Leave", enabled = !busy) { onAction("stash", i) }
+            }
+        }
+        LoopButton("Close") { onClose() }
+    }
+}
+
+/** A streetcar or bus stop: the next departures and the fare to each other stop on the line. */
+@Composable
+fun LoopStopPanel(stop: com.lifemax.rpg.feature.habits.loop.LoopStop, onRide: (com.lifemax.rpg.feature.habits.loop.RideOption) -> Unit, onClose: () -> Unit, modifier: Modifier = Modifier) {
+    val v = LoopSession.view
+    val busy = LoopSession.busy
+    val info = v?.transit?.get(stop.id)
+    Column(modifier.widthIn(max = 460.dp).background(PANEL_BG, RoundedCornerShape(14.dp)).loopOpaque().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        T(stop.name, 15.sp)
+        if (info == null) T("...", 12.sp, DIM_TEXT)
+        else {
+            info.noService?.let { T(it, 12.sp, HOT) }
+            if (info.departures.isNotEmpty()) T("Next ${info.mode}: " + info.departures.joinToString(", "), 12.sp, DIM_TEXT)
+            for (r in info.rides) LoopButton("Ride to ${r.toName}: ${r.text}, ${r.minutes} min", enabled = !busy && info.noService == null && (v.cash >= r.cents)) { onRide(r) }
+        }
+        LoopButton("Close") { onClose() }
+    }
+}
+
+/** Black, fading out over a second after a ride's end. */
+@Composable
+fun LoopFade(modifier: Modifier = Modifier) {
+    val at = LoopSession.fadeAt
+    val alpha = remember { androidx.compose.animation.core.Animatable(0f) }
+    androidx.compose.runtime.LaunchedEffect(at) {
+        if (at == 0L) return@LaunchedEffect
+        alpha.snapTo(1f)
+        alpha.animateTo(0f, androidx.compose.animation.core.tween(1100))
+    }
+    if (alpha.value > 0.01f) Box(modifier.fillMaxSize().background(Color(0xFF000000).copy(alpha = alpha.value)))
 }
 
 /** A fence, met at night: what they would pay for each thing the player carries (or why not), in cents of the town's year. */
@@ -176,6 +248,23 @@ fun LoopOfficerLabels(frameTick: androidx.compose.runtime.LongState, hour: Float
         val at = com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.headOnScreen(x, z) ?: continue
         Box(Modifier.layout { m, c -> val pl = m.measure(c); layout(pl.width, pl.height) { pl.place(at.x.toInt() - pl.width / 2, at.y.toInt() - pl.height - 4) } }) {
             T("POLICE", 10.sp, Color.White, Modifier.background(Color(0xCC1A3D8F), RoundedCornerShape(4.dp)).padding(horizontal = 4.dp, vertical = 1.dp))
+        }
+    }
+    // (the transit stops and the boarding house: a sign over the spot while it is in view)
+    LoopSession.town?.let { t ->
+        for (st in t.lines.flatMap { it.stops }) {
+            if (kotlin.math.hypot(st.x - w.wx, st.z - w.wz) > 1500f) continue
+            val at = com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.headOnScreen(st.x, st.z) ?: continue
+            Box(Modifier.layout { m, c -> val pl = m.measure(c); layout(pl.width, pl.height) { pl.place(at.x.toInt() - pl.width / 2, at.y.toInt() - pl.height - 4) } }) {
+                T("STOP", 10.sp, Color.White, Modifier.background(Color(0xCC2E7D32), RoundedCornerShape(4.dp)).padding(horizontal = 4.dp, vertical = 1.dp))
+            }
+        }
+        t.lodging?.let { l ->
+            if (kotlin.math.hypot(l.doorX - w.wx, l.doorZ - w.wz) <= 1500f) com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.headOnScreen(l.doorX, l.doorZ)?.let { at ->
+                Box(Modifier.layout { m, c -> val pl = m.measure(c); layout(pl.width, pl.height) { pl.place(at.x.toInt() - pl.width / 2, at.y.toInt() - pl.height - 4) } }) {
+                    T("ROOMS", 10.sp, Color.White, Modifier.background(Color(0xCC8D5A1F), RoundedCornerShape(4.dp)).padding(horizontal = 4.dp, vertical = 1.dp))
+                }
+            }
         }
     }
     // (the fences, by their name only)

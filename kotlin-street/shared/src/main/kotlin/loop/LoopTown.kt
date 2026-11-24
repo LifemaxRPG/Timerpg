@@ -93,6 +93,10 @@ class LoopTown(
     val clerks: Map<String, String> = places.filter { it.kind != "home" && it.keeperId != null && personById[it.keeperId!!]?.building != it.sprite }
         .associate { it.sprite to it.keeperId!! }
 
+    /** The room to rent and the street transit lines (docs/LOOP.md "Living costs and transit"). */
+    val lodging: LoopLodging? by lazy { LoopLiving.lodging(this) }
+    val lines: List<LoopLine> by lazy { LoopLiving.lines(this) }
+
     private val passerPool: List<String> = people.filter { p -> places.none { it.kind != "home" && it.keeperId == p.id } }.map { it.id }.ifEmpty { people.map { it.id } }
 
     /**

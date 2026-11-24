@@ -257,3 +257,52 @@ fallback; `openAt` is gone.
   id hash (real people, because the facade ignores bystanders it does not know, so an anonymous clerk could never witness). So
   the first hour and late evening have one pair of eyes; the 11-14 rush has the kind's rush staff (market 4, pawn 2).
 - Tests: `LoopGameTest.openingHoursClosedShopsAndStaffing`.
+
+## Living costs and transit (2026-11-24)
+
+Sam's C022 (`src/economy/living.ts`, docs/ECONOMY.md) and C024 (`src/transit`, docs/TRANSIT.md) are in the loop, through the
+same bridge: `Economy.lodgingOf / dailyNeeds / dueOn / arrears / dailyBudget` (`economy.*`) and a new `Transit.fare / departures /
+travelTime / classesOf` (`transit.*` in `simCall`). Read in `LoopGame` on the sim thread only, cached, precomputed into `LoopView`
+(`rent`, `lodgingOffer`, `lodgingDueCents`, `livingLine`, `transit`, `railFare`); the UI never calls the sim. Code:
+`LoopLiving.kt` (where things are), `LoopGame` ("living costs" and "transit" sections), `LoopSession`, `LoopHud.kt`
+(`LoopLodgingPanel`, `LoopStopPanel`, `LoopFade`, the rent line under the cash), `GameActivity` (chips and panels).
+
+- **The boarding house:** the town's export has no hotel or boarding house, so `LoopLiving.lodging` takes the biggest home (front x
+  depth) whose door is within 200 m of Main Street and calls it "Boarding house on <street>" (in gamma: `home:b48`, Queen Street).
+  Its residents still live there; it only gets a "ROOMS" sign over the door and a chip ("Rent a room" / "Your room") within 8 m.
+- **Renting:** "Rent a room" pays `dueOn(lodging, today, today)` (the deposit and the first period; `boarding_house` in 2025:
+  $94.12 a week, no deposit; the player arrives with $60, so the first job comes first). The ledger (`kind`, `startDay`, `paidCents`,
+  nights slept) is saved in the loop save (`rental`, `roomItems`). Rent falls due every `periodDays` (`dueOn`); nothing is taken
+  by itself. `arrears` decides the rest: **due** (the day the period begins), **warning** after 1 day late, **locked out** at 7 days.
+  The HUD shows the line under the cash ("Rent due today", "Rent is 2 days late ... locked out in 5 days", "Locked out of your
+  room: $188.24 owed. Your things are held."), and a status change goes to the messages and PlayLog (`loop rent`).
+- **Lockout:** no Sleep in the room, and the items left in it ("Leave" / "Take back" in the panel) are held until "Pay rent"
+  clears the arrears (it pays everything owed, oldest first; partial payments are not offered). Sleeping in the room (to 7) is a
+  normal `sleepUntil` plus a record (`nights`, `lastNight`): needs come later.
+- **Debug panel:** "Most people here live on about $265.79 a week" (`dailyBudget('working', year).weeklyLivingCents`), the room's
+  state, or the offer if there is no room yet.
+- **Transit stops:** `LoopLiving.lines`: Main Street and the two other streets with the most shop doors beside them (in gamma
+  Kiln Lane; 4, 3, 3 stops at least 200 m apart, at the busiest road-segment midpoints, on the pavement just off the road, named
+  for the nearest shop). One line per street; a ride goes between stops of the same line. The mode follows the year (horsecar
+  before 1888, streetcar before 1930, then the city bus; `fare` decides there is service). A "STOP" sign label shows over the spot
+  and a chip ("Bus stop") within 8 m opens the panel. **No sign prop** exists in the prop kit that fits, so the marker is the HUD
+  label only.
+- **A ride:** the panel shows `departures(route, year, weekday, now)` (the weekday of the loop's clock, as the opening hours; the
+  rest of today's, or tomorrow's first when service is over) and, per other stop, `fare(mode, year, km)` and `travelTime`
+  (straight-line km between the stops). "Ride to X" pays the fare, then **one** `advance(wait + travelTime)` moves the clock
+  (the wait is to the next departure, across midnight if need be; `travelTime` already counts the mode's boarding wait), and the
+  player is placed at the stop facing along the line under a short fade. Too poor: nothing happens.
+- **The train** (RailTrip / TicketWindow): the ticket window showed `RailNet.fare` (its own dollar table, 2025: $6 minimum or
+  $0.16 a km) and nothing was ever charged. Now (changed): the window shows `transit.fare('railway', year, km, cheapest class)`
+  in the era's money (`LoopSession.railFareText`, a straight line through two sampled fares on the UI thread, so at most a cent
+  off), and "Board" first charges the exact `fare` on the sim thread (`LoopGame.buyRailTicket`; "can't afford" blocks boarding,
+  a year with no railway fare boards free). `RailNet.fare` is left in place (it still sets `route.fare > 0`, the "has trains" flag).
+  2025, 120 km, second class: $129.55 (the old table: $19.20). The class choice is not offered (cheapest only).
+- **Tests** (`LoopGameTest`): `theBoardingHouseAndTheStopsAreFound`; `rentComesDueThenWarnsThenLocksOutAndTheLedgerSaves` (a $60
+  player can't rent; renting debits deposit + rent; day 8 due, day 9 warning, day 16 locked out; no sleep, things held; the ledger
+  saves and loads; paying clears it and frees sleep and things); `aRidePaysTheFareWaitsAndMovesThePlayer` (the fare, the clock by
+  wait + travel, the destination stop, too poor, the rail ticket); `src/loop/bridge.living.test.ts` for the bridge.
+- **Gaps:** no way to give the room up (the rent runs on); only the cheapest rail class; stops are straight-line distances, not road
+  distances; a ride is a fade, no vehicle; the "Rent a room" place is a resident's house; no meals included in the rent are used (needs
+  come later); holidays and the rent's 1952-based scale are the economy's; the stop on the pavement is not checked against
+  the collision (a fence or prop may stand there); not tried on the S25.

@@ -17,7 +17,10 @@ import com.lifemax.rpg.feature.habits.simjs.SimJsThread
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.json.JSONArray
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -411,5 +414,135 @@ class LoopGameTest {
         val sc: LoopScene = LoopSight.outdoors(loop, col, crowd, pawn.doorX, pawn.doorZ)
         println("LoopGameTest: outdoors: " + sc.bystanders.joinToString { b2: LoopBystander -> "${b2.id} los ${b2.los} %.0f m".format(b2.distance / com.lifemax.rpg.feature.habits.vehicle.VehicleWorld.U) })
         assertEquals(listOf(true, false), sc.bystanders.map { it.los })
+    }
+
+    private fun econJson(js: com.lifemax.rpg.feature.habits.simjs.SimJs, method: String, args: String): Any =
+        org.json.JSONTokener(js.call("simCall", "{\"method\":\"$method\",\"args\":[$args]}")).nextValue()
+
+    @Test fun theBoardingHouseAndTheStopsAreFound() {
+        val l = loop.lodging!!
+        println("LoopGameTest: ${l.name} at ${l.placeId}; lines " + loop.lines.joinToString { ln -> "${ln.street}: " + ln.stops.joinToString { it.name } })
+        assertTrue(loop.placeById.getValue(l.placeId).kind == "home")
+        assertTrue("Main Street and two more lines", loop.lines.size >= 2 && loop.lines.any { it.street == "Main Street" })
+        assertTrue(loop.lines.all { it.stops.size >= 2 })
+    }
+
+    @Test fun rentComesDueThenWarnsThenLocksOutAndTheLedgerSaves() {
+        val shop = loop.placeById.getValue("store:generalstore")
+        SimJsThread().use { t ->
+            t.load(bundle).get()
+            val saved = t.run { js ->
+                val g = LoopGame(js, loop)
+                g.init(10.0)
+                // 1. a room costs more than the $60 the player arrives with
+                val poor = g.rentRoom(10.0)
+                assertFalse(poor.line, poor.ok); assertTrue(poor.line, poor.line.contains("A room costs"))
+                assertEquals(6000, g.cash)
+                assertTrue(g.view.livingLine.startsWith("Most people here live on about \$"))
+                println("LoopGameTest: ${g.view.livingLine} | ${g.view.lodgingOffer}")
+                // 2. renting debits the deposit and the first period (lodgingOf, dueOn)
+                g.addCash(20000)
+                val terms = econJson(js, "economy.lodgingOf", "\"boarding_house\",2025") as JSONObject
+                val due = (econJson(js, "economy.dueOn", "${terms},1,1") as Number).toInt()
+                assertEquals(terms.getInt("rentCents") + terms.getInt("depositCents"), due)
+                val before = g.cash
+                val kept = g.stockFor(shop).minBy { it.priceCents }
+                val r = g.rentRoom(10.0)
+                println("LoopGameTest: ${r.line}")
+                assertTrue(r.line, r.ok); assertEquals(before - due, g.cash)
+                assertEquals("current", g.view.rent!!.status); assertNull(g.view.rent!!.line)
+                assertFalse(g.rentRoom(10.0).ok)
+                // an item is left in the room
+                assertTrue(g.buy(shop, kept, facing(shop), 10.1).ok)
+                val item = g.items.single()
+                assertTrue(g.stash(item).ok); assertTrue(g.items.isEmpty())
+                // 3. the period is up (day 8): the rent is due, nothing is taken by itself
+                g.advance(7 * 24.0 - 0.2, "test")
+                println("LoopGameTest: day ${g.day}: ${g.view.rent!!.line}")
+                assertEquals(8, g.day); assertEquals("due", g.view.rent!!.status)
+                assertTrue(g.view.rent!!.line!!.contains("due"))
+                assertEquals(terms.getInt("rentCents"), g.view.rent!!.owedCents)
+                // 4. a day later: a warning
+                g.advance(24.0, "test")
+                println("LoopGameTest: day ${g.day}: ${g.view.rent!!.line}")
+                assertEquals("warning", g.view.rent!!.status); assertTrue(g.view.rent!!.line!!.contains("late"))
+                assertTrue(g.sleepInRoom().ok.also { assertEquals(1, g.nightsInRoom) })
+                // 5. a week late: locked out, no sleeping there, the things are held
+                g.advance(24.0 * 6, "test")
+                println("LoopGameTest: day ${g.day}: ${g.view.rent!!.line}")
+                assertEquals("locked_out", g.view.rent!!.status); assertTrue(g.view.rent!!.lockedOut)
+                val night = g.sleepInRoom(); assertFalse(night.line, night.ok)
+                val back = g.retrieve(item); assertFalse(back.line, back.ok); assertEquals(1, g.itemsInRoom.size)
+                assertFalse(g.stash(item).ok)
+                // 6. the ledger is saved and loaded
+                val owed = g.view.rent!!.owedCents
+                val save = g.save()
+                SimJsThread().use { t2 ->
+                    t2.load(bundle).get()
+                    t2.run { js2 ->
+                        val g2 = LoopGame(js2, loop)
+                        g2.load(save)
+                        assertEquals(owed, g2.view.rent!!.owedCents); assertEquals("locked_out", g2.view.rent!!.status)
+                        assertEquals(1, g2.nightsInRoom); assertEquals(listOf(item.id), g2.itemsInRoom.map { it.id })
+                        assertFalse(g2.sleepInRoom().ok)
+                    }.get()
+                }
+                // 7. paying clears the arrears; the room and the things are the player's again
+                g.addCash(owed)
+                val cash = g.cash
+                assertTrue(g.payRent(g.hour).ok); assertEquals(cash - owed, g.cash)
+                assertEquals("current", g.view.rent!!.status)
+                assertTrue(g.retrieve(item).ok); assertEquals(1, g.items.size)
+                val h0 = g.day * 24 + g.hour
+                assertTrue(g.sleepInRoom().ok); assertEquals(2, g.nightsInRoom)
+                assertEquals(7.0, g.hour, 1e-6); assertTrue(g.day * 24 + g.hour > h0)
+                g.save()
+            }.get()
+            assertTrue(saved.contains("\"rental\""))
+        }
+    }
+
+    @Test fun aRidePaysTheFareWaitsAndMovesThePlayer() {
+        SimJsThread().use { t ->
+            t.load(bundle).get()
+            t.run { js ->
+                val g = LoopGame(js, loop)
+                g.init(10.0)
+                val line = loop.lines.first { it.street == "Main Street" }
+                val a = line.stops.first(); val b = line.stops.last()
+                val info = g.view.transit.getValue(a.id)
+                println("LoopGameTest: at ${a.name}: next ${info.departures}; to ${info.rides.joinToString { "${it.toName} ${it.text} ${it.minutes} min" }}")
+                assertTrue(info.departures.isNotEmpty())
+                val opt = info.rides.first { it.toId == b.id }
+                // the expected numbers, straight from the economy's transit module
+                val mode = g.transitMode!!
+                val km = Math.hypot((a.x - b.x).toDouble(), (a.z - b.z).toDouble()) / com.lifemax.rpg.feature.habits.vehicle.VehicleWorld.U / 1000.0
+                val fare = (econJson(js, "transit.fare", "\"$mode\",2025,$km") as Number).toInt()
+                val minutes = (econJson(js, "transit.travelTime", "\"$mode\",2025,$km") as Number).toInt()
+                val deps = econJson(js, "transit.departures", "{\"id\":\"${line.id}\",\"mode\":\"$mode\"},2025,${(loop.let { 0 })},10,\"${loop.seed}\"") as JSONArray
+                val dep = deps.getInt(0)
+                assertEquals(fare, opt.cents); assertEquals(minutes, opt.minutes)
+                val cash = g.cash; val t0 = g.day * 24 + g.hour
+                val r = g.ride(a, b, 10.0)
+                println("LoopGameTest: ${r.line}")
+                assertTrue(r.line, r.ok)
+                assertEquals(cash - fare, g.cash)
+                val expected = (dep / 60.0 - 10.0) + minutes / 60.0
+                assertEquals(expected, g.day * 24 + g.hour - t0, 2e-3)
+                assertEquals(expected, r.hoursPassed, 1e-9)
+                assertSame(b, r.moveToStop)
+                // too poor for the fare: nothing happens
+                g.addCash(-g.cash + fare - 1)
+                val h1 = g.hour
+                val no = g.ride(b, a, g.hour); assertFalse(no.line, no.ok); assertEquals(h1, g.hour, 1e-9)
+                // a train ticket takes its price from transit.fare('railway'), not RailNet's table
+                g.addCash(20000)
+                val rail = (econJson(js, "transit.fare", "\"railway\",2025,120.0,\"second\"") as Number).toInt()
+                val c0 = g.cash
+                assertEquals(rail, g.railFare(120.0)); assertTrue(g.buyRailTicket(120.0).ok); assertEquals(c0 - rail, g.cash)
+                val co = g.view.railFare!!
+                assertEquals(rail.toDouble(), co[0] + co[1] * 120.0, 1.0)
+            }.get()
+        }
     }
 }

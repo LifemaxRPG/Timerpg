@@ -84,7 +84,7 @@ private fun Button(label: String, on: Boolean = false, onClick: () -> Unit) {
  * first train ([onBoard]) when the first leg is a train from here.
  */
 @Composable
-fun TicketWindow(net: RailNet, year: Int, hour: Float, heard: List<String>, onBoard: (RailRoute) -> Unit, onClose: () -> Unit, modifier: Modifier = Modifier) {
+fun TicketWindow(net: RailNet, year: Int, hour: Float, heard: List<String>, onBoard: (RailRoute) -> Unit, onClose: () -> Unit, modifier: Modifier = Modifier, fareText: (Double) -> String? = { null }) {
     var query by remember { mutableStateOf("") }
     var picked by remember { mutableStateOf<String?>(null) }
     val here = net.home
@@ -119,7 +119,7 @@ fun TicketWindow(net: RailNet, year: Int, hour: Float, heard: List<String>, onBo
             }
         } else {
             val route = remember(pick, year, hour) { net.planRoute(here.id, pick, year, hour * 60.0) }
-            RouteCard(net, route)
+            RouteCard(net, route, fareText)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 val first = route.legs?.firstOrNull()
                 if (route.ok && first?.mode == "train" && first.from == here.id) Button("Board the ${RailNet.clock(first.depart)} train", on = true) { onBoard(route) }
@@ -132,11 +132,11 @@ fun TicketWindow(net: RailNet, year: Int, hour: Float, heard: List<String>, onBo
 
 /** A route as the ticket window shows it: each leg with its times, the changes, the fare, the notes. */
 @Composable
-fun RouteCard(net: RailNet, route: RailRoute) {
+fun RouteCard(net: RailNet, route: RailRoute, fareText: (Double) -> String? = { null }) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         if (!route.ok) { T(route.reason ?: "No route.", 14.sp); route.nearest?.let { T("Nearest station: $it", 12.sp, DIM) }; return@Column }
         val dest = net.townOf(route.to)?.name ?: route.to
-        T("To $dest: ${RailNet.clock(route.depart)} - ${RailNet.clock(route.arrive)}${if (route.arrive >= 1440) " (next day)" else ""}, ${route.changes} change${if (route.changes == 1) "" else "s"}, ${RailNet.fmt1(route.km)} km, fare $%.2f".format(route.fare), 14.sp, bold = true)
+        T("To $dest: ${RailNet.clock(route.depart)} - ${RailNet.clock(route.arrive)}${if (route.arrive >= 1440) " (next day)" else ""}, ${route.changes} change${if (route.changes == 1) "" else "s"}, ${RailNet.fmt1(route.km)} km, fare ${if (route.fare > 0.0) fareText(route.km) ?: "$%.2f".format(route.fare) else "$%.2f".format(route.fare)}", 14.sp, bold = true)
         for (l in route.legs!!) {
             if (l.mode == "train") {
                 T("${RailNet.clock(l.depart)}  ${l.fromName} → ${l.toName}  ${RailNet.clock(l.arrive)}", 13.sp, LINK)

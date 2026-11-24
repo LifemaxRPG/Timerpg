@@ -469,6 +469,11 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     var fenceNear by remember { mutableStateOf<com.lifemax.rpg.feature.habits.loop.LoopFence?>(null) }
     var fenceClosed by remember { mutableStateOf<String?>(null) }
     var ticketOpen by remember { mutableStateOf(false) }
+    // the boarding house's door and a transit stop the player stands at, and whether their panels are open (they close when the player walks off)
+    var lodgeNear by remember { mutableStateOf<com.lifemax.rpg.feature.habits.loop.LoopLodging?>(null) }
+    var lodgeOpen by remember { mutableStateOf(false) }
+    var stopHere by remember { mutableStateOf<com.lifemax.rpg.feature.habits.loop.LoopStop?>(null) }
+    var stopOpen by remember { mutableStateOf(false) }
     var season by remember { mutableIntStateOf(1) }
     var weather by remember { mutableIntStateOf(0) }
     // (the stage takes both streets from the crossroads; the projection is the main street's, so turning the corner
@@ -862,6 +867,13 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             val f = LoopSession.fenceNear(hour, inside != null || townPlay.inCar)
             if (f?.personId != fenceNear?.personId) fenceNear = f
             if (f == null) fenceClosed = null
+            val inRoomOrCar = inside != null || townPlay.inCar
+            val lg = LoopSession.lodgingNear(inRoomOrCar)
+            if (lg?.placeId != lodgeNear?.placeId) lodgeNear = lg
+            if (lg == null) lodgeOpen = false
+            val sp = LoopSession.stopNear(inRoomOrCar)
+            if (sp?.id != stopHere?.id) stopHere = sp
+            if (sp == null) stopOpen = false
         }
     }
     // the back gesture closes what is open (the crash report, a conversation, the AI panel) or leaves the room; on the street
@@ -1209,6 +1221,25 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             if (fenceClosed != f.personId && !loopShop) LoopFencePanel(f, hour, onSell = { item -> LoopSession.sellToFence(ctx, f, item, hour) },
                 onClose = { fenceClosed = f.personId }, modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp, bottom = 40.dp))
         }
+        // the boarding house (rent a room, pay, sleep, leave things) and a transit stop (departures, ride)
+        lodgeNear?.let { l ->
+            if (lodgeOpen) LoopLodgingPanel(l, hour, onAction = { what, arg ->
+                when (what) {
+                    "rent" -> LoopSession.rentRoom(ctx, hour)
+                    "pay" -> LoopSession.payRent(ctx, hour)
+                    "sleepRoom" -> LoopSession.sleepInRoom(ctx)
+                    "stash" -> LoopSession.stash(ctx, arg as com.lifemax.rpg.feature.habits.loop.LoopItem)
+                    "retrieve" -> LoopSession.retrieve(ctx, arg as com.lifemax.rpg.feature.habits.loop.LoopItem)
+                }
+            }, onClose = { lodgeOpen = false }, modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp, bottom = 40.dp))
+        }
+        stopHere?.let { sp ->
+            if (stopOpen) LoopStopPanel(sp, onRide = { r ->
+                val to = LoopSession.town?.lines?.flatMap { it.stops }?.firstOrNull { it.id == r.toId }
+                if (to != null) { stopOpen = false; LoopSession.ride(ctx, sp, to, hour) }
+            }, onClose = { stopOpen = false }, modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp, bottom = 40.dp))
+        }
+        LoopFade(Modifier.align(Alignment.Center))
         LoopSession.line?.let { l ->
             Text(l, 14.sp, Modifier.align(Alignment.BottomCenter).padding(bottom = 140.dp, start = 24.dp, end = 24.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 6.dp))
             LaunchedEffect(LoopSession.lineAt) { val at = LoopSession.lineAt; kotlinx.coroutines.delay(6000); LoopSession.lineSeen(at) }
@@ -1246,6 +1277,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 }
                 // the loop's shop here (docs/LOOP.md): buy, take, sell, work a shift
                 if (townMode && loopPlace != null && LoopSession.view != null) Chip("🛒 ${loopPlace.name.take(22)}", loopShop) { loopShop = !loopShop; MoveInput.holdUntilNeutral() }
+                lodgeNear?.let { l -> if (inside == null) Chip("🛏 " + (if (LoopSession.view?.rent != null) "Your room" else "Rent a room"), lodgeOpen) { lodgeOpen = !lodgeOpen; stopOpen = false; MoveInput.holdUntilNeutral() } }
+                stopHere?.let { sp -> if (inside == null) Chip("🚏 ${LoopSession.view?.transit?.get(sp.id)?.mode?.takeIf { it.isNotEmpty() } ?: "Bus"} stop", stopOpen) { stopOpen = !stopOpen; lodgeOpen = false; MoveInput.holdUntilNeutral() } }
                 if (inside != null) Chip("Leave", false) { doorTo = false to null }
                 else if (roomHere != null) Chip("Go inside", false) { doorTo = true to roomHere }
                 // the depot: the ticket window (docs/RAIL.md)
@@ -1257,7 +1290,11 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         }
         townData?.rail?.let { rail ->
             if (ticketOpen) TicketWindow(rail, townData.town.year, hour, heard = emptyList(),
-                onBoard = { route -> ticketOpen = false; RailTrip.request = com.lifemax.rpg.feature.habits.domain.RailRide(rail, route) },
+                // the ticket's price is the economy's (transit.fare('railway')): the wallet pays it, then the train leaves
+                fareText = { km -> LoopSession.railFareText(km) },
+                onBoard = { route -> ticketOpen = false
+                    val go = { RailTrip.request = com.lifemax.rpg.feature.habits.domain.RailRide(rail, route) }
+                    if (LoopSession.view != null && route.fare > 0.0) LoopSession.buyTicket(ctx, route.km, go) else go() },
                 onClose = { ticketOpen = false }, modifier = Modifier.align(Alignment.Center).padding(16.dp))
             val ride = if (frameTick.longValue >= 0) RailTrip.ride else null
             if (ride != null) RideOverlay(rail, ride, RailTrip.progress, onDone = {
