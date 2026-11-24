@@ -210,6 +210,39 @@ object FilamentStats {
     @Volatile var memory: Map<String, Any?>? = null
 
     /**
+     * Once the town is built (MEMORY_AUDIT.md, C1/C2): the Java heap collected twice and finalized, then trimmed (ART's
+     * VMRuntime.trimHeap where the phone lets the game call it), and the native allocator's free pages purged (scudo's
+     * M_PURGE_ALL, the dialogue engine's own helper, NativeLlm.purgeNativeHeap), so the build's peak (the heap held some
+     * 311 MB at it, 170-200 used in play) is not kept for the whole session. On a thread of its own (tens of ms of
+     * collection never stall a frame); [then] runs after it. The breadcrumbs say what it gave back.
+     */
+    fun trimAfterBuild(then: () -> Unit = {}) {
+        Thread({
+            runCatching {
+                fun rssMb() = runCatching {
+                    java.io.File("/proc/self/status").readLines().firstOrNull { it.startsWith("VmRSS:") }?.split(Regex("\\s+"))?.getOrNull(1)?.toLong()?.shr(10)
+                }.getOrNull() ?: -1L
+                val rt = Runtime.getRuntime()
+                val t0 = android.os.SystemClock.elapsedRealtime()
+                val java0 = (rt.totalMemory() - rt.freeMemory()) shr 20; val held0 = rt.totalMemory() shr 20
+                val native0 = android.os.Debug.getNativeHeapSize() shr 20; val rss0 = rssMb()
+                System.gc(); System.runFinalization(); System.gc()
+                val trimmed = runCatching {
+                    val vm = Class.forName("dalvik.system.VMRuntime")
+                    vm.getMethod("trimHeap").invoke(vm.getMethod("getRuntime").invoke(null)); true
+                }.getOrDefault(false)
+                val purged = com.timerpg.street.llm.NativeLlm.purgeNativeHeap()
+                val java1 = (rt.totalMemory() - rt.freeMemory()) shr 20; val held1 = rt.totalMemory() shr 20
+                val native1 = android.os.Debug.getNativeHeapSize() shr 20; val rss1 = rssMb()
+                com.timerpg.street.shot.Crumbs.add("town built, memory trimmed in ${android.os.SystemClock.elapsedRealtime() - t0} ms: Java heap $java0 -> $java1 MB used " +
+                    "($held0 -> $held1 held; trimHeap ${if (trimmed) "done" else "not allowed"}), native heap $native0 -> $native1 MB " +
+                    "(purge ${when (purged) { 1 -> "done"; 0 -> "not supported"; else -> "no library" }}), RSS $rss0 -> $rss1 MB")
+            }
+            then()
+        }, "trim").apply { isDaemon = true; priority = Thread.MIN_PRIORITY }.start()
+    }
+
+    /**
      * Reads the process's memory (in the background: it takes a while) into [memory] and the breadcrumbs: graphics (the
      * GPU's textures and buffers as the driver reports them), native and Java heaps, the total; [why] says when.
      */
@@ -551,7 +584,15 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             com.timerpg.street.shot.Crumbs.add("town built, " + com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.line())
             com.timerpg.street.shot.Crumbs.add("town built, " + com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.categoryLine(ft.gpuEstimate(w, h)))
             com.timerpg.street.shot.Crumbs.add("town built, memory: " + com.lifemax.rpg.feature.habits.presentation.scene3d.TownMemory.summary() + "; ground queue peak ${ft.queuedPeak shr 20} MB")
-            FilamentStats.measureMemory("town built", com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.categories(ft.gpuEstimate(w, h)))
+            // the GPU parts against their budgets (TownBudget, the desktop's GpuBudgetTest's), the play log's mem line after
+            com.lifemax.rpg.feature.habits.presentation.scene3d.TownBudget.estimate = ft.gpuEstimate(w, h)
+            com.timerpg.street.shot.Crumbs.add("town built, GPU budget: " + com.lifemax.rpg.feature.habits.presentation.scene3d.TownBudget.let { b ->
+                b.line(b.check(com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.categories(b.estimate))) })
+            // the build's garbage let go for good: the Java heap collected and trimmed, the native allocator's free pages
+            // purged (MEMORY_AUDIT.md, C1/C2), on a thread of its own, then the memory read
+            FilamentStats.trimAfterBuild {
+                FilamentStats.measureMemory("town built", com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.categories(ft.gpuEstimate(w, h)))
+            }
         }
         return ft.view
     }

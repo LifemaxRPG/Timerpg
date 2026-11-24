@@ -71,7 +71,13 @@ class Probes(private val ctx: Context) {
         return j.end()
     }
 
-    /** The "mem" line: the process's PSS and its Java, native, graphics and code parts; the phone's free memory and pressure. */
+    /**
+     * The "mem" line: the process's PSS and its Java, native, graphics and code parts, graphics' "Gfx dev" and "GL mtrack"
+     * (gfxDev, glMtrack: the driver's mapped memory and its own count of textures and buffers); the phone's free memory
+     * (Android's, and the kernel's MemAvailable: memAvail) and pressure; the town's GPU memory by part against its budget
+     * ([TownBudget], the desktop's GpuBudgetTest's: gpuBudget, gpuOver); and the dialogue model's NPU headroom (npuRoom:
+     * what the gate would count for the light model's copy, free plus what Android is expected to find, less its need).
+     */
     fun memory(j: JsonLine, tMs: Long): StringBuilder {
         j.begin().str("k", "mem").long("t", tMs)
         runCatching {
@@ -80,17 +86,79 @@ class Probes(private val ctx: Context) {
             j.long("pss", d.totalPss.toLong() shr 10).long("java", mb("java-heap")).long("native", mb("native-heap"))
                 .long("gfx", mb("graphics")).long("code", mb("code")).long("stack", mb("stack")).long("other", mb("private-other"))
                 .long("swap", mb("total-swap"))
+            graphicsParts(d)?.let { (dev, gl) -> if (dev >= 0) j.long("gfxDev", dev); if (gl >= 0) j.long("glMtrack", gl) }
         }
         val rt = Runtime.getRuntime()
         j.long("heapUsed", (rt.totalMemory() - rt.freeMemory()) shr 20).long("heapMax", rt.maxMemory() shr 20)
         val mw = com.timerpg.street.llm.MemoryWatch
         if (mw.freeMb >= 0) j.long("free", mw.freeMb).long("lmkAt", mw.thresholdMb).int("lvl", mw.level)
+        val meminfo = runCatching { com.timerpg.street.llm.MemProbe.parseMeminfo(File("/proc/meminfo").readText()) }.getOrNull()
+        meminfo?.get("MemAvailable")?.let { j.long("memAvail", it) }
         runCatching { File("/proc/pressure/memory").readText() }.getOrNull()?.let { t ->
             val (some, full) = com.timerpg.street.llm.MemProbe.parsePsi(t)
             some?.let { j.num("psiSome", it, 2) }; full?.let { j.num("psiFull", it, 2) }
         }
+        budget(tMs)?.let { rows ->
+            j.raw("gpuBudget", rows.filter { it.mb != null }.joinToString(",", "{", "}") { "\"${it.part}\":[${it.mb},${it.budget}]" })
+            j.str("gpuOver", rows.filter { it.over }.joinToString(", ") { "%s by %.1f MB".format(java.util.Locale.US, it.part, it.mb!! - it.budget) })
+        }
+        runCatching { npuRoom(mw.freeMb, meminfo?.get("SwapFree") ?: 0L) }.getOrNull()?.let { (room, need, reclaim) ->
+            j.long("npuRoom", room).long("npuNeed", need).long("npuReclaim", reclaim)
+        }
         return j.end()
     }
+
+    /** Graphics' "Gfx dev" and "GL mtrack" PSS (MB) through Debug.MemoryInfo's own labels, or null where not readable. */
+    private fun graphicsParts(d: android.os.Debug.MemoryInfo): Pair<Long, Long>? = runCatching {
+        val c = android.os.Debug.MemoryInfo::class.java
+        val n = c.getField("NUM_OTHER_STATS").getInt(null)
+        val label = c.getMethod("getOtherLabel", Int::class.javaPrimitiveType)
+        val pss = c.getMethod("getOtherPss", Int::class.javaPrimitiveType)
+        var dev = -1L; var gl = -1L
+        for (i in 0 until n) when (label.invoke(null, i) as? String) {
+            "Gfx dev" -> dev = ((pss.invoke(d, i) as Int) / 1024).toLong()
+            "GL mtrack" -> gl = ((pss.invoke(d, i) as Int) / 1024).toLong()
+        }
+        dev to gl
+    }.getOrNull()
+
+    /** The town's GPU parts against [TownBudget], worked out at most every [BUDGET_MS] (tens of thousands of entries). */
+    private fun budget(tMs: Long): List<com.lifemax.rpg.feature.habits.presentation.scene3d.TownBudget.Row>? {
+        if (lastBudget != null && tMs - budgetAt < BUDGET_MS) return lastBudget
+        budgetAt = tMs
+        lastBudget = runCatching {
+            val cats = com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.categories(com.lifemax.rpg.feature.habits.presentation.scene3d.TownBudget.estimate)
+            // (nothing of the town's on the GPU yet: no line)
+            if ((cats["total"] as? Map<*, *>)?.get("textures") == 0) null else com.lifemax.rpg.feature.habits.presentation.scene3d.TownBudget.check(cats)
+        }.getOrNull()
+        return lastBudget
+    }
+    private var lastBudget: List<com.lifemax.rpg.feature.habits.presentation.scene3d.TownBudget.Row>? = null
+    private var budgetAt = 0L
+
+    /**
+     * The NPU headroom (MB) for the light dialogue model's copy, by the gate's own arithmetic (llm/NpuGate.kt, read only):
+     * free ([freeMb], Android's) plus what the gate counts Android will find ([com.timerpg.street.llm.NpuGate.verdict]),
+     * less the copy's need: its measured copy (else the file), its own memory and the gate's learned margin. With the
+     * need and the reclaim counted; null when the light model is not on the phone.
+     */
+    private fun npuRoom(freeMb: Long, swapFreeMb: Long): Triple<Long, Long, Long>? {
+        if (freeMb < 0) return null
+        val app = ctx.applicationContext
+        val light = com.timerpg.street.dialogue.DialogueEngine.shared(app).copyNeedsMb().second
+        if (light <= 0) return null
+        // (copyNeedsMb counts the whole file and the old flat margin: the measured copy and the learned margin instead)
+        val fileMb = com.timerpg.street.dialogue.ModelFiles.LIVE_BYTES shr 20
+        val headMapped = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getBoolean("headMapped", true)
+        val copyMb = app.getSharedPreferences("ai", Context.MODE_PRIVATE)
+            .getLong("copy_live_d${com.timerpg.street.llm.NativeLlm.NPU}_m${com.timerpg.street.dialogue.ModelFiles.LIVE_BYTES}_h${if (headMapped) 1 else 0}", -1L)
+            .let { if (it > 0) it shr 20 else fileMb }
+        val need = light - fileMb + copyMb - com.timerpg.street.llm.Ram.MARGIN_MB + com.timerpg.street.llm.NpuGate.margin(app)
+        val reclaim = com.timerpg.street.llm.NpuGate.verdict(app, freeMb, need, swapFreeMb).reclaimMb
+        return Triple(freeMb + reclaim - need, need, reclaim)
+    }
+
+    private companion object { const val BUDGET_MS = 30_000L }
 
     private fun readLong(f: File): Long? = try { f.readText().trim().toLongOrNull() } catch (t: Throwable) { null }
 
