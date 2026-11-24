@@ -1,20 +1,11 @@
+import { shopKey } from './hours';
 import { forSale, retailPrice, usedAsk } from './pricing';
 import { rand } from '../sim/rng';
-import { ITEMS, SHOP_KINDS, type Item, type ShopKind } from './catalogue';
+import { ITEMS, type Item, type ShopKind } from './catalogue';
 import { priceIndex } from './eras';
 
 export { FIRST_YEAR, LAST_YEAR, REFERENCE_YEAR, formatMoney, priceIndex, wage, type Job } from './eras';
 export { SHOP_KINDS, type Category, type ShopKind, type Weight } from './catalogue';
-
-const SHOP_ALIASES: Readonly<Record<string, ShopKind>> = {
-  general_store: 'general',
-  grocer: 'market',
-  grocery: 'market',
-  pawn_shop: 'pawn',
-  clothing_store: 'clothing',
-  hardware_store: 'hardware',
-  drugstore: 'pharmacy',
-};
 
 export { priceIn, pawnOffer, pawnPrice, fenceOffer } from './pricing';
 
@@ -27,12 +18,6 @@ export type StockEntry = Readonly<{
   quantity: number;
   priceCents: number;
 }>;
-
-function shopKey(kind: string): ShopKind | undefined {
-  const key = kind.trim().toLowerCase().replace(/[ -]+/g, '_');
-  if (Object.prototype.hasOwnProperty.call(SHOP_ALIASES, key)) return SHOP_ALIASES[key];
-  return SHOP_KINDS.find(shop => shop === key);
-}
 
 /** Starting shelf stock. Give each outlet a distinct seed to vary inventory across locations. */
 export function stockOf(shopKind: string, year: number, seed: string): StockEntry[] {
@@ -115,3 +100,4 @@ export function restock(stock: ShopStock, days: number, year: number, seed: stri
 
 export { townFences, fenceLeads, fenceDeal, fenceRisk } from './fence';
 export type { Fence, FenceDeal, FenceLead, FencePerson } from './fence';
+export { hoursOf, isOpen, staffed, type OpeningSpan, type ShopDate } from './hours';
