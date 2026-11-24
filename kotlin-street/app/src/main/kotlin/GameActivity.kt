@@ -1212,6 +1212,9 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 "take" -> LoopSession.take(ctx, loopPlace, arg as com.lifemax.rpg.feature.habits.loop.StockItem, sc, hour)
                 "sell" -> LoopSession.sell(ctx, loopPlace, arg as com.lifemax.rpg.feature.habits.loop.LoopItem, sc, hour)
                 "work" -> LoopSession.work(ctx, loopPlace, sc, hour)
+                "apply" -> LoopSession.applyFor(ctx, loopPlace, arg as String, hour)
+                "shift" -> LoopSession.startShift(ctx, loopPlace, sc, hour)
+                "quit" -> LoopSession.quitJob(ctx)
             }
             when (what) { "wait" -> LoopSession.waitHours(ctx, 1.0); "sleep" -> LoopSession.sleep(ctx) }
         }, onClose = { loopShop = false }, modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp, bottom = 40.dp))
@@ -1344,7 +1347,11 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         ) {
             // (the slider's end, 24, is midnight: 12:00 AM, not noon)
             val h = hour.toInt() % 24; val m = ((hour - hour.toInt()) * 60).toInt()
-            Text("%d:%02d %s".format(((h + 11) % 12) + 1, m, if (h < 12) "AM" else "PM"))
+            Column {
+                Text("%d:%02d %s".format(((h + 11) % 12) + 1, m, if (h < 12) "AM" else "PM"))
+                // (the loop's calendar date, and a holiday: "Tue 14 Harvestmonth")
+                LoopSession.view?.let { v -> if (v.dateText.isNotEmpty()) Text(v.dateText + if (v.holidayText.isNotEmpty()) " · ${v.holidayText}" else "", 11.sp, color = DIM, maxLines = 1) }
+            }
             Spacer(Modifier.width(10.dp))
             // (to 23:59: the slider's end at 24 reached the sky and the light as an hour past the day's end, a sunset at
             // midnight, while the clock read 12:00 PM)

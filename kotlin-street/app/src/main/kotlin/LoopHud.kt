@@ -17,6 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
@@ -73,6 +75,7 @@ fun LoopWallet(debugOpen: Boolean, onDebug: () -> Unit) {
             LoopButton("Loop", on = debugOpen, onClick = onDebug)
         }
         v?.rent?.line?.let { Box(Modifier.widthIn(max = 300.dp).background(BG, RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) { T(it, 12.sp, HOT) } }
+        v?.jobs?.news?.takeIf { it.isNotEmpty() }?.let { Box(Modifier.widthIn(max = 300.dp).background(BG, RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) { T(it, 12.sp, DIM_TEXT) } }
     }
 }
 
@@ -86,9 +89,15 @@ fun LoopShopPanel(place: LoopPlace, year: Int, hour: Float, onAction: (String, A
     val busy = LoopSession.busy
     val hrs = v?.hours?.get(place.id)
     val open = hrs?.open ?: true
+    var asking by remember { mutableStateOf(false) }
+    val jobs = v?.jobs
+    val job = jobs?.job
+    val mine = job != null && job.placeId == place.id
+    val ops = jobs?.openings?.get(place.id).orEmpty()
     Column(modifier.widthIn(max = 460.dp).background(PANEL_BG, RoundedCornerShape(14.dp)).loopOpaque().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         T(place.name, 15.sp)
-        if (hrs != null) T(hrs.today + if (open) "" else "  -  ${hrs.closedLine}", 12.sp, if (open) DIM_TEXT else HOT)
+        // (on a holiday the shut door says why: "Closed for Hearth Day. Opens tomorrow at 8 a.m.")
+        if (hrs != null) T(if (open) hrs.today else if (hrs.holiday.isNotEmpty()) hrs.closedLine else "${hrs.today}  -  ${hrs.closedLine}", 12.sp, if (open) DIM_TEXT else HOT)
         if (place.kind != "police_station") {
             Column(Modifier.heightIn(max = 240.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 for (s in LoopSession.stockFor(place)) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -111,8 +120,31 @@ fun LoopShopPanel(place: LoopPlace, year: Int, hour: Float, onAction: (String, A
                 }
             }
         }
+        // employment (src/jobs): the job here, or the openings this week to ask about and apply for
+        if (place.kind != "police_station") {
+            if (mine && job != null) {
+                T(job.line, 12.sp, DIM_TEXT)
+                val can = !busy && (v?.day ?: 0) != job.lastWorkedDay && hour >= job.startHour && hour < job.windowEnd
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    LoopButton(if (hour > job.startHour + 0.25f) "Start shift (late)" else "Start shift", enabled = can) { onAction("shift", null) }
+                    LoopButton("Quit job", enabled = !busy) { onAction("quit", null) }
+                }
+            } else if (job != null) T("You work at ${job.placeName}.", 12.sp, DIM_TEXT)
+            else {
+                LoopButton(if (asking) "Hide work" else "Ask about work", on = asking) { asking = !asking }
+                if (asking) {
+                    if (ops.isEmpty()) T("Nothing this week.", 12.sp, DIM_TEXT)
+                    for (o in ops) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        T(o.line, 12.sp, Color.White, Modifier.widthIn(max = 300.dp))
+                        LoopButton("Apply", enabled = !busy) { onAction("apply", o.id) }
+                    }
+                }
+            }
+            jobs?.referencesText?.takeIf { it.isNotEmpty() }?.let { T(it, 11.sp, DIM_TEXT) }
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            if (place.isShop) LoopButton("Work a shift", enabled = !busy && open) { onAction("work", null) }
+            // (the odd-job shift stays only where nothing is on offer: a shop that is hiring, or one the player works at, takes applications and shifts)
+            if (place.isShop && !mine && ops.isEmpty()) LoopButton("Work a shift", enabled = !busy && open) { onAction("work", null) }
             LoopButton("Wait 1 h", enabled = !busy) { onAction("wait", null) }
             LoopButton("Sleep till 7", enabled = !busy) { onAction("sleep", null) }
             LoopButton("Close") { onClose() }

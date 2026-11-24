@@ -231,6 +231,10 @@ object LoopSession {
     fun take(ctx: Context, place: LoopPlace, s: com.lifemax.rpg.feature.habits.loop.StockItem, sc: LoopScene, hour: Float) = run("taking", { it.take(place, s, sc, hour.toDouble()) }) { shown(it, ctx) }
     fun sell(ctx: Context, place: LoopPlace, item: com.lifemax.rpg.feature.habits.loop.LoopItem, sc: LoopScene, hour: Float) = run("selling", { it.sell(place, item, sc, hour.toDouble()) }) { shown(it, ctx) }
     fun work(ctx: Context, place: LoopPlace, sc: LoopScene, hour: Float) = run("working", { it.work(place, sc, hour.toDouble()) }) { shown(it, ctx) }
+    /** Employment (src/jobs): apply for an opening, start the job's shift, quit; all on the sim's thread. */
+    fun applyFor(ctx: Context, place: LoopPlace, openingId: String, hour: Float) = run("applying", { it.applyFor(place, openingId, hour.toDouble()) }) { shown(it, ctx) }
+    fun startShift(ctx: Context, place: LoopPlace, sc: LoopScene, hour: Float) = run("working", { it.startShift(place, sc, hour.toDouble()) }) { shown(it, ctx) }
+    fun quitJob(ctx: Context) = run("quitting", { it.quitJob() }) { shown(it, ctx) }
     /** What the pawn shop pays (cents; the sim's own number, precomputed in the view: the UI thread never calls the sim). */
     fun pawnPrice(item: com.lifemax.rpg.feature.habits.loop.LoopItem): Int = view?.pawnOffers?.get("${item.key}|${item.stolen}") ?: 0
     fun pawnPriceText(item: com.lifemax.rpg.feature.habits.loop.LoopItem): String = view?.pawnOfferTexts?.get("${item.key}|${item.stolen}") ?: ""

@@ -8,6 +8,7 @@ import com.lifemax.rpg.feature.habits.loop.LoopBystander
 import com.lifemax.rpg.feature.habits.loop.LoopFigure
 import com.lifemax.rpg.feature.habits.loop.LoopFences
 import com.lifemax.rpg.feature.habits.loop.LoopGame
+import com.lifemax.rpg.feature.habits.loop.LoopItems
 import com.lifemax.rpg.feature.habits.loop.LoopRoutes
 import com.lifemax.rpg.feature.habits.loop.LoopScene
 import com.lifemax.rpg.feature.habits.loop.LoopSight
@@ -129,12 +130,16 @@ class LoopGameTest {
                 assertEquals(econLong(js, "pawnOffer", "\"pocketwatch\",2025,false") / 2, g.pawnPrice(watchItem).toLong())
                 assertTrue(g.items.none { it.key == "pocketwatch" })
                 val cashAfterSale = g.cash
-                // 6. a shift at the pawn shop
-                val wk = g.work(pawn, facing(pawn), g.hour)
+                // 6. an odd-job shift where no opening exists this week (where one does, the shift is refused: ask about work)
+                val hiring = loop.places.first { it.kind != "home" && it.kind != "police_station" && g.openingsAt(it).isNotEmpty() }
+                assertTrue(g.work(hiring, facing(hiring), g.hour).line.contains("hiring"))
+                val odd = loop.places.firstOrNull { it.kind != "home" && it.kind != "police_station" && g.openingsAt(it).isEmpty() && g.isOpenNow(it) && it.keeperId != null }
+                    ?: loop.places.first { it.kind != "home" && it.kind != "police_station" && g.openingsAt(it).isEmpty() }.also { g.clockTo(11.0, exact = true) }
+                val wk = g.work(odd, facing(odd), g.hour)
                 println("LoopGameTest: work: ${wk.line}")
                 assertTrue(wk.line, wk.ok)
                 val hours = wk.hoursPassed
-                val wage = JSONObject(js.call("simCall", "{\"method\":\"economy.wage\",\"args\":[\"odd_jobs\",2025]}"))
+                val wage = JSONObject(js.call("simCall", "{\"method\":\"economy.wage\",\"args\":[\"${LoopItems.job(odd.shopKind)}\",2025]}"))
                 assertEquals((hours * wage.getInt("hourlyCents")).toInt(), g.cash - cashAfterSale)
                 // 7. another day, then the police's view
                 g.advance(24.0, "test")
@@ -159,6 +164,179 @@ class LoopGameTest {
                     // and the keeper still refuses
                     val again = g2.buy(antiques, g2.stockFor(antiques).minBy { it.priceCents }, facing(antiques), g2.hour + .1)
                     assertFalse(again.line, again.ok)
+                }.get()
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------ the calendar and employment (docs/CALENDAR.md, docs/JOBS.md)
+
+    private val shopsOnly get() = loop.places.filter { it.kind != "home" && it.kind != "police_station" }
+
+    /** A shop open now with an opening this week (matching [pick]); the clock goes on a week at a time until one is found. */
+    private fun findOpening(g: LoopGame, open: Boolean = false, pick: (JSONObject) -> Boolean = { true }): Pair<com.lifemax.rpg.feature.habits.loop.LoopPlace, JSONObject> {
+        repeat(8) {
+            for (p in shopsOnly) if (!open || g.isOpenNow(p)) g.openingsAt(p).firstOrNull(pick)?.let { return p to it }
+            g.advance(24.0 * 7, "test")
+        }
+        error("no opening found")
+    }
+
+    @Test fun theDateAdvancesWeekdaysCycleAndAHolidayClosesTheShops() {
+        val market = loop.places.first { it.kind == "market" }
+        SimJsThread().use { t ->
+            t.load(bundle).get()
+            t.run { js ->
+                val g = LoopGame(js, loop)
+                g.init(8.0)
+                // (2025 gamma starts on Tuesday 6 Bloommonth, the first Tuesday of the month)
+                assertEquals(listOf(2025, 5, 6), g.startDate.toList())
+                assertEquals("Tue 6 Bloommonth", g.view.dateText)
+                assertEquals(2, g.weekdayOf(1))
+                for (d in 1..20) assertEquals((g.weekdayOf(d) + 1) % 7, g.weekdayOf(d + 1))
+                assertEquals(g.weekdayOf(1), g.weekdayOf(8))
+                g.advance(24.0, "test")
+                assertEquals("Wed 7 Bloommonth", g.view.dateText)
+                assertEquals("Sun 1 Sunmonth", g.dayInfo(27).text)
+                assertEquals("", g.view.holidayText)
+                println("LoopGameTest: dates ${g.dayInfo(1).text} ... ${g.dayInfo(27).text}")
+            }.get()
+            t.run { js ->
+                // a holiday (Hearth Day, Sunday 5 Frostmonth 2025, shuts the shops): Saturday the market is open, Sunday it is not
+                val g = LoopGame(js, loop)
+                g.init(10.0, startDate = intArrayOf(2025, 1, 3))
+                assertEquals("Fri 3 Frostmonth", g.view.dateText)
+                g.advance(25.0, "test")
+                assertEquals("Sat 4 Frostmonth", g.view.dateText)
+                assertTrue(g.isOpenNow(market)); assertEquals("", g.hoursOf(market).holiday)
+                g.advance(24.0, "test")
+                assertEquals("Sun 5 Frostmonth", g.view.dateText); assertEquals("Hearth Day", g.view.holidayText)
+                assertFalse(g.isOpenNow(market))
+                val h = g.hoursOf(market)
+                println("LoopGameTest: holiday: ${h.today} | ${h.closedLine} | ${h.holiday}")
+                assertEquals("Hearth Day", h.holiday)
+                assertTrue(h.closedLine, h.closedLine.startsWith("Closed for Hearth Day. Opens tomorrow at"))
+                assertEquals("Closed today for Hearth Day", h.today)
+                val no = g.buy(market, g.stockFor(market).minBy { it.priceCents }, facing(market), g.hour)
+                assertFalse(no.ok); assertTrue(no.line, no.line.startsWith("Closed for Hearth Day"))
+                g.advance(24.0, "test")
+                assertTrue("Monday it opens again", g.isOpenNow(market))
+            }.get()
+        }
+    }
+
+    @Test fun applyingLateTwiceAbsenceAndTheft() {
+        SimJsThread().use { t ->
+            t.load(bundle).get()
+            // 1. no reference: a trial; late twice: dismissal with a poor reference
+            t.run { js ->
+                val g = LoopGame(js, loop)
+                g.init(20.0) // (in the evening: the first shift is tomorrow's)
+                val (place, op) = findOpening(g) { it.optBoolean("wantsReference") }
+                val start = op.getInt("startHour")
+                val a = g.applyFor(place, op.getString("id"), g.hour)
+                println("LoopGameTest: apply: ${a.line}")
+                assertTrue(a.line, a.ok); assertTrue(a.line, a.line.contains("on trial"))
+                assertEquals("trial", g.view.jobs.job!!.status)
+                assertTrue("the opening is taken", g.openingsAt(place).none { it.getString("id") == op.getString("id") })
+                g.sleepUntil(5.0)
+                // late: more than 15 minutes
+                val cash0 = g.cash
+                val s1 = g.startShift(place, facing(place), start + 1.0)
+                println("LoopGameTest: late 1: ${s1.line}")
+                assertTrue(s1.line, s1.ok); assertTrue(s1.line, s1.line.contains("Warning"))
+                assertEquals(1, g.view.jobs.job!!.strikes)
+                val pay = g.cash - cash0
+                assertEquals((s1.hoursPassed * g.view.jobs.job!!.hourlyCents).let { Math.round(it).toInt() }, pay)
+                assertTrue("one shift a day", g.startShift(place, facing(place), g.hour).line.contains("done today's"))
+                g.sleepUntil(5.0)
+                val s2 = g.startShift(place, facing(place), start + 1.0)
+                println("LoopGameTest: late 2: ${s2.line}")
+                assertFalse(s2.line, s2.ok); assertTrue(s2.line, s2.line.contains("lets you go"))
+                assertNull(g.view.jobs.job)
+                assertTrue(g.view.jobs.referencesText, g.view.jobs.referencesText.contains("poor"))
+                assertFalse("no shift without a job", g.startShift(place, facing(place), g.hour).ok)
+            }.get()
+            // 2. missing days: 'absent' at each day's end; two of them dismiss
+            t.run { js ->
+                val g = LoopGame(js, loop)
+                g.init(10.5)
+                val (place, op) = findOpening(g)
+                assertTrue(g.applyFor(place, op.getString("id"), g.hour).ok)
+                g.advance(24.0, "test")
+                assertEquals(1, g.view.jobs.job!!.strikes)
+                assertTrue(g.view.jobs.news, g.view.jobs.news.contains("missed your shift"))
+                g.advance(24.0, "test")
+                assertNull(g.view.jobs.job)
+                assertTrue(g.view.jobs.news, g.view.jobs.news.contains("lets you go"))
+            }.get()
+            // 3. a theft at the workplace, seen by staff: dismissed
+            t.run { js ->
+                val g = LoopGame(js, loop)
+                g.init(10.5)
+                val (place, op) = findOpening(g, open = true)
+                assertTrue(g.applyFor(place, op.getString("id"), g.hour).ok)
+                val item = g.stockFor(place).first { it.quantity > 0 }
+                val r = g.take(place, item, facing(place), g.hour)
+                println("LoopGameTest: theft at work: ${r.line}")
+                assertTrue(r.line, r.line.contains("caught stealing"))
+                assertNull(g.view.jobs.job)
+                assertTrue(g.view.jobs.referencesText.contains("poor"))
+            }.get()
+        }
+    }
+
+    @Test fun aSteadyRunGivesARaiseAGoodReferenceAndTheJobSaves() {
+        SimJsThread().use { t ->
+            t.load(bundle).get()
+            val saved = t.run { js ->
+                val g = LoopGame(js, loop)
+                g.init(20.0)
+                val (place, op) = findOpening(g) { it.optBoolean("wantsReference") }
+                val start = op.getInt("startHour"); val hourly = op.getInt("hourlyCents"); val len = op.getInt("shiftHours")
+                assertTrue(g.applyFor(place, op.getString("id"), g.hour).ok)
+                g.sleepUntil(5.0)
+                var raised = false
+                var mid: String? = null
+                for (n in 1..15) {
+                    val cash0 = g.cash
+                    val r = g.startShift(place, facing(place), start.toDouble())
+                    assertTrue("shift $n: ${r.line}", r.ok)
+                    if (n == 7) assertTrue(r.line, r.line.contains("hired")).also { assertEquals("hired", g.view.jobs.job!!.status); mid = g.save() }
+                    if (r.line.contains("raise")) { raised = true; assertEquals(15, n) }
+                    // (the pay is the job's own hourly rate for the shift's hours: the raised rate only from the next shift)
+                    if (n < 15) assertEquals(hourly * len, g.cash - cash0)
+                    g.sleepUntil(5.0)
+                }
+                assertTrue("the raise on the 15th shift", raised)
+                val j = g.view.jobs.job!!
+                assertTrue(j.hasRaise); assertEquals("good", j.reference)
+                assertEquals(Math.round(hourly * 1.1).toInt(), j.hourlyCents)
+                println("LoopGameTest: steady: ${j.line}")
+                assertTrue(j.line, j.line.contains("good reference") && j.line.contains("raised"))
+                // leaving with the good reference keeps it for the next application
+                val q = g.quitJob()
+                assertTrue(q.line, q.line.contains("good reference"))
+                assertTrue(g.view.jobs.referencesText.contains("good"))
+                mid!!
+            }.get()
+            // the save from the 7th shift loads into a fresh engine with the job (and its place, strikes, start hour) intact
+            SimJsThread().use { t2 ->
+                t2.load(bundle).get()
+                t2.run { js ->
+                    val g = LoopGame(js, loop)
+                    g.load(saved)
+                    val j = g.view.jobs.job!!
+                    assertEquals("hired", j.status)
+                    assertEquals(7, j.steadyShifts)
+                    assertEquals(g.day, j.lastWorkedDay)
+                    assertEquals(listOf(2025, 5, 6), g.startDate.toList())
+                    assertEquals(JSONObject(saved).getJSONObject("job").getJSONObject("emp").toString(), JSONObject(g.save()).getJSONObject("job").getJSONObject("emp").toString())
+                    val place = loop.placeById.getValue(j.placeId)
+                    g.sleepUntil(5.0)
+                    val r = g.startShift(place, facing(place), j.startHour.toDouble())
+                    assertTrue(r.line, r.ok)
+                    assertEquals(8, g.view.jobs.job!!.steadyShifts)
                 }.get()
             }
         }
@@ -265,8 +443,8 @@ class LoopGameTest {
                 val acts = ArrayList<String>()
                 g.onEvent = { n, d -> if (n == "act") acts += d.optString("kind") + ":" + d.optInt("bystanders") }
                 g.init(7.0)
-                assertEquals("day 1 is the start weekday", LoopTown.START_WEEKDAY, g.weekdayOf(1))
-                assertEquals((LoopTown.START_WEEKDAY + 3) % 7, g.weekdayOf(4))
+                assertEquals("day 1 is the start date's weekday: a Tuesday", 2, g.weekdayOf(1))
+                assertEquals(5, g.weekdayOf(4))
                 val stock = g.stockFor(market)
                 val item = stock.minBy { it.priceCents }
                 // 1. shut at 7: Buy is refused with the opening time, and the HUD's hours say so
@@ -283,10 +461,10 @@ class LoopGameTest {
                 assertEquals(listOf("enter:0", "take:0"), acts)
                 assertTrue(g.items.single().stolen)
                 // 3. opening hour vs the lunch rush: fewer eyes at the start
-                g.clockTo(10.25, exact = true)
+                g.clockTo(8.25, exact = true)
                 assertTrue(g.isOpenNow(market))
                 acts.clear()
-                val b1 = g.buy(market, item, facing(market), 10.25)
+                val b1 = g.buy(market, item, facing(market), 8.25)
                 val atOpening = g.lastAct!!.getInt("bystanders")
                 val b2 = g.buy(market, item, facing(market), 12.5)
                 val atRush = g.lastAct!!.getInt("bystanders")

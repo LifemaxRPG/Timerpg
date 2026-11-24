@@ -118,7 +118,7 @@ desktop) and `app/src/main/kotlin/LoopSession.kt` (the game's side), `LoopHud.kt
   "x2" and "sold out" (no buttons) at zero; `LoopItems.econKind` maps general/antiques(pawn)/market, bakery and butcher(market), toy and music
   (five_and_dime), clothing and dress (clothing), bait (hardware), ice cream (diner)): standing at a loop place's door or inside its room, a "🛒" chip opens its panel: **Buy** (pays the economy's price, gets
   the item; `act buy`), **Take** (shoplift: `act take`, no payment), **Sell** at the pawn shop (`pawnOffer(item, year, hot)`: hot is half the clean offer, 0 when they won't
-  take it: `act sell`), **Work a shift** (up to 4 h, not past closing, paid `hours x wage(job, year).hourlyCents`, `shop_clerk` at counters and `odd_jobs` for crates,
+  take it: `act sell`), **Work a shift** (the old odd-job shift, now only where no job opening exists this week, see "Calendar and employment"; up to 4 h, not past closing, paid `hours x wage(job, year).hourlyCents`, `shop_clerk` at counters and `odd_jobs` for crates,
   back rooms and cases (`LoopItems.job`), at the end: `act work_shift`,
   then `advance`). Each sends the scene: inside a room, the keeper at their counter facing the way in (so the player
   behind them is not seen) and up to two more staff; outdoors, the people the game draws within 40 m (the keepers at
@@ -240,9 +240,9 @@ The shops' hours are the economy's (`src/economy/hours.ts`, docs/ECONOMY.md), no
 staffed` (bridge `economy.*`) are read in `LoopGame` on the sim thread, with the shop kind mapped by `LoopItems.econKind` and
 the seed `"<town>|<place>"` (the outlet variation). `LoopPlace.open/close` are now only the facade's own `openHours`
 fallback; `openAt` is gone.
-- **The weekday:** the game has none; in-game day `d` is `(LoopTown.START_WEEKDAY + d - 1) mod 7` (`START_WEEKDAY` = 0, Sunday,
-  also sent as the facade's `startDayOfWeek`, so the gossip's day names agree). There is no calendar date, so holidays are not
-  applied (`hoursOf` is called without a date). 2025 Sundays are short (10-17), and before 1965 a Sunday is shut.
+- **The weekday and date:** from the calendar (see "Calendar and employment" below), not a fixed Sunday; `hoursOf / isOpen / staffed`
+  now get the day's ShopDate too (the economy's legacy Christmas and New Year closures), and the world calendar's holidays that close
+  `shops` shut every shop. 2025 Sundays are short (10-17), and before 1965 a Sunday is shut.
 - **Caching:** `isOpen` and `staffed` per place per in-game hour (cleared on a new day), `hoursOf` per place per weekday; never per
   frame. `LoopView.hours` (place id -> `PlaceHours`: open now, today's text, the closed line, people at work, closing hour) is made
   in `publish`, so the UI never calls the sim.
@@ -306,3 +306,46 @@ travelTime / classesOf` (`transit.*` in `simCall`). Read in `LoopGame` on the si
   distances; a ride is a fade, no vehicle; the "Rent a room" place is a resident's house; no meals included in the rent are used (needs
   come later); holidays and the rent's 1952-based scale are the economy's; the stop on the pavement is not checked against
   the collision (a fence or prop may stand there); not tried on the S25.
+
+## Calendar and employment (2026-11-24)
+
+Sam's `src/calendar` (docs/CALENDAR.md) and `src/jobs` (docs/JOBS.md) are in the loop through the same bridge: `Calendar` (`calendar.dateOf /
+dayNumberOf / holidaysOn / isPayday / isMarketDay / schoolTerm / daylight / toShopDate`) and `Jobs` (`jobs.openings / apply / shift`) in
+`src/loop/bridge.ts` (`simCall` now routes `economy.`, `transit.`, `calendar.`, `jobs.` by a table). Read in `LoopGame` on the sim thread only,
+cached (dates per day, openings per place per week), precomputed into `LoopView` (`dateText`, `holidayText`, `jobs`: `JobsView`/`JobView`/
+`OpeningView`); the UI never calls the sim. Tests: `LoopGameTest.theDateAdvancesWeekdaysCycleAndAHolidayClosesTheShops`,
+`applyingLateTwiceAbsenceAndTheft`, `aSteadyRunGivesARaiseAGoodReferenceAndTheJobSaves`; `src/loop/bridge.calendarjobs.test.ts`.
+
+**Calendar**
+- **Start date:** `LoopGame.startDate` (saved as `startDate`, set by `init(.., startDate)`), default `defaultStartDate(year)` = the first Tuesday of
+  Bloommonth (month 5) of the town's year: for 2025 gamma **Tuesday 6 Bloommonth 2025**, a weekday in spring that no shop-closing holiday
+  touches nearby. Day `d` is `dateOf(d - 1, startDate)`; the weekday, the "Tue 6 Bloommonth" text, the season and today's holidays come from it
+  (`LoopGame.dayInfo`). `LoopTown.START_WEEKDAY` is gone; the facade's `startDayOfWeek` is day 1's weekday (`initJson(.., startWeekday)`), so its
+  gossip day names agree. A save from before this (no `startDate`) takes the default, so its weekdays shift.
+- **Holidays:** `holidaysOn(date, townYear)`; a holiday whose `closes` has `shops` (2025: Hearth Day, 5 Frostmonth) shuts every shop all day
+  (`isOpenNow` false, no staff, no spans; the economy's `hoursOf` also gets the ShopDate for its own legacy closures). The shop panel reads
+  "Closed for Hearth Day. Opens tomorrow at 8 a.m." (`PlaceHours.holiday`); banks, schools and the post office closures are not used (no such places).
+  Taking from a shut shop is the same break-in as any closed shop.
+- **HUD:** the date under the clock (top centre), with the holiday name after it. The economy's year stays the town's year after Frostmonth wraps.
+- Not used yet: paydays, market days, school terms, daylight (the renderer's sun is its own).
+
+**Employment** (`LoopGame`: `openingsAt`, `applyFor`, `startShift`, `quitJob`; panel `LoopShopPanel`)
+- **Ask about work:** lists `openings([{id, kind: econKind}], year, day, town.seed)` for that place this week (those not taken), as "Shop clerk: 17.50/h,
+  from 9 a.m. for 6 h". Every shop kind the loop has maps to a role, so openings are possible everywhere (each place/role has one about 65% of weeks).
+- **Apply:** `jobs.apply` with age **25** (the game has none), `hasPapers` **true** (not tracked), the carried references, and reputation from the
+  keeper's `attitude` stance: **serve 0.6, wary 0.35, refuse / report_on_sight 0.1** (no keeper 0.6). So a clean player with no reference gets a
+  **trial** at a shop that wants a reference, and is hired outright at one that does not; a keeper who refuses the player turns them down.
+  The taken opening is remembered (`takenOpenings`, saved) so it is not offered again that week. One job at a time.
+- **The job** (`Job`, saved as `job`: the `Employment`, place, title, start hour, shift hours, first day, last worked day): **Start shift** is at that
+  place from the start hour for 3 hours; more than 15 minutes late records `late` (strike; the second dismisses), the shift then runs the rest of its hours;
+  a day's end with no shift worked (the shop open that day, after the job's first day) records `absent` for that day (`daysEnded`, from `advance` and
+  the cell's hours); a theft (`take`) at the workplace seen by a witness who is staff (the keeper, clerks) records `caught_stealing` (one outcome per
+  day: it is entered as the day after the last shift if that day is taken). Pay per shift is the job's `hourlyCents` x hours worked, then `act work_shift`
+  (the coworkers learn the player) and `advance`. Warnings, trial-to-hired, raises and dismissals are lines in the HUD (`jobs.news`, under the cash) and the messages; PlayLog `loop job`.
+- **References:** a dismissal adds a poor one, **Quit job** adds the job's reference so far (good after a steady run: 15 on-time shifts over 15 days:
+  +10% raise, `hasRaise`); both are kept in the save (`references`: ref, shop, day) and passed to the next `apply`; the shop panel shows them.
+- **The old odd-job shift** (`work`) stays only where no opening exists this week at that place and the player does not work there (else "They're hiring:
+  ask about work"); it is not removed because the three `isShop` places and the small shops often have none in a given week.
+- **Gaps:** no choice of shift (always the opening's start hour); a shift is one fade of the clock, not played; papers and age are constants; the keeper's
+  stance is the only reputation; no pay day (wages are paid at each shift's end); the job is not in the dialogue fact sheets (a coworker does not know of a warning);
+  the clock window for starting a shift is 3 hours for all roles; a 23:00 night shift is not offered in the loop (no hotel or motel); not tried on the S25.

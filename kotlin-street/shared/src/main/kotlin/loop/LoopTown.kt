@@ -109,13 +109,13 @@ class LoopTown(
     fun m(units: Float): Double = units / VehicleWorld.U.toDouble()
 
     /** The facade's `init` for a game starting on [startDay] at [startHour] with the player looking like [appearance]. */
-    fun initJson(startHour: Double, startDay: Int = 1, playerName: String = "Alex Mercer", appearance: JSONObject = defaultAppearance()): JSONObject {
+    fun initJson(startHour: Double, startDay: Int = 1, playerName: String = "Alex Mercer", appearance: JSONObject = defaultAppearance(), startWeekday: Int = 0): JSONObject {
         val o = JSONObject()
         o.put("seed", "loop-$seed")
         o.put("year", year)
         o.put("startDay", startDay)
         o.put("startHour", startHour)
-        o.put("startDayOfWeek", START_WEEKDAY)
+        o.put("startDayOfWeek", startWeekday)
         o.put("playerId", PLAYER)
         o.put("playerName", playerName)
         o.put("playerAppearance", appearance)
@@ -154,8 +154,7 @@ class LoopTown(
     fun vec(x: Float, z: Float): JSONObject = JSONObject().put("x", round2(m(x))).put("y", round2(m(z)))
 
     companion object {
-        /** The weekday of in-game day 1 (0 = Sunday), the facade's `startDayOfWeek`: day d falls on (START_WEEKDAY + d - 1) mod 7. */
-        const val START_WEEKDAY = 0
+
 
         const val PLAYER = "player"
         const val STATION_NODE = "node:station"

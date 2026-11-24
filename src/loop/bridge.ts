@@ -12,6 +12,8 @@ import {
 import * as economy from '../economy';
 import { arrears, dailyBudget, dailyNeeds, dueOn, lodgingOf } from '../economy/living';
 import { classesOf, departures, fare, travelTime } from '../transit';
+import { dateOf, dayNumberOf, daylight, holidaysOn, isMarketDay, isPayday, schoolTerm, toShopDate } from '../calendar';
+import { apply, openings, shift } from '../jobs';
 import { fenceDeal, fenceLeads, fenceRisk, townFences } from '../economy/fence';
 import type {
   AdvanceOptions,
@@ -204,22 +206,36 @@ export const Transit = { fare, departures, travelTime, classesOf } as const;
 (globalThis as Record<string, unknown>).Transit = Transit;
 
 /**
+ * The world calendar (src/calendar, docs/CALENDAR.md) for the phone: `simCall({"method":"calendar.dateOf","args":[0,
+ * {"year":2025,"month":5,"day":6}]})`. Pure and stateless; `null` for an invalid date.
+ */
+export const Calendar = { dateOf, dayNumberOf, holidaysOn, isPayday, isMarketDay, schoolTerm, daylight, toShopDate } as const;
+(globalThis as Record<string, unknown>).Calendar = Calendar;
+
+/**
+ * Employment (src/jobs, docs/JOBS.md) for the phone: `jobs.openings([{"id":"p","kind":"general"}], 2025, 3, "seed")`,
+ * `jobs.apply(opening, applicant)`, `jobs.shift(employment, {"day":4,"outcome":"on_time"})`. Pure and stateless: the
+ * game keeps the employment and passes it back after each shift.
+ */
+export const Jobs = { openings, apply, shift } as const;
+(globalThis as Record<string, unknown>).Jobs = Jobs;
+
+const namespaces: Record<string, Record<string, unknown>> = { economy: Economy, transit: Transit, calendar: Calendar, jobs: Jobs };
+
+/**
  * One entry for the phone (SimJs.kt calls a global function with one JSON string): `{"method": "advance", "args":
  * [24]}` calls `TimerpgSim.advance(24)` and returns its JSON string; a non-string argument is passed as JSON text
  * where the method takes JSON (e.g. `act`'s event as an object). `economy.*` methods go to [Economy], `transit.*`
- * to [Transit].
+ * to [Transit], `calendar.*` to [Calendar], `jobs.*` to [Jobs].
  */
 export function simCall(json: string): string {
   const req = JSON.parse(json) as { method: string; args?: unknown[] };
-  if (req.method.startsWith('economy.')) {
-    const name = req.method.slice('economy.'.length);
-    if (!Object.prototype.hasOwnProperty.call(Economy, name)) throw new Error(`Economy has no method "${name}"`);
-    return JSON.stringify((Economy as Record<string, (...a: unknown[]) => unknown>)[name]!(...(req.args ?? [])) ?? null);
-  }
-  if (req.method.startsWith('transit.')) {
-    const name = req.method.slice('transit.'.length);
-    if (!Object.prototype.hasOwnProperty.call(Transit, name)) throw new Error(`Transit has no method "${name}"`);
-    return JSON.stringify((Transit as Record<string, (...a: unknown[]) => unknown>)[name]!(...(req.args ?? [])) ?? null);
+  const dot = req.method.indexOf('.');
+  const space = dot > 0 ? namespaces[req.method.slice(0, dot)] : undefined;
+  if (space) {
+    const name = req.method.slice(dot + 1);
+    if (!Object.prototype.hasOwnProperty.call(space, name)) throw new Error(`${req.method.slice(0, dot)} has no method "${name}"`);
+    return JSON.stringify((space[name] as (...a: unknown[]) => unknown)(...(req.args ?? [])) ?? null);
   }
   const fn = (TimerpgSim as Record<string, unknown>)[req.method];
   if (typeof fn !== 'function') throw new Error(`TimerpgSim has no method "${req.method}"`);
