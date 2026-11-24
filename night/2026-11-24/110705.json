@@ -1,0 +1,244 @@
+{
+  "kind": "night",
+  "start": "2026-11-24T11:07:05.290-0500",
+  "end": "2026-11-24T11:07:35.760-0500",
+  "minutes": 0.5,
+  "how": "job",
+  "stopReason": "the system ended the job (its time was up, or a condition changed)",
+  "inPlainWords": "Wrote 11 lines and 0 variants with the light model on the NPU in under a minute of writing (under a minute in all). It stopped: the system ended the job (its time was up, or a condition changed).",
+  "app": {
+    "versionName": "0.1.848 (209b3fb)",
+    "versionCode": 848,
+    "git": "209b3fb",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "written": {
+    "lines": 11,
+    "variants": 0,
+    "rejected": 0,
+    "timedOut": 0,
+    "failed": 0,
+    "lastFailure": null,
+    "linesPerHour": 1299.6,
+    "linesPerWritingHour": 1574.7
+  },
+  "speed": {
+    "model": "light model on the NPU",
+    "runsOn": "NPU",
+    "genTokens": 221,
+    "genTokPerSec": 14.7,
+    "prefillTokens": 1664,
+    "prefillTokPerSec": 203.3
+  },
+  "time": {
+    "writingMin": 0.4,
+    "coolingMin": 0,
+    "hotPausedMin": 0,
+    "burstRestMin": 0,
+    "batteryWaitMin": 0,
+    "pausedByYouMin": 0,
+    "heldMin": 0,
+    "heldBy": null,
+    "closingGameMin": 0,
+    "modelLoadMin": 0
+  },
+  "model": {
+    "loaded": "light model on the NPU",
+    "problem": null,
+    "engineAtEnd": "ready: Ready: the light model answers in play. Lines ahead of time are written by the main model (overnight, or when it fits).",
+    "lastRejected": null,
+    "freeAtStartMb": 5914,
+    "freedByClosingGameMb": -1,
+    "freeBeforeLoadMb": 5914,
+    "androidThresholdMb": 216,
+    "mainCopyNeedsMb": 6839,
+    "lightCopyNeedsMb": 3751,
+    "freeAfterLoadMb": 3054
+  },
+  "heat": {
+    "coolDowns": 1,
+    "hotPauses": 0,
+    "maxThermalStatus": 2
+  },
+  "battery": {
+    "start": 36,
+    "end": 36,
+    "pluggedAtStart": true,
+    "pluggedAtEnd": true
+  },
+  "bank": {
+    "prompts": 1788,
+    "ready": 64,
+    "templates": 0,
+    "missing": 1724,
+    "lines": 64,
+    "variantsDone": 0,
+    "stale": 1,
+    "years": [
+      2025
+    ],
+    "light": 64,
+    "left": 1917,
+    "etaMin": 91.3
+  },
+  "queue": {
+    "byYear": {
+      "2025": 1916
+    },
+    "byPerson": {
+      "Ernest Reyes": 33,
+      "Betty Chen": 28,
+      "Clyde Novak": 26,
+      "Florence Moreau": 24,
+      "Harold Abbott": 24,
+      "Robert Kowalski": 24,
+      "Vera Singh": 24,
+      "William Kowalski": 24,
+      "others (141)": 1709
+    },
+    "byTopic": {
+      "your themes": 966,
+      "chat": 281,
+      "work": 176,
+      "family": 163,
+      "rumors": 163,
+      "secret": 163,
+      "follow-ups": 4
+    }
+  },
+  "recent": [
+    {
+      "who": "Vernon Moreau",
+      "topic": "chat",
+      "how": "line",
+      "text": "Lovely day for it, isn't it? You've just come from the cinema haven't you?"
+    },
+    {
+      "who": "Florence Chen",
+      "topic": "chat",
+      "how": "line",
+      "text": "Yes, the weather is quite pleasant today. I am just heading home after work."
+    },
+    {
+      "who": "Ernest Jessup",
+      "topic": "chat",
+      "how": "line",
+      "text": "Yes, the weather is quite pleasant today. I must be off to work at the post office soon though."
+    },
+    {
+      "who": "Betty Okafor",
+      "topic": "chat",
+      "how": "line",
+      "text": "Yes, it is. What do you want?"
+    },
+    {
+      "who": "Frank Larsen",
+      "topic": "chat",
+      "how": "line",
+      "text": "Yeah, it is. Just don't expect me to say much about it."
+    },
+    {
+      "who": "June Chen",
+      "topic": "chat",
+      "how": "line",
+      "text": "Yes, it's a fine day. Just wish the weather would hold for the cinema opening tonight."
+    },
+    {
+      "who": "Ernest Singh",
+      "topic": "chat",
+      "how": "line",
+      "text": "Yes, the sun is bright. It feels like a good day to walk home from work."
+    },
+    {
+      "who": "Betty Pruitt",
+      "topic": "chat",
+      "how": "line",
+      "text": "It's a fine day, though the wind is picking up. I suppose you're looking for something to do?"
+    }
+  ],
+  "player": {
+    "themes": [
+      {
+        "label": "the town: secrets, town",
+        "kind": "the town",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: anyways, asking",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "flirting: nice, pretty",
+        "kind": "flirting",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: ask, asked",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: hear, yo",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "gossip: library, new",
+        "kind": "gossip",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "personal: baby, meet",
+        "kind": "personal",
+        "asked": 1,
+        "live": 0,
+        "people": 1
+      },
+      {
+        "label": "personal: name",
+        "kind": "personal",
+        "asked": 1,
+        "live": 0,
+        "people": 1
+      },
+      {
+        "label": "personal: baby, old",
+        "kind": "personal",
+        "asked": 1,
+        "live": 0,
+        "people": 1
+      }
+    ],
+    "answersByDay": [
+      {
+        "day": "2026-11-18",
+        "ready": 0,
+        "live": 0,
+        "template": 1,
+        "readyShare": 0
+      },
+      {
+        "day": "2026-11-23",
+        "ready": 0,
+        "live": 7,
+        "template": 0,
+        "readyShare": 0
+      }
+    ]
+  }
+}
