@@ -233,3 +233,27 @@ The capital's civic centre and Main Street, with:
 
 - How harsh the first consequences should be (a fine and a ban from the shop, or a night in a cell).
 - What the odd jobs should be.
+
+## Opening hours (2026-11-24)
+
+The shops' hours are the economy's (`src/economy/hours.ts`, docs/ECONOMY.md), not a guess by kind: `Economy.hoursOf / isOpen /
+staffed` (bridge `economy.*`) are read in `LoopGame` on the sim thread, with the shop kind mapped by `LoopItems.econKind` and
+the seed `"<town>|<place>"` (the outlet variation). `LoopPlace.open/close` are now only the facade's own `openHours`
+fallback; `openAt` is gone.
+- **The weekday:** the game has none; in-game day `d` is `(LoopTown.START_WEEKDAY + d - 1) mod 7` (`START_WEEKDAY` = 0, Sunday,
+  also sent as the facade's `startDayOfWeek`, so the gossip's day names agree). There is no calendar date, so holidays are not
+  applied (`hoursOf` is called without a date). 2025 Sundays are short (10-17), and before 1965 a Sunday is shut.
+- **Caching:** `isOpen` and `staffed` per place per in-game hour (cleared on a new day), `hoursOf` per place per weekday; never per
+  frame. `LoopView.hours` (place id -> `PlaceHours`: open now, today's text, the closed line, people at work, closing hour) is made
+  in `publish`, so the UI never calls the sim.
+- **Shop panel:** shows "Open 8 a.m.-6 p.m." / "Open 24 hours" / "Closed Sundays", and when shut "Closed. Opens at 8 a.m." (or
+  "tomorrow at ..", "Monday at .."). Buy, Sell and Work are refused with that line; Work ends at the economy's closing hour.
+- **Taking from a closed shop is a break-in:** `take` first sends the facade's `enter` (`isOpen: false, forcedEntry: true`: a
+  burglary crime of its own, severity .62, with traces), then the `take` (shoplifting). Closed means no staff, so the scene has no
+  one inside and the break-in goes unseen unless the street scene (outdoors) shows someone; the line says "You break into X".
+  Both crimes exist in the facade (two ids); the second act's `crimeId` is the item's.
+- **Staffing:** inside a shop `LoopGame.staffedScene` replaces the scene's people with `staffed(...)` of them: the keeper, then
+  staff - 1 clerks, townspeople whose workplace is the shop first, then stand-ins picked from the town's non-keepers by the place's
+  id hash (real people, because the facade ignores bystanders it does not know, so an anonymous clerk could never witness). So
+  the first hour and late evening have one pair of eyes; the 11-14 rush has the kind's rush staff (market 4, pawn 2).
+- Tests: `LoopGameTest.openingHoursClosedShopsAndStaffing`.

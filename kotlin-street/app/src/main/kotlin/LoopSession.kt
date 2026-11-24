@@ -211,7 +211,7 @@ object LoopSession {
         val t = town ?: return null
         if (room != null) {
             val (kx, ky) = room.keeperSpot()
-            val lit = if (place.openAt(hour.toDouble())) .9 else .35
+            val lit = if (view?.hours?.get(place.id)?.open != false) .9 else .35
             return LoopSight.inside(place, kx, ky, room.exitX, room.exitY, wx, wy, lit, place.staff.drop(1).take(2))
         }
         val w = TownPlay.walk ?: return null

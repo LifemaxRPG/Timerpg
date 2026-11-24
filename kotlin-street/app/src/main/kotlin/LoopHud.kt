@@ -79,9 +79,11 @@ fun LoopWallet(debugOpen: Boolean, onDebug: () -> Unit) {
 fun LoopShopPanel(place: LoopPlace, year: Int, hour: Float, onAction: (String, Any?) -> Unit, onClose: () -> Unit, modifier: Modifier = Modifier) {
     val v = LoopSession.view
     val busy = LoopSession.busy
-    val open = place.openAt(hour.toDouble())
+    val hrs = v?.hours?.get(place.id)
+    val open = hrs?.open ?: true
     Column(modifier.widthIn(max = 460.dp).background(PANEL_BG, RoundedCornerShape(14.dp)).loopOpaque().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        T(place.name + if (open) "" else "  (closed: ${place.open}:00-${place.close}:00)", 15.sp)
+        T(place.name, 15.sp)
+        if (hrs != null) T(hrs.today + if (open) "" else "  -  ${hrs.closedLine}", 12.sp, if (open) DIM_TEXT else HOT)
         if (place.kind != "police_station") {
             Column(Modifier.heightIn(max = 240.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 for (s in LoopSession.stockFor(place)) Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {

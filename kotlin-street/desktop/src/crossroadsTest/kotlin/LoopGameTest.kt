@@ -248,6 +248,52 @@ class LoopGameTest {
         }
     }
 
+    @Test fun openingHoursClosedShopsAndStaffing() {
+        val market = loop.places.first { it.kind == "market" }
+        SimJsThread().use { t ->
+            t.load(bundle).get()
+            // (the economy's hours through the bundle: Sunday is shut before 1965 and short after)
+            t.run { js ->
+                fun spans(year: Int, wd: Int) = org.json.JSONArray(js.call("simCall", "{\"method\":\"economy.hoursOf\",\"args\":[\"market\",$year,$wd,\"x\"]}")).length()
+                assertEquals(0, spans(1925, 0)); assertEquals(1, spans(1985, 0)); assertEquals(1, spans(1925, 1))
+            }.get()
+            t.run { js ->
+                val g = LoopGame(js, loop)
+                val acts = ArrayList<String>()
+                g.onEvent = { n, d -> if (n == "act") acts += d.optString("kind") + ":" + d.optInt("bystanders") }
+                g.init(7.0)
+                assertEquals("day 1 is the start weekday", LoopTown.START_WEEKDAY, g.weekdayOf(1))
+                assertEquals((LoopTown.START_WEEKDAY + 3) % 7, g.weekdayOf(4))
+                val stock = g.stockFor(market)
+                val item = stock.minBy { it.priceCents }
+                // 1. shut at 7: Buy is refused with the opening time, and the HUD's hours say so
+                assertFalse(g.isOpenNow(market))
+                val no = g.buy(market, item, facing(market), 7.5)
+                println("LoopGameTest: closed: ${no.line} | ${g.hoursOf(market).today}")
+                assertFalse(no.ok); assertTrue(no.line, no.line.startsWith("Closed. Opens at "))
+                assertEquals(6000, g.cash)
+                assertFalse(g.work(market, facing(market), 7.6).ok)
+                // 2. taking from a shut shop is a break-in: an `enter` (forced) is recorded before the theft, nobody inside
+                val tk = g.take(market, item, facing(market), 7.7)
+                println("LoopGameTest: closed take: ${tk.line} | acts $acts")
+                assertTrue(tk.line, tk.ok)
+                assertEquals(listOf("enter:0", "take:0"), acts)
+                assertTrue(g.items.single().stolen)
+                // 3. opening hour vs the lunch rush: fewer eyes at the start
+                g.clockTo(10.25, exact = true)
+                assertTrue(g.isOpenNow(market))
+                acts.clear()
+                val b1 = g.buy(market, item, facing(market), 10.25)
+                val atOpening = g.lastAct!!.getInt("bystanders")
+                val b2 = g.buy(market, item, facing(market), 12.5)
+                val atRush = g.lastAct!!.getInt("bystanders")
+                println("LoopGameTest: staff ${g.staffNow(market)} at 12:30; bystanders opening $atOpening, rush $atRush; ${g.hoursOf(market).today}")
+                assertTrue(b1.line + b2.line, b1.ok && b2.ok)
+                assertEquals(1, atOpening); assertTrue("rush: $atRush", atRush > atOpening)
+            }.get()
+        }
+    }
+
     @Test fun shelvesDepleteRestockAndSave() {
         val shop = loop.places.first { it.id.startsWith("shop:") && it.shopKind == "bakery" }
         SimJsThread().use { t ->

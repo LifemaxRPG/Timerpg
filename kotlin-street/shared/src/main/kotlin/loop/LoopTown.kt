@@ -30,8 +30,8 @@ class LoopPlace(
 ) {
     val keeperId: String? get() = staff.firstOrNull()
     val isShop: Boolean get() = kind == "general_store" || kind == "market" || kind == "pawn_shop"
-    /** Open at [hour] (0..24). */
-    fun openAt(hour: Double): Boolean = if (kind == "police_station") true else (hour % 24.0).let { h -> h >= open && h < close }
+    // (the hours the game keeps are the economy's, read in [LoopGame.isOpenNow]; [open] and [close] only seed the facade's own
+    // `openHours` fallback for places it is not told about)
 }
 
 /** One of the town's people as the loop knows them (from dialogue.json: the people the game draws and talks to). */
@@ -111,7 +111,7 @@ class LoopTown(
         o.put("year", year)
         o.put("startDay", startDay)
         o.put("startHour", startHour)
-        o.put("startDayOfWeek", 0)
+        o.put("startDayOfWeek", START_WEEKDAY)
         o.put("playerId", PLAYER)
         o.put("playerName", playerName)
         o.put("playerAppearance", appearance)
@@ -150,6 +150,9 @@ class LoopTown(
     fun vec(x: Float, z: Float): JSONObject = JSONObject().put("x", round2(m(x))).put("y", round2(m(z)))
 
     companion object {
+        /** The weekday of in-game day 1 (0 = Sunday), the facade's `startDayOfWeek`: day d falls on (START_WEEKDAY + d - 1) mod 7. */
+        const val START_WEEKDAY = 0
+
         const val PLAYER = "player"
         const val STATION_NODE = "node:station"
 

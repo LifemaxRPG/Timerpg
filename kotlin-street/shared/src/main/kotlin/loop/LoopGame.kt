@@ -3,6 +3,7 @@ package com.lifemax.rpg.feature.habits.loop
 import com.lifemax.rpg.feature.habits.simjs.SimJs
 import org.json.JSONArray
 import org.json.JSONObject
+import com.lifemax.rpg.feature.habits.vehicle.VehicleWorld
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.floor
 import kotlin.math.max
@@ -43,7 +44,16 @@ class LoopView(
     val fences: List<LoopFence> = emptyList(),
     val fenceTrust: Map<String, Double> = emptyMap(),
     val fenceQuotes: Map<String, FenceQuote> = emptyMap(),
+    /** Each shop's opening hours today and now (place id -> hours; `economy.hoursOf / isOpen / staffed`), made on the sim's thread. */
+    val hours: Map<String, PlaceHours> = emptyMap(),
 )
+
+/**
+ * A shop's hours as the economy sets them (src/economy/hours.ts), for the HUD: [open] now, [today] ("Open 8 a.m.-6 p.m.",
+ * "Closed Sundays"), [closedLine] what the door says when it is shut ("Closed. Opens at 8 a.m."), [staff] people at work
+ * now, [closeHour] closing time today (0 when closed).
+ */
+class PlaceHours(val open: Boolean, val today: String, val closedLine: String, val staff: Int, val closeHour: Int)
 
 /**
  * The first playable loop's game side (kotlin-street/docs/LOOP.md): the player's wallet and inventory, the actions at
@@ -378,7 +388,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         i.serial?.let { o.put("serialNumber", it) }; i.crimeId?.let { o.put("stolenFromCrimeId", it) }
     }
 
-    private fun act(event: JSONObject, scene: LoopScene): JSONObject {
+    private fun act(event: JSONObject, sceneIn: LoopScene): JSONObject {
+        val scene = town.placeById[event.optString("placeId")]?.let { staffedScene(it, sceneIn) } ?: sceneIn
         scene.put(event)
         val res = JSONObject(call("act", event))
         lastAct = res.put("bystanders", scene.bystanders.size).put("inside", scene.inside)
@@ -395,11 +406,119 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         return res
     }
 
-    private fun closed(place: LoopPlace) = "${place.name} is closed (open ${place.open}:00-${place.close}:00)."
+    // ------------------------------------------------------------------ opening hours (economy.hoursOf / isOpen / staffed)
+
+    /** The weekday (0 = Sunday) of in-game [d]: day 1 is [LoopTown.START_WEEKDAY], the facade's `startDayOfWeek`. */
+    fun weekdayOf(d: Int): Int = Math.floorMod(LoopTown.START_WEEKDAY + d - 1, 7)
+
+    /** The hour caches are kept for one day only (cleared when the day changes); all on the sim's thread. */
+    private var hoursDay = -1
+    private val openCache = HashMap<String, Boolean>()
+    private val staffCache = HashMap<String, Int>()
+    private val spanCache = HashMap<String, List<IntArray>>()
+
+    private fun hoursSeed(place: LoopPlace) = "${town.seed}|${place.id}"
+    private fun alwaysOpen(place: LoopPlace) = place.kind == "police_station" || place.kind == "home"
+
+    /** [place]'s opening spans on in-game day [d] (`hoursOf`; no calendar date, so no holidays), as [open, close) hours; cached per weekday. */
+    private fun spansOn(place: LoopPlace, d: Int): List<IntArray> {
+        if (alwaysOpen(place)) return listOf(intArrayOf(0, 24))
+        val wd = weekdayOf(d)
+        return spanCache.getOrPut("${place.id}|$wd") {
+            val a = econ("hoursOf", LoopItems.econKind(place.shopKind), town.year, wd, hoursSeed(place)) as? JSONArray ?: JSONArray()
+            (0 until a.length()).map { a.getJSONObject(it).let { o -> intArrayOf(o.optInt("open"), o.optInt("close")) } }
+        }
+    }
+
+    private fun syncHoursDay() { if (hoursDay != day) { hoursDay = day; openCache.clear(); staffCache.clear() } }
+
+    /** Is [place] open at the sim's hour now (`economy.isOpen`, cached per place per in-game hour)? */
+    fun isOpenNow(place: LoopPlace): Boolean {
+        if (alwaysOpen(place)) return true
+        syncHoursDay()
+        val h = floor(hour).toInt() % 24
+        return openCache.getOrPut("${place.id}|$h") {
+            econ("isOpen", LoopItems.econKind(place.shopKind), town.year, weekdayOf(day), h, hoursSeed(place)) as? Boolean ?: false
+        }
+    }
+
+    /** How many people work in [place] this hour (`economy.staffed`: 0 shut, 1 at opening and late, more at the lunch rush); cached. */
+    fun staffNow(place: LoopPlace): Int {
+        if (alwaysOpen(place)) return place.staff.size.coerceAtLeast(1)
+        syncHoursDay()
+        val h = floor(hour).toInt() % 24
+        return staffCache.getOrPut("${place.id}|$h") {
+            (econ("staffed", LoopItems.econKind(place.shopKind), town.year, weekdayOf(day), h, hoursSeed(place)) as? Number)?.toInt() ?: 0
+        }
+    }
+
+    private val dayNames = arrayOf("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+    private fun hourText(h: Int): String = when (h % 24) { 0 -> "midnight"; 12 -> "noon"; in 1..11 -> "$h a.m."; else -> "${h % 12} p.m." }
+
+    /** The closing hour of the span [place] is open in now (0 when shut). */
+    private fun closeNow(place: LoopPlace): Int {
+        val h = floor(hour).toInt() % 24
+        return spansOn(place, day).firstOrNull { h >= it[0] && h < it[1] }?.get(1) ?: 0
+    }
+
+    /** What the door reads: "Open 8 a.m.-6 p.m.", "Open 24 hours", "Closed Sundays". */
+    private fun todayText(place: LoopPlace): String {
+        val sp = spansOn(place, day)
+        if (sp.isEmpty()) return "Closed ${dayNames[weekdayOf(day)]}s"
+        return "Open " + sp.joinToString(", ") { if (it[0] == 0 && it[1] == 24) "24 hours" else "${hourText(it[0])}-${hourText(it[1])}" }
+    }
+
+    /** "Closed. Opens at 8 a.m." (later today), "Closed. Opens tomorrow at 8 a.m.", "Closed. Opens Monday at 10 a.m.". */
+    fun closedLine(place: LoopPlace): String {
+        val h = floor(hour).toInt() % 24
+        spansOn(place, day).firstOrNull { it[0] > h }?.let { return "Closed. Opens at ${hourText(it[0])}" }
+        for (k in 1..7) {
+            val sp = spansOn(place, day + k)
+            if (sp.isNotEmpty()) return "Closed. Opens ${if (k == 1) "tomorrow" else dayNames[weekdayOf(day + k)]} at ${hourText(sp[0][0])}"
+        }
+        return "Closed."
+    }
+
+    /** [place]'s hours for the HUD (see [PlaceHours]). */
+    fun hoursOf(place: LoopPlace): PlaceHours {
+        val open = isOpenNow(place)
+        return PlaceHours(open, todayText(place), if (open) "" else closedLine(place), if (open) staffNow(place) else 0, if (open) closeNow(place) else 0)
+    }
+
+    /**
+     * [scene] with the shop's people set to who works in [place] this hour (`economy.staffed`): the keeper plus staff - 1
+     * clerks (townspeople who work there, then deterministic stand-ins from the passers so each is a real person who can
+     * witness), set along the counter; nobody when it is shut. Outdoor scenes are left as they are.
+     */
+    fun staffedScene(place: LoopPlace, scene: LoopScene): LoopScene {
+        if (!scene.inside || alwaysOpen(place)) return scene
+        val n = staffNow(place)
+        val keeper = scene.bystanders.firstOrNull { it.id == place.keeperId } ?: return scene
+        val clerks = clerksOf(place)
+        val k = VehicleWorld.U / 32f
+        val out = ArrayList<LoopBystander>()
+        if (n >= 1) out += keeper
+        for (i in 0 until (n - 1).coerceAtMost(clerks.size)) {
+            val dx = 60f * (i + 1) * k
+            out += LoopBystander(clerks[i], keeper.x + dx, keeper.z, keeper.fx, keeper.fz, "working", true, keeper.distance + dx)
+        }
+        return LoopScene(scene.x, scene.z, out, scene.light, true, scene.appearance)
+    }
+
+    /** Who stands behind the counter besides the keeper: the town's people who work at [place], then stand-ins picked from the town by the place's id. */
+    private fun clerksOf(place: LoopPlace): List<String> = clerkCache.getOrPut(place.id) {
+        val own = town.people.filter { it.workplacePlaceId == place.id && it.id != place.keeperId }.map { it.id }
+        val pool = town.people.filter { p -> town.places.none { it.kind != "home" && it.keeperId == p.id } && p.age in 16..65 && p.id !in own }.map { it.id }
+        val h = place.id.hashCode()
+        own + (0 until 3).mapNotNull { i -> pool.takeIf { it.isNotEmpty() }?.get(Math.floorMod(h + 7919 * i, pool.size)) }.distinct()
+    }
+    private val clerkCache = HashMap<String, List<String>>()
+
+    private fun closed(place: LoopPlace) = closedLine(place)
 
     fun buy(place: LoopPlace, s: StockItem, scene: LoopScene, gameHour: Double): LoopOutcome {
         clockTo(gameHour, exact = true)
-        if (!place.openAt(hour)) return done(false, closed(place))
+        if (!isOpenNow(place)) return done(false, closed(place))
         val (no, wary) = refusal(place, "serve")
         if (no != null) return done(false, no)
         val price = s.priceCents
@@ -414,8 +533,11 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
 
     fun take(place: LoopPlace, s: StockItem, scene: LoopScene, gameHour: Double): LoopOutcome {
         clockTo(gameHour, exact = true)
-        if (!place.openAt(hour)) return done(false, "The door of ${place.name} is locked.")
         if (!takeFromShelf(place, s.key)) return done(false, "Sold out.")
+        // (a closed shop is a break-in: the facade's `enter` with the door shut and forced is a burglary of its own, recorded
+        // before the theft; nobody is inside to see it, so its witnesses are whoever the street scene holds)
+        val breakIn = if (!isOpenNow(place)) act(JSONObject().put("kind", "enter").put("placeId", place.id).put("isOpen", false).put("forcedEntry", true)
+            .also { o -> place.keeperId?.let { o.put("ownerId", it) } }, scene) else null
         val proto = newItem(place, s, true, null, null)
         val res = act(JSONObject().put("kind", "take").put("subkind", "shoplift").put("placeId", place.id).put("item", itemPayload(proto))
             .also { o -> place.keeperId?.let { o.put("ownerId", it) } }, scene)
@@ -424,6 +546,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val w = res.optJSONArray("witnessedBy") ?: JSONArray()
         val victim = (0 until w.length()).map { w.getJSONObject(it) }.firstOrNull { it.optBoolean("isVictim") }
         val line = when {
+            breakIn != null && w.length() == 0 && (breakIn.optJSONArray("witnessedBy")?.length() ?: 0) == 0 -> "You break into ${place.name} and pocket ${s.label}. No one seemed to notice."
             victim != null -> "You pocket ${s.label}. ${victim.optString("name").substringBefore(' ')} saw that!"
             w.length() > 0 -> "You pocket ${s.label}. You feel eyes on you."
             else -> "You pocket ${s.label}. No one seemed to notice."
@@ -434,7 +557,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     fun sell(place: LoopPlace, item: LoopItem, scene: LoopScene, gameHour: Double): LoopOutcome {
         clockTo(gameHour, exact = true)
         if (place.kind != "pawn_shop") return done(false, "${place.name} doesn't buy things.")
-        if (!place.openAt(hour)) return done(false, closed(place))
+        if (!isOpenNow(place)) return done(false, closed(place))
         val (no, wary) = refusal(place, "deal with")
         if (no != null) return done(false, no)
         val price = pawnPrice(item)
@@ -485,10 +608,10 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     /** A shift at [place]: up to 4 hours (not past closing), paid at the end; the clock moves on by it. */
     fun work(place: LoopPlace, scene: LoopScene, gameHour: Double): LoopOutcome {
         clockTo(gameHour, exact = true)
-        if (!place.openAt(hour)) return done(false, closed(place))
+        if (!isOpenNow(place)) return done(false, closed(place))
         val (no, wary) = refusal(place, "take on")
         if (no != null) return done(false, no)
-        val hours = min(4.0, floor(place.close - hour))
+        val hours = min(4.0, floor(closeNow(place) - hour))
         if (hours < 1.0) return done(false, "${place.name} closes soon: no shift today.")
         val w = econ("wage", LoopItems.job(place.shopKind), town.year) as? JSONObject
         val hourly = w?.optInt("hourlyCents", 0) ?: 0
@@ -586,7 +709,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val quotes = HashMap<String, FenceQuote>()
         for (f in fences) for (i in items) quotes["${f.personId}|${i.id}"] = fenceQuote(f, i)
         view = LoopView(cash, money(cash), stock, offers, offerTexts, items.toList(), day, hour, debugLines(), officerPlans, messages.toList(),
-            fences, fenceTrust.toMap(), quotes)
+            fences, fenceTrust.toMap(), quotes, shops.associate { it.id to hoursOf(it) })
     }
 
     private fun debugLines(): List<String> {
