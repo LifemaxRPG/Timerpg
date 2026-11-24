@@ -83,6 +83,9 @@ one major feature rather than the whole premise:
   real scale. An hour's drive between big cities is fine ("it'll be a fun drive"). So make the journey worth it:
   scenery, roadside stops, era radio, weather, night driving, hitchhikers, police, breakdowns and fuel. Trains and
   ships are real rides you can spend time on, not loading screens.
+- **Maps** (the owner's decision, 2026-11-24; kotlin-street/docs/MAPS.md): modern players always have a GPS minimap
+  and map; before GPS they buy paper maps in three tiers (world, regional, city). A map shows only its area and detail,
+  and shows the world as of the year it was printed. Waypoints can be set on any map the player owns.
 - **Approved real-world exception: the Beach Blvd Rex** (the owner's decision, 2026-11-22): a faithful model of the
   1964 roadside dinosaur statue on Beach Boulevard, Jacksonville (an Easter egg to the owner's hometown; the
   mini-golf course it came from is long gone). Keep it as made (`codex/beach-blvd-rex`). Every other model stays
