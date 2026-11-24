@@ -130,3 +130,4 @@ his limit; G012 was trimmed to the one-police swap plus the wiring fixes. Plan a
 | C024 fares and timetables | ChatGPT/Sam (Codex), low reasoning | engineering | one run; tokens not visible | 1 | accepted first try; 32/32 |
 | C023 r1 jobs | ChatGPT/Sam (Codex), low reasoning | engineering, revision | one run | 2 | accepted: strikes clear, every shop kind hires |
 | C025 calendar | ChatGPT/Sam (Codex), low reasoning | engineering | one run | 1 | accepted first try; the world's own months and holidays |
+| C026 needs and health | ChatGPT/Sam (Codex), low reasoning | engineering | one run | 1 | accepted first try; 5/5 |
