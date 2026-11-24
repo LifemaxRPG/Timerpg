@@ -18,3 +18,11 @@ Added seeded job openings, hiring and probation, and a saveable shift record wit
 
 - One scheduled implementation run with a WIP and final push. Model setting, tokens and plan usage were not visible.
 - Initial delivery, zero review rounds.
+
+## Revision 1 — C023-r1
+
+Ten consecutive on-time shifts now clear old strikes. A second strike before that still dismisses the worker, and being caught stealing still dismisses immediately. Added counter clerk openings for pharmacies, five-and-dimes, clothing stores and pawn shops.
+
+Regression tests check the strike reset and vacancy coverage for every economy shop kind. All 34 jobs and economy tests, TypeScript, and staged whitespace checks passed. On-device integration was untested.
+
+Revision usage was one interactive run with a WIP and final push. Model setting, tokens and plan usage were not visible.

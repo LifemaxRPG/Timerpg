@@ -1,3 +1,4 @@
+import { SHOP_KINDS } from '../economy';
 import { expect, it } from 'vitest';
 import { apply, openings, shift } from './index';
 
@@ -48,4 +49,23 @@ it('completes a steady trial, then awards one raise and a good reference', () =>
   expect(events[14]).toBe('raise');
   expect(events.filter(event => event === 'raise')).toHaveLength(1);
   expect(job).toMatchObject({ hourlyCents: 66, reference: 'good' });
+});
+
+it('clears a strike after ten on-time shifts', () => {
+  const trial = apply(first(1952), applicant);
+  if (trial.status === 'refused') throw new Error('Expected a trial');
+  const late = (job: typeof trial.job, day: number) => shift(job, { day, outcome: 'late' });
+  let job = late(trial.job, 1).job;
+  for (let day = 2; day <= 10; day++) job = shift(job, { day, outcome: 'on_time' }).job;
+  expect(late(job, 11).event).toBe('dismissed');
+  job = shift(job, { day: 11, outcome: 'on_time' }).job;
+  expect(late(job, 12)).toMatchObject({ event: 'warning', job: { strikes: 1 } });
+});
+
+it('can list a vacancy for every economy shop kind', () => {
+  for (const kind of SHOP_KINDS) {
+    const place = { id: kind, kind };
+    expect(Array.from({ length: 20 }, (_, week) => openings([place], 1952, week * 7, 'town'))
+      .some(rows => rows.length > 0), kind).toBe(true);
+  }
 });
