@@ -76,6 +76,8 @@ class LoopView(
     val owned: Map<String, OwnedShopView> = emptyMap(),
     val roomsElsewhere: String = "",
     val speakeasy: SpeakeasyView? = null,
+    /** The player's maps (docs/MAPS.md): the paper maps owned, GPS this year, the waypoint, what each place sells. */
+    val maps: MapsView = MapsView(),
 )
 
 /**
@@ -292,6 +294,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         job = null; references.clear(); takenOpenings.clear(); jobNews = ""
         businesses.clear(); pendingEvents.clear(); menuCache.clear()
         resetPersonal()
+        ownedMaps.clear(); waypoint = null
         say("Arrived in ${town.townName} with ${money(cash)}.")
         event("init", JSONObject(res.toString()).put("cash", cash).put("places", town.places.count { it.kind != "home" }).put("ms", timings["init"]?.first))
         refreshPolice()
@@ -318,6 +321,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         o.put("bizEvents", JSONArray(pendingEvents))
         o.put("references", JSONArray(references)).put("takenOpenings", JSONArray(takenOpenings.toList())).put("jobNews", jobNews)
         savePersonal(o)
+        o.put("maps", org.json.JSONArray(ownedMaps.map { it.json() }))
+        waypoint?.let { o.put("waypoint", org.json.JSONArray().put(it[0].toDouble()).put(it[1].toDouble())) }
         return o.toString()
     }
 
@@ -360,6 +365,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         } }
         o.optJSONArray("bizEvents")?.let { a -> for (i in 0 until a.length()) pendingEvents += a.getJSONObject(i) }
         loadPersonal(o)
+        ownedMaps.clear(); ownedMaps += LoopMaps.loadOwned(o.optJSONArray("maps"))
+        waypoint = o.optJSONArray("waypoint")?.let { floatArrayOf(it.getDouble(0).toFloat(), it.getDouble(1).toFloat()) }
         say("Back in ${town.townName}.")
         event("load", JSONObject().put("day", day).put("hour", hour).put("cash", cash).put("items", items.size).put("ms", timings["load"]?.first))
         refreshPolice()
@@ -1916,6 +1923,66 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
 
     // ------------------------------------------------------------------ the debug view
 
+    // ------------------------------------------------------------------ maps (docs/MAPS.md)
+
+    /** The paper maps the player owns (saved as "maps"). */
+    val ownedMaps = ArrayList<com.lifemax.rpg.feature.habits.maps.OwnedMap>()
+    /** The waypoint (street x, z), or null (saved as "waypoint"). */
+    var waypoint: FloatArray? = null; private set
+    /**
+     * The region (the landmass) the town stands on, the road maps' area: set by the game from the planet
+     * (PlanetMapModel.regionOf) before the loop starts; "region:home" where the planet is not loaded.
+     */
+    var region = "region:home"
+    private var index1952: Double? = null
+    private val mapPriceCache = HashMap<String, Int>()
+
+    /** What a map of [tier] costs at [atGas] (a gas station: free road maps in their era), in the town's year's cents. */
+    fun mapCents(tier: com.lifemax.rpg.feature.habits.maps.MapTier, atGas: Boolean): Int = mapPriceCache.getOrPut("$tier|$atGas") {
+        val i52 = index1952 ?: ((econ("priceIndex", 1952) as? Number)?.toDouble() ?: 1.0).also { index1952 = it }
+        com.lifemax.rpg.feature.habits.maps.MapRules.priceCents(tier, town.year, priceIndex, i52, atGas)
+    }
+
+    /** The maps [placeId] sells (a loop place, or [LoopMaps.STATION]), printed this year. */
+    fun mapOffers(placeId: String): List<MapOffer> {
+        val place = town.placeById[placeId]
+        if (place == null && placeId != LoopMaps.STATION) return emptyList()
+        val gas = place?.shopKind == "gas station"
+        return LoopMaps.tiersAt(placeId, place?.shopKind).map { t ->
+            val area = LoopMaps.area(t, town.seed, region)
+            val c = mapCents(t, gas)
+            MapOffer("${t.name}|$area", t, area, LoopMaps.label(t, town.townName, town.year), c, if (c == 0) "free" else money(c), LoopMaps.has(ownedMaps, t, area, town.year))
+        }
+    }
+
+    /** Buys (or, free, takes) the map [offerId] at [placeId]: paid from the wallet, kept with its print year (this year). */
+    fun buyMap(placeId: String, offerId: String, gameHour: Double): LoopOutcome {
+        clockTo(gameHour, exact = true)
+        val o = mapOffers(placeId).firstOrNull { it.id == offerId } ?: return done(false, "They don't sell that map here.")
+        val place = town.placeById[placeId]
+        if (place != null) {
+            if (!isOpenNow(place)) return done(false, closed(place))
+            val (no, _) = refusal(place, "serve")
+            if (no != null) return done(false, no)
+        }
+        if (o.owned) return done(false, "You already have the ${o.label}.")
+        if (cash < o.cents) return done(false, "The ${o.label} is ${o.text}; you have ${money(cash)}.")
+        cash -= o.cents
+        ownedMaps += com.lifemax.rpg.feature.habits.maps.OwnedMap(o.tier, o.area, town.year, o.label)
+        event("map_buy", JSONObject().put("tier", o.tier.name).put("area", o.area).put("cents", o.cents).put("place", placeId))
+        return done(true, if (o.cents == 0) "They give you a ${o.label}, free with the gas." else "You buy a ${o.label} for ${o.text}.")
+    }
+
+    /** Sets the waypoint at street ([x], [z]) (from the full map), or clears it (null). */
+    fun setWaypoint(x: Float?, z: Float?) {
+        waypoint = if (x == null || z == null) null else floatArrayOf(x, z)
+        event("waypoint", JSONObject().put("set", waypoint != null).also { o -> waypoint?.let { o.put("x", it[0].toDouble()).put("z", it[1].toDouble()) } })
+        publish()
+    }
+
+    private fun mapsView(shops: List<LoopPlace>): MapsView = MapsView(ownedMaps.toList(), com.lifemax.rpg.feature.habits.maps.MapRules.gps(town.year), region, waypoint?.copyOf(),
+        (shops.map { it.id } + LoopMaps.STATION).mapNotNull { id -> mapOffers(id).takeIf { it.isNotEmpty() }?.let { id to it } }.toMap())
+
     private fun publish() {
         rentTick()
         val shops = town.places.filter { it.kind != "home" && it.kind != "police_station" }
@@ -1929,7 +1996,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
             rentView(), lodgingOffer(), roomCost(), livingLine(), transitInfo(), railCoef(),
             dayInfo(day).text, dayInfo(day).holiday.orEmpty(), jobsView(shops),
             needsView(), shops.mapNotNull { p -> eatOption(p)?.let { p.id to it } }.toMap(), skyView(), carsView(), walkMultiplier(), boardLine(),
-            menus = shops.mapNotNull { p -> menuFor(p)?.let { p.id to it } }.toMap(), forSale = saleViews(shops), owned = ownedViews(), roomsElsewhere = roomsElsewhere, speakeasy = speakeasyView())
+            menus = shops.mapNotNull { p -> menuFor(p)?.let { p.id to it } }.toMap(), forSale = saleViews(shops), owned = ownedViews(), roomsElsewhere = roomsElsewhere, speakeasy = speakeasyView(),
+            maps = mapsView(shops))
     }
 
     private fun lodgingOffer(): String = lodgingTerms()?.let { t ->
