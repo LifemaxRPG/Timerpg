@@ -126,3 +126,4 @@ his limit; G012 was trimmed to the one-police swap plus the wiring fixes. Plan a
 | C020 r1 the fence | ChatGPT/Sam (Codex), low reasoning | engineering, revision | ~1 run, WIP first; tokens not visible | 2 | accepted: graded heat, the stranger scene tested |
 | C021 opening hours | ChatGPT/Sam (Codex), low reasoning | engineering | ~1 min WIP to delivery; tokens not visible | 1 | accepted first try; 23/23 |
 | C022 cost of living | ChatGPT/Sam (Codex), low reasoning | engineering | ~1.5 min WIP to delivery; tokens not visible | 1 | accepted first try; 28/28 |
+| C023 jobs | ChatGPT/Sam (Codex), low reasoning | engineering | ~1 min WIP to delivery; tokens not visible | 1 | revise: strikes never fade; four shop kinds never hire |
