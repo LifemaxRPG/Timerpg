@@ -152,3 +152,5 @@ his limit; G012 was trimmed to the one-police swap plus the wiring fixes. Plan a
 | C038 building security | ChatGPT/Sam (Codex), low reasoning | engineering | one run | 1 | accepted first try; 5/5 |
 | C039 a night out | ChatGPT/Sam (Codex), low reasoning | engineering | one run | 1 | accepted first try; 5/5 |
 | C040 carrying and searches | ChatGPT/Sam (Codex), low reasoning | engineering | one run | 1 | accepted first try; 5/5 |
+| C041 town politics | ChatGPT/Sam (Codex), low reasoning | engineering | one run | 1 | accepted first try; 5/5 |
+| C042 life on the road | ChatGPT/Sam (Codex), low reasoning | engineering | one run | 1 | accepted first try; 5/5 |
