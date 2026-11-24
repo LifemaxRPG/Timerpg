@@ -14,6 +14,9 @@ import { arrears, dailyBudget, dailyNeeds, dueOn, lodgingOf } from '../economy/l
 import { classesOf, departures, fare, travelTime } from '../transit';
 import { dateOf, dayNumberOf, daylight, holidaysOn, isMarketDay, isPayday, schoolTerm, toShopDate } from '../calendar';
 import { apply, openings, shift } from '../jobs';
+import { effects as needEffects, eat as needEat, initialNeeds, injure, sleep as needSleep, tick as needTick, treat, treatmentCost, wash } from '../needs';
+import { temperatureRange, weatherAt, weatherEffects } from '../weather';
+import { carsForSale, drive as carDrive, papersFor, policeStop, repairCost, runningCosts, serviceCar } from '../cars';
 import { fenceDeal, fenceLeads, fenceRisk, townFences } from '../economy/fence';
 import type {
   AdvanceOptions,
@@ -220,13 +223,34 @@ export const Calendar = { dateOf, dayNumberOf, holidaysOn, isPayday, isMarketDay
 export const Jobs = { openings, apply, shift } as const;
 (globalThis as Record<string, unknown>).Jobs = Jobs;
 
-const namespaces: Record<string, Record<string, unknown>> = { economy: Economy, transit: Transit, calendar: Calendar, jobs: Jobs };
+/**
+ * The player's needs (src/needs, docs/NEEDS.md) for the phone: `needs.tick(state, hours, "walking")`, `needs.eat(state, "diner")`,
+ * `needs.sleep(state, hours, "bench")`, `needs.effects(state)`. Pure and stateless: the game keeps the Needs JSON (saved) and passes it back.
+ */
+export const Needs = { initialNeeds, tick: needTick, eat: needEat, sleep: needSleep, wash, injure, treat, treatmentCost, effects: needEffects } as const;
+(globalThis as Record<string, unknown>).Needs = Needs;
+
+/**
+ * The sky (src/weather, docs/WEATHER.md) for the phone: `weather.weatherAt("temperate_coast", dayNumber, hour, seed, startDate)` and
+ * `weather.weatherEffects(weather)`. Pure and stateless (the same date and seed always give the same sky).
+ */
+export const Weather = { weatherAt, weatherEffects, temperatureRange } as const;
+(globalThis as Record<string, unknown>).Weather = Weather;
+
+/**
+ * Cars (src/cars, docs/CARS.md) for the phone: the used-car lot, papers, running costs, wear and breakdowns, repairs. Pure and stateless:
+ * the game keeps each owned `Car` JSON (saved) and passes it back to `cars.drive`.
+ */
+export const Cars = { carsForSale, papersFor, policeStop, runningCosts, drive: carDrive, repairCost, serviceCar } as const;
+(globalThis as Record<string, unknown>).Cars = Cars;
+
+const namespaces: Record<string, Record<string, unknown>> = { economy: Economy, transit: Transit, calendar: Calendar, jobs: Jobs, needs: Needs, weather: Weather, cars: Cars };
 
 /**
  * One entry for the phone (SimJs.kt calls a global function with one JSON string): `{"method": "advance", "args":
  * [24]}` calls `TimerpgSim.advance(24)` and returns its JSON string; a non-string argument is passed as JSON text
  * where the method takes JSON (e.g. `act`'s event as an object). `economy.*` methods go to [Economy], `transit.*`
- * to [Transit], `calendar.*` to [Calendar], `jobs.*` to [Jobs].
+ * to [Transit], `calendar.*` to [Calendar], `jobs.*` to [Jobs], `needs.*` to [Needs], `weather.*` to [Weather], `cars.*` to [Cars].
  */
 export function simCall(json: string): string {
   const req = JSON.parse(json) as { method: string; args?: unknown[] };

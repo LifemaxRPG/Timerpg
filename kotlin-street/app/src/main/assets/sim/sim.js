@@ -4595,7 +4595,7 @@
     for (const o of Object.values(sim.officers)) {
       if (o.jurisdictionId === jurisdictionId) jurOfficers[o.id] = o;
     }
-    const tick = planPoliceForTick({
+    const tick2 = planPoliceForTick({
       seed: sim.seed,
       day: sim.currentDay,
       hour: sim.currentHour,
@@ -4606,7 +4606,7 @@
       streetGraph: sim.streetGraph,
       idMap: idMapCopy
     });
-    const directives = tick.directives;
+    const directives = tick2.directives;
     return {
       jurisdictionId,
       day: sim.currentDay,
@@ -4916,8 +4916,8 @@
     const key = job.trim().toLowerCase().replace(/[ -]+/g, "_");
     const canonical = key === "laborer" ? "labourer" : key;
     if (!validYear(year) || !Object.prototype.hasOwnProperty.call(JOBS, canonical)) return null;
-    const [shiftHours, rates] = JOBS[canonical];
-    const hourlyCents = Math.round(interpolate(WAGE_YEARS.map((at, i) => [at, rates[i]]), year));
+    const [shiftHours, rates2] = JOBS[canonical];
+    const hourlyCents = Math.round(interpolate(WAGE_YEARS.map((at, i) => [at, rates2[i]]), year));
     return { hourlyCents, shiftHours, shiftCents: hourlyCents * shiftHours };
   }
   function formatMoney(cents, year) {
@@ -5477,14 +5477,14 @@
   };
   function dailyBudget(bracket, year) {
     if (!Object.prototype.hasOwnProperty.call(brackets, bracket)) return null;
-    const [job, paidHoursPerDay, kind, meals] = brackets[bracket];
+    const [job, paidHoursPerDay, kind, meals2] = brackets[bracket];
     const pay = wage(job, year);
     const lodging = lodgingOf(kind, year);
     const needs = dailyNeeds(year);
     if (!pay || !lodging || !needs) return null;
     const incomeCents = pay.hourlyCents * paidHoursPerDay;
     const lodgingCents = Math.round(lodging.rentCents / lodging.periodDays);
-    const foodCents = needs[meals];
+    const foodCents = needs[meals2];
     const otherCents = needs.clothesWearPerDayCents + Math.round(needs.laundryPerLoadCents / 7) + 2 * needs.carfarePerRideCents;
     const spendingCents = lodgingCents + foodCents + otherCents;
     return { incomeCents, lodgingCents, foodCents, otherCents, spendingCents, weeklyLivingCents: spendingCents * 7 };
@@ -5861,6 +5861,331 @@
     return { job: { ...updated, reference: job.status === "hired" && steadyShifts >= 15 ? "good" : job.reference }, event: "none" };
   }
 
+  // src/needs/index.ts
+  var injuries = {
+    sprain: { hours: 96, healthLoss: 0.12, cents: 300 },
+    cut: { hours: 72, healthLoss: 0.09, cents: 225 },
+    bruise: { hours: 48, healthLoss: 0.06, cents: 150 }
+  };
+  function initialNeeds() {
+    return { hunger: 0.12, fatigue: 0.08, hygiene: 1, health: 1, ill: false, injuries: [] };
+  }
+  var rates = {
+    idle: [0.035, 0.037, 0.014],
+    walking: [0.043, 0.046, 0.021],
+    running: [0.065, 0.075, 0.052],
+    working: [0.044, 0.05, 0.026],
+    sleeping: [0.025, -0.12, 7e-3]
+  };
+  function treatmentCost(injury, year) {
+    const index = priceIndex(year);
+    const base = priceIndex(1952);
+    if (index === null || !Object.prototype.hasOwnProperty.call(injuries, injury)) return null;
+    return Math.round(injuries[injury].cents * index / base);
+  }
+  function advance2(state, hours, activity, recovery = 1) {
+    if (!Number.isFinite(hours) || hours <= 0 || !Object.prototype.hasOwnProperty.call(rates, activity)) return state;
+    const [hungerRate, fatigueRate, dirtRate] = rates[activity];
+    const hunger = clamp01(state.hunger + hours * hungerRate);
+    const fatigue = clamp01(state.fatigue + hours * fatigueRate * recovery);
+    const starving = Math.max(0, hours - Math.max(0, (0.9 - state.hunger) / hungerRate));
+    const exhausted = fatigueRate > 0 ? Math.max(0, hours - Math.max(0, (0.9 - state.fatigue) / fatigueRate)) : Math.min(hours, Math.max(0, (state.fatigue - 0.9) / (-fatigueRate * recovery)));
+    const health = clamp01(state.health + hours * 3e-3 - starving * 0.018 - exhausted * 0.012);
+    return {
+      hunger,
+      fatigue,
+      health,
+      hygiene: clamp01(state.hygiene - hours * dirtRate),
+      ill: state.ill && health < 0.85 || health < 0.7 && (hunger >= 0.9 || fatigue >= 0.9),
+      injuries: state.injuries.flatMap((injury) => {
+        const remainingHours = injury.remainingHours - hours * (injury.treated ? 2 : 1);
+        return remainingHours > 0 ? [{ ...injury, remainingHours }] : [];
+      })
+    };
+  }
+  function tick(state, hours, activity) {
+    return advance2(state, hours, activity);
+  }
+  var meals = { diner: 0.37, grocery_cooked: 0.35, snack: 0.16, boarding_house_board: 0.34 };
+  function eat(state, meal) {
+    return { ...state, hunger: clamp01(state.hunger - meals[meal]) };
+  }
+  var beds = { bed: 1, bench: 0.48, cell: 0.65 };
+  function sleep(state, hours, bedQuality) {
+    return advance2(state, hours, "sleeping", beds[bedQuality]);
+  }
+  function wash(state) {
+    return { ...state, hygiene: 1 };
+  }
+  function injure(state, kind) {
+    const spec = injuries[kind];
+    return {
+      ...state,
+      health: clamp01(state.health - spec.healthLoss),
+      injuries: [
+        ...state.injuries.filter((injury) => injury.kind !== kind),
+        { kind, remainingHours: spec.hours, treated: false }
+      ]
+    };
+  }
+  function treat(state, kind) {
+    return { ...state, injuries: state.injuries.map((injury) => injury.kind === kind ? { ...injury, treated: true } : injury) };
+  }
+  function effects(state) {
+    const labels = [];
+    if (state.hunger >= 0.9) labels.push("starving");
+    else if (state.hunger >= 0.48) labels.push("hungry");
+    if (state.fatigue >= 0.85) labels.push("exhausted");
+    else if (state.fatigue >= 0.55) labels.push("tired");
+    if (state.hygiene < 0.4) labels.push("unwashed");
+    if (state.ill) labels.push("ill");
+    for (const injury of state.injuries) labels.push(injury.kind);
+    const sprain = state.injuries.some((injury) => injury.kind === "sprain") ? 0.1 : 0;
+    return {
+      labels,
+      walkingSpeedMultiplier: 1 - 0.13 * state.hunger - 0.18 * state.fatigue - 0.15 * (1 - state.health) - sprain,
+      socialReactionModifier: -0.25 * Math.max(0, 0.6 - state.hygiene) - 0.2 * Math.max(0, state.fatigue - 0.55),
+      dozeChancePerHour: 0.8 * Math.max(0, state.fatigue - 0.85)
+    };
+  }
+
+  // src/weather/index.ts
+  var climates = {
+    temperate_coast: {
+      means: [5, 6, 8, 11, 15, 18, 21, 21, 18, 14, 9, 6],
+      spread: 9,
+      rain: [0.27, 0.24, 0.16, 0.27],
+      clear: [0.22, 0.33, 0.52, 0.26],
+      cloudy: 0.31,
+      snow: 0.12,
+      fog: 0.32,
+      storm: "autumn"
+    },
+    inland_plains: {
+      means: [-5, -2, 4, 11, 17, 23, 27, 25, 19, 12, 4, -3],
+      spread: 12,
+      rain: [0.15, 0.31, 0.24, 0.18],
+      clear: [0.46, 0.49, 0.63, 0.55],
+      cloudy: 0.27,
+      snow: 0.4,
+      fog: 0.11,
+      storm: "spring"
+    },
+    mountain: {
+      means: [-9, -7, -3, 2, 8, 13, 16, 15, 10, 4, -3, -8],
+      spread: 11,
+      rain: [0.21, 0.31, 0.26, 0.24],
+      clear: [0.35, 0.43, 0.54, 0.46],
+      cloudy: 0.28,
+      snow: 0.65,
+      fog: 0.2,
+      storm: "summer"
+    },
+    warm_south: {
+      means: [14, 16, 19, 23, 26, 29, 31, 31, 28, 24, 19, 15],
+      spread: 8,
+      rain: [0.19, 0.21, 0.4, 0.24],
+      clear: [0.74, 0.78, 0.82, 0.79],
+      cloudy: 0.13,
+      snow: 0,
+      fog: 0.18,
+      storm: "summer"
+    }
+  };
+  var seasonIndex = { winter: 0, spring: 1, summer: 2, autumn: 3 };
+  function temperatureRange(climate, month) {
+    if (!Object.prototype.hasOwnProperty.call(climates, climate) || !Number.isInteger(month) || month < 1 || month > 12) return null;
+    const { means, spread } = climates[climate];
+    return { minC: means[month - 1] - spread, maxC: means[month - 1] + spread };
+  }
+  var visibility = {
+    clear: 2e4,
+    cloudy: 15e3,
+    overcast: 1e4,
+    rain: 2500,
+    storm: 700,
+    snow: 450,
+    fog: 75
+  };
+  function weatherAt(climate, dayNumber, hour, seed, startDate) {
+    if (!Number.isFinite(hour) || hour < 0 || hour >= 24) return null;
+    const date = dateOf(dayNumber, startDate);
+    if (!date || !temperatureRange(climate, date.month)) return null;
+    const profile = climates[climate];
+    const absoluteDay = dayNumberOf(date);
+    const totalHour = absoluteDay * 24 + hour;
+    const block = Math.floor(totalHour / 48);
+    const split = 18 + Math.floor(rand(seed, "weather_split", climate, block) * 13);
+    const segment = totalHour - block * 48 < split ? 0 : 1;
+    const frontDay = block * 2 + (segment === 1 && split >= 24 ? 1 : 0);
+    const front = dateOf(frontDay);
+    const roll = rand(seed, "weather_front", climate, block, segment);
+    const mean = profile.means[date.month - 1];
+    const variation = 2 * rand(seed, "weather_temperature", climate, block, segment) - 1;
+    const temperatureC = Math.round(mean + profile.spread * (0.5 * variation + 0.5 * Math.cos((hour - 15) * Math.PI / 12)));
+    const coldMonth = mean <= 6 && (date.season === "winter" || date.month === 11 || date.month === 3);
+    const snowChance = coldMonth ? profile.snow : 0;
+    const rainChance = profile.rain[seasonIndex[front.season]] * (1 - snowChance);
+    let sky;
+    if (roll < snowChance) sky = temperatureC <= 1 ? "snow" : "rain";
+    else if (roll < snowChance + rainChance) {
+      sky = front.season === profile.storm && roll < snowChance + rainChance * 0.3 ? "storm" : "rain";
+    } else {
+      const dryRoll = (roll - snowChance - rainChance) / (1 - snowChance - rainChance);
+      const clear = profile.clear[seasonIndex[front.season]];
+      sky = dryRoll < clear ? "clear" : dryRoll < clear + profile.cloudy ? "cloudy" : "overcast";
+    }
+    const fogDay = hour < 7 ? absoluteDay - 1 : absoluteDay;
+    const fogSeason = date.season === "autumn" ? 1 : 0.35;
+    if ((hour >= 18 || hour < 7) && sky !== "snow" && sky !== "storm" && sky !== "rain" && rand(seed, "weather_fog", climate, fogDay) < profile.fog * fogSeason) sky = "fog";
+    const windRoll = rand(seed, "weather_wind", climate, block, segment);
+    const windKph = sky === "storm" ? Math.round(35 + windRoll * 40) : sky === "fog" ? Math.round(2 + windRoll * 6) : Math.round(5 + windRoll * 20);
+    return { sky, temperatureC: temperatureC + 0, windKph, visibilityM: visibility[sky] };
+  }
+  var effectsBySky = {
+    clear: [35, 1, 1, 1],
+    cloudy: [32, 1, 0.98, 1],
+    overcast: [29, 1, 0.94, 1],
+    rain: [18, 0.94, 0.73, 0.81],
+    storm: [10, 0.83, 0.4, 0.65],
+    snow: [12, 0.79, 0.59, 0.53],
+    fog: [6, 0.96, 0.79, 0.9]
+  };
+  function weatherEffects(weather) {
+    const [face, walk, crowd, grip] = effectsBySky[weather.sky];
+    const heat = Math.min(1, Math.max(0, (weather.temperatureC - 30) / 10));
+    return {
+      faceRecognitionM: Math.min(face, weather.visibilityM),
+      walkingSpeedMultiplier: walk,
+      streetActivityMultiplier: Math.round(crowd * (1 - 0.4 * heat) * 100) / 100,
+      carGripMultiplier: grip
+    };
+  }
+
+  // src/cars/index.ts
+  var bodies = {
+    sedan: { from: 1905, cents1952: 1e5, mpg: 19 },
+    coupe: { from: 1910, cents1952: 112e3, mpg: 21 },
+    pickup: { from: 1915, cents1952: 105e3, mpg: 15 },
+    wagon: { from: 1925, cents1952: 126e3, mpg: 17 },
+    sports_car: { from: 1948, cents1952: 185e3, mpg: 16 }
+  };
+  function scale2(cents1952, index) {
+    return Math.round(cents1952 * index / priceIndex(1952));
+  }
+  function carsForSale(year, seed) {
+    const index = priceIndex(year);
+    if (index === null) return [];
+    return Object.keys(bodies).flatMap((body) => {
+      const spec = bodies[body];
+      if (year < spec.from) return [];
+      const age = body === "sedan" ? 6 : 2 + Math.floor(rand(seed, "lot_age", year, body) * 9);
+      const newPrice = scale2(spec.cents1952, index);
+      const make = (age2, condition2, mileage2) => ({
+        car: {
+          id: JSON.stringify([seed, year, body, age2]),
+          body,
+          modelYear: year - age2,
+          mileage: mileage2,
+          condition: condition2,
+          milesSinceService: age2 === 0 ? 0 : 1200,
+          breakdown: null
+        },
+        askingCents: Math.round(newPrice * Math.max(0.2, 1 - age2 / 15) * condition2)
+      });
+      const fresh = make(0, 1, 0);
+      if (year - age < spec.from) return [fresh];
+      const condition = body === "sedan" ? 0.75 : 0.6 + Math.floor(rand(seed, "lot_condition", year, body) * 26) / 100;
+      const mileage = age * (5500 + Math.floor(rand(seed, "lot_mileage", year, body) * 5500));
+      return [fresh, make(age, condition, mileage)];
+    });
+  }
+  function papersFor(year) {
+    const index = priceIndex(year);
+    if (index === null || year < 1905) return null;
+    return {
+      registrationCents: year >= 1908 ? scale2(1200, index) : null,
+      licenceCents: year >= 1910 ? scale2(500, index) : null,
+      insuranceCents: year >= 1925 ? scale2(4200, index) : null,
+      insuranceRequired: year >= 1957
+    };
+  }
+  function policeStop(papers, year) {
+    const costs = papersFor(year);
+    const index = priceIndex(year);
+    if (!costs || index === null) return null;
+    const missing = ["registration", "licence", "insurance"].filter((key) => costs[`${key}Cents`] !== null && (key !== "insurance" || costs.insuranceRequired) && !papers[key]);
+    return {
+      missing,
+      fineCents: scale2(1800 * missing.length, index),
+      impound: missing.length >= 2
+    };
+  }
+  function runningCosts(body, year) {
+    const spec = Object.prototype.hasOwnProperty.call(bodies, body) ? bodies[body] : null;
+    const index = priceIndex(year);
+    const gasolinePerGallonCents = priceIn("gasoline", year);
+    if (!spec || index === null || gasolinePerGallonCents === null || year < spec.from) return null;
+    const efficiency = Math.max(0.48, Math.min(1.8, 1 + (year - 1952) * 0.011));
+    const mpg = Math.round(spec.mpg * efficiency);
+    return {
+      mpg,
+      gasolinePerGallonCents,
+      fuelCentsPerMile: Math.round(100 * gasolinePerGallonCents / mpg) / 100,
+      oilChangeCents: scale2(240, index),
+      tyreCents: scale2(1500, index),
+      serviceCents: scale2(1e3, index)
+    };
+  }
+  function drive(car, miles, conditions) {
+    const { year, temperatureC, seed } = conditions;
+    if (!Number.isFinite(miles) || miles <= 0 || miles > 1e4 || !Number.isFinite(temperatureC) || year < car.modelYear || priceIndex(year) === null || car.breakdown) {
+      return { car, milesDriven: 0, breakdown: car.breakdown };
+    }
+    const age = Math.min(30, year - car.modelYear);
+    const extreme = Math.max(0, temperatureC - 29, -temperatureC - 8);
+    const end = car.mileage + miles;
+    let breakdown = null;
+    let distance = miles;
+    for (let mark = Math.floor(car.mileage) + 1; mark <= end; mark++) {
+      const progress = mark - car.mileage;
+      const wear = 1 - clamp01(car.condition - progress * 35e-6);
+      const serviceDebt = Math.min(1, (car.milesSinceService + progress) / 6e3);
+      const risk = 25e-6 + 35e-6 * age + 25e-4 * wear ** 2 + 15e-4 * serviceDebt + 8e-5 * extreme;
+      if (rand(seed, "car_failure", car.id, mark) >= risk) continue;
+      const roll = rand(seed, "car_failure_kind", car.id, mark);
+      breakdown = temperatureC >= 30 && roll < 0.65 ? "overheating" : temperatureC < -8 && roll < 0.55 ? "dead_battery" : roll < 0.4 ? "flat" : roll < 0.72 ? "overheating" : roll < 0.9 ? "dead_battery" : "engine_failure";
+      distance = progress;
+      break;
+    }
+    return {
+      car: {
+        ...car,
+        mileage: car.mileage + distance,
+        condition: clamp01(car.condition - distance * 35e-6),
+        milesSinceService: car.milesSinceService + distance,
+        breakdown
+      },
+      milesDriven: distance,
+      breakdown
+    };
+  }
+  var repairs = {
+    flat: [1500, true],
+    overheating: [950, false],
+    dead_battery: [1250, true],
+    engine_failure: [17e3, false]
+  };
+  function repairCost(breakdown, year) {
+    const index = priceIndex(year);
+    if (index === null || year < 1905 || !Object.prototype.hasOwnProperty.call(repairs, breakdown)) return null;
+    const [cents1952, roadside] = repairs[breakdown];
+    return { repairCents: scale2(cents1952, index), roadside, towRequired: !roadside };
+  }
+  function serviceCar(car) {
+    return { ...car, condition: Math.max(car.condition, 0.85), milesSinceService: 0, breakdown: null };
+  }
+
   // src/loop/smoke.ts
   var smoke;
   function need() {
@@ -6113,7 +6438,13 @@
   globalThis.Calendar = Calendar;
   var Jobs = { openings, apply, shift };
   globalThis.Jobs = Jobs;
-  var namespaces = { economy: Economy, transit: Transit, calendar: Calendar, jobs: Jobs };
+  var Needs = { initialNeeds, tick, eat, sleep, wash, injure, treat, treatmentCost, effects };
+  globalThis.Needs = Needs;
+  var Weather = { weatherAt, weatherEffects, temperatureRange };
+  globalThis.Weather = Weather;
+  var Cars = { carsForSale, papersFor, policeStop, runningCosts, drive, repairCost, serviceCar };
+  globalThis.Cars = Cars;
+  var namespaces = { economy: Economy, transit: Transit, calendar: Calendar, jobs: Jobs, needs: Needs, weather: Weather, cars: Cars };
   function simCall(json) {
     const req = JSON.parse(json);
     const dot = req.method.indexOf(".");
