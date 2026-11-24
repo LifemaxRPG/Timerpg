@@ -136,3 +136,4 @@ his limit; G012 was trimmed to the one-police swap plus the wiring fixes. Plan a
 | C027 r1 weather | ChatGPT/Sam (Codex), low reasoning | engineering, revision | ~1 min | 2 | accepted: per-climate skies, snow only when cold, save-start dates |
 | C029 small business | ChatGPT/Sam (Codex), low reasoning | engineering | one run | 1 | accepted first try; 5/5 |
 | C030 menus and lodging places | ChatGPT/Sam (Codex), low reasoning | engineering | one run | 1 | accepted first try; 4/4 |
+| C031 newspapers and radio | ChatGPT/Sam (Codex), low reasoning | engineering | one run | 1 | accepted first try; 3/3, compact |
