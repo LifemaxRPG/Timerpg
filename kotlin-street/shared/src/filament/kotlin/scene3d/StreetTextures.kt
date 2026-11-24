@@ -94,7 +94,7 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     fun make(p: Prepared): Texture {
         // (a mask with nothing in it reads as the plain black one: no light, no glass, no own colours)
         if (p.empty) { shared++; return black }
-        val key = p.key ?: return build(p.buf, p.w, p.h, p.linear, false, p.fmt)
+        val key = p.key ?: run { lastExact = p.exact; return build(p.buf, p.w, p.h, p.linear, false, p.fmt) }
         byContent[key]?.let { shared++; return it }
         // (one [prepare] left unencoded, its picture made already, but by another set of textures: encoded now)
         val q = if (p.src != null) prepare(p.src, p.w, p.h, p.linear, mips = true, again = true) else p
@@ -191,6 +191,11 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     /** Replaces the pixels of [t] (made here, same size) with [buf], already as Filament takes them ([offset], in [t]'s format). */
     fun update(t: Texture, buf: ByteBuffer) {
         t.setImage(engine, 0, Texture.PixelBufferDescriptor(buf, (fmts[t] ?: Fmt.RGBA8).pixels, Texture.Type.UBYTE))
+    }
+
+    /** Replaces the pixels of [t] (made here as a linear ASTC 4x4 texture with one level) with [buf] ([Astc.encodeLevel]'s blocks). */
+    fun updateAstc(t: Texture, buf: ByteBuffer) {
+        t.setImage(engine, 0, Texture.PixelBufferDescriptor(buf, Texture.CompressedType.RGBA_ASTC_4x4, buf.remaining()))
     }
 
     fun solid(argb: Int): Texture = make(intArrayOf(argb), 1, 1, linear = true)

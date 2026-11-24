@@ -49,10 +49,12 @@ object Astc {
 
     /** Whether every 4 x 4 block of [px] holds one or two colours: [encodeChain] then stores it exactly (a mask's test). */
     fun exact(px: IntArray, w: Int, h: Int): Boolean {
+        // (the blocks as [encodeLevel] lays them: from the picture's last row up, so a height not a multiple of 4 splits
+        // the rows as the encoder does)
         for (by in 0 until (h + 3) / 4) for (bx in 0 until (w + 3) / 4) {
-            val c0 = px[by * 4 * w + bx * 4]; var c1 = c0
+            val c0 = px[(h - 1 - by * 4) * w + bx * 4]; var c1 = c0
             for (j in 0 until 16) {
-                val c = px[minOf(by * 4 + (j shr 2), h - 1) * w + minOf(bx * 4 + (j and 3), w - 1)]
+                val c = px[(h - 1 - minOf(by * 4 + (j shr 2), h - 1)) * w + minOf(bx * 4 + (j and 3), w - 1)]
                 if (c == c0 || c == c1) continue
                 if (c1 == c0) c1 = c else return false
             }

@@ -78,6 +78,8 @@ internal object FilamentModels {
     private const val GABLE_LIP = 3f
     /** The green (glass) a model's square panes get in the mask: their art keeps its curtains, so only partly mirror. */
     private const val PANE_GLASS = 110
+    /** An opaque black mask pixel (ARGB): no light, no glass. */
+    private const val OPAQUE = -0x1000000
 
     private val crisp = TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE).also { it.anisotropy = 16f }
     private val nearest = TextureSampler(TextureSampler.MinFilter.NEAREST, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE)
@@ -906,6 +908,8 @@ internal object FilamentModels {
         /** Each light: its seed and its kind. The last is the building's signs. */
         private val seeds = ArrayList<Int>()
         private val kinds = ArrayList<Int>()
+        /** How many lights the mask has (the last: the signs). */
+        internal val lights: Int get() = seeds.size
         private val glows: Boolean
         // Kept for the whole life of the building (every hour's mask is worked out again from them), so kept small: the
         // first version kept six atlas-sized int arrays (21 bytes a texel: the glow picture, each pixel's light, its own
@@ -934,7 +938,18 @@ internal object FilamentModels {
         /** Many windows (a tower, a hotel): a share of them lit by the hour ([BuildingMeshes.towerShare]), each window by its own draw. */
         private var tall = false
         /** The mask (made on the engine's thread the first time it is asked for: [Night] itself is made on a worker). */
-        val mask: Texture? by lazy(LazyThreadSafetyMode.NONE) { if (!glows) null else textures.make(StreetTextures.blankShared(w, h, linear = true, fmt = maskFmt)) }
+        val mask: Texture? by lazy(LazyThreadSafetyMode.NONE) {
+            if (!glows) null
+            else if (astc) textures.make(StreetTextures.Prepared(encode(maskPixels(BooleanArray(seeds.size))), w, h, linear = true, key = null, fmt = StreetTextures.Fmt.ASTC, exact = 1.0))
+            else textures.make(StreetTextures.blankShared(w, h, linear = true, fmt = maskFmt))
+        }
+        /**
+         * The mask in ASTC 4x4, exact (MEMORY_AUDIT.md, G4): every 4 x 4 block of it holds at most two of the values its
+         * pixels can take at any hour (each light on or off), so every hour's mask is stored exactly, the same values as
+         * RGBA8 or RG8 for a quarter or half of the bytes. The farmhouses' masks (one per farm, 1024 wide, a few windows
+         * and a sign in them) are; the town's houses' are not (their glow's brightness varies within a pane).
+         */
+        internal val astc: Boolean
         /**
          * The mask's channels: red (the lamplight) and green (the glass) only, unless some pixel lights in its own colours
          * (rgb and a half alpha) or is the sign's light (blue): the same on screen for half the bytes ([StreetTextures.Fmt]).
@@ -1063,9 +1078,74 @@ internal object FilamentModels {
                     a.copyOf(r)
                 }
                 lit = BooleanArray(seeds.size)
+                astc = StreetTextures.useAstc && exactAlways()
             } else {
                 glowRuns = IntArray(0); glowRed = ByteArray(0); glowOwn = null; glassRuns = IntArray(0)
+                astc = false
             }
+        }
+
+        /** Whether every 4 x 4 block holds at most two values whatever lights are on ([astc]; the worker's, at its making). */
+        private fun exactAlways(): Boolean {
+            val bw = (w + 3) / 4; val bh = (h + 3) / 4
+            val v0 = IntArray(bw * bh); val v1 = IntArray(bw * bh); val n = ByteArray(bw * bh)
+            fun add(i: Int, v: Int): Boolean {
+                // (blocks as the encoder lays them: from the picture's last row up, Filament's v = 0 at the bottom)
+                val b = ((h - 1 - i / w) shr 2) * bw + (i % w shr 2)
+                when (n[b].toInt()) {
+                    0 -> { v0[b] = v; n[b] = 1 }
+                    1 -> if (v != v0[b]) { v1[b] = v; n[b] = 2 }
+                    else -> if (v != v0[b] && v != v1[b]) return false
+                }
+                return true
+            }
+            val glass = java.util.BitSet(w * h)
+            for (g in 0 until glassRuns.size step 2) glass.set(glassRuns[g], glassRuns[g] + glassRuns[g + 1])
+            val glow = java.util.BitSet(w * h)
+            val signs = seeds.size - 1
+            val own = glowOwn
+            var k = 0
+            for (r in 0 until glowRuns.size step 3) for (i in glowRuns[r] until glowRuns[r] + glowRuns[r + 1]) {
+                glow.set(i)
+                val oc = own?.get(k) ?: -1
+                if (oc >= 0) { if (!add(i, (128 shl 24) or oc) || !add(i, OPAQUE)) return false }
+                else {
+                    val base = OPAQUE or (if (glass.get(i)) PANE_GLASS shl 8 else 0)
+                    val lit = base or ((glowRed[k].toInt() and 255) shl 16) or (if (glowRuns[r + 2] == signs) 255 else 0)
+                    if (!add(i, base) || !add(i, lit)) return false
+                }
+                k++
+            }
+            for (i in 0 until w * h) if (!glow.get(i) && !add(i, if (glass.get(i)) OPAQUE or (PANE_GLASS shl 8) else OPAQUE)) return false
+            return true
+        }
+
+        /** The mask with the lights [now] on, as ARGB pixels (rows top first): the same values [update] writes as RGBA8. */
+        internal fun maskPixels(now: BooleanArray): IntArray {
+            val px = IntArray(w * h) { OPAQUE }
+            for (g in 0 until glassRuns.size step 2) java.util.Arrays.fill(px, glassRuns[g], glassRuns[g] + glassRuns[g + 1], OPAQUE or (PANE_GLASS shl 8))
+            val signs = seeds.size - 1
+            val own = glowOwn
+            var k = 0
+            for (r in 0 until glowRuns.size step 3) {
+                val owner = glowRuns[r + 2]
+                val on = now[owner]
+                for (i in glowRuns[r] until glowRuns[r] + glowRuns[r + 1]) {
+                    val oc = own?.get(k) ?: -1
+                    if (oc >= 0) px[i] = if (on) (128 shl 24) or oc else OPAQUE
+                    else if (on) px[i] = px[i] or ((glowRed[k].toInt() and 255) shl 16) or (if (owner == signs) 255 else 0)
+                    k++
+                }
+            }
+            return px
+        }
+
+        /** [px] in ASTC 4x4 (one level, no mipmaps: the mask is sampled nearest). */
+        internal fun encode(px: IntArray): java.nio.ByteBuffer {
+            val out = TownMemory.direct(Astc.levelBytes(w, h)).order(ByteOrder.LITTLE_ENDIAN)
+            Astc.encodeLevel(px, w, h, out)
+            out.flip()
+            return out
         }
 
         /** Heap bytes kept for the night light (the breadcrumbs' and the town report's memory lines). */
@@ -1085,6 +1165,14 @@ internal object FilamentModels {
             if (!changed && done) return
             lit = now
             done = true
+            if (astc) textures.updateAstc(m, encode(maskPixels(now))) else textures.update(m, packed(now))
+        }
+
+        /** Bytes a pixel of the mask as [packed] writes it (RGBA8 4, RG8 2). */
+        internal val maskBytes: Int get() = maskFmt.bytes
+
+        /** The mask with the lights [now] on as Filament takes it in [maskFmt] (RGBA8 or RG8, the bottom row first). */
+        internal fun packed(now: BooleanArray): java.nio.ByteBuffer {
             val signs = seeds.size - 1
             // the mask as Filament takes it (RGBA, bottom row first): opaque black, the panes' glass green, then the glow
             // (in RG8, only red and green: no pixel then lights in its own colours or as the sign, and a missing alpha reads opaque)
@@ -1113,7 +1201,7 @@ internal object FilamentModels {
                     k++
                 }
             }
-            textures.update(m, buf)
+            return buf
         }
     }
 
