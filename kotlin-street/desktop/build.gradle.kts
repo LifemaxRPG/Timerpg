@@ -123,7 +123,7 @@ tasks.register<JavaExec>("preview") {
     group = "verification"
     description = "Renders the street headlessly to PNG files (no phone needed)"
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass.set(if (System.getProperty("mode") == "ocean") "FilamentOceanPreviewKt" else "PreviewKt")
+    mainClass.set(when (System.getProperty("mode")) { "ocean" -> "FilamentOceanPreviewKt"; "sky" -> "FilamentSkyPreviewKt"; else -> "PreviewKt" })
     jvmArgs("-Djava.awt.headless=true", "-Xmx" + (System.getProperty("xmx") ?: "3g"))
     // (the cars' physics, for the open world's and the cars' previews)
     dependsOn(physicsHost)
