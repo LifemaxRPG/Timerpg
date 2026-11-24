@@ -31,6 +31,14 @@ class LoopScene(val x: Float, val z: Float, val bystanders: List<LoopBystander>,
         return o
     }
 
+    /**
+     * The same scene with the people outdoors beyond [rangeUnits] of the player no longer able to see them (the weather's face
+     * recognition range, `weatherEffects`): their line of sight is off, so they cannot witness. Inside a room nothing changes.
+     */
+    fun limitedTo(rangeUnits: Float): LoopScene =
+        if (inside || bystanders.none { it.los && it.distance > rangeUnits }) this
+        else LoopScene(x, z, bystanders.map { if (it.los && it.distance > rangeUnits) LoopBystander(it.id, it.x, it.z, it.fx, it.fz, it.activity, false, it.distance) else it }, light, inside, appearance)
+
     companion object {
         private const val U = VehicleWorld.U.toDouble()
         private fun r2(d: Double) = Math.round(d * 100.0) / 100.0

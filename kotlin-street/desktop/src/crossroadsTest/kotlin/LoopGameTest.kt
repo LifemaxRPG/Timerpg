@@ -723,4 +723,196 @@ class LoopGameTest {
             }.get()
         }
     }
+
+    // ------------------------------------------------------------------ needs, weather and cars (docs/LOOP.md "Needs, weather and cars")
+
+    /** Advances the loop to in-game [d] at [h] o'clock (a burst of hours). */
+    private fun toDayHour(g: LoopGame, d: Int, h: Double) { val hrs = (d - g.day) * 24.0 + (h - g.hour); if (hrs > 0) g.advance(hrs, "test") }
+
+    @Test fun needsTickHungryEatingRelievesAndASleepOnABenchRestoresLessThanABed() {
+        val diner = loop.places.first { it.shopKind == "diner" }
+        val pharmacy = loop.places.first { it.shopKind == "pharmacy" }
+        SimJsThread().use { t ->
+            t.load(bundle).get()
+            t.run { js ->
+                val g = LoopGame(js, loop)
+                g.init(8.0)
+                assertTrue("not hungry at the start", g.view.needs!!.labels.none { it == "hungry" })
+                // 1. ten hours on foot: hungry; the walk's pace slows with it
+                g.walkActivity = "walking"
+                g.advance(10.0, "hour")
+                println("LoopGameTest: after 10 h walking: ${g.view.needs!!.labels} hunger %.2f walk x%.2f".format(g.view.needs!!.hunger, g.view.needs!!.walk))
+                assertTrue(g.view.needs!!.labels.contains("hungry"))
+                assertTrue(g.view.walkMultiplier < 1.0)
+                // 2. a meal at the diner (a third of the era's diner day), paid, relieves it
+                if (!g.isOpenNow(diner)) toDayHour(g, g.day + 1, 12.0)
+                val dn = org.json.JSONObject(js.call("simCall", "{\"method\":\"economy.dailyNeeds\",\"args\":[2025]}"))
+                val price = dn.getInt("dinerMealsPerDayCents") / 3
+                assertEquals(price, g.eatOption(diner)!!.cents)
+                val hungerBefore = g.view.needs!!.hunger; val cash0 = g.cash
+                val e = g.eat(diner, g.hour)
+                println("LoopGameTest: ${e.line}")
+                assertTrue(e.line, e.ok)
+                assertEquals(cash0 - price, g.cash)
+                assertTrue(g.view.needs!!.hunger < hungerBefore - .3)
+                assertTrue(g.view.needs!!.labels.none { it == "hungry" })
+                // 3. a snack at a general store is cheaper; the pawn shop serves nothing
+                val shop = loop.places.first { it.kind == "market" }
+                assertTrue(g.eatOption(shop)!!.cents < price); assertNull(g.eatOption(loop.placeById.getValue("glb:pawn_shop")))
+                // 4. a day unwashed and tired: the look goes into what people know of the player
+                g.advance(30.0, "hour")
+                println("LoopGameTest: after 40 h: ${g.view.needs!!.labels} looks: ${g.view.needs!!.look}")
+                assertTrue(g.view.needs!!.look.isNotEmpty())
+                val someone = loop.people.first().id
+                g.attitude(someone, fresh = true)
+                assertTrue(g.facts.getValue(someone).any { it.contains("looks ") && it.contains("this person") })
+                // 5. a bench restores less than the bed (the same tired player, saved and put back)
+                g.addCash(50000)
+                val tired = g.save()
+                toDayHour(g, g.day, 22.0).also { if (g.hour >= 22.0) toDayHour(g, g.day + 1, 22.0) }
+                val snap = g.save()
+                g.sleepUntil(7.0, "bench")
+                val bench = g.view.needs!!.fatigue
+                g.load(snap)
+                g.sleepUntil(7.0, "bed")
+                val bed = g.view.needs!!.fatigue
+                println("LoopGameTest: fatigue after the night: bench %.2f, bed %.2f".format(bench, bed))
+                assertTrue("bench $bench > bed $bed", bench > bed + .1)
+                // 6. the needs are saved with the loop
+                val s1 = g.save(); val before = g.needsState().toString()
+                g.load(tired); g.load(s1)
+                assertEquals(before, g.needsState().toString())
+                // 7. an injury and the pharmacy: treated for the module's cost, it heals faster
+                g.injure("bruise", "a test")
+                assertTrue(g.view.needs!!.labels.contains("bruise"))
+                val cost = g.view.needs!!.injuries.single().costCents
+                assertEquals((js.call("simCall", "{\"method\":\"needs.treatmentCost\",\"args\":[\"bruise\",2025]}")).toInt(), cost)
+                if (!g.isOpenNow(pharmacy)) toDayHour(g, g.day + 1, 12.0)
+                val c0 = g.cash
+                assertTrue(g.treat(pharmacy, "bruise", g.hour).ok)
+                assertEquals(c0 - cost, g.cash)
+                assertTrue(g.view.needs!!.injuries.single().treated)
+                assertFalse(g.treat(pharmacy, "bruise", g.hour).ok)
+                // 8. board included: a room_and_board lodging gives two meals a day for nothing
+                g.lodgingKind = "room_and_board"
+                assertTrue(g.rentRoom(g.hour).ok)
+                assertEquals(2, g.boardIncluded())
+                val cb = g.cash
+                assertTrue(g.takeBoard().ok); assertTrue(g.takeBoard().ok); assertFalse(g.takeBoard().ok)
+                assertEquals(cb, g.cash)
+            }.get()
+        }
+    }
+
+    @Test fun theSkyFollowsTheDateAndFogCutsTheWitnessRange() {
+        val shop = loop.placeById.getValue("store:generalstore")
+        SimJsThread().use { t ->
+            t.load(bundle).get()
+            t.run { js ->
+                val g = LoopGame(js, loop)
+                g.init(8.0)
+                // the same date, the same sky (also in another game)
+                val a = g.skyAt(20, 14.0)!!.toString()
+                val g2 = LoopGame(js, loop); g2.init(8.0)
+                assertEquals(a, g2.skyAt(20, 14.0)!!.toString())
+                val seen = (1..120).map { g.skyAt(it, 14.0)!!.getString("sky") }.toSet()
+                println("LoopGameTest: skies at 14:00 over 120 days: $seen; day 20: $a")
+                assertTrue("more than one kind of sky: $seen", seen.size >= 3)
+                val dFog = (1..500).first { g.skyAt(it, 22.0)!!.getString("sky") == "fog" }
+                val dClear = (dFog + 1..dFog + 400).first { g.skyAt(it, 22.0)!!.getString("sky") in setOf("clear", "cloudy") }
+                // a keeper 8 m away, looking at the player in the street, at night: seen on a clear night, not in fog (6 m)
+                fun theft(d: Int): Pair<Int, Int> {
+                    g.init(8.0)
+                    toDayHour(g, d, 22.0)
+                    val u = com.lifemax.rpg.feature.habits.vehicle.VehicleWorld.U
+                    val keeper = shop.keeperId!!
+                    val sc = LoopScene(shop.doorX, shop.doorZ, listOf(LoopBystander(keeper, shop.doorX + 8f * u, shop.doorZ, -1f, 0f, "idle", true, 8f * u)), .9, false)
+                    val it = g.stockFor(shop).first { it.quantity > 0 }
+                    g.take(shop, it, sc, g.hour)
+                    return g.lastAct!!.optInt("sighted") to (g.lastAct!!.optJSONArray("witnessedBy")?.length() ?: 0)
+                }
+                val clear = theft(dClear); val fog = theft(dFog)
+                println("LoopGameTest: day $dClear (${g.skyAt(dClear, 22.0)!!.getString("sky")}): sighted/witnesses $clear; day $dFog fog: $fog; faces to %.0f m".format(g.view.sky!!.faceM))
+                assertEquals(1, clear.first)
+                assertEquals(0, fog.first); assertEquals(0, fog.second)
+                assertEquals(6.0, g.view.sky!!.faceM, .01)
+                assertTrue(g.view.sky!!.walk <= 1.0)
+            }.get()
+        }
+    }
+
+    @Test fun buyingACarPapersFuelWearBreakdownsAndATow() {
+        val gas = loop.places.first { it.shopKind == "gas station" }
+        SimJsThread().use { t ->
+            t.load(bundle).get()
+            t.run { js ->
+                val g = LoopGame(js, loop)
+                g.init(10.0)
+                g.addCash(2_000_000)
+                if (!g.isOpenNow(gas)) toDayHour(g, g.day + 1, 12.0)
+                val lot = g.lotListings()
+                println("LoopGameTest: the lot: " + lot.joinToString { "${it.label} ${it.askingText} -> ${it.specKey}" })
+                assertTrue(lot.size >= 4)
+                assertTrue("round prices", lot.all { it.askingCents % 100 == 0 })
+                assertTrue(lot.all { it.specKey in com.lifemax.rpg.feature.habits.vehicle.VehicleSpec.V1 })
+                // 1. buying debits the price and makes an owned car, parked at the lot, that saves and loads
+                val worn = lot.filter { it.conditionPct < 80 }.minBy { it.conditionPct }
+                val cash0 = g.cash
+                val b = g.buyCar(gas, worn.id, g.hour)
+                println("LoopGameTest: ${b.line}")
+                assertTrue(b.line, b.ok)
+                assertEquals(cash0 - worn.askingCents, g.cash)
+                val car = g.view.cars.owned.single()
+                assertTrue(car.atLot); assertEquals(worn.specKey, car.specKey)
+                assertTrue("gone from the lot", g.lotListings().none { it.id == worn.id })
+                val g2 = LoopGame(js, loop); g2.load(g.save())
+                assertEquals(car.id, g2.view.cars.owned.single().id); assertEquals(car.fuel, g2.view.cars.owned.single().fuel, 1e-9)
+                g.load(g2.save())
+                // 2. papers at the lot, at the era's price
+                val reg = g.view.cars.papers.first { it.kind == "registration" }
+                val c1 = g.cash
+                assertTrue(g.buyPaper(gas, "registration", g.hour).ok)
+                assertEquals(c1 - reg.cents, g.cash); assertTrue(g.hasPaper("registration")); assertFalse(g.buyPaper(gas, "registration", g.hour).ok)
+                // 3. fuel is paid by the gallon; the tank gives gallons by the car's mpg as it is driven
+                val mpg = car.mpg
+                g.driveMiles(car.id, 10.0)
+                val used = car.fuel - g.view.cars.owned.single().fuel
+                assertEquals(10.0 / mpg, used, 1e-6)
+                val price = g.view.cars.fuelCents
+                val c2 = g.cash; val f0 = g.view.cars.owned.single().fuel
+                assertTrue(g.refuel(car.id, 5.0, near = true).ok)
+                assertEquals(c2 - 5 * price, g.cash); assertEquals(f0 + 5.0, g.view.cars.owned.single().fuel, 1e-9)
+                // (the flat tyre's repair is a tenth of the module's: about $1.50 in 1952 money)
+                val module = js.call("simCall", "{\"method\":\"cars.repairCost\",\"args\":[\"flat\",2025]}").let { JSONObject(it).getInt("repairCents") }
+                assertEquals(Math.round(module / 10.0).toInt(), g.repairOf("flat")!!.first)
+                // 4. wear: miles on a worn car end in a breakdown (a fixed seed: the same miles every run); the engine then does not run
+                var miles = 0.0
+                while (g.view.cars.owned.single().blocked == null && miles < 30000) {
+                    g.driveMiles(car.id, 5.0); miles += 5.0
+                    if (g.view.cars.owned.single().fuel < 3.0) g.refuel(car.id, null, near = true)
+                }
+                val broke = g.view.cars.owned.single()
+                println("LoopGameTest: ${broke.label}: ${broke.blocked} after %.0f miles (mileage ${broke.mileage}, condition ${broke.conditionPct}%%); repair ${broke.repairText}, tow ${broke.towText}".format(miles))
+                assertNotNull("a worn car breaks down", broke.breakdown)
+                val mil = broke.mileage
+                g.driveMiles(car.id, 5.0)
+                assertEquals("a broken car does not run", mil, g.view.cars.owned.single().mileage)
+                // 5. a tow costs and moves it to the lot; a garage repair there costs its price; then it runs
+                // (the car was driven off the lot and broke down by the road: its spot is kept by the app)
+                g.parkCar(car.id, 4000f, 3000f, 1f, 0f)
+                val c3 = g.cash
+                assertFalse(g.view.cars.owned.single().atLot)
+                // (a garage job is refused by the roadside; a flat or a dead battery is fixed there, not towed: here the tow is tried either way)
+                if (!broke.roadside) assertFalse(g.repair(car.id, atLot = false).ok)
+                val tow = g.callTow(car.id)
+                println("LoopGameTest: ${tow.line}")
+                assertTrue(tow.line, tow.ok)
+                assertEquals(c3 - broke.towCents, g.cash); assertTrue(g.view.cars.owned.single().atLot)
+                val c4 = g.cash
+                assertTrue(g.repair(car.id, atLot = true).ok)
+                assertEquals(c4 - broke.repairCents, g.cash)
+                assertNull(g.view.cars.owned.single().blocked)
+            }.get()
+        }
+    }
 }

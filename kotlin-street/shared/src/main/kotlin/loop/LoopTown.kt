@@ -274,6 +274,24 @@ class LoopTown(
             }
             // the homes: every building someone lives at
             for ((sp, rs) in byBuilding) if (rs.any { it.role != "owner" }) add("home:$sp", sp, "home of ${rs.first { it.role != "owner" }.name}", "home", "home", emptyList())
+            // the landmarks that serve the player's needs and cars (added last, so the places above keep their clerks): the gas station
+            // (fuel, the used cars), the diner (a meal) and the drugstore (treatment); each a shop of its economy kind
+            if (glb != null) {
+                val seen = HashSet<String>()
+                for (i in 0 until glb.length()) {
+                    val l = glb.getJSONObject(i)
+                    if (l.optString("state") != "open") continue
+                    val k = l.optString("kind")
+                    val shopKind = when {
+                        "gas_station" in k || "service_station" in k -> "gas station"
+                        "diner" in k || "carhop" in k -> "diner"
+                        "drugstore" in k -> "pharmacy"
+                        else -> continue
+                    }
+                    if (!seen.add(shopKind)) continue
+                    add(l.optString("id"), l.optString("sprite"), l.optString("name"), "general_store", shopKind, clerks(l.optString("id"), 1))
+                }
+            }
             val placeIds = places.map { it.id }.toSet()
             val shopOfSprite = places.filter { it.kind != "home" }.associate { it.sprite to it.id }
 

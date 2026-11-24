@@ -42,13 +42,16 @@ object LoopItems {
         "toy store", "music store" -> "five_and_dime"
         "clothing store", "dress shop" -> "clothing"
         "bait shop" -> "hardware"
-        "ice cream parlor" -> "diner"
+        "ice cream parlor", "diner" -> "diner"
+        "gas station" -> "gas_station"
+        "pharmacy" -> "pharmacy"
         else -> "general"
     }
 
     /** The economy's wage schedule (`wage(job, year)`) a shift at a shop of this kind is paid by. */
     fun job(shopKind: String): String = when (shopKind) {
         "market", "bakery", "ice cream parlor", "clothing store", "dress shop", "toy store", "music store", "general" -> "shop_clerk"
+        "diner", "pharmacy" -> "shop_clerk"
         else -> "odd_jobs" // (crates, the back room, the cases: casual labour)
     }
 

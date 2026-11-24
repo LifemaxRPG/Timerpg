@@ -62,6 +62,14 @@ class LoopView(
     val holidayText: String = "",
     /** Employment: the job, references, openings by shop (`jobs.*`). */
     val jobs: JobsView = JobsView(),
+    /** The player's needs and what they do (src/needs), what each shop offers to eat, the sky (src/weather), the cars (src/cars) and the walking speed they allow now (needs x sky); docs/LOOP.md. */
+    val needs: NeedsView? = null,
+    val eat: Map<String, EatView> = emptyMap(),
+    val sky: SkyView? = null,
+    val cars: CarsView = CarsView(),
+    val walkMultiplier: Double = 1.0,
+    /** "Take your board (2 meals a day included)": the room's board, or "" when the lodging has none. */
+    val boardLine: String = "",
 )
 
 /**
@@ -98,7 +106,7 @@ class JobsView(val job: JobView? = null, val referencesText: String = "", val ne
  * render thread. [view] is the snapshot the UI reads.
  */
 class LoopGame(private val js: SimJs, val town: LoopTown) {
-    var cash = 0; private set
+    var cash = 0; internal set
     val items = ArrayList<LoopItem>()
     private var nextItem = 1
     var day = 1; private set
@@ -110,6 +118,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     /** Each person's attitude facts for the dialogue's fact sheet, cached until their attitude may have changed. */
     val facts = ConcurrentHashMap<String, List<String>>()
     private val attitudes = HashMap<String, JSONObject>()
+    /** Each person's facts without the note on how the player looks (see [lookFacts]). */
+    private val baseFacts = HashMap<String, List<String>>()
 
     var lastAct: JSONObject? = null; private set
     var lastAdvance: JSONObject? = null; private set
@@ -268,10 +278,11 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         day = res.optInt("day", 1); hour = res.optDouble("hour", startHour)
         cash = startingCash()
         items.clear(); nextItem = 1
-        attitudes.clear(); facts.clear(); stocks.clear(); dayFrac = 0.0
+        attitudes.clear(); facts.clear(); baseFacts.clear(); stocks.clear(); dayFrac = 0.0
         fenceTrust.clear(); tips.clear(); buildFences()
         rental = null; roomItems.clear(); lastRentStatus = null; arrearsKey = ""
         job = null; references.clear(); takenOpenings.clear(); jobNews = ""
+        resetPersonal()
         say("Arrived in ${town.townName} with ${money(cash)}.")
         event("init", JSONObject(res.toString()).put("cash", cash).put("places", town.places.count { it.kind != "home" }).put("ms", timings["init"]?.first))
         refreshPolice()
@@ -295,6 +306,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         job?.let { j -> o.put("job", JSONObject().put("emp", j.emp).put("placeId", j.placeId).put("title", j.title).put("startHour", j.startHour)
             .put("shiftHours", j.shiftHours).put("fromDay", j.fromDay).put("lastWorked", j.lastWorked)) }
         o.put("references", JSONArray(references)).put("takenOpenings", JSONArray(takenOpenings.toList())).put("jobNews", jobNews)
+        savePersonal(o)
         return o.toString()
     }
 
@@ -310,7 +322,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         cash = o.optInt("cash", 0); nextItem = o.optInt("nextItem", 1)
         items.clear()
         o.optJSONArray("items")?.let { a -> for (k in 0 until a.length()) items += itemOf(a.getJSONObject(k)) }
-        attitudes.clear(); facts.clear(); stocks.clear()
+        attitudes.clear(); facts.clear(); baseFacts.clear(); stocks.clear()
         o.optJSONObject("stocks")?.let { m -> for (k in m.keys()) stocks[k] = m.getJSONObject(k) }
         dayFrac = o.optDouble("dayFrac", 0.0)
         fenceTrust.clear(); tips.clear()
@@ -330,6 +342,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         references.clear(); o.optJSONArray("references")?.let { a -> for (k in 0 until a.length()) references += a.getJSONObject(k) }
         takenOpenings.clear(); o.optJSONArray("takenOpenings")?.let { a -> for (k in 0 until a.length()) takenOpenings += a.getString(k) }
         jobNews = o.optString("jobNews")
+        loadPersonal(o)
         say("Back in ${town.townName}.")
         event("load", JSONObject().put("day", day).put("hour", hour).put("cash", cash).put("items", items.size).put("ms", timings["load"]?.first))
         refreshPolice()
@@ -344,6 +357,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
      */
     fun advance(hours: Double, why: String): JSONObject? {
         if (hours <= 1e-4) return null
+        // (the player's needs move with the clock: what they were doing, or asleep in a bed)
+        tickNeeds(hours, when (why) { "sleep" -> "sleeping"; "work" -> "working"; "hour", "action" -> walkActivity; else -> "idle" }, sleepBed)
         val res = JSONObject(call("advance", hours))
         val fromDay = day
         day = res.optInt("toDay", day); hour = res.optDouble("toHour", hour)
@@ -390,14 +405,15 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         return LoopOutcome(true, "You wait ${fmt(h)} hours.", hour, h)
     }
 
-    /** Sleeps till [wake] o'clock (the next one). */
-    fun sleepUntil(wake: Double = 7.0): LoopOutcome {
+    /** Sleeps till [wake] o'clock (the next one) on a [bed] (`needs.sleep`: bed in the rented room, bench anywhere else: "Sleep rough"). */
+    fun sleepUntil(wake: Double = 7.0, bed: String = "bench"): LoopOutcome {
         var h = wake - hour
         if (h <= .25) h += 24.0
-        advance(h, "sleep")
-        say("Slept till ${fmt(wake)}:00.")
+        sleepBed = bed
+        try { advance(h, "sleep") } finally { sleepBed = "bench" }
+        say(if (bed == "bed") "Slept till ${fmt(wake)}:00." else "Slept rough till ${fmt(wake)}:00.")
         publish()
-        return LoopOutcome(true, "You sleep till morning.", hour, h)
+        return LoopOutcome(true, if (bed == "bed") "You sleep till morning." else "You sleep rough till morning" + needsNote(), hour, h)
     }
 
     // ------------------------------------------------------------------ attitudes
@@ -410,13 +426,15 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val known = a.optJSONArray("facts")?.let { f -> (0 until f.length()).map { f.getString(it) } }.orEmpty()
         // (someone who would refuse the player or report them does not share who buys stolen goods)
         val shares = a.optString("stance") !in setOf("refuse", "report_on_sight")
-        facts[personId] = if (shares) known + leadFacts(personId) else known
+        val base = if (shares) known + leadFacts(personId) else known
+        baseFacts[personId] = base
+        facts[personId] = base + lookFacts()
         return a
     }
 
     /** Looks [ids]' attitudes up again (their facts for the dialogue stay current). */
     private fun refreshAttitudes(ids: Collection<String>) {
-        for (id in ids.toList()) { attitudes.remove(id); if (town.personById.containsKey(id)) attitude(id) else facts.remove(id) }
+        for (id in ids.toList()) { attitudes.remove(id); if (town.personById.containsKey(id)) attitude(id) else { facts.remove(id); baseFacts.remove(id) } }
     }
 
     /** Looks up the facts of [ids] not cached yet (before a conversation: their dialogue's fact sheet). */
@@ -450,10 +468,11 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     }
 
     private fun act(event: JSONObject, sceneIn: LoopScene): JSONObject {
-        val scene = town.placeById[event.optString("placeId")]?.let { staffedScene(it, sceneIn) } ?: sceneIn
+        // (the weather's face recognition range: in fog or heavy rain, people outdoors beyond it do not see who it is)
+        val scene = (town.placeById[event.optString("placeId")]?.let { staffedScene(it, sceneIn) } ?: sceneIn).limitedTo(faceRangeUnits())
         scene.put(event)
         val res = JSONObject(call("act", event))
-        lastAct = res.put("bystanders", scene.bystanders.size).put("inside", scene.inside)
+        lastAct = res.put("bystanders", scene.bystanders.size).put("inside", scene.inside).put("sighted", scene.bystanders.count { it.los })
         // (the witnesses' and the clerk's attitudes may have changed)
         val again = HashSet<String>()
         res.optJSONArray("witnessedBy")?.let { w -> for (k in 0 until w.length()) again += w.getJSONObject(k).optString("personId") }
@@ -924,7 +943,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     private var livingCache: String? = null
 
     /** The era's terms of a [kind] of lodging (`lodgingOf`), null when there are none in the town's year. */
-    fun lodgingTerms(kind: String = "boarding_house"): JSONObject? = termsCache[kind] ?: (econ("lodgingOf", kind, town.year) as? JSONObject)?.also { termsCache[kind] = it }
+    fun lodgingTerms(kind: String = lodgingKind): JSONObject? = termsCache[kind] ?: (econ("lodgingOf", kind, town.year) as? JSONObject)?.also { termsCache[kind] = it }
 
     /** Where rent stands today (`arrears`), cached per day and payment; null without a room. */
     fun rentArrears(): JSONObject? {
@@ -982,7 +1001,7 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     fun sleepInRoom(): LoopOutcome {
         val r = rental ?: return done(false, "You have no room to sleep in.")
         if (lockedOut) return done(false, "The landlady has locked you out: ${money(rentArrears()?.optInt("owedCents") ?: 0)} is owed.")
-        val o = sleepUntil(7.0)
+        val o = sleepUntil(7.0, "bed")
         r.nights++; r.lastNight = day
         event("rent", JSONObject().put("what", "slept").put("day", day).put("nights", r.nights))
         say("(slept in the rented room: night ${r.nights})")
@@ -1196,6 +1215,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         daysEnded(fromDay)
         val passed = jailH
         restockFor(jailH)
+        // (hours held: a night on the cell's bunk, else sitting about)
+        tickNeeds(jailH, if (jailH >= 6.0) "sleeping" else "idle", "cell")
         event("arrest", JSONObject().put("officerId", officerId).put("why", why).put("penalty", r.optString("penalty")).put("fine", fine)
             .put("confiscated", JSONArray(gone.toList())).put("charges", r.optJSONArray("charges")).put("summary", r.optString("summary"))
             .put("fromHour", before).put("hoursPassed", passed).put("ms", timings["arrest"]?.first))
@@ -1208,6 +1229,397 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         refreshPolice()
         return done(true, (if (why == "approach_and_question") "An officer stops you and asks questions. " else "Arrested! ") + what +
             (if (lost.isNotEmpty()) " They take ${lost.joinToString { it.label }}." else ""), passed, town.station)
+    }
+
+
+    // ------------------------------------------------------------------ needs (src/needs, docs/NEEDS.md: needs.tick / eat / sleep / injure / treat / effects)
+
+    /** What the player is doing while the clock moves on its own (walking, running, idle): set by the app before each burst from the walk. */
+    @Volatile var walkActivity = "idle"
+    /** The bed the next sleep is on (`bed` the rented room's, `bench` anywhere else, `cell`). */
+    private var sleepBed = "bench"
+    /** Which lodging the room is rented from ([lodgingTerms]'s default): the boarding house; `room_and_board` includes meals (a test or a later choice sets it). */
+    var lodgingKind = "boarding_house"
+    private var needs: JSONObject? = null
+    private var effectsCache: JSONObject? = null
+    private var lookNote: String? = null
+    private var boardDay = 0
+    private var boardTaken = 0
+
+    private fun nd(method: String, vararg args: Any): Any = org.json.JSONTokener(call("needs.$method", *args)).nextValue()
+
+    /** The player's Needs record (`needs.initialNeeds` at first; saved with the loop). */
+    fun needsState(): JSONObject = needs ?: (nd("initialNeeds") as JSONObject).also { needs = it }
+
+    /** `needs.effects` of the state now (labels, walking multiplier, social modifier), cached until the needs change. */
+    fun needEffects(): JSONObject = effectsCache ?: (nd("effects", needsState()) as JSONObject).also { effectsCache = it }
+
+    private fun labelsOf(e: JSONObject): List<String> = e.optJSONArray("labels")?.let { a -> (0 until a.length()).map { a.getString(it) } }.orEmpty()
+
+    private fun setNeeds(n: JSONObject) {
+        val before = labelsOf(needEffects())
+        needs = n; effectsCache = null
+        val after = labelsOf(needEffects())
+        for (l in after) if (l !in before) { say("You are $l."); event("needs", JSONObject().put("label", l).put("day", day).put("hour", hour)) }
+        val note = computeLook()
+        if (note != lookNote) { lookNote = note; for ((k, v) in baseFacts) facts[k] = v + lookFacts() }
+    }
+
+    /** Time passes: the player [activity] (walking, running, working, idle, sleeping on [bed]) for [hours]. */
+    private fun tickNeeds(hours: Double, activity: String, bed: String? = null) {
+        if (hours <= 1e-6) return
+        setNeeds((if (activity == "sleeping") nd("sleep", needsState(), hours, bed ?: "bench") else nd("tick", needsState(), hours, activity)) as JSONObject)
+    }
+
+    private fun needsNote(): String = labelsOf(needEffects()).let { if (it.isEmpty()) "" else " (you are ${it.joinToString(", ")})" }
+
+    /** How the player looks to others from their hygiene and tiredness (the social modifier's cause): null when they look all right. */
+    private fun computeLook(): String? {
+        val social = needEffects().optDouble("socialReactionModifier", 0.0)
+        if (social > -0.05) return null
+        val n = needsState()
+        val bits = ArrayList<String>()
+        if (n.optDouble("hygiene", 1.0) < 0.6) bits += "unwashed"
+        if (n.optDouble("fatigue", 0.0) >= 0.85) bits += "exhausted" else if (n.optDouble("fatigue", 0.0) > 0.55) bits += "worn out"
+        return bits.takeIf { it.isNotEmpty() }?.joinToString(" and ")
+    }
+
+    /** A note in everyone's fact sheet on how the player looks ("You notice this person looks unwashed and exhausted."), none when fine. */
+    private fun lookFacts(): List<String> = lookNote?.let { listOf("You notice this person looks $it.") }.orEmpty()
+
+    private fun dailyNeedsJson(): JSONObject? = dailyNeedsCache ?: (econ("dailyNeeds", town.year) as? JSONObject)?.also { dailyNeedsCache = it }
+    private var dailyNeedsCache: JSONObject? = null
+
+    /** A diner meal: a third of the era's diner day (`dailyNeeds(year).dinerMealsPerDayCents / 3`, until the diners have a menu of their own); a snack about 30% of it. */
+    fun mealCents(meal: String): Int {
+        val diner = ((dailyNeedsJson()?.optInt("dinerMealsPerDayCents", 0) ?: 0) / 3).coerceAtLeast(1)
+        return if (meal == "snack") max(1, (diner * 0.3).roundToInt()) else diner
+    }
+
+    /** What [place] offers to eat: a meal at a diner, a snack at a general store, market, five-and-dime or gas station; null elsewhere. */
+    fun eatOption(place: LoopPlace): EatView? {
+        val meal = when (LoopItems.econKind(place.shopKind)) { "diner" -> "diner"; "general", "market", "five_and_dime", "gas_station" -> "snack"; else -> return null }
+        val c = mealCents(meal)
+        return EatView(if (meal == "diner") "Eat a meal" else "Have a snack", c, money(c), meal)
+    }
+
+    /** "Eat" at [place]: pays the meal's price, relieves hunger (`needs.eat`). */
+    fun eat(place: LoopPlace, gameHour: Double): LoopOutcome {
+        clockTo(gameHour, exact = true)
+        val opt = eatOption(place) ?: return done(false, "${place.name} doesn't serve food.")
+        if (!isOpenNow(place)) return done(false, closed(place))
+        val (no, wary) = refusal(place, "serve")
+        if (no != null) return done(false, no)
+        if (cash < opt.cents) return done(false, "${opt.label} costs ${opt.text}; you have ${money(cash)}.")
+        cash -= opt.cents
+        setNeeds(nd("eat", needsState(), opt.meal) as JSONObject)
+        event("eat", JSONObject().put("place", place.id).put("meal", opt.meal).put("cents", opt.cents))
+        return done(true, "${if (opt.meal == "diner") "You eat a meal" else "You have a snack"} at ${place.name} for ${opt.text}." + needsNote(), wary = wary)
+    }
+
+    /** The meals the room's lodging includes a day (`includedMealsPerDay`: 0 for a boarding house, 2 for room and board), 0 without a room or while locked out. */
+    fun boardIncluded(): Int = if (lockedOut) 0 else rental?.let { lodgingTerms(it.kind)?.optInt("includedMealsPerDay", 0) } ?: 0
+    fun boardLeft(): Int = max(0, boardIncluded() - if (boardDay == day) boardTaken else 0)
+    private fun boardLine(): String = boardIncluded().let { n -> if (n <= 0) "" else "Board: $n meals a day included, ${boardLeft()} left today." }
+
+    /** "Take your board": a meal the room's rent already paid for (`needs.eat` 'boarding_house_board'), up to the included number a day. */
+    fun takeBoard(): LoopOutcome {
+        if (rental == null) return done(false, "You have no room with board.")
+        if (boardIncluded() <= 0) return done(false, "Your room has no board.")
+        if (boardLeft() <= 0) return done(false, "You've had today's board.")
+        if (boardDay != day) { boardDay = day; boardTaken = 0 }
+        boardTaken++
+        setNeeds(nd("eat", needsState(), "boarding_house_board") as JSONObject)
+        return done(true, "You take your board at ${lodgingName()}." + needsNote())
+    }
+
+    /** "Wash up" in the rented room (`needs.wash`). */
+    fun washUp(): LoopOutcome {
+        if (rental == null || lockedOut) return done(false, "You have nowhere to wash.")
+        setNeeds(nd("wash", needsState()) as JSONObject)
+        return done(true, "You wash up.")
+    }
+
+    /** The player is hurt ([kind]: `bruise`, `sprain`, `cut`; `why`: a crash or a fall). */
+    fun injure(kind: String, why: String) {
+        setNeeds(nd("injure", needsState(), kind) as JSONObject)
+        say("You are hurt ($why): a $kind.")
+        event("injury", JSONObject().put("kind", kind).put("why", why).put("day", day).put("hour", hour))
+        publish()
+    }
+
+    /** The cost of treating [kind] now (`needs.treatmentCost`), cents of the town's year. */
+    fun treatmentCents(kind: String): Int = (nd("treatmentCost", kind, town.year) as? Number)?.toInt() ?: 0
+
+    /** Treats an injury at the pharmacy: pays `treatmentCost`, the injury then heals twice as fast (`needs.treat`). */
+    fun treat(place: LoopPlace, kind: String, gameHour: Double): LoopOutcome {
+        clockTo(gameHour, exact = true)
+        if (place.shopKind != "pharmacy") return done(false, "${place.name} can't treat that.")
+        if (!isOpenNow(place)) return done(false, closed(place))
+        val inj = needsState().optJSONArray("injuries")?.let { a -> (0 until a.length()).map { a.getJSONObject(it) }.firstOrNull { it.optString("kind") == kind } }
+            ?: return done(false, "You have no $kind.")
+        if (inj.optBoolean("treated")) return done(false, "Your $kind is already treated.")
+        val c = treatmentCents(kind)
+        if (cash < c) return done(false, "Treating a $kind costs ${money(c)}; you have ${money(cash)}.")
+        cash -= c
+        setNeeds(nd("treat", needsState(), kind) as JSONObject)
+        return done(true, "The pharmacist treats your $kind for ${money(c)}; it will heal faster.")
+    }
+
+    private fun needsView(): NeedsView? {
+        val n = needsState(); val e = needEffects()
+        val inj = n.optJSONArray("injuries")?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } }.orEmpty().map {
+            val c = treatmentCents(it.optString("kind")); InjuryView(it.optString("kind"), Math.ceil(it.optDouble("remainingHours")).toInt(), it.optBoolean("treated"), c, money(c))
+        }
+        return NeedsView(labelsOf(e), n.optDouble("hunger"), n.optDouble("fatigue"), n.optDouble("hygiene"), n.optDouble("health"),
+            e.optDouble("walkingSpeedMultiplier", 1.0), e.optDouble("socialReactionModifier", 0.0), lookNote.orEmpty(), inj)
+    }
+
+    // ------------------------------------------------------------------ the sky (src/weather, docs/WEATHER.md: weather.weatherAt / weatherEffects)
+
+    /** The climate of the town (gamma's: `temperate_coast`), a `weather.weatherAt` climate. */
+    var climate = "temperate_coast"
+    private val skyCache = HashMap<String, JSONObject>()
+    private val skyEffects = HashMap<String, JSONObject>()
+
+    /** The sky on in-game day [d] at hour [h] (`weatherAt` for the date and the town's seed: the same date always gives the same sky); cached per hour. */
+    fun skyAt(d: Int, h: Double): JSONObject? {
+        val key = "$d|${floor(h).toInt()}"
+        skyCache[key]?.let { return it }
+        val w = org.json.JSONTokener(call("weather.weatherAt", climate, d - 1, floor(h), town.seed, dateJson(startDate[0], startDate[1], startDate[2]))).nextValue() as? JSONObject ?: return null
+        if (skyCache.size > 600) skyCache.clear()
+        skyCache[key] = w
+        return w
+    }
+
+    /** `weather.weatherEffects` of [w]: faceRecognitionM, walkingSpeedMultiplier, streetActivityMultiplier, carGripMultiplier; cached per sky. */
+    fun skyEffectsOf(w: JSONObject): JSONObject = skyEffects.getOrPut("${w.optString("sky")}|${w.optInt("temperatureC")}|${w.optInt("visibilityM")}") {
+        org.json.JSONTokener(call("weather.weatherEffects", w)).nextValue() as? JSONObject ?: JSONObject()
+    }
+
+    /** The sky now. */
+    fun skyNow(): JSONObject? = skyAt(day, hour)
+
+    /** How far people outdoors recognise a face now, in street units (35 m on a clear day, 6 m in fog). */
+    fun faceRangeUnits(): Float = (skyNow()?.let { skyEffectsOf(it).optDouble("faceRecognitionM", 35.0) } ?: 35.0).toFloat() * VehicleWorld.U
+
+    /** The walking speed the sky and the player's needs allow together (1 = a rested player on a clear day). */
+    fun walkMultiplier(): Double {
+        val needsW = needEffects().optDouble("walkingSpeedMultiplier", 1.0)
+        val skyW = skyNow()?.let { skyEffectsOf(it).optDouble("walkingSpeedMultiplier", 1.0) } ?: 1.0
+        return (needsW * skyW).coerceIn(0.3, 1.0)
+    }
+
+    private fun skyView(): SkyView? {
+        val w = skyNow() ?: return null
+        val e = skyEffectsOf(w)
+        val t = w.optInt("temperatureC")
+        return SkyView(w.optString("sky"), t, w.optInt("windKph"), w.optInt("visibilityM"), e.optDouble("faceRecognitionM"), e.optDouble("walkingSpeedMultiplier", 1.0),
+            e.optDouble("streetActivityMultiplier", 1.0), e.optDouble("carGripMultiplier", 1.0),
+            "${w.optString("sky")}, $t C, wind ${w.optInt("windKph")} km/h, visibility ${w.optInt("visibilityM")} m; faces seen to %.0f m, walking x%.2f, street x%.2f, grip x%.2f"
+                .format(e.optDouble("faceRecognitionM"), e.optDouble("walkingSpeedMultiplier", 1.0), e.optDouble("streetActivityMultiplier", 1.0), e.optDouble("carGripMultiplier", 1.0)))
+    }
+
+    // ------------------------------------------------------------------ cars (src/cars, docs/CARS.md: the used-car lot, papers, running costs, breakdowns)
+
+    /** A car the player owns: the module's `Car` record (kept as JSON, saved), the model it is drawn as, its fuel, and where it is. */
+    private class Owned(val id: String, var car: JSONObject, val body: String, val specKey: String, val colour: Int, var fuel: Double,
+                        var atLot: Boolean = true, var x: Float = 0f, var z: Float = 0f, var fx: Float = 0f, var fz: Float = 1f)
+    private val owned = ArrayList<Owned>()
+    private var papers = JSONObject().put("registration", false).put("licence", false).put("insurance", false)
+    private val runCache = HashMap<String, JSONObject?>()
+    private val lotCache = HashMap<String, List<JSONObject>>()
+    private var papersCostCache: JSONObject? = null
+
+    private fun cr(method: String, vararg args: Any): Any = org.json.JSONTokener(call("cars.$method", *args)).nextValue()
+
+    private fun resetPersonal() {
+        needs = null; effectsCache = null; lookNote = null; boardDay = 0; boardTaken = 0
+        owned.clear(); papers = JSONObject().put("registration", false).put("licence", false).put("insurance", false)
+        needs = nd("initialNeeds") as JSONObject
+        // (the starting state is the module's: not hungry, a little tired)
+        effectsCache = null
+    }
+
+    private fun savePersonal(o: JSONObject) {
+        o.put("needs", needsState()).put("board", JSONObject().put("day", boardDay).put("taken", boardTaken)).put("papers", papers)
+        o.put("ownedCars", JSONArray().also { a -> for (c in owned) a.put(JSONObject().put("id", c.id).put("car", c.car).put("body", c.body).put("specKey", c.specKey).put("colour", c.colour)
+            .put("fuel", c.fuel).put("atLot", c.atLot).put("x", c.x.toDouble()).put("z", c.z.toDouble()).put("fx", c.fx.toDouble()).put("fz", c.fz.toDouble())) })
+    }
+
+    private fun loadPersonal(o: JSONObject) {
+        needs = o.optJSONObject("needs") ?: (nd("initialNeeds") as JSONObject)
+        effectsCache = null; lookNote = computeLook()
+        val b = o.optJSONObject("board"); boardDay = b?.optInt("day") ?: 0; boardTaken = b?.optInt("taken") ?: 0
+        papers = o.optJSONObject("papers") ?: JSONObject().put("registration", false).put("licence", false).put("insurance", false)
+        owned.clear()
+        o.optJSONArray("ownedCars")?.let { a -> for (k in 0 until a.length()) a.getJSONObject(k).let { c ->
+            owned += Owned(c.getString("id"), c.getJSONObject("car"), c.getString("body"), c.getString("specKey"), c.optInt("colour"), c.optDouble("fuel"),
+                c.optBoolean("atLot", true), c.optDouble("x").toFloat(), c.optDouble("z").toFloat(), c.optDouble("fx").toFloat(), c.optDouble("fz", 1.0).toFloat())
+        } }
+    }
+
+    private fun running(body: String): JSONObject? = runCache.getOrPut(body) { cr("runningCosts", body, town.year) as? JSONObject }
+
+    /** The gas station's price of fuel a gallon (`runningCosts`' `gasolinePerGallonCents`: the economy's `gasoline`), cents. */
+    fun fuelCents(): Int = running("sedan")?.optInt("gasolinePerGallonCents") ?: 0
+
+    /** The cars on the lot now (`cars.carsForSale`, the lot's seed turning over every 28 days), those the player owns left out; asking prices rounded ([LoopCars.round]). */
+    fun lotListings(): List<LotCar> {
+        val month = (day - 1) / 28
+        val seed = "${town.seed}|lot|$month"
+        val raw = lotCache.getOrPut(seed) { (cr("carsForSale", town.year, seed) as? JSONArray)?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } }.orEmpty() }
+        return raw.filter { l -> owned.none { it.id == l.getJSONObject("car").getString("id") } }.map { l ->
+            val c = l.getJSONObject("car"); val body = c.getString("body"); val my = c.getInt("modelYear")
+            val ask = LoopCars.round(l.getInt("askingCents"))
+            LotCar(c.getString("id"), body, LoopCars.label(body, my), my, c.optDouble("mileage").roundToInt(), (c.optDouble("condition") * 100).roundToInt(), ask, money(ask), LoopCars.specFor(body, my))
+        }
+    }
+
+    private fun gasStation(place: LoopPlace) = place.shopKind == "gas station"
+
+    /** Buys the lot's car [lotId] at [place] (the gas station): pays the asking price, the car is the player's, parked at the lot with a little fuel. */
+    fun buyCar(place: LoopPlace, lotId: String, gameHour: Double): LoopOutcome {
+        clockTo(gameHour, exact = true)
+        if (!gasStation(place)) return done(false, "${place.name} doesn't sell cars.")
+        if (!isOpenNow(place)) return done(false, closed(place))
+        val lot = lotListings().firstOrNull { it.id == lotId } ?: return done(false, "That car has been sold.")
+        if (cash < lot.askingCents) return done(false, "The ${lot.label} is ${lot.askingText}; you have ${money(cash)}.")
+        val raw = lotCache.values.flatten().first { it.getJSONObject("car").getString("id") == lotId }.getJSONObject("car")
+        cash -= lot.askingCents
+        val o = Owned(lotId, JSONObject(raw.toString()), lot.body, lot.specKey, Math.floorMod("${town.seed}|$lotId".hashCode(), 1_000_000), min(LoopCars.tank(lot.body), 5.0))
+        owned += o
+        event("car_buy", JSONObject().put("car", lotId).put("label", lot.label).put("cents", lot.askingCents).put("model", lot.specKey))
+        return done(true, "You buy the ${lot.label} for ${lot.askingText}. It is parked at ${place.name}, with ${fmt(o.fuel)} gallons in the tank.")
+    }
+
+    /** The papers' prices (`cars.papersFor`) for the town's year, null before 1905. */
+    private fun papersCosts(): JSONObject? = papersCostCache ?: (cr("papersFor", town.year) as? JSONObject)?.also { papersCostCache = it }
+
+    fun hasPaper(kind: String): Boolean = papers.optBoolean(kind)
+
+    /** Buys [kind] (`registration`, `licence`, `insurance`) at the lot at the era's price. */
+    fun buyPaper(place: LoopPlace, kind: String, gameHour: Double): LoopOutcome {
+        clockTo(gameHour, exact = true)
+        if (!gasStation(place)) return done(false, "${place.name} doesn't do papers.")
+        val c = papersCosts()?.takeIf { !it.isNull("${kind}Cents") }?.optInt("${kind}Cents") ?: return done(false, "There is no $kind in ${town.year}.")
+        if (hasPaper(kind)) return done(false, "You already have your $kind.")
+        if (cash < c) return done(false, "The $kind costs ${money(c)}; you have ${money(cash)}.")
+        cash -= c; papers.put(kind, true)
+        return done(true, "You buy a $kind for ${money(c)}.")
+    }
+
+    private fun breakdownText(b: String) = when (b) { "flat" -> "a flat tyre"; "overheating" -> "the engine is overheating"; "dead_battery" -> "a dead battery"; else -> "the engine has failed" }
+
+    private fun blockedReason(o: Owned): String? =
+        o.car.optString("breakdown").takeIf { it.isNotEmpty() && it != "null" }?.let { "broken down: ${breakdownText(it)}" } ?: if (o.fuel <= 0.001) "out of fuel" else null
+
+    /** What fixing [breakdown] costs (`cars.repairCost`; a flat tyre a tenth of the module's number: about $1.50 in 1952 money, not $15), and whether it can be done at the roadside. */
+    fun repairOf(breakdown: String): Pair<Int, Boolean>? {
+        val r = cr("repairCost", breakdown, town.year) as? JSONObject ?: return null
+        val cents = r.optInt("repairCents")
+        return (if (breakdown == "flat") max(1, (cents / 10.0).roundToInt()) else cents) to r.optBoolean("roadside")
+    }
+
+    /** What a tow to the lot costs: $6 in 1952 money (the module has no tow), scaled by the price index. */
+    fun towCents(): Int = max(1, (600.0 * priceIndex / ((econ("priceIndex", 1952) as? Number)?.toDouble() ?: 1.0)).roundToInt())
+
+    private fun ownedBy(id: String): Owned? = owned.firstOrNull { it.id == id }
+
+    /**
+     * Driving [miles] in the owned car [id] (the app measures the car's travelled distance): `cars.drive` wears it and may break it down
+     * (at the sky's temperature, the town's seed), the tank gives gallons by `runningCosts.mpg`; a breakdown or an empty tank stops the engine.
+     */
+    fun driveMiles(id: String, miles: Double) {
+        val o = ownedBy(id) ?: return
+        if (blockedReason(o) != null || miles <= 0.0) return
+        val temp = skyNow()?.optInt("temperatureC") ?: 15
+        val r = cr("drive", o.car, miles, JSONObject().put("year", town.year).put("temperatureC", temp).put("seed", town.seed)) as? JSONObject ?: return
+        o.car = r.getJSONObject("car")
+        val done = r.optDouble("milesDriven")
+        val mpg = running(o.body)?.optInt("mpg", 20) ?: 20
+        o.fuel = max(0.0, o.fuel - done / mpg)
+        val b = r.optString("breakdown").takeIf { it.isNotEmpty() && it != "null" }
+        val label = LoopCars.label(o.body, o.car.optInt("modelYear"))
+        if (b != null) { say("Your $label: ${breakdownText(b)}."); event("car_breakdown", JSONObject().put("car", id).put("kind", b).put("mileage", o.car.optDouble("mileage")).put("tempC", temp)) }
+        else if (o.fuel <= 0.001) { say("Your $label is out of fuel."); event("car_empty", JSONObject().put("car", id)) }
+        publish()
+    }
+
+    /** The car's parked spot (street units) after the player left it. */
+    fun parkCar(id: String, x: Float, z: Float, fx: Float, fz: Float) { ownedBy(id)?.let { it.atLot = false; it.x = x; it.z = z; it.fx = fx; it.fz = fz; publish() } }
+
+    /** Fixes [id]'s breakdown for the era's price: at the roadside for a flat or a dead battery, a garage job (at the lot) otherwise. */
+    fun repair(id: String, atLot: Boolean): LoopOutcome {
+        val o = ownedBy(id) ?: return done(false, "That is not your car.")
+        val b = o.car.optString("breakdown").takeIf { it.isNotEmpty() && it != "null" } ?: return done(false, "Nothing is broken.")
+        val (cents, roadside) = repairOf(b) ?: return done(false, "No one can fix that in ${town.year}.")
+        if (!roadside && !(atLot || o.atLot)) return done(false, "That needs a garage: call a tow.")
+        if (cash < cents) return done(false, "Fixing ${breakdownText(b)} costs ${money(cents)}; you have ${money(cash)}.")
+        cash -= cents
+        o.car = JSONObject(o.car.toString()).put("breakdown", JSONObject.NULL)
+        event("car_repair", JSONObject().put("car", id).put("kind", b).put("cents", cents).put("roadside", roadside))
+        return done(true, "You fix ${breakdownText(b)} for ${money(cents)}.")
+    }
+
+    /** "Call a tow": pays [towCents] and the car is moved to the lot (broken or out of fuel). */
+    fun callTow(id: String): LoopOutcome {
+        val o = ownedBy(id) ?: return done(false, "That is not your car.")
+        if (blockedReason(o) == null) return done(false, "Your car runs: no need for a tow.")
+        if (o.atLot) return done(false, "It is already at the lot.")
+        val c = towCents()
+        if (cash < c) return done(false, "A tow costs ${money(c)}; you have ${money(cash)}.")
+        cash -= c
+        o.atLot = true
+        event("car_tow", JSONObject().put("car", id).put("cents", c))
+        return done(true, "The tow truck takes your car to the lot for ${money(c)}.")
+    }
+
+    /** A service (`cars.serviceCar`: condition up to 85% at least, service debt cleared, any breakdown cleared) at the lot. */
+    fun service(id: String, near: Boolean): LoopOutcome {
+        val o = ownedBy(id) ?: return done(false, "That is not your car.")
+        if (!near && !o.atLot) return done(false, "Bring the car to the lot.")
+        val c = running(o.body)?.optInt("serviceCents") ?: return done(false, "No one services that.")
+        if (cash < c) return done(false, "A service costs ${money(c)}; you have ${money(cash)}.")
+        cash -= c
+        o.car = cr("serviceCar", o.car) as JSONObject
+        return done(true, "The car is serviced for ${money(c)}.")
+    }
+
+    /** Fuel: buys [gallons] (null: fill the tank) at the gas station's price a gallon (`gasolinePerGallonCents`); the car must be at the pumps ([near]) or the lot. */
+    fun refuel(id: String, gallons: Double?, near: Boolean): LoopOutcome {
+        val o = ownedBy(id) ?: return done(false, "That is not your car.")
+        if (!near && !o.atLot) return done(false, "Bring the car to the pumps.")
+        val tank = LoopCars.tank(o.body)
+        val room = max(0.0, tank - o.fuel)
+        if (room < 0.05) return done(false, "The tank is full.")
+        val want = min(gallons ?: room, room)
+        val price = fuelCents()
+        val cost = (want * price).roundToInt()
+        if (cash < cost) return done(false, "${fmt(want)} gallons is ${money(cost)}; you have ${money(cash)}.")
+        cash -= cost; o.fuel += want
+        event("refuel", JSONObject().put("car", id).put("gallons", want).put("cents", cost).put("pricePerGallon", price))
+        return done(true, "You buy ${fmt(want)} gallons at ${money(price)} a gallon: ${money(cost)}.")
+    }
+
+    private fun carsView(): CarsView {
+        val costs = papersCosts()
+        val papersList = listOf("registration" to "Registration", "licence" to "Licence", "insurance" to "Insurance").mapNotNull { (k, label) ->
+            costs?.takeIf { !it.isNull("${k}Cents") }?.optInt("${k}Cents")?.let { c -> PaperView(k, label, c, money(c), hasPaper(k)) }
+        }
+        val req = costs?.optBoolean("insuranceRequired") == true
+        val tow = towCents()
+        val ownedViews = owned.map { o ->
+            val b = o.car.optString("breakdown").takeIf { it.isNotEmpty() && it != "null" }
+            val rep = b?.let { repairOf(it) }
+            val run = running(o.body)
+            LoopCars.label(o.body, o.car.optInt("modelYear")).let { label ->
+                OwnedCarView(o.id, label, o.specKey, o.colour, o.body, o.car.optDouble("mileage").roundToInt(), (o.car.optDouble("condition") * 100).roundToInt(),
+                    o.fuel, LoopCars.tank(o.body), run?.optInt("mpg") ?: 20, b, b?.let { breakdownText(it) }, rep?.first ?: 0, money(rep?.first ?: 0), rep?.second ?: false, tow, money(tow),
+                    run?.optInt("serviceCents") ?: 0, money(run?.optInt("serviceCents") ?: 0), o.atLot, o.x, o.z, o.fx, o.fz, blockedReason(o))
+            }
+        }
+        return CarsView(lotListings(), papersList, if (req && papersList.any { it.kind == "insurance" && !it.have }) "Insurance is required to drive." else "", fuelCents(), money(fuelCents()), ownedViews)
     }
 
     // ------------------------------------------------------------------ the debug view
@@ -1223,7 +1635,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         view = LoopView(cash, money(cash), stock, offers, offerTexts, items.toList(), day, hour, debugLines(), officerPlans, messages.toList(),
             fences, fenceTrust.toMap(), quotes, shops.associate { it.id to hoursOf(it) },
             rentView(), lodgingOffer(), roomCost(), livingLine(), transitInfo(), railCoef(),
-            dayInfo(day).text, dayInfo(day).holiday.orEmpty(), jobsView(shops))
+            dayInfo(day).text, dayInfo(day).holiday.orEmpty(), jobsView(shops),
+            needsView(), shops.mapNotNull { p -> eatOption(p)?.let { p.id to it } }.toMap(), skyView(), carsView(), walkMultiplier(), boardLine())
     }
 
     private fun lodgingOffer(): String = lodgingTerms()?.let { t ->
@@ -1241,6 +1654,10 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val out = ArrayList<String>()
         out += "Day $day, %02d:%02d · cash ${money(cash)} · ${items.size} item(s)".format(hour.toInt() % 24, ((hour - floor(hour)) * 60).toInt())
         livingLine().takeIf { it.isNotEmpty() }?.let { out += it }
+        needsView()?.let { n -> out += "Needs: hunger %.2f, tiredness %.2f, hygiene %.2f, health %.2f".format(n.hunger, n.fatigue, n.hygiene, n.health) +
+            (if (n.labels.isNotEmpty()) " (${n.labels.joinToString()})" else "") + ", walking x%.2f, looks: ${n.look.ifEmpty { "fine" }}".format(n.walk) }
+        skyView()?.let { out += "Sky: ${it.text}" }
+        carsView().let { c -> for (o in c.owned) out += "Car ${o.label}: ${o.mileage} mi, ${o.conditionPct}%% condition, fuel %.1f/%.0f gal".format(o.fuel, o.tank) + (o.blocked?.let { " - $it" } ?: "") }
         rentView()?.let { r -> out += "Room: ${r.status}, ${r.rentText}, next ${r.nextDue}, ${r.nights} night(s) slept, ${r.roomItems.size} item(s) kept" + (if (r.owedCents > 0) ", owed ${r.owedText}" else "") }
             ?: town.lodging?.let { out += "Room to rent: ${it.name} (${lodgingOffer()})" }
         for (i in items) out += "  ${i.label} (${money(i.value)})" + (if (i.stolen) " HOT ${i.crimeId ?: ""}" else "") + (i.serial?.let { " #$it" } ?: "")
