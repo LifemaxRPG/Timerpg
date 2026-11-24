@@ -227,6 +227,35 @@ step 5 is what keeps it there as the capital grows. M3 (the copy's inflation) is
 Every figure past "now" is an estimate; each step's real effect must be read from the phone's play log (`mem` free and
 PSS, `accounts`, the gate's "found") before the next.
 
+### Step 2 as built (2026-11-24, not yet measured on the S25)
+
+- **M2 batch 128**: the NPU's prompt batch is 128 unless the panel set one (`DialogueEngine.batchFor`). The measured own
+  memory is now kept by batch with its compute part apart; a measure at another batch is scaled
+  (`ModelRoles.scaleWork`: compute follows the batch, a tenth kept fixed: 318 -> 103 MB, own 388 -> 173), the old
+  unsplit measures with the S25's compute share (318/388). A load at 128 then measures its own.
+- **M3 found**: Qwen3.5-4B ties its output head to its token embeddings. llama.cpp keeps the embeddings mapped on the
+  CPU (the input layer) and creates the head as a duplicate of the same tensor (`TENSOR_DUPLICATED`, qwen35.cpp) on the
+  output device: the 497 MB Q6_K table (2560 x 248320 at 6.56 bits = 497.3 MiB) was mapped **and** copied to the NPU.
+  2501 copied = the 1966 MB of other weights + the 497 MB head + ~38 MB (HTP alignment). Fixed by a buffer override
+  (`^token_embd\.weight$` -> the CPU buffer type, `set_device` bit 15, `NativeLlm.headMapped`, on by default; the AI
+  prefs key "headMapped" turns it off): one mapped copy, ~2004 MB copied. Cost: the head's one matrix-vector product per
+  generated token runs on the CPU (it reads the same 521 MB either way); its speed is to measure on the S25. The need
+  counts the measured copy (`copy_*` prefs) once a load has measured it, the file until then.
+- **M5**: the reclaim is the lower median of the last five measured loads, capped by MemAvailable - availMem + SwapFree.
+- **M4**: the margin starts at 900 and learns (`NpuGate.marginAfterHeld` / `marginAfterTrouble`, floor 500, ceiling
+  1500, persisted): down by half the slack above the critical line (at most 100 a load) after a 5-minute untroubled
+  hold, up 200 after a failed try, a valve stop, a kill or a low-memory signal in the hold window.
+- **M1**: `TownSession`'s loading thread calls `DialogueEngine.loadBeforeTown()`: the light model's NPU copy loads before
+  the town when the gate passes (light model only), the build waiting at most 20 s for it.
+- **C2/M6**: before every device copy, `System.gc` + `runFinalization` and scudo's `M_PURGE_ALL`, logged.
+- The breadcrumbs ("npu gate: ...") carry free, reclaim counted, margin, need and its parts, and the result.
+
+Projected (estimates): in play the first load asks 2463 + 173 + 900 = **3536 MB** (was 3751); once a load has measured
+the copy, ~2004 + ~170 + 900 = **~3075 MB**, and less as the margin learns (floor 500: ~2675). Against ~3050 free + the
+median reclaim (~1.2-1.5 GB) that is **+0.7-1.0 GB** of headroom on the first load and **+1.2-1.5 GB** after it; at app
+start (3665 free) the copy fits with no reclaim counted at all. The model's real memory falls from 2888 to ~2175 MB
+(the 497 MB head no longer copied, compute ~318 -> ~100).
+
 ### The memory budget guard
 
 So a new feature that blows the budget fails a test instead of breaking the NPU on the phone:

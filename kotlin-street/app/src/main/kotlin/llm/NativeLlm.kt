@@ -39,6 +39,15 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     /** The batch the prompt is processed in from the next load (512, 256 or 128 tokens): smaller shrinks the compute
      *  buffers beside the weights, at some cost in prompt speed. */
     @Volatile var batch = 512
+    /**
+     * On the GPU or NPU from the next load: the output head stays on the CPU, mapped from the file, when the model ties it
+     * to its token embeddings (Qwen3.5-4B, the light model). llama.cpp keeps the embeddings mapped on the CPU (the input
+     * layer always is) and puts a second, copied, version of the same tensor on the device as the output head: the light
+     * model's 497 MB Q6_K table was both mapped and copied (MEMORY_AUDIT.md, M3: 2501 MB copied + 497 mapped from a
+     * 2463 MB file). Kept mapped, the copy is ~2004 MB; the head's one matrix-vector product per generated token runs on the
+     * CPU (it reads the same 521 MB either way). No effect on a model with its own output weights.
+     */
+    @Volatile var headMapped = true
     /** The loaded model's cache is in 8 bits. */
     val kvQ8Used: Boolean get() = handle != 0L && runCatching { nativeKvQ8(handle) }.getOrDefault(false)
     /**
@@ -162,7 +171,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
                 error = "cancelled"
                 return false
             }
-            runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0) or (if (kvQ8) 32 else 0) or (mtp.coerceIn(0, 15) shl 8) or (batchCode(batch) shl 12)) }
+            runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0) or (if (kvQ8) 32 else 0) or (mtp.coerceIn(0, 15) shl 8) or (batchCode(batch) shl 12) or (if (headMapped) 1 shl 15 else 0)) }
             loaded = false  // the native load frees the old model first
             val ok = try {
                 nativeLoad(handle, path.toByteArray(Charsets.UTF_8), t, ctx)
@@ -408,6 +417,14 @@ class NativeLlm(context: Context? = null) : LlmBackend {
             }
             return big.coerceIn(1, cap)
         }
+
+        /**
+         * Hands the native allocator's free pages back to the system (scudo's mallopt(M_PURGE_ALL), else M_PURGE; looked up
+         * at run time). Returns mallopt's result (1 done, 0 not supported), or -1 when the library is not here.
+         */
+        fun purgeNativeHeap(): Int = if (libraryError != null) -1 else runCatching { nativePurge() }.getOrDefault(-1)
+
+        @JvmStatic private external fun nativePurge(): Int
 
         /** MemAvailable from /proc/meminfo in MB, or -1 if unknown. */
         private fun availableMemoryMb(): Long = runCatching {

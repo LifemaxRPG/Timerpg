@@ -51,6 +51,18 @@ object ModelRoles {
         val npu: Boolean = accelerated,
         /** Without [npu]: why, specifically (the NPU library not in the build, no HTP session, ...), for the HUD and reports. */
         val npuWhy: String = "",
+        /** What each model's device copy really takes of its file (weights copied, as its last load on this device
+         *  measured them), else -1: the whole file. The light model with its tied output head kept mapped copies
+         *  ~2004 of its 2463 MB (NativeLlm.headMapped). */
+        val bankCopyBytes: Long = -1,
+        val liveCopyBytes: Long = -1,
+        /** The free memory kept beside a device copy (the adaptive margin, [com.timerpg.street.llm.NpuGate.margin]); a
+         *  load on the CPU from the file keeps the flat [com.timerpg.street.llm.Ram.MARGIN_MB]. */
+        val marginBytes: Long = com.timerpg.street.llm.Ram.MARGIN_MB shl 20,
+        /** The session is starting and the town is not built yet: the light model's NPU copy may load first, when it fits
+         *  (MEMORY_AUDIT.md, M1: at app start 3665 MB free plus what Android finds covers it; the town is then built
+         *  beside it). Only the light model: the main one's copy is never loaded ahead of the town. */
+        val early: Boolean = false,
     )
 
     sealed interface Choice
@@ -77,17 +89,37 @@ object ModelRoles {
      * system can drop and read again), plus [WORK_BYTES] and [com.timerpg.street.llm.Ram.MARGIN_MB] for the game, the
      * town's GPU memory and Android (both crash reports of build 302 were the game killed beside a fresh model).
      */
-    fun needBytes(fileBytes: Long, copied: Boolean, workBytes: Long = WORK_BYTES): Long =
-        (if (copied) fileBytes else fileBytes / 2) + workBytes + (com.timerpg.street.llm.Ram.MARGIN_MB shl 20)
+    fun needBytes(fileBytes: Long, copied: Boolean, workBytes: Long = WORK_BYTES, marginBytes: Long = com.timerpg.street.llm.Ram.MARGIN_MB shl 20,
+                  copyBytes: Long = -1): Long =
+        (if (copied) (if (copyBytes > 0) copyBytes else fileBytes) else fileBytes / 2) + workBytes + marginBytes
+
+    /** The share of the light model's own memory that is compute buffers, measured on the S25 at batch 512 (0.1.598:
+     *  KV 19 + state 50 + compute 318 = 388 MB): for a measure that did not keep its parts apart. */
+    const val COMPUTE_SHARE_512 = 318.0 / 388.0
+
+    /**
+     * A model's own memory ([workBytes], of which [computeBytes] compute buffers) measured at prompt batch [fromBatch],
+     * estimated for [toBatch] until a load there measures it. The compute buffers hold a batch's activations, so they
+     * follow the batch; a tenth of them is taken as fixed (graph overhead, the one row of logits), so the estimate errs
+     * high: 318 MB at 512 is estimated 103 MB at 128 (MEMORY_AUDIT.md, M2, expected ~80-100). The cache and the
+     * recurrent state do not depend on the batch.
+     */
+    fun scaleWork(workBytes: Long, computeBytes: Long, fromBatch: Int, toBatch: Int): Long {
+        if (fromBatch <= 0 || toBatch <= 0 || fromBatch == toBatch) return workBytes
+        val c = computeBytes.coerceIn(0, workBytes)
+        return workBytes - c + (c * (0.1 + 0.9 * toBatch / fromBatch.toDouble())).toLong()
+    }
 
     fun pick(i: Input): Choice {
         if (i.bankBytes <= 0 && i.liveBytes <= 0) return NoModel
-        // the town's build has the memory and the cores to itself
-        if (i.foreground && !i.sceneBuilt && !i.writing) return Wait("The town is being built.")
-        val play = i.foreground && i.sceneBuilt && !i.writing
-        val bank = i.bankBytes > 0
+        // the town's build has the memory and the cores to itself (unless the light model's NPU copy goes first: [Input.early])
+        if (i.foreground && !i.sceneBuilt && !i.writing && !(i.early && i.liveBytes > 0 && i.npu && i.accelerated)) return Wait("The town is being built.")
+        val early = i.foreground && !i.sceneBuilt && !i.writing
+        val play = i.foreground && !i.writing
+        val bank = i.bankBytes > 0 && !early
         val live = i.liveBytes > 0
-        fun need(t: Load) = if (t.role == ModelRole.BANK) needBytes(i.bankBytes, t.copied, i.bankWorkBytes) else needBytes(i.liveBytes, t.copied, i.liveWorkBytes)
+        fun need(t: Load) = if (t.role == ModelRole.BANK) needBytes(i.bankBytes, t.copied, i.bankWorkBytes, if (t.copied) i.marginBytes else com.timerpg.street.llm.Ram.MARGIN_MB shl 20, i.bankCopyBytes)
+            else needBytes(i.liveBytes, t.copied, i.liveWorkBytes, if (t.copied) i.marginBytes else com.timerpg.street.llm.Ram.MARGIN_MB shl 20, i.liveCopyBytes)
         val tries = ArrayList<Load>()
         fun add(role: ModelRole, copied: Boolean) { if (copied && !i.accelerated) return; tries += Load(role, copied) }
         when {
@@ -149,5 +181,6 @@ object ModelRoles {
 
     /** What [role]'s copy on its device needs (for the breadcrumbs and the panel). */
     fun copyNeed(i: Input, role: ModelRole): Long =
-        if (role == ModelRole.BANK) needBytes(i.bankBytes, true, i.bankWorkBytes) else needBytes(i.liveBytes, true, i.liveWorkBytes)
+        if (role == ModelRole.BANK) needBytes(i.bankBytes, true, i.bankWorkBytes, i.marginBytes, i.bankCopyBytes)
+        else needBytes(i.liveBytes, true, i.liveWorkBytes, i.marginBytes, i.liveCopyBytes)
 }

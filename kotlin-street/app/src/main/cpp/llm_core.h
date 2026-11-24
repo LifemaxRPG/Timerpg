@@ -135,8 +135,12 @@ public:
      *  attention; where that cannot be had the load falls back to the 16-bit cache). */
     /** Bits 12-14: the batch the prompt is processed in (0: 512 tokens, 1: 256, 2: 128): a smaller one shrinks the
      *  compute buffers (memory beside the weights) at some cost in prompt speed. */
+    /** Bit 15: on the GPU or NPU, the token embeddings (and so a tied output head) stay on the CPU, mapped from the
+     *  file: llama.cpp otherwise copies a tied head to the device beside the mapped embeddings (the same tensor twice,
+     *  497 MB for Qwen3.5-4B Q4_0). No effect on a model with its own output weights. */
     void set_device(int kind) { device_ = kind & 3; repack_ = (kind & 16) != 0; kv_q8_ = (kind & 32) != 0; mtp_n_ = (kind >> 8) & 15;
-                                const int b = (kind >> 12) & 7; batch_max_ = b == 1 ? 256 : b == 2 ? 128 : 512; }
+                                const int b = (kind >> 12) & 7; batch_max_ = b == 1 ? 256 : b == 2 ? 128 : 512;
+                                head_mapped_ = (kind & (1 << 15)) != 0; }
     /** Whether the loaded model's cache is in 8 bits. */
     bool kv_q8() const { return ctx_ && kv_q8_used_; }
     /** Whether the loaded model writes with MTP speculative decoding (it has the prediction head and it was asked for). */
@@ -197,6 +201,8 @@ private:
     bool kv_q8_used_ = false;
     int mtp_n_ = 0;                          // tokens to guess ahead with the MTP head (0: off)
     int batch_max_ = 512;                    // the prompt's batch (n_batch = n_ubatch), at most the context
+    bool head_mapped_ = false;               // a tied output head kept on the CPU, mapped (set_device bit 15)
+    llama_model_tensor_buft_override overrides_[2] = {};  // (alive through the load: llama.cpp reads it there)
     llama_context * dft_ = nullptr;          // the MTP head's context (shares the main context's memory)
     common_speculative * spec_ = nullptr;
     std::vector<int32_t> dft_cached_;       // the tokens the head's own cache holds, position i = dft_cached_[i]

@@ -4,7 +4,9 @@
 #include "llm_core.h"
 
 #include <android/log.h>
+#include <dlfcn.h>
 #include <jni.h>
+#include <malloc.h>
 
 #include <new>
 #include <string>
@@ -82,6 +84,22 @@ extern "C" JNIEXPORT jboolean JNICALL FN(nativeLoad)(JNIEnv * env, jobject, jlon
     } catch (...) {
         return JNI_FALSE;
     }
+}
+
+// The native allocator's free pages back to the system before a model's copy loads (MEMORY_AUDIT.md, C2): scudo's
+// M_PURGE_ALL (Android 14+: every size class), else M_PURGE. mallopt is looked up at run time (API 26+; minSdk is 24).
+extern "C" JNIEXPORT jint JNICALL FN(nativePurge)(JNIEnv *, jclass) {
+    using mallopt_fn = int (*)(int, int);
+    auto fn = reinterpret_cast<mallopt_fn>(dlsym(RTLD_DEFAULT, "mallopt"));
+    if (!fn) return 0;
+    int r = 0;
+#ifdef M_PURGE_ALL
+    r = fn(M_PURGE_ALL, 0);
+#endif
+#ifdef M_PURGE
+    if (r == 0) r = fn(M_PURGE, 0);
+#endif
+    return r;
 }
 
 extern "C" JNIEXPORT void JNICALL FN(nativeSetDevice)(JNIEnv *, jobject, jlong h, jint kind) {

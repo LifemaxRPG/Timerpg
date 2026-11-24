@@ -169,6 +169,57 @@ class ModelRolesTest {
         assertEquals(3513L, ModelRoles.needBytes(live, true, mb(150)) shr 20)
     }
 
+    @Test fun batch128ShrinksTheNeed() {
+        // the S25's measure at batch 512 (0.1.598): KV 19 + state 50 + compute 318 = 388 MB
+        val w512 = mb(388)
+        // at 128 the compute part follows the batch, a tenth of it kept fixed: 318 -> 103, own memory 388 -> 173
+        val w128 = ModelRoles.scaleWork(w512, mb(318), 512, 128)
+        assertEquals(173L, w128 shr 20)
+        // a measure without its parts apart (older builds): the S25's compute share
+        assertEquals(173L, ModelRoles.scaleWork(w512, (w512 * ModelRoles.COMPUTE_SHARE_512).toLong(), 512, 128) shr 20)
+        // the same batch, or no compute: unchanged; the other way: grows back
+        assertEquals(w512, ModelRoles.scaleWork(w512, mb(318), 512, 512))
+        assertEquals(mb(70), ModelRoles.scaleWork(mb(70), 0, 512, 128))
+        assertTrue(ModelRoles.scaleWork(w128, mb(103), 128, 512) > w128)
+        // the light model's need: 3751 MB at 512 (file 2463 + 388 + margin 900); at 128: 3536
+        assertEquals(3751L, ModelRoles.needBytes(live, true, w512) shr 20)
+        assertEquals(3536L, ModelRoles.needBytes(live, true, w128) shr 20)
+        // with the tied head kept mapped, the copy as a load measured it (~2004 MB of the 2463), and a learned margin
+        assertEquals(3077L, ModelRoles.needBytes(live, true, w128, copyBytes = mb(2004)) shr 20)
+        assertEquals(2877L, ModelRoles.needBytes(live, true, w128, mb(700), mb(2004)) shr 20)
+        // the CPU from the file ignores the copy measure
+        assertEquals(ModelRoles.needBytes(live, false, w128), ModelRoles.needBytes(live, false, w128, copyBytes = mb(2004)))
+    }
+
+    @Test fun theGatesNewArithmeticFitsBesideTheTown() {
+        // with the town built (~3050 MB free) and the median reclaim (1514): the old need (3751) was a try on the edge;
+        // batch 128, the head mapped and the margin as it starts: 3077, a try with ~1.5 GB to spare
+        val input = ModelRoles.Input(foreground = true, sceneBuilt = true, freeBytes = mb(3050), bankBytes = bank, liveBytes = live,
+            accelerated = true, liveWorkBytes = ModelRoles.scaleWork(mb(388), mb(318), 512, 128), reclaimBytes = mb(1514), liveCopyBytes = mb(2004))
+        assertEquals(3077L, ModelRoles.copyNeed(input, ModelRole.LIVE) shr 20)
+        assertEquals(Load(ModelRole.LIVE, copied = true, tried = true), ModelRoles.pick(input))
+        // at app start (3665 free, MEMORY_AUDIT.md M1): it fits outright, no try
+        assertEquals(Load(ModelRole.LIVE, copied = true), ModelRoles.pick(ModelRoles.Input(foreground = true, sceneBuilt = false, freeBytes = mb(3665),
+            bankBytes = bank, liveBytes = live, accelerated = true, liveWorkBytes = mb(173), liveCopyBytes = mb(2004), early = true)))
+    }
+
+    @Test fun beforeTheTownOnlyTheLightModelsNpuCopyMayLoad() {
+        fun early(freeMb: Long, reclaimMb: Long = 0, liveBytes: Long = live, npu: Boolean = true, early: Boolean = true) =
+            ModelRoles.pick(ModelRoles.Input(foreground = true, sceneBuilt = false, freeBytes = mb(freeMb), bankBytes = bank, liveBytes = liveBytes,
+                accelerated = true, liveWorkBytes = mb(173), reclaimBytes = mb(reclaimMb), npu = npu, early = early))
+        // not asked for: the town first, as always
+        assertTrue(early(9000, early = false) is ModelRoles.Wait)
+        // asked for: the light model's copy, never the main one's even with room for it
+        assertEquals(Load(ModelRole.LIVE, copied = true), early(9000))
+        assertEquals(Load(ModelRole.LIVE, copied = true, tried = true), early(3000, reclaimMb = 1000))
+        // not enough: waits (for the town, then the gate as usual); never the CPU
+        val w = early(2000)
+        assertTrue(w is ModelRoles.Wait && (w.device))
+        // no light model, or no NPU: the town first
+        assertTrue(early(9000, liveBytes = 0) is ModelRoles.Wait)
+        assertTrue(early(9000, npu = false).let { it is ModelRoles.Wait && !it.device })
+    }
+
     @Test fun withOneModelOnThePhoneThatOneLoads() {
         assertEquals(Load(ModelRole.BANK, copied = false), pick(4067, liveBytes = 0, foreground = false))
         assertEquals(Load(ModelRole.LIVE, copied = true), pick(4067, bankBytes = 0, foreground = false))
