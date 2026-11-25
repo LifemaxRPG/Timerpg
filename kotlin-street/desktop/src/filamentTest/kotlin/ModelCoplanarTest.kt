@@ -94,6 +94,73 @@ class ModelCoplanarTest {
         return s / 2
     }
 
+    /**
+     * The fights of a landmark's .glb as LandmarkKit draws it (every node's mesh at its world place, the collision-only
+     * nodes left out): two faces facing the same way within a millimetre of one plane, sharing more than 10 cm². Faces
+     * turned down within half a metre of the ground (a slab's underside on the plaza: never seen) are not counted.
+     * "node/material / node/material at (x, y, z) m, n (nx, ny, nz), overlap A m²".
+     */
+    private fun landmarkFights(file: File): List<String> {
+        val glb = com.lifemax.rpg.feature.habits.presentation.scene3d.GlbFile.read(file.readBytes())
+        val tris = ArrayList<Tri>()
+        for (n in glb.nodes) {
+            if (n.mesh < 0) continue
+            if (n.name == "collision" || n.extras?.optBoolean("collision_only") == true || (n.extras?.has("render") == true && !n.extras.optBoolean("render", true))) continue
+            val m = n.world
+            for (p in glb.primitives(n.mesh)) {
+                val key = n.name + "/" + (glb.materials.getOrNull(p.material)?.name ?: "-")
+                fun w(v: Int) = DoubleArray(3) { c -> (m[c] * p.pos[v * 3] + m[4 + c] * p.pos[v * 3 + 1] + m[8 + c] * p.pos[v * 3 + 2] + m[12 + c]).toDouble() }
+                var t = 0
+                while (t + 2 < p.idx.size) {
+                    val q = arrayOf(w(p.idx[t]), w(p.idx[t + 1]), w(p.idx[t + 2])); t += 3
+                    val e1 = DoubleArray(3) { q[1][it] - q[0][it] }; val e2 = DoubleArray(3) { q[2][it] - q[0][it] }
+                    val c = doubleArrayOf(e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0])
+                    val l = sqrt(c[0] * c[0] + c[1] * c[1] + c[2] * c[2])
+                    if (l < 1e-9) continue
+                    val nn = DoubleArray(3) { c[it] / l }
+                    if (nn[1] < -.9 && q.all { it[1] < .5 }) continue
+                    tris += Tri(q, nn, nn[0] * q[0][0] + nn[1] * q[0][1] + nn[2] * q[0][2], key)
+                }
+            }
+        }
+        val buckets = HashMap<List<Long>, MutableList<Int>>()
+        for ((i, t) in tris.withIndex()) buckets.getOrPut(listOf(Math.round(t.n[0] * 500), Math.round(t.n[1] * 500), Math.round(t.n[2] * 500), Math.floorDiv(Math.round(t.off * 1000), 1L))) { ArrayList() } += i
+        val found = LinkedHashMap<String, DoubleArray>()
+        for ((k, ids) in buckets) {
+            val near = ids + (buckets[listOf(k[0], k[1], k[2], k[3] + 1)] ?: emptyList())
+            for (i in ids) for (j in near) {
+                if (j <= i && j in ids) continue
+                val a = tris[i]; val b = tris[j]
+                if (abs(a.off - b.off) > 1e-3 || a.n[0] * b.n[0] + a.n[1] * b.n[1] + a.n[2] * b.n[2] < .9999) continue
+                val area = overlap(a, b)
+                if (area > 1e-3) {
+                    val f = found.getOrPut("${a.key} / ${b.key}") { doubleArrayOf(0.0, 0.0, 0.0, 0.0) }
+                    f[0] += area; for (c in 0..2) f[c + 1] = (a.p[0][c] + a.p[1][c] + a.p[2][c]) / 3
+                }
+            }
+        }
+        return found.entries.filter { it.value[0] > .01 }.map { (k, v) -> "%s at (%.1f, %.1f, %.1f) m, overlap %.3f m²".format(java.util.Locale.US, k, v[1], v[2], v[3], v[0]) }
+    }
+
+    /**
+     * The landmarks whose faces were separated (0.1.976, 141429-141456: the flicker where the Great Meridian's pale
+     * limestone meets its dark granite pier, and its frieze speckled with the brick behind it): no two faces of theirs
+     * fight in one plane. The rest of the landmarks are listed (not failed): kotlin-street/tools/glb_coplanar.py
+     * separates a model's faces the same way, the material drawn later over the earlier as the game already shows it.
+     */
+    @Test fun theSeparatedLandmarksHaveNoFacesFightingInOnePlane() {
+        val root = File(assets, "landmarks")
+        val separated = listOf("great-meridian-1926", "great-meridian-1941", "great-meridian-1976", "great-meridian-2000", "great-meridian-mid", "great-meridian-far")
+            .map { File(root, "great-meridian-monument/$it.glb") }
+        val bad = LinkedHashMap<String, List<String>>()
+        for (f in separated) { val fs = landmarkFights(f); if (fs.isNotEmpty()) bad[f.name] = fs }
+        for ((k, fs) in bad) println("$k: ${fs.size} fights\n  " + fs.take(8).joinToString("\n  "))
+        // the others, for the record
+        val rest = root.listFiles()!!.filter { it.isDirectory }.flatMap { d -> d.listFiles()!!.filter { it.name.endsWith(".glb") && it !in separated } }.sortedBy { it.path }
+        for (f in rest) landmarkFights(f).takeIf { it.isNotEmpty() }?.let { println("not yet separated: ${f.parentFile.name}/${f.name}: ${it.size} part pairs fighting") }
+        assertEquals("separated landmarks with faces fighting in one plane: " + bad.keys, 0, bad.size)
+    }
+
     @Test fun theVillasHaveNoFacesFightingInOnePlane() {
         com.google.android.filament.Filament.init()
         val dir = File(assets, "town/gamma/buildings")
