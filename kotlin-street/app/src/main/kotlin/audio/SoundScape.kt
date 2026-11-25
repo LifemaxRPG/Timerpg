@@ -53,11 +53,11 @@ class SoundScape(private val ctx: Context) {
     /** The bicycle's tyres and freewheel (set by the game each frame while riding). */
     val bike = BikeSound()
     private val bikeSource = object : Mixer.Source(Mixer.FX) {
-        private var mono = FloatArray(0)
         override fun render(m: Mixer, out: FloatArray, frames: Int) { bike.render(out, frames, 1f) }
     }
     private val bellPcm by lazy { BikeSound.bell() }
-    private val towerBell by lazy { Pcm(BellSynth.tower()) }
+    /** The tower bell's strike, made on the loader thread at the start (a few tens of milliseconds of sines). */
+    @Volatile private var towerBell: Pcm? = null
 
     // music: a new mood crossfades over a few seconds
     @Volatile private var musicKey: String? = null
@@ -104,6 +104,7 @@ class SoundScape(private val ctx: Context) {
         // (the steps and the cars' one-shots decoded ahead, in the background; the beds when first wanted)
         preload(listOf("car_door_open", "car_door_close_1", "car_door_close_2", "car_door_close_3", "crash_clank", "crash_glass", "crash_big").map { "audio/sfx/$it.ogg" })
         loader.execute { stepCounts() }
+        loader.execute { towerBell = Pcm(BellSynth.tower()) }
     }
 
     // ---------------------------------------------------------------- the state the game sets
@@ -158,7 +159,8 @@ class SoundScape(private val ctx: Context) {
         }
         if (strikesDue.isNotEmpty() && now >= strikesDue[0]) {
             strikesDue.removeAt(0)
-            bellAt?.let { b -> mixer.play(Mixer.Voice(towerBell, 1f, Mixer.AMB, 4, world = true, x = b[0], z = b[1], refM = 60f)) }
+            val tb = towerBell
+            bellAt?.let { b -> if (tb != null) mixer.play(Mixer.Voice(tb, 1f, Mixer.AMB, 4, world = true, x = b[0], z = b[1], refM = 60f)) }
         }
     }
 
