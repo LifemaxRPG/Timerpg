@@ -271,6 +271,11 @@ The world seed only decides **where** each hub stands, by site rules and a score
 
 ## 5. Roads
 
+**The owner's decision (2026-11-25): a realistic mix of straight and curvy roads.** The capital's straight grid stays.
+Every other road follows the land the way real roads do: straight across flat open country, curving round hills,
+rivers and lakes, switchbacks on mountains, and the odd winding country lane. Check any new road network for the mix
+(share of curvature over distance against real-world roads of the same kind), not only for connectivity.
+
 - **Highways** between hubs and the bigger towns on a continent: candidate links are the relative-neighbourhood graph of
   the places (no link where a third place sits between), each routed by a least-cost path on the atlas grid (cost: slope
   squared, water crossings dear, steep mountains very dear, existing roads cheap so routes share), then smoothed into

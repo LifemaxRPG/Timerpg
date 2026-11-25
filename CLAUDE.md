@@ -79,6 +79,11 @@ one major feature rather than the whole premise:
   2,000 x 1,000 km that wraps east-west, ice caps as natural borders; **30% land split into 8-10 small continents and
   big islands** (short drives, lots of sailing between them); terrain is **smooth rolling ground with hard low-poly
   cliff faces only where steep**, pixel-art ground textures on top.
+- **Roads: a realistic mix of straight and curvy** (the owner's decision, 2026-11-25): the capital's grid of straight
+  streets is fine, but every road built from now on (new towns, the country and mountain roads between hubs, highways)
+  follows the land the way real roads do: straight where the land is flat and open, curving round hills, rivers and
+  lakes, with switchbacks on mountains and the odd winding country lane. Driving a good sports car down a curvy road
+  should be one of the game's pleasures.
 - **No fast travel** (the owner's decision, 2026-11-23): you get places by actually travelling them at the world's
   real scale. An hour's drive between big cities is fine ("it'll be a fun drive"). So make the journey worth it:
   scenery, roadside stops, era radio, weather, night driving, hitchhikers, police, breakdowns and fuel. Trains and
