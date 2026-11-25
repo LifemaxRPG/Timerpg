@@ -105,8 +105,10 @@ object ModelDownloads {
     /**
      * Downloads every missing file, reporting (bytes done so far across everything, total) a few times a second.
      * [cancelled] is checked between chunks; a cancelled or failed download keeps its partial file to resume next time.
+     * [onItem] is told of each file once it is in place (the light model's is used and prepared at once, not after the
+     * rest of a long download).
      */
-    fun download(ctx: Context, cancelled: () -> Boolean, items: List<Item> = ITEMS, progress: (Long, Long) -> Unit): Result {
+    fun download(ctx: Context, cancelled: () -> Boolean, items: List<Item> = ITEMS, onItem: (Item) -> Unit = {}, progress: (Long, Long) -> Unit): Result {
         val root = dir(ctx); root.mkdirs()
         val todo = missing(ctx, items)
         val total = size(items)
@@ -154,6 +156,7 @@ object ModelDownloads {
                     if (!part.renameTo(target)) throw java.io.IOException("could not move ${item.path} into place")
                     done += if (item.bytes > 0) item.bytes else 300_000L
                     progress(done, total)
+                    runCatching { onItem(item) }
                     break
                 } catch (e: Exception) {
                     attempt++

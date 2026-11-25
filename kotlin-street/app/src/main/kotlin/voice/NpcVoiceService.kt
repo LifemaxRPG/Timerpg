@@ -365,7 +365,10 @@ class NpcVoiceService(private val ctx: Context) {
         cancelDownload = false
         downloading = 0f; downloadNote = "Starting…"
         Thread({
-            val r = ModelDownloads.download(ctx, { cancelDownload }, items) { done, total ->
+            val r = ModelDownloads.download(ctx, { cancelDownload }, items, onItem = { item ->
+                // the light model in place: it loads and is prepared now, while the rest downloads
+                if (item.prepared != null) main.post { com.timerpg.street.dialogue.DialogueEngine.shared(ctx).reload() }
+            }) { done, total ->
                 main.post { downloading = done.toFloat() / total; downloadNote = "${done shr 20} of ${total shr 20} MB" }
             }
             main.post {
