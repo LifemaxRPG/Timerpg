@@ -1,0 +1,195 @@
+{
+  "kind": "night",
+  "start": "2026-11-24T11:51:29.457-0500",
+  "end": "2026-11-24T12:06:19.727-0500",
+  "minutes": 14.8,
+  "how": "job",
+  "stopReason": "the system ended the job (its time was up, or a condition changed)",
+  "inPlainWords": "Nothing was written: 14 min waiting for the model to load. It stopped: the system ended the job (its time was up, or a condition changed).",
+  "app": {
+    "versionName": "0.1.848 (209b3fb)",
+    "versionCode": 848,
+    "git": "209b3fb",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "written": {
+    "lines": 0,
+    "variants": 0,
+    "rejected": 0,
+    "timedOut": 0,
+    "failed": 15,
+    "lastFailure": "the model failed on a line: generation failed: ggml-hex: fastrpc_mmap failed (see log for details)",
+    "linesPerHour": 0,
+    "linesPerWritingHour": 0
+  },
+  "speed": {
+    "model": "",
+    "runsOn": "",
+    "genTokens": 0,
+    "genTokPerSec": 0,
+    "prefillTokens": 3195,
+    "prefillTokPerSec": 3195000
+  },
+  "time": {
+    "writingMin": 0,
+    "coolingMin": 0,
+    "hotPausedMin": 0,
+    "burstRestMin": 0,
+    "batteryWaitMin": 0,
+    "pausedByYouMin": 0,
+    "heldMin": 0,
+    "heldBy": null,
+    "closingGameMin": 0,
+    "modelLoadMin": 14.8
+  },
+  "model": {
+    "loaded": "",
+    "problem": null,
+    "engineAtEnd": "error: The model stopped working (generation failed: ggml-hex: fastrpc_mmap failed (see log for details)). Tap Retry to load it again.",
+    "lastRejected": null,
+    "freeAtStartMb": 3893,
+    "freedByClosingGameMb": -1,
+    "freeBeforeLoadMb": 3893,
+    "androidThresholdMb": 216,
+    "mainCopyNeedsMb": 6839,
+    "lightCopyNeedsMb": 3751,
+    "freeAfterLoadMb": 3116
+  },
+  "heat": {
+    "coolDowns": 0,
+    "hotPauses": 0,
+    "maxThermalStatus": 0
+  },
+  "battery": {
+    "start": 55,
+    "end": 60,
+    "pluggedAtStart": true,
+    "pluggedAtEnd": true
+  },
+  "bank": {
+    "prompts": 1788,
+    "ready": 72,
+    "templates": 0,
+    "missing": 1716,
+    "lines": 72,
+    "variantsDone": 0,
+    "stale": 1,
+    "years": [
+      2025
+    ],
+    "light": 72,
+    "left": 1932,
+    "etaMin": null
+  },
+  "queue": {
+    "byYear": {
+      "2025": 1932
+    },
+    "byPerson": {
+      "Ernest Reyes": 35,
+      "Betty Chen": 28,
+      "Clyde Novak": 26,
+      "Florence Moreau": 24,
+      "Harold Abbott": 24,
+      "Robert Kowalski": 24,
+      "Vera Singh": 24,
+      "William Kowalski": 24,
+      "others (141)": 1723
+    },
+    "byTopic": {
+      "your themes": 966,
+      "chat": 297,
+      "work": 176,
+      "family": 163,
+      "rumors": 163,
+      "secret": 163,
+      "follow-ups": 4
+    }
+  },
+  "recent": [],
+  "player": {
+    "themes": [
+      {
+        "label": "the town: secrets, town",
+        "kind": "the town",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: anyways, asking",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "flirting: nice, pretty",
+        "kind": "flirting",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: ask, asked",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: hear, yo",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "gossip: library, new",
+        "kind": "gossip",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "personal: baby, meet",
+        "kind": "personal",
+        "asked": 1,
+        "live": 0,
+        "people": 1
+      },
+      {
+        "label": "personal: name",
+        "kind": "personal",
+        "asked": 1,
+        "live": 0,
+        "people": 1
+      },
+      {
+        "label": "personal: baby, old",
+        "kind": "personal",
+        "asked": 1,
+        "live": 0,
+        "people": 1
+      }
+    ],
+    "answersByDay": [
+      {
+        "day": "2026-11-18",
+        "ready": 0,
+        "live": 0,
+        "template": 1,
+        "readyShare": 0
+      },
+      {
+        "day": "2026-11-23",
+        "ready": 0,
+        "live": 7,
+        "template": 0,
+        "readyShare": 0
+      }
+    ]
+  }
+}
