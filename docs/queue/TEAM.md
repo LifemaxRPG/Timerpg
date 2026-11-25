@@ -81,6 +81,12 @@ files (docs/queue/reviews/) say what worked as well as what to change: read the 
   - Jeff's pixel-art sky (G016) was accepted on round 2, a blind graphics build where the ocean took three. The real
     Filament render matches his proof sheet: dusk bands, a crescent by the clock tower, and stars fixed in the sky as
     the camera turns.
+- **2026-11-25:**
+  - The capital now streams by distance: full detail near the player, merged far districts, far lights as glowing dots
+    at night, flat stand-ins for far trees, and a horizon ring of mountains and distant town lights out to 640 km. Near
+    views are pixel-for-pixel the same, while graphics memory after the town loads fell from 1,060 MB to 538 MB (peak
+    on a walk-and-drive route: 1,205 to 706 MB; desktop numbers). That's about half a gigabyte handed back for the NPU
+    dialogue model. The owner: "a very big win... a significant gain in free memory."
 
 ## The team's next milestone
 
