@@ -87,6 +87,9 @@ files (docs/queue/reviews/) say what worked as well as what to change: read the 
     views are pixel-for-pixel the same, while graphics memory after the town loads fell from 1,060 MB to 538 MB (peak
     on a walk-and-drive route: 1,205 to 706 MB; desktop numbers). That's about half a gigabyte handed back for the NPU
     dialogue model. The owner: "a very big win... a significant gain in free memory."
+  - A second pass packed the same look tighter: night windows stored as only the tiles that hold glass, 3D data in 20
+    bytes instead of 28, and one shared picture sheet for every yard. Whole town 1,060 to 668 MB; route peak now 478 MB,
+    about 40% of the 1,205 MB before streaming, with near views unchanged. The owner: "That is crazy... Amazing."
 
 ## The team's next milestone
 
