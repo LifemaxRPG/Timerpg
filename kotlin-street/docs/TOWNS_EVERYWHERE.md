@@ -170,6 +170,9 @@ towns) and `hamlet` (hamlets along the roads). 2 spreads that rank twice as far 
 
 ## Streaming plan (the next step, not built)
 
+(The world between the towns streams round the player since 2026-11-25: WORLD_STREAM.md, whose section 7 says what this
+plan needs from it.)
+
 1. The app ships `manifest.json` (about 2 MB) and the packs (or the JSON packs plus on-device pictures, above).
 2. When the player comes within ~3 km of a town's `bounds`, its pack is read and inflated on a worker, its pictures
    composited or read from the cache; within ~1 km the town is built as gamma is today (`FilamentTown`, ground first,

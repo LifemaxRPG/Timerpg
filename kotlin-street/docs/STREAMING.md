@@ -6,6 +6,9 @@ the town the world's far view (WorldFar, 172 km) and now a horizon ring carry th
 near to far, is GTA's: full detail, a coarse stand-in per cell, a coarser one per district, lights as dots at night, and a
 painted horizon.
 
+Out of town the world itself streams round the player (the far view re-planned, the near terrain, the cars' ground,
+the capital kept on the skyline): WORLD_STREAM.md.
+
 Background and sources: OPTIMIZATION_RESEARCH.md sections 2 (render distance and open worlds) and 6; the budget it
 serves: MEMORY_AUDIT.md ("The memory budget guard"). Every number below is **desktop** (the build server, Mesa llvmpipe,
 software GL) unless it says otherwise. Filament's own count on the desktop matches the phone's to within ~2%
