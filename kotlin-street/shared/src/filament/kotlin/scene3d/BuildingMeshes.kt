@@ -55,6 +55,8 @@ internal class BuiltBuilding(
     /** How many draws it costs (its primitives), and its triangles. */
     val primitives: Int,
     val triangles: Int,
+    /** Its parts drawn opaque and their masked twins ([Cutouts]; a model's), or null: all masked. */
+    val twins: Twins? = null,
 )
 
 /**
@@ -165,7 +167,7 @@ internal class BuildingMeshes(
         val prims = rm.getInstance(m.entity).let { if (it != 0) rm.getPrimitiveCount(it) else 1 }
         // (the town draws through Filament's own camera: it may cull the model by its box)
         rm.getInstance(m.entity).takeIf { it != 0 }?.let { rm.setCulling(it, true) }
-        return BuiltBuilding(m.entity, m.proxy, m.mis, m.proxyMis, m.geo, m.night, m.bounds, prims, m.geo.triangles)
+        return BuiltBuilding(m.entity, m.proxy, m.mis, m.proxyMis, m.geo, m.night, m.bounds, prims, m.geo.triangles, m.twins)
     }
 
     /** A box (a shop or a stack of flats): its front, sign, sides, back, roof or pitched roof and gables, rooftop billboard. */

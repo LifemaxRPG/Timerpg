@@ -313,6 +313,10 @@ class FilamentTown(
     val camera: Camera = engine.createCamera(EntityManager.get().create())
     private val lit: Material = load("street_lit", materialBytes)
     private val proxyMat: Material = load("shadow_proxy", materialBytes)
+    // the opaque twins (docs/NOVEL_OPTIMIZATIONS.md idea 1, [Cutouts]): what has no cut-out texels draws with these; an app
+    // or preview without them (an older asset set) draws everything masked as before
+    private val litOpaque: Material? = runCatching { load("street_lit_opaque", materialBytes) }.getOrNull()?.also { Cutouts.register(lit, it) }
+    private val proxyOpaque: Material? = runCatching { load("shadow_proxy_opaque", materialBytes) }.getOrNull()?.also { Cutouts.register(proxyMat, it) }
     private val textures = StreetTextures(engine, srgb = true)
     private val meshes = BuildingMeshes(engine, lit, proxyMat, textures)
     private val sun: Int = EntityManager.get().create()
@@ -491,6 +495,8 @@ class FilamentTown(
         val isBuilt: Boolean get() = built != null
         /** A sphere round it in the world (its footprint's middle, a guess at its height until built). */
         var cx = 0f; var cy = 40f; var cz = 0f; var r = 0f
+        // what its instances were last given ([paramGen], its fade, which build, masked or not): unchanged, nothing is sent
+        var sentGen = -1; var sentFade = Float.NaN; internal var sentTo: BuiltBuilding? = null; var sentMasked = false
         var missing = false
         var shown = false
         /** Between the open world's camera and the player ([occlude]), and how far faded for it now (eased a frame at a time). */
@@ -982,6 +988,7 @@ class FilamentTown(
         for (e in listOf(b.entity, b.proxy)) if (e != 0) { scene.remove(e); engine.destroyEntity(e); em.destroy(e) }
         // (its material instances, then the textures only it held, over the next frames: [Graveyard])
         for (mi in b.mis) Graveyard.bury(engine, mi)
+        b.twins?.idle?.forEach { Graveyard.bury(engine, it) }
         for (mi in b.proxyMis) Graveyard.bury(engine, mi)
         b.geo.free(engine)
         val held = ArrayList(s.held)
@@ -1297,7 +1304,9 @@ class FilamentTown(
             j.yard -> yardLayer
             else -> ground
         }
-        val mi = if (stream && jp != null && !jp.far) BufferArena.streamed { layer.upload(j.packed, j.casts, j.tiled) } else layer.upload(j.packed, j.casts, j.tiled)
+        // (a pool's water scrolls its picture on the instance returned: that batch stays masked)
+        val own = j.water != null
+        val mi = if (stream && jp != null && !jp.far) BufferArena.streamed { layer.upload(j.packed, j.casts, j.tiled, own) } else layer.upload(j.packed, j.casts, j.tiled, own)
         j.hide?.let { hideables += Hideable(layer, layer.batchCount - 1, j.casts, it) }
         j.water?.let { (w, h) ->
             val tick: (Double) -> Unit = { s -> YardLayer.shimmer(mi, w, h, s) }
@@ -1591,6 +1600,12 @@ class FilamentTown(
     private var nightCount = 0
     private var nightNext = 0
 
+    // the buildings' per-frame parameters last sent ([frame]): the look, glow, glass and see-through generation
+    private val sentLook = FloatArray(16) { Float.NaN }
+    private val sentKey = FloatArray(8) { Float.NaN }
+    private var paramGen = 0
+    private var sentSee = -1
+
     /** Brings the scene to camera [pose] at [hour]; [seconds] is the clock (the yards' water shimmers by it). */
     fun frame(pose: TownPose, hour: Float, seconds: Double = 0.0) {
         // (what streaming let go of, destroyed a little a frame: docs/HEAT.md)
@@ -1623,6 +1638,13 @@ class FilamentTown(
         val tone = sky.sky.lastOrNull() ?: Color.White
         val m = max(tone.red, max(tone.green, tone.blue)).coerceAtLeast(.05f)
         val gl0 = mix(1f, tone.red / m * 1.15f, .7f); val gl1 = mix(1f, tone.green / m * 1.15f, .7f); val gl2 = mix(1f, tone.blue / m * 1.15f, .7f)
+        // (the buildings' shared parameters this frame: a new generation when any of them changed)
+        val pk = sentKey
+        if (!look.contentEquals(sentLook) || pk[0] != g0 || pk[1] != g1 || pk[2] != g2 || pk[3] != ga || pk[4] != gl0 || pk[5] != gl1 || pk[6] != gl2 || sentSee != SeeThrough.gen) {
+            System.arraycopy(look, 0, sentLook, 0, 16)
+            pk[0] = g0; pk[1] = g1; pk[2] = g2; pk[3] = ga; pk[4] = gl0; pk[5] = gl1; pk[6] = gl2; sentSee = SeeThrough.gen
+            paramGen++
+        }
         val rm = engine.renderableManager
         var visible = 0; var draws = 0; var tris = 0; var renderables = 0; var casters = 0
         // (what is cut away for the open world's camera eases by the clock, the same at 60 and 120 Hz)
@@ -1659,13 +1681,20 @@ class FilamentTown(
             if (near && b.proxy != 0) casters++
             if (!on) continue
             visible++; renderables++; draws += b.primitives; tris += b.triangles
-            for (mi in b.mis) {
-                mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
-                SeeThrough.apply(mi)
-                mi.setParameter("cell", 2f)
-                mi.setParameter("fade", fade)
-                mi.setParameter("glow", g0, g1, g2, ga)
-                mi.setParameter("glass", gl0, gl1, gl2, 1f)
+            // (its opaque parts wear their masked twins while it fades or the see-through may reach it: [Cutouts])
+            b.twins?.wear(engine, b.entity, fade < 1f || (SeeThrough.cuts && SeeThrough.reaches(s.cx - s.r, s.cy - s.r, s.cz - s.r, s.cx + s.r, s.cy + s.r, s.cz + s.r)))
+            // (only when something it shows changed: standing still, its instances are not touched, nor committed again)
+            val masked = b.twins?.isMasked == true
+            if (s.sentGen != paramGen || s.sentFade != fade || s.sentTo !== b || s.sentMasked != masked) {
+                s.sentGen = paramGen; s.sentFade = fade; s.sentTo = b; s.sentMasked = masked
+                for (mi in b.mis) {
+                    mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
+                    SeeThrough.apply(mi)
+                    mi.setParameter("cell", 2f)
+                    mi.setParameter("fade", fade)
+                    mi.setParameter("glow", g0, g1, g2, ga)
+                    mi.setParameter("glass", gl0, gl1, gl2, 1f)
+                }
             }
             if (b.night != null) nightQueue[nightCount++] = s
         }
@@ -2450,6 +2479,7 @@ class FilamentTown(
             val b = s.built ?: continue
             for (e in listOf(b.entity, b.proxy)) if (e != 0) { scene.remove(e); engine.destroyEntity(e); em.destroy(e) }
             for (mi in b.mis) engine.destroyMaterialInstance(mi)
+            b.twins?.idle?.forEach { engine.destroyMaterialInstance(it) }
             for (mi in b.proxyMis) engine.destroyMaterialInstance(mi)
             b.geo.free(engine)
             s.built = null
@@ -2468,7 +2498,9 @@ class FilamentTown(
         textures.destroy(all = true)
         scene.remove(sun); engine.destroyEntity(sun); em.destroy(sun)
         ibl?.let { engine.destroyIndirectLight(it) }; ibl = null
+        Cutouts.unregister(lit); Cutouts.unregister(proxyMat)
         engine.destroyMaterial(lit); engine.destroyMaterial(proxyMat)
+        litOpaque?.let { engine.destroyMaterial(it) }; proxyOpaque?.let { engine.destroyMaterial(it) }
         for (m in extraMaterials.values) engine.destroyMaterial(m)
         extraMaterials.clear()
         engine.destroyColorGrading(grading)

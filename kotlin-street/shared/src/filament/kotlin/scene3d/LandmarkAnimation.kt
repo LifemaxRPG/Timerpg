@@ -802,7 +802,7 @@ internal class LandmarkAnimator private constructor(
             for (n in set.nodes) {
                 val start = props.batchCount
                 for (b in n.batches) {
-                    val mi = props.upload(b.packed, b.casts, b.tiled)
+                    val mi = props.upload(b.packed, b.casts, b.tiled, own = true)
                     cinema.track(mi, b.role)
                 }
                 val count = props.batchCount - start

@@ -674,6 +674,7 @@ class TownFarms internal constructor(
                 if (mm.proxy != 0) rm.getInstance(mm.proxy).takeIf { it != 0 }?.let { rm.setLayerMask(it, 0xff, if (mNear) 1 else 0) }
                 if (mNear && mm.proxy != 0) out[2]++
                 if (!mOn) continue
+                mm.twins?.wear(engine, mm.entity, mf < 1f)
                 for (mi in mm.mis) {
                     mi.setParameter("look", MaterialInstance.FloatElement.MAT4, f.look, 0, 1)
                     mi.setParameter("fade", mf)
@@ -747,6 +748,7 @@ class TownFarms internal constructor(
                 val mm = m.mesh ?: continue
                 for (e in listOf(mm.entity, mm.proxy)) if (e != 0) { kit.scene.remove(e); engine.destroyEntity(e); em.destroy(e) }
                 for (mi in mm.mis) engine.destroyMaterialInstance(mi)
+                mm.twins?.idle?.forEach { engine.destroyMaterialInstance(it) }
                 for (mi in mm.proxyMis) engine.destroyMaterialInstance(mi)
                 mm.geo.free(engine)
                 m.mesh = null

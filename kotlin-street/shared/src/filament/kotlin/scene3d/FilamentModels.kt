@@ -46,6 +46,8 @@ internal class ModelMesh(
     /** Its world bounds (min x, y, z, max x, y, z), and those of the building alone (not its yard). */
     val bounds: FloatArray,
     val body: FloatArray,
+    /** Its parts drawn opaque ([Cutouts]) and their masked twins: [Twins.wear] them masked while it fades; null: all masked. */
+    val twins: Twins? = null,
 )
 
 /**
@@ -118,6 +120,8 @@ internal object FilamentModels {
         internal val night: Night, internal val linear: Boolean,
         /** [vb] quantised on the worker ([TownVertex.quantize]); null: floats. */
         internal val quant: TownVertex.Quant? = null,
+        /** What each of [ranges] wears, and whether it has no cut-out texels (drawn opaque where the town can, [Cutouts]). */
+        internal val parts: List<Part> = emptyList(),
     ) {
         /** The pictures read ahead for it ([StreetTextures.warm]): let go once it is finished ([StreetTextures.drop]). */
         internal var warmed: List<ImageBitmap> = emptyList()
@@ -136,6 +140,22 @@ internal object FilamentModels {
         /** A clock's hands (its [ModelPart.clock]), painted at the hour. */
         class Clock(val c: IntArray) : Key()
     }
+
+    /** A primitive of a model: the group it is drawn from, and whether its triangles have no cut-out texels ([Cutouts]). */
+    class Part(val key: Key, val opaque: Boolean)
+
+    /**
+     * The cut-out tables for what [key] wears ([atlas] for the atlas's groups), or null for a group never opaque: a card
+     * (seen from its front only: the material cuts its back), a glass panel (a screen door), a clock's hands.
+     */
+    private fun cutoutsOf(key: Key, atlas: ImageBitmap): Cutouts? = when (key) {
+        is Key.Atlas -> Cutouts.of(atlas, atlas.width, atlas.height) { StreetTextures.argb(atlas) }
+        is Key.Plain -> Cutouts.of(WHITE, 1, 1) { WHITE }
+        is Key.Pic -> Cutouts.of(key.img, key.img.width, key.img.height) { StreetTextures.argb(key.img) }
+        else -> null
+    }
+    /** The plain groups' picture: white, alpha whole (textures.white). */
+    private val WHITE = intArrayOf(-1)
 
     class Group(val key: Key) {
         /** Per vertex: x, y, d, u, v, then the normal and the tangent (model axes). */
@@ -1301,6 +1321,7 @@ internal object FilamentModels {
         val bounds = floatArrayOf(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE)
         val body = floatArrayOf(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE)
         val ranges = ArrayList<IntArray>()
+        val parts = ArrayList<Part>()
         var base = 0; var io = 0
         for (gp in groups) {
             val yard = gp.key is Key.Pic
@@ -1336,20 +1357,26 @@ internal object FilamentModels {
                     body[3] = max(body[3], wx); body[4] = max(body[4], wy); body[5] = max(body[5], wz)
                 }
             }
+            // (its triangles with no cut-out texels first: they draw opaque, [Cutouts], the rest masked, two primitives)
+            val no = Cutouts.partition(gp.idx, gp.ni, gp.v, if (Cutouts.on) cutoutsOf(gp.key, g.atlas) else null, stride = 11, at = 3)
             if (short) for (i in 0 until gp.ni) ib.putShort((base + gp.idx[i]).toShort()) else for (i in 0 until gp.ni) ib.putInt(base + gp.idx[i])
-            ranges += intArrayOf(io, gp.ni)
+            if (no in 1 until gp.ni) {
+                ranges += intArrayOf(io, no); parts += Part(gp.key, true)
+                ranges += intArrayOf(io + no, gp.ni - no); parts += Part(gp.key, false)
+            } else { ranges += intArrayOf(io, gp.ni); parts += Part(gp.key, no > 0) }
             io += gp.ni; base += gp.nv
         }
         vb.flip(); ib.flip()
         // (the groups' own arrays go: they are packed, and only their keys and counts are wanted from here)
         for (gp in groups) { gp.v = FloatArray(0); gp.idx = IntArray(0) }
         val qt = BufferArena.quantized(vb, nv, g.atlas.width, g.atlas.height)
-        return Ready(g.atlas, groups, qt?.vb ?: vb, ib, nv, ni, ranges, bounds, body, night, linear, qt)
+        return Ready(g.atlas, groups, qt?.vb ?: vb, ib, nv, ni, ranges, bounds, body, night, linear, qt, parts)
     }
 
     /** Makes a [prepare]d model Filament's (the engine's thread): its buffers, pictures, materials and renderables. */
     fun finish(engine: Engine, visibleMat: Material, proxyMat: Material?, textures: StreetTextures, r: Ready): ModelMesh {
         val groups = r.groups; val nv = r.nv; val ni = r.ni; val vb = r.vb; val ib = r.ib; val ranges = r.ranges
+        val parts = r.parts.ifEmpty { groups.map { Part(it.key, false) } }
         val bounds = r.bounds; val body = r.body; val night = r.night; val linear = r.linear
         val geo = BufferArena.upload(engine, vb, nv, ib, ni, TownVertex.short(nv), r.quant)
         val vertices = geo.vb; val indices = geo.ib; val first = geo.first
@@ -1382,9 +1409,11 @@ internal object FilamentModels {
             is Key.Glass -> glassTexture(textures, key.alpha) to repeat
             is Key.Clock -> clockTex.getValue(key.c) to nearest
         }
-        val mis = Array(groups.size) { j ->
-            val key = groups[j].key
-            visibleMat.createInstance().also { mi ->
+        // (a part with no cut-out texels wears the opaque twin, [Cutouts]; its masked one is made when it first fades)
+        val opaqueMat = Cutouts.twin(visibleMat)
+        fun visibleOf(j: Int, mat: Material): MaterialInstance {
+            val key = parts[j].key
+            return mat.createInstance().also { mi ->
                 val (tex, smp) = albedoOf(key)
                 mi.setParameter("albedo", tex, smp)
                 mi.setParameter("mask", if (key is Key.Atlas || key is Key.Card) night.mask ?: textures.black else if (key is Key.Glass) glassMask(textures) else textures.black, if (key is Key.Glass) repeat else nearest)
@@ -1401,22 +1430,27 @@ internal object FilamentModels {
                 geo.decode(mi)
             }
         }
+        val opq = Array<MaterialInstance?>(parts.size) { j -> if (opaqueMat != null && parts[j].opaque) visibleOf(j, opaqueMat) else null }
+        val mis = Array(parts.size) { j -> opq[j] ?: visibleOf(j, visibleMat) }
+        for (j in parts.indices) if (opq[j] != null) Cutouts.primsOpaque.incrementAndGet() else Cutouts.primsMasked.incrementAndGet()
+        val twins = if (opq.any { it != null }) Twins(opq, mis) { j -> visibleOf(j, visibleMat) } else null
         val e = EntityManager.get().create()
-        val rb = RenderableManager.Builder(groups.size).boundingBox(bbox).culling(false).castShadows(false).receiveShadows(true).priority(4)
-        for (j in groups.indices) rb.geometry(j, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices, first + ranges[j][0], ranges[j][1]).material(j, mis[j])
+        val rb = RenderableManager.Builder(parts.size).boundingBox(bbox).culling(false).castShadows(false).receiveShadows(true).priority(4)
+        for (j in parts.indices) rb.geometry(j, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices, first + ranges[j][0], ranges[j][1]).material(j, mis[j])
         rb.build(engine, e)
         var proxy = 0
         var pmis: Array<MaterialInstance> = emptyArray()
         if (proxyMat != null) {
-            pmis = Array(groups.size) { j ->
-                proxyMat.createInstance().also { mi ->
-                    val (tex, smp) = albedoOf(groups[j].key)
+            val proxyOpaque = Cutouts.twin(proxyMat)
+            pmis = Array(parts.size) { j ->
+                (if (proxyOpaque != null && parts[j].opaque) proxyOpaque else proxyMat).createInstance().also { mi ->
+                    val (tex, smp) = albedoOf(parts[j].key)
                     mi.setParameter("albedo", tex, smp); mi.setParameter("uvRect", 0f, 0f, 1f, 1f); geo.decode(mi)
                 }
             }
             proxy = EntityManager.get().create()
-            val pb = RenderableManager.Builder(groups.size).boundingBox(bbox).castShadows(true).receiveShadows(false)
-            for (j in groups.indices) pb.geometry(j, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices, first + ranges[j][0], ranges[j][1]).material(j, pmis[j])
+            val pb = RenderableManager.Builder(parts.size).boundingBox(bbox).castShadows(true).receiveShadows(false)
+            for (j in parts.indices) pb.geometry(j, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices, first + ranges[j][0], ranges[j][1]).material(j, pmis[j])
             pb.build(engine, proxy)
         }
         val hourly: ((Float) -> Unit)? = when {
@@ -1425,7 +1459,7 @@ internal object FilamentModels {
             else -> null
         }
         textures.drop(r.warmed)
-        return ModelMesh(e, proxy, mis, pmis, geo, hourly, bounds, body)
+        return ModelMesh(e, proxy, mis, pmis, geo, hourly, bounds, body, twins)
     }
 
     /** A 4x4 screen door at [alpha] (0..255) of white: a glass panel's pixels, every one of a model's pixels a cell. */

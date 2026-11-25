@@ -58,6 +58,7 @@ internal object SeeThrough {
         var any = if (b[3] > 0f) s else 0f
         for (i in 0 until CROWNS) if (crowns[i * 4 + 3] > 0f) { val c = crownK[i]; k[i] = c * c * (3f - 2f * c); any = kotlin.math.max(any, k[i]) } else k[i] = 0f
         see[0] = if (b[3] > 0f) s else 0f; see[1] = GHOST; see[2] = if (any > .01f) 1f else 0f; see[3] = 0f
+        bump()
     }
     /** seeK: the cone's openness, the ghost, anything on. */
     private val see = FloatArray(4)
@@ -102,7 +103,48 @@ internal object SeeThrough {
     @JvmField var enabled = System.getProperty("see") != "0"
 
     /** Nothing is cut (the street view, a room). */
-    fun off() { a.fill(0f); b.fill(0f); see.fill(0f); crowns.fill(0f); crownK.fill(0f); k.fill(0f) }
+    fun off() { a.fill(0f); b.fill(0f); see.fill(0f); crowns.fill(0f); crownK.fill(0f); k.fill(0f); bump() }
+
+    /**
+     * Bumped whenever what [apply] sets changes ([aim], [off]): a layer hands it again only then (standing still with
+     * nothing cut, it hands nothing). Starts at 0; a batch that never had it holds -1.
+     */
+    @JvmField var gen = 0
+    private val was = FloatArray(4 + 4 + 4 + CROWNS * 4 + 4)
+    private fun bump() {
+        var i = 0; var changed = false
+        fun put(v: Float) { if (was[i] != v) { was[i] = v; changed = true }; i++ }
+        for (v in a) put(v); for (v in b) put(v); for (v in see) put(v); for (v in crowns) put(v); for (v in k) put(v)
+        if (changed) gen++
+    }
+
+    /** Whether anything is cut this frame (the material's `seeK.z`): off, nothing is thinned anywhere. */
+    val cuts: Boolean get() = see[2] > 0f
+
+    /**
+     * Whether the cut this frame may thin anything in the box ([x0], [y0], [z0]) - ([x1], [y1], [z1]) (user world): its
+     * cone (bounded by a box round the line from the eye, as long as the cut reaches, widened by the cone's widest radius)
+     * or a faded crown's volume. Conservative: a batch it may reach wears the masked material, which has the screen doors
+     * ([Cutouts]: the opaque twin has none). Allocates nothing.
+     */
+    fun reaches(x0: Float, y0: Float, z0: Float, x1: Float, y1: Float, z1: Float): Boolean {
+        if (see[2] <= 0f || y1 <= 1.5f) return false
+        if (b[3] > 0f && a[3] > 0f) {
+            val r = kotlin.math.max(b[3], 3f) + 2f
+            val ex = b[0] - a[0]; val ey = b[1] - a[1]; val ez = b[2] - a[2]
+            val fx = a[0] + ex * a[3]; val fy = a[1] + ey * a[3]; val fz = a[2] + ez * a[3]
+            if (kotlin.math.min(a[0], fx) - r <= x1 && kotlin.math.max(a[0], fx) + r >= x0 &&
+                kotlin.math.min(a[1], fy) - r <= y1 && kotlin.math.max(a[1], fy) + r >= y0 &&
+                kotlin.math.min(a[2], fz) - r <= z1 && kotlin.math.max(a[2], fz) + r >= z0) return true
+        }
+        for (i in 0 until CROWNS) {
+            val o = i * 4
+            val r = crowns[o + 3] * 1.1f + 1f
+            if (crowns[o + 3] <= 0f) continue
+            if (crowns[o] - r <= x1 && crowns[o] + r >= x0 && crowns[o + 1] - r <= y1 && crowns[o + 1] + r >= y0 && crowns[o + 2] - r <= z1 && crowns[o + 2] + r >= z0) return true
+        }
+        return false
+    }
 
     fun apply(mi: MaterialInstance) {
         mi.setParameter("seeA", a[0], a[1], a[2], a[3])
