@@ -1,0 +1,701 @@
+{
+  "kind": "screenshot",
+  "time": "2026-11-25T14:15:49.362-0500",
+  "epochMs": 1795634149362,
+  "note": "keep hearing sirens randomly.  birds can be formed down to they're loud",
+  "app": {
+    "versionName": "0.1.976 (58216b0)",
+    "versionCode": 976,
+    "git": "58216b0",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "image": {
+    "file": "141549-keep-hearing-sirens-randomly-bir.png",
+    "format": "png",
+    "scale": 1,
+    "width": 2340,
+    "height": 1080,
+    "bytes": 2613997,
+    "captured": "PixelCopy of the town's SurfaceView under the window"
+  },
+  "screen": {
+    "widthPx": 2244,
+    "heightPx": 1038,
+    "density": 2.8125,
+    "densityDpi": 450
+  },
+  "device": {
+    "ramFreeMb": 3202,
+    "ramTotalMb": 11113,
+    "lowMemory": false,
+    "gamePssMb": 1385,
+    "thermalStatus": 1,
+    "thermalHeadroom10s": 0.84684426
+  },
+  "game": {
+    "renderer": "Filament",
+    "camera": "medium",
+    "view": "open",
+    "orbit": {
+      "yaw": -3.5112166,
+      "pitch": 22.348633,
+      "dist": 420,
+      "pulled": 482.99994,
+      "goalYaw": -3.549566,
+      "goalPitch": 22.348633,
+      "goalDist": 420,
+      "tx": 9534.386,
+      "tz": 9507.012,
+      "line": "camera open yaw -3.5 pitch 22.3 dist 420 (pulled to 483) at (9534, 9507)"
+    },
+    "rendererError": null,
+    "town": "eta · Commuter suburb · 2025",
+    "walkableTown": {
+      "seed": "gamma",
+      "loading": false,
+      "ready": true,
+      "progress": 1,
+      "error": null,
+      "loadMs": 664.79254,
+      "firstViewMs": 7746.3154,
+      "built": "town built: ground 7739 ms (workers 7731), buildings 326 ms here (slowest b13 6.1 ms, largest batch 79.8 ms), 15207 ms on workers (slowest b55 298 ms); textures 1294, 78.6M texels, 19089 shared",
+      "memory": {
+        "when": "town built",
+        "graphicsMb": 843,
+        "nativeMb": 190,
+        "javaMb": 218,
+        "codeMb": 41,
+        "totalPssMb": 1363,
+        "graphicsParts": {
+          "Gfx dev": 249,
+          "EGL mtrack": 78,
+          "GL mtrack": 514,
+          "Other mtrack": 0,
+          "kgslMappedPssMb": 0,
+          "dmabufPssMb": 0
+        },
+        "gpuByPart": {
+          "farms": {
+            "mb": 75,
+            "texturesMb": 9.9,
+            "textures": 85,
+            "buffersMb": 65.1,
+            "buffers": 958
+          },
+          "yards": {
+            "mb": 67.4,
+            "texturesMb": 5.1,
+            "textures": 33,
+            "buffersMb": 62.3,
+            "buffers": 2970
+          },
+          "GLB landmarks": {
+            "mb": 39.1,
+            "texturesMb": 29,
+            "textures": 383,
+            "buffersMb": 10,
+            "buffers": 533
+          },
+          "trees": {
+            "mb": 33.1,
+            "texturesMb": 10.8,
+            "textures": 20,
+            "buffersMb": 22.3,
+            "buffers": 5202
+          },
+          "buildings and stores": {
+            "mb": 29.7,
+            "texturesMb": 26.9,
+            "textures": 219,
+            "buffersMb": 2.8,
+            "buffers": 179
+          },
+          "ground and terrain": {
+            "mb": 21.9,
+            "texturesMb": 13,
+            "textures": 364,
+            "buffersMb": 8.9,
+            "buffers": 226
+          },
+          "street things and greenery": {
+            "mb": 10.7,
+            "texturesMb": 0.8,
+            "textures": 142,
+            "buffersMb": 10,
+            "buffers": 2747
+          },
+          "rail": {
+            "mb": 6,
+            "texturesMb": 0.3,
+            "textures": 7,
+            "buffersMb": 5.7,
+            "buffers": 34
+          },
+          "town, other": {
+            "mb": 4.5,
+            "texturesMb": 0,
+            "textures": 3,
+            "buffersMb": 4.5,
+            "buffers": 2
+          },
+          "vehicles": {
+            "mb": 2,
+            "texturesMb": 0.9,
+            "textures": 25,
+            "buffersMb": 1.1,
+            "buffers": 319
+          },
+          "people": {
+            "mb": 1.3,
+            "texturesMb": 1.3,
+            "textures": 9,
+            "buffersMb": 0,
+            "buffers": 0
+          },
+          "PropLayer": {
+            "mb": 0.8,
+            "texturesMb": 0.4,
+            "textures": 2,
+            "buffersMb": 0.4,
+            "buffers": 3
+          },
+          "buffer pages, free space": {
+            "mb": 24.1,
+            "pages": 172,
+            "pagesMb": 168.1
+          },
+          "shadow map": {
+            "mb": 32
+          },
+          "render targets + surfaces": {
+            "mb": 86.8
+          },
+          "total": {
+            "mb": 434.5,
+            "textures": 1292,
+            "buffers": 239,
+            "bufferPages": 172,
+            "bufferRanges": 13106,
+            "buffersUnder16k": 0,
+            "texturesUnder64k": 1012,
+            "allocationsAt4kMb": 318.4,
+            "allocationsAt64kMb": 375.3
+          }
+        },
+        "graphicsBeyondFilamentMb": 409
+      },
+      "gpuNow": {
+        "farms": {
+          "mb": 75,
+          "texturesMb": 9.9,
+          "textures": 85,
+          "buffersMb": 65.1,
+          "buffers": 958
+        },
+        "yards": {
+          "mb": 56.5,
+          "texturesMb": 5.1,
+          "textures": 33,
+          "buffersMb": 51.4,
+          "buffers": 2645
+        },
+        "GLB landmarks": {
+          "mb": 39.1,
+          "texturesMb": 29,
+          "textures": 383,
+          "buffersMb": 10,
+          "buffers": 533
+        },
+        "trees": {
+          "mb": 32.7,
+          "texturesMb": 10.8,
+          "textures": 20,
+          "buffersMb": 21.9,
+          "buffers": 5225
+        },
+        "ground and terrain": {
+          "mb": 21.9,
+          "texturesMb": 13,
+          "textures": 364,
+          "buffersMb": 8.9,
+          "buffers": 226
+        },
+        "street things and greenery": {
+          "mb": 10.7,
+          "texturesMb": 0.8,
+          "textures": 142,
+          "buffersMb": 9.9,
+          "buffers": 2731
+        },
+        "buildings and stores": {
+          "mb": 10,
+          "texturesMb": 7.8,
+          "textures": 144,
+          "buffersMb": 2.3,
+          "buffers": 141
+        },
+        "people": {
+          "mb": 6.1,
+          "texturesMb": 6.1,
+          "textures": 47,
+          "buffersMb": 0,
+          "buffers": 0
+        },
+        "rail": {
+          "mb": 6,
+          "texturesMb": 0.3,
+          "textures": 7,
+          "buffersMb": 5.7,
+          "buffers": 34
+        },
+        "town, other": {
+          "mb": 4.5,
+          "texturesMb": 0,
+          "textures": 3,
+          "buffersMb": 4.5,
+          "buffers": 5
+        },
+        "vehicles": {
+          "mb": 2.5,
+          "texturesMb": 1.2,
+          "textures": 29,
+          "buffersMb": 1.4,
+          "buffers": 361
+        },
+        "PropLayer": {
+          "mb": 0.8,
+          "texturesMb": 0.4,
+          "textures": 2,
+          "buffersMb": 0.4,
+          "buffers": 3
+        },
+        "debris": {
+          "mb": 0.1,
+          "texturesMb": 0,
+          "textures": 0,
+          "buffersMb": 0.1,
+          "buffers": 18
+        },
+        "buffer pages, free space": {
+          "mb": 6.1,
+          "pages": 139,
+          "pagesMb": 137
+        },
+        "total": {
+          "mb": 272,
+          "textures": 1259,
+          "buffers": 208,
+          "bufferPages": 139,
+          "bufferRanges": 12811,
+          "buffersUnder16k": 0,
+          "texturesUnder64k": 986,
+          "allocationsAt4kMb": 274.7,
+          "allocationsAt64kMb": 331.9
+        }
+      },
+      "row": "80L",
+      "street": "Ash Grove",
+      "neighbourhood": "Oak Gardens",
+      "x": 150.88574,
+      "lane": 27.075907,
+      "wx": 9534.276,
+      "wz": 9505.614,
+      "heading": -0.077319786,
+      "front": null,
+      "transit": null,
+      "liveRows": [
+        "79R",
+        "76R",
+        "80L",
+        "80R",
+        "78R",
+        "78L",
+        "79L",
+        "76L",
+        "129L"
+      ],
+      "people": 14,
+      "talkTo": null,
+      "walk": "open",
+      "open": {
+        "door": null,
+        "yard": null,
+        "speed": 0,
+        "blocked": 0,
+        "cameraYaw": -0.061282292,
+        "hx": -0.07724277,
+        "hz": -0.9970123
+      }
+    },
+    "street": {
+      "index": 0,
+      "name": "Main Street",
+      "nearestBuilding": -1,
+      "building": null,
+      "owner": null,
+      "atCorner": false,
+      "edge": 0
+    },
+    "player": {
+      "x": 150.88574,
+      "lane": 27.075907,
+      "street": 0,
+      "dir": -1,
+      "walking": false,
+      "running": false,
+      "viewMiddle": 284.625
+    },
+    "turn": {
+      "active": false,
+      "forward": true,
+      "p": 0,
+      "yaw": 0,
+      "ease": 0,
+      "blocked": false
+    },
+    "inRoom": false,
+    "room": null,
+    "doorFade": false,
+    "time": {
+      "hour": 17.6,
+      "clock": "17:36",
+      "season": "summer",
+      "weather": "Clear"
+    },
+    "frames": {
+      "compose": "Frames: 16.6 ms (60 fps) · p95 16.7 ms · 0.8% late · display 60 Hz",
+      "filament": "Filament: CPU 12.0 ms (p95 13.3) · GPU 14.9 ms (p95 15.7) · start 284 ms, street 1860 ms",
+      "spikes": "spikes: 10 of 582 frames (moving 582) over 20 ms by render 10, gc 7, gpu 3, build 2, occlude 1, green 1, HUD 1, uploads 1; GPU over 16.7 ms in 79 of 578 frames (worst 21.2); gc 12 (253 ms); worst: 134 ms: ours 13.8 (render 8.8, green 1.6, occlude 0.8, stores 0.8, people 0.7, build 0.4, yards 0.4, step 0.3), gpu 16.3, up  0.0 MB, gc 2 46 ms | 133 ms: ours 21.6 (render 8.8, build 4.8, occlude 4.3, green 1.4, stores 0.9, yards 0.6, people 0.5), gpu 14.0, gc 2 41 ms | 129 ms: ours 13.1 (render 8.9, green 1.3, stores 0.8, people 0.7, occlude 0.6, build 0.4, yards 0.3), gpu 15.0, gc 2 40 ms; HUD composed 7 times, worst 1.5 ms, 7.1 ms in all; minimap: 582 draws, worst 1.1 ms; 0 pictures first drawn (0.0 MB, the biggest 0.0 MB)"
+    },
+    "ai": {
+      "state": "WAITING",
+      "detail": "The NPU is there, but the light model's copy does not fit yet: waiting for NPU memory (3177 MB free, 4239 MB needed): in play the model never runs on the CPU. People speak their lines written ahead and their built-in ones meanwhile; looking again every 30 s.",
+      "runsOn": "CPU",
+      "modelMb": 5417,
+      "role": null,
+      "forceBank": false,
+      "gpuNote": null,
+      "npuWait": "NPU short of memory: 3177 of 4239 MB free",
+      "lane": null,
+      "linesWritten": 126,
+      "builtIn": 0,
+      "queued": 0,
+      "paused": "",
+      "working": null,
+      "pregenOff": null,
+      "prefillTokPerSec": 0,
+      "genTokPerSec": 0,
+      "firstTokenMs": 0,
+      "loadInfo": null
+    },
+    "conversation": null,
+    "voices": {
+      "enabled": false,
+      "speaking": false,
+      "only": 2,
+      "timing": null
+    },
+    "mic": {
+      "always": true,
+      "granted": true,
+      "listening": true,
+      "state": "IDLE",
+      "hearer": "phone",
+      "hearing": true,
+      "writing": 0,
+      "problem": null,
+      "loop": "phone recognizer listening, last sign of life 0 s ago, errors 0, client errors 0, stalls 0",
+      "lastListener": null,
+      "attempts": [
+        "14:12:23 9.1 s, speech, 0 partials (0 words shown): error no match (1 quiet tries before)",
+        "14:12:32 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "14:12:43 11.0 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "14:12:54 10.4 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "14:12:59 5.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "14:13:08 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "14:13:17 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "14:13:27 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "14:13:36 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "14:13:45 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "14:14:12 10.5 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "14:14:21 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "14:15:15 9.1 s, speech, 0 partials (0 words shown): error no match (1 quiet tries before)",
+        "14:15:24 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "14:15:33 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "14:15:45 11.0 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)"
+      ]
+    },
+    "panels": {
+      "aiPanel": false,
+      "crashShown": false,
+      "tuningNpu": false
+    }
+  },
+  "diagnostics": {
+    "breadcrumbs": {
+      "thisRun": [
+        "11-25 14:15:01.157 mic listening",
+        "11-25 14:15:01.157 mic: the phone's on-device recognizer listens",
+        "11-25 14:15:02.279 heat: level 3 (headroom 0.85, status 1): fps cap 60, resolution step 2, cascades 3, rebake x4.0",
+        "11-25 14:15:08.762 frames 10 s: frame p50 16.6 ms, p95 16.7, max 116.5; 587 frames, 15 refreshes dropped (60 Hz); Filament 587 frames, CPU 10.6/11.7/27.4 ms, GPU 15.2/17.0/35.8 ms (p50/p95/max); thermal 1, headroom 0.86; 3219 MB free; AI WAITING (held while moving: 0 lines, 0 s in all); walking on 79R",
+        "11-25 14:15:08.762 frame spikes 10 s: spikes: 13 of 587 frames (moving 403) over 20 ms by render 13, gpu 5, gc 5, yards 2, occlude 1, green 1, HUD 1; GPU over 16.7 ms in 41 of 582 frames (worst 35.8); gc 10 (227 ms); worst: 125 ms: ours 10.7 (render 7.3, green 1.2, occlude 0.6, stores 0.6, build 0.3), gpu 15.8, gc 2 44 ms | 102 ms: ours 14.3 (render 8.1, build 2.2, green 1.5, stores 0.8, occlude 0.8, yards 0.4), gpu 14.0, gc 2 31 ms | 94 ms: ours 9.9 (render 7.0, green 1.0, stores 0.7, occlude 0.5), gpu 15.3, gc 1 19 ms; HUD composed 1 times, worst 3.4 ms, 3.4 ms in all; minimap: 450 draws, worst 0.8 ms; 4 pictures first drawn (0.8 MB, the biggest 0.3 MB)",
+        "11-25 14:15:14.206 AI panel open",
+        "11-25 14:15:15.543 mic: attempt: 14:15:15 9.1 s, speech, 0 partials (0 words shown): error no match (1 quiet tries before)",
+        "11-25 14:15:18.763 frames 10 s: frame p50 16.6 ms, p95 16.7, max 116.5; 582 frames, 19 refreshes dropped (60 Hz); Filament 582 frames, CPU 10.2/13.2/21.0 ms, GPU 14.2/16.9/25.5 ms (p50/p95/max); thermal 1, headroom 0.86; 3190 MB free; AI WAITING (held while moving: 0 lines, 0 s in all); standing on 79R",
+        "11-25 14:15:18.763 frame spikes 10 s: spikes: 29 of 582 frames (moving 291) over 20 ms by render 29, gc 3, HUD 3, gpu 2; GPU over 16.7 ms in 39 of 579 frames (worst 25.5); gc 9 (163 ms); worst: 126 ms: ours 12.5 (render 8.8, green 1.2, stores 0.9, occlude 0.6, build 0.3, yards 0.3), gpu 16.7, gc 2 43 ms | 101 ms: ours 9.9 (render 6.3, green 1.4, stores 0.7, occlude 0.5, build 0.3), gpu 12.3, gc 2 33 ms | 91 ms: ours 9.1 (render 6.2, green 1.0, stores 0.5, occlude 0.5), gpu 14.5, gc 1 19 ms; HUD composed 2 times, worst 17.0 ms, 20.1 ms in all; minimap: 315 draws, worst 0.3 ms; 0 pictures first drawn (0.0 MB, the biggest 0.0 MB)",
+        "11-25 14:15:24.776 mic: attempt: 14:15:24 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "11-25 14:15:26.791 AI panel closed",
+        "11-25 14:15:28.596 car: in the Rillhaven Torrel RS (Halvane race build) (spawn:street:37:0:7:-1)",
+        "11-25 14:15:28.771 frames 10 s: frame p50 16.6 ms, p95 16.7, max 133.2; 567 frames, 35 refreshes dropped (60 Hz); Filament 360 frames, CPU 11.2/14.1/18.1 ms, GPU 24.2/26.9/32.1 ms (p50/p95/max); thermal 1, headroom 0.86; 3160 MB free; AI WAITING (held while moving: 0 lines, 0 s in all); standing on 79R",
+        "11-25 14:15:28.771 frame spikes 10 s: spikes: 12 of 360 frames (moving 57) over 20 ms by render 12, gpu 6, gc 2, HUD 1; GPU over 16.7 ms in 213 of 354 frames (worst 32.1); gc 9 (261 ms); worst: 136 ms: ours 11.7 (render 7.7, green 1.3, stores 1.0, occlude 0.6, build 0.4, yards 0.3), gpu 16.1, gc 1 27 ms | 125 ms: ours 10.7 (render 7.3, green 1.2, stores 0.6, occlude 0.6, build 0.3), gpu 14.6, gc 2 40 ms | 47 ms: ours 12.8 (render 7.8, green 1.4, occlude 0.9, stores 0.9, build 0.6, step 0.5, yards 0.5), gpu 25.3; HUD composed 2 times, worst 5.0 ms, 6.6 ms in all; minimap: 113 draws, worst 0.8 ms; 4 pictures first drawn (0.8 MB, the biggest 0.3 MB)",
+        "11-25 14:15:32.901 row 128L: Willow Road, Oak Gardens at (7867, 11131); camera open yaw -14.7 pitch 22.3 dist 420 (pulled to 483) at (7868, 11130)",
+        "11-25 14:15:33.999 mic: attempt: 14:15:33 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "11-25 14:15:35.573 row 78L: Ash Grove, Oak Gardens at (8173, 11187); camera open yaw 80.3 pitch 22.3 dist 420 (pulled to 483) at (8169, 11188)",
+        "11-25 14:15:38.262 row 78R: Ash Grove, Oak Gardens at (9209, 10995); camera open yaw 79.6 pitch 22.3 dist 420 (pulled to 483) at (9202, 10998)",
+        "11-25 14:15:38.778 frames 10 s: frame p50 16.6 ms, p95 16.7, max 116.5; 583 frames, 18 refreshes dropped (60 Hz); Filament 583 frames, CPU 12.6/13.4/17.0 ms, GPU 16.0/17.2/25.6 ms (p50/p95/max); thermal 1, headroom 0.84; 3133 MB free; AI WAITING (held while moving: 0 lines, 0 s in all); standing on 78R",
+        "11-25 14:15:38.778 frame spikes 10 s: spikes: 11 of 583 frames (moving 583) over 20 ms by render 11, gc 5, gpu 4; GPU over 16.7 ms in 73 of 578 frames (worst 25.6); gc 7 (172 ms); worst: 130 ms: ours 13.0 (render 9.1, green 1.3, stores 0.9, occlude 0.6, build 0.4, yards 0.3), gpu 15.9, gc 2 46 ms | 125 ms: ours 12.5 (render 8.8, green 1.2, stores 0.9, occlude 0.6, build 0.4, yards 0.3), gpu 16.7, gc 1 31 ms | 121 ms: ours 12.5 (render 8.6, green 1.3, stores 0.8, occlude 0.6, people 0.4, build 0.3, yards 0.3), gpu 14.5, gc 1 25 ms; HUD composed 3 times, worst 1.3 ms, 3.2 ms in all; minimap: 583 draws, worst 0.8 ms; 8 pictures first drawn (1.5 MB, the biggest 0.3 MB)",
+        "11-25 14:15:39.077 row 78L: Ash Grove, Oak Gardens at (9576, 10808); camera open yaw 69.4 pitch 22.3 dist 420 (pulled to 483) at (9571, 10813)",
+        "11-25 14:15:42.722 row 78R: Ash Grove, Oak Gardens at (9561, 10128); camera open yaw -27.2 pitch 22.3 dist 420 (pulled to 483) at (9564, 10133)",
+        "11-25 14:15:43.788 damage: a fire hydrant (79L) at (9453, 9722) by torrel-1988-rs at 17.8 m/s, t 219.6 s",
+        "11-25 14:15:43.870 row 79L: Main Street, Oak Gardens at (9470, 9744); camera open yaw -16.9 pitch 22.3 dist 420 (pulled to 483) at (9470, 9750)",
+        "11-25 14:15:43.937 row 78R: Ash Grove, Oak Gardens at (9472, 9723); camera open yaw -15.5 pitch 22.3 dist 420 (pulled to 483) at (9472, 9729)",
+        "11-25 14:15:44.187 damage: a sign post (80L) at (9508, 9603) by torrel-1988-rs at 14.7 m/s, t 220.0 s",
+        "11-25 14:15:44.222 damage: a sign post (79R) at (9512, 9599) by torrel-1988-rs at 14.2 m/s, t 220.1 s",
+        "11-25 14:15:44.374 row 80L: Ash Grove, Oak Gardens at (9496, 9622); camera open yaw -5.4 pitch 22.3 dist 420 (pulled to 483) at (9492, 9637)",
+        "11-25 14:15:44.520 row 79R: Main Street, Oak Gardens at (9510, 9587); camera open yaw -2.4 pitch 22.3 dist 420 (pulled to 483) at (9510, 9587)",
+        "11-25 14:15:45.167 mic: attempt: 14:15:45 11.0 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "11-25 14:15:48.792 frames 10 s: frame p50 16.6 ms, p95 16.6, max 133.2; 582 frames, 20 refreshes dropped (60 Hz); Filament 582 frames, CPU 12.8/13.7/22.3 ms, GPU 15.0/17.2/21.2 ms (p50/p95/max); thermal 1, headroom 0.84; 3181 MB free; AI WAITING (held while moving: 0 lines, 0 s in all); standing on 79R",
+        "11-25 14:15:48.792 frame spikes 10 s: spikes: 10 of 582 frames (moving 582) over 20 ms by render 10, gc 7, gpu 3, build 2, occlude 1, green 1, HUD 1, uploads 1; GPU over 16.7 ms in 79 of 578 frames (worst 21.2); gc 12 (253 ms); worst: 134 ms: ours 13.8 (render 8.8, green 1.6, occlude 0.8, stores 0.8, people 0.7, build 0.4, yards 0.4, step 0.3), gpu 16.3, up  0.0 MB, gc 2 46 ms | 133 ms: ours 21.6 (render 8.8, build 4.8, occlude 4.3, green 1.4, stores 0.9, yards 0.6, people 0.5), gpu 14.0, gc 2 41 ms | 129 ms: ours 13.1 (render 8.9, green 1.3, stores 0.8, people 0.7, occlude 0.6, build 0.4, yards 0.3), gpu 15.0, gc 2 40 ms; HUD composed 7 times, worst 1.5 ms, 7.1 ms in all; minimap: 582 draws, worst 1.1 ms; 0 pictures first drawn (0.0 MB, the biggest 0.0 MB)",
+        "11-25 14:15:49.023 row 80L: Ash Grove, Oak Gardens at (9535, 9523); camera open yaw -3.4 pitch 22.3 dist 420 (pulled to 483) at (9536, 9525)",
+        "11-25 14:15:49.473 mic off",
+        "11-25 14:15:58.793 frames 10 s: frame p50 16.6 ms, p95 16.7, max 133.2; 576 frames, 25 refreshes dropped (60 Hz); Filament 576 frames, CPU 12.8/13.6/22.7 ms, GPU 13.8/14.9/20.1 ms (p50/p95/max); thermal 1, headroom 0.84; 3180 MB free; AI WAITING (held while moving: 0 lines, 0 s in all); standing on 80L",
+        "11-25 14:15:58.794 frame spikes 10 s: spikes: 14 of 576 frames (moving 576) over 20 ms by render 14, gc 6, gpu 2, build 1, yards 1, green 1, HUD 1; GPU over 16.7 ms in 8 of 574 frames (worst 20.9); gc 13 (304 ms); worst: 139 ms: ours 13.9 (render 9.4, green 1.3, stores 0.8, people 0.8, occlude 0.6, build 0.4, yards 0.3), gpu 14.8, gc 3 59 ms | 135 ms: ours 22.6 (render 7.4, green 4.8, yards 4.0, far 2.8, stores 1.1, people 1.0, occlude 0.8, build 0.4), gpu 13.8, gc 2 47 ms | 123 ms: ours 13.5 (render 9.1, green 1.2, people 1.0, stores 0.7, occlude 0.5, build 0.3, yards 0.3), gpu 14.5, gc 2 37 ms; HUD composed 4 times, worst 3.8 ms, 6.9 ms in all; minimap: 31 draws, worst 0.2 ms; 0 pictures first drawn (0.0 MB, the biggest 0.0 MB)",
+        "11-25 14:16:08.797 frames 10 s: frame p50 16.6 ms, p95 16.6, max 116.5; 583 frames, 18 refreshes dropped (60 Hz); Filament 583 frames, CPU 11.6/14.9/29.0 ms, GPU 13.6/14.4/16.6 ms (p50/p95/max); thermal 1, headroom 0.85; 3225 MB free; AI WAITING (held while moving: 0 lines, 0 s in all); standing on 80L",
+        "11-25 14:16:08.797 frame spikes 10 s: spikes: 22 of 583 frames (moving 583) over 20 ms by render 22, gc 5, build 2, occlude 1, people 1; GPU over 16.7 ms in 0 of 583 frames (worst 16.6); gc 7 (168 ms); worst: 130 ms: ours 11.9 (render 7.4, green 1.3, people 1.0, stores 0.8, occlude 0.6, yards 0.3, build 0.3), gpu 14.2, gc 1 25 ms | 129 ms: ours 12.0 (render 7.4, green 1.2, people 1.0, stores 0.8, occlude 0.6, yards 0.3, build 0.3), gpu 14.0, gc 2 45 ms | 128 ms: ours 11.9 (render 7.3, green 1.2, people 1.0, stores 0.8, occlude 0.6, build 0.3, yards 0.3), gpu 13.3, gc 2 45 ms",
+        "11-25 14:16:10.693 mic listening",
+        "11-25 14:16:10.693 mic: the phone's on-device recognizer listens"
+      ],
+      "previousRun": [
+        "11-25 08:50:23.497 frames 10 s: frame p50 16.6 ms, p95 16.6, max 166.4; 563 frames, 38 refreshes dropped (60 Hz); Filament 563 frames, CPU 11.3/13.5/16.6 ms, GPU 16.3/17.2/28.4 ms (p50/p95/max); thermal 2, headroom 0.93; 2450 MB free; AI READY (held while moving: 0 lines, 0 s in all); standing on 13L",
+        "11-25 08:50:23.497 frame spikes 10 s: spikes: 9 of 563 frames (moving 75) over 20 ms by render 9, HUD 9, gpu 6, gc 4; GPU over 16.7 ms in 107 of 558 frames (worst 28.4); gc 10 (215 ms); worst: 137 ms: ours 11.9 (render 7.9, green 1.4, occlude 0.7, stores 0.6, yards 0.4, build 0.4), gpu 16.9, gc 2 46 ms, HUD x1 | 136 ms: ours 11.5 (render 7.7, green 1.3, occlude 0.6, stores 0.6, yards 0.4, build 0.4), gpu 16.9, gc 2 43 ms, HUD x1 | 134 ms: ours 12.5 (render 7.9, green 1.4, stores 0.6, occlude 0.6, yards 0.6, build 0.4), gpu 15.3, gc 2 42 ms, HUD x1; HUD composed 563 times, worst 9.0 ms, 317.9 ms in all; minimap: 201 draws, worst 0.2 ms; 0 pictures first drawn (0.0 MB, the biggest 0.0 MB)",
+        "11-25 08:50:33.505 frames 10 s: frame p50 16.6 ms, p95 16.6, max 133.2; 583 frames, 19 refreshes dropped (60 Hz); Filament 583 frames, CPU 11.3/11.7/20.0 ms, GPU 16.5/17.1/26.6 ms (p50/p95/max); thermal 2, headroom 0.94; 2477 MB free; AI READY (held while moving: 0 lines, 0 s in all); standing on 13L",
+        "11-25 08:50:33.505 frame spikes 10 s: spikes: 8 of 583 frames (moving 0) over 20 ms by render 8, HUD 8, gpu 4, gc 4, build 1; GPU over 16.7 ms in 109 of 578 frames (worst 26.6); gc 6 (125 ms); worst: 131 ms: ours 11.8 (render 7.8, green 1.5, occlude 0.7, stores 0.6, yards 0.4, build 0.4), gpu 16.6, gc 2 41 ms, HUD x1 | 123 ms: ours 11.5 (render 7.7, green 1.3, occlude 0.6, stores 0.5, yards 0.4, build 0.3), gpu 17.2, gc 1 23 ms, HUD x1 | 122 ms: ours 11.5 (render 7.7, green 1.3, occlude 0.7, stores 0.5, yards 0.4, build 0.3), gpu 16.9, gc 1 22 ms, HUD x1; HUD composed 583 times, worst 1.0 ms, 300.6 ms in all",
+        "11-25 08:50:43.508 frames 10 s: frame p50 16.6 ms, p95 16.6, max 116.5; 583 frames, 18 refreshes dropped (60 Hz); Filament 583 frames, CPU 11.3/11.8/28.1 ms, GPU 16.4/17.0/26.6 ms (p50/p95/max); thermal 2, headroom 0.93; 2448 MB free; AI READY (held while moving: 0 lines, 0 s in all); standing on 13L",
+        "11-25 08:50:43.508 frame spikes 10 s: spikes: 7 of 583 frames (moving 0) over 20 ms by render 7, HUD 7, gc 4, gpu 3, build 2; GPU over 16.7 ms in 93 of 579 frames (worst 26.6); gc 9 (189 ms); worst: 134 ms: ours 17.1 (render 7.7, build 5.4, green 1.4, occlude 0.9, stores 0.6, yards 0.4), gpu 16.8, gc 2 40 ms, HUD x1 | 128 ms: ours 11.7 (render 7.9, green 1.3, occlude 0.6, stores 0.5, yards 0.4, build 0.4), gpu 16.6, gc 1 24 ms, HUD x1 | 124 ms: ours 11.6 (render 7.8, green 1.3, occlude 0.6, stores 0.6, yards 0.4, build 0.4), gpu 17.0, gc 1 22 ms, HUD x1; HUD composed 583 times, worst 1.2 ms, 297.3 ms in all",
+        "11-25 08:50:52.213 memory: Resident: dialogue 2846 MB (live, copied, work 876 MB, 8-bit KV) · game PSS 1461 MB (Java 223, native 170, graphics 834, code 21, other 54, system 156) · 2443 MB free",
+        "11-25 08:50:53.518 frames 10 s: frame p50 16.6 ms, p95 16.6, max 133.2; 583 frames, 19 refreshes dropped (60 Hz); Filament 583 frames, CPU 11.3/11.9/16.3 ms, GPU 16.4/16.9/26.8 ms (p50/p95/max); thermal 2, headroom 0.93; 2444 MB free; AI READY (held while moving: 0 lines, 0 s in all); standing on 13L",
+        "11-25 08:50:53.518 frame spikes 10 s: spikes: 11 of 583 frames (moving 0) over 20 ms by render 11, HUD 11, gc 6, gpu 4, step 1, build 1; GPU over 16.7 ms in 82 of 579 frames (worst 26.8); gc 8 (180 ms); worst: 133 ms: ours 11.5 (render 7.7, green 1.3, occlude 0.6, stores 0.6, yards 0.4, build 0.4), gpu 16.7, gc 2 43 ms, HUD x1 | 131 ms: ours 11.4 (render 7.6, green 1.3, occlude 0.6, stores 0.6, yards 0.4, build 0.3), gpu 16.8, gc 2 45 ms, HUD x1 | 124 ms: ours 11.4 (render 7.7, green 1.3, occlude 0.6, stores 0.6, yards 0.4, build 0.3), gpu 16.6, gc 1 24 ms, HUD x1; HUD composed 583 times, worst 2.0 ms, 295.9 ms in all",
+        "11-25 08:50:58.798 mic listening",
+        "11-25 08:50:58.798 mic: the phone's on-device recognizer listens",
+        "11-25 08:51:00.560 row 13R: Park Avenue, Old Town at (37655, 13254); camera open yaw -120.2 pitch 21.8 dist 420 (pulled to 420) at (37657, 13255)",
+        "11-25 08:51:03.536 frames 10 s: frame p50 16.6 ms, p95 16.7, max 133.2; 580 frames, 23 refreshes dropped (60 Hz); Filament 580 frames, CPU 11.6/15.0/31.1 ms, GPU 15.9/17.2/26.5 ms (p50/p95/max); thermal 2, headroom 0.92; 2327 MB free; AI READY (held while moving: 0 lines, 0 s in all); walking on 13R",
+        "11-25 08:51:03.536 frame spikes 10 s: spikes: 22 of 580 frames (moving 249) over 20 ms by render 22, HUD 22, gpu 8, gc 8, green 2, step 1, build 1, occlude 1, stores 1; GPU over 16.7 ms in 89 of 577 frames (worst 26.5); gc 9 (263 ms); worst: 131 ms: ours 11.9 (render 8.1, green 1.3, occlude 0.6, stores 0.6, yards 0.4, build 0.4), gpu 16.8, gc 2 42 ms, HUD x1 | 129 ms: ours 12.9 (render 7.9, green 1.5, occlude 0.8, stores 0.7, yards 0.6, build 0.5, buildings 0.4), gpu 13.7, gc 1 25 ms, HUD x1 | 122 ms: ours 11.5 (render 7.7, green 1.3, occlude 0.6, stores 0.5, yards 0.4, build 0.4), gpu 16.5, gc 1 22 ms, HUD x1; HUD composed 580 times, worst 3.4 ms, 300.1 ms in all; minimap: 277 draws, worst 0.9 ms; 2 pictures first drawn (0.4 MB, the biggest 0.3 MB)",
+        "11-25 08:51:08.112 mic: attempt: 08:51:08 9.3 s, speech, 0 partials (0 words shown): error no match (10 quiet tries before)",
+        "11-25 08:51:09.631 bike on (hybrid) at (36717, 13240)",
+        "11-25 08:51:12.204 row 16R: Ivy Street, Oak Heights at (36215, 13250); camera open yaw -89.5 pitch 10.0 dist 420 (pulled to 546) at (36222, 13251)",
+        "11-25 08:51:12.540 row 15R: Park Avenue, Oak Heights at (36082, 13251); camera open yaw -89.5 pitch 10.0 dist 420 (pulled to 546) at (36089, 13252)",
+        "11-25 08:51:12.590 row 16L: Ivy Street, Oak Heights at (36062, 13251); camera open yaw -89.5 pitch 10.0 dist 420 (pulled to 546) at (36070, 13252)",
+        "11-25 08:51:12.889 row 15R: Park Avenue, Oak Heights at (35943, 13251); camera open yaw -89.5 pitch 10.0 dist 420 (pulled to 546) at (35950, 13251)",
+        "11-25 08:51:13.538 frames 10 s: frame p50 16.6 ms, p95 16.7, max 116.5; 582 frames, 20 refreshes dropped (60 Hz); Filament 582 frames, CPU 12.8/14.8/24.5 ms, GPU 15.7/17.3/23.3 ms (p50/p95/max); thermal 2, headroom 0.94; 2502 MB free; AI READY (held while moving: 0 lines, 0 s in all); standing on 15R",
+        "11-25 08:51:13.538 frame spikes 10 s: spikes: 20 of 582 frames (moving 551) over 20 ms by render 20, HUD 20, gc 8, gpu 7, build 4, green 2, uploads 2, yards 1, stores 1, cards 1; GPU over 16.7 ms in 103 of 579 frames (worst 23.3); gc 14 (442 ms); worst: 130 ms: ours 11.7 (render 7.1, green 1.3, stores 0.7, occlude 0.6, people 0.6, yards 0.4, build 0.4), gpu 15.3, gc 2 39 ms, HUD x1 | 127 ms: ours 23.5 (render 8.5, green 6.0, stores 5.8, people 0.7, occlude 0.6, cards 0.5, yards 0.5, build 0.4), gpu 16.8, up  0.0 MB, HUD x1 | 125 ms: ours 13.0 (render 8.1, green 1.4, stores 0.8, occlude 0.6, people 0.6, yards 0.5, build 0.4), gpu 16.9, gc 1 23 ms, HUD x1; HUD composed 582 times, worst 3.4 ms, 321.3 ms in all; minimap: 582 draws, worst 0.9 ms; 2 pictures first drawn (0.4 MB, the biggest 0.3 MB)",
+        "11-25 08:51:17.274 row 18R: Granary Road, Oak Heights at (34248, 13237); camera open yaw -89.5 pitch 10.0 dist 420 (pulled to 546) at (34255, 13238)",
+        "11-25 08:51:17.543 row 15R: Park Avenue, Oak Heights at (34142, 13236); camera open yaw -89.5 pitch 10.0 dist 420 (pulled to 546) at (34149, 13237)",
+        "11-25 08:51:17.657 row 18L: Granary Road, Woodside at (34095, 13236); camera open yaw -89.5 pitch 10.0 dist 420 (pulled to 546) at (34102, 13236)",
+        "11-25 08:51:17.923 row 17R: Park Avenue, Old Town at (33989, 13235); camera open yaw -89.5 pitch 10.0 dist 420 (pulled to 546) at (33996, 13235)",
+        "11-25 08:51:21.545 row 17L: Park Avenue, Woodside at (32576, 13267); camera open yaw -92.9 pitch 10.0 dist 420 (pulled to 546) at (32583, 13267)",
+        "11-25 08:51:22.512 row 17R: Park Avenue, Old Town at (32201, 13253); camera open yaw -89.6 pitch 10.0 dist 420 (pulled to 546) at (32212, 13259)",
+        "11-25 08:51:22.862 row 17L: Park Avenue, Woodside at (32102, 13171); camera open yaw -78.6 pitch 10.0 dist 420 (pulled to 546) at (32106, 13176)",
+        "11-25 08:51:23.541 frames 10 s: frame p50 16.6 ms, p95 16.7, max 149.8; 566 frames, 35 refreshes dropped (60 Hz); Filament 566 frames, CPU 13.3/17.2/28.0 ms, GPU 13.6/16.3/18.1 ms (p50/p95/max); thermal 2, headroom 0.95; 2501 MB free; AI READY (held while moving: 0 lines, 0 s in all); standing on 17L",
+        "11-25 08:51:23.541 frame spikes 10 s: spikes: 37 of 566 frames (moving 566) over 20 ms by render 37, HUD 37, gc 15, build 10, uploads 5, green 3, gpu 3, stores 2, step 1, occlude 1; GPU over 16.7 ms in 16 of 566 frames (worst 18.1); gc 18 (739 ms); worst: 148 ms: ours 15.2 (render 10.0, green 1.6, build 1.2, occlude 0.6, stores 0.6, yards 0.5), gpu 15.9, up  0.0 MB, gc 1 92 ms, HUD x1 | 138 ms: ours 14.1 (render 9.3, green 1.4, stores 0.7, occlude 0.6, people 0.5, build 0.5, yards 0.5), gpu 13.5, gc 1 28 ms, HUD x1 | 136 ms: ours 13.2 (render 8.1, green 1.5, occlude 0.9, stores 0.7, people 0.5, yards 0.5, build 0.4), gpu 13.2, gc 2 48 ms, HUD x1; HUD composed 566 times, worst 2.6 ms, 319.4 ms in all; minimap: 566 draws, worst 0.6 ms; 0 pictures first drawn (0.0 MB, the biggest 0.0 MB)",
+        "11-25 08:51:26.741 frame pacing: display 120 Hz, 60 a second, a frame every 2 refreshes",
+        "11-25 08:51:27.111 pause",
+        "11-25 08:51:27.115 mic off",
+        "11-25 08:51:27.524 trim memory 20",
+        "11-25 08:51:29.207 uploads: sent play/2026-11-25/084550-930.jsonl.gz (70 kB)",
+        "11-25 08:51:29.208 uploads: 3 trace waiting, not allowed now (Wi-Fi no, charging yes): traces need both",
+        "11-25 08:51:35.106 npu gate: margin 1000 -> 900 MB (the load held 5 min; lowest free 1704 MB, critical line 716 MB)",
+        "11-25 08:53:08.859 heat: level 3 (headroom 0.86, status 2): fps cap 60, resolution step 2, cascades 3, rebake x4.0",
+        "11-25 08:55:53.331 memory: Resident: dialogue 2846 MB (live, copied, work 876 MB, 8-bit KV) · game PSS 1294 MB (Java 40, native 9, graphics 725, code 2, other 67, system 448) · 2636 MB free"
+      ],
+      "writer": [
+        "11-25 08:51:27.837 writer: start (service), battery 2% plugged in, thermal 2, 2420 MB free",
+        "11-25 09:01:32.510 writer: closing the game's process (pid 12528, out of sight) to free its memory; 1802 MB free",
+        "11-25 09:01:34.517 writer: the game's process closed: 5161 MB free (3359 MB more)",
+        "11-25 09:01:34.538 writer: 5160 MB free before the load (Android's threshold 216 MB); the main model's NPU copy needs 7200 MB, the light one's 4239 MB",
+        "11-25 09:01:34.545 writer: loading: loading the model",
+        "11-25 09:01:34.854 player themes: 9 (6 frequent), 5 follow-ups",
+        "11-25 09:01:35.020 dialogue model: loading the live model with 5084 MB free",
+        "11-25 09:01:35.059 dialogue model: trimmed before the load in 37 ms: Java heap 42 -> 4 MB used (72 -> 28 held), native heap 19 -> 19 MB (14 allocated; purge done), RSS 130 -> 87 MB, free 5084 -> 5122 MB",
+        "11-25 09:01:35.059 npu gate: loading with 5122 MB free after the trim; free 5084 MB, reclaim counted 0 MB, margin 900 MB, need 3746 MB for the light copy (weights 1970 measured, own 876 measured at batch 128, batch 128): live copied to its device",
+        "11-25 09:01:40.307 npu gate: result loaded: 2581 MB free after (5122 before, lowest ?); weights 1971 MB copied + 497 mapped, own 876 (compute 53, batch 128); need was 3746 MB",
+        "11-25 09:01:40.308 dialogue model: live on NPU in 5236 ms with 2581 MB free after: weights 497 MB mapped + 1971 copied, KV 19 (8-bit), state 804, compute 53; context 1024; saved states: 39 on flash (2048 MB), 0 in RAM (0 MB), each 0 MB; restored 0 from flash + 0 from RAM in 0 ms; written 0 in 0 ms; 0 removed for the budget",
+        "11-25 09:01:40.370 player themes: 9 (6 frequent), 5 follow-ups",
+        "11-25 09:01:44.578 writer: light model on the NPU loaded; 2361 MB free after (5160 before)",
+        "11-25 09:01:44.580 writer: writing: writing",
+        "11-25 09:03:06.300 writer: resting: warm (thermal status 2, headroom 0.89): short bursts with longer rests",
+        "11-25 09:07:08.533 writer: writing: writing",
+        "11-25 09:08:41.692 writer: resting: warm (thermal status 2, headroom 0.98): short bursts with longer rests",
+        "11-25 09:11:38.073 writer: 12 lines + 0 variants, 1.2 tok/s, thermal 2, battery 5%, light model on the NPU",
+        "11-25 09:12:04.590 memory low: 1412 MB free (Android's threshold 216 MB)",
+        "11-25 09:12:43.982 writer: writing: writing",
+        "11-25 09:12:59.493 memory fine: 1718 MB free (Android's threshold 216 MB)",
+        "11-25 09:14:16.508 writer: resting: warm (thermal status 2, headroom 0.94): short bursts with longer rests",
+        "11-25 09:18:19.454 writer: writing: writing",
+        "11-25 09:19:53.820 writer: resting: warm (thermal status 2, headroom 0.92): short bursts with longer rests",
+        "11-25 09:21:42.871 writer: 23 lines + 0 variants, 1.2 tok/s, thermal 2, battery 6%, light model on the NPU",
+        "11-25 09:23:54.350 writer: writing: writing",
+        "11-25 09:25:26.737 writer: resting: warm (thermal status 2, headroom 0.90): short bursts with longer rests",
+        "11-25 09:29:26.997 writer: writing: writing",
+        "11-25 09:30:58.198 writer: resting: warm (thermal status 2, headroom 0.92): short bursts with longer rests",
+        "11-25 09:31:45.159 writer: 35 lines + 0 variants, 1.3 tok/s, thermal 2, battery 6%, light model on the NPU",
+        "11-25 09:32:54.168 dialogue model: let go by the overnight writer",
+        "11-25 09:32:54.170 writer: stop (service): unplugged",
+        "11-25 09:32:54.175 writer: Wrote 35 lines and 0 variants with the light model on the NPU in 9 min of writing (41 min in all); 10 min closing the game to free its memory; 22 min resting between short bursts because the phone was warm (thermal status up to 2). It stopped: unplugged."
+      ],
+      "writerPrevious": [
+        "11-25 02:22:54.811 writer: start (service), battery 22% plugged in, thermal 2, 4921 MB free",
+        "11-25 02:22:54.939 writer: 4823 MB free before the load (Android's threshold 216 MB); the main model's NPU copy needs 6550 MB, the light one's 4262 MB",
+        "11-25 02:22:54.954 writer: loading: loading the model",
+        "11-25 02:22:56.509 player themes: 9 (6 frequent), 4 follow-ups",
+        "11-25 02:22:56.780 dialogue model: loading the live model with 4185 MB free",
+        "11-25 02:22:56.780 dialogue model: the live model on the NPU, not the GPU of the device setting",
+        "11-25 02:22:56.821 dialogue model: trimmed before the load in 39 ms: Java heap 46 -> 4 MB used (73 -> 28 held), native heap 19 -> 20 MB (14 allocated; purge done), RSS 192 -> 142 MB, free 4185 -> 4312 MB",
+        "11-25 02:22:56.822 npu gate: loading with 4312 MB free after the trim; free 4189 MB, reclaim counted 1624 MB, margin 800 MB, need 3669 MB for the light copy (weights 1970 measured, own 899 measured at batch 128, batch 128): live copied to its device",
+        "11-25 02:23:05.051 npu gate: result loaded: 2176 MB free after (4312 before, lowest ?); weights 1971 MB copied + 497 mapped, own 899 (compute 76, batch 128); need was 3669 MB",
+        "11-25 02:23:05.053 dialogue model: live on NPU in 8214 ms with 2176 MB free after: weights 497 MB mapped + 1971 copied, KV 19 (8-bit), state 804, compute 76; context 1024; saved states: 0 on flash (0 MB), 0 in RAM (0 MB), each 0 MB; restored 0 from flash + 0 from RAM in 0 ms; written 0 in 0 ms; 0 removed for the budget",
+        "11-25 02:23:05.071 writer: light model on the NPU loaded; 2176 MB free after (4823 before)",
+        "11-25 02:23:05.086 writer: planning: counting the lines to write",
+        "11-25 02:23:05.351 player themes: 9 (6 frequent), 4 follow-ups",
+        "11-25 02:23:10.137 writer: resting: too hot (thermal status 3): paused until it is moderate again",
+        "11-25 02:25:30.851 writer: writing: writing"
+      ]
+    },
+    "reports": {
+      "pending": {
+        "crashes": 0,
+        "night": 0,
+        "npu": 0,
+        "play": 0,
+        "talk": 0,
+        "trace": 3,
+        "recording": 2
+      },
+      "uploads": {
+        "lastError": {
+          "kind": "screenshots",
+          "path": "screenshots/2026-11-25/021932-shot.png",
+          "code": 401,
+          "what": "Token rejected: wrong or expired (make a new one)",
+          "time": "2026-11-25T02:22:45.289-0500",
+          "minutesAgo": 713
+        },
+        "lastOk": {
+          "kind": "night",
+          "path": "night/2026-11-25/085127.json",
+          "code": 201,
+          "what": "sent",
+          "time": "2026-11-25T09:32:56.479-0500",
+          "minutesAgo": 283
+        },
+        "lastSkip": {
+          "kind": "trace",
+          "path": "",
+          "code": 0,
+          "what": "not allowed now (Wi-Fi no, charging no): traces need both",
+          "time": "2026-11-25T14:11:58.139-0500",
+          "minutesAgo": 4
+        },
+        "lastByKind": {
+          "play": {
+            "kind": "play",
+            "path": "play/2026-11-25/084550-930.jsonl.gz",
+            "code": 201,
+            "what": "sent",
+            "time": "2026-11-25T08:51:29.205-0500",
+            "minutesAgo": 324
+          },
+          "talk": {
+            "kind": "talk",
+            "path": "talk/2026-11-25/084130-930.jsonl",
+            "code": 201,
+            "what": "sent",
+            "time": "2026-11-25T08:45:34.486-0500",
+            "minutesAgo": 330
+          },
+          "trace": {
+            "kind": "trace",
+            "path": "",
+            "code": 0,
+            "what": "not allowed now (Wi-Fi no, charging no): traces need both",
+            "time": "2026-11-25T14:11:58.139-0500",
+            "minutesAgo": 4
+          },
+          "crashes": {
+            "kind": "crashes",
+            "path": "crashes/2026-11-24/104936-native.json",
+            "code": 201,
+            "what": "sent",
+            "time": "2026-11-25T02:14:08.641-0500",
+            "minutesAgo": 722
+          },
+          "night": {
+            "kind": "night",
+            "path": "night/2026-11-25/085127.json",
+            "code": 201,
+            "what": "sent",
+            "time": "2026-11-25T09:32:56.479-0500",
+            "minutesAgo": 283
+          },
+          "npu": null
+        }
+      }
+    },
+    "recorder": {
+      "initialised": true,
+      "threadAlive": true,
+      "foreground": true,
+      "session": "141157-976",
+      "part": 1,
+      "seconds": 255,
+      "file": "open-play~2026-11-25~141157-976.jsonl.gz",
+      "fileBytes": 54085,
+      "fileLines": 1483,
+      "recordTalk": true,
+      "ownerBuild": true
+    },
+    "uploadGate": {
+      "wifi": false,
+      "networkError": null,
+      "charging": false,
+      "playAllowed": false,
+      "traceAllowed": false,
+      "hasToken": true
+    },
+    "writer": {
+      "status": {
+        "how": "service",
+        "running": false,
+        "state": "stopped",
+        "reason": "Wrote 35 lines and 0 variants with the light model on the NPU in 9 min of writing (41 min in all); 10 min closing the game to free its memory; 22 min resting between short bursts because the phone was warm (thermal status up to 2). It stopped: unplugged.",
+        "secondsAgo": 16997,
+        "stale": false,
+        "lines": 35,
+        "variants": 0,
+        "rejected": 0,
+        "timedOut": 0,
+        "failed": 0,
+        "model": "light model on the NPU"
+      },
+      "lastRun": "Wed 08:51-09:32: 35 lines + 0 variants (50.7/h), 1.3 tok/s (light model on the NPU), 1 warm spells, 0 hot pauses. Wrote 35 lines and 0 variants with the light model on the NPU in 9 min of writing (41 min in all); 10 min closing the game to free its memory; 22 min resting between short bursts because the phone was warm (thermal status up to 2). It stopped: unplugged.",
+      "enabled": true,
+      "unrestricted": false
+    },
+    "power": {
+      "plugged": "none",
+      "charging": false,
+      "battery": 11
+    }
+  }
+}
