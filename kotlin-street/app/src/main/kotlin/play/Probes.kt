@@ -37,6 +37,7 @@ class Probes(private val ctx: Context) {
         j.begin().str("k", "pow").long("t", tMs)
         runCatching { j.int("th", pm.currentThermalStatus) }
         if (Build.VERSION.SDK_INT >= 30) runCatching { val h = pm.getThermalHeadroom(10); if (!h.isNaN()) j.num("head", h, 3) }
+        heat(j)
         runCatching {
             val level = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
             if (level in 0..100) j.int("bat", level)
@@ -105,7 +106,25 @@ class Probes(private val ctx: Context) {
         runCatching { npuRoom(mw.freeMb, meminfo?.get("SwapFree") ?: 0L) }.getOrNull()?.let { (room, need, reclaim) ->
             j.long("npuRoom", room).long("npuNeed", need).long("npuReclaim", reclaim)
         }
+        heat(j)
         return j.end()
+    }
+
+    /**
+     * The thermal governor's state (docs/HEAT.md), on the "pow" and "mem" lines: its level (heatLvl 0-4), its smoothed
+     * headroom (heatHead), the frame rate aimed at and chosen (fps, fpsSet), the drawing scale (res), the shadow cascades
+     * (casc), the far view's rebake stretch (rebake), and the performance hints' frames reported (hints) and state (hint).
+     */
+    private fun heat(j: JsonLine) {
+        runCatching {
+            val h = com.timerpg.street.Heat
+            j.int("heatLvl", h.steps.level)
+            if (!h.steps.headroom.isNaN()) j.num("heatHead", h.steps.headroom, 3)
+            j.int("fps", com.lifemax.rpg.feature.habits.presentation.scene.FramePace.target).int("fpsSet", com.lifemax.rpg.feature.habits.presentation.scene.FramePace.chosen)
+            val tq = com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality
+            j.num("res", tq.autoSteps.scale, 2).int("casc", tq.heatCascades).num("rebake", tq.rebakeStretch, 0).int("msaa", tq.msaa)
+            j.long("hints", h.hinted).str("hint", h.hintState)
+        }
     }
 
     /** Graphics' "Gfx dev" and "GL mtrack" PSS (MB) through Debug.MemoryInfo's own labels, or null where not readable. */

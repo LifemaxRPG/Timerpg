@@ -134,7 +134,8 @@ internal class WorldFar(
         val at = origin.origin.plus(f.pose.ex / u, f.pose.ez / u)
         val eye = pl.baseElev + f.pose.ey / u
         val h = horizon
-        if (h != null && !h.stale(at, eye)) return
+        // (the thermal governor stretches the distance while the phone is warm: docs/HEAT.md)
+        if (h != null && !h.stale(at, eye, TownQuality.rebakeStretch)) return
         val sk = pl.sk
         ringJob = kit.pool.submit(java.util.concurrent.Callable { com.lifemax.rpg.feature.habits.domain.HorizonPanorama(sk, at, eye) })
     }

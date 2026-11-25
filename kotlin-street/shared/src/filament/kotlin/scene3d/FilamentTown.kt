@@ -319,6 +319,9 @@ class FilamentTown(
     /** The sun's shadow options (kept: the open world sets how far its shadows reach, [TownPose.shadowFar], as the zoom changes). */
     private val shadowOptions = LightManager.ShadowOptions()
     private var shadowFarSet = 0f
+    private var cascadesSet = -1
+    /** The multisampling applied to [view] ([TownQuality.msaa]; -1: not yet). */
+    private var msaaSet = -1
     private var ibl: IndirectLight? = null
     private val iblColor = FloatArray(3) { -1f }
     private val iblRot = FloatArray(9)
@@ -703,6 +706,7 @@ class FilamentTown(
         view.dithering = View.Dithering.NONE
         view.antiAliasing = View.AntiAliasing.NONE
         view.sampleCount = 1
+        TownQuality.applyMsaa(view); msaaSet = TownQuality.msaa
         // (opaque over its own sky; see-through over the stage's when it has none)
         view.blendMode = if (skySurface != null) View.BlendMode.OPAQUE else View.BlendMode.TRANSLUCENT
         view.colorGrading = grading
@@ -1543,6 +1547,7 @@ class FilamentTown(
 
     /** Brings the scene to camera [pose] at [hour]; [seconds] is the clock (the yards' water shimmers by it). */
     fun frame(pose: TownPose, hour: Float, seconds: Double = 0.0) {
+        if (TownQuality.msaa != msaaSet) { msaaSet = TownQuality.msaa; TownQuality.applyMsaa(view) }
         lastPose = pose
         lastHour = hour
         view.viewport = Viewport(0, 0, pose.w.toInt(), pose.h.toInt())
@@ -2230,9 +2235,14 @@ class FilamentTown(
         // (the open world's shadows reach a fixed way past the player: their cascades are not stretched over a wide view)
         // (0: as far as the view's own reach, not the far boxes' far plane)
         val shadowFar = if (p.shadowFar > 0f) p.shadowFar else p.far
-        if (abs(shadowFar - shadowFarSet) > 10f) {
+        // (the thermal governor's cap on the cascades, docs/HEAT.md: fewer only while the phone is warm, back when cool)
+        val cascadesNow = min(shadowCascades, TownQuality.heatCascades.coerceIn(1, 4))
+        if (abs(shadowFar - shadowFarSet) > 10f || cascadesNow != cascadesSet) {
             shadowFarSet = shadowFar
+            cascadesSet = cascadesNow
             shadowOptions.shadowFar = shadowFar
+            shadowOptions.shadowCascades = cascadesNow
+            shadowOptions.cascadeSplitPositions = TownQuality.splits(cascadesNow)
             lm.setShadowOptions(li, shadowOptions)
         }
         val tone = sky.sky.lastOrNull() ?: Color.White

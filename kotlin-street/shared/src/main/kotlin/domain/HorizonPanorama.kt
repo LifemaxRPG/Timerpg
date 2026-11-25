@@ -138,7 +138,8 @@ class HorizonPanorama(
     }
 
     /** Whether the eye at [at], [eye] m up has gone far enough from where this was baked to bake it again. */
-    fun stale(at: WorldPos, eye: Double): Boolean = hypot(at.dx(centre), at.z - centre.z) > REBAKE_M || kotlin.math.abs(eye - eyeM) > REBAKE_UP_M
+    fun stale(at: WorldPos, eye: Double, stretch: Float = 1f): Boolean =
+        hypot(at.dx(centre), at.z - centre.z) > REBAKE_M * stretch || kotlin.math.abs(eye - eyeM) > REBAKE_UP_M * stretch
 
     val report: String get() = "horizon ring: %d x %d, %.0f-%.0f km, %d texels of ground, %d lit, baked in %.0f ms".format(
         java.util.Locale.US, W, H, r0 / 1000, r1 / 1000, filled, lit, bakeMs)
