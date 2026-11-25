@@ -7,7 +7,6 @@ import android.util.Log
 import com.timerpg.street.llm.AiLane
 import com.timerpg.street.llm.NativeEmbedder
 import java.io.File
-import java.util.concurrent.Executors
 
 /**
  * The people's memories, on the phone: [NpcMemory] saved in filesDir/memories.json, the memory model (Qwen3-Embedding)
@@ -18,7 +17,19 @@ class MemoryService(private val ctx: Context) {
     private val memory = NpcMemory()
     private val embedder = NativeEmbedder()
     private val judge = com.timerpg.street.llm.NativeReranker()
-    private val worker = Executors.newSingleThreadExecutor { r -> Thread(r, "npc-memory").apply { isDaemon = true } }
+    private val worker = java.util.concurrent.ThreadPoolExecutor(1, 1, 0L, java.util.concurrent.TimeUnit.MILLISECONDS,
+        java.util.concurrent.LinkedBlockingQueue()) { r -> Thread(r, "npc-memory").apply { isDaemon = true } }
+    /** What the worker is doing ("loading the memory model", "embedding the question"...) and since when, for [describe]. */
+    @Volatile private var stage: String? = null
+    @Volatile private var stageAt = 0L
+    private fun <T> staged(what: String, block: () -> T): T {
+        stage = what; stageAt = android.os.SystemClock.elapsedRealtime()
+        try { return block() } finally { stage = null }
+    }
+    private fun stageMs(): Long = if (stage == null) 0 else android.os.SystemClock.elapsedRealtime() - stageAt
+
+    /** The worker now: "embedding the question for 21400 ms, 2 queued" or "idle": for the breadcrumbs. */
+    fun describe(): String = (stage?.let { "$it for ${stageMs()} ms" } ?: "idle") + worker.queue.size.takeIf { it > 0 }?.let { ", $it queued" }.orEmpty()
     private val main = Handler(Looper.getMainLooper())
     private val file = File(ctx.filesDir, "memories.json")
     private val idle = Runnable { worker.execute { embedder.close(); judge.close() } }
@@ -36,7 +47,7 @@ class MemoryService(private val ctx: Context) {
         }
         // only with room for it (on the NPU the dialogue model holds most of the phone's memory)
         if (!embedder.loaded && installed && freeMb() >= (modelFile.length() shr 20) + com.timerpg.street.llm.Ram.MARGIN_MB)
-            AiLane.run("memory") { embedder.load(modelFile) }
+            staged("loading the memory model") { AiLane.run("memory") { embedder.load(modelFile) } }
         return embedder.loaded
     }
 
@@ -61,18 +72,28 @@ class MemoryService(private val ctx: Context) {
      */
     fun recall(npc: String, said: String, onFacts: (List<String>, FloatArray?) -> Unit) {
         touch()
+        // at most [RECALL_WAIT_MS]: the answer does not wait on memories that do not come (0.1.930: a memory model that
+        // never came back held every later spoken turn); a worker already stuck that long is not waited for at all
+        val once = Once<Pair<List<String>, FloatArray?>> { (f, v) -> onFacts(f, v) }
+        val stuck = stageMs() > RECALL_WAIT_MS
+        val late = Runnable {
+            if (once.offer(emptyList<String>() to null))
+                com.timerpg.street.shot.Crumbs.add("memory: no memories for $npc within ${if (stuck) 0 else RECALL_WAIT_MS} ms " +
+                    "(memory worker: ${describe()}; lane ${AiLane.describe()}): answered without them")
+        }
+        if (stuck) main.post(late) else main.postDelayed(late, RECALL_WAIT_MS)
         worker.execute {
             var q: FloatArray? = null
             val facts = try {
                 // without the memory model (no room for it beside the dialogue model and speech): the last exchange only
                 if (!ensure()) NpcMemory.asFacts(listOfNotNull(memory.last(npc, System.currentTimeMillis())))
                 else {
-                    q = AiLane.run("memory") { embedder.embed(QUERY + said) }
+                    q = staged("embedding the question") { AiLane.run("memory") { embedder.embed(QUERY + said) } }
                     q?.let { NpcMemory.asFacts(pick(npc, said, it)) } ?: emptyList()
                 }
             } catch (t: Throwable) { Log.w(TAG, "recall: $t"); emptyList() }
             val v = q
-            main.post { onFacts(facts, v) }
+            main.post { main.removeCallbacks(late); once.offer(facts to v) }
         }
     }
 
@@ -89,9 +110,9 @@ class MemoryService(private val ctx: Context) {
         // (never beside the dialogue model in play: it is 2.5 GB, and the light model and speech need that room)
         val dialogueIn = com.timerpg.street.llm.ModelRoom.residents().any { it.first == "dialogue" }
         if (cands.isEmpty() || !judgeFile.isFile || dialogueIn || freeMb() < 3500) return memory.recall(npc, q, now)
-        if (!judge.loaded && !AiLane.run("memory") { judge.load(judgeFile) }) return memory.recall(npc, q, now)
+        if (!judge.loaded && !staged("loading the reranker") { AiLane.run("memory") { judge.load(judgeFile) } }) return memory.recall(npc, q, now)
         val yes = cands.mapNotNull { (e, _, _) ->
-            val p = AiLane.run("memory") { judge.score(JUDGE_TASK, said, "The player said: ${e.said} You answered: ${e.answered}") }
+            val p = staged("judging a memory") { AiLane.run("memory") { judge.score(JUDGE_TASK, said, "The player said: ${e.said} You answered: ${e.answered}") } }
             if (p >= .5f) e to p else null
         }.sortedByDescending { it.second }.take(2).map { it.first }
         judge.close()
@@ -113,7 +134,7 @@ class MemoryService(private val ctx: Context) {
         touch()
         worker.execute {
             try {
-                val v = (if (ensure()) AiLane.run("memory") { embedder.embed("The player said: $said You answered: $answered") } else null) ?: FloatArray(0)
+                val v = (if (ensure()) staged("embedding what was said") { AiLane.run("memory") { embedder.embed("The player said: $said You answered: $answered") } } else null) ?: FloatArray(0)
                 memory.add(NpcMemory.Entry(npc, System.currentTimeMillis(), said, answered, v, town, year, intent, how, q))
                 val tmp = File(file.path + ".part")
                 tmp.writeText(memory.toJson())
@@ -133,6 +154,8 @@ class MemoryService(private val ctx: Context) {
         const val JUDGE = "rerank/Qwen3-Reranker-4B.Q4_K_M.gguf"
         const val JUDGE_TASK = "Given what the player says now, find what this person remembers about it"
         private const val IDLE_MS = 60_000L
+        /** The longest an answer waits for its memories (the embedder on the CPU takes ~0.1-0.5 s, its load ~1 s). */
+        const val RECALL_WAIT_MS = 2_500L
         /** Qwen3-Embedding's query instruction (stored memories are plain text). */
         const val QUERY = "Instruct: Given what the player says now, find what this person remembers about it\nQuery: "
     }

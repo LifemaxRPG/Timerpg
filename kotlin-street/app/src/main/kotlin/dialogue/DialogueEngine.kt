@@ -431,6 +431,22 @@ class DialogueEngine private constructor(private val app: Context) {
         command { loadData(); enqueueAll() }
     }
 
+    /**
+     * What the engine is doing now, in one line for a turn that got no reply ([com.timerpg.street.dialogue.TurnWatch]):
+     * its state, the line being written (and for how long), a question waiting to start, the holds and the AI lane.
+     */
+    fun stageNote(): String {
+        val st = _status.value
+        val (run, dem, holds) = lock.withLock { Triple(running, demand, pauses.toList()) }
+        val now = SystemClock.elapsedRealtime()
+        return listOfNotNull("model ${st.state.name.lowercase()}",
+            run?.let { "writing ${it.target.npc.first}/${it.target.topic.intent} for ${now - it.createdAt} ms" + (if (it.listeners.isEmpty()) " (ahead)" else " (asked)") +
+                (if (it.cancelled) ", cancelled" else "") + (if (it.shown.isNotEmpty()) ", ${it.shown.length} chars shown" else ", nothing shown yet") } ?: "writing nothing",
+            dem?.let { "a question waiting to start (${it.target.npc.first}/${it.target.topic.intent}, ${now - it.createdAt} ms)" },
+            holds.takeIf { it.isNotEmpty() }?.let { "held: ${it.joinToString()}" },
+            "lane ${com.timerpg.street.llm.AiLane.describe()}").joinToString(" · ")
+    }
+
     /** Holds pre-generation (the corner turn, the app in the background, low memory); on-demand lines still come. */
     fun pause(reason: String, stopRunning: Boolean = true) {
         lock.withLock {
@@ -1919,7 +1935,7 @@ class DialogueEngine private constructor(private val app: Context) {
         }
     }
 
-    private enum class End { OK, REJECTED, TIMEOUT, CANCELLED, ERROR }
+    private enum class End { OK, REJECTED, TIMEOUT, CANCELLED, ERROR, BUSY }
 
     /** Writes one line (worker thread). [pre]: its first try already written in a batch (and how it went). */
     private fun generate(g: Gen, pre: Pair<String, LlmStats>? = null) {
@@ -1946,6 +1962,7 @@ class DialogueEngine private constructor(private val app: Context) {
         // when the model first wrote (the prompt read), and the tries made
         var firstAt = 0L
         var tries = 0
+        var laneBusy = false
         for (attempt in 1..MAX_TRIES) {
             tries = attempt
             if (g.cancelled || closed) { end = End.CANCELLED; break }
@@ -1995,7 +2012,14 @@ class DialogueEngine private constructor(private val app: Context) {
                 if (firstAt == 0L) firstAt = SystemClock.elapsedRealtime()
                 batched.first
             } else try {
-                com.timerpg.street.llm.AiLane.run("dialogue") { b.generate(prompt, MAX_TOKENS, if (g.variant) VARIANT_TEMPERATURE else TEMPERATURE, onPiece) }
+                // (bounded: a model that never gave the lane back must not take every later reply with it, 0.1.930)
+                val laneWait = if (g.listeners.isNotEmpty() || g.wanted) LANE_WAIT_MS else LANE_WAIT_AHEAD_MS
+                com.timerpg.street.llm.AiLane.run("dialogue", laneWait) { b.generate(prompt, MAX_TOKENS, if (g.variant) VARIANT_TEMPERATURE else TEMPERATURE, onPiece) }
+            } catch (busy: com.timerpg.street.llm.AiLane.Busy) {
+                error = busy.message
+                laneBusy = true
+                com.timerpg.street.shot.Crumbs.add("dialogue: no reply for ${npc.first} (${topic.intent}): ${busy.message}")
+                null
             } catch (t: Throwable) {
                 error = t.message ?: t.javaClass.simpleName
                 null
@@ -2010,6 +2034,7 @@ class DialogueEngine private constructor(private val app: Context) {
             // the first reply after an NPU load repacks what the tile cache did not have: what that cost, once
             if (tileCrumbPending) { tileCrumbPending = false; com.timerpg.street.shot.Crumbs.add("npu tiles after the first reply: ${com.timerpg.street.llm.NativeLlm.tileStatus()}") }
             if (night && !g.speed) countNight(b)
+            if (laneBusy) { end = End.BUSY; break }
             if (g.timedOut) { end = End.TIMEOUT; break }
             if (g.cancelled || closed) { end = End.CANCELLED; break }
             if (raw == null) { end = End.ERROR; break }
@@ -2073,6 +2098,11 @@ class DialogueEngine private constructor(private val app: Context) {
                 requeue(g)
                 g.finish(template(topic, "built-in"))
             }
+            End.BUSY -> {
+                // another model held the lane past the wait: not this model's failure (it is not taken down for it)
+                requeue(g)
+                g.finish(template(topic, "built-in · the AI was busy", info = info("template", error ?: "the AI lane was busy")))
+            }
             End.ERROR -> {
                 if (night && !g.speed) addNight(failed = 1, failure = "the model failed on a line: ${(error ?: "unknown").take(160)}")
                 g.finish(template(topic, "built-in · the AI failed", info = info("template", "the model failed: ${error ?: "unknown"}")))
@@ -2089,7 +2119,7 @@ class DialogueEngine private constructor(private val app: Context) {
         }
         if (g.speed) {
             val st = try { b.stats } catch (t: Throwable) { LlmStats() }
-            val why = when (end) { End.TIMEOUT -> "Took longer than ${TIMEOUT_MS / 1000} s."; End.CANCELLED -> "Cancelled."; End.ERROR -> error; else -> null }
+            val why = when (end) { End.TIMEOUT -> "Took longer than ${TIMEOUT_MS / 1000} s."; End.CANCELLED -> "Cancelled."; End.ERROR, End.BUSY -> error; else -> null }
             _status.update { it.copy(speedTesting = false, speed = SpeedResult(npc.name, topic.intent, text ?: Dialogue.preview(lastRaw), end == End.OK, ms, st, why)) }
         }
     }
@@ -2309,6 +2339,9 @@ class DialogueEngine private constructor(private val app: Context) {
         private val FIRST = Regex("""^(.{8,}?[.!?])(\s|$)""")
         /** A reply that takes longer than this is given up (the template stays). */
         const val TIMEOUT_MS = 45_000L
+        /** How long a reply someone waits for waits for the AI lane ([com.timerpg.street.llm.AiLane]); a line ahead of time. */
+        const val LANE_WAIT_MS = 8_000L
+        const val LANE_WAIT_AHEAD_MS = 60_000L
         /** How often a line held while the player moves looks whether it may go on (ms). */
         const val HOLD_POLL_MS = 50L
         /** Native errors that come from the prompt itself, not from the model: they would happen every time. */

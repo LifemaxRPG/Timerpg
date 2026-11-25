@@ -1712,6 +1712,8 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
     fun askSaid(engine: DialogueEngine, text: String, voices: com.timerpg.street.voice.NpcVoiceService? = null,
                 memory: com.timerpg.street.dialogue.MemoryService? = null) {
         request?.close()
+        stopWatchdog()
+        val watch = com.timerpg.street.dialogue.TurnWatch()
         said = text
         asked++
         // (a bubble shows the answer to these words only: not the last one while their memories are looked up)
@@ -1730,10 +1732,15 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
         var asked: DialogueEngine.Request? = null
         var askedTopic: Topic? = null
         var vec: FloatArray? = null
-        fun heard(l: Line) {
+        fun heard(l: Line, byWatchdog: Boolean = false) {
+            // (the watchdog gave the template already: a reply coming after it is not said too)
+            if (watch.isEnded && !byWatchdog) return
             if (l.ai && tFirst == 0L && tAsk > 0L) tFirst = android.os.SystemClock.elapsedRealtime()
+            if (l.ai && !l.final) watch.stage("writing (${l.text.length} chars shown)")
             if (!early && voices != null) early = earlyVoice(l, voices)
             if (!l.final || l.text == spoken) return
+            if (!byWatchdog && !watch.end()) return
+            stopWatchdog()
             spoken = l.text; replies += l.text
             run {
                 // the whole turn's timing, for the AI panel and the breadcrumbs: from the end of the player's speech to the
@@ -1762,11 +1769,13 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
             finishTurn(tt, l, engine)
         }
         fun go(remembered: List<String>, v: FloatArray?) {
-            if (said != text) return   // something else was asked meanwhile
+            if (said != text || watch.isEnded) return   // something else was asked meanwhile, or the watchdog answered
             tAsk = android.os.SystemClock.elapsedRealtime()
+            watch.stage("asked the model (${remembered.size} memories)")
             vec = v
             tt.memories = remembered.size
-            val (tp, r) = engine.askFree(npc, text, remembered, v, replies.toList()) { line = it; heard(it) } ?: return
+            val (tp, r) = engine.askFree(npc, text, remembered, v, replies.toList()) { if (!watch.isEnded) line = it; heard(it) }
+                ?: run { watch.stage("no topic for the words"); return }
             asked = r; askedTopic = tp
             topic = tp
             request = r
@@ -1774,11 +1783,34 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
             if (r.first?.final != true && echo == null) filler(text, voices)
             heard(r.first)
         }
+        // a turn that gives the player nothing in time ends with the topic's template, and says where it was stuck
+        val dog = Runnable {
+            if (said != text || !watch.end()) return@Runnable
+            val note = "${watch.note()}; memory worker ${memory?.describe() ?: "none"}; engine ${engine.stageNote()}"
+            com.timerpg.street.shot.Crumbs.add("talk watchdog (${npc.first}): no reply to '${text.take(60)}' in " +
+                "${com.timerpg.street.dialogue.TurnWatch.GIVE_UP_MS / 1000} s: $note")
+            tt.watchdog = note
+            request?.close()
+            val tp = askedTopic ?: DialogueEngine.topicFor(npc, text) ?: npc.topics.firstOrNull() ?: return@Runnable
+            if (askedTopic == null) { askedTopic = tp; topic = tp }
+            val fb = Line(tp.template, ai = false, final = true, note = "built-in · no reply in time",
+                info = com.timerpg.street.dialogue.ReplyInfo("template", why = "no reply in ${com.timerpg.street.dialogue.TurnWatch.GIVE_UP_MS / 1000} s: ${watch.stage}"))
+            line = fb
+            heard(fb, byWatchdog = true)
+        }
+        watchdog = dog
+        mainHandler.postDelayed(dog, com.timerpg.street.dialogue.TurnWatch.GIVE_UP_MS)
         // what they remember that bears on it goes into their fact sheet first
-        if (memory != null && memory.installed) memory.recall(npc.id, text) { facts, v -> go(facts, v) } else go(emptyList(), null)
+        if (memory != null && memory.installed) { watch.stage("looking up memories"); memory.recall(npc.id, text) { facts, v -> go(facts, v) } }
+        else go(emptyList(), null)
     }
 
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var watchdog: Runnable? = null
+    private fun stopWatchdog() { watchdog?.let { mainHandler.removeCallbacks(it) }; watchdog = null }
+
     fun close(voices: com.timerpg.street.voice.NpcVoiceService? = null) {
+        stopWatchdog()
         // walked away before the reply was final: the exchange is logged as such
         turn?.let { tt -> if (!tt.written) { tt.walkedAway = true; tt.reply = line?.text?.takeIf { line?.ai == true }; tt.finish(); com.timerpg.street.play.PlayLog.talk(tt) } }
         turn = null

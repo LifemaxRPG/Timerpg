@@ -380,6 +380,11 @@ bool has_gpu() {
 }
 bool has_npu() { return !devices_of(2).empty(); }
 
+ggml_backend_dev_t * cpu_only_devices() {
+    static ggml_backend_dev_t none[1] = {nullptr};
+    return none;
+}
+
 // ------------------------------------------------------------------------------------------------ the NPU's power vote
 
 namespace {
@@ -1245,6 +1250,7 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
             mp.n_gpu_layers = 999;
             if (device_ == 2) tiles_for_load(path);  // (the NPU's pre-tiled weights for this file, when set up)
         } else {
+            mp.devices = cpu_only_devices();  // (not every device's host buffer and the NPU behind the scheduler's back)
             mp.n_gpu_layers = 0;
         }
         mp.load_mode = LLAMA_LOAD_MODE_MMAP;

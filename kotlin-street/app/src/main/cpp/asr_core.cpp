@@ -49,6 +49,7 @@ bool Asr::load(const std::string & model, const std::string & mmproj, int thread
     if (threads <= 0) threads = 4;
     reset_load_mem();
     llama_model_params mp = llama_model_default_params();
+    mp.devices = cpu_only_devices();  // the CPU only: never the NPU's session or its DMA memory (llm_core.h)
     mp.n_gpu_layers = 0;
     mp.use_extra_bufts = false;   // weights stay mapped from the file (reclaimable), not copied and repacked
     mp.load_mode = LLAMA_LOAD_MODE_MMAP;

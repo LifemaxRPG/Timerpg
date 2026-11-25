@@ -47,6 +47,8 @@ class TalkTurn(
     var valid: Boolean? = null
     var why: String? = null
     var walkedAway = false
+    /** The turn gave the player nothing in time and the watchdog ended it: where each stage was ([com.timerpg.street.dialogue.TurnWatch]). */
+    var watchdog: String? = null
     /** Question to the final line (ms). */
     var totalMs = -1L
     @Volatile var written = false
@@ -84,6 +86,7 @@ class TalkTurn(
             "tries" to tries.takeIf { it > 0 },
             "totalMs" to totalMs.takeIf { it >= 0 },
             "walkedAway" to walkedAway,
+            "watchdog" to watchdog,
         ).filterValues { it != null })
     }
 
