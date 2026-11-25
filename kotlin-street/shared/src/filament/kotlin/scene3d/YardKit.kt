@@ -772,6 +772,7 @@ object YardKit {
      */
     fun bake(items: List<YardItem>, maxAtlas: Int = 2048, perKind: Boolean = true, far: Boolean = false): List<YardBatch> {
         val c = collect(items, far)
+        if (Repeats.on && !far) Repeats.count(c.byKind)
         val out = ArrayList<YardBatch>()
         for ((surface, polys) in c.flats) out += YardBatch("flat:$surface", flatMesh(surface, polys), tiled = true, casts = false, water = surface == "water" || surface == "pondwater")
         if (perKind) {
@@ -783,8 +784,37 @@ object YardKit {
         return out
     }
 
+    /**
+     * How much the near yards repeat (MEMORY_AUDIT.md, "Step 4 as built": what instancing and a shared yard atlas could
+     * save), counted over every near bake while [on]: by kind, the vertices placed against those of the distinct meshes
+     * placed (by content), and the texels of the distinct pictures (each mesh's own atlas, by content).
+     */
+    object Repeats {
+        @Volatile var on = false
+        private val placed = HashMap<String, Long>()
+        private val distinct = HashMap<String, HashMap<Long, Int>>()
+        private val pictures = HashMap<Long, Long>()
+        @Synchronized internal fun count(byKind: Map<String, List<Placed>>) {
+            for ((kind, list) in byKind) for (p in list) {
+                val m = p.mesh
+                placed.merge(kind, m.vertexCount.toLong(), Long::plus)
+                val key = m.pos.contentHashCode().toLong() * 31 + m.uv.contentHashCode() + (m.tex.contentHashCode().toLong() shl 32)
+                distinct.getOrPut(kind) { HashMap() }[key] = m.vertexCount
+                pictures[m.tex.contentHashCode().toLong() * 31 + (m.mask?.contentHashCode() ?: 0) + (m.texW.toLong() shl 40) + (m.texH.toLong() shl 52)] = m.texW.toLong() * m.texH
+            }
+        }
+        /** "kind placed/distinct" for the kinds with most vertices placed, the totals, and the distinct pictures' texels. */
+        @Synchronized fun report(top: Int = 14): String {
+            val d = distinct.mapValues { (_, m) -> m.values.sumOf { it.toLong() } }
+            val all = placed.values.sum(); val dis = d.values.sum()
+            return "yard meshes (near): %.2f M vertices placed, %.2f M in distinct meshes (%d); distinct pictures %.1f M texels; by kind: ".format(java.util.Locale.US,
+                all / 1e6, dis / 1e6, distinct.values.sumOf { it.size }, pictures.values.sum() / 1e6) +
+                placed.entries.sortedByDescending { it.value }.take(top).joinToString(", ") { (k, v) -> "%s %.0fk/%.0fk".format(java.util.Locale.US, k, v / 1e3, (d[k] ?: 0L) / 1e3) }
+        }
+    }
+
     /** A mesh placed by [collect]: from which of the items ([item], its index), at [at] ([PropLayer]'s placing). */
-    private class Placed(val mesh: PropMesh, val at: FloatArray, val item: Int)
+    internal class Placed(val mesh: PropMesh, val at: FloatArray, val item: Int)
     private class Collected(val byKind: LinkedHashMap<String, MutableList<Placed>>, val flats: LinkedHashMap<String, MutableList<FloatArray>>, val subsCast: HashMap<String, Boolean>) {
         /** [bake]'s grouping with perKind false: those that throw a shadow ("solid"), then those that do not ("flat"), in order. */
         fun groups(): List<Pair<String, List<Placed>>> {
@@ -870,7 +900,7 @@ object YardKit {
         }
         // (laid out after [shared]'s pictures, the whole town's, so every lot's is the same atlas: one texture)
         val lead = shared.map { it to NOWHERE }
-        for ((group, part) in own.groups()) for (mesh in merge(lead + part.map { it.mesh to it.at }, maxAtlas) { k -> k >= lead.size })
+        for ((group, part) in own.groups()) for (mesh in merge(lead + part.map { it.mesh to it.at }, maxAtlas, shared = null) { k -> k >= lead.size })
             out += YardBatch(group, mesh, tiled = false, casts = group == "solid", water = false)
         return out
     }
@@ -923,23 +953,18 @@ object YardKit {
         return PropMesh(pos, uv, nr, tn, idx, img.w, img.h, img.px, null, b)
     }
 
+    /** A mesh's own atlas's key (by content: its pictures, its mask, its size). */
+    private fun atlasKey(m: PropMesh): Int = 31 * (31 * m.tex.contentHashCode() + (m.mask?.contentHashCode() ?: 0)) + m.texW * 4099 + m.texH
+
     /**
-     * Many meshes placed in the world ([at]: x, z, along x, z, out x, z, as [PropLayer] places them) baked into as few
-     * meshes as their atlases allow: each distinct atlas (by content) packed once.
+     * Atlases laid out on sheets: each atlas's (by [atlasKey]) sheet and place ([slots]: sheet, x, y of its first texel),
+     * and each sheet's size and pixels (its mask only if some atlas on it has one).
      */
-    fun merge(list: List<Pair<PropMesh, FloatArray>>, maxAtlas: Int = 2048, keep: ((Int) -> Boolean)? = null): List<PropMesh> {
-        if (list.isEmpty()) return emptyList()
-        // the distinct atlases, by content
-        val keyOf = HashMap<PropMesh, Int>()
-        val atlases = LinkedHashMap<Int, PropMesh>()
-        for ((m, _) in list) keyOf.getOrPut(m) {
-            val h = 31 * (31 * m.tex.contentHashCode() + (m.mask?.contentHashCode() ?: 0)) + m.texW * 4099 + m.texH
-            atlases.getOrPut(h) { m }
-            h
-        }
-        // pack them on shelves, as many sheets as needed
-        class Slot(val sheet: Int, val x: Int, val y: Int)
-        val slots = HashMap<Int, Slot>()
+    class Sheets internal constructor(internal val slots: Map<Int, IntArray>, val w: IntArray, val h: IntArray, val tex: List<IntArray>, val mask: List<IntArray?>)
+
+    /** [atlases] packed on shelves, on as many sheets of at most [maxAtlas] as they need (each with a 2-texel gutter). */
+    private fun layOut(atlases: Map<Int, PropMesh>, maxAtlas: Int): Sheets {
+        val slots = HashMap<Int, IntArray>()
         // (as narrow as the pictures let it be, widened until the sheet is about square: a yard's single shed or tree,
         // a patch of its own, once had a 1024-wide sheet mostly empty, 136 of them a third of the town's texels)
         val area = atlases.values.sumOf { (it.texW + 4L) * (it.texH + 4L) }
@@ -950,43 +975,107 @@ object YardKit {
             val aw = a.texW + 4; val ah = a.texH + 4
             if (x + aw > width) { x = 0; y += shelf; shelf = 0 }
             if (y + ah > maxAtlas && y > 0) { sheetH += y + shelf; sheet++; x = 0; y = 0; shelf = 0 }
-            slots[k] = Slot(sheet, x + 2, y + 2)
+            slots[k] = intArrayOf(sheet, x + 2, y + 2)
             x += aw; shelf = max(shelf, ah)
         }
         sheetH += y + shelf
-        val out = ArrayList<PropMesh>()
+        val ws = IntArray(sheet + 1) { width }
+        val hs = IntArray(sheet + 1) { s -> sheetH[s].let { var p = 16; while (p < it) p *= 2; p } }
+        val texs = ArrayList<IntArray>(); val masks = ArrayList<IntArray?>()
         for (s in 0..sheet) {
-            val h = sheetH[s].let { var p = 16; while (p < it) p *= 2; p }
+            val h = hs[s]
             // (the mask only for a sheet that has one: most have none, and it was an atlas-sized array made for nothing)
-            val anyMask = atlases.any { (k, a) -> a.mask != null && slots[k]!!.sheet == s }
+            val anyMask = atlases.any { (k, a) -> a.mask != null && slots[k]!![0] == s }
             val tex = IntArray(width * h); val mask = if (anyMask) IntArray(width * h) else null
             for ((k, a) in atlases) {
-                val sl = slots[k]!!; if (sl.sheet != s) continue
+                val sl = slots[k]!!; if (sl[0] != s) continue
                 for (yy in -2 until a.texH + 2) for (xx in -2 until a.texW + 2) {
                     val sx = xx.coerceIn(0, a.texW - 1); val sy = yy.coerceIn(0, a.texH - 1)
-                    val di = (sl.y + yy) * width + sl.x + xx
+                    val di = (sl[2] + yy) * width + sl[1] + xx
                     tex[di] = a.tex[sy * a.texW + sx]
                     if (mask != null) a.mask?.let { mask[di] = it[sy * a.texW + sx] }
                 }
             }
+            texs += tex; masks += mask
+        }
+        return Sheets(slots, ws, hs, texs, masks)
+    }
+
+    /**
+     * The whole town's near yard pictures on a few shared sheets (MEMORY_AUDIT.md, "Step 4 as built"): every lot's near
+     * patch (and its far version) lays its meshes on these instead of laying out sheets of its own, so the town holds each
+     * picture once instead of once a lot (the 361 lot atlases of 2025's capital, 70 MB of ASTC with their mips, held some
+     * 1 M distinct texels). [sigs]: each atlas's second hash (its pixels' [StreetTextures.hash64]), so only the same
+     * pictures are taken for one. [share]: the sheets' packed pictures, one for the town ([shareFor]).
+     */
+    class SharedAtlas internal constructor(val sheets: Sheets, private val sigs: Map<Int, Long>) {
+        internal val share = java.util.IdentityHashMap<IntArray, StreetTextures.Prepared>()
+        private val arrays: Set<IntArray> = java.util.Collections.newSetFromMap(java.util.IdentityHashMap<IntArray, Boolean>()).also { s -> s += sheets.tex; s += sheets.mask.filterNotNull() }
+        /** Whether every atlas of [atlases] is on the sheets. */
+        internal fun covers(atlases: Map<Int, PropMesh>): Boolean = atlases.all { (k, m) -> sigs[k] == sig(m) }
+        /** The share map for [mesh]'s pictures when they are the sheets' own (one packing for the town), else null. */
+        internal fun shareFor(mesh: PropMesh): MutableMap<IntArray, StreetTextures.Prepared>? = if (mesh.tex in arrays) share else null
+        /** The sheets' texels. */
+        val texels: Long get() = sheets.w.indices.sumOf { sheets.w[it].toLong() * sheets.h[it] }
+    }
+    private fun sig(m: PropMesh): Long = StreetTextures.hash64(m.tex) * 31 + (m.mask?.let { StreetTextures.hash64(it) } ?: 0L)
+
+    /**
+     * The town's [SharedAtlas] once built ([nearAtlas]): [merge] lays a batch's meshes on it when all their pictures are on
+     * it, else lays out sheets of the batch's own as before (a lot rebuilt with a picture the town did not have).
+     */
+    @Volatile var sharedAtlas: SharedAtlas? = null
+
+    /** The shared atlas of every near picture of [lots] (each a patch's near items, as [bake] bakes them). */
+    fun nearAtlas(lots: List<List<YardItem>>, maxAtlas: Int = 2048): SharedAtlas? {
+        val found = lots.parallelStream().map { items -> collect(items, far = false).byKind.values.flatMap { l -> l.map { it.mesh } }.distinct() }
+            .collect(java.util.stream.Collectors.toList())
+        // (by key, so the layout is the same from run to run whatever order the workers finished in)
+        val atlases = java.util.TreeMap<Int, PropMesh>()
+        val sigs = HashMap<Int, Long>()
+        for (l in found) for (m in l) { val k = atlasKey(m); if (k !in atlases) { atlases[k] = m; sigs[k] = sig(m) } }
+        if (atlases.isEmpty()) return null
+        return SharedAtlas(layOut(atlases, maxAtlas), sigs)
+    }
+
+    /**
+     * Many meshes placed in the world ([at]: x, z, along x, z, out x, z, as [PropLayer] places them) baked into as few
+     * meshes as their atlases allow: each distinct atlas (by content) packed once, on the town's [sharedAtlas] when it
+     * holds them all ([shared]), else on sheets of their own.
+     */
+    fun merge(list: List<Pair<PropMesh, FloatArray>>, maxAtlas: Int = 2048, shared: SharedAtlas? = sharedAtlas, keep: ((Int) -> Boolean)? = null): List<PropMesh> {
+        if (list.isEmpty()) return emptyList()
+        // the distinct atlases, by content
+        val keyOf = HashMap<PropMesh, Int>()
+        val atlases = LinkedHashMap<Int, PropMesh>()
+        for ((m, _) in list) keyOf.getOrPut(m) {
+            val h = atlasKey(m)
+            atlases.getOrPut(h) { m }
+            h
+        }
+        val onShared = shared != null && shared.covers(atlases)
+        val lay = if (onShared) shared!!.sheets else layOut(atlases, maxAtlas)
+        val out = ArrayList<PropMesh>()
+        for (s in lay.w.indices) {
+            val width = lay.w[s]; val h = lay.h[s]; val tex = lay.tex[s]; val mask = lay.mask[s]
             // (with [keep]: the sheet's atlas whole, as laid out for every mesh, but only the kept meshes on it; a sheet
-            // with none of them is left out)
-            val mine = list.filterIndexed { k, it -> slots[keyOf[it.first]!!]!!.sheet == s && (keep == null || keep(k)) }
-            if (mine.isEmpty() && keep != null) continue
+            // with none of them is left out, as is a shared sheet none of [list] wears)
+            val mine = list.filterIndexed { k, it -> lay.slots[keyOf[it.first]!!]!![0] == s && (keep == null || keep(k)) }
+            if (mine.isEmpty() && (keep != null || onShared)) continue
             val nv = mine.sumOf { it.first.vertexCount }; val ni = mine.sumOf { it.first.idx.size }
             val pos = FloatArray(nv * 3); val uv = FloatArray(nv * 2); val nr = FloatArray(nv * 3); val tn = FloatArray(nv * 3); val idx = IntArray(ni)
             var vi = 0; var ii = 0
             val b = floatArrayOf(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE)
             for ((m, a) in mine) {
-                val sl = slots[keyOf[m]!!]!!
+                val sl = lay.slots[keyOf[m]!!]!!
                 for (i in 0 until m.vertexCount) {
                     val lx = m.pos[i * 3]; val ly = m.pos[i * 3 + 1]; val lz = m.pos[i * 3 + 2]
                     val wx = a[0] + a[2] * lx + a[4] * lz; val wz = a[1] + a[3] * lx + a[5] * lz
                     pos[(vi + i) * 3] = wx; pos[(vi + i) * 3 + 1] = ly; pos[(vi + i) * 3 + 2] = wz
                     nr[(vi + i) * 3] = a[2] * m.nrm[i * 3] + a[4] * m.nrm[i * 3 + 2]; nr[(vi + i) * 3 + 1] = m.nrm[i * 3 + 1]; nr[(vi + i) * 3 + 2] = a[3] * m.nrm[i * 3] + a[5] * m.nrm[i * 3 + 2]
                     tn[(vi + i) * 3] = a[2] * m.tan[i * 3] + a[4] * m.tan[i * 3 + 2]; tn[(vi + i) * 3 + 1] = m.tan[i * 3 + 1]; tn[(vi + i) * 3 + 2] = a[3] * m.tan[i * 3] + a[5] * m.tan[i * 3 + 2]
-                    uv[(vi + i) * 2] = (sl.x + m.uv[i * 2] * m.texW) / width
-                    uv[(vi + i) * 2 + 1] = (sl.y + m.uv[i * 2 + 1] * m.texH) / h
+                    uv[(vi + i) * 2] = (sl[1] + m.uv[i * 2] * m.texW) / width
+                    uv[(vi + i) * 2 + 1] = (sl[2] + m.uv[i * 2 + 1] * m.texH) / h
                     b[0] = min(b[0], wx); b[1] = min(b[1], ly); b[2] = min(b[2], wz); b[3] = max(b[3], wx); b[4] = max(b[4], ly); b[5] = max(b[5], wz)
                 }
                 for (k in m.idx) idx[ii++] = vi + k

@@ -29,6 +29,8 @@ object TownQuality {
     @Volatile var maskFormats = true
     /** The models' night masks as window pages ([FilamentModels.Pages]: the same pixels, only the tiles that hold any): off, atlas-sized as before (to measure). */
     @Volatile var maskPages = true
+    /** The yards' near pictures on the town's shared sheets ([YardKit.SharedAtlas]: each picture once for the town, not once a lot): off, a lot's own sheets as before (to measure). */
+    @Volatile var yardAtlas = true
     /**
      * Where the encoded ASTC pictures are kept from start to start (the app's cache folder; null: none, every picture
      * encoded at every start). Keyed by the pictures' content, so a changed picture is simply encoded again.
