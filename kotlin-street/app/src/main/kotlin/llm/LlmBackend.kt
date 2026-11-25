@@ -55,6 +55,13 @@ data class LlmStats(
     /** Of those, the n-gram lookup's guesses (copied from the prompt, the reply so far or the bank's lines). */
     val ngramDrafted: Int = 0,
     val ngramAccepted: Int = 0,
+    /** Guess-and-check passes; with fixed-shape steps, the filler tokens added to short guesses and how many were right. */
+    val steps: Int = 0,
+    val padded: Int = 0,
+    val padAccepted: Int = 0,
+    /** validate()-aware sampling: candidate tokens it took away, and steps where every candidate broke a rule. */
+    val guideBanned: Int = 0,
+    val guideFallbacks: Int = 0,
 ) {
     val prefillPerSec: Float get() = if (prefillMs > 0) (promptTokens - reusedTokens) * 1000f / prefillMs else 0f
     val genPerSec: Float get() = if (genMs > 0) genTokens * 1000f / genMs else 0f

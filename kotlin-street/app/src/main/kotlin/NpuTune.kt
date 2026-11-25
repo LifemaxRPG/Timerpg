@@ -22,6 +22,11 @@ object NpuTune {
         Config("2 sessions (default)", mapOf("GGML_HEXAGON_DEVICES" to "2")),
         Config("3 sessions", mapOf("GGML_HEXAGON_DEVICES" to "3")),
         Config("4 sessions", mapOf("GGML_HEXAGON_DEVICES" to "4")),
+        // ENGINE_TAILORING.md, idea 4: the light 4B fits one session (no hand-off between sessions per token); polling for
+        // completions instead of waiting on an interrupt (one ARM core spins while the NPU works)
+        Config("1 session", mapOf("GGML_HEXAGON_DEVICES" to "1")),
+        Config("1 session + poll", mapOf("GGML_HEXAGON_DEVICES" to "1", "GGML_HEXAGON_OPPOLL" to "1")),
+        Config("2 sessions + poll", mapOf("GGML_HEXAGON_DEVICES" to "2", "GGML_HEXAGON_OPPOLL" to "1")),
         Config("2 sessions, sustained power", mapOf("GGML_HEXAGON_DEVICES" to "2", "GGML_HEXAGON_POWER_MODE" to "sustained_high_performance")),
         Config("2 sessions, no host buffers", mapOf("GGML_HEXAGON_DEVICES" to "2", "GGML_HEXAGON_HOSTBUF" to "0")),
         Config("2 sessions, vector units only (no HMX)", mapOf("GGML_HEXAGON_DEVICES" to "2", "GGML_HEXAGON_NHMX" to "0")),

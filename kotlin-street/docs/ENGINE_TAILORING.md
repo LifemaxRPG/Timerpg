@@ -1,8 +1,10 @@
 # Engine tailoring: changes only Timerpg can make to llama.cpp and the model files (2026-11-25)
 
 Scope: the in-play light model (Qwen3.5-4B, Q4_0 or Q4_K_M, on the Hexagon NPU via the vendored ggml-hexagon at
-`/home/user/vendor/llama.cpp`, commit b1b770d, 2026-11-13) and the overnight writer (Qwen3.5-9B). This is a read-only
-audit: nothing in the repo or the vendored tree was edited.
+`/home/user/vendor/llama.cpp`, commit b1b770d, 2026-11-13) and the overnight writer (Qwen3.5-9B). Written first as a
+read-only audit; ideas 1, 2, 4, 5 and 6 are now built (the owner approved all of it): see **As built** right below,
+which says what was measured on the server and what still needs the S25. The vendored tree is still never edited (our
+changes are patch files).
 
 What makes us different from a general-purpose engine, and what every idea below relies on:
 - **Output is only short English NPC speech** (56 tokens max, two sentences, `validate()` decides). A general engine has
@@ -18,6 +20,138 @@ M3); the tied head is 2560 x 248320 Q6_K = **521.5 MB (497 MiB)**; the 4B's othe
 runs **on the CPU**, mapped (`llm_core.cpp:901-905`, `^token_embd\.weight$` -> CPU buffer), once per generated token
 and once per verified/drafted position; Qwen3.5's MTP graph uses the same `model.output` head
 (`src/models/qwen35.cpp:657-661`). Everything marked *estimate* was not measured on the S25.
+
+---
+
+## As built (2026-11-25): what is in the code, what was measured where
+
+Built on the desktop server (4-core x86, CPU only, shared with other jobs: load 11-16, so its tok/s are noisy) against
+Qwen3.5-0.8B Q4_K_M (unsloth; tied Q6_K head like the light 4B, no MTP head). **Nothing here ran on the S25**: every
+NPU number is still the estimate above; the switches are settings so they can be A/B'd there. Our llama.cpp changes
+are patch files applied into a shadow of the read-only tree (`app/src/main/cpp/CMakeLists.txt`): `patches/llama-*.patch`
+always (host and phone), `patches/ggml-hexagon-*.patch` with the NPU backend. The shadow copies only the directories the
+patches touch (now `src` and `ggml/src/ggml-hexagon`), every other entry a link.
+
+| idea | as built | proven on the server | needs the S25 |
+|---|---|---|---|
+| 1 head cut | `patches/llama-head-vocab.patch`; `llm_core` keeps the cut head on the device | identical replies through a permutation (below) | tok/s, NPU copy size, first token after idle |
+| 2 guide | `guide.cpp`, "npu" pref `guided` (default off) | 34/34 rule cases; blind side-by-side made | the owner's judgement; 4B pass rates |
+| 4 knobs | fixed-shape steps (`fixed_steps`, off), "1 session" configs in NpuTune, `play_sessions`, `oppoll` (off), OpenCL only when asked (default) | padded passes lossless (below) | every speed number |
+| 5 tiles | `patches/ggml-hexagon-tile-cache.patch`, "npu" pref `tile_cache` (default off) | compiles (APK build); cannot run here | all of it, first |
+| 6 writer batches | `Engine::generate_batch`, "npu" pref `writer_batch` (default 0: off) | token-identical at 4 a pass; not always at 8 (below) | lines/hour, heat, 9B memory |
+| 7 MTP for the 4B | not built: the light file has no MTP head | - | - |
+
+### 1. The English-first head (`patches/llama-head-vocab.patch`)
+
+- **Key:** `timerpg.head_vocab` (u32 K), the key the model-files job's reorder tool writes (`tools/llm/vocab_reorder.h`,
+  `KEY_HEAD_VOCAB`). Read in `llama_model::load_hparams` into `llama_hparams::n_vocab_head` (ignored unless 0 < K < n_vocab).
+- **Loader:** a new flag `TENSOR_PREFIX_ROWS`: a matrix whose first ne[1] rows are all that is used; the tensor is created
+  with K rows and loaded from the prefix of the file's data (rows are contiguous), the shape check accepts the file's
+  larger ne[1], and the progress total is corrected. qwen35 creates its head (tied: the duplicate of `token_embd`; untied:
+  `output.weight`, the 9B's) and the MTP block's `shared_head_head` this way. So on the NPU only K rows are copied
+  (Q6_K at K = 48k: ~100 MB instead of 497 MiB) and the head runs there: the CPU mapping (`head_mapped_`, bit 15) is
+  skipped for a file with the key (kept, as before, for uncut files).
+- **Graph:** `timerpg_head_rows()` views the head down to K rows when it is the full CPU tensor shared with the input
+  embeddings (the CPU, or the mapped-head override); the MTP graph uses the same.
+- **Logits:** `timerpg_get_logits_async()` in `llama-context.cpp` copies each row's K logits to the start of its
+  n_vocab-wide row; the rest of the row is set to -INFINITY once (checked cheaply each copy, refilled only when the
+  buffer is new). Every sampler still sees full rows.
+- **Host test** (`llm_host_test MODEL --vocab-test PERMUTED --perm FILE`; scratchpad `llm/tp/permute.py` makes a test
+  permutation with gguf-py: the 24,250 tokens a corpus of TinyStories + our dialogue exports + the repo's docs uses, plus
+  every special and byte token, become ids 0..K-1). Measured (server, 0.8B, the 5 built-in prompts, 56 tokens):
+  every prompt tokenizes identically through the permutation; greedy replies **5/5 token-identical**, sampled (same
+  seed, 0.3) **5/5 identical**, both for the tied head (CPU view path) and with an untied `output.weight` copy (the
+  loader's prefix-rows path). With this small test K, the top-40 lay within K at only 34.5% of steps (the tail of the 40
+  holds non-English tokens) but the greedy pick never left K. The real K comes from the reorder tool's list.
+- Kotlin: `NativeLlm.headVocab(file)`; the light model's measured copy size is keyed by it (`copyKey`), so a cut file
+  learns its own.
+
+### 2. The validate()-aware sampler (`guide.cpp`, `guide.h`)
+
+- `GuideRules::build(prompt, self, recent)` reads the prompt as validate() does (the sheet without the player's turn and
+  without "You already said" lines). `check(text, piece)` says whether the reply so far plus a candidate's text breaks a
+  rule: `*` (actions); AI_START at the start; the speaker's full name; whole-word STAGE / AI_WORDS / SHEET_WORDS phrases;
+  ", 1925" (the sheet's year); a capitalized word in mid-sentence that no word of the sheet or of the player's line
+  starts with (a still-open word must be the start of one; one letter, "I", is free; sentence starts are free); a PLACES
+  noun the facts and the player never mention after a determiner within two words; four words of a recent reply.
+  Mirrors the lists of `llm/Dialogue.kt` (kept in sync by hand: the comments say so).
+- `guide_sampler()` is a public-API `llama_sampler` placed after top-k: it removes the candidates `check` rejects (order
+  kept), keeps end-of-turn tokens, removes other control tokens, and leaves a step untouched when every candidate fails
+  (counted). In `generate_mtp` a guided reply uses our own chain and samples each verify position in order (as
+  `common_sampler_sample_and_accept_n` does), so guesses stay lossless under the guide too.
+- Setting: "npu" pref **`guided`, default off** (`DialogueEngine.guidedWanted`, read per reply; `NativeLlm.guided`,
+  `guideSelf`, `guideRecent`). Stats: `LlmStats.guideBanned`, `guideFallbacks`.
+- Host: `--rules-only` checks 34 hand-made cases (all as validate() judges them). `--guide-eval FILE` writes 2 tries per
+  prompt both ways; scratchpad `llm/tp/judge.ts` judges them with `src/llm/factsheet.ts` validate() the way
+  DialogueEngine does (MAX_TRIES 2, first-sentence rescue). Measured, server, 0.8B, 20 prompts (12 from
+  `assets/dialogue.json`, 8 from gamma):
+
+  | temperature | first try, old | first try, guided | final, old | final, guided |
+  |---|---|---|---|---|
+  | 0.3 (play) | 19/20 | 19/20 | 19/20 | 19/20, every reply identical to old |
+  | 0.7 (variants) | 17/20 | 18/20 | 19/20 | 19/20 |
+
+  The guide took ~1,200 candidates away per 40 replies and never had to fall back; at 0.3 none of them would have been
+  drawn (they were the top-40's tail). It removed the one "said their own full name"; what is left is "left out
+  <must word>", which a ban cannot fix (the soft bias towards the must names is the next step, not built). The blind
+  side-by-side (0.7; 2 of 20 lines differ) is in the scratchpad (`llm/blind_ab.md`, key `llm/blind_ab_key.md`). The 4B's
+  and 9B's rates are not measured.
+
+### 4. NPU runtime knobs
+
+- **Fixed-shape steps** (`set_device` bit 20; "npu" pref `fixed_steps`, default off; `NativeLlm.fixedSteps`): every
+  guess-and-check pass is padded to 1 + max(n-gram, MTP) tokens with filler (the last guess again); filler is checked
+  like any guess, so replies are unchanged; `Stats::padded`/`pad_accepted` count it. Server, 0.8B, 5 prompts, 3 tokens ahead
+  by n-grams, every pass padded to 4: replies **5/5 token-identical** to the same path without guesses, greedy and
+  sampled, with and without the pool (`--spec-test --ngram 3 --fixed-steps`); filler was never right (0 of ~200 a
+  pass). On the server's CPU a 4-token pass costs more than a 1-token one, so it is slower there (expected: the CPU is
+  compute-bound; the NPU step is bound by reading the weights, where the doc expects 4 tokens to cost about 1). Graph
+  reuse (`n_reused`) and tok/s: S25 only.
+- **Sessions / polling:** NpuTune gains "1 session", "1 session + poll", "2 sessions + poll". Outside the tuner, "npu"
+  prefs `play_sessions` (0: ggml-hexagon's 2) and `oppoll` (off) apply to the game's process only (the writer's 9B needs
+  2 sessions, and polling spins a core all night). Read once per process, before the backends load.
+- **No OpenCL in play:** `llm::set_gpu_backend(false)` is the default (pref `opencl_at_start` turns the old behaviour
+  back on): `libggml-opencl.so` loads only when a load asks for the GPU (`ensure_gpu_backend()` in `Engine::load`);
+  `has_gpu()` answers "yes" until it has been tried, so the GPU fallback still tries it.
+
+### 5. Pre-tiled NPU weights (`patches/ggml-hexagon-tile-cache.patch`)
+
+- In `ggml_backend_hexagon_buffer_set_tensor`: a whole weight that the backend will tile is read from
+  `<dir>/<build>-<key>-<name>.tile` when its header matches exactly (magic, this build's version hash, the model key,
+  name, type, shape, raw and tiled sizes) and marked `HTP_TENSOR_TILED`: no raw copy, no repack at the first compute.
+  After a normal repack (`ggml_hexagon_tensor_repack`) the tiles are written (temp file, rename) when writing is
+  allowed and the budget has room. Any failure (missing, short, foreign, full disk) only falls back to the normal path;
+  an unusable file is deleted; files of other builds are removed when the cache is set. Timings and counts for the
+  breadcrumbs (`ggml_backend_hexagon_tile_cache_stats`).
+- `llm_core`: `npu_tile_cache(dir, write, budget)`, keyed per load by the model file's size, time and 17 sampled 64 KB
+  blocks (not a full hash: that would cost what the cache saves). Kotlin: "npu" pref **`tile_cache`, default off**;
+  `noBackupFilesDir/npu-tiles`, budget min(9 GB, a quarter of free storage), written only overnight or while charging;
+  breadcrumbs after each NPU load and after its first reply. Not run anywhere yet: the first S25 test should compare a
+  load's first reply time with and without, and the replies token for token.
+
+### 6. Several prompts per pass for the writer (`Engine::generate_batch`)
+
+- The context holds N + 1 sequences (`set_device` bits 24-26; unified attention cache, `n_ctx` at least 512 per
+  sequence): each prompt is read on sequence 0 exactly as `generate()` reads it (cache prefix, saved states, line-end
+  snapshots; `restore_snapshot` now clears only sequence 0 when there are others), its first token sampled, its state
+  copied into its own sequence (`llama_memory_seq_cp`), then all replies decode together, one `llama_decode` a step.
+- Host (`--batch-test N`, `--batch-same-context`, `--batch-greedy-only`), server, 0.8B: **4 a pass: 20/20 greedy and
+  5/5 sampled replies token-identical** to each prompt alone, 1.6x lines per second (prefill included, CPU). **8 a pass:
+  15/20 greedy, 14/20 sampled identical**; the others part mid-reply (from token 4-19), the same with the single runs in
+  a context of the same size: llama.cpp's CPU kernels sum in another order once 8 rows go together (rounding, not a
+  mix-up of sequences: a mix-up would differ from the first token). So 4 is the proven size; 8 needs its pass rate
+  checked (or the NPU's own identity check) before use.
+- Kotlin: "npu" pref **`writer_batch`, default 0 (off)**; overnight with the main model the load asks for that many
+  sequences; the worker takes the next night jobs of the same kind (`nightGroup`), writes their first tries in one pass
+  (`NativeLlm.generateBatch`), then judges and, where needed, retries each alone as before (`generate(g, pre)`).
+
+### 7. MTP for the light 4B: not built
+
+The light model's file (`qwen3.5-4b-q4_0.gguf`, 2,583,221,408 bytes) has no `nextn` layers, so idea 1 cannot make its
+MTP cheap yet. unsloth publishes `Qwen3.5-4B-MTP-GGUF` with a Q4_0 (2,669,209,920 bytes, 86 MB more). To use it:
+download entry + reorder like the plain file, let `DialogueEngine` set `mtp` for the light role (today only the BANK
+role), and A/B on the S25 against n-grams alone. The engine side is ready (the cut head covers `shared_head_head` and
+the MTP graph's use of `output`).
 
 ---
 

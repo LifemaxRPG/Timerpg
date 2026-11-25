@@ -10,6 +10,7 @@
 
 #include "llama.h"
 #include "ggml-backend.h"
+#include "guide.h"
 
 struct common_speculative;
 
@@ -61,12 +62,27 @@ void set_log_sink(LogSink sink);
  */
 bool init_backend(const std::vector<std::string> & cpu_libs, std::string * info);
 
+/** "timerpg.head_vocab" of a GGUF file: K, the rows of its English-first head (docs/ENGINE_TAILORING.md, idea 1;
+ *  patches/llama-head-vocab.patch computes only those), 0 for a file with the whole vocabulary. */
+int64_t head_vocab(const std::string & path);
+
 /** "dotprod fp16 i8mm"-style list of the ARM features that matter for the kernels (empty elsewhere). */
 std::string cpu_features();
 /** The CPU kernel libraries to try on this phone, best first (Android arm64). */
 std::vector<std::string> cpu_variant_libs();
 
-/** Whether a GPU backend (the Adreno, through OpenCL) / an NPU backend (Hexagon) is loaded. */
+/**
+ * When the GPU's backend (libggml-opencl.so) loads (ENGINE_TAILORING.md, idea 4): [at_start] true, with the others in
+ * init_backend (as before); false (the default), only when a load asks for the GPU: the game in play runs the model on
+ * the NPU, so the Adreno OpenCL driver's start-up and its context memory beside Filament are skipped. Call before
+ * init_backend.
+ */
+void set_gpu_backend(bool at_start);
+/** Loads the GPU's backend now if it is not yet (once per process); whether a GPU device is there. */
+bool ensure_gpu_backend();
+
+/** Whether a GPU backend (the Adreno, through OpenCL) / an NPU backend (Hexagon) is loaded. With the GPU's backend left
+ *  for later (set_gpu_backend(false)), has_gpu() is true until it has been tried: the GPU is then loaded when asked for. */
 bool has_gpu();
 bool has_npu();
 
@@ -97,6 +113,18 @@ public:
 private:
     bool held_ = false;
 };
+// ---------------------------------------------------------------------------------------------------- pre-tiled NPU weights
+
+/**
+ * Pre-tiled NPU weights on flash (docs/ENGINE_TAILORING.md, idea 5; patches/ggml-hexagon-tile-cache.patch): from the next
+ * NPU load on, ggml-hexagon reads each weight's tiles from [dir] when they are there (no raw copy, no repack at the first
+ * compute) and, with [write], writes those it had to make, within [budget_bytes] for the whole directory. Keyed by the
+ * model file (its size, time and sampled bytes) and the backend's build. "" turns it off. Any failure only skips the cache.
+ */
+void npu_tile_cache(const std::string & dir, bool write, int64_t budget_bytes);
+/** What the cache did since the last NPU load (for the breadcrumbs), or why it is off. */
+std::string npu_tile_status();
+
 /** Called right before a compute starts and after it ends: the first one after a burst vote is logged (wake latency). */
 void npu_compute_begin();
 void npu_compute_end(int n_tokens);
@@ -134,6 +162,12 @@ struct Stats {
     int32_t ngram_accepted = 0;
     /** Verification passes (one per batch of [last token, guesses...]); gen_tokens / steps is the tokens per pass. */
     int32_t steps = 0;
+    /** Fixed-shape steps (set_device bit 20): filler tokens added to short guesses, and how many of them were right. */
+    int32_t padded = 0;
+    int32_t pad_accepted = 0;
+    /** The guide (set_guide): candidate tokens it took away, and steps where every candidate broke a rule. */
+    int32_t guide_banned = 0;
+    int32_t guide_fallbacks = 0;
 };
 
 /** The saved model states of a recurrent or hybrid model (Engine::set_snapshot_dir): where they are and what they cost. */
@@ -191,7 +225,24 @@ public:
      *  497 MB for Qwen3.5-4B Q4_0). No effect on a model with its own output weights. */
     void set_device(int kind) { device_ = kind & 3; repack_ = (kind & 16) != 0; kv_q8_ = (kind & 32) != 0; mtp_n_ = (kind >> 8) & 15;
                                 const int b = (kind >> 12) & 7; batch_max_ = b == 1 ? 256 : b == 2 ? 128 : 512;
-                                head_mapped_ = (kind & (1 << 15)) != 0; ngram_n_ = (kind >> 16) & 15; }
+                                head_mapped_ = (kind & (1 << 15)) != 0; ngram_n_ = (kind >> 16) & 15;
+                                fixed_steps_ = (kind & (1 << 20)) != 0; n_seq_ = 1 + ((kind >> 24) & 7); }
+    /** Bit 20: every guess-and-check pass the same length (1 + the most tokens guessed ahead): a short guess is padded
+     *  with filler tokens (checked like any guess: lossless), so llama.cpp and the NPU backend reuse one graph for every
+     *  step instead of rebuilding it each time the length changes (ENGINE_TAILORING.md, idea 4). */
+    /** Bits 24-26: sequences the context holds at once, minus one (generate_batch: the overnight writer's prompts in one
+     *  pass). 0: one, as in play. */
+    /**
+     * validate()-aware sampling from the next generate() on (ENGINE_TAILORING.md, idea 2; guide.h): tokens that would
+     * break the reply check are never sampled. [self]: the speaker's full name; [recent]: their last replies. The prompt
+     * itself gives the facts. Off: sampling exactly as before.
+     */
+    void set_guide(bool on, const std::string & self, const std::vector<std::string> & recent) {
+        guide_on_ = on; guide_self_ = self; guide_recent_ = recent;
+    }
+    bool guide_on() const { return guide_on_; }
+    /** The guide's rules for the last reply (for tests). */
+    const GuideRules & guide_rules() const { return guide_rules_; }
     /** Bits 16-19 of set_device's kind: tokens to guess ahead by n-gram lookup (0: off). The guess is what followed the
      *  last [ngram_min]..4 tokens where they appeared before: in the prompt (the fact sheet, the conversation so far),
      *  the reply so far, or the pool (set_draft_pool). Checked like MTP's guesses (lossless), tried before the MTP head. */
@@ -214,6 +265,22 @@ public:
      * when cancelled returns what was generated so far and sets error() to "cancelled".
      */
     std::string generate(const std::string & prompt, int max_tokens, float temperature, const OnText & on_text);
+
+    /**
+     * Several prompts in one pass (the overnight writer: docs/ENGINE_TAILORING.md, idea 6). Each prompt is read as
+     * generate() reads it (the cache and the saved states reused, sequence 0), its state copied into a sequence of its
+     * own, then every reply is written together: one llama_decode per step for all of them (decoding is bound by
+     * reading the weights, so N replies cost little more than one). [seeds]: one per prompt (missing: sampling_.seed).
+     * Needs a context loaded with set_device bits 24-26 (sequences - 1) of at least prompts.size(); more prompts than
+     * that are done in groups. No guesses (MTP, n-grams) and no guide here. Returns one reply per prompt ("" for one
+     * that failed); batch_stats() and batch_tokens() say how each went.
+     */
+    std::vector<std::string> generate_batch(const std::vector<std::string> & prompts, int max_tokens, float temperature,
+                                            const std::vector<uint32_t> & seeds);
+    /** The sequences the loaded context holds for generate_batch (1: none, generate() only). */
+    int batch_seqs() const { return ctx_ ? n_seq_used_ : 0; }
+    const std::vector<Stats> & batch_stats() const { return batch_stats_; }
+    const std::vector<std::vector<int32_t>> & batch_tokens() const { return batch_tokens_; }
 
     /** Stops a running load/generate as soon as possible. Safe from any thread. It stays set until [arm]. */
     void cancel() { cancel_.store(true); }
@@ -310,6 +377,23 @@ private:
     std::vector<std::vector<int32_t>> pool_; // set_draft_pool's lines, tokenized
     int batch_max_ = 512;                    // the prompt's batch (n_batch = n_ubatch), at most the context
     bool head_mapped_ = false;               // a tied output head kept on the CPU, mapped (set_device bit 15)
+    bool fixed_steps_ = false;               // guess-and-check passes padded to one length (set_device bit 20)
+    int n_seq_ = 1;                          // sequences the context holds (set_device bits 24-26)
+    int n_seq_used_ = 1;                     // what the loaded context has
+    std::vector<Stats> batch_stats_;
+    std::vector<std::vector<int32_t>> batch_tokens_;
+    /** generate()'s prompt reading on sequence 0 (the cache's common prefix, the saved states, the line-end snapshots),
+     *  the last token's logits ready. False on failure (error_ set). */
+    bool prefill(const std::vector<int32_t> & toks);
+    /** Empties sequence 0 (the whole memory when the context has only it). */
+    void clear_seq0();
+    bool guide_on_ = false;                  // validate()-aware sampling (set_guide)
+    std::string guide_self_;
+    std::vector<std::string> guide_recent_;
+    GuideRules guide_rules_;
+    GuideCounts guide_counts_;
+    /** The sampler chain: penalties, top-k, the guide (when on), then top-p, temperature and a draw (or the best). */
+    llama_sampler * make_chain(float temperature, uint32_t seed);
     llama_model_tensor_buft_override overrides_[2] = {};  // (alive through the load: llama.cpp reads it there)
     llama_context * dft_ = nullptr;          // the MTP head's context (shares the main context's memory)
     common_speculative * spec_ = nullptr;

@@ -107,6 +107,25 @@ extern "C" JNIEXPORT void JNICALL FN(nativeSetNpuPower)(JNIEnv * env, jclass, jb
     try { llm::npu_power_policy(from_bytes(env, mode), hold_ms); } catch (...) {}
 }
 
+/** The NPU's pre-tiled weights (llm::npu_tile_cache): [dir] empty turns it off. */
+extern "C" JNIEXPORT void JNICALL FN(nativeSetTileCache)(JNIEnv * env, jclass, jbyteArray dir, jboolean write, jlong budget) {
+    try { llm::npu_tile_cache(from_bytes(env, dir), write == JNI_TRUE, budget); } catch (...) {}
+}
+
+extern "C" JNIEXPORT jstring JNICALL FN(nativeTileStatus)(JNIEnv * env, jclass) {
+    try { return to_jstring(env, llm::npu_tile_status()); } catch (...) { return nullptr; }
+}
+
+/** "timerpg.head_vocab" of a model file (llm::head_vocab): 0 for a file with the whole vocabulary. */
+extern "C" JNIEXPORT jlong JNICALL FN(nativeHeadVocab)(JNIEnv * env, jclass, jbyteArray path) {
+    try { return (jlong) llm::head_vocab(from_bytes(env, path)); } catch (...) { return 0; }
+}
+
+/** When the GPU's backend loads (llm::set_gpu_backend): at start, or only when a load asks for the GPU. */
+extern "C" JNIEXPORT void JNICALL FN(nativeSetGpuBackend)(JNIEnv *, jclass, jboolean at_start) {
+    try { llm::set_gpu_backend(at_start == JNI_TRUE); } catch (...) {}
+}
+
 extern "C" JNIEXPORT jstring JNICALL FN(nativeNpuPower)(JNIEnv * env, jclass) {
     std::string s;
     try { s = llm::npu_power_status(); } catch (...) { s = "unknown"; }
@@ -195,15 +214,100 @@ extern "C" JNIEXPORT jstring JNICALL FN(nativeLoadInfo)(JNIEnv * env, jobject) {
 
 extern "C" JNIEXPORT jlongArray JNICALL FN(nativeStats)(JNIEnv * env, jobject, jlong h) {
     const llm::Stats s = h ? engine(h)->stats() : llm::Stats{};
-    const jlong v[13] = {s.load_ms, s.prompt_tokens, s.reused_tokens, s.prefill_ms, s.gen_tokens, s.gen_ms, s.first_token_ms, s.threads,
-                         s.drafted, s.accepted, s.ngram_drafted, s.ngram_accepted, s.steps};
-    jlongArray a = env->NewLongArray(13);
+    const jlong v[17] = {s.load_ms, s.prompt_tokens, s.reused_tokens, s.prefill_ms, s.gen_tokens, s.gen_ms, s.first_token_ms, s.threads,
+                         s.drafted, s.accepted, s.ngram_drafted, s.ngram_accepted, s.steps, s.padded, s.pad_accepted,
+                         s.guide_banned, s.guide_fallbacks};
+    jlongArray a = env->NewLongArray(17);
     if (!a) {
         if (env->ExceptionCheck()) env->ExceptionClear();
         return nullptr;
     }
-    env->SetLongArrayRegion(a, 0, 13, v);
+    env->SetLongArrayRegion(a, 0, 17, v);
     return a;
+}
+
+/** validate()-aware sampling for the next generate() calls (llm::Engine::set_guide): [recent] one reply a line. */
+extern "C" JNIEXPORT void JNICALL FN(nativeSetGuide)(JNIEnv * env, jobject, jlong h, jboolean on, jbyteArray self, jbyteArray recent) {
+    if (!h) return;
+    try {
+        std::vector<std::string> lines;
+        const std::string all = from_bytes(env, recent);
+        size_t at = 0;
+        while (at < all.size()) {
+            size_t e = all.find('\n', at);
+            if (e == std::string::npos) e = all.size();
+            if (e > at) lines.push_back(all.substr(at, e - at));
+            at = e + 1;
+        }
+        engine(h)->set_guide(on == JNI_TRUE, from_bytes(env, self), lines);
+    } catch (...) {}
+}
+
+namespace {
+jlongArray stats_array(JNIEnv * env, const std::vector<llm::Stats> & all) {
+    std::vector<jlong> v;
+    for (const auto & s : all) {
+        const jlong one[17] = {s.load_ms, s.prompt_tokens, s.reused_tokens, s.prefill_ms, s.gen_tokens, s.gen_ms, s.first_token_ms, s.threads,
+                               s.drafted, s.accepted, s.ngram_drafted, s.ngram_accepted, s.steps, s.padded, s.pad_accepted,
+                               s.guide_banned, s.guide_fallbacks};
+        v.insert(v.end(), one, one + 17);
+    }
+    jlongArray a = env->NewLongArray((jsize) v.size());
+    if (!a) {
+        if (env->ExceptionCheck()) env->ExceptionClear();
+        return nullptr;
+    }
+    if (!v.empty()) env->SetLongArrayRegion(a, 0, (jsize) v.size(), v.data());
+    return a;
+}
+}  // namespace
+
+/** Several prompts in one pass (llm::Engine::generate_batch): one reply each, "" for one that failed. */
+extern "C" JNIEXPORT jobjectArray JNICALL FN(nativeGenerateBatch)(JNIEnv * env, jobject, jlong h, jobjectArray prompts, jint max_tokens,
+                                                                  jfloat temperature, jintArray seeds) {
+    if (!h || !prompts) return nullptr;
+    try {
+        std::vector<std::string> ps;
+        const jsize n = env->GetArrayLength(prompts);
+        for (jsize i = 0; i < n; ++i) {
+            auto b = (jbyteArray) env->GetObjectArrayElement(prompts, i);
+            ps.push_back(from_bytes(env, b));
+            env->DeleteLocalRef(b);
+        }
+        std::vector<uint32_t> sd;
+        if (seeds) {
+            const jsize m = env->GetArrayLength(seeds);
+            std::vector<jint> tmp((size_t) m);
+            if (m > 0) env->GetIntArrayRegion(seeds, 0, m, tmp.data());
+            for (jint s : tmp) sd.push_back((uint32_t) s);
+        }
+        const std::vector<std::string> r = engine(h)->generate_batch(ps, max_tokens, temperature, sd);
+        jclass str = env->FindClass("java/lang/String");
+        jobjectArray out = env->NewObjectArray((jsize) r.size(), str, nullptr);
+        if (!out) {
+            if (env->ExceptionCheck()) env->ExceptionClear();
+            return nullptr;
+        }
+        for (size_t i = 0; i < r.size(); ++i) {
+            jstring s = to_jstring(env, r[i]);
+            env->SetObjectArrayElement(out, (jsize) i, s);
+            if (s) env->DeleteLocalRef(s);
+        }
+        return out;
+    } catch (...) {
+        return nullptr;
+    }
+}
+
+/** The last generate_batch's stats, 17 numbers per prompt (as nativeStats). */
+extern "C" JNIEXPORT jlongArray JNICALL FN(nativeBatchStats)(JNIEnv * env, jobject, jlong h) {
+    if (!h) return nullptr;
+    try { return stats_array(env, engine(h)->batch_stats()); } catch (...) { return nullptr; }
+}
+
+/** The sequences the loaded context holds for generate_batch. */
+extern "C" JNIEXPORT jint JNICALL FN(nativeBatchSeqs)(JNIEnv *, jobject, jlong h) {
+    return h ? engine(h)->batch_seqs() : 0;
 }
 
 /** The n-gram guesses' pool: the person's lines in the bank, one per line (llm::Engine::set_draft_pool). */

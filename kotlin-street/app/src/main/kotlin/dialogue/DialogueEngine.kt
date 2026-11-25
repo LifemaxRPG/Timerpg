@@ -207,6 +207,13 @@ class DialogueEngine private constructor(private val app: Context) {
     /** Where the saved states go: noBackupFilesDir (never in a cloud backup: they are rebuilt from the model). */
     private val stateDir: File get() = File(app.noBackupFilesDir, "llm-states")
 
+    /** Where the NPU's pre-tiled weights go (docs/ENGINE_TAILORING.md, idea 5): rebuilt from the model, never backed up. */
+    private val tileDir: File get() = File(app.noBackupFilesDir, "npu-tiles")
+    @Volatile private var tileCrumbPending = false
+    /** Pre-tiled NPU weights ("npu" pref "tile_cache", default off until measured on the S25: it cannot be tried on a
+     *  computer). Tiles are written only overnight or while charging (writing ~2 GB then costs no one a wait). */
+    val tileCacheWanted: Boolean get() = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getBoolean("tile_cache", false)
+
     /** The state files' budget: [STATE_BUDGET_BYTES], but never more than what keeps half the storage free. */
     private fun stateBudget(): Long {
         val dir = stateDir
@@ -590,6 +597,15 @@ class DialogueEngine private constructor(private val app: Context) {
     /** Told of every line written ahead of time (worker thread), so its voice can be made ahead too. */
     @Volatile var onWritten: ((Npc, String) -> Unit)? = null
 
+    /** validate()-aware sampling ("npu" pref "guided", default off until the owner has judged the blind side-by-side):
+     *  see [com.timerpg.street.llm.NativeLlm.guided]. Read for every reply. */
+    val guidedWanted: Boolean get() = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getBoolean("guided", false)
+    /** Fixed-shape guess-and-check passes from the next load ("npu" pref "fixed_steps", default off: to A/B on the S25),
+     *  see [com.timerpg.street.llm.NativeLlm.fixedSteps]. */
+    val fixedStepsWanted: Boolean get() = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getBoolean("fixed_steps", false)
+    /** Overnight, the main model writes this many lines per pass ("npu" pref "writer_batch", 0/1 off, at most 8; default
+     *  off until measured on the S25: ENGINE_TAILORING.md, idea 6). */
+    val writerBatchWanted: Int get() = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getInt("writer_batch", 0).coerceIn(0, 8)
     /** MTP speculative decoding: tokens to guess ahead (0 off; default 2), see [com.timerpg.street.llm.NativeLlm.mtp]. */
     val mtpWanted: Int get() = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getInt("mtp", 2)
 
@@ -687,7 +703,9 @@ class DialogueEngine private constructor(private val app: Context) {
     }
 
     /** Where the weights a device copy of [role] really took are kept (MB measured, by device, file size and head setting). */
-    private fun copyKey(role: ModelRole, dev: Int, fileBytes: Long) = "copy_${role.name.lowercase()}_d${dev}_m${fileBytes}_h${if (headMappedWanted) 1 else 0}"
+    private fun copyKey(role: ModelRole, dev: Int, fileBytes: Long) = "copy_${role.name.lowercase()}_d${dev}_m${fileBytes}_h${if (headMappedWanted) 1 else 0}" +
+        // (a file with the English-first head copies its K rows to the device: another measured size)
+        (if (role == ModelRole.LIVE) com.timerpg.street.llm.NativeLlm.headVocab(ModelFiles.live(app)).let { if (it > 0) "_k$it" else "" } else "")
 
     /** What [role]'s device copy takes of its file, as its last load on [dev] measured (bytes), else -1 (the whole file). */
     private fun copyWanted(role: ModelRole, fileBytes: Long, dev: Int? = deviceFor(role, backend as? com.timerpg.street.llm.NativeLlm)): Long {
@@ -1072,17 +1090,51 @@ class DialogueEngine private constructor(private val app: Context) {
      * (follow-ups, then the frequent themes for every person); more ways of saying each line (all of one prompt's in a
      * row: the model's prompt cache then makes them nearly free of prompt processing); then the other years. Under [lock].
      */
-    private fun nightJobLocked(): Gen? {
+    private fun nightJobLocked(skip: Set<String> = emptySet()): Gen? {
         val s = steer
         val near = planned.values.sortedWith(compareBy<Planned>({ queue.rank(it.job) }, { it.job.order }))
         val ps = s.order(near, { it.target.npc.id }, { it.target.topic.intent })
-        for (p in ps) { val k = p.job.key; if (cache.get(k) == null && k !in nightSkip) return Gen(k, p.target) }
-        for (j in steered) if (cache.get(j.key) == null && j.key !in nightSkip) return Gen(j.key, j.target, slot = j.slot)
+        for (p in ps) { val k = p.job.key; if (cache.get(k) == null && k !in nightSkip && k !in skip) return Gen(k, p.target) }
+        for (j in steered) if (cache.get(j.key) == null && j.key !in nightSkip && j.key !in skip) return Gen(j.key, j.target, slot = j.slot)
         // the light model's lines (Writer mode when only it fitted), rewritten once the main model writes
-        if (loadedRole == ModelRole.BANK) for (p in ps) { val k = p.job.key; if (k !in nightSkip && cache.get(k)?.light == true) return Gen(k, p.target, upgrade = true) }
-        for (p in ps) { val k = p.job.key; if (k !in nightSkip && cache.wantsVariant(k)) return Gen(k, p.target, variant = true) }
-        for (p in extraPlans.values) { val k = p.job.key; if (cache.get(k) == null && k !in nightSkip) return Gen(k, p.target) }
+        if (loadedRole == ModelRole.BANK) for (p in ps) { val k = p.job.key; if (k !in nightSkip && k !in skip && cache.get(k)?.light == true) return Gen(k, p.target, upgrade = true) }
+        for (p in ps) { val k = p.job.key; if (k !in nightSkip && k !in skip && cache.wantsVariant(k)) return Gen(k, p.target, variant = true) }
+        for (p in extraPlans.values) { val k = p.job.key; if (cache.get(k) == null && k !in nightSkip && k !in skip) return Gen(k, p.target) }
         return null
+    }
+
+    /**
+     * Overnight with [writerBatchWanted] > 1 and a context that holds that many sequences: [first] and the next night
+     * jobs of the same kind (lines or variants, the same temperature), up to the batch, to be written in one pass
+     * ([batchRaws]); else [first] alone. Lines someone waits for, speed tests and prompt-less topics are never batched.
+     */
+    private fun nightGroup(first: Gen): List<Gen> {
+        val nl = backend as? NativeLlm ?: return listOf(first)
+        val n = minOf(writerBatchWanted, nl.batchSeqsLoaded)
+        if (!night || n < 2 || first.speed || first.listeners.isNotEmpty() || first.target.topic.prompt == null) return listOf(first)
+        val out = arrayListOf(first)
+        lock.withLock {
+            val skip = hashSetOf(first.key)
+            while (out.size < n) {
+                val g = nightJobLocked(skip) ?: break
+                skip += g.key
+                if (g.target.topic.prompt == null || g.variant != first.variant) break
+                out += g
+            }
+        }
+        return out
+    }
+
+    /** Each line's first try for a [nightGroup], in one pass; null when it could not run (each is then written alone). */
+    private fun batchRaws(group: List<Gen>): List<Pair<String, LlmStats>>? {
+        val nl = backend as? NativeLlm ?: return null
+        val temp = if (group[0].variant) VARIANT_TEMPERATURE else TEMPERATURE
+        val t0 = SystemClock.elapsedRealtime()
+        val r = try {
+            com.timerpg.street.llm.AiLane.run("dialogue") { nl.generateBatch(group.map { it.target.topic.prompt ?: "" }, MAX_TOKENS, temp) }
+        } catch (t: Throwable) { null }
+        if (r != null) com.timerpg.street.shot.Crumbs.add("writer: ${group.size} lines in one pass, ${r.sumOf { it.second.genTokens }} tokens in ${SystemClock.elapsedRealtime() - t0} ms")
+        return r?.takeIf { it.size == group.size && nl.lastGenerateError == null }
     }
 
     private fun slotOf(key: String): String = (planned[key] ?: extraPlans[key])?.slot ?: ""
@@ -1226,15 +1278,20 @@ class DialogueEngine private constructor(private val app: Context) {
             @Suppress("UNCHECKED_CAST")
             when (task) {
                 is Gen -> {
-                    try {
-                        safely("generate") { generate(task) }
-                    } finally {
-                        lock.withLock { if (running === task) running = null }
-                        // whatever happened, whoever is waiting gets a last line
-                        if (!task.done) task.finish(template(task.target.topic, "built-in"))
-                        if (task.speed && _status.value.speedTesting) _status.update { it.copy(speedTesting = false) }
-                        _status.update { it.copy(working = null) }
-                        priority(Process.THREAD_PRIORITY_BACKGROUND)
+                    // overnight: several lines' first tries in one pass, then each judged (and retried alone) as usual
+                    val group = nightGroup(task)
+                    val pre = if (group.size > 1) batchRaws(group) else null
+                    for ((i, g) in group.withIndex()) {
+                        try {
+                            safely("generate") { generate(g, pre?.getOrNull(i)) }
+                        } finally {
+                            lock.withLock { if (running === g) running = null }
+                            // whatever happened, whoever is waiting gets a last line
+                            if (!g.done) g.finish(template(g.target.topic, "built-in"))
+                            if (g.speed && _status.value.speedTesting) _status.update { it.copy(speedTesting = false) }
+                            _status.update { it.copy(working = null) }
+                            priority(Process.THREAD_PRIORITY_BACKGROUND)
+                        }
                     }
                 }
                 is Bake -> safely("bake") { bake(task) }
@@ -1546,6 +1603,9 @@ class DialogueEngine private constructor(private val app: Context) {
         native?.mtp = if (role == ModelRole.BANK && useMtp && (mtpSet || native?.device == com.timerpg.street.llm.NativeLlm.NPU)) mtpWanted else 0
         // n-gram guesses (no model of their own: either role), stacked before MTP's
         native?.ngram = ngramWanted
+        native?.fixedSteps = fixedStepsWanted
+        // overnight, the main model: several lines a pass (one state per sequence: only when asked for)
+        native?.batchSeqs = if (night && role == ModelRole.BANK) writerBatchWanted else 0
         // loading holds the AI lane: speech, memory and the voices do not load beside it (their memory added to a load's
         // is what took the phone down)
         // the prompt's batch: 128 on the NPU (its compute buffers: MEMORY_AUDIT.md, M2), 512 elsewhere (batchFor)
@@ -1555,6 +1615,15 @@ class DialogueEngine private constructor(private val app: Context) {
         // the saved states of the hybrid model on flash, not in RAM (NOVEL_OPTIMIZATIONS.md, idea 2): shared by this
         // process and the writer's, kept across sessions; their budget leaves the phone's storage at least half free
         native?.stateDir = stateDir
+        // the NPU's pre-tiled weights (idea 5): read when there, written overnight or on the charger; their budget is the
+        // main and light models' tiles together, never more than a quarter of the free storage
+        if (native != null) {
+            val on = tileCacheWanted && native.device == com.timerpg.street.llm.NativeLlm.NPU
+            val held = if (on) tileDir.listFiles()?.sumOf { it.length() } ?: 0L else 0L
+            val free = runCatching { app.noBackupFilesDir.usableSpace }.getOrDefault(0L)
+            com.timerpg.street.llm.NativeLlm.tileCache(if (on) tileDir else null,
+                write = night || com.timerpg.street.night.NightWriter.charging(app), budgetBytes = minOf(TILE_BUDGET_BYTES, (free + held) / 4))
+        }
         native?.stateBudgetBytes = stateBudget()
         // writing the bank, only the shared rules' state: thousands of prompts a night would otherwise write a state of
         // ~100 MB each for each person and fact sheet (wear on the flash), most of them never read again; in play every
@@ -1647,6 +1716,10 @@ class DialogueEngine private constructor(private val app: Context) {
         val acc = native?.accelerators ?: 0
         com.timerpg.street.llm.AiLane.dialogueOffCpu = (native?.runsOn ?: 0) != 0
         _status.update { it.copy(runsOn = native?.runsOn ?: 0, hasGpu = acc and 1 != 0, hasNpu = acc and 2 != 0, gpuNote = gpuNote, loadInfo = native?.loadInfo) }
+        if (ok && native?.runsOn == com.timerpg.street.llm.NativeLlm.NPU && tileCacheWanted) {
+            com.timerpg.street.shot.Crumbs.add("npu tiles after load: ${com.timerpg.street.llm.NativeLlm.tileStatus()}")
+            tileCrumbPending = true
+        }
         if (closed) return
         if (!ok || !b.loaded) {
             val why = (try { b.error } catch (t: Throwable) { null }) ?: thrown ?: "unknown error"
@@ -1848,8 +1921,8 @@ class DialogueEngine private constructor(private val app: Context) {
 
     private enum class End { OK, REJECTED, TIMEOUT, CANCELLED, ERROR }
 
-    /** Writes one line (worker thread). */
-    private fun generate(g: Gen) {
+    /** Writes one line (worker thread). [pre]: its first try already written in a batch (and how it went). */
+    private fun generate(g: Gen, pre: Pair<String, LlmStats>? = null) {
         val npc = g.target.npc
         val topic = g.target.topic
         val prompt = topic.prompt ?: return g.finish(template(topic, "built-in"))
@@ -1914,7 +1987,14 @@ class DialogueEngine private constructor(private val app: Context) {
                 return !g.cancelled && !closed
             }
             (b as? NativeLlm)?.draftPool = poolFor(npc, g.key)
-            var raw: String? = try {
+            (b as? NativeLlm)?.let { it.guided = guidedWanted; it.guideSelf = topic.self; it.guideRecent = topic.recent }
+            val batched = if (attempt == 1 && pre != null) pre else null
+            var raw: String? = if (batched != null) {
+                main.removeCallbacks(watchdog)
+                (b as? NativeLlm)?.replayStats(batched.second)
+                if (firstAt == 0L) firstAt = SystemClock.elapsedRealtime()
+                batched.first
+            } else try {
                 com.timerpg.street.llm.AiLane.run("dialogue") { b.generate(prompt, MAX_TOKENS, if (g.variant) VARIANT_TEMPERATURE else TEMPERATURE, onPiece) }
             } catch (t: Throwable) {
                 error = t.message ?: t.javaClass.simpleName
@@ -1927,6 +2007,8 @@ class DialogueEngine private constructor(private val app: Context) {
             val nativeError = (b as? NativeLlm)?.lastGenerateError
             if (raw != null && nativeError != null && nativeError != "cancelled") { error = nativeError; raw = null }
             stats(b)
+            // the first reply after an NPU load repacks what the tile cache did not have: what that cost, once
+            if (tileCrumbPending) { tileCrumbPending = false; com.timerpg.street.shot.Crumbs.add("npu tiles after the first reply: ${com.timerpg.street.llm.NativeLlm.tileStatus()}") }
             if (night && !g.speed) countNight(b)
             if (g.timedOut) { end = End.TIMEOUT; break }
             if (g.cancelled || closed) { end = End.CANCELLED; break }
@@ -2210,6 +2292,8 @@ class DialogueEngine private constructor(private val app: Context) {
         const val LIVE_CONTEXT_TOKENS = 1024
         /** Tries per line before it stays the template. */
         const val MAX_TRIES = 2
+        /** The NPU tile cache's most: both models' tiles (Q4_0 4B ~2.1 GB, 9B ~5.5 GB) with room to spare. */
+        const val TILE_BUDGET_BYTES = 9L shl 30
         private val SENTENCE_END = Regex("[.!?]+[\"”’')]*\\s+(?=\\S)")
 
         /**

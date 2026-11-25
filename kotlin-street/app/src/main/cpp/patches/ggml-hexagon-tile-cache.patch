@@ -1,0 +1,286 @@
+diff -ruN a/ggml/src/ggml-hexagon/ggml-hexagon.cpp b/ggml/src/ggml-hexagon/ggml-hexagon.cpp
+--- a/ggml/src/ggml-hexagon/ggml-hexagon.cpp
++++ b/ggml/src/ggml-hexagon/ggml-hexagon.cpp
+@@ -26,6 +26,11 @@
+ #include <cmath>
+ #include <initializer_list>
+ 
++#include <dirent.h>
++#include <fcntl.h>
++#include <sys/stat.h>
++#include <unistd.h>
++
+ #ifdef _WIN32
+ #    define WIN32_LEAN_AND_MEAN
+ #    ifndef NOMINMAX
+@@ -661,6 +666,231 @@
+     return GGML_STATUS_SUCCESS;
+ }
+ 
++// ---------------------------------------------------------------------------------------------------- timerpg: tile cache
++// Pre-tiled weights on flash (kotlin-street/docs/ENGINE_TAILORING.md, idea 5). The first compute after a load retiles
++// every matrix weight on the ARM side (ggml_hexagon_tensor_repack: a heap copy and a byte shuffle per tensor). With a
++// cache directory set (ggml_backend_hexagon_set_tile_cache, from the app), the tiled bytes are written once per tensor
++// (when writing is allowed) and, on later loads, set_tensor reads them straight into the tensor and marks it tiled: no
++// raw copy and no repack. Keyed by the model file (the app's key), this build of the backend and the tensor's name, type
++// and shape; every header field is checked, and any failure (missing, short, foreign, a full disk) falls back to the
++// normal path: the cache can only ever be skipped, never trusted half-way.
++namespace {
++
++struct tile_header {
++    char     magic[8];      // "TRPGTIL1"
++    uint64_t version;       // tiles_version()
++    uint64_t key;           // fnv of the app's model key
++    char     name[GGML_MAX_NAME];
++    int32_t  type;
++    int64_t  ne[4];
++    uint64_t raw_bytes;     // ggml_nbytes
++    uint64_t tiled_bytes;   // what follows the header
++};
++
++struct tile_cache {
++    std::mutex  mutex;
++    std::string dir;        // "" = off
++    std::string key_str;
++    uint64_t    key = 0;
++    bool        write = false;
++    int64_t     budget = 0;
++    int64_t     dir_bytes = -1;  // the directory's size, counted at set time and kept up to date
++    // stats since the last ggml_backend_hexagon_set_tile_cache
++    int      n_read = 0, n_written = 0, n_repacked = 0, n_miss = 0, n_failed = 0, n_skipped_budget = 0;
++    uint64_t b_read = 0, b_written = 0;
++    double   ms_read = 0, ms_written = 0, ms_repacked = 0;
++    std::string last_error;
++};
++
++tile_cache & tiles() {
++    static tile_cache * c = new tile_cache();  // (never destroyed: may be used during static destruction)
++    return *c;
++}
++
++uint64_t tiles_fnv(const void * p, size_t n, uint64_t h = 1469598103934665603ULL) {
++    const uint8_t * b = (const uint8_t *) p;
++    for (size_t i = 0; i < n; ++i) { h ^= b[i]; h *= 1099511628211ULL; }
++    return h;
++}
++
++// this build of the backend (its tiling code may change with any build): tiles from another build never match
++uint64_t tiles_version() {
++    static const char v[] = "timerpg-tiles-v1|" __DATE__ " " __TIME__ ;
++    return tiles_fnv(v, sizeof v - 1);
++}
++
++double tiles_ms_since(std::chrono::steady_clock::time_point t0) {
++    return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
++}
++
++std::string tiles_hex(uint64_t v) {
++    char b[17];
++    snprintf(b, sizeof b, "%016llx", (unsigned long long) v);
++    return b;
++}
++
++std::string tiles_path(const tile_cache & c, const ggml_tensor * t) {
++    std::string n;
++    for (const char * q = t->name; *q; ++q) n += (isalnum((unsigned char) *q) || *q == '.' || *q == '_' || *q == '-') ? *q : '_';
++    return c.dir + "/" + tiles_hex(tiles_version()).substr(0, 8) + "-" + tiles_hex(c.key) + "-" + n + ".tile";
++}
++
++int64_t tiles_dir_bytes(const std::string & dir, bool drop_stale) {
++    int64_t total = 0;
++    DIR * d = opendir(dir.c_str());
++    if (!d) return 0;
++    const std::string mine = tiles_hex(tiles_version()).substr(0, 8) + "-";
++    while (dirent * e = readdir(d)) {
++        const std::string name = e->d_name;
++        if (name.size() < 5 || name.compare(name.size() - 5, 5, ".tile") != 0) {
++            if (name.find(".tile.tmp") != std::string::npos) unlink((dir + "/" + name).c_str());  // (a write cut short)
++            continue;
++        }
++        const std::string path = dir + "/" + name;
++        if (drop_stale && name.compare(0, mine.size(), mine) != 0) { unlink(path.c_str()); continue; }  // another build's
++        struct stat st;
++        if (stat(path.c_str(), &st) == 0) total += st.st_size;
++    }
++    closedir(d);
++    return total;
++}
++
++void tiles_fill_header(tile_header & h, const tile_cache & c, const ggml_tensor * t, size_t tiled) {
++    memset(&h, 0, sizeof h);
++    memcpy(h.magic, "TRPGTIL1", 8);
++    h.version = tiles_version();
++    h.key = c.key;
++    snprintf(h.name, sizeof h.name, "%s", t->name);
++    h.type = (int32_t) t->type;
++    for (int i = 0; i < 4; ++i) h.ne[i] = t->ne[i];
++    h.raw_bytes = ggml_nbytes(t);
++    h.tiled_bytes = tiled;
++}
++
++size_t tiles_alloc(const ggml_tensor * t) {
++    return t->buffer ? ggml_backend_buft_get_alloc_size(ggml_backend_buffer_get_type(t->buffer), t) : ggml_nbytes(t);
++}
++
++}  // namespace
++
++// set_tensor of a whole weight: its tiles from the cache, if they are there and right. True: loaded and marked tiled.
++static bool ggml_hexagon_tiles_load(ggml_tensor * tensor) noexcept(true) {
++    tile_cache & c = tiles();
++    std::lock_guard<std::mutex> lock(c.mutex);
++    if (c.dir.empty() || !ggml_hexagon_tensor_can_tile(tensor) || ggml_hexagon_tensor_is_tiled(tensor)) return false;
++    const auto t0 = std::chrono::steady_clock::now();
++    const std::string path = tiles_path(c, tensor);
++    const int fd = open(path.c_str(), O_RDONLY | O_CLOEXEC);
++    if (fd < 0) { ++c.n_miss; return false; }
++    const size_t tiled = tiles_alloc(tensor);
++    tile_header want, got;
++    tiles_fill_header(want, c, tensor, tiled);
++    struct stat st;
++    bool ok = fstat(fd, &st) == 0 && (uint64_t) st.st_size == sizeof got + tiled &&
++              pread(fd, &got, sizeof got, 0) == (ssize_t) sizeof got && memcmp(&got, &want, sizeof got) == 0;
++    if (ok) {
++        uint8_t * dst = (uint8_t *) tensor->data;
++        size_t done = 0;
++        while (done < tiled) {
++            const ssize_t n = pread(fd, dst + done, tiled - done, (off_t) (sizeof got + done));
++            if (n <= 0) break;
++            done += (size_t) n;
++        }
++        ok = done == tiled;
++    }
++    close(fd);
++    if (!ok) {
++        // (the caller copies the raw weights over whatever was read: the normal path)
++        ++c.n_failed;
++        c.last_error = std::string("unusable tile file ") + path;
++        unlink(path.c_str());
++        return false;
++    }
++    ggml_hexagon_tensor_set_flags(tensor, HTP_TENSOR_TILED);
++    ++c.n_read;
++    c.b_read += tiled;
++    c.ms_read += tiles_ms_since(t0);
++    return true;
++}
++
++// after a repack: the tiles to the cache, when writing is allowed and the budget has room. Never fails the compute.
++static void ggml_hexagon_tiles_store(const ggml_tensor * tensor, double repack_ms) noexcept(true) {
++    tile_cache & c = tiles();
++    std::lock_guard<std::mutex> lock(c.mutex);
++    ++c.n_repacked;
++    c.ms_repacked += repack_ms;
++    if (c.dir.empty() || !c.write) return;
++    const size_t tiled = tiles_alloc(tensor);
++    if (c.budget > 0 && c.dir_bytes + (int64_t) (sizeof(tile_header) + tiled) > c.budget) { ++c.n_skipped_budget; return; }
++    const auto t0 = std::chrono::steady_clock::now();
++    const std::string path = tiles_path(c, tensor);
++    const std::string tmp = path + ".tmp" + std::to_string((long) getpid());
++    tile_header h;
++    tiles_fill_header(h, c, tensor, tiled);
++    bool ok = false;
++    const int fd = open(tmp.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0600);
++    if (fd >= 0) {
++        ok = write(fd, &h, sizeof h) == (ssize_t) sizeof h;
++        const uint8_t * src = (const uint8_t *) tensor->data;
++        size_t done = 0;
++        while (ok && done < tiled) {
++            const ssize_t n = write(fd, src + done, tiled - done);
++            if (n <= 0) { ok = false; break; }
++            done += (size_t) n;
++        }
++        if (close(fd) != 0) ok = false;
++        if (ok && rename(tmp.c_str(), path.c_str()) != 0) ok = false;
++        if (!ok) unlink(tmp.c_str());
++    }
++    if (!ok) {
++        ++c.n_failed;
++        c.last_error = std::string("could not write ") + path + ": " + strerror(errno);
++        return;
++    }
++    ++c.n_written;
++    c.b_written += tiled;
++    c.dir_bytes += (int64_t) (sizeof h + tiled);
++    c.ms_written += tiles_ms_since(t0);
++}
++
++// The app's switch: [dir] the cache directory ("" or null: off), [key] the model file's identity (the app's hash of it),
++// [write] whether tiles made at the first compute are written, [budget] the most the directory may hold (bytes; 0: no
++// limit). Files of other builds of the backend are removed. Returns 0, or -1 if the directory cannot be used (off then).
++static int ggml_backend_hexagon_set_tile_cache(const char * dir, const char * key, int write, int64_t budget) {
++    tile_cache & c = tiles();
++    std::lock_guard<std::mutex> lock(c.mutex);
++    c.n_read = c.n_written = c.n_repacked = c.n_miss = c.n_failed = c.n_skipped_budget = 0;
++    c.b_read = c.b_written = 0;
++    c.ms_read = c.ms_written = c.ms_repacked = 0;
++    c.last_error.clear();
++    c.dir.clear();
++    if (!dir || !*dir || !key || !*key) return 0;
++    mkdir(dir, 0700);
++    struct stat st;
++    if (stat(dir, &st) != 0 || !S_ISDIR(st.st_mode)) { c.last_error = std::string("no directory ") + dir; return -1; }
++    c.dir = dir;
++    c.key_str = key;
++    c.key = tiles_fnv(key, strlen(key));
++    c.write = write != 0;
++    c.budget = budget;
++    c.dir_bytes = tiles_dir_bytes(c.dir, true);
++    return 0;
++}
++
++// What the cache did since it was set, for the app's breadcrumbs.
++static int ggml_backend_hexagon_tile_cache_stats(char * buf, size_t size) {
++    tile_cache & c = tiles();
++    std::lock_guard<std::mutex> lock(c.mutex);
++    if (!buf || size == 0) return -1;
++    if (c.dir.empty()) return snprintf(buf, size, "off%s%s", c.last_error.empty() ? "" : ": ", c.last_error.c_str());
++    return snprintf(buf, size,
++                    "read %d (%.0f MB in %.0f ms), missing %d; repacked %d in %.0f ms; wrote %d (%.0f MB in %.0f ms)%s; "
++                    "budget skips %d; failures %d%s%s; dir %.0f MB",
++                    c.n_read, c.b_read / 1048576.0, c.ms_read, c.n_miss, c.n_repacked, c.ms_repacked, c.n_written,
++                    c.b_written / 1048576.0, c.ms_written, c.write ? "" : " (writing off)", c.n_skipped_budget, c.n_failed,
++                    c.last_error.empty() ? "" : ": ", c.last_error.c_str(), c.dir_bytes / 1048576.0);
++}
++
+ static void ggml_backend_hexagon_buffer_set_tensor(ggml_backend_buffer_t buffer,
+                                                    ggml_tensor *         tensor,
+                                                    const void *          data,
+@@ -678,6 +908,12 @@
+     HEX_VERBOSE("ggml-hex: %s set-tensor %s : data %p offset %zu size %zu usage %d flags 0x%x\n",
+         sess->c_name(), tensor->name, data, offset, size, (int) buffer->usage, ggml_hexagon_tensor_get_flags(tensor));
+ 
++    // timerpg: a whole weight whose tiles are in the cache is read from there, already tiled
++    if (offset == 0 && size == ggml_nbytes(tensor) && ggml_backend_buffer_get_usage(buffer) == GGML_BACKEND_BUFFER_USAGE_WEIGHTS &&
++        ggml_hexagon_tiles_load(tensor)) {
++        return;
++    }
++
+     memcpy((char *) tensor->data + offset, data, size);
+ }
+ 
+@@ -2444,10 +2680,12 @@
+         return;
+     }
+     HEX_VERBOSE("ggml-hex: %s rt-repack %s|size %zu\n", sess->c_name(), htp_format_tensor(tensor, HTP_OPFMT_TENSOR).c_str(), ggml_nbytes(tensor));
++    const auto t0 = std::chrono::steady_clock::now();
+     std::vector<uint8_t> raw(ggml_nbytes(tensor));
+     memcpy(raw.data(), tensor->data, raw.size());
+     htp_repack_tensor_tiled(tensor, raw.data(), raw.size());
+     ggml_hexagon_tensor_set_flags(tensor, HTP_TENSOR_TILED);
++    ggml_hexagon_tiles_store(tensor, std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count());
+ }
+ 
+ static void ggml_hexagon_graph_repack(const ggml_cgraph * graph, ggml_hexagon_session * sess) {
+@@ -3355,6 +3593,12 @@
+     if (strcmp(name, "ggml_backend_hexagon_set_power_mode") == 0) {
+         return (void *) ggml_backend_hexagon_set_power_mode;
+     }
++    if (strcmp(name, "ggml_backend_hexagon_set_tile_cache") == 0) {
++        return (void *) ggml_backend_hexagon_set_tile_cache;
++    }
++    if (strcmp(name, "ggml_backend_hexagon_tile_cache_stats") == 0) {
++        return (void *) ggml_backend_hexagon_tile_cache_stats;
++    }
+     if (strcmp(name, "ggml_backend_split_buffer_type") == 0) {
+         return (void *) ggml_backend_hexagon_split_buffer_type;
+     }

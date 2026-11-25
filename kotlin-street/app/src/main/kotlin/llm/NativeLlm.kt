@@ -45,6 +45,29 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     /** Lines the n-gram guesses may also copy from in the next [generate]: the person's lines in the bank, one a line. */
     @Volatile var draftPool: String = ""
     private var poolSent: String? = null
+    /**
+     * validate()-aware sampling in the next [generate]s (docs/ENGINE_TAILORING.md, idea 2; native guide.cpp): tokens that
+     * would certainly fail the reply check (an action, AI talk, a stage direction, a name or place the prompt's facts do not
+     * have, four words of one of [guideRecent] again) are never sampled. [guideSelf]: the speaker's full name;
+     * [guideRecent]: their last replies. Off by default ("npu" pref "guided") until the owner has judged it.
+     */
+    @Volatile var guided = false
+    @Volatile var guideSelf: String = ""
+    @Volatile var guideRecent: List<String> = emptyList()
+    /**
+     * From the next load: every guess-and-check pass the same length (a short guess padded with filler, checked like any
+     * guess, so lossless), so llama.cpp and the NPU backend reuse one graph instead of rebuilding it whenever the length
+     * changes (ENGINE_TAILORING.md, idea 4; "npu" pref "fixed_steps").
+     */
+    @Volatile var fixedSteps = false
+    /**
+     * Sequences the context holds from the next load, for [generateBatch] (the overnight writer: several prompts in one
+     * pass; ENGINE_TAILORING.md, idea 6). 0 or 1: one, as in play. Each costs one more recurrent state (and its rollback
+     * planes) and room in the attention cache; [workBytes] counts them after the load.
+     */
+    @Volatile var batchSeqs = 0
+    /** What the loaded context holds for [generateBatch] (1: one sequence; then [generateBatch] runs them one by one). */
+    val batchSeqsLoaded: Int get() = if (handle == 0L) 0 else runCatching { nativeBatchSeqs(handle) }.getOrDefault(0)
     /** The attention cache (KV) in 8 bits from the next load (about half its memory; falls back to 16 where it cannot). */
     @Volatile var kvQ8 = false
     /** The batch the prompt is processed in from the next load (512, 256 or 128 tokens): smaller shrinks the compute
@@ -135,6 +158,29 @@ class NativeLlm(context: Context? = null) : LlmBackend {
         val hold = runCatching { prefs?.getInt("power_hold_ms", 400) }.getOrNull() ?: 400
         if (mode != "auto") runCatching { if (android.system.Os.getenv("GGML_HEXAGON_POWER_MODE") == null) android.system.Os.setenv("GGML_HEXAGON_POWER_MODE", mode, false) }
         runCatching { nativeSetNpuPower(mode.toByteArray(Charsets.UTF_8), hold) }
+        npuKnobs(prefs)
+    }
+
+    /**
+     * The NPU knobs to A/B on the S25 (docs/ENGINE_TAILORING.md, idea 4; "npu" preferences, read once per process before
+     * the backends load; NpuTune's own settings, when tuning or tuned, win):
+     * - "opencl_at_start" (default false): the GPU's backend (OpenCL) loads with the others; off, only when a load asks
+     *   for the GPU (in play the model runs on the NPU: the Adreno driver's start-up and memory are skipped).
+     * - "play_sessions" (default 0: ggml-hexagon's 2): HTP sessions in the game's process (the light 4B fits one; one
+     *   session means no hand-off between sessions per token). The writer's process (the 9B needs 2) keeps 2.
+     * - "oppoll" (default false): GGML_HEXAGON_OPPOLL=1 in the game's process: completions polled instead of waited for
+     *   on an interrupt (one ARM core spins while the NPU works; lower latency per op). Never in the writer's process.
+     */
+    private fun npuKnobs(prefs: android.content.SharedPreferences?) {
+        val writer = runCatching { android.app.Application.getProcessName().endsWith(":writer") }.getOrDefault(false)
+        val gpuAtStart = prefs?.getBoolean("opencl_at_start", false) ?: false
+        runCatching { nativeSetGpuBackend(gpuAtStart) }
+        if (writer) return
+        val sessions = runCatching { prefs?.getInt("play_sessions", 0) }.getOrNull() ?: 0
+        if (sessions in 1..4) runCatching {
+            if (android.system.Os.getenv("GGML_HEXAGON_DEVICES") == null) android.system.Os.setenv("GGML_HEXAGON_DEVICES", sessions.toString(), false)
+        }
+        if (prefs?.getBoolean("oppoll", false) == true) runCatching { android.system.Os.setenv("GGML_HEXAGON_OPPOLL", "1", false) }
     }
 
     /**
@@ -219,7 +265,8 @@ class NativeLlm(context: Context? = null) : LlmBackend {
                 error = "cancelled"
                 return false
             }
-            runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0) or (if (kvQ8) 32 else 0) or (mtp.coerceIn(0, 15) shl 8) or (batchCode(batch) shl 12) or (if (headMapped) 1 shl 15 else 0) or (ngram.coerceIn(0, 15) shl 16)) }
+            runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0) or (if (kvQ8) 32 else 0) or (mtp.coerceIn(0, 15) shl 8) or (batchCode(batch) shl 12) or (if (headMapped) 1 shl 15 else 0) or (ngram.coerceIn(0, 15) shl 16) or (if (fixedSteps) 1 shl 20 else 0) or
+                ((batchSeqs.coerceIn(1, 8) - 1) shl 24)) }
             poolSent = null
             if (!backendReady) powerEnv()  // (the native load loads the backends first if nothing did yet)
             runCatching { nativeSetSnapshots(handle, (stateDir?.path ?: "").toByteArray(Charsets.UTF_8), stateBudgetBytes, hotState, statePoints) }
@@ -321,6 +368,45 @@ class NativeLlm(context: Context? = null) : LlmBackend {
             "restored ${s[5]} from flash + ${s[6]} from RAM in ${s[7]} ms; written ${s[8]} in ${s[9]} ms; ${s[10]} removed for the budget"
     }
 
+    /**
+     * Several prompts in one pass ([batchSeqs] from the load): each reply token-identical to what [generate] would write
+     * for it alone with the same seed (proved greedy and sampled on a computer: host_test --batch-test). [seeds]: one per
+     * prompt (a new random one each when empty). Blocks; not on the main thread. Returns one reply and its stats per
+     * prompt ("" for one that failed); null if it could not run at all.
+     */
+    fun generateBatch(prompts: List<String>, maxTokens: Int, temperature: Float, seeds: IntArray = IntArray(0)): List<Pair<String, LlmStats>>? {
+        lastGenerateError = null
+        if (isMainThread() || !loaded || prompts.isEmpty()) return null
+        genLock.withLock {
+            if (!loaded || handle == 0L) return null
+            val req = Request()
+            if (!begin(req, synchronized(state) { cancelSeq })) return null
+            val sd = if (seeds.size == prompts.size) seeds else IntArray(prompts.size) { kotlin.random.Random.nextInt() }
+            val out = try {
+                nativeGenerateBatch(handle, Array(prompts.size) { prompts[it].toByteArray(Charsets.UTF_8) }, maxTokens.coerceIn(0, 4096), temperature, sd)
+            } catch (e: Throwable) {
+                Log.e(TAG, "generateBatch threw", e)
+                null
+            } finally {
+                end()
+            }
+            val err = runCatching { nativeError(handle) }.getOrNull()?.ifEmpty { null }
+            if (err != null) lastGenerateError = err
+            out ?: return null
+            val st = runCatching { nativeBatchStats(handle) }.getOrNull()
+            return out.mapIndexed { i, s ->
+                val o = i * 17
+                val ls = if (st != null && st.size >= o + 17) LlmStats(loadMs = st[o], promptTokens = st[o + 1].toInt(), reusedTokens = st[o + 2].toInt(),
+                    prefillMs = st[o + 3], genTokens = st[o + 4].toInt(), genMs = st[o + 5], firstTokenMs = st[o + 6], threads = st[o + 7].toInt())
+                else LlmStats()
+                (s ?: "") to ls
+            }
+        }
+    }
+
+    /** [stats] as one reply of a [generateBatch] went, so code that reads [stats] after a reply reads that one's. */
+    fun replayStats(s: LlmStats) { stats = s }
+
     // ------------------------------------------------------------------------------------------------ internals
 
     private fun generate(prompt: String, maxTokens: Int, temperature: Float, onToken: (String) -> Boolean, req: Request): String {
@@ -333,6 +419,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
             if (!begin(req, entrySeq)) return generateFailed("cancelled")
             val sink = TokenSink(onToken)
             draftPool.let { p -> if (p != poolSent) { runCatching { nativeSetPool(handle, p.toByteArray(Charsets.UTF_8)) }; poolSent = p } }
+            runCatching { nativeSetGuide(handle, guided, guideSelf.toByteArray(Charsets.UTF_8), guideRecent.joinToString("\n") { it.replace('\n', ' ') }.toByteArray(Charsets.UTF_8)) }
             val text = try {
                 nativeGenerate(handle, prompt.toByteArray(Charsets.UTF_8), maxTokens.coerceIn(0, 4096), temperature, sink)
             } catch (e: Throwable) {
@@ -382,7 +469,9 @@ class NativeLlm(context: Context? = null) : LlmBackend {
         return LlmStats(loadMs = s[0], promptTokens = s[1].toInt(), reusedTokens = s[2].toInt(), prefillMs = s[3],
             genTokens = s[4].toInt(), genMs = s[5], firstTokenMs = s[6], threads = s[7].toInt(),
             drafted = s.getOrElse(8) { 0L }.toInt(), accepted = s.getOrElse(9) { 0L }.toInt(),
-            ngramDrafted = s.getOrElse(10) { 0L }.toInt(), ngramAccepted = s.getOrElse(11) { 0L }.toInt())
+            ngramDrafted = s.getOrElse(10) { 0L }.toInt(), ngramAccepted = s.getOrElse(11) { 0L }.toInt(),
+            steps = s.getOrElse(12) { 0L }.toInt(), padded = s.getOrElse(13) { 0L }.toInt(), padAccepted = s.getOrElse(14) { 0L }.toInt(),
+            guideBanned = s.getOrElse(15) { 0L }.toInt(), guideFallbacks = s.getOrElse(16) { 0L }.toInt())
     }
 
     private fun loadFailed(why: String): Boolean {
@@ -433,6 +522,10 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     private external fun nativeSetSnapshots(handle: Long, dir: ByteArray, budgetBytes: Long, hot: Boolean, points: Int)
     private external fun nativeBake(handle: Long, prompt: ByteArray): Int
     private external fun nativeSetPool(handle: Long, lines: ByteArray)
+    private external fun nativeSetGuide(handle: Long, on: Boolean, self: ByteArray, recent: ByteArray)
+    private external fun nativeGenerateBatch(handle: Long, prompts: Array<ByteArray>, maxTokens: Int, temperature: Float, seeds: IntArray): Array<String?>?
+    private external fun nativeBatchStats(handle: Long): LongArray?
+    private external fun nativeBatchSeqs(handle: Long): Int
     private external fun nativeSnapStats(handle: Long): LongArray?
 
     /** How the model's work splits between devices (llama.cpp's "graph splits" line; more: more fell back to the CPU). */
@@ -525,6 +618,26 @@ class NativeLlm(context: Context? = null) : LlmBackend {
         }
 
         @JvmStatic private external fun nativeSetNpuPower(mode: ByteArray, holdMs: Int)
+        @JvmStatic private external fun nativeSetGpuBackend(atStart: Boolean)
+        @JvmStatic private external fun nativeSetTileCache(dir: ByteArray, write: Boolean, budget: Long)
+        @JvmStatic private external fun nativeTileStatus(): String?
+        @JvmStatic private external fun nativeHeadVocab(path: ByteArray): Long
+
+        /**
+         * The NPU's pre-tiled weights on flash from the next NPU load (docs/ENGINE_TAILORING.md, idea 5): [dir] null turns
+         * it off; [write]: tiles made at the first compute after a load are saved (else only read); [budgetBytes] for the
+         * whole directory. Keyed by the model file and the backend's build; any failure only skips the cache.
+         */
+        fun tileCache(dir: File?, write: Boolean, budgetBytes: Long) {
+            if (libraryError != null) return
+            runCatching { nativeSetTileCache((dir?.path ?: "").toByteArray(Charsets.UTF_8), write, budgetBytes) }
+        }
+
+        /** What the tile cache did since the last NPU load, for the breadcrumbs ("off", "read 180 (2010 MB in 640 ms)..."). */
+        fun tileStatus(): String = if (libraryError != null) "no library" else runCatching { nativeTileStatus() }.getOrNull() ?: "unknown"
+
+        /** The English-first head's size in a model file (its "timerpg.head_vocab"), 0 for a whole-vocabulary file. */
+        fun headVocab(file: File): Long = if (libraryError != null) 0L else runCatching { nativeHeadVocab(file.path.toByteArray(Charsets.UTF_8)) }.getOrDefault(0L)
         @JvmStatic private external fun nativeNpuPower(): String?
         @JvmStatic private external fun nativeNpuPowerEvents(): String?
 

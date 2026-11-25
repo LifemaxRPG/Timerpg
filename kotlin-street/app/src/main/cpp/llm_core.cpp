@@ -5,6 +5,7 @@
 #include "speculative.h"
 
 #include "llama.h"
+#include "gguf.h"
 
 #include <algorithm>
 #include <cerrno>
@@ -14,6 +15,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <deque>
+#include <memory>
 #include <mutex>
 #include <thread>
 
@@ -348,7 +350,34 @@ std::vector<ggml_backend_dev_t> devices_of(int kind) {
     return out;
 }
 
-bool has_gpu() { return !devices_of(1).empty(); }
+namespace {
+std::atomic<bool> g_gpu_at_start{false};
+std::atomic<bool> g_gpu_tried{false};
+}  // namespace
+
+void set_gpu_backend(bool at_start) { g_gpu_at_start.store(at_start); }
+
+bool ensure_gpu_backend() {
+#if defined(__ANDROID__)
+    static std::mutex m;
+    std::lock_guard<std::mutex> l(m);
+    if (!g_gpu_tried.exchange(true)) {
+        const auto t0 = std::chrono::steady_clock::now();
+        const bool ok = ggml_backend_load("libggml-opencl.so") != nullptr;
+        const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count();
+        log_msg(GGML_LOG_LEVEL_INFO, std::string("llm: the GPU's backend (OpenCL) ") + (ok ? "loaded" : "did not load") + " in " +
+                                         std::to_string((long long) ms) + " ms");
+    }
+#endif
+    return !devices_of(1).empty();
+}
+
+bool has_gpu() {
+#if defined(__ANDROID__)
+    if (!g_gpu_tried.load()) return true;  // (not loaded yet: it is, when a load asks for the GPU)
+#endif
+    return !devices_of(1).empty();
+}
 bool has_npu() { return !devices_of(2).empty(); }
 
 // ------------------------------------------------------------------------------------------------ the NPU's power vote
@@ -565,6 +594,105 @@ void npu_compute_end(int n_tokens) {
     p.first_begin_us = 0;
 }
 
+namespace {
+/** "timerpg.head_vocab" of a GGUF file (the English-first head's K), 0 if it has none. Read from the header only. */
+int64_t head_vocab_of(const std::string & path) {
+    gguf_init_params gp = {/*no_alloc*/ true, /*ctx*/ nullptr};
+    gguf_context * g = gguf_init_from_file(path.c_str(), gp);
+    if (!g) return 0;
+    int64_t k = 0;
+    const int64_t id = gguf_find_key(g, "timerpg.head_vocab");
+    if (id >= 0 && gguf_get_kv_type(g, id) == GGUF_TYPE_UINT32) k = gguf_get_val_u32(g, id);
+    gguf_free(g);
+    return k;
+}
+}  // namespace
+
+int64_t head_vocab(const std::string & path) {
+    static std::mutex m;
+    static std::string last_path;
+    static int64_t last_mt = -1, last_k = 0;
+    struct stat st;
+    if (stat(path.c_str(), &st) != 0) return 0;
+    std::lock_guard<std::mutex> l(m);
+    if (path != last_path || mtime_ns(st) != last_mt) { last_k = head_vocab_of(path); last_path = path; last_mt = mtime_ns(st); }
+    return last_k;
+}
+
+namespace {
+struct TileCache {
+    std::mutex m;
+    std::string dir;
+    bool write = false;
+    int64_t budget = 0;
+    std::string last;  // what the last load set up
+};
+TileCache & tile_cache() {
+    static TileCache * t = new TileCache();
+    return *t;
+}
+using SetTilesFn = int (*)(const char * dir, const char * key, int write, int64_t budget);
+using TileStatsFn = int (*)(char * buf, size_t size);
+
+/** The model file's identity for its tiles: size, modification time and 64 KB samples at 17 places (not a full hash:
+ *  reading 2-6 GB at every load would cost what the cache saves). */
+std::string file_key(const std::string & path) {
+    struct stat st;
+    if (stat(path.c_str(), &st) != 0) return {};
+    uint64_t h = fnv1a(&st.st_size, sizeof st.st_size);
+    const int64_t mt = mtime_ns(st);
+    h ^= fnv1a(&mt, sizeof mt);
+    const int fd = open(path.c_str(), O_RDONLY | O_CLOEXEC);
+    if (fd < 0) return {};
+    std::vector<uint8_t> buf(65536);
+    for (int i = 0; i <= 16; ++i) {
+        const off_t at = (off_t) ((st.st_size > (off_t) buf.size() ? st.st_size - (off_t) buf.size() : 0) * i / 16);
+        const ssize_t n = pread(fd, buf.data(), buf.size(), at);
+        if (n > 0) h = h * 1099511628211ULL ^ fnv1a(buf.data(), (size_t) n);
+    }
+    close(fd);
+    return hex16(h) + "-" + std::to_string((long long) st.st_size);
+}
+
+/** Before an NPU load: tells ggml-hexagon (our patch) where the tiles of [path] are. */
+void tiles_for_load(const std::string & path) {
+    TileCache & t = tile_cache();
+    std::lock_guard<std::mutex> l(t.m);
+    ggml_backend_reg_t reg = ggml_backend_reg_by_name("HTP");
+    auto fn = reg ? reinterpret_cast<SetTilesFn>(ggml_backend_reg_get_proc_address(reg, "ggml_backend_hexagon_set_tile_cache")) : nullptr;
+    if (!fn) { t.last = reg ? "this ggml-hexagon has no tile cache (unpatched)" : "no NPU backend"; return; }
+    try {
+        const int64_t t0 = now_ms();
+        const std::string key = t.dir.empty() ? std::string() : file_key(path);
+        const int rc = fn(t.dir.c_str(), key.c_str(), t.write ? 1 : 0, t.budget);
+        t.last = t.dir.empty() ? "off" : rc != 0 ? "could not use " + t.dir : "key " + key + " (" + std::to_string((long long) (now_ms() - t0)) + " ms)";
+    } catch (...) {
+        t.last = "failed to set up";
+    }
+    log_msg(GGML_LOG_LEVEL_INFO, "llm: npu tiles: " + t.last);
+}
+}  // namespace
+
+void npu_tile_cache(const std::string & dir, bool write, int64_t budget_bytes) {
+    TileCache & t = tile_cache();
+    std::lock_guard<std::mutex> l(t.m);
+    t.dir = dir;
+    while (t.dir.size() > 1 && t.dir.back() == '/') t.dir.pop_back();
+    t.write = write;
+    t.budget = budget_bytes;
+}
+
+std::string npu_tile_status() {
+    TileCache & t = tile_cache();
+    std::lock_guard<std::mutex> l(t.m);
+    ggml_backend_reg_t reg = ggml_backend_reg_by_name("HTP");
+    auto fn = reg ? reinterpret_cast<TileStatsFn>(ggml_backend_reg_get_proc_address(reg, "ggml_backend_hexagon_tile_cache_stats")) : nullptr;
+    if (!fn) return t.last.empty() ? "no NPU backend" : t.last;
+    char buf[512] = {};
+    try { fn(buf, sizeof buf); } catch (...) { return "failed"; }
+    return std::string(buf);
+}
+
 bool init_backend(const std::vector<std::string> & cpu_libs, std::string * info) {
     static std::once_flag once;
     static bool ok = false;
@@ -594,7 +722,8 @@ bool init_backend(const std::vector<std::string> & cpu_libs, std::string * info)
             // the Adreno GPU (OpenCL) and the Hexagon NPU, if this build has them and the phone's drivers load; else the
             // CPU alone. The NPU opens two sessions (each holds ~3.5 GB of weights: the 9B model is split over both).
             if (!getenv("GGML_HEXAGON_DEVICES")) setenv("GGML_HEXAGON_NDEV", "2", 0);
-            ggml_backend_load("libggml-opencl.so");
+            // the GPU's backend only when asked for (set_gpu_backend): in play the model runs on the NPU
+            if (g_gpu_at_start.load()) ensure_gpu_backend();
             ggml_backend_load("libggml-hexagon.so");
             npu_attach();  // (the NPU's power vote: per burst, or ggml-hexagon's fixed profile)
             for (size_t i = 0; i < ggml_backend_dev_count(); ++i) {
@@ -825,6 +954,12 @@ size_t Engine::saved_prefix(const std::vector<int32_t> & toks) {
     return best;
 }
 
+void Engine::clear_seq0() {
+    // (one sequence: the whole memory, as always; with generate_batch's sequences, only the first's)
+    if (n_seq_used_ > 1) llama_memory_seq_rm(llama_get_memory(ctx_), 0, -1, -1);
+    else llama_memory_clear(llama_get_memory(ctx_), true);
+}
+
 size_t Engine::restore_snapshot(const std::vector<int32_t> & toks) {
     scan_snapshots(false);
     Snapshot * best = nullptr;
@@ -837,7 +972,7 @@ size_t Engine::restore_snapshot(const std::vector<int32_t> & toks) {
     }
     if (!best) return 0;
     const int64_t t0 = now_ms();
-    llama_memory_clear(llama_get_memory(ctx_), true);
+    clear_seq0();
     bool ok = false;
     if (!best->state.empty()) {
         ok = llama_state_seq_set_data(ctx_, best->state.data(), best->state.size(), 0) != 0;
@@ -872,7 +1007,7 @@ size_t Engine::restore_snapshot(const std::vector<int32_t> & toks) {
     snap_stats_.restore_ms += now_ms() - t0;
     stat_snapshots();
     if (!ok) {
-        llama_memory_clear(llama_get_memory(ctx_), true);
+        clear_seq0();
         return 0;
     }
     cached_ = best->tokens;
@@ -1100,12 +1235,15 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
 
         clear_log_errors();
         llama_model_params mp = llama_model_default_params();
-        // on the GPU or the NPU when asked and there is one (all layers: they share the phone's memory)
+        // on the GPU or the NPU when asked and there is one (all layers: they share the phone's memory); the GPU's backend
+        // is loaded now if it was left for later
+        if (device_ == 1) ensure_gpu_backend();
         devs_ = device_ > 0 ? devices_of(device_) : std::vector<ggml_backend_dev_t>();
         if (!devs_.empty()) {
             devs_.push_back(nullptr);
             mp.devices = devs_.data();
             mp.n_gpu_layers = 999;
+            if (device_ == 2) tiles_for_load(path);  // (the NPU's pre-tiled weights for this file, when set up)
         } else {
             mp.n_gpu_layers = 0;
         }
@@ -1119,7 +1257,11 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
         // tensor's name sends both to the CPU's buffer, the same file pages. A model with an output.weight of its own is
         // untouched (the pattern matches only token_embd). The head's matrix-vector product then runs on the CPU, once
         // per generated token (prompts ask for one row of logits).
-        if (head_mapped_ && !devs_.empty()) {
+        // A file with the English-first head (timerpg.head_vocab, idea 1) puts only its first K rows on the device (a
+        // prefix of the same data, 67-134 MB instead of 497): the head stays on the NPU and the whole step with it.
+        if (head_mapped_ && !devs_.empty() && head_vocab(path) > 0) {
+            log_msg(GGML_LOG_LEVEL_INFO, "llm: the English-first head (" + std::to_string(head_vocab(path)) + " tokens) stays on the device");
+        } else if (head_mapped_ && !devs_.empty()) {
             overrides_[0] = { "^token_embd\\.weight$", ggml_backend_cpu_buffer_type() };
             overrides_[1] = { nullptr, nullptr };
             mp.tensor_buft_overrides = overrides_;
@@ -1143,6 +1285,9 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
 
         const int train = llama_model_n_ctx_train(model_);
         if (n_ctx <= 0) n_ctx = 1024;
+        // several sequences at once (generate_batch): room for each prompt and reply beside the first's
+        n_seq_used_ = std::max(1, std::min(n_seq_, 8));
+        if (n_seq_used_ > 1) n_ctx = std::max(n_ctx, 512 * (n_seq_used_ + 1));
         n_ctx = std::max(128, train > 0 ? std::min(n_ctx, train) : n_ctx);
         if (threads <= 0) threads = default_threads();
 
@@ -1150,7 +1295,10 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
         cp.n_ctx = (uint32_t) n_ctx;
         cp.n_batch = (uint32_t) std::min(n_ctx, batch_max_);
         cp.n_ubatch = cp.n_batch;
-        cp.n_seq_max = 1;
+        // (with generate_batch: sequence 0 reads the prompts, 1..N write the replies; the attention cache one buffer, so
+        // sequence 0 alone still has the whole context)
+        cp.n_seq_max = n_seq_used_ > 1 ? (uint32_t) n_seq_used_ + 1 : 1;
+        if (n_seq_used_ > 1) cp.kv_unified = true;
         // We only ever ask for the last token's logits (decode_tokens sets one output per batch). Without this the
         // compute buffer is sized for n_batch x vocab logits: ~300 MB more for Qwen3's 152k vocabulary.
         cp.n_outputs_max = 1;
@@ -1165,6 +1313,7 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
             cp.n_outputs_max_per_seq = (uint32_t) (guess_max + 1);
             cp.n_rs_seq = (uint32_t) guess_max;
         }
+        if (n_seq_used_ > 1) cp.n_outputs_max = std::max(cp.n_outputs_max, (uint32_t) n_seq_used_ + 1);
         cp.n_threads = threads;
         cp.n_threads_batch = threads;
         cp.no_perf = true;
@@ -1230,6 +1379,7 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
             }
         }
         batch_ = llama_batch_init(n_batch_, 0, 1);
+        if (n_seq_used_ > 1 && llama_n_seq_max(ctx_) < (uint32_t) n_seq_used_ + 1) n_seq_used_ = 1;
         if (recurrent_) {
             snap_key_ = model_key();
             scan_snapshots(true);
@@ -1305,6 +1455,31 @@ bool Engine::decode_tokens(const std::vector<int32_t> & toks, size_t from, size_
     return ok;
 }
 
+llama_sampler * Engine::make_chain(float temperature, uint32_t seed) {
+    llama_sampler_chain_params sp = llama_sampler_chain_default_params();
+    sp.no_perf = true;
+    llama_sampler * smpl = llama_sampler_chain_init(sp);
+    // As the WebAssembly version: repeat penalty, top-k, top-p, temperature.
+    llama_sampler_chain_add(smpl, llama_sampler_init_penalties(llama_vocab_n_tokens(vocab_), sampling_.repeat_last_n,
+                                                               sampling_.repeat_penalty, 0.0f, 0.0f));
+    if (temperature <= 0.0f) {
+        // (greedy: the guide needs the candidates in order, so the best 40 first; without it the best of all, as before)
+        if (guide_on_) {
+            llama_sampler_chain_add(smpl, llama_sampler_init_top_k(sampling_.top_k));
+            llama_sampler_chain_add(smpl, guide_sampler(vocab_, &guide_rules_, &guide_counts_));
+        }
+        llama_sampler_chain_add(smpl, llama_sampler_init_greedy());
+    } else {
+        llama_sampler_chain_add(smpl, llama_sampler_init_top_k(sampling_.top_k));
+        // the guide on the top-k: the tokens that would fail validate() go, the rest keep their order and odds
+        if (guide_on_) llama_sampler_chain_add(smpl, guide_sampler(vocab_, &guide_rules_, &guide_counts_));
+        llama_sampler_chain_add(smpl, llama_sampler_init_top_p(sampling_.top_p, 1));
+        llama_sampler_chain_add(smpl, llama_sampler_init_temp(temperature));
+        llama_sampler_chain_add(smpl, llama_sampler_init_dist(seed));
+    }
+    return smpl;
+}
+
 std::string Engine::generate(const std::string & prompt, int max_tokens, float temperature, const OnText & on_text) {
     error_.clear();
     const Stats keep = stats_;
@@ -1360,8 +1535,12 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
         stats_.prompt_tokens = (int32_t) toks.size();
         stats_.reused_tokens = (int32_t) reuse;
 
+        guide_counts_ = {};
+        if (guide_on_) guide_rules_.build(prompt, guide_self_, guide_recent_);
         if ((spec_ || ngram_used_ > 0) && max_tokens > 0) {
             std::string r = generate_mtp(toks, reuse, max_tokens, temperature, on_text, t0);
+            stats_.guide_banned = guide_counts_.banned;
+            stats_.guide_fallbacks = guide_counts_.fallbacks;
             return r;
         }
         const int64_t tp = now_ms();
@@ -1387,20 +1566,7 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
         }
         if (max_tokens == 0) return {};  // prefill only (warms the cache for this prompt)
 
-        llama_sampler_chain_params sp = llama_sampler_chain_default_params();
-        sp.no_perf = true;
-        smpl = llama_sampler_chain_init(sp);
-        // As the WebAssembly version: repeat penalty, top-k, top-p, temperature.
-        llama_sampler_chain_add(smpl, llama_sampler_init_penalties(llama_vocab_n_tokens(vocab_), sampling_.repeat_last_n,
-                                                                   sampling_.repeat_penalty, 0.0f, 0.0f));
-        if (temperature <= 0.0f) {
-            llama_sampler_chain_add(smpl, llama_sampler_init_greedy());
-        } else {
-            llama_sampler_chain_add(smpl, llama_sampler_init_top_k(sampling_.top_k));
-            llama_sampler_chain_add(smpl, llama_sampler_init_top_p(sampling_.top_p, 1));
-            llama_sampler_chain_add(smpl, llama_sampler_init_temp(temperature));
-            llama_sampler_chain_add(smpl, llama_sampler_init_dist(sampling_.seed));
-        }
+        smpl = make_chain(temperature, sampling_.seed);
 
         Utf8Joiner joiner;
         StopFilter stop({"<|im_end|>", "<|im_start|>", "<|endoftext|>"});
@@ -1444,6 +1610,8 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
         if (!stopped) emit(stop.push(joiner.flush(), &stopped));
         if (!stopped) emit(stop.flush());
         stats_.gen_ms = now_ms() - tg;
+        stats_.guide_banned = guide_counts_.banned;
+        stats_.guide_fallbacks = guide_counts_.fallbacks;
     } catch (const std::bad_alloc &) {
         error_ = "out of memory while generating";
     } catch (const std::exception & e) {
@@ -1455,6 +1623,180 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
     return reply;
 }
 
+
+bool Engine::prefill(const std::vector<int32_t> & toks) {
+    // (generate()'s prompt reading, sequence 0)
+    size_t reuse = 0;
+    while (reuse < cached_.size() && reuse < toks.size() && cached_[reuse] == toks[reuse]) ++reuse;
+    reuse = std::min(reuse, toks.size() - 1);
+    llama_memory_t mem = llama_get_memory(ctx_);
+    if (recurrent_) {
+        if (reuse != cached_.size() || saved_prefix(toks) > reuse) {
+            reuse = restore_snapshot(toks);
+            if (reuse == 0) { llama_memory_seq_rm(mem, 0, -1, -1); cached_.clear(); }
+        }
+    } else if (!llama_memory_seq_rm(mem, 0, (llama_pos) reuse, -1)) {
+        llama_memory_seq_rm(mem, 0, -1, -1);
+        reuse = 0;
+    }
+    cached_.resize(reuse);
+    size_t at = reuse;
+    if (recurrent_) {
+        for (size_t b : snapshot_points(toks)) {
+            if (b <= at || b >= toks.size()) continue;
+            if (!decode_tokens(toks, at, b, false)) return false;
+            at = b;
+            take_snapshot();
+        }
+    }
+    return decode_tokens(toks, at, toks.size(), /*logits_last*/ true);
+}
+
+std::vector<std::string> Engine::generate_batch(const std::vector<std::string> & prompts, int max_tokens, float temperature,
+                                                const std::vector<uint32_t> & seeds) {
+    error_.clear();
+    batch_stats_.assign(prompts.size(), Stats{});
+    batch_tokens_.assign(prompts.size(), {});
+    std::vector<std::string> replies(prompts.size());
+    if (!ctx_) { error_ = "no model loaded"; return replies; }
+    if (prompts.empty()) return replies;
+    const int group = std::max(1, n_seq_used_ > 1 ? n_seq_used_ : 1);
+    if (group == 1) {
+        // (no sequences to spare: one after another, as generate())
+        for (size_t i = 0; i < prompts.size(); ++i) {
+            if (i < seeds.size()) sampling_.seed = seeds[i];
+            replies[i] = generate(prompts[i], max_tokens, temperature, nullptr);
+            batch_stats_[i] = stats_;
+            batch_tokens_[i] = reply_tokens_;
+        }
+        return replies;
+    }
+    const NpuBurst burst("batch");
+    const bool guide = guide_on_;
+    guide_on_ = false;  // (the guide's rules are per reply: not in a batch)
+    llama_memory_t mem = llama_get_memory(ctx_);
+    const size_t n_ctx = llama_n_ctx(ctx_);
+    struct Seq {
+        size_t idx = 0;
+        llama_seq_id id = 0;
+        std::shared_ptr<llama_sampler> smpl;  // (freed with the sequence, also on an exception)
+        llama_pos pos = 0;
+        llama_token last = 0;
+        int produced = 0;
+        bool done = false;
+        Utf8Joiner joiner;
+        StopFilter stop{{"<|im_end|>", "<|im_start|>", "<|endoftext|>"}};
+        int64_t t0 = 0;
+    };
+    try {
+        for (size_t g0 = 0; g0 < prompts.size() && !cancel_.load(); g0 += (size_t) group) {
+            const size_t g1 = std::min(prompts.size(), g0 + (size_t) group);
+            std::vector<Seq> seqs(g1 - g0);
+            const int64_t tg = now_ms();
+            // each prompt read on sequence 0 (the cache and the saved states as generate() uses them), its first token
+            // sampled, then its state copied into its own sequence
+            for (size_t k = 0; k < seqs.size(); ++k) {
+                Seq & s = seqs[k];
+                s.idx = g0 + k;
+                s.id = (llama_seq_id) (k + 1);
+                s.t0 = now_ms();
+                Stats & st = batch_stats_[s.idx];
+                st.threads = stats_.threads;
+                llama_memory_seq_rm(mem, s.id, -1, -1);
+                std::vector<int32_t> toks;
+                if (!tokenize(prompts[s.idx], toks) || toks.empty() || toks.size() + 2 >= n_ctx) {
+                    s.done = true;
+                    st.end = End::error;
+                    continue;
+                }
+                const int64_t tp = now_ms();
+                const size_t reuse_before = cached_.size();
+                if (!prefill(toks)) {
+                    s.done = true;
+                    st.end = cancel_.load() ? End::cancelled : End::error;
+                    if (cancel_.load()) break;
+                    continue;
+                }
+                st.prompt_tokens = (int32_t) toks.size();
+                st.reused_tokens = (int32_t) std::min(reuse_before, toks.size());
+                st.prefill_ms = now_ms() - tp;
+                s.smpl.reset(make_chain(temperature, s.idx < seeds.size() ? seeds[s.idx] : sampling_.seed), llama_sampler_free);
+                s.last = llama_sampler_sample(s.smpl.get(), ctx_, -1);
+                s.pos = (llama_pos) toks.size();
+                st.first_token_ms = now_ms() - s.t0;
+                llama_memory_seq_cp(mem, 0, s.id, -1, -1);
+            }
+            // the replies, all together: one decode per step with each live sequence's last token
+            auto finish_token = [&](Seq & s) {
+                // s.last was sampled: end, or text and (if it goes on) into the next step
+                Stats & st = batch_stats_[s.idx];
+                if (llama_vocab_is_eog(vocab_, s.last)) { st.end = End::eog; s.done = true; return; }
+                ++st.gen_tokens;
+                batch_tokens_[s.idx].push_back(s.last);
+                ++s.produced;
+                char buf[256];
+                int32_t len = llama_token_to_piece(vocab_, s.last, buf, sizeof buf, 0, true);
+                std::string piece = len > 0 ? std::string(buf, (size_t) len) : std::string();
+                bool stopped = false;
+                replies[s.idx] += s.stop.push(s.joiner.push(piece.data(), piece.size()), &stopped);
+                if (stopped) { st.end = End::stop_text; s.done = true; return; }
+                if (s.produced >= max_tokens) { st.end = End::limit; s.done = true; return; }
+                if ((size_t) s.pos + 1 >= n_ctx) { st.end = End::context; s.done = true; }
+            };
+            for (auto & s : seqs) if (!s.done) finish_token(s);
+            while (!cancel_.load()) {
+                batch_.n_tokens = 0;
+                std::vector<Seq *> live;
+                for (auto & s : seqs) {
+                    if (s.done) continue;
+                    const int32_t i = batch_.n_tokens++;
+                    batch_.token[i] = s.last;
+                    batch_.pos[i] = s.pos;
+                    batch_.n_seq_id[i] = 1;
+                    batch_.seq_id[i][0] = s.id;
+                    batch_.logits[i] = 1;
+                    live.push_back(&s);
+                }
+                if (live.empty()) break;
+                npu_compute_begin();
+                const int rc = llama_decode(ctx_, batch_);
+                npu_compute_end((int) live.size());
+                if (rc != 0) {
+                    if (!cancel_.load()) error_ = "llama_decode failed (" + std::to_string(rc) + ")" + log_errors();
+                    for (Seq * s : live) { batch_stats_[s->idx].end = cancel_.load() ? End::cancelled : End::error; s->done = true; }
+                    break;
+                }
+                for (size_t i = 0; i < live.size(); ++i) {
+                    Seq & s = *live[i];
+                    ++s.pos;
+                    s.last = llama_sampler_sample(s.smpl.get(), ctx_, (int32_t) i);
+                    finish_token(s);
+                }
+            }
+            for (auto & s : seqs) {
+                Stats & st = batch_stats_[s.idx];
+                bool stopped = false;
+                replies[s.idx] += s.stop.push(s.joiner.flush(), &stopped);
+                if (!stopped) replies[s.idx] += s.stop.flush();
+                st.gen_ms = now_ms() - tg;
+                if (!s.done && cancel_.load()) st.end = End::cancelled;
+                s.smpl.reset();
+                llama_memory_seq_rm(mem, s.id, -1, -1);
+            }
+            if (cancel_.load()) { error_ = "cancelled"; break; }
+        }
+    } catch (const std::bad_alloc &) {
+        error_ = "out of memory while generating";
+    } catch (const std::exception & e) {
+        error_ = std::string("generation failed: ") + e.what();
+    } catch (...) {
+        error_ = "generation failed";
+    }
+    // (sequence 0 still holds the last prompt read: cached_ says so; the others are empty)
+    for (int k = 1; k <= n_seq_used_; ++k) llama_memory_seq_rm(mem, (llama_seq_id) k, -1, -1);
+    guide_on_ = guide;
+    return replies;
+}
 
 std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, int max_tokens, float temperature,
                                  const OnText & on_text, int64_t t0) {
@@ -1514,8 +1856,12 @@ std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, i
     ps.penalty_repeat = sampling_.repeat_penalty;
     ps.penalty_last_n = sampling_.repeat_last_n;
     ps.no_perf = true;
-    common_sampler * smpl = common_sampler_init(model_, ps);
-    if (!smpl) { error_ = "could not set up sampling"; return {}; }
+    // guided: our own chain (the guide in it), each verify position sampled in order as common_sampler does;
+    // otherwise llama.cpp's common sampler as before
+    common_sampler * smpl = guide_on_ ? nullptr : common_sampler_init(model_, ps);
+    llama_sampler * gchain = guide_on_ ? make_chain(temperature, sampling_.seed) : nullptr;
+    if (!smpl && !gchain) { error_ = "could not set up sampling"; return {}; }
+    const int pad_to = fixed_steps_ ? std::max(ngram_used_, spec_ ? mtp_n_ : 0) : 0;
 
     Utf8Joiner joiner;
     StopFilter stop({"<|im_end|>", "<|im_start|>", "<|endoftext|>"});
@@ -1560,6 +1906,13 @@ std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, i
                 // drafting ran the head ahead in its own cache: back to where the main model is before checking
                 if (dmem) llama_memory_seq_rm(dmem, 0, (llama_pos) n_past, -1);
             }
+            // a fixed length: a short guess padded with filler (the last guess again, or the last token), so every pass
+            // has the same shape (graph reuse); filler is checked like any guess (kept only if it is what is sampled)
+            const size_t real = draft.size();
+            if (pad_to > 0 && (int) draft.size() < std::min(pad_to, n_draft_max)) {
+                const llama_token fill = draft.empty() ? id_last : draft.back();
+                while ((int) draft.size() < std::min(pad_to, n_draft_max)) draft.push_back(fill);
+            }
             // check [last, guess0, guess1, ...] in one pass
             bt.clear();
             bt.add(id_last, n_past, 0, true);
@@ -1573,15 +1926,28 @@ std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, i
             if (spec_) common_speculative_process(spec_, bt);
             // each position sampled as without guesses, a guess kept only while it is what was sampled: the same tokens
             // (greedy) and the same distribution (sampling), one draw per token either way
-            const std::vector<llama_token> ids = common_sampler_sample_and_accept_n(smpl, ctx_, draft);
+            std::vector<llama_token> ids;
+            if (smpl) {
+                ids = common_sampler_sample_and_accept_n(smpl, ctx_, draft);
+            } else {
+                for (size_t i = 0; i <= draft.size(); ++i) {
+                    const llama_token t = llama_sampler_sample(gchain, ctx_, (int32_t) i);  // (accepts it too)
+                    ids.push_back(t);
+                    if (i == draft.size() || t != draft[i]) break;
+                }
+            }
             if (ids.empty()) { error_ = "sampling failed"; stats_.end = End::error; break; }
             if (spec_) common_speculative_accept(spec_, 0, (uint16_t) (ids.size() - 1));
             ++stats_.steps;
-            stats_.drafted += (int32_t) draft.size();
-            stats_.accepted += (int32_t) ids.size() - 1;
+            const int32_t right = (int32_t) ids.size() - 1;
+            const int32_t right_real = std::min(right, (int32_t) real);
+            stats_.drafted += (int32_t) real;
+            stats_.accepted += right_real;
+            stats_.padded += (int32_t) (draft.size() - real);
+            stats_.pad_accepted += right - right_real;
             if (from_ngram) {
-                stats_.ngram_drafted += (int32_t) draft.size();
-                stats_.ngram_accepted += (int32_t) ids.size() - 1;
+                stats_.ngram_drafted += (int32_t) real;
+                stats_.ngram_accepted += right_real;
             }
             in_ctx.push_back(id_last);  // now in the cache, with the accepted guesses after it
             for (size_t i = 0; i < ids.size(); ++i) {
@@ -1619,10 +1985,12 @@ std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, i
             if (!done && in_ctx.size() + 2 >= n_ctx) { stats_.end = End::context; done = true; }
         }
     } catch (...) {
-        common_sampler_free(smpl);
+        if (smpl) common_sampler_free(smpl);
+        if (gchain) llama_sampler_free(gchain);
         throw;
     }
-    common_sampler_free(smpl);
+    if (smpl) common_sampler_free(smpl);
+    if (gchain) llama_sampler_free(gchain);
     if (!stopped) emit(stop.push(joiner.flush(), &stopped));
     if (!stopped) emit(stop.flush());
     cached_ = in_ctx;
