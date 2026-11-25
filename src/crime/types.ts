@@ -12,8 +12,11 @@ export type CrimeKind =
   | 'vandalism'
   | 'shoplifting'
   | 'theft'
+  | 'perjury'
   | 'car_theft'
+  | 'bribery'
   | 'burglary'
+  | 'intimidation'
   | 'assault'
   | 'robbery'
   | 'murder';
@@ -23,8 +26,11 @@ export const DEFAULT_SEVERITY: Readonly<Record<CrimeKind, number>> = {
   vandalism: 0.22,
   shoplifting: 0.28,
   theft: 0.44,
+  perjury: 0.56,
   car_theft: 0.58,
+  bribery: 0.64,
   burglary: 0.64,
+  intimidation: 0.70,
   assault: 0.72,
   robbery: 0.80,
   murder: 1.0,
@@ -35,8 +41,11 @@ export const CRIME_CONSPICUOUSNESS: Readonly<Record<CrimeKind, number>> = {
   vandalism: 0.65,
   shoplifting: 0.40,
   theft: 0.48,
+  perjury: 0.38,
   car_theft: 0.72,
+  bribery: 0.30,
   burglary: 0.58,
+  intimidation: 0.56,
   assault: 0.88,
   robbery: 0.90,
   murder: 0.94,

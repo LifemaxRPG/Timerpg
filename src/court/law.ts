@@ -126,6 +126,36 @@ const BASE_STATUTES: Readonly<Record<CrimeKind, BaseStatute>> = {
     baseBail: 750,
     allowNoBail: false,
   },
+  perjury: {
+    statuteName: 'Perjury Under Oath',
+    felony: true,
+    minJailDays: 90,
+    maxJailDays: 1460,
+    minFine: 300,
+    maxFine: 3000,
+    baseBail: 2500,
+    allowNoBail: false,
+  },
+  bribery: {
+    statuteName: 'Bribery & Obstruction of Justice',
+    felony: true,
+    minJailDays: 180,
+    maxJailDays: 1825,
+    minFine: 500,
+    maxFine: 5000,
+    baseBail: 4000,
+    allowNoBail: false,
+  },
+  intimidation: {
+    statuteName: 'Witness & Juror Intimidation',
+    felony: true,
+    minJailDays: 180,
+    maxJailDays: 2555,
+    minFine: 500,
+    maxFine: 5000,
+    baseBail: 5000,
+    allowNoBail: false,
+  },
   car_theft: {
     statuteName: 'Grand Theft Auto',
     felony: true,
@@ -306,9 +336,10 @@ export function hireDefenseLawyer(params: {
   const name = `${LAWYER_FIRSTS[firstIdx]!} ${LAWYER_SURNAMES[surIdx]!}`;
   const fee = lawyerFeeForTier(tier, year);
 
-  // Pre-1950 unpaid appointed counsel had even thinner preparation than funded public defenders
-  const pdPrep = era.publicDefenderFunded ? 0.28 : 0.20;
-  const pdCross = era.publicDefenderFunded ? 0.30 : 0.22;
+  // Pre-1950 unpaid appointed counsel had thinner preparation than funded public defenders,
+  // though funded public defenders are still experienced courtroom litigators with heavy caseloads.
+  const pdPrep = era.publicDefenderFunded ? 0.42 : 0.34;
+  const pdCross = era.publicDefenderFunded ? 0.46 : 0.38;
 
   switch (tier) {
     case 'public_defender':
@@ -319,7 +350,7 @@ export function hireDefenseLawyer(params: {
         fee,
         preparation: pdPrep,
         crossSkill: pdCross,
-        persuasion: 0.26,
+        persuasion: 0.42,
         peremptoryStrikes: 3,
       };
     case 'local_attorney':
@@ -328,9 +359,9 @@ export function hireDefenseLawyer(params: {
         name,
         tier,
         fee,
-        preparation: 0.54,
-        crossSkill: 0.56,
-        persuasion: 0.52,
+        preparation: 0.58,
+        crossSkill: 0.60,
+        persuasion: 0.56,
         peremptoryStrikes: 4,
       };
     case 'retained_counsel':
@@ -350,9 +381,9 @@ export function hireDefenseLawyer(params: {
         name,
         tier,
         fee,
-        preparation: 0.92,
-        crossSkill: 0.93,
-        persuasion: 0.88,
+        preparation: 0.88,
+        crossSkill: 0.90,
+        persuasion: 0.86,
         peremptoryStrikes: 6,
       };
   }

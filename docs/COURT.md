@@ -17,7 +17,7 @@ Four historical court eras (`COURT_ERA_PROFILES`) keep fines, bail, lawyer retai
 | `mid_century` | `1950–1985` | `1.00×` | Yes | + Automated prints (AFIS 1980+), B&W cameras (1970+) |
 | `modern` | `1986+` | `3.00×` | Yes | + Forensic DNA (1987+), DNA database (1995+), color/HD cameras |
 
-- `statuteForCrime(kind, year)` returns the era-scaled `StatuteRule` (`felony`, `minJailDays..maxJailDays`, `minFine..maxFine`, `baseBail`, `allowNoBail`, `admissibility`).
+- `statuteForCrime(kind, year)` returns the era-scaled `StatuteRule` (`felony`, `minJailDays..maxJailDays`, `minFine..maxFine`, `baseBail`, `allowNoBail`, `admissibility`), including dedicated felony statutes for courtroom crimes (`bribery`, `perjury`, `intimidation`).
 - `chargesFromCase(policeCase, year, day)` turns a G005/G008 `PoliceCase` into formal `Charge[]` carrying live `caseStrength(policeCase, day)`.
 
 ---
@@ -28,7 +28,7 @@ Four historical court eras (`COURT_ERA_PROFILES`) keep fines, bail, lawyer retai
 - **`makePleaOffer(...)`**: Scales sentence discounts inversely with `caseStrength`:
   - Weak case (`< 0.42`): ~55–70% discount and misdemeanor reduction on non-capital felonies.
   - Strong case (`>= 0.70`): firm offer (~15–25% discount).
-- **`hireDefenseLawyer({ seed, caseId, year, budget?, tier? })`**: Maps budget or explicit tier to `public_defender`, `local_attorney`, `retained_counsel`, or `elite_defense`, scaling `preparation`, `crossSkill`, `persuasion`, and `peremptoryStrikes`.
+- **`hireDefenseLawyer({ seed, caseId, year, budget?, tier? })`**: Maps budget or explicit tier to `public_defender`, `local_attorney`, `retained_counsel`, or `elite_defense`, scaling `preparation`, `crossSkill`, `persuasion`, and `peremptoryStrikes`. Funded public defenders are modelled as capable, caseload-constrained litigators rather than incompetent counsel; better counsel measurably improves cross-examination, preparation, persuasion, and peremptory strikes, while physical-evidence damping (`physicalDamp`) and bounded trial-day execution variance keep money from deciding verdicts outright.
 
 ---
 
@@ -53,9 +53,9 @@ Strikes are recorded in `jurySelection.struck[]`:
 1. `opening_prosecution` / `opening_defense`
 2. `prosecution_witness` + `cross_examination`: `inspectWitnessErrors(report, actualAppearance)` compares each G005 `PoliceReport.description` field (`height`, `build`, `hair`, `clothingColor`, `vehicle`) against ground truth so skilled defense counsel exposes mistaken details on the stand.
 3. `prosecution_evidence` + `evidence_challenge`: filters `EvidenceMatch[]` by `era.admissibility` (logging excluded era evidence in `ignoredEraEvidenceKinds`), weights incriminating vs exculpatory matches, and surfaces G008 `witness_physical_conflict` directly in court.
-4. `defense_case` + optional `defendant_testimony` (takes `defendantTestimonyScore` in `0..1` supplied by the spoken-defense evaluator).
-5. `closing_arguments`
-6. **3-round deliberation (`deliberation_round`):** Each seated juror evaluates `perceivedGuiltScore` through their own `traits` (`diligence`, `ambition`, `charm`), `initialBias`, deterministic individual judgment, and any active jury tampering (`bribed` / `threatened`). Unanimous `12-0` guilty -> `'guilty'`; unanimous `0-12` -> `'not_guilty'`; split vote -> `'hung'` with `retrialRecommended: true`.
+4. `defense_case` + optional `defendant_testimony` (takes `defendantTestimonyScore` in `0..1` supplied by the spoken-defense evaluator). Defense presentation and closing persuasion are dampened by admissible incriminating physical evidence (`physicalDamp`) so skilled counsel shines most on witness-only and contested cases while strong forensics resist rhetoric.
+5. `closing_arguments` plus bounded, zero-mean deterministic trial-day execution variance (prosecution witness poise and counsel courtroom day).
+6. **3-round deliberation (`deliberation_round`):** Each seated juror evaluates `perceivedGuiltScore` through their own `traits` (`diligence`, `ambition`, `charm`), `initialBias`, extra reasonable-doubt skepticism when no physical evidence is presented, deterministic individual judgment, and any active jury tampering (`bribed` / `threatened`). Unanimous `12-0` guilty -> `'guilty'`; unanimous `0-12` -> `'not_guilty'`; split vote -> `'hung'` with `retrialRecommended: true`. On thin witness-only cases, even a public defender regularly secures acquittals (often after 2 rounds of deliberation), while strong physical-evidence cases still usually convict even against elite counsel.
 7. **`sentence` (when `'guilty'`):** Judge picks `jailDays` and `fineAmount` strictly inside the era statute's range based on severity, prior record, and judge traits.
 
 `runRetrial(previousOutcome, options)` increments `attempt` and draws a fresh 12-person jury venire.
@@ -64,11 +64,11 @@ Strikes are recorded in `jurySelection.struck[]`:
 
 ## 5. Crimes Around the Trial (`commitTrialInterference`)
 
-Supports `bribe_juror`, `threaten_juror`, `bribe_witness`, `threaten_witness`, and `perjury`.
+Supports `bribe_juror`, `threaten_juror`, `bribe_witness`, `threaten_witness`, and `perjury`, filed under dedicated `CrimeKind` categories (`'bribery'`, `'perjury'`, `'intimidation'`) with their own felony statutes in `BASE_STATUTES`, severities/conspicuousness in `src/crime/types.ts`, and covert/coercive reporting modifiers in `src/crime/reporting.ts`.
 
 Every attempt routes through G005/G008 (`witnessesOf`, `recordCrime`, `leaveTraces`, `recordTraces`):
 - Success depends on bribe size (era-scaled) vs the target's `diligence`, `ambition`, and `reputation` (or `caughtInCourt` for perjury).
-- Always creates a real `CrimeEvent` in `crimeState.crimes[crimeId]` with physical traces, and immediately opens a police case in `crimeState.jurisdictions[jurisdictionId]` when refused, caught in court, or witnessed by a bystander.
+- Always creates a real `CrimeEvent` in `crimeState.crimes[crimeId]` using dedicated court `CrimeKind` values — `'bribery'` (juror/witness bribery), `'perjury'` (lying under oath), and `'intimidation'` (threatening a juror or witness) — with physical traces and dedicated severities, conspicuousness, and covert/coercive reporting profiles (`CRIME_REPORTING_MODIFIERS` in `src/crime/reporting.ts`). Immediately opens a police case of the matching kind in `crimeState.jurisdictions[jurisdictionId]` when refused, caught in court, or witnessed by a bystander.
 - On success, returns an `ActiveTrialTampering` token passed into `runTrial({ tampering })` — e.g., a bribed juror votes `'not_guilty'` as a holdout, flipping a unanimous conviction to a hung jury while leaving an active bribery case behind.
 
 ---

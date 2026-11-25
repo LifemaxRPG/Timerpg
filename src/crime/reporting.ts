@@ -2,7 +2,7 @@ import { clamp01, rand, rngFor } from '../sim/rng';
 import { affinity } from '../sim/social';
 import { ageIn, isAlive, type Id, type Person, type World } from '../sim/types';
 import { cachedAffinity, getSocialIndex, type WorldSocialIndex } from './gossip';
-import type { CrimeAccount, CrimeContext, CrimeEvent, PendingReport } from './types';
+import type { CrimeAccount, CrimeContext, CrimeEvent, CrimeKind, PendingReport } from './types';
 
 function areDirectKin(a: Person, b: Person): boolean {
   if (a.spouse === b.id || b.spouse === a.id) return true;
@@ -86,6 +86,42 @@ export function reportLatencyForEra(
 }
 
 /**
+ * Reporting-behaviour modifiers for covert / courtroom interference crimes.
+ * Ordinary street/property crimes are omitted so their reporting curves stay unchanged.
+ */
+export interface CrimeReportingModifier {
+  /** Multiplier on reporting probability when the reporter is the targeted person. */
+  victimScale: number;
+  /** Multiplier on reporting probability for a first-hand third-party witness. */
+  witnessScale: number;
+  /** Multiplier on reporting probability for second-hand hearsay/gossip. */
+  hearsayScale: number;
+  /** If true, skips the >= 0.90 violent/property victim floor (e.g. scared or approached target). */
+  suppressVictimFloor: boolean;
+}
+
+export const CRIME_REPORTING_MODIFIERS: Readonly<Partial<Record<CrimeKind, CrimeReportingModifier>>> = {
+  bribery: {
+    victimScale: 0.55,
+    witnessScale: 0.92,
+    hearsayScale: 0.60,
+    suppressVictimFloor: true,
+  },
+  perjury: {
+    victimScale: 0.72,
+    witnessScale: 0.78,
+    hearsayScale: 0.40,
+    suppressVictimFloor: true,
+  },
+  intimidation: {
+    victimScale: 0.42,
+    witnessScale: 1.05,
+    hearsayScale: 0.75,
+    suppressVictimFloor: true,
+  },
+};
+
+/**
  * Single-day probability that `reporter` decides to report `crime` to police,
  * factoring severity, victim loyalty, culprit shielding (spouse/kin/friends),
  * reputation, per-person police refusal, and recall confidence.
@@ -106,10 +142,19 @@ export function reportingProbability(
   if (refusesPolice(seed, reporter, crime.severity, cachedRefusalRoll)) return 0;
 
   let base = 0.05 + 0.72 * Math.pow(clamp01(crime.severity), 1.35);
+  const kindMod = CRIME_REPORTING_MODIFIERS[crime.kind];
 
   if (account.isVictim) {
-    base += 0.45;
-    if (crime.severity >= 0.45) base = Math.max(base, 0.90);
+    if (kindMod?.suppressVictimFloor) {
+      // Covert/coercive court crimes: target willingness scales with personal resolve/diligence
+      const resolveBoost = 0.75 + 0.50 * clamp01(reporter.traits.diligence);
+      base = (base + 0.25) * kindMod.victimScale * resolveBoost;
+    } else {
+      base += 0.45;
+      if (crime.severity >= 0.45) base = Math.max(base, 0.90);
+    }
+  } else if (kindMod) {
+    base *= account.source === 'second_hand' ? kindMod.hearsayScale : kindMod.witnessScale;
   }
 
   if (account.source === 'second_hand') {
