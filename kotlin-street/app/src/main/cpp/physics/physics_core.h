@@ -43,6 +43,10 @@ enum VehicleDesc {
     VD_SHIFT_DOWN_RPM,
     VD_DOWNFORCE,           // N per (m/s)^2 of forward speed: a wing's and splitter's push down (0: none, the road cars)
     VD_DOWNFORCE_FRONT,     // 0..1: the share of it on the front axle (the rest on the rear)
+    VD_FRICTION_LAT_REAR,   // the rear tyres' lateral grip multiplier (0: the same as VD_FRICTION_LAT)
+    VD_FRONT_LAT_TAIL,      // the front tyres' lateral grip past the peak slip angle, as a share of the peak (0: Jolt's 1.0/1.2)
+    VD_SHIFT_UP_FULL_RPM,   // the upshift's rpm at full throttle (VD_SHIFT_UP_RPM at none, between by the throttle; 0: VD_SHIFT_UP_RPM always)
+    VD_SHIFT_TIME,          // s: an upshift's torque cut, the throttle easing back in over it (0: .25)
     VD_COUNT
 };
 

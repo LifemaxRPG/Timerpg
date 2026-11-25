@@ -58,8 +58,9 @@ internal object CinemaGrounds {
     private val CURB = Ramp(c(0x4D4D66), c(0x9A9AAA), c(0xB4B4C0), c(0xC8C8D2), c(0xDCDCE4))
 
     /** The site's parts round the built theater: [body] its footprint (min x, min z, max x, max z) on [plot]. */
-    fun build(era: CinemaEra, plot: CinemaKit.Plot, body: FloatArray, seed: Int): CinemaKit.B {
+    fun build(era: CinemaEra, plot: CinemaKit.Plot, body: FloatArray, seed: Int, realCars: Boolean = false): CinemaKit.B {
         val b = CinemaKit.B(era)
+        b.realCars = realCars
         val L = plot.lot; val D = plot.deep
         val px0 = -L / 2f + 2f; val px1 = L / 2f - 2f; val pzb = -D + 2f
         val bx0 = plot.cx - plot.w / 2f; val bx1 = plot.cx + plot.w / 2f
@@ -341,7 +342,10 @@ internal object CinemaGrounds {
             if (rnd.next() < .42f) continue
             val cx = if (along) x + i * step else x
             val cz = if (along) z else z - i * step
-            car(b, cx + (rnd.next() - .5f) * 3f, cz + (rnd.next() - .5f) * 3f, nose, carLook(rnd.int(CAR_COLOURS.size * 3)), sideways)
+            val px = cx + (rnd.next() - .5f) * 3f; val pz = cz + (rnd.next() - .5f) * 3f; val k = rnd.int(CAR_COLOURS.size * 3)
+            // (nose 1: to -z, or +x sideways)
+            if (b.realCars) b.parked += LotCar(px, pz, if (sideways) (if (nose > 0f) PI_F / 2f else -PI_F / 2f) else (if (nose > 0f) PI_F else 0f), k * 7919 + i * 31 + (x * 13).toInt())
+            else car(b, px, pz, nose, carLook(k), sideways)
         }
     }
 
@@ -363,4 +367,6 @@ internal object CinemaGrounds {
         val tyre = Paint.swatch(c(0x16161C))
         for (sc in listOf(-hw - .2f, hw - 3.8f)) for (sa in listOf(-hl + 12f, hl - 22f)) box(sa, sa + 12f, sc, sc + 4f, 0f, 10f) { _, _, _ -> tyre }
     }
+
+    private const val PI_F = Math.PI.toFloat()
 }

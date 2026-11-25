@@ -465,7 +465,8 @@ class VehicleWorld(
         // the steering eased (a thumb is all or nothing), and turned less at speed (what a driver does)
         val k = 1f - kotlin.math.exp(-dt / STEER_TIME)
         c.steer += (steerIn.coerceIn(-1f, 1f) - c.steer) * k
-        val atSpeed = 1f / (1f + (abs(v) / STEER_FADE) * (abs(v) / STEER_FADE))
+        val fade = steerFadeOf(c.spec)
+        val atSpeed = 1f / (1f + (abs(v) / fade) * (abs(v) / fade))
         val hb = if (handbrake) 1f else 0f
         physics.input(c.handle, forward, c.steer * atSpeed * (.7f + .3f * gripScale), brake, hb)
         c.throttle = abs(forward)
@@ -730,6 +731,8 @@ class VehicleWorld(
         /** The steering's ease (s) and the speed (m/s) it is halved at. */
         const val STEER_TIME = .12f
         const val STEER_FADE = 22f
+        /** The speed (m/s) the steering is halved at for [s]: a race build's own (VehicleSpec.Race.steerFade), else [STEER_FADE]. */
+        fun steerFadeOf(s: VehicleSpec): Float = s.race?.steerFade?.takeIf { it > 0f } ?: STEER_FADE
         /** Headlights on past this darkness (0 day .. 1 night). */
         const val HEADLIGHTS_FROM = .3f
         const val FRICTION_OF_WALLS = .5f

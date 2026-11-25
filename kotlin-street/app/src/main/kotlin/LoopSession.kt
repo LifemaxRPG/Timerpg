@@ -483,6 +483,10 @@ object LoopSession {
     /** Each officer's spot now (id, x, z), for the HUD's label over their head. */
     fun officers(nowNs: Long): List<Triple<String, Float, Float>> = walks.map { w -> w.at(nowNs, tmp).let { Triple(w.officerId, it[0], it[1]) } }
 
+    /** The officers on a call with the siren on ([com.timerpg.street.audio.SoundRules.sirenFor]: chasing, responding), where they are now (id, x, z). */
+    fun sirenOfficers(nowNs: Long): List<Triple<String, Float, Float>> =
+        walks.filter { com.timerpg.street.audio.SoundRules.sirenFor(it.assignment) }.map { w -> w.at(nowNs, tmp).let { Triple(w.officerId, it[0], it[1]) } }
+
     /**
      * Once a second: an officer within [SIGHT] of the player with nothing between them sees them (`spotted`, at most
      * every [AGAIN_MS] per officer); watching is shown, a stop or an arrest is the arrest scene. Not while inside, in a

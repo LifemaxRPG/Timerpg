@@ -56,6 +56,8 @@ class VehicleSpec(
         val travelMin: Float, val travelMax: Float, val springHz: Float, val damping: Float,
         val grip: Float, val drag: Float, val comY: Float,
         val downforceAt200: Float, val downforceFront: Float,
+        /** The tyres' lateral grip per axle (`lateral_grip` [front, rear]; else [grip] both), the fronts' grip past their peak slip as a share of the peak (`front_grip_tail`; 0: Jolt's), the speed (m/s) the steering is halved at (`steer_fade_kmh`; 0: the road cars'). */
+        val latFront: Float = grip, val latRear: Float = grip, val frontTail: Float = 0f, val steerFade: Float = 0f,
     ) {
         /** Downforce (N) per (m/s)^2 of speed: the physics' VehicleDesc.DOWNFORCE. */
         val downforceK: Float get() = downforceAt200 / ((200f / 3.6f) * (200f / 3.6f))
@@ -149,6 +151,9 @@ class VehicleSpec(
                     r.getDouble("spring_hz").toFloat(), r.getDouble("damping").toFloat(), r.getDouble("tyre_grip").toFloat(),
                     r.getDouble("drag").toFloat(), r.getDouble("com_y_m").toFloat(),
                     r.optDouble("downforce_n_at_200_kmh", 0.0).toFloat(), r.optDouble("downforce_front", .5).toFloat(),
+                    r.optJSONArray("lateral_grip")?.getDouble(0)?.toFloat() ?: r.getDouble("tyre_grip").toFloat(),
+                    r.optJSONArray("lateral_grip")?.getDouble(1)?.toFloat() ?: r.getDouble("tyre_grip").toFloat(),
+                    r.optDouble("front_grip_tail", 0.0).toFloat(), (r.optDouble("steer_fade_kmh", 0.0) / 3.6).toFloat(),
                 )
             }
             val liveries = paint?.optJSONArray("liveries")?.let { a ->
@@ -234,6 +239,10 @@ class Drivetrain(
     /** Downforce: N per (m/s)^2 (0: none, every road car) and its front share. */
     val downforceK: Float = 0f,
     val downforceFront: Float = .5f,
+    /** The tyres' lateral grip per axle (shares of Jolt's radial; road cars: [grip] both) and the fronts' grip past their peak slip (0: Jolt's curve). */
+    val latFront: Float = grip,
+    val latRear: Float = grip,
+    val frontTail: Float = 0f,
 ) {
     /** The physics description for [s]. */
     fun desc(s: VehicleSpec): FloatArray {
@@ -264,10 +273,16 @@ class Drivetrain(
         d[VehicleDesc.LINEAR_DAMPING] = drag
         d[VehicleDesc.COM_Y] = comY
         d[VehicleDesc.FRICTION_LONG] = grip
-        d[VehicleDesc.FRICTION_LAT] = grip
-        // (shifts up near the top of the rev range, down well below it: an automatic's gentle pattern)
-        d[VehicleDesc.SHIFT_UP_RPM] = maxRpm * .82f
+        d[VehicleDesc.FRICTION_LAT] = latFront
+        d[VehicleDesc.FRICTION_LAT_REAR] = latRear
+        d[VehicleDesc.FRONT_LAT_TAIL] = frontTail
+        // (an automatic's pattern: up early when cruising, near the top flat out but before the limiter (97%), down well
+        // below; the upshifts are the physics' own, not held back by wheelspin, with a short torque cut: quicker in a
+        // newer or a race car. 2026-11-25: flat out, Jolt's box sat on the limiter up to 2 s while the tyres spun)
+        d[VehicleDesc.SHIFT_UP_RPM] = maxRpm * .72f
+        d[VehicleDesc.SHIFT_UP_FULL_RPM] = maxRpm * .92f
         d[VehicleDesc.SHIFT_DOWN_RPM] = maxRpm * .36f
+        d[VehicleDesc.SHIFT_TIME] = when { s.race != null -> .15f; s.from >= 1980 -> .2f; s.from >= 1950 -> .3f; else -> .4f }
         d[VehicleDesc.DOWNFORCE] = downforceK
         d[VehicleDesc.DOWNFORCE_FRONT] = downforceFront
         return d
@@ -286,7 +301,7 @@ class Drivetrain(
             Drivetrain(torqueNm = r.torqueNm, minRpm = r.minRpm, maxRpm = r.maxRpm, gears = r.gears, reverse = r.reverse,
                 brakeNm = r.brakeNm, handbrakeNm = r.handbrakeNm, lockDeg = r.lockDeg, travelMin = r.travelMin, travelMax = r.travelMax,
                 springHz = r.springHz, damping = r.damping, grip = r.grip, drag = r.drag, comY = r.comY,
-                downforceK = r.downforceK, downforceFront = r.downforceFront)
+                downforceK = r.downforceK, downforceFront = r.downforceFront, latFront = r.latFront, latRear = r.latRear, frontTail = r.frontTail)
         } ?: when {
             s.from < 1932 -> Drivetrain(torqueNm = 230f, minRpm = 500f, maxRpm = 3000f, gears = floatArrayOf(3.0f, 1.65f, 1f), reverse = -3.5f,
                 brakeNm = 900f, handbrakeNm = 1400f, lockDeg = 34f, travelMin = .06f, travelMax = .26f, springHz = 1.6f, damping = .35f,

@@ -84,10 +84,22 @@ internal class TownStore(
     private val glow = CinemaLayer(layer)
     private val bodyGlow = CinemaLayer(body)
     private val lamps = CinemaLights(engine, scene)
+    /**
+     * The parked cars ([LotCars]): their far models (or the old boxes, when the real cars cannot be read), always up while
+     * the store is; their mid models only while the lot is near ([CAR_MID]: made when the player comes within
+     * [MID_LEAD] of it, let go past [MID_DROP]), so a town of car parks holds one lot's detail at a time.
+     */
     private var cars: PropLayer? = null
+    private var carsMid: PropLayer? = null
+    private var carSpots: List<LotCar> = emptyList()
+    private var carYear = 0
+    private var carsReal = false
+    private var midJob: java.util.concurrent.Future<Pair<Int, List<PropLayer.Packed>?>>? = null
+    /** The lot's distance from the camera (past its edge) at the last frame. */
+    private var lastCd = Float.MAX_VALUE
     private class Built(val parts: List<CinemaLayer.Packed>, val bodyParts: List<CinemaLayer.Packed>, val box: FloatArray, val lights: List<CinemaLight>, val info: StoreInfo?,
-                        val bays: List<StoreBay>, val solids: FloatArray, val doors: List<FloatArray>, val block: FloatArray?)
-    private class Cars(val key: Int, val parts: List<CinemaLayer.Packed>, val solids: FloatArray, val count: Int)
+                        val bays: List<StoreBay>, val solids: FloatArray, val doors: List<FloatArray>, val block: FloatArray?, val parked: List<LotCar>)
+    private class Cars(val key: Int, val parts: List<PropLayer.Packed>, val real: Boolean, val spots: List<LotCar>, val year: Int, val solids: FloatArray, val count: Int)
     private var job: java.util.concurrent.Future<Built>? = null
     private var carJob: java.util.concurrent.Future<Cars>? = null
     /** The hour and day the cars standing are for (-1: none yet), and the key of the job under way. */
@@ -95,6 +107,7 @@ internal class TownStore(
     private var carWant = -1
     private var info: StoreInfo? = null
     private var bays: List<StoreBay> = emptyList()
+    private var parked: List<LotCar> = emptyList()
     /** It is up (uploaded), or it failed (the town goes on without it). */
     var done = false; private set
     /** A sphere round it in the world (the plot until built), its height's middle. */
@@ -102,8 +115,9 @@ internal class TownStore(
     /** The main block in the world, once built (x0, z0, x1, z1 of its ground box, and its height), for the camera's cut. */
     var block: FloatArray? = null; private set
     var shown = false; private set
-    /** The cars standing now (for the preview's report). */
+    /** The cars standing now, and their mid models' triangles when last made (for the preview's report). */
     var carCount = 0; private set
+    var carTriangles = 0; private set
     /** What was built: the store's triangles and its solid shapes (for the preview's report). */
     var triangles = 0; private set
     var solidCount = 0; private set
@@ -132,14 +146,14 @@ internal class TownStore(
             val inf = s.at(y, hour, weekday)
             if (inf == null) {
                 val m = s.placeholder(y) ?: CinemaModel(CinemaEra.PALACE, emptyList(), floatArrayOf(0f, 0f, 0f, 0f), 0f, l, d)
-                Built(CinemaLayer.pack(m, a), emptyList(), box(m), m.lights, null, emptyList(), StoreSolids.world(StoreSolids.of(listOf(m), l, d), a), emptyList(), null)
+                Built(CinemaLayer.pack(m, a), emptyList(), box(m), m.lights, null, emptyList(), StoreSolids.world(StoreSolids.of(listOf(m), l, d), a), emptyList(), null, emptyList())
             } else {
                 val sm = StoreKit.buildWithSite(inf, cars = false)
                 val m = sm.model
                 val doors = StoreShapes.entrances(sm, inf)
                 // (a small store's one group of details runs over its whole plot: all of it but the ground is cut together)
                 val (bodyM, siteM) = if (inf.kind == StoreKind.GENERAL || inf.kind == StoreKind.MARKET) splitGround(m) else split(m, sm.block)
-                Built(CinemaLayer.pack(siteM, a), CinemaLayer.pack(bodyM, a), box(m), m.lights, inf, sm.bays, StoreSolids.world(StoreSolids.of(listOf(m), l, d), a), doors, sm.block)
+                Built(CinemaLayer.pack(siteM, a), CinemaLayer.pack(bodyM, a), box(m), m.lights, inf, sm.bays, StoreSolids.world(StoreSolids.of(listOf(m), l, d), a), doors, sm.block, sm.parked)
             }
         })
     }
@@ -174,7 +188,7 @@ internal class TownStore(
         bodyGlow.upload(b.bodyParts)
         lamps.add(b.lights, at)
         job = null
-        info = b.info; bays = b.bays
+        info = b.info; bays = b.bays; parked = b.parked
         triangles = (b.parts + b.bodyParts).sumOf { it.packed.indices / 3 }
         solidCount = b.solids.size / 6
         val fp = b.box
@@ -202,7 +216,7 @@ internal class TownStore(
     /** The cars for [hour] of [weekday]: rebuilt on [pool] when the hour or the day changes, uploaded when ready. */
     fun stepCars(pool: java.util.concurrent.ExecutorService, hour: Float, weekday: Int) {
         val inf = info ?: return
-        if (bays.isEmpty()) return
+        if (bays.isEmpty() && parked.isEmpty()) return
         val h = floor(hour).toInt().coerceIn(0, 23)
         val key = weekday * 24 + h
         carJob?.let { f ->
@@ -214,25 +228,53 @@ internal class TownStore(
             }
             carJob = null
             val l = PropLayer(engine, scene, lit, proxy, sharedTextures = textures, cull = true)
-            for (p in c.parts) l.upload(p.packed, p.casts, p.tiled)
-            cars?.destroy()
-            cars = l
+            for (p in c.parts) l.upload(p, true)
+            cars?.destroy(); carsMid?.destroy(); carsMid = null
+            cars = l; carsReal = c.real; carSpots = c.spots; carYear = c.year
             carKey = c.key; carCount = c.count
             collision?.setExtra(CARS + site.sprite, c.solids, SolidKind.PROP, site.sprite)
         }
+        stepMid(pool)
         if (key == carKey || key == carWant && carJob != null) return
         carWant = key
-        val a = at; val bs = bays; val l = lot; val d = deep
+        val a = at; val bs = bays; val l = lot; val d = deep; val own = parked
         val forHour = inf.copy(hour = h + .5f, weekday = weekday)
         carJob = pool.submit(java.util.concurrent.Callable {
-            val m = StoreCars.build(forHour, bs)
-            val n = min(StoreTraffic.shoppers(forHour), bs.count { !it.staff }) + min(StoreTraffic.staff(forHour), bs.size)
-            Cars(key, CinemaLayer.pack(m, a), StoreSolids.world(StoreSolids.of(listOf(m), l, d), a), n)
+            // the lot's cars for the hour and those on the grounds: real cars (LotCars), their solid shapes from boxes
+            val spots = StoreCars.spots(forHour, bs) + own
+            val boxes = StoreCars.boxes(forHour, spots)
+            val solids = StoreSolids.world(StoreSolids.of(listOf(boxes), l, d), a)
+            val far = LotCars.pack(spots, forHour.year, a, LotCars.Lod.FAR)
+            if (far == null) Cars(key, CinemaLayer.pack(boxes, a).map { it.packed }, false, spots, forHour.year, solids, spots.size)
+            else Cars(key, far.batches, true, spots, forHour.year, solids, far.cars)
         })
     }
 
+    /** The lot's mid models: made on [pool] as the player comes near, uploaded when ready, let go when far again. */
+    private fun stepMid(pool: java.util.concurrent.ExecutorService) {
+        midJob?.let { f ->
+            if (!f.isDone) return
+            val (k, parts) = try { f.get() } catch (e: java.util.concurrent.ExecutionException) {
+                val cause = e.cause ?: e
+                if (cause is VirtualMachineError) throw BuildFailure("parking a store's cars on a worker", cause)
+                midJob = null; return
+            }
+            midJob = null
+            if (k == carKey && parts != null && carsMid == null) {
+                val l = PropLayer(engine, scene, lit, proxy, sharedTextures = textures, cull = true)
+                for (p in parts) l.upload(p, true)
+                carsMid = l; carTriangles = parts.sumOf { it.indices / 3 }
+            }
+        }
+        if (carsMid != null && lastCd > CAR_MID + MID_DROP) { carsMid?.destroy(); carsMid = null }
+        if (carsReal && carsMid == null && lastCd < CAR_MID + MID_LEAD && carSpots.isNotEmpty()) {
+            val k = carKey; val spots = carSpots; val y = carYear; val a = at
+            midJob = pool.submit(java.util.concurrent.Callable { k to LotCars.pack(spots, y, a, LotCars.Lod.MID)?.batches })
+        }
+    }
+
     /** Whether the cars standing are those for [hour] of [weekday] (or it has none to park). */
-    fun carsFor(hour: Float, weekday: Int): Boolean = done && (info == null || bays.isEmpty() || carKey == weekday * 24 + floor(hour).toInt().coerceIn(0, 23))
+    fun carsFor(hour: Float, weekday: Int): Boolean = done && (info == null || bays.isEmpty() && parked.isEmpty() || carKey == weekday * 24 + floor(hour).toInt().coerceIn(0, 23) && midJob == null)
 
     /**
      * This frame through [pose] ([look] its matrix), [dark] how dark, [seconds] the clock; [cut] the street view's cut at
@@ -254,13 +296,19 @@ internal class TownStore(
         if (near) out[2] += body.casters
         lamps.update(dark, on && near)
         // the cars: drawn while near enough to read (a car is a few pixels past [CAR_RANGE]); their shadows nearer
+        // (the real cars' mid models while the lot is near, their far ones out to [CAR_RANGE]: LotCars)
         val c = cars
         if (c != null) {
             val cd = pose.distance(cx, 20f, cz) - r
             val carsOn = on && cd < CAR_RANGE
-            c.update(look, dark, carsOn, fade, carsOn && cd < CAR_SHADOWS)
-            if (carsOn) { out[0] += c.draws; out[1] += c.triangles }
-            if (carsOn && cd < CAR_SHADOWS) out[2] += c.casters
+            lastCd = cd
+            val m = carsMid
+            val midOn = carsOn && m != null && cd < CAR_MID
+            val farOn = carsOn && !midOn
+            m?.update(look, dark, midOn, fade, midOn && cd < CAR_SHADOWS)
+            c.update(look, dark, farOn, fade, farOn && cd < CAR_SHADOWS)
+            if (midOn && m != null) { out[0] += m.draws; out[1] += m.triangles; if (cd < CAR_SHADOWS) out[2] += m.casters }
+            if (farOn) { out[0] += c.draws; out[1] += c.triangles; if (cd < CAR_SHADOWS) out[2] += c.casters }
         }
         shown = on
         if (on) { out[0] += layer.draws; out[1] += layer.triangles }
@@ -269,8 +317,8 @@ internal class TownStore(
     }
 
     fun destroy() {
-        job?.cancel(true); carJob?.cancel(true)
-        layer.destroy(); body.destroy(); cars?.destroy(); lamps.destroy()
+        job?.cancel(true); carJob?.cancel(true); midJob?.cancel(true)
+        layer.destroy(); body.destroy(); cars?.destroy(); carsMid?.destroy(); lamps.destroy()
         collision?.setExtra(KEY + site.sprite, null); collision?.setExtra(CARS + site.sprite, null); collision?.setExtraDoors(KEY + site.sprite, null)
     }
 
@@ -280,6 +328,11 @@ internal class TownStore(
         /** How far past its edge a store's parked cars are drawn, and throw shadows (street units). */
         const val CAR_RANGE = 2400f
         const val CAR_SHADOWS = 1200f
+        /** Within this past its edge a store's parked cars are their mid models, beyond it their far ones (street units: ~45 m). */
+        const val CAR_MID = 950f
+        /** The mid models are made within this past [CAR_MID] (ready by the time they show) and let go past [MID_DROP]. */
+        const val MID_LEAD = 900f
+        const val MID_DROP = 2000f
         /** How far past the main block a part may reach and still be the block's (its canopies, vestibules, cornices). */
         const val SPLIT_PAD = 80f
     }

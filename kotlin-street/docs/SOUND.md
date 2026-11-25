@@ -88,6 +88,22 @@ smash by severity, from where the car is. Getting in and out: the door opens, th
 **Doppler** for every car but the driven one (the listener rides in it): the radial speed relative to the listener's own
 velocity scales every frequency of the synth (`doppler`), eased.
 
+### The limiter (2026-11-25)
+
+Before, above 98.5% of the profile's redline the synth cut every firing to 15% for as long as the revs stayed there.
+It sounded like a thin hiss at a quarter of the loudness, with the exhaust's body gone (`limiter_*` clips: RMS 0.07-0.10
+against 0.16-0.53 just below, spectral centroid 3-4 times higher). The automatic also held cars there for up to 2 s
+while the tyres spun (VEHICLES.md, "The gearbox"). The race Torrel was worse still: it used the twin-cam four's 7,000
+rpm redline while its drivetrain revs to 8,200, so the sound sat on the limiter from 6,900 rpm.
+
+Now each car's profile takes its drivetrain's governed speed as its redline (`EngineProfile.forSpec`, `withRedline`).
+At the limit the synth bounces like a real limiter: a spark cut of 35-55 ms, then the engine fires again for 28-45 ms,
+and so on (10-14 cuts a second). Each cut dips the revs about 3.5%, and now and then unburnt mixture pops in the pipe.
+Held there for over a second (flat out at top speed in top gear), the cuts get shallower, more a governor's flutter.
+On the limiter, loudness now stays at 0.7-1.0 of the climb's, the timbre stays the engine's, and the loudness swings at
+6-20 Hz (`EngineSoundTest.theLimiterBouncesAndKeepsTheEnginesVoice`). `ShiftClipRenderTest` renders each car's
+full-throttle Jolt run (`SHIFT_TRACES`) and a limiter clip (`SOUND_OUT`).
+
 ## Ambience
 
 `SoundRules.at(hour, rain, cloud, mist, season, town, Place)` (pure) decides the levels; `SoundFeed.look` measures the
@@ -102,7 +118,7 @@ moving near. The **year** is the town's.
 | The night's hush | before the motor age (so 1920 is not dead silent) | made live (low rush) |
 | Far traffic | cars of the year's fleet passing on streets around (22-120 m off), Doppler, darkened by distance and buildings; how many a minute by rush hours, day, urban, the era's car share (1925 about a fifth of now) | made live (`TrafficSource`: the engine synth) |
 | Horses | before ~1945, by day, more downtown | CC0 recording |
-| Birds | by day (suburban birdsong), parks (green²), the dawn chorus in gardens; fewer in winter, none in rain | CC0 recordings |
+| Birds | by day (suburban birdsong), parks (green²), the dawn chorus in gardens; fewer in winter, none in rain; about half the old level, each bed swelling and lulling on its own one-to-three-minute cycle (`SoundRules.birdChorus`), so the kinds take turns with quiet spells between (2026-11-25: "birds are loud") | CC0 recordings |
 | Crickets | at night, warm seasons, gardens | made live |
 | Wind, rain (light, heavy), thunder | from the sky | made live (thunder CC0) |
 | Dogs | scattered 30-140 m off, more in green streets and at night | CC0 recordings |
@@ -110,7 +126,7 @@ moving near. The **year** is the town's.
 | Crowd murmur | from where the people near gather, by how many | CC0 recording |
 | Fountain | the plaza's fountain, positional | CC0 recording |
 | Bells | the clock tower (else a church) strikes the hour (12-hour count, 2.6 s apart), 7:00-22:00 | made live (`BellSynth`: hum, prime, tierce, quint, nominal partials) |
-| Siren | while the police search: bursts of 8-20 s from the nearest officer's direction, 250 m off; a bell before 1915, a motor siren's wail to 1965, then electronic wail and yelp | made live (`SirenSource`) |
+| Siren | only while an officer is on a call (chase, respond_crime, backup, call_backup: `SoundRules.sirenFor`) within 350 m; never for a patrol or a quiet search (2026-11-25: any officer on duty used to sound it, "sirens randomly"); runs of 20-40 s with 2-6 s gaps from that officer's direction, at least 60 m off; a bell before 1915, a motor siren's wail to 1965, then electronic wail and yelp | made live (`SirenSource`) |
 | Shop door bell | entering a shop | CC0 recordings |
 | Bike | the chain's purr pedalling, the freewheel's ticks coasting, gravel's crunch (tyre hiss stays off: the owner heard it as wind) | made live |
 

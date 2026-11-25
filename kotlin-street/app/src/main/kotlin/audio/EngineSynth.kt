@@ -43,7 +43,14 @@ class EngineSynth(val profile: EngineProfile, seed: Long = 3) {
     private var motorPh = 0f; private var motorPh2 = 0f
     private val hiss = OnePole(1500f)
     private var lastCut = -1f
-    private var limiter = 0f
+    // the rev limiter (docs/SOUND.md "Engines"): a spark cut of a few dozen milliseconds, then the engine fires again
+    // until the revs touch the limit once more; the revs dip a little each cut. Held there a while (flat out at the top
+    // speed in top gear) it settles into a softer governor's flutter
+    private var limCut = 0f
+    private var limOn = 0f
+    private var limNext = .03f
+    private var limDip = 0f
+    private var limHeld = 0f
     /** The level now (an eased gain, so starting and stopping never click). */
     private var level = 0f
 
@@ -70,9 +77,21 @@ class EngineSynth(val profile: EngineProfile, seed: Long = 3) {
         val n = p.cylinders
         // the intake's band rises with the revs
         intakeBp.bandpass(500f + 1.6f * rpmEnd * doppler * (if (p.cylinders == 4) 1.3f else 1f), 1.1f)
+        val atTop = running && !p.electric && load > .3f && rpmEnd > p.redline * .985f
+        limHeld = if (atTop) limHeld + frames / rate else 0f
+        // (held on it over a second: shallower cuts, a governor rather than a bouncing limiter)
+        val held = ((limHeld - 1f) / 1.5f).coerceIn(0f, 1f)
         for (k in 0 until frames) {
             level += (target - level) * .002f
-            val rpm = rpm0 + (rpmEnd - rpm0) * (k / frames.toFloat())
+            // the limiter: cut, fire, cut (about 10-14 times a second at the limit)
+            if (limCut > 0f) limCut -= 1f / rate
+            else {
+                limOn += 1f / rate
+                if (atTop && limOn > limNext) { limCut = r.range(.035f, .055f) * (1f - .4f * held); limOn = 0f; limNext = r.range(.028f, .045f) * (1f + held) }
+            }
+            val cutting = limCut > 0f
+            limDip += ((if (cutting) 1f else 0f) - limDip) * (1f / (.018f * rate))
+            val rpm = (rpm0 + (rpmEnd - rpm0) * (k / frames.toFloat())) * (1f - .035f * (1f - .6f * held) * limDip)
             // the cycle: two crank turns
             val prev = cycle
             cycle += rpm / 120.0 * dtf
@@ -96,8 +115,9 @@ class EngineSynth(val profile: EngineProfile, seed: Long = 3) {
                     cylNext[c] = -cylNext[c] * (.6f + .4f * r.next())
                     // a rare miss at idle in a rough old engine
                     if (r.next() < p.rough * .02f * idleness) a *= .1f
-                    // the rev limiter cuts the spark at the redline
-                    if (rpm > p.redline * .985f) { limiter = 1f; a *= .15f }
+                    // the rev limiter's cut: the spark gone (a held governor's shallower), now and then a pop of the
+                    // unburnt mixture in the pipe
+                    if (cutting) { a *= .05f + .45f * held; if (r.next() < p.pops * .02f + .004f) pop = .25f + .35f * r.next() }
                     // (an occasional pop, not a crackle on every cycle)
                     if (s.overrun && r.next() < p.pops * .04f) pop = .4f + .6f * r.next()
                 }
@@ -106,7 +126,6 @@ class EngineSynth(val profile: EngineProfile, seed: Long = 3) {
                 pulseA[b] += a
                 burst[b] += a * (if (crank) .2f else .55f)
             }
-            limiter *= .999f
             // each bank: the pulse (two poles: a smooth blast) plus combustion noise, through its pipe
             val width = p.pulseMs * (1f - .55f * revs) / 1000f
             val ka = (1f / (width * rate / doppler)).coerceAtMost(.9f)
@@ -134,7 +153,7 @@ class EngineSynth(val profile: EngineProfile, seed: Long = 3) {
             if (pop > 1e-3f) { e += popLp.lp(r.noise()) * pop * 1.2f; pop *= .99f }
             // the intake: noise that breathes with the firing, louder with throttle and revs
             intakeEnv += ((pulseB[0] + pulseB[1]) - intakeEnv) * .02f
-            val intake = intakeLp.lp(intakeBp.run(r.noise())) * (.2f + intakeEnv) * p.intake * load * (.3f + revs) * 1.6f
+            val intake = intakeLp.lp(intakeBp.run(r.noise())) * (.2f + intakeEnv) * p.intake * load * (.3f + revs) * 1.6f * (1f - .5f * limDip)
             // the valve train: a tick each valve opening (two per cylinder a cycle), loud in old engines
             var clat = 0f
             if (p.clatter > 0f && rpm > 100f) {

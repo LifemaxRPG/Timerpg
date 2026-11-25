@@ -278,7 +278,10 @@ internal class TownCars(
         const val HEAD_REACH = 900f
 
         /** Adds the cars [cars] gives (TownPlay's) to [town], and what they break ([TownWreck]); [file] reads assets/vehicles/<path>. */
-        fun attach(town: FilamentTown, cars: () -> VehicleWorld?, file: (String) -> ByteArray?): TownCars =
-            town.addExtra { TownCars(it, cars, file) }.also { TownWreck.attach(town, cars) }
+        fun attach(town: FilamentTown, cars: () -> VehicleWorld?, file: (String) -> ByteArray?): TownCars {
+            // (the stores' parked cars are drawn from the same files: LotCars)
+            LotCars.files = file
+            return town.addExtra { TownCars(it, cars, file) }.also { TownWreck.attach(town, cars) }
+        }
     }
 }

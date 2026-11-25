@@ -152,6 +152,41 @@ The C012 Stoneweir Wayfarer is left out while it is in revision. The Pinelatch C
 The capital (gamma) is set in 2025, so all five cars appear there as classics. In 1950 only the 1928 and 1938 cars
 appear, as working cars; in 1920 there are none.
 
+## Parked in the lots (2026-11-25)
+
+The cars in the stores' car parks were boxes until 2026-11-25. So were the movie theater's lot and a general store's
+truck on its drive. They are now our real cars (`LotCars`). The owner had asked to "replace all fake cars in our models
+with real cars".
+
+- Places: the lots keep their own logic for where cars stand. `StoreCars.spots` and `StoreTraffic` decide by the hour
+  and the day which bays fill. `CinemaGrounds` lays out the theater's rows. `StoreGrounds` puts the owner's truck on
+  the drive.
+- Models: each place gets a model of the town's year (`LotCars.pick`, weighted by `VehicleEra`). A model in its working
+  years weighs 1. A classic weighs less the longer ago its working life ended, and nothing more than 35 years past that
+  shows up. The race build is never parked. In 2025 the late-80s Torrel is the commonest; in 1958 only the 1938 and
+  1956 cars and a rare 1928.
+- Colours: one of the delivery's preset colours, seeded.
+- Static: each car is drawn from its mid or far .glb, whole. No physics, and its lamps stay unlit.
+- Sharing: a model in a colour is built once and shared. A lot's cars are packed into one batch per model, colour and
+  material.
+- Level of detail by distance: the far models are always up. The mid models are made only when the player comes within
+  ~90 m of the lot's edge, shown within ~45 m, and let go past ~140 m (`TownStore.CAR_MID`, `MID_LEAD`, `MID_DROP`).
+  The theater's few cars keep both models up.
+- Collision: the walk's and the cars' solid shapes still come from the old boxes at the same places.
+- Fallback: without `LotCars.files` (set by `TownCars.attach`; the open preview sets it, `-DlotCars=0` to compare)
+  the boxes are drawn as before.
+
+The cost, measured on the build server (`LotCarsTest`): gamma's superstore on its busiest hour, Saturday 3 pm, parks
+159 cars.
+
+| Models | Triangles | Batches | Size |
+| --- | ---: | ---: | ---: |
+| Mid | 160,026 | 120 | 10.7 MB |
+| Far | 22,110 | 73 | 1.4 MB |
+| Old boxes (before) | 9,540 | 1 | |
+
+The frame cost on the S25 near a full lot is not yet measured.
+
 ## Numbers
 
 These were measured on the 4-core x86 build server, not on the S25.
@@ -162,16 +197,30 @@ All five cars reach their top speed with the throttle held:
 
 | Car | Top speed | Era target | 0-60 km/h | Braking from 50 km/h | Full-lock radius |
 | --- | ---: | ---: | ---: | --- | ---: |
-| 1928 | 97 km/h | 103 km/h | 10.6 s | 15.6 m, 2.4 s | 5.0 m |
-| 1938 | 125 km/h | 132 km/h | 7.8 s | 13.5 m | 5.0 m |
-| 1956 | 148 km/h | 153 km/h | 6.0 s | 12.6 m | 5.6 m |
-| 1970 coupe | 189 km/h | 192 km/h | 4.5 s | 11.9 m | 8.0 m |
-| 1972 pickup | 147 km/h | 153 km/h | 6.6 s | 12.8 m | 6.2 m |
-| Torrel 1968 | 175 km/h | 188 km/h | 5.9 s | | 4.7 m |
-| Torrel 1988 | 216 km/h | 224 km/h | 4.8 s | | 5.0 m |
-| Torrel 1988 RS (race build, C046) | 273 km/h | 278 km/h | | 100-0: 33.4 m | |
+| 1928 | 97 km/h | 103 km/h | 9.5 s | 15.6 m, 2.4 s | 5.0 m |
+| 1938 | 125 km/h | 132 km/h | 6.9 s | 13.5 m | 5.0 m |
+| 1956 | 148 km/h | 153 km/h | 5.2 s | 12.6 m | 5.6 m |
+| 1970 coupe | 189 km/h | 192 km/h | 3.3 s | 11.9 m | 8.0 m |
+| 1972 pickup | 147 km/h | 153 km/h | 5.0 s | 12.8 m | 6.2 m |
+| Torrel 1968 | 175 km/h | 188 km/h | 5.1 s | | 4.7 m |
+| Torrel 1988 | 216 km/h | 224 km/h | 4.3 s | | 5.0 m |
+| Torrel 1988 RS (race build, C046) | 273 km/h | 278 km/h | | 100-0: 35.0 m | |
 
 The race Torrel, its downforce and the car button's list are described in [CARS.md](CARS.md).
+
+### The gearbox (2026-11-25)
+
+The 0-60 times above dropped by 0.5-1.2 s on 2026-11-25. Jolt's automatic does not shift up while a driven wheel slips
+more than 10%. Flat out, every car spun its tyres in the low gears, so the engine sat on its limiter for 0.2-2.1 s
+before each shift (`ShiftPointTest`, before: the 1956 sedan held 4,400 rpm for 2.1 s in second). That is what the owner
+heard as the engine "topped out before it shifts".
+
+The upshifts are now the physics' own (`stepGearbox` in physics_core.cpp; Jolt still makes the downshifts and the first
+gear from a stop). In a forward gear, with the driven wheels on the ground and Jolt's box idle, the car shifts up past
+`SHIFT_UP_RPM` (72% of the governed speed, coasting) or up to `SHIFT_UP_FULL_RPM` (92%, flat out), scaled by the
+throttle. The clutch stays in, and the throttle is cut and eased back in over `SHIFT_TIME`: 0.4 s before 1950, 0.3 s
+to 1979, 0.2 s after, 0.15 s for the race build. Flat out, every car now shifts at 92% and spends no time at its
+limiter before a shift. Top speeds are unchanged.
 
 The Torrels (976 and 1,088 kg two-seaters) once had the 1970 coupe's 560 Nm drivetrain: on a quarter throttle the
 one-tonne car spun up to 46 km/h and slid wide at full lock, a 23 m circle. They now have their own: a small

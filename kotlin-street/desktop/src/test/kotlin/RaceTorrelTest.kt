@@ -57,11 +57,15 @@ class RaceTorrelTest {
         assertTrue("less travel", d[VehicleDesc.SUSP_MAX] < o[VehicleDesc.SUSP_MAX])
         assertTrue("a lower centre of mass", d[VehicleDesc.COM_Y] < o[VehicleDesc.COM_Y])
         assertTrue("wider tyres", d[VehicleDesc.WHEEL_WIDTH] > o[VehicleDesc.WHEEL_WIDTH])
-        // downforce: 2,600 N at 200 km/h, k v^2, 38% on the front axle
+        // downforce: 2,600 N at 200 km/h, k v^2, 40% on the front axle (38% before the 2026-11-25 balance work)
         val v200 = 200f / 3.6f
         assertEquals(2600f, d[VehicleDesc.DOWNFORCE] * v200 * v200, 1f)
         assertEquals(650f, d[VehicleDesc.DOWNFORCE] * (v200 / 2) * (v200 / 2), 1f)
-        assertEquals(.38f, d[VehicleDesc.DOWNFORCE_FRONT], 1e-4f)
+        assertEquals(.40f, d[VehicleDesc.DOWNFORCE_FRONT], 1e-4f)
+        // the cornering balance (docs/CARS.md): lateral grip per axle, the fronts holding their peak (CorneringBalanceTest)
+        assertEquals(1.52f, d[VehicleDesc.FRICTION_LAT], 1e-4f); assertEquals(1.48f, d[VehicleDesc.FRICTION_LAT_REAR], 1e-4f)
+        assertEquals(1f, d[VehicleDesc.FRONT_LAT_TAIL], 1e-4f)
+        assertEquals(1.34f, d[VehicleDesc.FRICTION_LONG], 1e-4f)
         // its final drive: 8,200 rpm in sixth at 278 km/h (as model-info.json suggests)
         assertEquals(3.63f, rs.drivetrain.finalDrive(rs), .01f)
         assertEquals(6f, d[VehicleDesc.GEARS])
@@ -73,6 +77,9 @@ class RaceTorrelTest {
             val s = spec(k); val d = s.desc()
             assertEquals(k, 0f, d[VehicleDesc.DOWNFORCE])
             assertEquals(k, (s.wheelRadius * .55f).coerceIn(.14f, .26f), d[VehicleDesc.WHEEL_WIDTH])
+            // (the same lateral grip front and rear, Jolt's own curve, the road cars' steering fade)
+            assertEquals(k, d[VehicleDesc.FRICTION_LAT], d[VehicleDesc.FRICTION_LAT_REAR]); assertEquals(k, 0f, d[VehicleDesc.FRONT_LAT_TAIL])
+            assertEquals(k, com.lifemax.rpg.feature.habits.vehicle.VehicleWorld.STEER_FADE, com.lifemax.rpg.feature.habits.vehicle.VehicleWorld.steerFadeOf(s))
         }
         // the road Torrel's numbers as they were before the race build (VehicleSpec.Drivetrain, the 1988 Torrel's line)
         val d = road.desc()
@@ -80,7 +87,8 @@ class RaceTorrelTest {
             VehicleDesc.FRONT_Z to 1.18f, VehicleDesc.REAR_Z to -1.18f, VehicleDesc.SUSP_MIN to .05f, VehicleDesc.SUSP_MAX to .22f, VehicleDesc.SUSP_FREQ to 2f,
             VehicleDesc.SUSP_DAMP to .52f, VehicleDesc.ENGINE_TORQUE to 260f, VehicleDesc.ENGINE_MIN_RPM to 800f, VehicleDesc.ENGINE_MAX_RPM to 7000f,
             VehicleDesc.DIFF_RATIO to 3.6639f, VehicleDesc.BRAKE_TORQUE to 1700f, VehicleDesc.HANDBRAKE_TORQUE to 2200f, VehicleDesc.GEARS to 5f,
-            VehicleDesc.GEAR1 to 3.3f, VehicleDesc.LINEAR_DAMPING to .018f, VehicleDesc.COM_Y to .42f, VehicleDesc.FRICTION_LONG to 1.05f, VehicleDesc.FRICTION_LAT to 1.05f)
+            VehicleDesc.GEAR1 to 3.3f, VehicleDesc.LINEAR_DAMPING to .018f, VehicleDesc.COM_Y to .42f, VehicleDesc.FRICTION_LONG to 1.05f, VehicleDesc.FRICTION_LAT to 1.05f,
+            VehicleDesc.FRICTION_LAT_REAR to 1.05f, VehicleDesc.FRONT_LAT_TAIL to 0f)
         for ((i, v) in want) assertEquals("desc[$i]", v, d[i], 1e-3f)
         // and the sedan's
         val n = spec("northcairn-1956").desc()

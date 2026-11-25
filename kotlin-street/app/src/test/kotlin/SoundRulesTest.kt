@@ -10,13 +10,13 @@ class SoundRulesTest {
         val noon = SoundRules.at(12f, 0f, 0f, 0f, 1)
         assertEquals("day", noon.music)
         assertTrue(noon.beds["crickets_night"]!! < .01f && noon.beds["rain_light"]!! < .01f)
-        assertTrue(noon.beds["birds_day"]!! > .2f)
+        assertTrue(noon.beds["birds_day"]!! > .02f)
         val night = SoundRules.at(23f, 0f, 0f, 0f, 1)
         assertEquals("night", night.music)
         assertTrue(night.beds["crickets_night"]!! > .3f)
         assertTrue(night.beds["birds_day"]!! < .01f)
         val dawn = SoundRules.at(6.8f, 0f, 0f, 0f, 0)
-        assertTrue(dawn.beds["birds_garden"]!! > .3f)
+        assertTrue(dawn.beds["birds_garden"]!! > .03f)
         val storm = SoundRules.at(15f, .9f, .9f, 0f, 1)
         assertEquals("rain", storm.music)
         assertTrue(storm.beds["rain_heavy"]!! > .6f && storm.beds["birds_garden"]!! < .01f && storm.beds["birds_day"]!! < .05f)
@@ -62,7 +62,7 @@ class SoundRulesTest {
         val street = SoundRules.Place(green = .1f, urban = .9f)
         val park = SoundRules.Place(green = 1f, urban = 0f)
         val a = SoundRules.at(13f, 0f, 0f, 0f, 1, place = street); val b = SoundRules.at(13f, 0f, 0f, 0f, 1, place = park)
-        assertTrue(b.beds["birds_park"]!! > a.beds["birds_park"]!! + .2f)
+        assertTrue(b.beds["birds_park"]!! > a.beds["birds_park"]!! * 4f)
         assertTrue(a.beds["city_day"]!! > b.beds["city_day"]!!)
         assertTrue(a.trafficPerMinute > b.trafficPerMinute)
         // crickets in the gardens at night more than downtown
@@ -85,5 +85,35 @@ class SoundRulesTest {
         assertEquals(0, SoundRules.strikes(2.99f, 3.01f))
         assertEquals(0, SoundRules.strikes(9.5f, 14.2f))
         assertEquals(0, SoundRules.strikes(Float.NaN, 9f))
+    }
+
+    @Test
+    fun sirensOnlyForPoliceOnACall() {
+        // a patrol, a quiet search, a stakeout: silent; a chase or a call answered: the siren
+        for (a in listOf("patrol", "search_suspect", "stakeout", "question", "arrest", "transport", "off_duty")) assertTrue(a, !SoundRules.sirenFor(a))
+        for (a in listOf("chase", "respond_crime", "backup", "call_backup")) assertTrue(a, SoundRules.sirenFor(a))
+        assertTrue(SoundRules.SIREN_RANGE_M in 200f..500f)
+    }
+
+    @Test
+    fun theBirdsAreQuieterAndComeAndGo() {
+        // over ten minutes at noon in a leafy street: never louder than about a third, often lulled, the kinds taking turns
+        val park = SoundRules.Place(green = 1f, urban = 0f)
+        var peak = 0f; var lulls = 0; var sum = 0f; var n = 0; var alone = 0
+        var s = 0f
+        while (s < 600f) {
+            val m = SoundRules.at(13f, 0f, 0f, 0f, 1, place = SoundRules.Place(green = park.green, urban = park.urban, secs = s))
+            val d = m.beds["birds_day"]!!; val p = m.beds["birds_park"]!!
+            peak = maxOf(peak, d, p); sum += d + p; n++
+            if (d + p < .12f) lulls++
+            if ((d > .15f) != (p > .15f)) alone++
+            s += 2f
+        }
+        assertTrue("peak $peak", peak <= .32f)
+        assertTrue("mean ${sum / n}", sum / n < .35f)
+        assertTrue("lulls $lulls of $n", lulls > n / 10)
+        assertTrue("one kind alone $alone of $n", alone > n / 5)
+        val chorus = (0..300).map { SoundRules.birdChorus(0, it * 2f) }
+        assertTrue(chorus.min() < .2f && chorus.max() > .9f)
     }
 }

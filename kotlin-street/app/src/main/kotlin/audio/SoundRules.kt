@@ -1,5 +1,7 @@
 package com.timerpg.street.audio
 
+import kotlin.math.sin
+
 /**
  * What the street sounds like now (docs/SOUND.md "Ambience"): how loud each ambience bed is, which music plays, how often
  * the scattered sounds come, how busy the far traffic is, how loud the places that sound (the shore, a fountain, a crowd)
@@ -39,12 +41,39 @@ object SoundRules {
     /**
      * Where the player is, as the sound needs it: the [year] (the era), how [green] it is round them (trees, lawns: 0..1),
      * how [urban] (shops and landmarks: 0..1), how many people are within earshot ([crowd]), the metres to the nearest
-     * water, indoors or in a car, whether the police are out looking ([police]), the wind (0..1), the cars moving near.
+     * water, indoors or in a car, whether police are on a call near ([police]: an officer chasing or answering a call
+     * within [SIREN_RANGE_M], [sirenFor]; never a patrol), the wind (0..1), the cars moving near, and the wall clock's
+     * seconds ([secs]: the birds' swells and lulls, [birdChorus]).
      */
     class Place(
         val year: Int = 2025, val green: Float = .5f, val urban: Float = .3f, val crowd: Int = 0, val waterM: Float = 1e9f,
         val indoors: Boolean = false, val inCar: Boolean = false, val police: Boolean = false, val wind: Float = 0f, val movingCars: Int = 0,
+        val secs: Float = 0f,
     )
+
+    /**
+     * Whether an officer on [assignment] (src/police/types.ts OfficerAssignment) runs the siren: only on the way to a call
+     * or after someone (chase, respond_crime, backup, call_backup). A patrol, a quiet search, a stakeout, questioning,
+     * an arrest and the drive to the station are silent: before this, any officer on duty sounded it, so a town with
+     * patrols wailed now and then for nothing (the owner's 2026-11-25 note "keep hearing sirens randomly").
+     */
+    fun sirenFor(assignment: String): Boolean = assignment in SIREN_ASSIGNMENTS
+    val SIREN_ASSIGNMENTS = setOf("chase", "respond_crime", "backup", "call_backup")
+
+    /** How near (m) an officer on a call must be for the player to hear the siren. */
+    const val SIREN_RANGE_M = 350f
+
+    /**
+     * How much each bird bed sings now (0..1) at [secs] on the wall clock: each of the three swells and lulls on its own
+     * slow, uneven cycle (about one to three minutes), so the birds come and go, one kind at a time more often than
+     * all together, with quiet spells between (the owner's 2026-11-25 note: the birds were loud and constant).
+     */
+    fun birdChorus(bed: Int, secs: Float): Float {
+        val k = bed * 1.7f + 0.4f
+        val w = sin(secs / (37f + 11f * bed) + k) + .6f * sin(secs / (89f + 23f * bed) + 2.1f * k)
+        // (w in -1.6..1.6: the top third sings fully, the bottom third is a lull)
+        return .1f + .9f * smooth(-.5f, 1.1f, w)
+    }
 
     class Mix(
         val beds: Map<String, Float>, val music: String, val musicGain: Float, val scatter: Map<String, Float> = emptyMap(),
@@ -103,9 +132,10 @@ object SoundRules {
             "highway_far" to .12f * (day + .4f * night) * modern * (1f - urban),
             // (before the motor age the town is quiet under its birds: a soft made-live hush keeps it from dead silence)
             "night_quiet" to .25f * (1f - modern) * (.4f + .6f * night),
-            "birds_day" to .55f * day * dry * (.25f + .75f * green) * (1f - .6f * dawn) * (if (season == 3) .25f else 1f),
-            "birds_park" to .45f * day * dry * green * green * (if (season == 3) .2f else 1f),
-            "birds_garden" to .6f * dawn * dry * (.3f + .7f * green) * (if (season == 3) .3f else 1f),
+            // (the birds: about half as loud as before, each bed swelling and lulling on its own, [birdChorus])
+            "birds_day" to .3f * birdChorus(0, place.secs) * day * dry * (.25f + .75f * green) * (1f - .6f * dawn) * (if (season == 3) .25f else 1f),
+            "birds_park" to .26f * birdChorus(1, place.secs) * day * dry * green * green * (if (season == 3) .2f else 1f),
+            "birds_garden" to .34f * birdChorus(2, place.secs) * dawn * dry * (.3f + .7f * green) * (if (season == 3) .3f else 1f),
             "crickets_night" to .55f * night * warm * dry * (.3f + .7f * green) * (if (season == 1) 1f else .6f),
             "wind" to (.35f * cloud + .25f * mist + .5f * place.wind).coerceAtMost(.7f) * (if (season == 3) 1.3f else 1f),
             "rain_light" to .7f * smooth(.02f, .35f, rain) * (1f - smooth(.55f, .85f, rain)),

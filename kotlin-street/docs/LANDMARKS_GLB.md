@@ -674,3 +674,22 @@ Node patterns use case-insensitive glob matching (`*`, `?`). A glTF node with `e
   Radio, Cedar 1400 AM, Crossroads 1450; made-up names, no call letters), `variant` per town (glbSites RADIO_NAMES); three
   inner doors marked internal; its glazed entrance bay stands ~2.5 m before its front (the scale test allows it). The ON
   AIR plate is static art (bind or hide it when broadcasts are simulated).
+
+## Faces in one plane (z-fights)
+
+Some delivered models have two faces that face the same way in the same plane and overlap. Examples: a limestone
+cladding flush with the granite pier it covers, or a frieze plate on the brick wall behind it. The depth test cannot
+choose between them, so they flicker as the camera moves. On 2026-11-25 the owner saw this on the Great Meridian, where
+its pale stone meets the dark pier (0.1.976, 141429-141456). The model had about 2,700 such triangle pairs per era.
+`tools/glb_coplanar.py find MODEL.glb` lists them; `fix IN OUT` separates them:
+- Faces are grouped into patches, layered, and moved out along their normal at least 3 mm in front of what they cover.
+- Within a millimetre, the material LandmarkKit draws later goes on top. That is the one that already wins a tie, so
+  the model keeps the look it had in every render.
+- Faces that already stood apart keep their order.
+- Only vertex positions change.
+
+The Meridian's four eras and its mid and far models are separated. In the desktop renders before and after, under 0.25%
+of pixels differ: the speckles of brick lines on the frieze and the jagged pale/dark seams are gone. Single-pixel seams
+can show at a few corners where a face moved out. `ModelCoplanarTest.theSeparatedLandmarksHaveNoFacesFightingInOnePlane`
+checks the separated models and lists every other landmark that still has fights. Most landmarks have some; they are
+fixed the same way when a flicker is reported or the model is next touched.
