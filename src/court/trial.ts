@@ -1,4 +1,5 @@
 import {
+  DEFAULT_SEVERITY,
   FORENSIC_ERA,
   ingestPoliceReport,
   leaveTraces,
@@ -62,13 +63,13 @@ function isTraceAdmissibleInEra(
 }
 
 const EVIDENCE_TRIAL_WEIGHT: Readonly<Record<TraceKind, number>> = {
-  dna: 0.74,
-  fingerprint: 0.50,
-  camera_footage: 0.48,
-  stolen_serial: 0.34,
-  vehicle_plate: 0.30,
-  dropped_item: 0.24,
-  footprint: 0.18,
+  dna: 0.70,
+  fingerprint: 0.37,
+  camera_footage: 0.46,
+  stolen_serial: 0.32,
+  vehicle_plate: 0.28,
+  dropped_item: 0.22,
+  footprint: 0.16,
 };
 
 const EXCULPATORY_EVIDENCE_WEIGHT: Readonly<Record<TraceKind, number>> = {
@@ -288,14 +289,15 @@ export function runTrial(options: TrialOptions): TrialOutcome {
   });
   guiltEvidence += 0.02;
 
+  const openingDefenseDrop = 0.015 * lawyer.persuasion;
   pushEvent({
     phase: 'opening',
     kind: 'opening_defense',
     speakerId: lawyer.id,
     summary: `${lawyer.name} (${lawyer.tier.replace(/_/g, ' ')}) opens for the defense, stressing reasonable doubt.`,
-    impactOnGuilt: -Math.round(0.02 * lawyer.persuasion * 1000) / 1000,
+    impactOnGuilt: -Math.round(openingDefenseDrop * 1000) / 1000,
   });
-  guiltEvidence -= 0.02 * lawyer.persuasion;
+  guiltEvidence -= openingDefenseDrop;
 
   // 2. Prosecution witnesses & cross-examination
   const actualAppearance =
@@ -327,7 +329,7 @@ export function runTrial(options: TrialOptions): TrialOutcome {
 
     const baseWeight =
       rep.confidence *
-      (rep.source === 'first_hand' ? 0.44 : 0.16) *
+      (rep.source === 'first_hand' ? 0.46 : 0.18) *
       (rep.identifiedCulpritId === defendantId ? 1.0 : 0.72);
     // Diminishing returns across stacked witnesses
     const marginalWitness = baseWeight * Math.pow(0.68, witnessAccum);
@@ -351,11 +353,8 @@ export function runTrial(options: TrialOptions): TrialOutcome {
     const { mistakenFields, omittedFields } = inspectWitnessErrors(rep, actualAppearance);
     let exposedCount = 0;
     for (let e = 0; e < mistakenFields.length; e++) {
-      const catchChance = clamp01(0.42 + lawyer.crossSkill * 0.56);
-      if (
-        rand(seed, 'cross_expose', policeCase.crimeId, attempt, rep.reporterId, e) < catchChance ||
-        lawyer.crossSkill >= 0.70
-      ) {
+      const catchChance = clamp01(0.62 + lawyer.crossSkill * 0.34);
+      if (rand(seed, 'cross_expose', policeCase.crimeId, attempt, rep.reporterId, e) < catchChance) {
         exposedCount++;
       }
     }
@@ -363,9 +362,9 @@ export function runTrial(options: TrialOptions): TrialOutcome {
       exposedCount = 1;
     }
 
-    const errorDrop = exposedCount * (0.025 + 0.085 * lawyer.crossSkill);
+    const errorDrop = exposedCount * (0.040 + 0.036 * lawyer.crossSkill);
     const generalCrossDrop =
-      (0.010 + 0.055 * lawyer.crossSkill) * (rep.source === 'second_hand' ? 1.35 : 1.0);
+      (0.020 + 0.018 * lawyer.crossSkill) * (rep.source === 'second_hand' ? 1.35 : 1.0);
     const credibilityDrop = Math.min(marginalWitness + 0.08, errorDrop + generalCrossDrop);
     guiltEvidence -= credibilityDrop;
 
@@ -397,6 +396,7 @@ export function runTrial(options: TrialOptions): TrialOutcome {
 
   // 3. Prosecution & defense physical/forensic evidence (era-gated)
   let incriminatingPhysicalCount = 0;
+  let incriminatingPhysicalWeight = 0;
   let exculpatoryPhysicalCount = 0;
 
   for (let i = 0; i < admissibleMatches.length; i++) {
@@ -405,6 +405,7 @@ export function runTrial(options: TrialOptions): TrialOutcome {
       incriminatingPhysicalCount++;
       const w = (EVIDENCE_TRIAL_WEIGHT[m.traceKind] ?? 0.25) * m.confidence;
       const marginal = w * Math.pow(0.72, incriminatingPhysicalCount - 1);
+      incriminatingPhysicalWeight += marginal;
       guiltEvidence += marginal;
       pushEvent({
         phase: 'prosecution',
@@ -472,10 +473,12 @@ export function runTrial(options: TrialOptions): TrialOutcome {
     guiltEvidence += Math.min(0.12, (incriminatingPhysicalCount - 1) * 0.07);
   }
 
-  // 4. Defense case (lawyer preparation & character)
+  // 4. Defense case (lawyer preparation & character; physical forensics resist pure courtroom rhetoric)
+  const physicalDamp = 1 / (1 + 0.75 * incriminatingPhysicalWeight);
+  const defenseSkill = 0.55 * lawyer.preparation + 0.45 * lawyer.persuasion;
   const defenseImpact =
-    0.02 +
-    0.17 * (0.55 * lawyer.preparation + 0.45 * lawyer.persuasion) +
+    0.058 +
+    0.088 * defenseSkill * physicalDamp +
     (defendantRep > 0.2 ? 0.04 : 0);
   guiltEvidence -= defenseImpact;
   pushEvent({
@@ -511,7 +514,7 @@ export function runTrial(options: TrialOptions): TrialOutcome {
   }
 
   // 6. Closing arguments
-  const closingDelta = (0.5 - lawyer.persuasion) * 0.08;
+  const closingDelta = (0.5 - lawyer.persuasion) * 0.04 * physicalDamp;
   guiltEvidence += closingDelta;
   pushEvent({
     phase: 'closing',
@@ -520,6 +523,17 @@ export function runTrial(options: TrialOptions): TrialOutcome {
     summary: 'Both sides deliver closing arguments before the jury retires to deliberate.',
     impactOnGuilt: Math.round(closingDelta * 1000) / 1000,
   });
+
+  // Bounded, zero-mean trial-day variance (prosecution poise & courtroom chemistry)
+  // Dampened slightly when strong physical evidence anchors the record.
+  const trialPoiseNoise =
+    (rand(seed, 'trial_poise_a', policeCase.crimeId, attempt) +
+      rand(seed, 'trial_poise_b', policeCase.crimeId, attempt) -
+      1) *
+    (0.17 * (0.65 + 0.35 * physicalDamp));
+  const counselDayNoise =
+    (rand(seed, 'counsel_day', policeCase.crimeId, attempt, lawyer.tier) - 0.5) * 0.045;
+  guiltEvidence += trialPoiseNoise + counselDayNoise;
 
   const perceivedGuiltScore = Math.round(clamp01(guiltEvidence) * 1000) / 1000;
 
@@ -558,11 +572,13 @@ export function runTrial(options: TrialOptions): TrialOutcome {
 
     // Individual juror perception: traits + bias + deterministic personal variation
     const noPhysSkepticism =
-      incriminatingPhysicalCount === 0 ? -0.07 * (j.traits.diligence - 0.45) : 0.04 * (j.traits.diligence - 0.5);
+      incriminatingPhysicalCount === 0
+        ? -0.025 - 0.075 * (j.traits.diligence - 0.45)
+        : 0.045 * (j.traits.diligence - 0.5);
     const ambitionTilt = 0.05 * (j.traits.ambition - 0.5);
-    const rhetoricTilt = -0.05 * (j.traits.charm - 0.5) * lawyer.persuasion;
+    const rhetoricTilt = -0.04 * (j.traits.charm - 0.5) * lawyer.persuasion * physicalDamp;
     const personalNoise =
-      (rand(seed, 'juror_belief', policeCase.crimeId, attempt, j.personId) - 0.5) * 0.18;
+      (rand(seed, 'juror_belief', policeCase.crimeId, attempt, j.personId) - 0.5) * 0.21;
 
     const belief = clamp01(
       perceivedGuiltScore +
@@ -768,13 +784,13 @@ export function commitTrialInterference(
 
   let succeeded = false;
   let targetReported = false;
-  let crimeKind: CrimeKind = 'theft';
-  let severity = 0.62;
+  let crimeKind: CrimeKind = 'bribery';
+  let severity = DEFAULT_SEVERITY.bribery;
   let itemLabel = kind.replace(/_/g, ' ');
 
   if (kind === 'bribe_juror' || kind === 'bribe_witness') {
-    crimeKind = 'theft';
-    severity = 0.64;
+    crimeKind = 'bribery';
+    severity = DEFAULT_SEVERITY.bribery;
     itemLabel = kind === 'bribe_juror' ? 'juror bribery' : 'witness bribery';
     const scaledThreshold = Math.max(80, Math.round(400 * era.moneyScale));
     const moneyRatio = clamp01(bribeAmount / (scaledThreshold * (0.7 + (target?.traits.diligence ?? 0.5))));
@@ -789,8 +805,8 @@ export function commitTrialInterference(
     succeeded = bribeAmount > 0 && roll < corruptibility;
     targetReported = !succeeded;
   } else if (kind === 'threaten_juror' || kind === 'threaten_witness') {
-    crimeKind = 'assault';
-    severity = 0.70;
+    crimeKind = 'intimidation';
+    severity = DEFAULT_SEVERITY.intimidation;
     itemLabel = kind === 'threaten_juror' ? 'juror intimidation' : 'witness intimidation';
     const compliance = clamp01(0.68 - (target?.traits.diligence ?? 0.5) * 0.35);
     const roll = rand(seed, 'trial_threat', day, culpritId, targetId);
@@ -798,8 +814,8 @@ export function commitTrialInterference(
     targetReported = !succeeded || rand(seed, 'threat_report', day, targetId) < 0.35;
   } else {
     // Perjury under oath
-    crimeKind = 'theft';
-    severity = 0.56;
+    crimeKind = 'perjury';
+    severity = DEFAULT_SEVERITY.perjury;
     itemLabel = 'perjury under oath';
     succeeded = !input.caughtInCourt;
     targetReported = Boolean(input.caughtInCourt);
@@ -854,21 +870,38 @@ export function commitTrialInterference(
     const reporter = targetReported
       ? sightings.find((s) => s.witnessId === targetId) ?? thirdPartyWitness
       : thirdPartyWitness;
-    if (reporter) {
-      const report: PoliceReport = {
-        id: `rep:trial:${crimeId}:${reporter.witnessId}`,
-        crimeId,
-        reporterId: reporter.witnessId,
-        jurisdictionId,
-        filedDay: day,
-        receivedDay: day,
-        delayHours: 0.5,
-        source: 'first_hand',
-        isVictim: reporter.witnessId === targetId,
-        confidence: Math.max(0.75, reporter.confidence),
-        ...(reporter.identifiedCulpritId ? { identifiedCulpritId: reporter.identifiedCulpritId } : {}),
-        description: reporter.description,
-      };
+    const report: PoliceReport | undefined = reporter
+      ? {
+          id: `rep:trial:${crimeId}:${reporter.witnessId}`,
+          crimeId,
+          reporterId: reporter.witnessId,
+          jurisdictionId,
+          filedDay: day,
+          receivedDay: day,
+          delayHours: 0.5,
+          source: 'first_hand',
+          isVictim: reporter.witnessId === targetId,
+          confidence: Math.max(0.75, reporter.confidence),
+          ...(reporter.identifiedCulpritId ? { identifiedCulpritId: reporter.identifiedCulpritId } : {}),
+          description: reporter.description,
+        }
+      : kind === 'perjury' && input.caughtInCourt
+        ? {
+            id: `rep:trial:${crimeId}:${targetId}`,
+            crimeId,
+            reporterId: targetId,
+            jurisdictionId,
+            filedDay: day,
+            receivedDay: day,
+            delayHours: 0.25,
+            source: 'first_hand',
+            isVictim: false,
+            confidence: 0.92,
+            identifiedCulpritId: culpritId,
+            description: { ...culpritAppearance },
+          }
+        : undefined;
+    if (report) {
       nextState = {
         ...nextState,
         jurisdictions: {

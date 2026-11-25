@@ -31,15 +31,38 @@ object ShotUploader {
     // ---- capture
 
     /**
-     * The whole window as the player sees it: Filament's TextureView and the Compose HUD alike (PixelCopy of the window,
-     * API 26+). On API 24-25 the decor view is drawn into a bitmap instead, and the 3D layer may be missing there.
+     * The whole window as the player sees it: Filament's layer and the Compose HUD alike (PixelCopy of the window, API
+     * 26+; the town's SurfaceView, a layer of its own, is copied apart and the window laid over it). On API 24-25 the decor view is drawn into a bitmap instead, and the 3D layer may be missing there.
      * [done] runs on the main thread with the bitmap (null if it failed) and how it was taken.
      */
     fun capture(activity: Activity, done: (Bitmap?, String) -> Unit) {
         val v = activity.window.decorView
         val w = v.width; val h = v.height
         if (w <= 0 || h <= 0) { done(null, "no window"); return }
-        if (Build.VERSION.SDK_INT >= 26) {
+        val sv = com.timerpg.street.FilamentSurface.view
+        if (Build.VERSION.SDK_INT >= 26 && sv != null && sv.isAttachedToWindow && sv.holder.surface?.isValid == true && sv.width > 0 && sv.height > 0) {
+            // the town on a SurfaceView (its own layer, not in the window's pixels): the window (the HUD, with a clear hole
+            // where the town is) copied over a copy of the town's surface
+            val win = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+            val town = Bitmap.createBitmap(sv.width, sv.height, Bitmap.Config.ARGB_8888)
+            try {
+                android.view.PixelCopy.request(activity.window, win, { r1 ->
+                    if (r1 != android.view.PixelCopy.SUCCESS) { win.recycle(); town.recycle(); done(null, "PixelCopy of the window failed ($r1)"); return@request }
+                    try {
+                        android.view.PixelCopy.request(sv, town, { r2 ->
+                            if (r2 != android.view.PixelCopy.SUCCESS) { town.recycle(); done(win, "PixelCopy of the window only (the town's surface failed: $r2)"); return@request }
+                            val out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+                            val c = Canvas(out)
+                            val at = IntArray(2); sv.getLocationInWindow(at)
+                            c.drawBitmap(town, at[0].toFloat(), at[1].toFloat(), null)
+                            c.drawBitmap(win, 0f, 0f, null)
+                            town.recycle(); win.recycle()
+                            done(out, "PixelCopy of the town's SurfaceView under the window")
+                        }, main)
+                    } catch (t: Throwable) { town.recycle(); done(win, "PixelCopy of the window only (${t.javaClass.simpleName})") }
+                }, main)
+            } catch (t: Throwable) { win.recycle(); town.recycle(); done(null, "PixelCopy failed: ${t.javaClass.simpleName}") }
+        } else if (Build.VERSION.SDK_INT >= 26) {
             val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
             try {
                 android.view.PixelCopy.request(activity.window, bmp, { r ->

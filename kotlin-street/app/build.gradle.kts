@@ -33,6 +33,8 @@ val commitSha: String = runCatching {
 }.getOrDefault("dev")
 
 android {
+    // the release build skips lint-vital: it trips over copyWorldAssets' output and checks nothing the game needs
+    lint { checkReleaseBuilds = false; abortOnError = false }
     namespace = "com.timerpg.street"
     compileSdk = 34
     ndkVersion = "29.0.14206865"

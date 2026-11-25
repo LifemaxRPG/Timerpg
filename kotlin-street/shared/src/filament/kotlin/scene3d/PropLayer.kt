@@ -70,14 +70,37 @@ internal class PropLayer(
     private var faded = false
 
     private class Batch(
-        val entity: Int, val proxy: Int, val mi: MaterialInstance, val pmi: MaterialInstance?,
+        val entity: Int, val proxy: Int,
+        /** Its masked instance (every triangle while it fades or is cut; its cut-out triangles always), or null until wanted. */
+        var mi: MaterialInstance?,
+        /** Its opaque instance (on its first primitive: the triangles with no cut-out texels, [Cutouts]), or null: none. */
+        val omi: MaterialInstance?,
+        val pmi: MaterialInstance?,
+        /** The shadow twin's opaque instance (its first primitive), or null. */
+        val pomi: MaterialInstance?,
         val glows: Boolean, val geo: GeomSlice, val casts: Boolean,
+        /** Its world box (centre, half extents): whether the see-through can reach it. */
+        val box: FloatArray,
+        /** Makes its masked instance with its pictures ([mi] made late). */
+        val init: ((MaterialInstance) -> Unit)?,
+        /** It has a second primitive (its cut-out triangles, always masked) after the opaque one. */
+        val split: Boolean,
         var visible: Boolean = true, var layerShown: Boolean = true, var layerShadow: Boolean = true,
-        /** The layer masks last given to its renderable and its shadow twin (-1: none yet): set again only when they change. */
-        var mask: Int = -1, var proxyMask: Int = -1,
         /** Its entities, material instances and buffers are gone ([release]): its slot stays so the other batches keep their index. */
         var released: Boolean = false,
-    )
+        /** Its first primitive wears [mi] now (fading, or cut by the see-through or the cutaway). */
+        var masked: Boolean = false,
+        /** Stood by [setBatchTransform]: its [box] is not where it stands. */
+        var moved: Boolean = false,
+    ) {
+        // what was last handed to Filament, so an unchanged frame (standing still) sends nothing again: the layer masks
+        // (-1 not yet), the look's and the see-through's generation and the glow the drawn instances hold (-1 / NaN: not yet)
+        var mask = -1; var pmask = -1
+        var lookAt = -1; var seeAt = -1; var glowAt = Float.NaN
+        /** The instances drawn now (the per-frame parameters go to these). */
+        val first: MaterialInstance get() = if (omi != null && !masked) omi else mi!!
+        val second: MaterialInstance? get() = if (omi != null && !masked && split) mi else null
+    }
     private val batches = ArrayList<Batch>()
     /** Batch [index]'s entity (tests). */
     internal fun batchEntity(index: Int): Int = batches[index].entity
@@ -101,7 +124,7 @@ internal class PropLayer(
      * animates its picture, as [YardLayer] scrolls its water), or null for nothing to add.
      */
     fun addMesh(mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean = false): MaterialInstance? =
-        Packing.pack(mesh, at)?.let { upload(it, casts, tiled) }
+        Packing.pack(mesh, at)?.let { upload(it, casts, tiled, own = true) }
 
     /**
      * A batch made ready for the GPU on any thread ([pack]: no engine call): its vertices and indices, its box, its
@@ -116,14 +139,19 @@ internal class PropLayer(
         internal val shortIndices: Boolean = false,
         /** [vb] quantised ([TownVertex.quantize], made on the packing worker): how its materials read it back; null: floats. */
         internal val quant: TownVertex.Quant? = null,
+        /** How many of its indices, from the first, are triangles with no cut-out texels ([Cutouts]): drawn opaque where it can. */
+        internal val opaqueIndices: Int = 0,
     ) {
         val bytes: Int get() = vb.capacity() + ib.capacity()
         /** What it alone holds until its upload: vertices, indices and, unless shared, its pictures (on the phone, Java heap). */
         val heldBytes: Long get() = bytes.toLong() + if (!ownPictures) 0L else tex.buf.capacity().toLong() + (mask?.buf?.capacity() ?: 0)
     }
 
-    /** Uploads a [Packed] batch (the engine's thread); [casts]: it throws a shadow; [tiled]: its picture repeats. */
-    fun upload(p: Packed, casts: Boolean, tiled: Boolean = false): MaterialInstance {
+    /**
+     * Uploads a [Packed] batch (the engine's thread); [casts]: it throws a shadow; [tiled]: its picture repeats; [own]: the
+     * caller sets parameters on the instance returned (a pool's water), so it stays masked, every triangle, as before.
+     */
+    fun upload(p: Packed, casts: Boolean, tiled: Boolean = false, own: Boolean = false): MaterialInstance {
         val geo = BufferArena.upload(engine, p.vb, p.vertices, p.ib, p.indices, p.shortIndices, p.quant)
         textures.gpu.buffers(p.vb.limit(), p.ib.limit())
         com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.bytes += p.vb.limit() + p.ib.limit()
@@ -131,7 +159,7 @@ internal class PropLayer(
         val box = Box(b[0], b[1], b[2], b[3], b[4], b[5])
         val tex: Texture = textures.make(p.tex)
         val mask: Texture = p.mask?.let { textures.make(it) } ?: textures.black
-        return finish(geo, box, tex, mask, p.mask != null, casts, tiled)
+        return finish(geo, box, tex, mask, p.mask != null, casts, tiled, if (own) 0 else p.opaqueIndices)
     }
 
     object Packing {
@@ -164,8 +192,13 @@ internal class PropLayer(
                 TownVertex.put(vb, x, y, z, mesh.uv[i * 2], mesh.uv[i * 2 + 1], q)
                 minX = min(minX, x); minY = min(minY, y); minZ = min(minZ, z); maxX = max(maxX, x); maxY = max(maxY, y); maxZ = max(maxZ, z)
             }
+        }
+        // (the triangles with no cut-out texels first, in every copy, then the rest: [Cutouts], drawn opaque where it can)
+        val (idx, no) = opaqueFirst(mesh)
+        for (part in 0..1) for (k in at.indices) {
             val base = k * mesh.vertexCount
-            if (short) for (i in mesh.idx) ib.putShort((base + i).toShort()) else for (i in mesh.idx) ib.putInt(base + i)
+            val from = if (part == 0) 0 else no; val to = if (part == 0) no else idx.size
+            if (short) for (j in from until to) ib.putShort((base + idx[j]).toShort()) else for (j in from until to) ib.putInt(base + idx[j])
         }
         vb.flip(); ib.flip()
         val box = floatArrayOf((minX + maxX) / 2f, (minY + maxY) / 2f, (minZ + maxZ) / 2f, (maxX - minX) / 2f + .5f, (maxY - minY) / 2f + .5f, (maxZ - minZ) / 2f + .5f)
@@ -176,7 +209,14 @@ internal class PropLayer(
         val mask = mesh.mask?.let { StreetTextures.prepareShared(it, mesh.texW, mesh.texH, linear = true, share, mips = false).first }
         // (quantised here on the worker: the float vertices let go at once, only the 20-byte ones wait for the upload)
         val qt = BufferArena.quantized(vb, nv, mesh.texW, mesh.texH)
-        return Packed(qt?.vb ?: vb, ib, nv, mesh.idx.size * at.size, box, tex, mask, fresh, short, qt)
+        return Packed(qt?.vb ?: vb, ib, nv, mesh.idx.size * at.size, box, tex, mask, fresh, short, qt, no * at.size)
+        }
+
+        /** [mesh]'s indices with its opaque triangles first ([Cutouts.partition]), and how many indices those are. */
+        private fun opaqueFirst(mesh: PropMesh): Pair<IntArray, Int> {
+            if (!Cutouts.on) return mesh.idx to 0
+            val idx = mesh.idx.copyOf()
+            return idx to Cutouts.partition(idx, idx.size, mesh.uv, Cutouts.of(mesh.tex, mesh.texW, mesh.texH))
         }
 
         /**
@@ -194,6 +234,7 @@ internal class PropLayer(
             var minX = Float.MAX_VALUE; var minY = Float.MAX_VALUE; var minZ = Float.MAX_VALUE
             var maxX = -Float.MAX_VALUE; var maxY = -Float.MAX_VALUE; var maxZ = -Float.MAX_VALUE
             val sz = if (mirrorZ) -1f else 1f
+            var opaqueN = 0
             for (i in 0 until nv) {
                 val x = mesh.pos[i * 3]; val y = mesh.pos[i * 3 + 1]; val z = mesh.pos[i * 3 + 2] * sz
                 val nx = mesh.nrm[i * 3]; val ny = mesh.nrm[i * 3 + 1]; val nz = mesh.nrm[i * 3 + 2] * sz
@@ -215,14 +256,16 @@ internal class PropLayer(
                     else { ib.putInt(i0); ib.putInt(i1); ib.putInt(i2) }
                 }
             } else {
-                if (short) for (i in mesh.idx) ib.putShort(i.toShort()) else for (i in mesh.idx) ib.putInt(i)
+                val (idx, no) = opaqueFirst(mesh)
+                opaqueN = no
+                if (short) for (i in idx) ib.putShort(i.toShort()) else for (i in idx) ib.putInt(i)
             }
             vb.flip(); ib.flip()
             val box = floatArrayOf((minX + maxX) / 2f, (minY + maxY) / 2f, (minZ + maxZ) / 2f, (maxX - minX) / 2f + .5f, (maxY - minY) / 2f + .5f, (maxZ - minZ) / 2f + .5f)
             val (tex, fresh) = StreetTextures.prepareShared(mesh.tex, mesh.texW, mesh.texH, linear = false, share)
             val mask = mesh.mask?.let { StreetTextures.prepareShared(it, mesh.texW, mesh.texH, linear = true, share, mips = false).first }
             val qt = BufferArena.quantized(vb, nv, mesh.texW, mesh.texH)
-            return Packed(qt?.vb ?: vb, ib, nv, mesh.idx.size, box, tex, mask, fresh, short, qt)
+            return Packed(qt?.vb ?: vb, ib, nv, mesh.idx.size, box, tex, mask, fresh, short, qt, opaqueN)
         }
 
         /** [props] packed for [upload] by look (one batch each), on any thread: each batch, whether it casts, how many props. */
@@ -235,30 +278,76 @@ internal class PropLayer(
         }
     }
 
-    private fun finish(geo: GeomSlice, box: Box, tex: Texture, mask: Texture, glows: Boolean, casts: Boolean, tiled: Boolean): MaterialInstance {
+    private fun finish(geo: GeomSlice, box: Box, tex: Texture, mask: Texture, glows: Boolean, casts: Boolean, tiled: Boolean, opaqueIndices: Int): MaterialInstance {
         val sampler = if (tiled) TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.REPEAT).also { it.anisotropy = min(8f, anisotropy) } else crisp
-        val mi = visible.createInstance().also { m ->
+        val init: (MaterialInstance) -> Unit = { m ->
             m.setParameter("albedo", tex, sampler); m.setParameter("mask", mask, nearest)
             m.setParameter("uvRect", 0f, 0f, 1f, 1f); m.setParameter("tint", 1f, 1f, 1f, 1f)
             m.setParameter("glow", 0f, 0f, 0f, 0f); m.setParameter("glass", 1f, 1f, 1f, 1f)
             m.setParameter("fade", 1f); m.setParameter("cell", 2f)
             geo.decode(m)
         }
+        // (its triangles with no cut-out texels drawn opaque, the rest masked: two primitives over its one index range)
+        val opaqueMat = if (opaqueIndices > 0) Cutouts.twin(visible) else null
+        val no = if (opaqueMat != null) min(opaqueIndices, geo.count) else 0
+        val split = opaqueMat != null && no < geo.count
+        val omi = opaqueMat?.createInstance()?.also(init)
+        val mi = if (omi == null || split) visible.createInstance().also(init) else null
+        if (omi != null) Cutouts.primsOpaque.incrementAndGet()
+        if (mi != null) Cutouts.primsMasked.incrementAndGet()
         val e = EntityManager.get().create()
-        RenderableManager.Builder(1).boundingBox(box).culling(cull).castShadows(false).receiveShadows(true).priority(4)
-            .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, geo.vb, geo.ib, geo.first, geo.count).material(0, mi).build(engine, e)
+        val rb = RenderableManager.Builder(if (split) 2 else 1).boundingBox(box).culling(cull).castShadows(false).receiveShadows(true).priority(4)
+        if (split) {
+            rb.geometry(0, RenderableManager.PrimitiveType.TRIANGLES, geo.vb, geo.ib, geo.first, no).material(0, omi!!)
+            rb.geometry(1, RenderableManager.PrimitiveType.TRIANGLES, geo.vb, geo.ib, geo.first + no, geo.count - no).material(1, mi!!)
+        } else rb.geometry(0, RenderableManager.PrimitiveType.TRIANGLES, geo.vb, geo.ib, geo.first, geo.count).material(0, omi ?: mi!!)
+        rb.build(engine, e)
         scene.addEntity(e)
         var pe = 0
         var pmi: MaterialInstance? = null
+        var pomi: MaterialInstance? = null
         if (casts && proxy != null) {
-            pmi = proxy.createInstance().also { m -> m.setParameter("albedo", tex, crisp); m.setParameter("uvRect", 0f, 0f, 1f, 1f); geo.decode(m) }
+            val pinit: (MaterialInstance) -> Unit = { m -> m.setParameter("albedo", tex, crisp); m.setParameter("uvRect", 0f, 0f, 1f, 1f); geo.decode(m); Cutouts.castOnly(m) }
+            // (the shadow twin is never faded nor cut: its opaque part stays opaque, its shadow pass depth only)
+            pomi = if (no > 0) Cutouts.twin(proxy)?.createInstance()?.also(pinit) else null
+            val psplit = pomi != null && no < geo.count
+            if (pomi == null || psplit) pmi = proxy.createInstance().also(pinit)
             pe = EntityManager.get().create()
-            RenderableManager.Builder(1).boundingBox(box).castShadows(true).receiveShadows(false)
-                .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, geo.vb, geo.ib, geo.first, geo.count).material(0, pmi).build(engine, pe)
+            val pb = RenderableManager.Builder(if (psplit) 2 else 1).boundingBox(box).castShadows(true).receiveShadows(false)
+            if (psplit) {
+                pb.geometry(0, RenderableManager.PrimitiveType.TRIANGLES, geo.vb, geo.ib, geo.first, no).material(0, pomi!!)
+                pb.geometry(1, RenderableManager.PrimitiveType.TRIANGLES, geo.vb, geo.ib, geo.first + no, geo.count - no).material(1, pmi!!)
+            } else pb.geometry(0, RenderableManager.PrimitiveType.TRIANGLES, geo.vb, geo.ib, geo.first, geo.count).material(0, pomi ?: pmi!!)
+            pb.build(engine, pe)
             scene.addEntity(pe)
         }
-        batches += Batch(e, pe, mi, pmi, glows, geo, casts)
-        return mi
+        val c = FloatArray(3); val hx = FloatArray(3)
+        box.getCenter(c); box.getHalfExtent(hx)
+        batches += Batch(e, pe, mi, omi, pmi, pomi, glows, geo, casts, floatArrayOf(c[0], c[1], c[2], hx[0], hx[1], hx[2]), if (omi != null) init else null, split)
+        return mi ?: omi!!
+    }
+
+    /**
+     * Puts [b]'s first primitive on its masked instance (made now if it has none yet) or back on its opaque one. A batch
+     * goes masked while it fades, while the see-through can reach it or while its layer is cut away: those are the
+     * material's screen doors, which the opaque twin does not have.
+     */
+    private fun wear(b: Batch, masked: Boolean, ri: Int) {
+        if (b.omi == null || b.masked == masked) return
+        if (masked && b.mi == null) { b.mi = visible.createInstance().also { m -> b.init!!(m) }; Cutouts.twinsMade.incrementAndGet() }
+        b.masked = masked
+        // (the instance now drawn gets this frame's parameters whatever it held)
+        b.lookAt = -1; b.seeAt = -1; b.glowAt = Float.NaN
+        if (ri != 0) engine.renderableManager.setMaterialInstanceAt(ri, 0, if (masked) b.mi!! else b.omi)
+    }
+
+    /** Whether the see-through (or this layer's cutaway) may thin batch [b] this frame. */
+    private fun cut(b: Batch): Boolean {
+        if (cutaway != null) return true
+        if (!seeThrough || !SeeThrough.cuts) return false
+        if (b.moved) return true
+        val x = b.box
+        return SeeThrough.reaches(x[0] - x[3], x[1] - x[4], x[2] - x[5], x[0] + x[3], x[1] + x[4], x[2] + x[5])
     }
 
     /**
@@ -285,20 +374,22 @@ internal class PropLayer(
      */
     var inverseFade = false
     private val lastLook = FloatArray(16)
+    /** Bumped whenever the look changes (the batches remember which they hold). */
+    private var lookGen = 0
     private var hasLook = false
     private var lastGlowOn = 0f
 
     fun update(look: FloatArray, dark: Float, shown: Boolean = true, fade: Float = 1f, shadows: Boolean = shown, castFade: Float = 1f) {
         val rm = engine.renderableManager
         val on = smooth((dark - .3f) / .4f)
-        System.arraycopy(look, 0, lastLook, 0, 16)
+        if (!hasLook || !look.contentEquals(lastLook)) { System.arraycopy(look, 0, lastLook, 0, 16); lookGen++ }
         hasLook = true
         lastGlowOn = on
         // (its cutaway gone: every batch's set back to none, drawn or not)
         if (cutaway != null) cutWas = true
         else if (cutWas) {
             cutWas = false
-            for (i in 0 until batches.size) { val b = batches[i]; if (!b.released) b.mi.setParameter("seeCut", 0f, 0f, 0f, 0f) }
+            for (i in 0 until batches.size) { val b = batches[i]; if (!b.released) b.mi?.setParameter("seeCut", 0f, 0f, 0f, 0f) }
         }
         // (index loop, no boxing: zero allocations per frame)
         for (i in 0 until batches.size) {
@@ -311,16 +402,31 @@ internal class PropLayer(
             b.layerShown = layerVis
             b.layerShadow = layerShad
             val drawn = b.visible && layerVis
-            // (its masks set only when they change: every batch of every chunk, drawn or not, made two to four JNI calls a
-            // frame here, thousands a frame for the greenery alone: the "green" part's 3-4 ms on the S25, by estimate)
-            setMask(rm, b, if (drawn) 1 else 0)
+            // (instances are looked up each frame: Filament's component arrays are compacted as other renderables go)
+            val bi = rm.getInstance(b.entity)
+            // (only what changed goes to Filament: standing still, a frame sends next to nothing; the "green" part's
+            // ~3.7 ms CPU a frame on the S25, 0.1.909, was mostly these calls for every batch of every chunk)
+            val mk = if (drawn) 1 else 0
+            if (bi != 0 && mk != b.mask) { rm.setLayerMask(bi, 0xff, mk); b.mask = mk }
             // (a cut thing's shadow goes with it: a shed's shadow on an empty lawn reads wrong)
-            setProxyMask(rm, b, if (b.visible && layerShad) 1 else 0)
+            val pk = if (b.visible && layerShad) 1 else 0
+            if (b.proxy != 0 && pk != b.pmask) { val pi = rm.getInstance(b.proxy); if (pi != 0) { rm.setLayerMask(pi, 0xff, pk); b.pmask = pk } }
             if (!drawn) continue
-            b.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
-            if (seeThrough) { SeeThrough.apply(b.mi); applyCut(b.mi) }
-            if (b.glows) b.mi.setParameter("glow", GLOW, GLOW, GLOW, on)
-            if (f < 1f || faded) b.mi.setParameter("fade", if (inverseFade) -f else f)
+            if (b.omi != null) wear(b, f < 1f || cut(b), bi)
+            val m0 = b.first; val m1 = b.second
+            if (b.lookAt != lookGen) {
+                m0.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
+                m1?.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
+                b.lookAt = lookGen
+            }
+            // (the see-through, the cutaway and the fade are the masked instance's alone: the opaque twin has none of them)
+            val mm = b.mi
+            if (mm != null && (m0 === mm || m1 === mm) && seeThrough) {
+                if (b.seeAt != SeeThrough.gen) { SeeThrough.apply(mm); b.seeAt = SeeThrough.gen }
+                applyCut(mm)
+            }
+            if (b.glows && b.glowAt != on) { m0.setParameter("glow", GLOW, GLOW, GLOW, on); m1?.setParameter("glow", GLOW, GLOW, GLOW, on); b.glowAt = on }
+            if (f < 1f || faded) mm?.setParameter("fade", if (inverseFade) -f else f)
         }
         if (shown) faded = fade < 1f || castFade < 1f
     }
@@ -331,31 +437,25 @@ internal class PropLayer(
         if (b.released || b.visible == visible) return
         b.visible = visible
         val rm = engine.renderableManager
-        setMask(rm, b, if (visible && b.layerShown) 1 else 0)
-        if (visible && b.layerShown && hasLook) {
-            b.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, lastLook, 0, 1)
-            if (seeThrough) { SeeThrough.apply(b.mi); applyCut(b.mi) }
-            if (b.glows) b.mi.setParameter("glow", GLOW, GLOW, GLOW, lastGlowOn)
-        }
-        setProxyMask(rm, b, if (visible && b.layerShadow) 1 else 0)
-    }
-
-    private fun setMask(rm: com.google.android.filament.RenderableManager, b: Batch, m: Int) {
-        if (m == b.mask) return
         val bi = rm.getInstance(b.entity)
-        if (bi != 0) { rm.setLayerMask(bi, 0xff, m); b.mask = m }
-    }
-
-    private fun setProxyMask(rm: com.google.android.filament.RenderableManager, b: Batch, m: Int) {
-        if (b.proxy == 0 || m == b.proxyMask) return
-        val pi = rm.getInstance(b.proxy)
-        if (pi != 0) { rm.setLayerMask(pi, 0xff, m); b.proxyMask = m }
+        if (bi != 0) { b.mask = if (visible && b.layerShown) 1 else 0; rm.setLayerMask(bi, 0xff, b.mask) }
+        if (visible && b.layerShown && hasLook) {
+            for (m in arrayOf(b.first, b.second)) {
+                if (m == null) continue
+                m.setParameter("look", MaterialInstance.FloatElement.MAT4, lastLook, 0, 1)
+                if (seeThrough && m === b.mi) { SeeThrough.apply(m); applyCut(m) }
+                if (b.glows) m.setParameter("glow", GLOW, GLOW, GLOW, lastGlowOn)
+            }
+            b.lookAt = lookGen; b.seeAt = SeeThrough.gen; b.glowAt = if (b.glows) lastGlowOn else Float.NaN
+        }
+        if (b.proxy != 0) { val pi = rm.getInstance(b.proxy); if (pi != 0) { b.pmask = if (visible && b.layerShadow) 1 else 0; rm.setLayerMask(pi, 0xff, b.pmask) } }
     }
 
     /** Stands batch [index] at [m] (column-major 4x4, local to world) via TransformManager; allocates nothing. */
     fun setBatchTransform(index: Int, m: FloatArray) {
         val b = batches[index]
         if (b.released) return
+        b.moved = true
         val tm = engine.transformManager
         // (the instance looked up each time, never kept: Filament keeps its components packed, so destroying any entity
         // with a transform moves another into its slot. A kept instance then named someone else's entity, and a car's
@@ -392,7 +492,7 @@ internal class PropLayer(
         val em = EntityManager.get()
         scene.remove(b.entity); engine.destroyEntity(b.entity); em.destroy(b.entity)
         if (b.proxy != 0) { scene.remove(b.proxy); engine.destroyEntity(b.proxy); em.destroy(b.proxy) }
-        engine.destroyMaterialInstance(b.mi); b.pmi?.let { engine.destroyMaterialInstance(it) }
+        for (m in arrayOf(b.mi, b.omi, b.pmi, b.pomi)) if (m != null) engine.destroyMaterialInstance(m)
         b.geo.free(engine)
     }
 
@@ -409,8 +509,7 @@ internal class PropLayer(
         }
         val e = engine
         for (b in held) {
-            if (later) { Graveyard.bury(e, b.mi); b.pmi?.let { Graveyard.bury(e, it) } }
-            else { e.destroyMaterialInstance(b.mi); b.pmi?.let { e.destroyMaterialInstance(it) } }
+            for (m in arrayOf(b.mi, b.omi, b.pmi, b.pomi)) if (m != null) { if (later) Graveyard.bury(e, m) else e.destroyMaterialInstance(m) }
         }
         for (b in held) b.geo.free(engine)
         batches.clear()

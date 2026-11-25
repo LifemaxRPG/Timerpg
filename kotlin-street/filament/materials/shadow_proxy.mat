@@ -1,5 +1,6 @@
 // The invisible twin of everything that casts a shadow. Things drawn through the classic look (device domain) cannot
 // cast; this one stands in the true world, writes no colour and no depth in the view, and only throws the shadow.
+// Also compiled as shadow_proxy_opaque (tools/build-materials.sh): with no cut-out its shadow pass is depth only.
 material {
     name : ShadowProxy,
     shadingModel : unlit,

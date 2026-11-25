@@ -45,7 +45,7 @@ internal object TreeImpostors {
     fun look(s: TreeKit.Spec): Int = s.species * 64 + (s.variant and 63)
 
     /** Bakes [specs]' views (any thread), in an atlas of at most [ATLAS_W] x [maxRows] pixels. */
-    fun bake(specs: Collection<TreeKit.Spec>, maxRows: Int = ATLAS_ROWS): Atlas {
+    fun bake(specs: Collection<TreeKit.Spec>, maxRows: Int = System.getProperty("impRows")?.toIntOrNull() ?: ATLAS_ROWS): Atlas {
         // each look at its trees' middle height
         val byLook = LinkedHashMap<Int, ArrayList<TreeKit.Spec>>()
         for (s in specs) byLook.getOrPut(look(s)) { ArrayList() } += s

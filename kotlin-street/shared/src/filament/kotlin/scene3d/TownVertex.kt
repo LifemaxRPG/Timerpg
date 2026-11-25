@@ -55,6 +55,16 @@ internal object TownVertex {
     /** The fewest steps a texel of the batch's picture is cut into (texel edges themselves always fall on a step). */
     const val UV_STEPS_MIN = 16
 
+    /**
+     * (Measuring idea 5, docs/NOVEL_OPTIMIZATIONS.md) quantised vertices, and those whose tangent quaternion an 8-bit
+     * signed normalised value would hold exactly ([exact8]: every component 0 or +-1, give or take packTangentFrame's
+     * 1/32767 bias). Filament's vertex shader builds the normal from the quaternion without normalising it, so only
+     * those frames (faces facing +-z in the world) read back the same light from 8 bits.
+     */
+    val quantized = java.util.concurrent.atomic.AtomicLong()
+    val tangentExact8 = java.util.concurrent.atomic.AtomicLong()
+    private fun exact8(t: Short): Boolean { val a = kotlin.math.abs(t.toInt()); return a <= 1 || a >= 32766 }
+
     /** Vertices left as floats by [quantize], by why: no picture size given, a box too big, texture coordinates too wide. */
     val rejected = java.util.concurrent.atomic.AtomicLongArray(3)
 
@@ -123,6 +133,8 @@ internal object TownVertex {
             val x = q(vb.getFloat(o), org[0], step[0]); val y = q(vb.getFloat(o + 4), org[1], step[1]); val z = q(vb.getFloat(o + 8), org[2], step[2])
             val u = q(vb.getFloat(o + 12), uv0[0], uvStep[0]); val v = q(vb.getFloat(o + 16), uv0[1], uvStep[1])
             val t0 = vb.getShort(o + 20); val t1 = vb.getShort(o + 22); val t2 = vb.getShort(o + 24); val t3 = vb.getShort(o + 26)
+            if (exact8(t0) && exact8(t1) && exact8(t2) && exact8(t3)) tangentExact8.incrementAndGet()
+            quantized.incrementAndGet()
             out.putShort(x).putShort(y).putShort(z).putShort((-1).toShort()).putShort(u).putShort(v).putShort(t0).putShort(t1).putShort(t2).putShort(t3)
         }
         out.flip()

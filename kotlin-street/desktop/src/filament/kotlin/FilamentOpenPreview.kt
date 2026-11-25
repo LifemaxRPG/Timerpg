@@ -776,6 +776,14 @@ fun renderFilamentOpen(out: String) {
     view("fb3_trailers", 4617.1f, 7643.4f, -.9836f, -.1802f, 69.24f, 10f, 437f, 13f, "075232: Elm Street, Old Town, the mobile homes")
     view("fb3_king_back", 3553f, 2648.5f, .9953f, -.0965f, 20f, 18f, 600f, 13f, "061348's spot, the other way (the backs)")
     if (worldSite != null && world != null) WorldPreview.shots(dir, ft, shooter, town, worldSite, world, report, ::want, w, h)
+    kotlin.run {
+        // (idea 4, docs/NOVEL_OPTIMIZATIONS.md: the material instances alive, as the primitives of every renderable in the scene: each wears its own)
+        val rm = engine.renderableManager; var rend = 0; var prims = 0L
+        ft.scene.forEach { e -> val ri = rm.getInstance(e); if (ri != 0) { rend++; prims += rm.getPrimitiveCount(ri) } }
+        report.appendLine("material instances in the scene (one a primitive): %d over %d renderables".format(prims, rend))
+    }
+    report.appendLine(com.lifemax.rpg.feature.habits.presentation.scene3d.Cutouts.report())
+    com.lifemax.rpg.feature.habits.presentation.scene3d.TownVertex.let { tv -> report.appendLine("tangent frames exact in 8 bits: %d of %d quantised vertices".format(tv.tangentExact8.get(), tv.quantized.get())) }
     File(dir, "open.txt").writeText(report.toString())
     print(report)
     if (only != null && "bench" in only) {
