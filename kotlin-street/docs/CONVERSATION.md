@@ -59,6 +59,52 @@ simulation already decided (see `tools/export-dialogue.ts`, `src/llm/factsheet.t
   against n-grams alone (`mtp_live` 0), and the MTP block's extra memory (its KV and rollback planes, in the load's
   breadcrumb).
 
+### What 0.1.976 did on its first start (read from the code, 2026-11-25)
+
+For a phone that already had the old light file (`qwen3.5-4b-q4_0.gguf`, 2,583,221,408 bytes) and none of the MTP one:
+
+- **The MTP download did not start by itself.** Nothing in 0.1.976 starts a download on its own. The AI panel's
+  "Download the light model" chip shows only when there is no light model at all (`AiStatus.needLive`), so with the old
+  file on the phone it did not show. The only way to get the MTP file was Menu > Settings > "Voices & AI download" >
+  "Download everything: Qwen, voices, speech (N MB)", which fetches every missing file, the 2,546 MB MTP file among
+  them. Its free-space check also counted a half-downloaded file at its full size (fixed: `ModelDownloads.remainingIn`).
+- **The preparation did run by itself, on the old file.** `DialogueEngine` kicks `ModelPrepJob` 45 s after the engine
+  starts. If it is not quiet then (the town still building, the model loading, a conversation), it looks again every
+  30 s. Once quiet it reorders the old file into `qwen3.5-4b-q4_0-en.gguf` (K 49,152; it needs the file's size plus
+  256 MB free, else it tries again every 10 minutes without a word), deletes the download and reloads the light model
+  from the new file. The only signs were the AI panel's lines ("Light model prepared: qwen3.5-4b-q4_0-en.gguf
+  (English-first head, K 49,152) in X s", then "English-first head, 49,152 tokens" on the "Light model:" line, shown
+  only when a light model is on the phone) and the breadcrumbs (`model prep: ...`).
+- When the MTP file arrived later, the prepared old file was deleted (superseded), the MTP file prepared the same way
+  into `qwen3.5-4b-mtp-q4_0-en.gguf`, and the light model loaded again with MTP guesses (`mtp_live`, default 2).
+
+### Since then: nothing to hunt for (the owner's request, 2026-11-25)
+
+"If there's something I need to do, when I boot the game, have it pop up: you're not using this, do you want to?"
+
+- **Upgrade checks** (`upgrade/Upgrades.kt`, unit tested in `UpgradesTest`): each one-time step registers a check that
+  says where it stands (done, running by itself, needs the owner's say-so, failed, does not apply) and what "Do it"
+  does. A future one-time step registers a check (`AiUpgrades`, or `AiUpgrades.board.register` from elsewhere)
+  instead of hiding behind a button in the settings.
+- **The MTP file downloads by itself** (`upgrade/AutoFetch.kt`, `AiUpgrades.tick`): once the town is shown, on Wi-Fi
+  (an unmetered network) and with room for what is left plus 128 MB, resuming its part file. It pauses if the phone
+  moves to mobile data, and resumes on Wi-Fi or at the next start. A pause by the player (the panel's "Pause") holds it
+  for the session. After 3 failed tries in a session it waits for "Try again".
+- **The boot card**: 8 s after the town is shown, if anything needs the owner's say-so (the download on mobile data, too
+  little storage for the download or the preparation, the preparation failed, MTP guesses switched off, other AI files
+  missing), one card in the HUD's style lists them in plain words, each with its action ("Download on mobile data",
+  "Open storage settings", "Try again", "Turn on", "Download (N MB)"), "Later" (until the next start) and "Don't ask
+  again for this" (per question: a different question from the same check still asks). If everything is in place or
+  running by itself, no card. After the start, only a new failure opens the card again. A question that comes up
+  during play (leaving Wi-Fi) waits for the next start, or for the AI panel, where every check is listed with its
+  button.
+- **A toast once per finished thing** (a line at the top of the screen for 6 s, remembered in the "upgrades" prefs):
+  "AI model prepared: English-first (4B with MTP, K 49,152), 3.9 s" (the time when it ran in this session),
+  "AI light model downloaded: the 4B with MTP guesses". On the first start of this build, a phone whose 0.1.976 had
+  already prepared the old file gets "AI model prepared: English-first (old 4B, K 49,152)", so the owner knows it ran.
+- **The AI panel's top** (Menu > Settings): the light model's file (old 4B, or 4B MTP, and its name), English-first
+  prepared yes or no with K, MTP guesses on or off, the download's progress bar, then every check with its state.
+
 ## Getting the live model onto the NPU (2026-11-22)
 
 **The runtime.** The NPU path is llama.cpp's own Hexagon backend (`ggml-hexagon`, built from the Hexagon SDK 6.7 by

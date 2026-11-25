@@ -905,6 +905,13 @@ class DialogueEngine private constructor(private val app: Context) {
     // (a while after start: the town's build and the first load go first; a download already on the phone is prepared then)
     init { prep.kick("start", delayMs = ModelPrepJob.START_DELAY_MS) }
 
+    /** The preparation's last run this process (null: none did anything), and whether one is going or due: for the boot
+     *  card ([com.timerpg.street.upgrade.AiUpgrades]). */
+    val prepLast: ModelPrepJob.Run? get() = prep.last
+    val prepBusy: Boolean get() = prep.busy
+    /** Runs the preparation now (the boot card's "Do it" after a failure or once space was freed). */
+    fun prepNow() = prep.kick("asked")
+
     /** The English-first head's size for the light model: the AI panel's setting ("ai" pref "headK"; 49,152, or 65,536 for
      *  quality), applied to the prepared file in place. */
     val headKWanted: Int get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getInt("headK", ModelPrep.K_DEFAULT)

@@ -204,4 +204,28 @@ class ModelPrepTest {
         assertEquals(listOf(ModelPrep.preparedName(mtp.name)), names())
         assertTrue(ModelPrep.live(dir)!!.mtp)
     }
+
+    /** The owner's phone on its first start of 0.1.976: the old light file, nothing of the MTP one. The preparation reorders
+     *  the old file by itself; the MTP file is still missing in full (the automatic download fetches it), then replaces it. */
+    @Test fun firstStartWithTheOldFileOnly() {
+        raw(old)
+        val light = ModelDownloads.ITEMS.filter { it.path == ModelFiles.LIVE_MTP }
+        assertEquals(Step.Reorder(File(dir, old.name), File(dir, ModelPrep.preparedName(old.name)), k), ModelPrep.next(dir, k, { 0 }, lots))
+        assertEquals(mtp.bytes, ModelDownloads.remainingIn(dir, light))
+        val out = ModelPrep.run(dir, k, Fake(), allowed = { true })
+        assertTrue(out.ok && out.changed)
+        assertEquals(listOf(ModelPrep.preparedName(old.name)), names())
+        assertTrue(ModelPrep.live(dir)!!.prepared)
+        assertFalse(ModelPrep.live(dir)!!.mtp)
+        // the prepared old file does not stand for the MTP download: that is still wanted
+        assertEquals(light, ModelDownloads.missingIn(dir, light))
+    }
+
+    @Test fun aResumedDownloadNeedsRoomOnlyForTheRest() {
+        val light = ModelDownloads.ITEMS.filter { it.path == ModelFiles.LIVE_MTP }
+        part(mtp, 1L shl 30)
+        assertEquals(mtp.bytes - (1L shl 30), ModelDownloads.remainingIn(dir, light))
+        raw(mtp)
+        assertEquals(0L, ModelDownloads.remainingIn(dir, light))
+    }
 }

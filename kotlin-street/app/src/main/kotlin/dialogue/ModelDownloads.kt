@@ -91,6 +91,14 @@ object ModelDownloads {
         !whole && !prepared
     }
 
+    /** What [items] still need to download into [dir], in bytes: the missing files less what their part files already
+     *  hold (a download resumes from its part, so a half-done one needs only the rest; unit tested). */
+    fun remainingIn(dir: File, items: List<Item>): Long = missingIn(dir, items).sumOf { item ->
+        val whole = if (item.bytes > 0) item.bytes else 300_000L
+        val part = File(dir, item.path + ".part").takeIf { it.isFile }?.length() ?: 0L
+        (whole - (if (item.bytes > 0) part else 0L)).coerceAtLeast(0L)
+    }
+
     /** The extras' files on the device (whole or partly downloaded), so they can be removed to free the space. */
     fun extrasOnDevice(ctx: Context): List<File> = EXTRAS.flatMap { listOf(File(dir(ctx), it.path), File(dir(ctx), it.path + ".part")) }.filter { it.isFile }
 
@@ -113,7 +121,8 @@ object ModelDownloads {
         val todo = missing(ctx, items)
         val total = size(items)
         var done = total - todo.sumOf { if (it.bytes > 0) it.bytes else 300_000L }
-        val need = todo.sumOf { if (it.bytes > 0) it.bytes else 300_000L }
+        // (a part file already downloaded counts: only the rest needs room)
+        val need = remainingIn(root, items)
         if (root.usableSpace < need + (128L shl 20)) return Result.Failed("Not enough free storage: ${need shr 20} MB needed, ${root.usableSpace shr 20} MB free.")
         val buf = ByteArray(1 shl 20)
         var lastReport = 0L

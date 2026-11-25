@@ -573,6 +573,24 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     // the menu (docs/HUD.md: one button, top right; "aiPanel" for the playtest log and the back key) and its tab
     var aiPanel by remember { mutableStateOf(false) }
     var menuTab by remember { mutableIntStateOf(0) }
+    // the upgrade checks (upgrade/Upgrades.kt): the boot card of what needs the owner's say-so, and a toast when a step
+    // that ran by itself finishes; read every few seconds once the town is shown (the automatic download starts there)
+    remember(engine, voices) { com.timerpg.street.upgrade.AiUpgrades.attach(ctx, engine, voices) }
+    var upgradeTick by remember { mutableIntStateOf(0) }
+    var upgradeToast by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(townLoading) {
+        if (townLoading) return@LaunchedEffect
+        kotlinx.coroutines.delay(UPGRADE_FIRST_LOOK_MS)
+        val due = ArrayDeque<String>()
+        while (true) {
+            due += kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { runCatching { com.timerpg.street.upgrade.AiUpgrades.tick() }.getOrDefault(emptyList()) }
+            due.forEach { com.timerpg.street.shot.Crumbs.add("upgrades: $it") }
+            upgradeTick++
+            if (upgradeToast == null && due.isNotEmpty()) upgradeToast = due.removeFirst()
+            kotlinx.coroutines.delay(5000)
+        }
+    }
+    LaunchedEffect(upgradeToast) { if (upgradeToast != null) { kotlinx.coroutines.delay(6000); upgradeToast = null } }
     val here = if (townMode) townHere else street.sprites.getOrNull(near)
     val loopTown = LoopSession.town
     val atHere = remember(people, here, loopTown) {
@@ -1440,6 +1458,21 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             Text("no one near enough to hear you", 12.sp, Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp), color = DIM.copy(alpha = .7f))
             LaunchedEffect(noOneNear) { kotlinx.coroutines.delay(1800); noOneNear = 0L }
         }
+        // the boot card: what the AI needs the owner's say-so for (upgrade/Upgrades.kt); nothing when everything is in place
+        // or running by itself, and never over a conversation, the menu or a crash report
+        run {
+            upgradeTick.let { }  // (the board is read again each tick)
+            val board = com.timerpg.street.upgrade.AiUpgrades.board
+            if (board.open && board.items.isNotEmpty() && talk == null && !aiPanel && shot == null && !townLoading && lastCrash == null && !tuning)
+                UpgradeCard(board.items, Modifier.align(Alignment.Center),
+                    onDo = { board.doIt(it); upgradeTick++ }, onLater = { board.later(it); upgradeTick++ }, onNever = { board.never(it); upgradeTick++ },
+                    onClose = { board.close(); upgradeTick++ })
+        }
+        upgradeToast?.let { t ->
+            if (!townLoading && shot == null) Box(Modifier.align(Alignment.TopCenter).padding(top = 10.dp).widthIn(max = 420.dp).hudPanel().padding(horizontal = 12.dp, vertical = 6.dp)) {
+                HudText(t, 12.sp, HudStyle.TEXT, maxLines = 2)
+            }
+        }
         lastCrash?.let { report ->
             Column(
                 Modifier.align(Alignment.Center).widthIn(max = 560.dp).background(PANEL, RoundedCornerShape(14.dp)).opaque().padding(14.dp),
@@ -2128,6 +2161,79 @@ private fun aiChipLabel(s: AiStatus): String = when (s.state) {
 private fun f1(v: Float) = String.format(java.util.Locale.US, "%.1f", v)
 private fun f0(v: Float) = String.format(java.util.Locale.US, "%.0f", v)
 
+/**
+ * The boot card (the owner's request, 2026-11-25: "when I boot the game, have it pop up: you're not using this, do you
+ * want to?"): each upgrade check that needs the owner's say-so in plain words, with "Do it" / "Later" / "Don't ask
+ * again for this". In the HUD's style, not an Android dialog.
+ */
+@Composable
+private fun UpgradeCard(items: List<com.timerpg.street.upgrade.Upgrades.Item>, modifier: Modifier, onDo: (com.timerpg.street.upgrade.Upgrades.Item) -> Unit,
+                        onLater: (com.timerpg.street.upgrade.Upgrades.Item) -> Unit, onNever: (com.timerpg.street.upgrade.Upgrades.Item) -> Unit, onClose: () -> Unit) {
+    Column(modifier.widthIn(max = 560.dp).hudPanel(solid = true).opaque().verticalScroll(rememberScrollState()).padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        HudText("The game's AI: ${if (items.size == 1) "one thing needs" else "${items.size} things need"} your say-so", 15.sp)
+        for (item in items) {
+            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                HudText(item.status.text, 12.sp, if (item.status.state == com.timerpg.street.upgrade.Upgrades.State.FAILED) HudStyle.HOT else HudStyle.TEXT,
+                    weight = androidx.compose.ui.text.font.FontWeight.Medium, maxLines = 4)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    HudButton(item.status.action.ifEmpty { "Do it" }, on = true) { onDo(item) }
+                    HudButton("Later") { onLater(item) }
+                    HudButton("Don't ask again for this") { onNever(item) }
+                }
+            }
+        }
+        HudText("Everything else is in place or runs by itself. All of it is listed in Menu > Settings.", 11.sp, HudStyle.DIM, maxLines = 2)
+        Row { Spacer(Modifier.weight(1f)); HudButton("Close") { onClose() } }
+    }
+}
+
+/**
+ * The top of the AI panel: the light model's file (old 4B or 4B MTP), whether it is prepared (English-first, its K),
+ * MTP guesses on or off, the download's progress, then every upgrade check in plain words, with its button where it
+ * needs one (also those answered "Don't ask again", and a way to be asked again).
+ */
+@Composable
+private fun LightModelState(engine: DialogueEngine, voices: com.timerpg.street.voice.NpcVoiceService) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    var light by remember { mutableStateOf<com.timerpg.street.upgrade.AiUpgrades.LightState?>(null) }
+    var checks by remember { mutableStateOf<List<Pair<com.timerpg.street.upgrade.Upgrades.Check, com.timerpg.street.upgrade.Upgrades.Status>>>(emptyList()) }
+    var poke by remember { mutableIntStateOf(0) }
+    LaunchedEffect(poke) {
+        while (true) {
+            light = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { runCatching { com.timerpg.street.upgrade.AiUpgrades.lightState(ctx, engine) }.getOrNull() }
+            checks = com.timerpg.street.upgrade.AiUpgrades.board.all
+            kotlinx.coroutines.delay(2000)
+        }
+    }
+    val l = light ?: return
+    val good = Color(0xFF9BE8A4)
+    Text("Light model: ${l.file}", 12.sp, color = if (l.file.startsWith("4B MTP")) good else Color(0xFFFFD27A))
+    Text("English-first: " + (if (l.prepared) "prepared, K ${"%,d".format(l.k)}" else "not prepared yet") +
+        " · MTP guesses: " + (if (l.mtpOn > 0) "on (${l.mtpOn} ahead)" else "off"), 12.sp, color = if (l.prepared && l.mtpOn > 0) good else Color(0xFFFFD27A))
+    if (voices.downloading >= 0f) {
+        Text("Downloading" + (if (voices.downloadingWhat == "light") " the light model (4B MTP)" else "") + ": ${voices.downloadNote}", 12.sp, color = DIM)
+        Box(Modifier.fillMaxWidth().height(4.dp).background(Color(0x66FFFFFF), RoundedCornerShape(2.dp))) {
+            Box(Modifier.fillMaxWidth(voices.downloading.coerceIn(.02f, 1f)).height(4.dp).background(AI_BLUE, RoundedCornerShape(2.dp)))
+        }
+    }
+    val board = com.timerpg.street.upgrade.AiUpgrades.board
+    for ((c, st) in checks) {
+        if (st.state == com.timerpg.street.upgrade.Upgrades.State.NONE || st.text.isEmpty()) continue
+        val mark = when (st.state) {
+            com.timerpg.street.upgrade.Upgrades.State.DONE -> "✓"
+            com.timerpg.street.upgrade.Upgrades.State.RUNNING -> "…"
+            com.timerpg.street.upgrade.Upgrades.State.FAILED -> "✗"
+            else -> "?"
+        }
+        Text("$mark ${st.text}", 11.sp, color = if (st.state == com.timerpg.street.upgrade.Upgrades.State.FAILED) Color(0xFFFFB4A0) else DIM)
+        if (st.state == com.timerpg.street.upgrade.Upgrades.State.ASK || st.state == com.timerpg.street.upgrade.Upgrades.State.FAILED)
+            Chip(st.action.ifEmpty { "Do it" }, false) { board.doIt(com.timerpg.street.upgrade.Upgrades.Item(c, st)); poke++ }
+    }
+    if (checks.any { (c, st) -> com.timerpg.street.upgrade.Upgrades.key(c.id, st) in com.timerpg.street.upgrade.AiUpgrades.neverKeys() })
+        Chip("Ask me again about these at start", false) { board.forgetNever(); poke++ }
+}
+
 /** The model (its file and state) and the speed numbers. */
 @Composable
 private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.street.voice.NpcVoiceService, updater: AppUpdater,
@@ -2138,6 +2244,7 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text("Dialogue AI", 15.sp)
+        LightModelState(engine, voices)
         Text(
             when (s.state) {
                 ModelState.STARTING -> "Starting…"
@@ -2156,7 +2263,7 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
         // in play the light model answers; without it nothing does (the main one does not fit beside the town)
         if (s.needLive) {
             Text("The light model for replies in play is not downloaded.", 12.sp, color = Color(0xFFFFB4A0))
-            if (voices.downloading < 0f) Chip("Download the light model (${com.timerpg.street.dialogue.ModelFiles.LIVE_MTP_BYTES shr 20} MB)", false) { voices.downloadLive { engine.reload() } }
+            if (voices.downloading < 0f) Chip("Download the light model (${com.timerpg.street.dialogue.ModelFiles.LIVE_MTP_BYTES shr 20} MB)", false) { voices.downloadLive({ engine.reload() }) }
         }
         // the last thing said by voice: how long each step took and who answered
         VoiceTurns.last?.let { Text("Last voice turn: $it", 11.sp, color = DIM) }
@@ -2510,6 +2617,8 @@ private fun NightPanel(s: AiStatus, engine: DialogueEngine) {
 private val LEFT_KEYS = setOf(android.view.KeyEvent.KEYCODE_DPAD_LEFT, android.view.KeyEvent.KEYCODE_A)
 /** The hold on the dialogue model's load while the town is built ([DialogueEngine.holdLoad]). */
 private const val TOWN_BUILD_HOLD = "town-build"
+/** The first look at the upgrade checks, after the town is shown (its last uploads and the model's load go first). */
+private const val UPGRADE_FIRST_LOOK_MS = 8_000L
 /** How long the player must stand before lines are written ahead again (ns). */
 private const val STILL_NS = 1_500_000_000L
 /** The time slider's end: 23:59. */

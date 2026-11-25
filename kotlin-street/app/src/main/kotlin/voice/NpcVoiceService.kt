@@ -352,34 +352,48 @@ class NpcVoiceService(private val ctx: Context) {
     }
 
     /** Fetch every model (dialogue, voices, speech, memory), resuming a stopped download. */
-    fun download(onDone: () -> Unit) = download(ModelDownloads.ITEMS, onDone)
+    fun download(onDone: () -> Unit) { pausedByPlayer = false; download(ModelDownloads.ITEMS, onDone) }
 
-    /** Fetch the light dialogue model alone (replies in play), when it is what is missing. */
-    fun downloadLive(onDone: () -> Unit) = download(ModelDownloads.ITEMS.filter { it.path == com.timerpg.street.dialogue.ModelFiles.LIVE_MTP }, onDone)
+    /** Fetch the light dialogue model alone (replies in play), when it is what is missing; [stopIf] pauses it (the
+     *  automatic download on Wi-Fi stops when the phone moves to mobile data: it resumes from its part file). */
+    fun downloadLive(onDone: () -> Unit, stopIf: () -> Boolean = { false }) =
+        download(ModelDownloads.ITEMS.filter { it.path == com.timerpg.street.dialogue.ModelFiles.LIVE_MTP }, onDone, stopIf, "light")
 
     /** Fetch the optional extra versions of the dialogue model (NPU Q4_0, MTP), for trying them out. */
     fun downloadExtras(onDone: () -> Unit) = download(ModelDownloads.EXTRAS, onDone)
 
-    private fun download(items: List<ModelDownloads.Item>, onDone: () -> Unit) {
+    /** What is downloading now ("all", "light", "extras"; null: nothing), how the last download ended (null: none this
+     *  process), and whether the player paused one (the automatic download does not start it again this session). */
+    @Volatile var downloadingWhat: String? = null
+        private set
+    @Volatile var lastResult: ModelDownloads.Result? = null
+        private set
+    @Volatile var pausedByPlayer = false
+        private set
+
+    private fun download(items: List<ModelDownloads.Item>, onDone: () -> Unit, stopIf: () -> Boolean = { false }, what: String = if (items === ModelDownloads.EXTRAS) "extras" else "all") {
         if (downloading >= 0f) return
         cancelDownload = false
+        downloadingWhat = what
         downloading = 0f; downloadNote = "Starting…"
         Thread({
-            val r = ModelDownloads.download(ctx, { cancelDownload }, items, onItem = { item ->
+            val r = ModelDownloads.download(ctx, { cancelDownload || stopIf() }, items, onItem = { item ->
                 // the light model in place: it loads and is prepared now, while the rest downloads
                 if (item.prepared != null) main.post { com.timerpg.street.dialogue.DialogueEngine.shared(ctx).reload() }
             }) { done, total ->
                 main.post { downloading = done.toFloat() / total; downloadNote = "${done shr 20} of ${total shr 20} MB" }
             }
+            lastResult = r
             main.post {
                 downloading = -1f
+                downloadingWhat = null
                 downloadNote = when (r) { is ModelDownloads.Result.Done -> "Everything is installed."; is ModelDownloads.Result.Failed -> r.reason }
                 if (r is ModelDownloads.Result.Done) onDone()
             }
         }, "model-download").start()
     }
 
-    fun cancelDownload() { cancelDownload = true }
+    fun cancelDownload() { cancelDownload = true; pausedByPlayer = true }
 
     fun close() { stop(); workerExecute { bank.close() }; pool.shutdown() }
 }
