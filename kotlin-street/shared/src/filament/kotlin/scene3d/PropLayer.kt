@@ -73,6 +73,8 @@ internal class PropLayer(
         val entity: Int, val proxy: Int, val mi: MaterialInstance, val pmi: MaterialInstance?,
         val glows: Boolean, val geo: GeomSlice, val casts: Boolean,
         var visible: Boolean = true, var layerShown: Boolean = true, var layerShadow: Boolean = true,
+        /** The layer masks last given to its renderable and its shadow twin (-1: none yet): set again only when they change. */
+        var mask: Int = -1, var proxyMask: Int = -1,
         /** Its entities, material instances and buffers are gone ([release]): its slot stays so the other batches keep their index. */
         var released: Boolean = false,
     )
@@ -309,10 +311,11 @@ internal class PropLayer(
             b.layerShown = layerVis
             b.layerShadow = layerShad
             val drawn = b.visible && layerVis
-            val bi = rm.getInstance(b.entity)
-            if (bi != 0) rm.setLayerMask(bi, 0xff, if (drawn) 1 else 0)
+            // (its masks set only when they change: every batch of every chunk, drawn or not, made two to four JNI calls a
+            // frame here, thousands a frame for the greenery alone: the "green" part's 3-4 ms on the S25, by estimate)
+            setMask(rm, b, if (drawn) 1 else 0)
             // (a cut thing's shadow goes with it: a shed's shadow on an empty lawn reads wrong)
-            if (b.proxy != 0) { val pi = rm.getInstance(b.proxy); if (pi != 0) rm.setLayerMask(pi, 0xff, if (b.visible && layerShad) 1 else 0) }
+            setProxyMask(rm, b, if (b.visible && layerShad) 1 else 0)
             if (!drawn) continue
             b.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
             if (seeThrough) { SeeThrough.apply(b.mi); applyCut(b.mi) }
@@ -328,17 +331,25 @@ internal class PropLayer(
         if (b.released || b.visible == visible) return
         b.visible = visible
         val rm = engine.renderableManager
-        val bi = rm.getInstance(b.entity)
-        if (bi != 0) rm.setLayerMask(bi, 0xff, if (visible && b.layerShown) 1 else 0)
+        setMask(rm, b, if (visible && b.layerShown) 1 else 0)
         if (visible && b.layerShown && hasLook) {
             b.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, lastLook, 0, 1)
             if (seeThrough) { SeeThrough.apply(b.mi); applyCut(b.mi) }
             if (b.glows) b.mi.setParameter("glow", GLOW, GLOW, GLOW, lastGlowOn)
         }
-        if (b.proxy != 0) {
-            val pi = rm.getInstance(b.proxy)
-            if (pi != 0) rm.setLayerMask(pi, 0xff, if (visible && b.layerShadow) 1 else 0)
-        }
+        setProxyMask(rm, b, if (visible && b.layerShadow) 1 else 0)
+    }
+
+    private fun setMask(rm: com.google.android.filament.RenderableManager, b: Batch, m: Int) {
+        if (m == b.mask) return
+        val bi = rm.getInstance(b.entity)
+        if (bi != 0) { rm.setLayerMask(bi, 0xff, m); b.mask = m }
+    }
+
+    private fun setProxyMask(rm: com.google.android.filament.RenderableManager, b: Batch, m: Int) {
+        if (b.proxy == 0 || m == b.proxyMask) return
+        val pi = rm.getInstance(b.proxy)
+        if (pi != 0) { rm.setLayerMask(pi, 0xff, m); b.proxyMask = m }
     }
 
     /** Stands batch [index] at [m] (column-major 4x4, local to world) via TransformManager; allocates nothing. */
