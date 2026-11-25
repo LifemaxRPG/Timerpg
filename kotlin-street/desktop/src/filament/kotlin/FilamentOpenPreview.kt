@@ -83,6 +83,8 @@ fun renderFilamentOpen(out: String) {
     // (-DyardAtlas=0: each lot's yard on sheets of its own, as before the town's shared yard atlas, to compare)
     com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.yardAtlas = System.getProperty("yardAtlas") != "0"
     System.getProperty("astcExact")?.toDoubleOrNull()?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astcExact = it }
+    // (-Dmsaa=1: no multisampling, as before the setting; -Dmsaa=2/4/8 that many samples; docs/HEAT.md)
+    System.getProperty("msaa")?.toIntOrNull()?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.msaa = it }
     Filament.init()
     val engine = Engine.Builder().backend(Engine.Backend.OPENGL).config(com.lifemax.rpg.feature.habits.presentation.scene3d.TownEngine.config()).build()
     val mats = File("../app/src/main/assets/filament")

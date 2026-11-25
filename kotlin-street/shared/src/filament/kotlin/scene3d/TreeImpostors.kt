@@ -202,7 +202,7 @@ internal object TreeImpostors {
     const val ATLAS_W = 2048
     /**
      * Its height at most (pixels): 2048 x 4096 RGBA is 32 MB of Java heap for the bake (the GPU's copy ASTC 4x4, 8 MB and its
-     * mips). The capital's 166 looks fit at 1.27 x the near trees' pixel size.
+     * mips). The capital's 166 looks fit at 1.60 x the near trees' pixel size.
      */
     const val ATLAS_ROWS = 4096
     /** The last bake in a line (reports). */
