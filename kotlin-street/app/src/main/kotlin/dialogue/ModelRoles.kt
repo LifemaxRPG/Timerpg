@@ -93,6 +93,16 @@ object ModelRoles {
                   copyBytes: Long = -1): Long =
         (if (copied) (if (copyBytes > 0) copyBytes else fileBytes) else fileBytes / 2) + workBytes + marginBytes
 
+    /**
+     * What a recurrent or hybrid model's saved states hold in RAM beside its own memory, counted in its work (and so in
+     * the gate's need): [slots] states, each at most its whole recurrent state ([stateBytes], llama.cpp's "RS buffer")
+     * plus its attention cache for the prefix (at most the whole [kvBytes]). With the states on flash
+     * ([com.timerpg.street.llm.NativeLlm.stateDir]) 0 slots (1 with the hot one); without, the native engine keeps up to
+     * 8, which before 2026-11-25 nothing counted. 0 for a model without a recurrent state (its cache is cut back instead).
+     */
+    fun residentStateBytes(slots: Int, kvBytes: Long, stateBytes: Long): Long =
+        if (slots <= 0 || stateBytes <= 0) 0L else slots.toLong() * (stateBytes + kvBytes.coerceAtLeast(0))
+
     /** The share of the light model's own memory that is compute buffers, measured on the S25 at batch 512 (0.1.598:
      *  KV 19 + state 50 + compute 318 = 388 MB): for a measure that did not keep its parts apart. */
     const val COMPUTE_SHARE_512 = 318.0 / 388.0

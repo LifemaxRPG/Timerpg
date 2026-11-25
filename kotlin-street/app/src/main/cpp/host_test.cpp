@@ -12,6 +12,8 @@
 // --no-checks: only the replies (skips the text helper, failure path and cancel checks).
 // --seed N: the sampler's seed (default 42, so runs repeat; the app draws a new one for every reply).
 // --cpu-lib NAME: with a -DLLM_HOST_DL=ON build, the CPU kernel libraries to try by name, in order, as the app does.
+// --snapshot-test DIR: the saved states on flash in DIR (emptied): a new session restores them and answers token for
+//   token as the fresh prefill did (greedy), pre-baked states, the hot one, the budget; then exits.
 #include "llm_core.h"
 
 #include <nlohmann/json.hpp>  // llama.cpp's vendored copy
@@ -28,6 +30,9 @@
 #include <string>
 #include <thread>
 #include <vector>
+
+#include <dirent.h>
+#include <sys/stat.h>
 
 namespace {
 
@@ -344,6 +349,148 @@ std::string check_prompt_tokens(llm::Engine & e, const Prompt & p, bool * ok) {
 
 double per_sec(long n, int64_t ms) { return ms > 0 ? n * 1000.0 / ms : 0.0; }
 
+// ------------------------------------------------------------------------------------------------ saved states on flash
+
+void clear_dir(const std::string & dir) {
+    std::system(("mkdir -p '" + dir + "' && rm -f '" + dir + "'/*.state '" + dir + "'/*.tmp*").c_str());
+}
+
+/** One pass over [prompts] greedily with a fresh engine; the reply tokens of each, and the engine's state stats. */
+struct Pass {
+    std::vector<std::vector<int32_t>> tokens;
+    std::vector<llm::Stats> stats;
+    llm::SnapStats snap;
+    int64_t ms = 0;
+};
+
+Pass run_pass(const std::string & model, int mtp, int threads, int n_ctx, int max_tokens, const std::vector<Prompt> & prompts,
+              const std::string & dir, bool hot, bool bake_first, int64_t budget = 8LL << 30) {
+    Pass out;
+    llm::Engine e;
+    e.set_device(mtp << 8);
+    e.set_snapshot_dir(dir, budget, hot);
+    e.arm();
+    if (!e.load(model, threads, n_ctx)) { check(false, "load: " + e.error()); return out; }
+    const int64_t t0 = now_ms();
+    if (bake_first) for (const auto & p : prompts) {
+        const int n = e.bake(p.text);
+        if (n < 0) check(false, "bake: " + e.error());
+    }
+    for (const auto & p : prompts) {
+        e.generate(p.text, max_tokens, 0.0f, nullptr);
+        if (!e.error().empty()) check(false, "generate: " + e.error());
+        out.tokens.push_back(e.reply_tokens());
+        out.stats.push_back(e.stats());
+    }
+    out.ms = now_ms() - t0;
+    out.snap = e.snap_stats();
+    return out;
+}
+
+std::string reused_list(const Pass & p) {
+    std::string s;
+    for (const auto & st : p.stats) s += (s.empty() ? "" : " ") + std::to_string(st.reused_tokens) + "/" + std::to_string(st.prompt_tokens);
+    return s;
+}
+
+/** Restored generation must be token-identical to a fresh prefill (greedy), and the states must stay off the RAM. */
+void snapshot_test(const std::string & model, int mtp, int threads, int n_ctx, int max_tokens, const std::vector<Prompt> & prompts,
+                   const std::string & dir) {
+    std::printf("\n== saved states on flash (%s), greedy, %d tokens a reply\n", dir.c_str(), max_tokens);
+    const long rss0 = rss_kb("VmRSS:");
+    // 1. in RAM as before (no directory): the reference the old engine gave
+    const Pass ram = run_pass(model, mtp, threads, n_ctx, max_tokens, prompts, "", false, false);
+    std::printf("  in RAM (as before): reused %s; %d states held, %.1f MB; state size %.1f MB\n", reused_list(ram).c_str(),
+                ram.snap.ram, ram.snap.ram_bytes / 1048576.0, ram.snap.state_bytes / 1048576.0);
+    // 2. on flash, an empty directory: every state is written by a fresh prefill
+    clear_dir(dir);
+    const Pass fresh = run_pass(model, mtp, threads, n_ctx, max_tokens, prompts, dir, false, false);
+    std::printf("  on flash, fresh: reused %s; %d written in %lld ms (%.1f ms each, %.1f MB each), %d restored from flash in %lld ms; %d in RAM (%.1f MB)\n",
+                reused_list(fresh).c_str(), fresh.snap.writes, (long long) fresh.snap.write_ms,
+                fresh.snap.writes ? (double) fresh.snap.write_ms / fresh.snap.writes : 0.0, fresh.snap.state_bytes / 1048576.0,
+                fresh.snap.restores_file, (long long) fresh.snap.restore_ms, fresh.snap.ram, fresh.snap.ram_bytes / 1048576.0);
+    check(fresh.snap.ram == 0 && fresh.snap.writes > 0, "with a directory no state is held in RAM (" + std::to_string(fresh.snap.files) + " on flash)");
+    // 3. a new engine (a new session) on the same directory: every prompt restores a state written by the first
+    const Pass restored = run_pass(model, mtp, threads, n_ctx, max_tokens, prompts, dir, false, false);
+    bool all_restored = true;
+    for (size_t i = 0; i < prompts.size(); ++i) all_restored = all_restored && restored.stats[i].reused_tokens > 0;
+    std::printf("  on flash, a new session: reused %s; %d restored from flash in %lld ms (%.1f ms each), %d written\n",
+                reused_list(restored).c_str(), restored.snap.restores_file, (long long) restored.snap.restore_ms,
+                restored.snap.restores_file ? (double) restored.snap.restore_ms / restored.snap.restores_file : 0.0, restored.snap.writes);
+    check(all_restored && restored.snap.restores_file >= (int) prompts.size(), "a new session restores every prompt from flash");
+    int same = 0;
+    for (size_t i = 0; i < prompts.size(); ++i) same += restored.tokens[i] == fresh.tokens[i] && !fresh.tokens[i].empty();
+    check(same == (int) prompts.size(), std::to_string(same) + " of " + std::to_string(prompts.size()) +
+                                            " replies restored from flash are token-identical to the fresh prefill's");
+    int same_ram = 0;
+    for (size_t i = 0; i < prompts.size(); ++i) same_ram += ram.tokens[i] == fresh.tokens[i];
+    std::printf("  (%d of %zu also identical to the in-RAM engine's, which stops at every line end: a different batch split)\n",
+                same_ram, prompts.size());
+    // 4. the shared rules kept hot in RAM: does it pay against a mapped file in the page cache?
+    const Pass hot = run_pass(model, mtp, threads, n_ctx, max_tokens, prompts, dir, true, false);
+    int same_hot = 0;
+    for (size_t i = 0; i < prompts.size(); ++i) same_hot += hot.tokens[i] == fresh.tokens[i];
+    std::printf("  hot rules state: %d in RAM (%.1f MB); restores %d from RAM, %d from flash, %lld ms in all\n", hot.snap.ram,
+                hot.snap.ram_bytes / 1048576.0, hot.snap.restores_ram, hot.snap.restores_file, (long long) hot.snap.restore_ms);
+    check(same_hot == (int) prompts.size() && hot.snap.ram <= 1, "with the hot state: identical replies, at most one state in RAM");
+    {   // restore cost alone: the rules state, from RAM and from the mapped file, 20 times each
+        llm::Engine e;
+        e.set_device(mtp << 8);
+        e.set_snapshot_dir(dir, 8LL << 30, true);
+        e.arm();
+        if (e.load(model, threads, n_ctx)) {
+            // a prompt that shares only the rules with every saved one
+            std::string other = prompts[0].text;
+            const size_t f = other.find("FACTS\n");
+            other = other.substr(0, f + 6) + "You are Nobody Atall, 50, a man in Nowhere. No more.<|im_end|>\n<|im_start|>user\nHi.<|im_end|>\n<|im_start|>assistant\n";
+            const int n = 20;
+            for (int i = 0; i < n; ++i) e.generate(other, 0, 0.0f, nullptr);
+            const llm::SnapStats a = e.snap_stats();
+            std::printf("  restore of the rules state (%.1f MB): from RAM %.2f ms (%d), ", fresh.snap.state_bytes / 1048576.0,
+                        a.restores_ram ? (double) a.restore_ms / (a.restores_ram + a.restores_file) : 0.0, a.restores_ram);
+            e.set_snapshot_dir(dir, 8LL << 30, false);
+            const llm::SnapStats b0 = e.snap_stats();
+            for (int i = 0; i < n; ++i) e.generate(other, 0, 0.0f, nullptr);
+            const llm::SnapStats b = e.snap_stats();
+            std::printf("from the mapped file (page cache) %.2f ms (%d)\n",
+                        (b.restores_file - b0.restores_file) ? (double) (b.restore_ms - b0.restore_ms) / (b.restores_file - b0.restores_file) : 0.0,
+                        b.restores_file - b0.restores_file);
+        }
+    }
+    // 5. pre-baked: a new engine bakes every prompt's states first, then answers: identical, from the baked states
+    clear_dir(dir);
+    const Pass baked = run_pass(model, mtp, threads, n_ctx, max_tokens, prompts, dir, false, true);
+    int same_baked = 0;
+    bool from_baked = true;
+    for (size_t i = 0; i < prompts.size(); ++i) {
+        same_baked += baked.tokens[i] == fresh.tokens[i];
+        from_baked = from_baked && baked.stats[i].reused_tokens > 0;
+    }
+    std::printf("  pre-baked: reused %s; %d states written by bake()\n", reused_list(baked).c_str(), baked.snap.writes);
+    check(from_baked && same_baked == (int) prompts.size(), "pre-baked states: every reply starts from one and is token-identical (" +
+                                                                std::to_string(same_baked) + ")");
+    // 6. the budget: room for two states only, so older files go
+    clear_dir(dir);
+    const int64_t budget = (int64_t) (fresh.snap.state_bytes * 2.5);
+    const Pass small = run_pass(model, mtp, threads, n_ctx, max_tokens, prompts, dir, false, true, budget);
+    long long on_disk = 0;
+    if (DIR * d = opendir(dir.c_str())) {
+        while (dirent * e = readdir(d)) {
+            const std::string name = e->d_name;
+            struct stat st;
+            if (name.size() > 6 && name.compare(name.size() - 6, 6, ".state") == 0 && stat((dir + "/" + name).c_str(), &st) == 0) on_disk += st.st_size;
+        }
+        closedir(d);
+    }
+    check(small.snap.evicted > 0 && on_disk <= budget, "the budget holds (" + std::to_string(on_disk >> 20) + " MB on flash of " +
+                                                           std::to_string(budget >> 20) + ", " + std::to_string(small.snap.evicted) + " removed)");
+    int same_small = 0;
+    for (size_t i = 0; i < prompts.size(); ++i) same_small += small.tokens[i] == fresh.tokens[i];
+    check(same_small == (int) prompts.size(), "replies under a tight budget are identical too");
+    std::printf("  RSS before %ld MB, peak %ld MB\n", rss0 / 1024, rss_kb("VmHWM:") / 1024);
+    clear_dir(dir);
+}
+
 }  // namespace
 
 int main(int argc, char ** argv) {
@@ -354,6 +501,7 @@ int main(int argc, char ** argv) {
     std::string model = argv[1], prompts_file, dialogue_file, json_out;
     int mtp = 0;
     bool kv_q8 = false, mem_only = false;
+    std::string snap_dir;  // --snapshot-test DIR: the saved states on flash (restored == fresh, bake, budget), then exit
     std::vector<std::string> cpu_libs = llm::cpu_variant_libs(), who;
     // The app's settings (DialogueEngine: CONTEXT_TOKENS, MAX_TOKENS, TEMPERATURE).
     int threads = 0, n_ctx = 1024, max_tokens = 56;
@@ -379,6 +527,7 @@ int main(int argc, char ** argv) {
         else if (a == "--mtp") mtp = std::atoi(next().c_str());
         else if (a == "--kv-q8") kv_q8 = true;
         else if (a == "--mem-only") mem_only = true;
+        else if (a == "--snapshot-test") snap_dir = next();
         else {
             std::fprintf(stderr, "unknown option %s\n", a.c_str());
             return 2;
@@ -406,6 +555,11 @@ int main(int argc, char ** argv) {
         test_bad_models(tmp && *tmp ? tmp : "/tmp");
     }
 
+    if (!snap_dir.empty()) {
+        snapshot_test(model, mtp, threads, n_ctx, max_tokens, prompts, snap_dir);
+        std::printf("\n%s (%d failed checks)\n", failures ? "FAILED" : "ALL CHECKS PASSED", failures);
+        return failures ? 1 : 0;
+    }
     std::printf("\n== load %s\n", model.c_str());
     llm::Engine e;
     e.sampling().seed = seed;

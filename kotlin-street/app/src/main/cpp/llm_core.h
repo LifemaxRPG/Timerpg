@@ -100,6 +100,21 @@ struct Stats {
     int32_t accepted = 0;
 };
 
+/** The saved model states of a recurrent or hybrid model (Engine::set_snapshot_dir): where they are and what they cost. */
+struct SnapStats {
+    int32_t files = 0;           // states of this model on flash
+    int64_t file_bytes = 0;      // their size
+    int32_t ram = 0;             // states held in RAM (the hot one, or every one without a directory)
+    int64_t ram_bytes = 0;
+    int64_t state_bytes = 0;     // the size of the last state taken (llama_state_seq_get_size)
+    int32_t restores_file = 0;   // restores read from flash / from RAM, since the load
+    int32_t restores_ram = 0;
+    int64_t restore_ms = 0;      // time in those restores
+    int32_t writes = 0;          // states written to flash since the load, and the time it took
+    int64_t write_ms = 0;
+    int32_t evicted = 0;         // files removed to keep under the budget
+};
+
 /** How replies are sampled: the settings the WebAssembly version used. */
 struct Sampling {
     int32_t top_k = 40;
@@ -167,6 +182,24 @@ public:
     const std::string & error() const { return error_; }
     const Stats & stats() const { return stats_; }
     Sampling & sampling() { return sampling_; }
+    /**
+     * Saved states (recurrent/hybrid models only) go to files in [dir] instead of RAM: written once where a prompt's
+     * system message reaches the end of the shared rules, of the person's persona and of the whole fact sheet, read
+     * back (mapped, so the pages stay the system's to drop) on a restore, and kept across loads and sessions (keyed by
+     * the model, its cache type and device, and the exact tokens). The directory's files are kept under [budget_bytes]
+     * (the least recently used go first). [keep_hot]: the shortest state (the shared rules) also stays in RAM.
+     * An empty [dir]: states in RAM as before (up to 8). Takes effect at once and on every later load.
+     */
+    void set_snapshot_dir(const std::string & dir, int64_t budget_bytes, bool keep_hot);
+    /**
+     * Pre-bakes [prompt]'s states: processes its system message up to the last saved point (rules, persona, fact
+     * sheet), writing the states it does not have yet, and leaves the cache there. Returns the tokens the deepest state
+     * covers (0: nothing to bake: no system message, or not a recurrent model), -1 on failure (see error()).
+     */
+    int bake(const std::string & prompt);
+    const SnapStats & snap_stats() const { return snap_stats_; }
+    /** The token ids of the last reply (for tests: restored and fresh generation must give the same ones). */
+    const std::vector<int32_t> & reply_tokens() const { return reply_tokens_; }
     /** Tokens currently in the KV cache (for tests). */
     size_t cached_tokens() const { return cached_.size(); }
     const llama_vocab * vocab() const { return vocab_; }
@@ -187,13 +220,36 @@ private:
     void free_mtp();
     /** The token positions after each line end of the system message: where snapshots are taken. */
     std::vector<size_t> line_ends(const std::vector<int32_t> & toks) const;
+    /** Where states are saved: every line end in RAM; with a directory, the end of the rules, of the persona and of
+     *  the whole fact sheet (see set_snapshot_dir). */
+    std::vector<size_t> snapshot_points(const std::vector<int32_t> & toks) const;
+    /** Reads the headers of this model's state files in the directory (again, when it changed). */
+    void scan_snapshots(bool force);
+    /** Removes the least recently used files until the directory is under its budget. */
+    void enforce_budget();
+    void stat_snapshots();
+    uint64_t model_key() const;
+    /** The longest saved state that [toks] starts with (fewer tokens than it), 0 if none. */
+    size_t saved_prefix(const std::vector<int32_t> & toks);
 
     /** The model's state after the first tokens of a prompt (a recurrent state cannot be cut back, so it is saved). */
     struct Snapshot {
         std::vector<int32_t> tokens;
-        std::vector<uint8_t> state;
+        std::vector<uint8_t> state;   // in RAM (no directory, or the hot one)
+        std::string path;             // on flash ("" in RAM only)
+        size_t bytes = 0;             // the state's size
         uint64_t used = 0;
     };
+    std::string snap_dir_;
+    int64_t snap_budget_ = 0;
+    bool snap_hot_ = false;
+    uint64_t snap_key_ = 0;
+    int64_t snap_dir_mtime_ = -1;
+    SnapStats snap_stats_;
+    std::vector<int32_t> reply_tokens_;
+    /** With a directory: keeps [s]'s state in RAM ([data]: its bytes, when not there yet) if it is the shortest on
+     *  flash, and drops every other RAM copy. */
+    void keep_hot(Snapshot & s, const uint8_t * data);
     bool recurrent_ = false;
     int device_ = 0;
     bool repack_ = false;

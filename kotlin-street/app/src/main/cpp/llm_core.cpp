@@ -15,6 +15,12 @@
 #include <mutex>
 #include <thread>
 
+#include <dirent.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #if defined(__aarch64__) && defined(__linux__)
 #include <sys/auxv.h>
 #ifndef HWCAP_FPHP
@@ -35,8 +41,54 @@ namespace llm {
 
 namespace {
 
-/** Saved states of a recurrent or hybrid model (Engine::take_snapshot): each is tens of MB for a 9B model. */
+/** Saved states of a recurrent or hybrid model kept in RAM when there is no state directory (Engine::take_snapshot):
+ *  each is tens of MB (Qwen3.5-4B: its delta-net state plus the prefix's attention cache). */
 constexpr size_t kMaxSnapshots = 8;
+
+// ------------------------------------------------------------------------------------------------ state files
+
+/** A state file: this header, the tokens (int32), then the state (llama_state_seq_get_data). */
+struct SnapHeader {
+    char magic[8];
+    uint64_t key;          // Engine::model_key
+    uint32_t n_tokens;
+    uint32_t reserved;
+    uint64_t state_bytes;
+};
+static_assert(sizeof(SnapHeader) == 32, "state file header");
+constexpr char kSnapMagic[8] = {'T', 'R', 'P', 'G', 'S', 'T', '0', '1'};
+
+uint64_t fnv1a(const void * data, size_t n, uint64_t h = 1469598103934665603ULL) {
+    const auto * p = static_cast<const unsigned char *>(data);
+    for (size_t i = 0; i < n; ++i) { h ^= p[i]; h *= 1099511628211ULL; }
+    return h;
+}
+
+std::string hex16(uint64_t v) {
+    char b[17];
+    std::snprintf(b, sizeof b, "%016llx", (unsigned long long) v);
+    return b;
+}
+
+bool ends_with(const std::string & s, const char * tail) {
+    const size_t n = std::strlen(tail);
+    return s.size() >= n && s.compare(s.size() - n, n, tail) == 0;
+}
+
+/** Marks a file as just used (its mtime: the budget removes the least recently used first). */
+void touch(const std::string & path) { utimensat(AT_FDCWD, path.c_str(), nullptr, 0); }
+
+int64_t mtime_ns(const struct stat & st) { return (int64_t) st.st_mtim.tv_sec * 1000000000LL + st.st_mtim.tv_nsec; }
+
+/** Writes a state file: the header, [tokens], then the state llama.cpp writes into [fill]'s buffer. */
+SnapHeader snap_header(uint64_t key, size_t n_tokens, size_t state_bytes) {
+    SnapHeader h{};
+    std::memcpy(h.magic, kSnapMagic, sizeof kSnapMagic);
+    h.key = key;
+    h.n_tokens = (uint32_t) n_tokens;
+    h.state_bytes = state_bytes;
+    return h;
+}
 
 int64_t now_ms() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
@@ -375,7 +427,10 @@ void Engine::unload() {
     model_ = nullptr;
     vocab_ = nullptr;
     cached_.clear();
-    snapshots_.clear();
+    snapshots_.clear();  // (the files stay: the next load of this model finds them)
+    snap_key_ = 0;
+    snap_dir_mtime_ = -1;
+    snap_stats_ = {};
     recurrent_ = false;
     n_batch_ = 0;
 }
@@ -393,7 +448,163 @@ std::vector<size_t> Engine::line_ends(const std::vector<int32_t> & toks) const {
     return out;
 }
 
+uint64_t Engine::model_key() const {
+    // a state is only valid for the same weights, cache type, device (its numbers) and rollback/MTP layout
+    char desc[256] = {};
+    llama_model_desc(model_, desc, sizeof desc);
+    const std::string k = std::string("timerpg-state-v1|") + desc + "|" + std::to_string(llama_model_size(model_)) + "|" +
+        std::to_string(llama_model_n_params(model_)) + "|" + std::to_string(llama_model_n_layer(model_)) + "|" +
+        std::to_string(llama_model_n_embd(model_)) + "|" + (kv_q8_used_ ? "q8_0" : "f16") + "|dev" + std::to_string(device()) +
+        "|rs" + std::to_string(llama_n_rs_seq(ctx_)) + (dft_ ? "|mtp" : "");
+    return fnv1a(k.data(), k.size());
+}
+
+void Engine::set_snapshot_dir(const std::string & dir, int64_t budget_bytes, bool keep_hot) {
+    std::string d = dir;
+    while (d.size() > 1 && d.back() == '/') d.pop_back();
+    if (!d.empty()) mkdir(d.c_str(), 0700);
+    if (d != snap_dir_) {
+        // states held for the old place go (RAM ones would never be written; file ones are another directory's)
+        snapshots_.clear();
+        snap_dir_mtime_ = -1;
+    }
+    snap_dir_ = d;
+    snap_budget_ = budget_bytes;
+    snap_hot_ = keep_hot;
+    if (!snap_hot_) for (auto & s : snapshots_) if (!s.path.empty()) std::vector<uint8_t>().swap(s.state);
+    if (ctx_ && recurrent_) { scan_snapshots(true); enforce_budget(); }
+    stat_snapshots();
+}
+
+void Engine::scan_snapshots(bool force) {
+    if (snap_dir_.empty() || !ctx_ || !recurrent_) return;
+    struct stat st;
+    if (stat(snap_dir_.c_str(), &st) != 0) return;
+    if (!force && mtime_ns(st) == snap_dir_mtime_) return;  // (unchanged; else another process wrote or removed one)
+    snap_dir_mtime_ = mtime_ns(st);
+    DIR * dir = opendir(snap_dir_.c_str());
+    if (!dir) return;
+    const std::string prefix = hex16(snap_key_) + "-";
+    std::vector<Snapshot> found;
+    while (dirent * e = readdir(dir)) {
+        const std::string name = e->d_name;
+        if (name.rfind(prefix, 0) != 0 || !ends_with(name, ".state")) continue;
+        const std::string path = snap_dir_ + "/" + name;
+        const int fd = open(path.c_str(), O_RDONLY | O_CLOEXEC);
+        if (fd < 0) continue;
+        SnapHeader h;
+        struct stat fs;
+        bool ok = fstat(fd, &fs) == 0 && pread(fd, &h, sizeof h, 0) == (ssize_t) sizeof h &&
+                  std::memcmp(h.magic, kSnapMagic, sizeof kSnapMagic) == 0 && h.key == snap_key_ && h.n_tokens > 0 &&
+                  h.n_tokens < (1u << 20) &&
+                  (uint64_t) fs.st_size == sizeof h + (uint64_t) h.n_tokens * sizeof(int32_t) + h.state_bytes;
+        Snapshot s;
+        if (ok) {
+            s.tokens.resize(h.n_tokens);
+            const ssize_t want = (ssize_t) (h.n_tokens * sizeof(int32_t));
+            ok = pread(fd, s.tokens.data(), (size_t) want, sizeof h) == want;
+        }
+        close(fd);
+        if (!ok) { unlink(path.c_str()); continue; }  // torn or foreign: of no use to anyone
+        s.path = path;
+        s.bytes = (size_t) h.state_bytes;
+        // (what this process knew of it stays: its RAM copy and when it was used)
+        for (auto & old : snapshots_) if (old.path == path) { s.state.swap(old.state); s.used = old.used; }
+        found.push_back(std::move(s));
+    }
+    closedir(dir);
+    snapshots_.swap(found);
+    stat_snapshots();
+}
+
+void Engine::enforce_budget() {
+    if (snap_dir_.empty() || snap_budget_ <= 0) return;
+    DIR * dir = opendir(snap_dir_.c_str());
+    if (!dir) return;
+    struct F { std::string path; int64_t size; int64_t mt; };
+    std::vector<F> files;
+    int64_t total = 0;
+    while (dirent * e = readdir(dir)) {
+        const std::string name = e->d_name;
+        if (!ends_with(name, ".state")) continue;
+        const std::string path = snap_dir_ + "/" + name;
+        struct stat st;
+        if (stat(path.c_str(), &st) != 0) continue;
+        files.push_back({path, (int64_t) st.st_size, mtime_ns(st)});
+        total += st.st_size;
+    }
+    closedir(dir);
+    if (total <= snap_budget_) return;
+    // every model's states share the budget: the least recently used go first, whichever model they are for
+    std::sort(files.begin(), files.end(), [](const F & a, const F & b) { return a.mt < b.mt; });
+    for (const auto & f : files) {
+        if (total <= snap_budget_) break;
+        if (unlink(f.path.c_str()) != 0) continue;
+        total -= f.size;
+        ++snap_stats_.evicted;
+        snapshots_.erase(std::remove_if(snapshots_.begin(), snapshots_.end(), [&](const Snapshot & s) { return s.path == f.path; }),
+                         snapshots_.end());
+    }
+    struct stat st;
+    if (stat(snap_dir_.c_str(), &st) == 0) snap_dir_mtime_ = mtime_ns(st);
+    stat_snapshots();
+}
+
+void Engine::stat_snapshots() {
+    SnapStats & t = snap_stats_;
+    t.files = 0; t.file_bytes = 0; t.ram = 0; t.ram_bytes = 0;
+    for (const auto & s : snapshots_) {
+        if (!s.path.empty()) { ++t.files; t.file_bytes += (int64_t) s.bytes; }
+        if (!s.state.empty()) { ++t.ram; t.ram_bytes += (int64_t) s.state.size(); }
+    }
+}
+
+void Engine::keep_hot(Snapshot & s, const uint8_t * data) {
+    // with a directory, at most one state stays in RAM: the shortest on flash (the shared rules every prompt starts with)
+    if (snap_dir_.empty() || !snap_hot_ || s.path.empty()) return;
+    for (const auto & o : snapshots_) if (!o.path.empty() && o.tokens.size() < s.tokens.size()) return;
+    for (auto & o : snapshots_) if (&o != &s) std::vector<uint8_t>().swap(o.state);
+    if (s.state.empty() && data) s.state.assign(data, data + s.bytes);
+}
+
+std::vector<size_t> Engine::snapshot_points(const std::vector<int32_t> & toks) const {
+    if (snap_dir_.empty()) return line_ends(toks);
+    // the system message's lines (src/llm/factsheet.ts: "<|im_start|>system", the rules, "FACTS", "You are ...", the
+    // manner, "The player is ...", the topic's facts, the example): saved after "FACTS" (the rules, shared by everyone),
+    // after the last "The player is" line (this person, whatever the topic) and at the last line end (this fact sheet)
+    std::vector<std::pair<size_t, std::string>> lines;
+    std::string line;
+    char buf[64];
+    for (size_t i = 0; i < toks.size(); ++i) {
+        const int32_t n = llama_token_to_piece(vocab_, toks[i], buf, sizeof buf, 0, /*special*/ true);
+        if (n <= 0) continue;
+        const std::string piece(buf, (size_t) n);
+        if (piece == "<|im_end|>") break;
+        line += piece;
+        if (piece.back() == '\n') { lines.emplace_back(i + 1, line); line.clear(); }
+    }
+    if (lines.empty()) return {};
+    size_t rules = 0, persona = 0;
+    for (const auto & l : lines) {
+        if (!rules && l.second == "FACTS\n") rules = l.first;
+        if (l.second.rfind("The player is", 0) == 0) persona = l.first;
+    }
+    if (!rules && lines.size() > 1) rules = lines[1].first;  // (another prompt format: after its first line of text)
+    std::vector<size_t> out;
+    for (size_t p : {rules, persona, lines.back().first}) if (p > 0 && (out.empty() || p > out.back())) out.push_back(p);
+    return out;
+}
+
+size_t Engine::saved_prefix(const std::vector<int32_t> & toks) {
+    scan_snapshots(false);
+    size_t best = 0;
+    for (const auto & s : snapshots_)
+        if (s.tokens.size() < toks.size() && s.tokens.size() > best && std::equal(s.tokens.begin(), s.tokens.end(), toks.begin())) best = s.tokens.size();
+    return best;
+}
+
 size_t Engine::restore_snapshot(const std::vector<int32_t> & toks) {
+    scan_snapshots(false);
     Snapshot * best = nullptr;
     const uint64_t now = ++clock_;
     for (auto & s : snapshots_) {
@@ -403,8 +614,42 @@ size_t Engine::restore_snapshot(const std::vector<int32_t> & toks) {
         if (!best || s.tokens.size() > best->tokens.size()) best = &s;
     }
     if (!best) return 0;
+    const int64_t t0 = now_ms();
     llama_memory_clear(llama_get_memory(ctx_), true);
-    if (llama_state_seq_set_data(ctx_, best->state.data(), best->state.size(), 0) == 0) {
+    bool ok = false;
+    if (!best->state.empty()) {
+        ok = llama_state_seq_set_data(ctx_, best->state.data(), best->state.size(), 0) != 0;
+        if (ok) ++snap_stats_.restores_ram;
+    } else if (!best->path.empty()) {
+        // mapped, not read into the heap: the pages are the file's, which the system may drop again at once
+        const int fd = open(best->path.c_str(), O_RDONLY | O_CLOEXEC);
+        struct stat st;
+        const size_t off = sizeof(SnapHeader) + best->tokens.size() * sizeof(int32_t);
+        if (fd >= 0 && fstat(fd, &st) == 0 && (size_t) st.st_size == off + best->bytes) {
+            void * m = mmap(nullptr, (size_t) st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+            if (m != MAP_FAILED) {
+                madvise(m, (size_t) st.st_size, MADV_SEQUENTIAL);
+                const uint8_t * src = static_cast<const uint8_t *>(m) + off;
+                ok = llama_state_seq_set_data(ctx_, src, best->bytes, 0) != 0;
+                if (ok) keep_hot(*best, src);
+                munmap(m, (size_t) st.st_size);
+            }
+        }
+        if (fd >= 0) close(fd);
+        if (ok) { ++snap_stats_.restores_file; touch(best->path); }
+        else {
+            // unreadable, or refused by llama.cpp: of no use, so it goes
+            log_msg(GGML_LOG_LEVEL_WARN, "llm: a saved state could not be restored, removed: " + best->path);
+            const std::string gone = best->path;
+            unlink(gone.c_str());
+            snapshots_.erase(std::remove_if(snapshots_.begin(), snapshots_.end(), [&](const Snapshot & s) { return s.path == gone; }),
+                             snapshots_.end());
+            best = nullptr;
+        }
+    }
+    snap_stats_.restore_ms += now_ms() - t0;
+    stat_snapshots();
+    if (!ok) {
         llama_memory_clear(llama_get_memory(ctx_), true);
         return 0;
     }
@@ -413,21 +658,132 @@ size_t Engine::restore_snapshot(const std::vector<int32_t> & toks) {
 }
 
 void Engine::take_snapshot() {
-    for (auto & s : snapshots_) if (s.tokens == cached_) { s.used = ++clock_; return; }
+    for (auto & s : snapshots_) if (s.tokens == cached_) { s.used = ++clock_; if (!s.path.empty()) touch(s.path); return; }
     const size_t size = llama_state_seq_get_size(ctx_, 0);
     if (size == 0) return;
+    snap_stats_.state_bytes = (int64_t) size;
     Snapshot snap;
-    snap.state.resize(size);
-    if (llama_state_seq_get_data(ctx_, snap.state.data(), size, 0) == 0) return;
     snap.tokens = cached_;
     snap.used = ++clock_;
-    // a handful: the rules every prompt starts with stay (they are used every time), the rest come and go
-    if (snapshots_.size() >= kMaxSnapshots) {
-        auto old = std::min_element(snapshots_.begin(), snapshots_.end(), [](const Snapshot & a, const Snapshot & b) { return a.used < b.used; });
-        *old = std::move(snap);
-    } else {
-        snapshots_.push_back(std::move(snap));
+    snap.bytes = size;
+    if (snap_dir_.empty()) {
+        snap.state.resize(size);
+        if (llama_state_seq_get_data(ctx_, snap.state.data(), size, 0) == 0) return;
+        // a handful: the rules every prompt starts with stay (they are used every time), the rest come and go
+        if (snapshots_.size() >= kMaxSnapshots) {
+            auto old = std::min_element(snapshots_.begin(), snapshots_.end(), [](const Snapshot & a, const Snapshot & b) { return a.used < b.used; });
+            *old = std::move(snap);
+        } else {
+            snapshots_.push_back(std::move(snap));
+        }
+        stat_snapshots();
+        return;
     }
+    // on flash: written once into a temporary file mapped in place (no copy in the heap), renamed when complete, so
+    // another process (the writer, the game) never reads half of one
+    const int64_t t0 = now_ms();
+    const std::string name = hex16(snap_key_) + "-" + hex16(fnv1a(cached_.data(), cached_.size() * sizeof(int32_t))) + ".state";
+    const std::string path = snap_dir_ + "/" + name;
+    const std::string tmp = path + ".tmp" + std::to_string((long) getpid());
+    const size_t off = sizeof(SnapHeader) + cached_.size() * sizeof(int32_t);
+    const size_t total = off + size;
+    const SnapHeader h = snap_header(snap_key_, cached_.size(), size);
+    std::vector<uint8_t> hot;  // the state's bytes while the file is mapped, for keep_hot
+    bool ok = false;
+    int err = 0;
+    const int fd = open(tmp.c_str(), O_RDWR | O_CREAT | O_TRUNC | O_CLOEXEC, 0600);
+    if (fd < 0) err = errno;
+    if (fd >= 0) {
+        // the blocks reserved first: a full disk is an error here, never a SIGBUS through the mapping
+        const int fa = posix_fallocate(fd, 0, (off_t) total);
+        if (fa == 0) {
+            void * m = mmap(nullptr, total, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+            if (m != MAP_FAILED) {
+                auto * p = static_cast<uint8_t *>(m);
+                std::memcpy(p, &h, sizeof h);
+                std::memcpy(p + sizeof h, cached_.data(), cached_.size() * sizeof(int32_t));
+                ok = llama_state_seq_get_data(ctx_, p + off, size, 0) == size;
+                if (ok && snap_hot_) hot.assign(p + off, p + off + size);
+                munmap(m, total);
+            } else err = errno;
+        } else if (fa == ENOSPC) {
+            err = fa;
+        } else {
+            // (no fallocate on this file system: written from the heap instead)
+            std::vector<uint8_t> buf(total);
+            std::memcpy(buf.data(), &h, sizeof h);
+            std::memcpy(buf.data() + sizeof h, cached_.data(), cached_.size() * sizeof(int32_t));
+            ok = llama_state_seq_get_data(ctx_, buf.data() + off, size, 0) == size && ftruncate(fd, 0) == 0;
+            for (size_t w = 0; ok && w < total;) {
+                const ssize_t n = write(fd, buf.data() + w, total - w);
+                if (n <= 0) { ok = false; err = errno; } else w += (size_t) n;
+            }
+            if (ok && snap_hot_) hot.assign(buf.begin() + (ptrdiff_t) off, buf.end());
+        }
+        if (close(fd) != 0) { ok = false; err = errno; }
+        if (ok && rename(tmp.c_str(), path.c_str()) != 0) { ok = false; err = errno; }
+        if (!ok) unlink(tmp.c_str());
+    }
+    snap_stats_.write_ms += now_ms() - t0;
+    if (!ok) {
+        log_msg(GGML_LOG_LEVEL_WARN, "llm: could not write a saved state to " + snap_dir_ + (err ? std::string(": ") + std::strerror(err) : ""));
+        return;
+    }
+    ++snap_stats_.writes;
+    snap.path = path;
+    snapshots_.push_back(std::move(snap));
+    keep_hot(snapshots_.back(), hot.empty() ? nullptr : hot.data());
+    struct stat st;
+    if (stat(snap_dir_.c_str(), &st) == 0) snap_dir_mtime_ = mtime_ns(st);  // (our own write: nothing new to read)
+    enforce_budget();
+    stat_snapshots();
+}
+
+int Engine::bake(const std::string & prompt) {
+    error_.clear();
+    if (!ctx_) { error_ = "no model loaded"; return -1; }
+    if (!recurrent_) return 0;  // (an attention-only cache is cut back to any prefix: nothing to save)
+    try {
+        if (cancel_.load()) { error_ = "cancelled"; return -1; }
+        std::vector<int32_t> toks;
+        if (!tokenize(prompt, toks) || toks.empty()) { error_ = "could not tokenize the prompt"; return -1; }
+        if (toks.size() >= llama_n_ctx(ctx_)) { error_ = "prompt too long"; return -1; }
+        const std::vector<size_t> pts = snapshot_points(toks);
+        if (pts.empty()) return 0;
+        const size_t deep = pts.back();
+        scan_snapshots(false);
+        for (auto & s : snapshots_) {
+            if (s.tokens.size() == deep && std::equal(s.tokens.begin(), s.tokens.end(), toks.begin())) {
+                s.used = ++clock_;
+                if (!s.path.empty()) touch(s.path);
+                return (int) deep;  // already baked
+            }
+        }
+        const std::vector<int32_t> target(toks.begin(), toks.begin() + (ptrdiff_t) deep);
+        size_t at = 0;
+        if (cached_.size() <= deep && std::equal(cached_.begin(), cached_.end(), target.begin()) &&
+            cached_.size() >= saved_prefix(target)) {
+            at = cached_.size();
+        } else {
+            at = restore_snapshot(target);
+            if (at == 0) { llama_memory_clear(llama_get_memory(ctx_), true); cached_.clear(); }
+        }
+        for (size_t p : pts) {
+            if (p <= at) continue;
+            if (!decode_tokens(toks, at, p, false)) {
+                if (cancel_.load()) error_ = "cancelled";
+                return -1;
+            }
+            at = p;
+            take_snapshot();
+        }
+        return (int) deep;
+    } catch (const std::bad_alloc &) {
+        error_ = "out of memory while baking";
+    } catch (const std::exception & e) {
+        error_ = std::string("baking failed: ") + e.what();
+    }
+    return -1;
 }
 
 const char * end_name(End e) {
@@ -596,6 +952,11 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
             }
         }
         batch_ = llama_batch_init(n_batch_, 0, 1);
+        if (recurrent_) {
+            snap_key_ = model_key();
+            scan_snapshots(true);
+            enforce_budget();
+        }
         stats_.threads = threads;
         stats_.load_ms = now_ms() - t0;
         return true;
@@ -668,6 +1029,7 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
     error_.clear();
     const Stats keep = stats_;
     stats_ = {};
+    reply_tokens_.clear();
     stats_.load_ms = keep.load_ms;
     stats_.threads = keep.threads;
     if (!ctx_) {
@@ -702,9 +1064,9 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
         reuse = std::min(reuse, toks.size() - 1);
         llama_memory_t mem = llama_get_memory(ctx_);
         if (recurrent_) {
-            // the state can only go on from where it is: when the cache holds exactly a start of this prompt, carry on
-            // from there; otherwise start from the longest saved snapshot that begins it
-            if (reuse != cached_.size()) {
+            // the state can only go on from where it is: when the cache holds exactly a start of this prompt (and no
+            // saved state goes further), carry on from there; otherwise start from the longest saved state that begins it
+            if (reuse != cached_.size() || saved_prefix(toks) > reuse) {
                 reuse = restore_snapshot(toks);
                 if (reuse == 0) { llama_memory_clear(mem, true); cached_.clear(); }
             }
@@ -726,7 +1088,7 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
         if (recurrent_) {
             // stop at each line end of the facts to save the state there: the next prompt about this person (same lines
             // first) or anyone (the same rules) starts from the longest one
-            for (size_t b : line_ends(toks)) {
+            for (size_t b : snapshot_points(toks)) {
                 if (b <= at || b >= toks.size()) continue;
                 if (!(prefilled = decode_tokens(toks, at, b, false))) break;
                 at = b;
@@ -773,6 +1135,7 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
             const llama_token tok = llama_sampler_sample(smpl, ctx_, -1);
             if (llama_vocab_is_eog(vocab_, tok)) { stats_.end = End::eog; break; }
             if (++stats_.gen_tokens == 1) stats_.first_token_ms = now_ms() - t0;
+            reply_tokens_.push_back(tok);
             int32_t len = llama_token_to_piece(vocab_, tok, buf, sizeof buf, 0, /*special*/ true);
             std::string piece;
             if (len < 0) {
@@ -830,7 +1193,7 @@ std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, i
     // speculator too (the head needs the model's state at its end)
     bool ok = true;
     if (recurrent_) {
-        for (size_t b : line_ends(toks)) {
+        for (size_t b : snapshot_points(toks)) {
             if (b <= at || b >= n - 1) continue;
             if (!(ok = decode_tokens(toks, at, b, false))) break;
             at = b;
@@ -927,6 +1290,7 @@ std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, i
                 const llama_token tok = ids[i];
                 if (llama_vocab_is_eog(vocab_, tok)) { stats_.end = End::eog; done = true; break; }
                 if (++stats_.gen_tokens == 1) stats_.first_token_ms = now_ms() - t0;
+                reply_tokens_.push_back(tok);
                 ++produced;
                 int32_t len = llama_token_to_piece(vocab_, tok, buf, sizeof buf, 0, /*special*/ true);
                 std::string piece;

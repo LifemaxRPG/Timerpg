@@ -198,6 +198,52 @@ class DialogueEngine private constructor(private val app: Context) {
     private val commands = ArrayDeque<() -> Unit>()
     @Volatile private var demand: Gen? = null
     private var running: Gen? = null
+
+    /** Pre-baking a person's saved states ([NativeLlm.bake]) while the light model idles in play. */
+    private class Bake(val system: String, val prompt: String)
+    /** The system messages baked (or tried) this session; how many bakes ran. Guarded by [lock]. */
+    private val baked = HashSet<String>()
+    private var bakes = 0
+    /** Where the saved states go: noBackupFilesDir (never in a cloud backup: they are rebuilt from the model). */
+    private val stateDir: File get() = File(app.noBackupFilesDir, "llm-states")
+
+    /** The state files' budget: [STATE_BUDGET_BYTES], but never more than what keeps half the storage free. */
+    private fun stateBudget(): Long {
+        val dir = stateDir
+        val held = dir.listFiles()?.sumOf { it.length() } ?: 0L
+        val free = runCatching { app.noBackupFilesDir.usableSpace }.getOrDefault(0L)
+        return minOf(STATE_BUDGET_BYTES, (free + held) / 2).coerceAtLeast(0L)
+    }
+
+    /**
+     * Under [lock]: the next person to pre-bake. In play with the light model loaded (pre-generation is the main model's,
+     * so the NPU idles between replies), standing still: the system messages of the [BAKE_AHEAD] nearest lines not
+     * written yet, each once a session, so talking to them restores their state instead of reading their fact sheet
+     * again. Their files stay on flash for later sessions too.
+     */
+    private fun bakeJobLocked(): Bake? {
+        if (night || moving || pregenOff != null || pauses != setOf(LIVE_PAUSE)) return null
+        val n = backend as? NativeLlm ?: return null
+        if (n.stateDir == null || !n.loaded) return null
+        for (j in queue.ordered().take(BAKE_AHEAD)) {
+            val prompt = planned[j.key]?.target?.topic?.prompt ?: continue
+            val system = prompt.substringBefore("<|im_end|>", "")
+            if (system.isEmpty() || !baked.add(system)) continue
+            return Bake(system, prompt)
+        }
+        return null
+    }
+
+    /** Bakes one person's states (worker thread). */
+    private fun bake(b: Bake) {
+        val n = backend as? NativeLlm ?: return
+        val t0 = SystemClock.elapsedRealtime()
+        val covered = n.bake(b.prompt)
+        val k = lock.withLock { ++bakes }
+        if (k == 1 || k % 10 == 0 || covered < 0)
+            com.timerpg.street.shot.Crumbs.add("dialogue model: baked $k fact sheets (last ${if (covered < 0) "failed" else "$covered tokens"} in " +
+                "${SystemClock.elapsedRealtime() - t0} ms); ${n.stateLine()}")
+    }
     private val pauses = HashSet<String>()
     private var queue = PregenQueue(intArrayOf(1, 1))
     private var backend: LlmBackend? = null
@@ -1150,6 +1196,8 @@ class DialogueEngine private constructor(private val app: Context) {
                     }
                 }
             }
+            // (the light model idle in play: pre-bake the nearest people's saved states)
+            if (backend?.loaded == true) bakeJobLocked()?.let { return it }
             wake.await()
         }
         null
@@ -1174,6 +1222,7 @@ class DialogueEngine private constructor(private val app: Context) {
                         priority(Process.THREAD_PRIORITY_BACKGROUND)
                     }
                 }
+                is Bake -> safely("bake") { bake(task) }
                 is Function0<*> -> safely("command") { (task as () -> Unit)() }
             }
             refresh()
@@ -1486,6 +1535,10 @@ class DialogueEngine private constructor(private val app: Context) {
         native?.batch = batchFor(native?.device ?: com.timerpg.street.llm.NativeLlm.CPU)
         // a tied output head stays mapped on the CPU rather than copied to the device a second time (M3)
         native?.headMapped = headMappedWanted
+        // the saved states of the hybrid model on flash, not in RAM (NOVEL_OPTIMIZATIONS.md, idea 2): shared by this
+        // process and the writer's, kept across sessions; their budget leaves the phone's storage at least half free
+        native?.stateDir = stateDir
+        native?.stateBudgetBytes = stateBudget()
         val deviceCopy = native != null && !cpuFallback && native.device != com.timerpg.street.llm.NativeLlm.CPU
         // right before a device copy: the Java heap and the native allocator give back what they can (C2, M6: memory freed
         // just before the load shows up as free in full; an hour earlier Android would have refilled it with cache)
@@ -1614,7 +1667,8 @@ class DialogueEngine private constructor(private val app: Context) {
         }
         if (m != null) com.timerpg.street.shot.Crumbs.add("dialogue model: ${role.name.lowercase()} on ${listOf("CPU", "GPU", "NPU").getOrElse(native.runsOn) { "?" }} " +
             "in ${b.stats.loadMs} ms with ${com.timerpg.street.llm.Ram.freeMb(app)} MB free after: weights %.0f MB mapped + %.0f copied, KV %.0f (%s), state %.0f, compute %.0f; context ${contextFor(role)}"
-                .format(java.util.Locale.US, m[0], m[1], m[2], if (native.kvQ8Used) "8-bit" else "16-bit", m[3], m[4]))
+                .format(java.util.Locale.US, m[0], m[1], m[2], if (native.kvQ8Used) "8-bit" else "16-bit", m[3], m[4]) +
+            "; saved ${native.stateLine()}")
         runCatching { com.timerpg.street.play.PlayLog.spanDone("model.load", b.stats.loadMs.toDouble(), "${role.name.lowercase()} on ${listOf("CPU", "GPU", "NPU").getOrElse(native?.runsOn ?: 0) { "?" }}") }
         _status.update { it.copy(role = role, workMb = loadedWork shr 20, kvQ8 = native?.kvQ8Used == true) }
         // the light model answers in play but does not write the bank ahead: the main one does that (overnight, or in
@@ -2161,6 +2215,10 @@ class DialogueEngine private constructor(private val app: Context) {
         const val FIT_TEST = "fit test"
         /** The pause reason while the light model is loaded (pre-generation is the main model's). */
         const val LIVE_PAUSE = "light model loaded"
+        /** How many of the nearest unwritten lines' people the idle light model pre-bakes ([bakeJobLocked]). */
+        const val BAKE_AHEAD = 12
+        /** The most the saved model states may take on flash (~55 MB each for the light model: ~55 fact sheets). */
+        const val STATE_BUDGET_BYTES = 3L shl 30
         /** The prompt's batch on the NPU unless the panel set one ([batchFor]). */
         const val NPU_BATCH = 128
         /** How long the town's build waits for the light model's early load ([loadBeforeTown]; ~6 s measured on the S25). */

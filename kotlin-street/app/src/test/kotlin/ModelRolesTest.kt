@@ -226,6 +226,21 @@ class ModelRolesTest {
         assertEquals(ModelRoles.NoModel, pick(8000, bankBytes = 0, liveBytes = 0))
     }
 
+    @Test fun savedStatesInRamCountInTheModelsOwnMemory() {
+        val mb = 1L shl 20
+        // the light model (S25, 0.1.598): KV 19 MB, recurrent state 50 MB. Without the state directory up to 8 states
+        // in RAM; on flash none, or the hot one
+        assertEquals(8 * 69 * mb, ModelRoles.residentStateBytes(8, 19 * mb, 50 * mb))
+        assertEquals(0L, ModelRoles.residentStateBytes(0, 19 * mb, 50 * mb))
+        assertEquals(69 * mb, ModelRoles.residentStateBytes(1, 19 * mb, 50 * mb))
+        // a model without a recurrent state keeps none
+        assertEquals(0L, ModelRoles.residentStateBytes(8, 19 * mb, 0))
+        // counted in the need through the work bytes: 8 states push the light copy's need up by 552 MB
+        val work = 388 * mb
+        assertEquals(8 * 69 * mb, ModelRoles.needBytes(2004 * mb, true, work + ModelRoles.residentStateBytes(8, 19 * mb, 50 * mb)) -
+            ModelRoles.needBytes(2004 * mb, true, work))
+    }
+
     @Test fun theCpuByChoiceAppliesOnlyBehindTheGame() {
         assertTrue(waitsForNpu(pick(7000, accelerated = false)))
         assertEquals(Load(ModelRole.BANK, copied = false), pick(7000, accelerated = false, foreground = false))

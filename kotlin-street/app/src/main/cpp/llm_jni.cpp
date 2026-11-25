@@ -187,6 +187,33 @@ extern "C" JNIEXPORT jlongArray JNICALL FN(nativeStats)(JNIEnv * env, jobject, j
     return a;
 }
 
+/** Saved states on flash (llm::Engine::set_snapshot_dir): [dir] empty keeps them in RAM. */
+extern "C" JNIEXPORT void JNICALL FN(nativeSetSnapshots)(JNIEnv * env, jobject, jlong h, jbyteArray dir, jlong budget_bytes, jboolean hot) {
+    if (!h) return;
+    try { engine(h)->set_snapshot_dir(from_bytes(env, dir), budget_bytes, hot == JNI_TRUE); } catch (...) {}
+}
+
+/** Pre-bakes a prompt's saved states (llm::Engine::bake): the tokens covered, 0 nothing to bake, -1 failed. */
+extern "C" JNIEXPORT jint JNICALL FN(nativeBake)(JNIEnv * env, jobject, jlong h, jbyteArray prompt) {
+    if (!h) return -1;
+    try { return engine(h)->bake(from_bytes(env, prompt)); } catch (...) { return -1; }
+}
+
+/** llm::SnapStats: files, file bytes, in RAM, RAM bytes, a state's size, restores from flash, from RAM, restore ms,
+ *  writes, write ms, removed for the budget. */
+extern "C" JNIEXPORT jlongArray JNICALL FN(nativeSnapStats)(JNIEnv * env, jobject, jlong h) {
+    const llm::SnapStats s = h ? engine(h)->snap_stats() : llm::SnapStats{};
+    const jlong v[11] = {s.files, s.file_bytes, s.ram, s.ram_bytes, s.state_bytes, s.restores_file, s.restores_ram, s.restore_ms,
+                         s.writes, s.write_ms, s.evicted};
+    jlongArray a = env->NewLongArray(11);
+    if (!a) {
+        if (env->ExceptionCheck()) env->ExceptionClear();
+        return nullptr;
+    }
+    env->SetLongArrayRegion(a, 0, 11, v);
+    return a;
+}
+
 // ------------------------------------------------------------------------------------------------ speech to text
 // JNI for com.timerpg.street.llm.NativeAsr: llm::Asr (Qwen3-ASR through mtmd).
 #include "asr_core.h"

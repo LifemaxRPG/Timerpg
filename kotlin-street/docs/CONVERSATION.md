@@ -200,6 +200,46 @@ the corner turn and other heavy animations, and back off when the battery is low
 and audio are cached on disk (text as JSON, audio compressed with Opus) keyed by the prompt, so they survive restarts and
 time travel only regenerates the lines whose facts changed.
 
+## Saved model states on flash, and pre-baked fact sheets (2026-11-25; NOVEL_OPTIMIZATIONS.md, idea 2)
+
+Qwen3.5 is a hybrid model: its delta-net layers keep a recurrent state that cannot be cut back to a shorter prompt, so
+the engine saves the state at points of the system message and restores the longest one a new prompt starts with
+(`llm_core.cpp`, `Engine::take_snapshot` / `restore_snapshot`). Until now those were up to 8 copies in RAM the system
+cannot take back (one per line end of the facts), and nothing counted them.
+
+- **On flash now** (`Engine::set_snapshot_dir`; `NativeLlm.stateDir`, set by `DialogueEngine` to
+  `noBackupFilesDir/llm-states`): a state is written once into a file (reserved with `posix_fallocate`, then mapped and
+  filled in place by `llama_state_seq_get_data`: no copy in the heap; renamed when complete, so the writer's process and
+  the game's never read half of one) and read back mapped (`MAP_PRIVATE`, the pages stay the system's to drop). Files
+  are keyed by the model (description, size, cache type, device, rollback/MTP layout) and hold their exact tokens, so a
+  file is only ever used for the same prefix of the same model; they last across loads and sessions, and the writer
+  process (the main model, overnight) and the game (the light one) share the directory. A budget (3 GB, never more than
+  half the free storage) removes the least recently used files.
+- **Three points a prompt instead of every line end**: after "FACTS" (the shared rules), after the last "The player is"
+  line (this person, whatever the topic) and at the last line end (this fact sheet). So a person's first prompt writes
+  at most three states, later topics of theirs restore their persona, and anyone new restores the rules.
+- **No state stays in RAM** (`hotState` off): kept hot, the rules state restored in 7.2 ms from RAM against 9.0 ms from
+  its mapped file in the page cache (server, 0.8B, 20 MB states), so a resident copy (~55-70 MB for the light model) is
+  not worth it. `ModelRoles.residentStateBytes` counts whatever does stay (0 now; 1 with the hot one; the old 8 without
+  a directory) in the model's work bytes, and so in the NPU gate's need.
+- **Pre-baked**: `Engine::bake(prompt)` (`NativeLlm.bake`) processes a prompt's system message to its last point and
+  writes the states it lacks. In play the light model idles between replies (pre-generation is the main model's), so
+  standing still the worker bakes the fact sheets of the 12 nearest people with lines still unwritten, each once a
+  session (`DialogueEngine.bakeJobLocked`); talking to them then restores their whole fact sheet. Overnight, every prompt
+  the writer answers leaves its states on flash for the main model in the same way.
+- **Proof** (`llm_host_test --snapshot-test DIR`, Qwen3.5-0.8B Q4_0, greedy, this 4-core server): a new session restores
+  every one of the 5 test prompts from files written by the first session (109-133 of 130-179 prompt tokens restored)
+  and its replies are **token-identical** to the fresh prefill's (5 of 5); pre-baked states likewise (5 of 5); with a
+  budget of 2.5 states the files stay under it and replies stay identical. One reply of 5 differs from the old in-RAM
+  engine's, which split the prompt's batches at every line end: llama.cpp's numbers depend on how a prompt is batched,
+  so identity holds between runs that split alike (fresh vs restored here), as it does on the phone.
+- **Measured here** (server, page cache on tmpfs): a 0.8B state is 20.4 MB (19.3 MB recurrent state plus the prefix's
+  cache); written in ~16 ms, restored from the mapped file in ~9 ms. The old engine held 8 of them (161 MB) in RAM.
+- **Needs the S25**: the light model's real state size (`stateLine()` in the breadcrumbs after each load and every 10th
+  bake: count, MB on flash and in RAM, restores, write and restore times; estimated ~55-70 MB from its 50 MB recurrent
+  state); the UFS write and cold-read times; the prefill saved per restored fact sheet at the NPU's rate; and that the
+  NPU backend's `llama_state_seq_set_data` restores as exactly as the CPU's did here.
+
 ## The overnight writer and Writer mode (kotlin-street/app/src/main/kotlin/night)
 
 The owner leaves the phone on the charger overnight; the dialogue model writes the bank of lines so the game needs

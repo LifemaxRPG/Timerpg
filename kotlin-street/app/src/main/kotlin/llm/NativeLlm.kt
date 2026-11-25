@@ -48,6 +48,17 @@ class NativeLlm(context: Context? = null) : LlmBackend {
      * CPU (it reads the same 521 MB either way). No effect on a model with its own output weights.
      */
     @Volatile var headMapped = true
+    /**
+     * Where a recurrent or hybrid model (Qwen3.5) keeps its saved states from the next load: files on flash (written
+     * once, read back mapped, kept across sessions and shared with the writer's process), instead of up to 8 copies of
+     * tens of MB each in RAM the system cannot take back (docs/NOVEL_OPTIMIZATIONS.md, idea 2). Null: in RAM as before.
+     */
+    @Volatile var stateDir: File? = null
+    /** The most the state files of every model may take on flash; the least recently used go first. */
+    @Volatile var stateBudgetBytes: Long = 3L shl 30
+    /** With [stateDir]: the shortest state (the shared rules) also stays in RAM. Off by default: on a computer a
+     *  restore from the mapped file in the page cache cost about what one from RAM did (docs/CONVERSATION.md). */
+    @Volatile var hotState = false
     /** The loaded model's cache is in 8 bits. */
     val kvQ8Used: Boolean get() = handle != 0L && runCatching { nativeKvQ8(handle) }.getOrDefault(false)
     /**
@@ -56,8 +67,12 @@ class NativeLlm(context: Context? = null) : LlmBackend {
      */
     var loadMem: DoubleArray = DoubleArray(5)
         private set
-    /** The model's own working memory beside its weights (KV cache, recurrent state, compute buffers), in bytes. */
-    val workBytes: Long get() = ((loadMem[2] + loadMem[3] + loadMem[4]) * 1048576.0).toLong()
+    /** The model's own working memory beside its weights (KV cache, recurrent state, compute buffers), in bytes, and the
+     *  saved states it keeps in RAM ([com.timerpg.street.dialogue.ModelRoles.residentStateBytes]: none with [stateDir]
+     *  unless [hotState], else up to 8). */
+    val workBytes: Long get() = ((loadMem[2] + loadMem[3] + loadMem[4]) * 1048576.0).toLong() +
+        com.timerpg.street.dialogue.ModelRoles.residentStateBytes(if (stateDir == null) 8 else if (hotState) 1 else 0,
+            (loadMem[2] * 1048576.0).toLong(), (loadMem[3] * 1048576.0).toLong())
     /** Where the loaded model runs. */
     val runsOn: Int get() = if (handle == 0L) CPU else runCatching { nativeDevice(handle) }.getOrDefault(CPU)
     /**
@@ -172,6 +187,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
                 return false
             }
             runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0) or (if (kvQ8) 32 else 0) or (mtp.coerceIn(0, 15) shl 8) or (batchCode(batch) shl 12) or (if (headMapped) 1 shl 15 else 0)) }
+            runCatching { nativeSetSnapshots(handle, (stateDir?.path ?: "").toByteArray(Charsets.UTF_8), stateBudgetBytes, hotState) }
             loaded = false  // the native load frees the old model first
             val ok = try {
                 nativeLoad(handle, path.toByteArray(Charsets.UTF_8), t, ctx)
@@ -241,6 +257,33 @@ class NativeLlm(context: Context? = null) : LlmBackend {
         cancel()
         // Never block the main thread (a load may be running): free it on a thread of its own.
         thread(name = "llm-unload", isDaemon = true) { unload("Freed to save memory; load it again when needed") }
+    }
+
+    /**
+     * Pre-bakes [prompt]'s saved states (with [stateDir]): processes its system message up to the end of its fact sheet
+     * and writes the states not on flash yet (the shared rules, this person, this fact sheet), so that a conversation
+     * with them later restores instead of reading it all again. Returns the tokens covered (0: nothing to bake, -1:
+     * failed or cancelled). Blocks like [generate]; [cancel] stops it.
+     */
+    fun bake(prompt: String): Int {
+        if (isMainThread() || !loaded) return -1
+        val req = Request()
+        val entrySeq = synchronized(state) { cancelSeq }
+        genLock.withLock {
+            if (!loaded || handle == 0L) return -1
+            if (!begin(req, entrySeq)) return -1
+            return try { nativeBake(handle, prompt.toByteArray(Charsets.UTF_8)) } catch (e: Throwable) { -1 } finally { end() }
+        }
+    }
+
+    /** The saved states now: files, bytes on flash, in RAM, RAM bytes, a state's size, restores from flash, from RAM,
+     *  restore ms, writes, write ms, removed for the budget (all 0 before a load). */
+    val stateStats: LongArray get() = (if (handle == 0L) null else runCatching { nativeSnapStats(handle) }.getOrNull()) ?: LongArray(11)
+
+    /** [stateStats] in words, for the breadcrumbs. */
+    fun stateLine(): String = stateStats.let { s ->
+        "states: ${s[0]} on flash (${s[1] shr 20} MB), ${s[2]} in RAM (${s[3] shr 20} MB), each ${s[4] shr 20} MB; " +
+            "restored ${s[5]} from flash + ${s[6]} from RAM in ${s[7]} ms; written ${s[8]} in ${s[9]} ms; ${s[10]} removed for the budget"
     }
 
     // ------------------------------------------------------------------------------------------------ internals
@@ -350,6 +393,9 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     private external fun nativeLoadInfo(): String?
     private external fun nativeLoadMem(): DoubleArray?
     private external fun nativeKvQ8(handle: Long): Boolean
+    private external fun nativeSetSnapshots(handle: Long, dir: ByteArray, budgetBytes: Long, hot: Boolean)
+    private external fun nativeBake(handle: Long, prompt: ByteArray): Int
+    private external fun nativeSnapStats(handle: Long): LongArray?
 
     /** How the model's work splits between devices (llama.cpp's "graph splits" line; more: more fell back to the CPU). */
     val loadInfo: String? get() = if (libraryError != null) null else runCatching { nativeLoadInfo() }.getOrNull()?.takeIf { it.isNotBlank() }
