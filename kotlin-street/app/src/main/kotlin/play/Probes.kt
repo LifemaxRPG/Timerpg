@@ -172,10 +172,13 @@ class Probes(private val ctx: Context) {
         val light = com.timerpg.street.dialogue.DialogueEngine.shared(app).copyNeedsMb().second
         if (light <= 0) return null
         // (copyNeedsMb counts the whole file and the old flat margin: the measured copy and the learned margin instead)
-        val fileMb = com.timerpg.street.dialogue.ModelFiles.LIVE_BYTES shr 20
+        val liveFile = com.timerpg.street.dialogue.ModelFiles.live(app)
+        val fileMb = liveFile.length() shr 20
         val headMapped = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getBoolean("headMapped", true)
+        // (the key DialogueEngine.copyKey keeps it under: by the file's size, and its English-first head's K)
+        val k = com.timerpg.street.llm.NativeLlm.headVocab(liveFile).let { if (it > 0) "_k$it" else "" }
         val copyMb = app.getSharedPreferences("ai", Context.MODE_PRIVATE)
-            .getLong("copy_live_d${com.timerpg.street.llm.NativeLlm.NPU}_m${com.timerpg.street.dialogue.ModelFiles.LIVE_BYTES}_h${if (headMapped) 1 else 0}", -1L)
+            .getLong("copy_live_d${com.timerpg.street.llm.NativeLlm.NPU}_m${liveFile.length()}_h${if (headMapped) 1 else 0}$k", -1L)
             .let { if (it > 0) it shr 20 else fileMb }
         val need = light - fileMb + copyMb - com.timerpg.street.llm.Ram.MARGIN_MB + com.timerpg.street.llm.NpuGate.margin(app)
         val reclaim = com.timerpg.street.llm.NpuGate.verdict(app, freeMb, need, swapFreeMb).reclaimMb

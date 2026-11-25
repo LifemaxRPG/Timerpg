@@ -52,6 +52,18 @@ class ModelRolesTest {
         assertEquals(2431L, ModelRoles.needBytes(live, false) shr 20)
     }
 
+    @Test fun theMtpLightFileNeedsItsOwnSizeAndStillFitsBesideTheTown() {
+        // the 4B with its MTP layer (prepared: + 128 bytes) is 82 MB more than the old light file
+        val mtpPrepared = ModelFiles.LIVE_MTP_BYTES + 128
+        assertEquals(3745L, ModelRoles.needBytes(mtpPrepared, true) shr 20)
+        assertEquals(Load(ModelRole.LIVE, copied = true), pick(4067, liveBytes = mtpPrepared))
+        // with the English-first head on the device the measured copy is what counts, not the file
+        assertEquals(3400L, ModelRoles.needBytes(mtpPrepared, true, copyBytes = 2200L shl 20) shr 20)
+        // short by a little: tried with what Android finds, never the CPU in play
+        assertEquals(Load(ModelRole.LIVE, copied = true, tried = true), pick(3700, liveBytes = mtpPrepared, reclaimMb = 500))
+        assertTrue(waitsForNpu(pick(3000, liveBytes = mtpPrepared)))
+    }
+
     @Test fun inPlayBesideTheTownTheLightModelGoesOnTheNpu() {
         // the S25 Ultra with the town built: 4067 MB free (measured)
         assertEquals(Load(ModelRole.LIVE, copied = true), pick(4067))

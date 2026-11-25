@@ -103,6 +103,9 @@ android {
     // the baked world skeleton (docs/WORLD_GEN.md W4: content/world/<seed>/skeleton.twsk.gz, kotlin-street/tools/bake-world.ts)
     // as assets/world/<seed>/, copied in at each build from the repository's content folder
     sourceSets["main"].assets.srcDir(layout.buildDirectory.dir("worldAssets"))
+    // the English-first vocabulary list (docs/MODEL_FILES.md) as assets/llm/head_vocab.txt: the phone prepares the light
+    // model's download with it (dialogue/ModelPrep.kt); copied from tools/llm at each build, not kept twice in the tree
+    sourceSets["main"].assets.srcDir(layout.buildDirectory.dir("modelAssets"))
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
         // the OpenCL link stub is not shipped: the phone's own driver (libOpenCL.so, a public vendor library) is used
@@ -134,7 +137,11 @@ val copyWorldAssets = tasks.register<Copy>("copyWorldAssets") {
     from(rootProject.file("../content/world")) { include("*/skeleton.twsk.gz") }
     into(layout.buildDirectory.dir("worldAssets/world"))
 }
-tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") || it.name.startsWith("generate") && it.name.endsWith("Assets") }.configureEach { dependsOn(copyWorldAssets) }
+val copyModelAssets = tasks.register<Copy>("copyModelAssets") {
+    from(rootProject.file("tools/llm/head_vocab.txt"))
+    into(layout.buildDirectory.dir("modelAssets/llm"))
+}
+tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") || it.name.startsWith("generate") && it.name.endsWith("Assets") }.configureEach { dependsOn(copyWorldAssets, copyModelAssets) }
 
 // A clear message instead of a CMake error deep in the log when llama.cpp is missing.
 tasks.matching { it.name.startsWith("configureCMake") || it.name.startsWith("buildCMake") }.configureEach {

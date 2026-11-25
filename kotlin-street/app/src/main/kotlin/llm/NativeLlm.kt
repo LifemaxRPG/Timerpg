@@ -640,6 +640,42 @@ class NativeLlm(context: Context? = null) : LlmBackend {
         fun headVocab(file: File): Long = if (libraryError != null) 0L else runCatching { nativeHeadVocab(file.path.toByteArray(Charsets.UTF_8)) }.getOrDefault(0L)
         @JvmStatic private external fun nativeNpuPower(): String?
         @JvmStatic private external fun nativeNpuPowerEvents(): String?
+        @JvmStatic private external fun nativeReorderVocab(src: ByteArray, dst: ByteArray, list: ByteArray, k: Int, sink: PrepSink?): String?
+        @JvmStatic private external fun nativeRetargetVocab(path: ByteArray, list: ByteArray, k: Int): String?
+
+        /** The native side's progress callback for [reorderVocab]: false cancels. */
+        @Keep
+        private class PrepSink(private val f: (Double) -> Boolean) {
+            @Keep  // called from llm_jni.cpp
+            fun onProgress(fraction: Double): Boolean = try { f(fraction) } catch (t: Throwable) { false }
+        }
+
+        /** llm_jni.cpp's "code\nms\nrss_start_kb\nrss_peak_kb\nerror". */
+        private fun prepResult(s: String?): com.timerpg.street.dialogue.ModelPrep.Result {
+            if (s == null) return com.timerpg.street.dialogue.ModelPrep.Result("failed", error = "no answer from the native library")
+            val p = s.split('\n', limit = 5)
+            return com.timerpg.street.dialogue.ModelPrep.Result(p.getOrElse(0) { "failed" }, p.getOrNull(1)?.toLongOrNull() ?: 0,
+                p.getOrNull(2)?.toLongOrNull() ?: 0, p.getOrNull(3)?.toLongOrNull() ?: 0, p.getOrElse(4) { "" })
+        }
+
+        /**
+         * The English-first vocabulary order of a downloaded model (docs/MODEL_FILES.md; tools/llm/vocab_reorder.cpp in
+         * this library): [src] -> [dst] (written as dst.part, verified, renamed) with [list] (head_vocab.txt as a file) and
+         * K = [k] (0: the list's default). [progress] gets the fraction done (writing, then verifying) and returns false
+         * to cancel. Blocking: seconds for the 4B (server: 3.8 s for 2.67 GB, peak RSS 89 MB).
+         */
+        fun reorderVocab(src: File, dst: File, list: File, k: Int, progress: (Double) -> Boolean): com.timerpg.street.dialogue.ModelPrep.Result {
+            libraryError?.let { return com.timerpg.street.dialogue.ModelPrep.Result("failed", error = "native library: $it") }
+            return prepResult(runCatching { nativeReorderVocab(src.path.toByteArray(Charsets.UTF_8), dst.path.toByteArray(Charsets.UTF_8),
+                list.path.toByteArray(Charsets.UTF_8), k, PrepSink(progress)) }.getOrElse { "failed\n0\n0\n0\n${it.message}" })
+        }
+
+        /** K of a file already in the English-first order, changed in place (only the 4-byte key; the order is K's for any K). */
+        fun retargetVocab(file: File, list: File, k: Int): com.timerpg.street.dialogue.ModelPrep.Result {
+            libraryError?.let { return com.timerpg.street.dialogue.ModelPrep.Result("failed", error = "native library: $it") }
+            return prepResult(runCatching { nativeRetargetVocab(file.path.toByteArray(Charsets.UTF_8), list.path.toByteArray(Charsets.UTF_8), k) }
+                .getOrElse { "failed\n0\n0\n0\n${it.message}" })
+        }
 
         /** MemAvailable from /proc/meminfo in MB, or -1 if unknown. */
         private fun availableMemoryMb(): Long = runCatching {

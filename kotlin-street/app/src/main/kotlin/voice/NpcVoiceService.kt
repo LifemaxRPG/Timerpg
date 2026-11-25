@@ -355,7 +355,7 @@ class NpcVoiceService(private val ctx: Context) {
     fun download(onDone: () -> Unit) = download(ModelDownloads.ITEMS, onDone)
 
     /** Fetch the light dialogue model alone (replies in play), when it is what is missing. */
-    fun downloadLive(onDone: () -> Unit) = download(ModelDownloads.ITEMS.filter { it.path == com.timerpg.street.dialogue.ModelFiles.LIVE }, onDone)
+    fun downloadLive(onDone: () -> Unit) = download(ModelDownloads.ITEMS.filter { it.path == com.timerpg.street.dialogue.ModelFiles.LIVE_MTP }, onDone)
 
     /** Fetch the optional extra versions of the dialogue model (NPU Q4_0, MTP), for trying them out. */
     fun downloadExtras(onDone: () -> Unit) = download(ModelDownloads.EXTRAS, onDone)
