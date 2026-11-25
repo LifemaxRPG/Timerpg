@@ -407,8 +407,10 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
 
 @Composable
 private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.NpcVoiceService, sound: com.timerpg.street.audio.SoundScape? = null) {
-    // (the frame-spike profiler counts the HUD's recompositions: this screen's own and its texts')
-    androidx.compose.runtime.SideEffect { FrameSpikes.recomposed++ }
+    // (the frame-spike profiler counts the HUD's recompositions: this screen's own and its texts'; and times this screen's:
+    // its whole composition, from here to the apply its effects run in)
+    val composeAt = System.nanoTime()
+    androidx.compose.runtime.SideEffect { FrameSpikes.recomposed++; FrameSpikes.hudComposed(System.nanoTime() - composeAt) }
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val data = remember { loadStreet(ctx) }
     // the main street and the cross street: one place, the stage draws whichever the player is on and walks them round

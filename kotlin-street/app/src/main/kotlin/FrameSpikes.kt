@@ -28,6 +28,13 @@ object FrameSpikes {
     @Volatile var last: String? = null
     /** The HUD's recompositions, counted by its composables (a SideEffect): read and cleared each frame. */
     @Volatile var recomposed = 0
+    // the game screen's own compositions over the window: how many, the worst and the total (0.1.909's stutter: 300 ms
+    // frames while moving with the game's work under 20 ms and the HUD recomposed in them)
+    private var hudCount = 0
+    private var hudWorstNs = 0L
+    private var hudTotalNs = 0L
+    /** The game screen composed in [ns] (its SideEffect, main thread). */
+    fun hudComposed(ns: Long) { hudCount++; hudTotalNs += ns; if (ns > hudWorstNs) hudWorstNs = ns }
     /** What the AI's lane runs now ("dialogue", "voice", "speech", "memory") or null: [com.timerpg.street.llm.AiLane.current]. */
     private fun aiNow(): String? = com.timerpg.street.llm.AiLane.current
 
@@ -142,6 +149,10 @@ object FrameSpikes {
         sb.append("; gc %d (%d ms)".format(java.util.Locale.US, gcs, gcMs))
         val w = worst.filter { it.ms > 0f }.sortedByDescending { it.ms }
         if (w.isNotEmpty()) sb.append("; worst: ").append(w.joinToString(" | ") { it.line })
+        // the HUD's share (the main thread's, outside the game's measured parts) and the minimap's pictures
+        if (hudCount > 0) sb.append("; HUD composed %d times, worst %.1f ms, %.1f ms in all".format(java.util.Locale.US, hudCount, hudWorstNs / 1e6, hudTotalNs / 1e6))
+        com.lifemax.rpg.feature.habits.maps.MiniPainter.window()?.let { sb.append("; ").append(it) }
+        hudCount = 0; hudWorstNs = 0L; hudTotalNs = 0L
         last = sb.toString()
         frames = 0; moving = 0; spikes = 0; gpuOver = 0; gpuFrames = 0; gpuWorst = 0f; gcs = 0; gcMs = 0L
         causes.fill(0); for (s in worst) { s.ms = 0f; s.line = "" }
