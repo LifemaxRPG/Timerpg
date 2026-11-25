@@ -266,6 +266,22 @@ public:
      */
     std::string generate(const std::string & prompt, int max_tokens, float temperature, const OnText & on_text);
 
+    /**
+     * Several prompts in one pass (the overnight writer: docs/ENGINE_TAILORING.md, idea 6). Each prompt is read as
+     * generate() reads it (the cache and the saved states reused, sequence 0), its state copied into a sequence of its
+     * own, then every reply is written together: one llama_decode per step for all of them (decoding is bound by
+     * reading the weights, so N replies cost little more than one). [seeds]: one per prompt (missing: sampling_.seed).
+     * Needs a context loaded with set_device bits 24-26 (sequences - 1) of at least prompts.size(); more prompts than
+     * that are done in groups. No guesses (MTP, n-grams) and no guide here. Returns one reply per prompt ("" for one
+     * that failed); batch_stats() and batch_tokens() say how each went.
+     */
+    std::vector<std::string> generate_batch(const std::vector<std::string> & prompts, int max_tokens, float temperature,
+                                            const std::vector<uint32_t> & seeds);
+    /** The sequences the loaded context holds for generate_batch (1: none, generate() only). */
+    int batch_seqs() const { return ctx_ ? n_seq_used_ : 0; }
+    const std::vector<Stats> & batch_stats() const { return batch_stats_; }
+    const std::vector<std::vector<int32_t>> & batch_tokens() const { return batch_tokens_; }
+
     /** Stops a running load/generate as soon as possible. Safe from any thread. It stays set until [arm]. */
     void cancel() { cancel_.store(true); }
     /** Clears a cancel. The caller arms before each load/generate, under its own lock, so that a cancel aimed at a

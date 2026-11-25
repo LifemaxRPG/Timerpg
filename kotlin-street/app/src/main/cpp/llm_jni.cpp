@@ -257,8 +257,57 @@ jlongArray stats_array(JNIEnv * env, const std::vector<llm::Stats> & all) {
         if (env->ExceptionCheck()) env->ExceptionClear();
         return nullptr;
     }
-    env->SetLongArrayRegion(a, 0, 13, v);
+    if (!v.empty()) env->SetLongArrayRegion(a, 0, (jsize) v.size(), v.data());
     return a;
+}
+}  // namespace
+
+/** Several prompts in one pass (llm::Engine::generate_batch): one reply each, "" for one that failed. */
+extern "C" JNIEXPORT jobjectArray JNICALL FN(nativeGenerateBatch)(JNIEnv * env, jobject, jlong h, jobjectArray prompts, jint max_tokens,
+                                                                  jfloat temperature, jintArray seeds) {
+    if (!h || !prompts) return nullptr;
+    try {
+        std::vector<std::string> ps;
+        const jsize n = env->GetArrayLength(prompts);
+        for (jsize i = 0; i < n; ++i) {
+            auto b = (jbyteArray) env->GetObjectArrayElement(prompts, i);
+            ps.push_back(from_bytes(env, b));
+            env->DeleteLocalRef(b);
+        }
+        std::vector<uint32_t> sd;
+        if (seeds) {
+            const jsize m = env->GetArrayLength(seeds);
+            std::vector<jint> tmp((size_t) m);
+            if (m > 0) env->GetIntArrayRegion(seeds, 0, m, tmp.data());
+            for (jint s : tmp) sd.push_back((uint32_t) s);
+        }
+        const std::vector<std::string> r = engine(h)->generate_batch(ps, max_tokens, temperature, sd);
+        jclass str = env->FindClass("java/lang/String");
+        jobjectArray out = env->NewObjectArray((jsize) r.size(), str, nullptr);
+        if (!out) {
+            if (env->ExceptionCheck()) env->ExceptionClear();
+            return nullptr;
+        }
+        for (size_t i = 0; i < r.size(); ++i) {
+            jstring s = to_jstring(env, r[i]);
+            env->SetObjectArrayElement(out, (jsize) i, s);
+            if (s) env->DeleteLocalRef(s);
+        }
+        return out;
+    } catch (...) {
+        return nullptr;
+    }
+}
+
+/** The last generate_batch's stats, 17 numbers per prompt (as nativeStats). */
+extern "C" JNIEXPORT jlongArray JNICALL FN(nativeBatchStats)(JNIEnv * env, jobject, jlong h) {
+    if (!h) return nullptr;
+    try { return stats_array(env, engine(h)->batch_stats()); } catch (...) { return nullptr; }
+}
+
+/** The sequences the loaded context holds for generate_batch. */
+extern "C" JNIEXPORT jint JNICALL FN(nativeBatchSeqs)(JNIEnv *, jobject, jlong h) {
+    return h ? engine(h)->batch_seqs() : 0;
 }
 
 /** The n-gram guesses' pool: the person's lines in the bank, one per line (llm::Engine::set_draft_pool). */

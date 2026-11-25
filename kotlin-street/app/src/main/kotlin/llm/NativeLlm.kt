@@ -368,6 +368,45 @@ class NativeLlm(context: Context? = null) : LlmBackend {
             "restored ${s[5]} from flash + ${s[6]} from RAM in ${s[7]} ms; written ${s[8]} in ${s[9]} ms; ${s[10]} removed for the budget"
     }
 
+    /**
+     * Several prompts in one pass ([batchSeqs] from the load): each reply token-identical to what [generate] would write
+     * for it alone with the same seed (proved greedy and sampled on a computer: host_test --batch-test). [seeds]: one per
+     * prompt (a new random one each when empty). Blocks; not on the main thread. Returns one reply and its stats per
+     * prompt ("" for one that failed); null if it could not run at all.
+     */
+    fun generateBatch(prompts: List<String>, maxTokens: Int, temperature: Float, seeds: IntArray = IntArray(0)): List<Pair<String, LlmStats>>? {
+        lastGenerateError = null
+        if (isMainThread() || !loaded || prompts.isEmpty()) return null
+        genLock.withLock {
+            if (!loaded || handle == 0L) return null
+            val req = Request()
+            if (!begin(req, synchronized(state) { cancelSeq })) return null
+            val sd = if (seeds.size == prompts.size) seeds else IntArray(prompts.size) { kotlin.random.Random.nextInt() }
+            val out = try {
+                nativeGenerateBatch(handle, Array(prompts.size) { prompts[it].toByteArray(Charsets.UTF_8) }, maxTokens.coerceIn(0, 4096), temperature, sd)
+            } catch (e: Throwable) {
+                Log.e(TAG, "generateBatch threw", e)
+                null
+            } finally {
+                end()
+            }
+            val err = runCatching { nativeError(handle) }.getOrNull()?.ifEmpty { null }
+            if (err != null) lastGenerateError = err
+            out ?: return null
+            val st = runCatching { nativeBatchStats(handle) }.getOrNull()
+            return out.mapIndexed { i, s ->
+                val o = i * 17
+                val ls = if (st != null && st.size >= o + 17) LlmStats(loadMs = st[o], promptTokens = st[o + 1].toInt(), reusedTokens = st[o + 2].toInt(),
+                    prefillMs = st[o + 3], genTokens = st[o + 4].toInt(), genMs = st[o + 5], firstTokenMs = st[o + 6], threads = st[o + 7].toInt())
+                else LlmStats()
+                (s ?: "") to ls
+            }
+        }
+    }
+
+    /** [stats] as one reply of a [generateBatch] went, so code that reads [stats] after a reply reads that one's. */
+    fun replayStats(s: LlmStats) { stats = s }
+
     // ------------------------------------------------------------------------------------------------ internals
 
     private fun generate(prompt: String, maxTokens: Int, temperature: Float, onToken: (String) -> Boolean, req: Request): String {

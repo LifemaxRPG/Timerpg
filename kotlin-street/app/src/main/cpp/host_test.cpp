@@ -582,6 +582,73 @@ void guide_eval(const std::string & model, int threads, int n_ctx, int max_token
     std::printf("  host CPU: old %.1f tok/s, guided %.1f tok/s\n", per_sec(gen_old, ms_old), per_sec(gen_guided, ms_guided));
 }
 
+// ------------------------------------------------------------------------------------------------ the writer's batches (idea 6)
+
+/**
+ * --batch-test N: generate_batch with N sequences against each prompt alone (generate() on a one-sequence engine), greedy
+ * and sampled (the same seed per prompt): every reply must be token-identical; and the time both took.
+ */
+void batch_test(const std::string & model, int threads, int n_ctx, int max_tokens, const std::vector<Prompt> & prompts, int n_seq) {
+    std::printf("\n== the writer's batches: %zu prompts, %d sequences a pass\n", prompts.size(), n_seq);
+    std::vector<std::string> texts;
+    std::vector<uint32_t> seeds;
+    for (size_t i = 0; i < prompts.size(); ++i) { texts.push_back(prompts[i].text); seeds.push_back(1000 + (uint32_t) i); }
+    for (float temp : {0.0f, 0.3f}) {
+        if (temp > 0 && g_batch_greedy_only) break;
+        std::vector<std::vector<int32_t>> alone;
+        int64_t alone_ms = 0;
+        long alone_tok = 0;
+        {
+            llm::Engine e;
+            e.arm();
+            // (the same context as the batch's: its cache size and sequences change llama.cpp's rounding)
+            e.set_device(g_batch_alone_same ? (n_seq - 1) << 24 : 0);
+            if (!e.load(model, threads, n_ctx)) { check(false, "load: " + e.error()); return; }
+            const int64_t t0 = now_ms();
+            for (size_t i = 0; i < texts.size(); ++i) {
+                e.sampling().seed = seeds[i];
+                e.generate(texts[i], max_tokens, temp, nullptr);
+                alone.push_back(e.reply_tokens());
+                alone_tok += e.stats().gen_tokens;
+            }
+            alone_ms = now_ms() - t0;
+        }
+        llm::Engine b;
+        b.arm();
+        b.set_device((n_seq - 1) << 24);
+        llm::reset_load_mem();
+        if (!b.load(model, threads, n_ctx)) { check(false, "load with sequences: " + b.error()); return; }
+        double mem[5];
+        llm::last_load_mem(mem);
+        check(b.batch_seqs() == n_seq, "the context holds " + std::to_string(b.batch_seqs()) + " sequences (KV " +
+                                           std::to_string((int) mem[2]) + " MiB, recurrent state " + std::to_string((int) mem[3]) + " MiB)");
+        const int64_t t0 = now_ms();
+        const std::vector<std::string> r = b.generate_batch(texts, max_tokens, temp, seeds);
+        const int64_t batch_ms = now_ms() - t0;
+        if (!b.error().empty()) check(false, "generate_batch: " + b.error());
+        int same = 0;
+        long batch_tok = 0;
+        for (size_t i = 0; i < texts.size(); ++i) {
+            same += b.batch_tokens()[i] == alone[i];
+            batch_tok += b.batch_stats()[i].gen_tokens;
+            if (b.batch_tokens()[i] != alone[i]) {
+                size_t at = 0;
+                while (at < alone[i].size() && at < b.batch_tokens()[i].size() && alone[i][at] == b.batch_tokens()[i][at]) ++at;
+                std::printf("  differs: %s (from token %zu of %zu; pass %zu)\n", prompts[i].label.c_str(), at, alone[i].size(), i / (size_t) n_seq);
+            }
+        }
+        check(same == (int) texts.size(), std::to_string(same) + " of " + std::to_string(texts.size()) + " replies token-identical to each alone (" +
+                                              (temp == 0.0f ? "greedy" : "sampled, the same seed") + ")");
+        // and again in the same engine: generate() after a batch still answers as before
+        b.sampling().seed = seeds[0];
+        b.generate(texts[0], max_tokens, temp, nullptr);
+        check(b.reply_tokens() == alone[0], "generate() after a batch gives the same reply as alone");
+        std::printf("  alone: %ld tokens in %lld ms (%.1f tok/s); in batches of %d: %ld tokens in %lld ms (%.1f tok/s), %.2fx (host CPU)\n",
+                    alone_tok, (long long) alone_ms, per_sec(alone_tok, alone_ms), n_seq, batch_tok, (long long) batch_ms,
+                    per_sec(batch_tok, batch_ms), batch_ms > 0 ? (double) alone_ms / batch_ms : 0.0);
+    }
+}
+
 // ------------------------------------------------------------------------------------------------ the English-first head
 
 /**

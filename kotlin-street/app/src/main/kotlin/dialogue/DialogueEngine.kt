@@ -1090,17 +1090,51 @@ class DialogueEngine private constructor(private val app: Context) {
      * (follow-ups, then the frequent themes for every person); more ways of saying each line (all of one prompt's in a
      * row: the model's prompt cache then makes them nearly free of prompt processing); then the other years. Under [lock].
      */
-    private fun nightJobLocked(): Gen? {
+    private fun nightJobLocked(skip: Set<String> = emptySet()): Gen? {
         val s = steer
         val near = planned.values.sortedWith(compareBy<Planned>({ queue.rank(it.job) }, { it.job.order }))
         val ps = s.order(near, { it.target.npc.id }, { it.target.topic.intent })
-        for (p in ps) { val k = p.job.key; if (cache.get(k) == null && k !in nightSkip) return Gen(k, p.target) }
-        for (j in steered) if (cache.get(j.key) == null && j.key !in nightSkip) return Gen(j.key, j.target, slot = j.slot)
+        for (p in ps) { val k = p.job.key; if (cache.get(k) == null && k !in nightSkip && k !in skip) return Gen(k, p.target) }
+        for (j in steered) if (cache.get(j.key) == null && j.key !in nightSkip && j.key !in skip) return Gen(j.key, j.target, slot = j.slot)
         // the light model's lines (Writer mode when only it fitted), rewritten once the main model writes
-        if (loadedRole == ModelRole.BANK) for (p in ps) { val k = p.job.key; if (k !in nightSkip && cache.get(k)?.light == true) return Gen(k, p.target, upgrade = true) }
-        for (p in ps) { val k = p.job.key; if (k !in nightSkip && cache.wantsVariant(k)) return Gen(k, p.target, variant = true) }
-        for (p in extraPlans.values) { val k = p.job.key; if (cache.get(k) == null && k !in nightSkip) return Gen(k, p.target) }
+        if (loadedRole == ModelRole.BANK) for (p in ps) { val k = p.job.key; if (k !in nightSkip && k !in skip && cache.get(k)?.light == true) return Gen(k, p.target, upgrade = true) }
+        for (p in ps) { val k = p.job.key; if (k !in nightSkip && k !in skip && cache.wantsVariant(k)) return Gen(k, p.target, variant = true) }
+        for (p in extraPlans.values) { val k = p.job.key; if (cache.get(k) == null && k !in nightSkip && k !in skip) return Gen(k, p.target) }
         return null
+    }
+
+    /**
+     * Overnight with [writerBatchWanted] > 1 and a context that holds that many sequences: [first] and the next night
+     * jobs of the same kind (lines or variants, the same temperature), up to the batch, to be written in one pass
+     * ([batchRaws]); else [first] alone. Lines someone waits for, speed tests and prompt-less topics are never batched.
+     */
+    private fun nightGroup(first: Gen): List<Gen> {
+        val nl = backend as? NativeLlm ?: return listOf(first)
+        val n = minOf(writerBatchWanted, nl.batchSeqsLoaded)
+        if (!night || n < 2 || first.speed || first.listeners.isNotEmpty() || first.target.topic.prompt == null) return listOf(first)
+        val out = arrayListOf(first)
+        lock.withLock {
+            val skip = hashSetOf(first.key)
+            while (out.size < n) {
+                val g = nightJobLocked(skip) ?: break
+                skip += g.key
+                if (g.target.topic.prompt == null || g.variant != first.variant) break
+                out += g
+            }
+        }
+        return out
+    }
+
+    /** Each line's first try for a [nightGroup], in one pass; null when it could not run (each is then written alone). */
+    private fun batchRaws(group: List<Gen>): List<Pair<String, LlmStats>>? {
+        val nl = backend as? NativeLlm ?: return null
+        val temp = if (group[0].variant) VARIANT_TEMPERATURE else TEMPERATURE
+        val t0 = SystemClock.elapsedRealtime()
+        val r = try {
+            com.timerpg.street.llm.AiLane.run("dialogue") { nl.generateBatch(group.map { it.target.topic.prompt ?: "" }, MAX_TOKENS, temp) }
+        } catch (t: Throwable) { null }
+        if (r != null) com.timerpg.street.shot.Crumbs.add("writer: ${group.size} lines in one pass, ${r.sumOf { it.second.genTokens }} tokens in ${SystemClock.elapsedRealtime() - t0} ms")
+        return r?.takeIf { it.size == group.size && nl.lastGenerateError == null }
     }
 
     private fun slotOf(key: String): String = (planned[key] ?: extraPlans[key])?.slot ?: ""
@@ -1244,15 +1278,20 @@ class DialogueEngine private constructor(private val app: Context) {
             @Suppress("UNCHECKED_CAST")
             when (task) {
                 is Gen -> {
-                    try {
-                        safely("generate") { generate(task) }
-                    } finally {
-                        lock.withLock { if (running === task) running = null }
-                        // whatever happened, whoever is waiting gets a last line
-                        if (!task.done) task.finish(template(task.target.topic, "built-in"))
-                        if (task.speed && _status.value.speedTesting) _status.update { it.copy(speedTesting = false) }
-                        _status.update { it.copy(working = null) }
-                        priority(Process.THREAD_PRIORITY_BACKGROUND)
+                    // overnight: several lines' first tries in one pass, then each judged (and retried alone) as usual
+                    val group = nightGroup(task)
+                    val pre = if (group.size > 1) batchRaws(group) else null
+                    for ((i, g) in group.withIndex()) {
+                        try {
+                            safely("generate") { generate(g, pre?.getOrNull(i)) }
+                        } finally {
+                            lock.withLock { if (running === g) running = null }
+                            // whatever happened, whoever is waiting gets a last line
+                            if (!g.done) g.finish(template(g.target.topic, "built-in"))
+                            if (g.speed && _status.value.speedTesting) _status.update { it.copy(speedTesting = false) }
+                            _status.update { it.copy(working = null) }
+                            priority(Process.THREAD_PRIORITY_BACKGROUND)
+                        }
                     }
                 }
                 is Bake -> safely("bake") { bake(task) }
@@ -1882,8 +1921,8 @@ class DialogueEngine private constructor(private val app: Context) {
 
     private enum class End { OK, REJECTED, TIMEOUT, CANCELLED, ERROR }
 
-    /** Writes one line (worker thread). */
-    private fun generate(g: Gen) {
+    /** Writes one line (worker thread). [pre]: its first try already written in a batch (and how it went). */
+    private fun generate(g: Gen, pre: Pair<String, LlmStats>? = null) {
         val npc = g.target.npc
         val topic = g.target.topic
         val prompt = topic.prompt ?: return g.finish(template(topic, "built-in"))
@@ -1948,7 +1987,14 @@ class DialogueEngine private constructor(private val app: Context) {
                 return !g.cancelled && !closed
             }
             (b as? NativeLlm)?.draftPool = poolFor(npc, g.key)
-            var raw: String? = try {
+            (b as? NativeLlm)?.let { it.guided = guidedWanted; it.guideSelf = topic.self; it.guideRecent = topic.recent }
+            val batched = if (attempt == 1 && pre != null) pre else null
+            var raw: String? = if (batched != null) {
+                main.removeCallbacks(watchdog)
+                (b as? NativeLlm)?.replayStats(batched.second)
+                if (firstAt == 0L) firstAt = SystemClock.elapsedRealtime()
+                batched.first
+            } else try {
                 com.timerpg.street.llm.AiLane.run("dialogue") { b.generate(prompt, MAX_TOKENS, if (g.variant) VARIANT_TEMPERATURE else TEMPERATURE, onPiece) }
             } catch (t: Throwable) {
                 error = t.message ?: t.javaClass.simpleName

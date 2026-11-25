@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <deque>
+#include <memory>
 #include <mutex>
 #include <thread>
 
@@ -953,6 +954,12 @@ size_t Engine::saved_prefix(const std::vector<int32_t> & toks) {
     return best;
 }
 
+void Engine::clear_seq0() {
+    // (one sequence: the whole memory, as always; with generate_batch's sequences, only the first's)
+    if (n_seq_used_ > 1) llama_memory_seq_rm(llama_get_memory(ctx_), 0, -1, -1);
+    else llama_memory_clear(llama_get_memory(ctx_), true);
+}
+
 size_t Engine::restore_snapshot(const std::vector<int32_t> & toks) {
     scan_snapshots(false);
     Snapshot * best = nullptr;
@@ -965,7 +972,7 @@ size_t Engine::restore_snapshot(const std::vector<int32_t> & toks) {
     }
     if (!best) return 0;
     const int64_t t0 = now_ms();
-    llama_memory_clear(llama_get_memory(ctx_), true);
+    clear_seq0();
     bool ok = false;
     if (!best->state.empty()) {
         ok = llama_state_seq_set_data(ctx_, best->state.data(), best->state.size(), 0) != 0;
@@ -1000,7 +1007,7 @@ size_t Engine::restore_snapshot(const std::vector<int32_t> & toks) {
     snap_stats_.restore_ms += now_ms() - t0;
     stat_snapshots();
     if (!ok) {
-        llama_memory_clear(llama_get_memory(ctx_), true);
+        clear_seq0();
         return 0;
     }
     cached_ = best->tokens;
@@ -1278,6 +1285,9 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
 
         const int train = llama_model_n_ctx_train(model_);
         if (n_ctx <= 0) n_ctx = 1024;
+        // several sequences at once (generate_batch): room for each prompt and reply beside the first's
+        n_seq_used_ = std::max(1, std::min(n_seq_, 8));
+        if (n_seq_used_ > 1) n_ctx = std::max(n_ctx, 512 * (n_seq_used_ + 1));
         n_ctx = std::max(128, train > 0 ? std::min(n_ctx, train) : n_ctx);
         if (threads <= 0) threads = default_threads();
 
@@ -1285,7 +1295,10 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
         cp.n_ctx = (uint32_t) n_ctx;
         cp.n_batch = (uint32_t) std::min(n_ctx, batch_max_);
         cp.n_ubatch = cp.n_batch;
-        cp.n_seq_max = 1;
+        // (with generate_batch: sequence 0 reads the prompts, 1..N write the replies; the attention cache one buffer, so
+        // sequence 0 alone still has the whole context)
+        cp.n_seq_max = n_seq_used_ > 1 ? (uint32_t) n_seq_used_ + 1 : 1;
+        if (n_seq_used_ > 1) cp.kv_unified = true;
         // We only ever ask for the last token's logits (decode_tokens sets one output per batch). Without this the
         // compute buffer is sized for n_batch x vocab logits: ~300 MB more for Qwen3's 152k vocabulary.
         cp.n_outputs_max = 1;
@@ -1300,6 +1313,7 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
             cp.n_outputs_max_per_seq = (uint32_t) (guess_max + 1);
             cp.n_rs_seq = (uint32_t) guess_max;
         }
+        if (n_seq_used_ > 1) cp.n_outputs_max = std::max(cp.n_outputs_max, (uint32_t) n_seq_used_ + 1);
         cp.n_threads = threads;
         cp.n_threads_batch = threads;
         cp.no_perf = true;
@@ -1365,6 +1379,7 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
             }
         }
         batch_ = llama_batch_init(n_batch_, 0, 1);
+        if (n_seq_used_ > 1 && llama_n_seq_max(ctx_) < (uint32_t) n_seq_used_ + 1) n_seq_used_ = 1;
         if (recurrent_) {
             snap_key_ = model_key();
             scan_snapshots(true);
@@ -1608,6 +1623,180 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
     return reply;
 }
 
+
+bool Engine::prefill(const std::vector<int32_t> & toks) {
+    // (generate()'s prompt reading, sequence 0)
+    size_t reuse = 0;
+    while (reuse < cached_.size() && reuse < toks.size() && cached_[reuse] == toks[reuse]) ++reuse;
+    reuse = std::min(reuse, toks.size() - 1);
+    llama_memory_t mem = llama_get_memory(ctx_);
+    if (recurrent_) {
+        if (reuse != cached_.size() || saved_prefix(toks) > reuse) {
+            reuse = restore_snapshot(toks);
+            if (reuse == 0) { llama_memory_seq_rm(mem, 0, -1, -1); cached_.clear(); }
+        }
+    } else if (!llama_memory_seq_rm(mem, 0, (llama_pos) reuse, -1)) {
+        llama_memory_seq_rm(mem, 0, -1, -1);
+        reuse = 0;
+    }
+    cached_.resize(reuse);
+    size_t at = reuse;
+    if (recurrent_) {
+        for (size_t b : snapshot_points(toks)) {
+            if (b <= at || b >= toks.size()) continue;
+            if (!decode_tokens(toks, at, b, false)) return false;
+            at = b;
+            take_snapshot();
+        }
+    }
+    return decode_tokens(toks, at, toks.size(), /*logits_last*/ true);
+}
+
+std::vector<std::string> Engine::generate_batch(const std::vector<std::string> & prompts, int max_tokens, float temperature,
+                                                const std::vector<uint32_t> & seeds) {
+    error_.clear();
+    batch_stats_.assign(prompts.size(), Stats{});
+    batch_tokens_.assign(prompts.size(), {});
+    std::vector<std::string> replies(prompts.size());
+    if (!ctx_) { error_ = "no model loaded"; return replies; }
+    if (prompts.empty()) return replies;
+    const int group = std::max(1, n_seq_used_ > 1 ? n_seq_used_ : 1);
+    if (group == 1) {
+        // (no sequences to spare: one after another, as generate())
+        for (size_t i = 0; i < prompts.size(); ++i) {
+            if (i < seeds.size()) sampling_.seed = seeds[i];
+            replies[i] = generate(prompts[i], max_tokens, temperature, nullptr);
+            batch_stats_[i] = stats_;
+            batch_tokens_[i] = reply_tokens_;
+        }
+        return replies;
+    }
+    const NpuBurst burst("batch");
+    const bool guide = guide_on_;
+    guide_on_ = false;  // (the guide's rules are per reply: not in a batch)
+    llama_memory_t mem = llama_get_memory(ctx_);
+    const size_t n_ctx = llama_n_ctx(ctx_);
+    struct Seq {
+        size_t idx = 0;
+        llama_seq_id id = 0;
+        std::shared_ptr<llama_sampler> smpl;  // (freed with the sequence, also on an exception)
+        llama_pos pos = 0;
+        llama_token last = 0;
+        int produced = 0;
+        bool done = false;
+        Utf8Joiner joiner;
+        StopFilter stop{{"<|im_end|>", "<|im_start|>", "<|endoftext|>"}};
+        int64_t t0 = 0;
+    };
+    try {
+        for (size_t g0 = 0; g0 < prompts.size() && !cancel_.load(); g0 += (size_t) group) {
+            const size_t g1 = std::min(prompts.size(), g0 + (size_t) group);
+            std::vector<Seq> seqs(g1 - g0);
+            const int64_t tg = now_ms();
+            // each prompt read on sequence 0 (the cache and the saved states as generate() uses them), its first token
+            // sampled, then its state copied into its own sequence
+            for (size_t k = 0; k < seqs.size(); ++k) {
+                Seq & s = seqs[k];
+                s.idx = g0 + k;
+                s.id = (llama_seq_id) (k + 1);
+                s.t0 = now_ms();
+                Stats & st = batch_stats_[s.idx];
+                st.threads = stats_.threads;
+                llama_memory_seq_rm(mem, s.id, -1, -1);
+                std::vector<int32_t> toks;
+                if (!tokenize(prompts[s.idx], toks) || toks.empty() || toks.size() + 2 >= n_ctx) {
+                    s.done = true;
+                    st.end = End::error;
+                    continue;
+                }
+                const int64_t tp = now_ms();
+                const size_t reuse_before = cached_.size();
+                if (!prefill(toks)) {
+                    s.done = true;
+                    st.end = cancel_.load() ? End::cancelled : End::error;
+                    if (cancel_.load()) break;
+                    continue;
+                }
+                st.prompt_tokens = (int32_t) toks.size();
+                st.reused_tokens = (int32_t) std::min(reuse_before, toks.size());
+                st.prefill_ms = now_ms() - tp;
+                s.smpl.reset(make_chain(temperature, s.idx < seeds.size() ? seeds[s.idx] : sampling_.seed), llama_sampler_free);
+                s.last = llama_sampler_sample(s.smpl.get(), ctx_, -1);
+                s.pos = (llama_pos) toks.size();
+                st.first_token_ms = now_ms() - s.t0;
+                llama_memory_seq_cp(mem, 0, s.id, -1, -1);
+            }
+            // the replies, all together: one decode per step with each live sequence's last token
+            auto finish_token = [&](Seq & s) {
+                // s.last was sampled: end, or text and (if it goes on) into the next step
+                Stats & st = batch_stats_[s.idx];
+                if (llama_vocab_is_eog(vocab_, s.last)) { st.end = End::eog; s.done = true; return; }
+                ++st.gen_tokens;
+                batch_tokens_[s.idx].push_back(s.last);
+                ++s.produced;
+                char buf[256];
+                int32_t len = llama_token_to_piece(vocab_, s.last, buf, sizeof buf, 0, true);
+                std::string piece = len > 0 ? std::string(buf, (size_t) len) : std::string();
+                bool stopped = false;
+                replies[s.idx] += s.stop.push(s.joiner.push(piece.data(), piece.size()), &stopped);
+                if (stopped) { st.end = End::stop_text; s.done = true; return; }
+                if (s.produced >= max_tokens) { st.end = End::limit; s.done = true; return; }
+                if ((size_t) s.pos + 1 >= n_ctx) { st.end = End::context; s.done = true; }
+            };
+            for (auto & s : seqs) if (!s.done) finish_token(s);
+            while (!cancel_.load()) {
+                batch_.n_tokens = 0;
+                std::vector<Seq *> live;
+                for (auto & s : seqs) {
+                    if (s.done) continue;
+                    const int32_t i = batch_.n_tokens++;
+                    batch_.token[i] = s.last;
+                    batch_.pos[i] = s.pos;
+                    batch_.n_seq_id[i] = 1;
+                    batch_.seq_id[i][0] = s.id;
+                    batch_.logits[i] = 1;
+                    live.push_back(&s);
+                }
+                if (live.empty()) break;
+                npu_compute_begin();
+                const int rc = llama_decode(ctx_, batch_);
+                npu_compute_end((int) live.size());
+                if (rc != 0) {
+                    if (!cancel_.load()) error_ = "llama_decode failed (" + std::to_string(rc) + ")" + log_errors();
+                    for (Seq * s : live) { batch_stats_[s->idx].end = cancel_.load() ? End::cancelled : End::error; s->done = true; }
+                    break;
+                }
+                for (size_t i = 0; i < live.size(); ++i) {
+                    Seq & s = *live[i];
+                    ++s.pos;
+                    s.last = llama_sampler_sample(s.smpl.get(), ctx_, (int32_t) i);
+                    finish_token(s);
+                }
+            }
+            for (auto & s : seqs) {
+                Stats & st = batch_stats_[s.idx];
+                bool stopped = false;
+                replies[s.idx] += s.stop.push(s.joiner.flush(), &stopped);
+                if (!stopped) replies[s.idx] += s.stop.flush();
+                st.gen_ms = now_ms() - tg;
+                if (!s.done && cancel_.load()) st.end = End::cancelled;
+                s.smpl.reset();
+                llama_memory_seq_rm(mem, s.id, -1, -1);
+            }
+            if (cancel_.load()) { error_ = "cancelled"; break; }
+        }
+    } catch (const std::bad_alloc &) {
+        error_ = "out of memory while generating";
+    } catch (const std::exception & e) {
+        error_ = std::string("generation failed: ") + e.what();
+    } catch (...) {
+        error_ = "generation failed";
+    }
+    // (sequence 0 still holds the last prompt read: cached_ says so; the others are empty)
+    for (int k = 1; k <= n_seq_used_; ++k) llama_memory_seq_rm(mem, (llama_seq_id) k, -1, -1);
+    guide_on_ = guide;
+    return replies;
+}
 
 std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, int max_tokens, float temperature,
                                  const OnText & on_text, int64_t t0) {
