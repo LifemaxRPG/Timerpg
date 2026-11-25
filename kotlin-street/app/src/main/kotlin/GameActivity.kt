@@ -1388,13 +1388,10 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 stopHere?.let { sp -> if (inside == null) Chip("🚏 ${LoopSession.view?.transit?.get(sp.id)?.mode?.takeIf { it.isNotEmpty() } ?: "Bus"} stop", stopOpen) { stopOpen = !stopOpen; lodgeOpen = false; MoveInput.holdUntilNeutral() } }
                 if (inside != null) Chip("Leave", false) { doorTo = false to null }
                 else if (roomHere != null) Chip("Go inside", false) { doorTo = true to roomHere }
-                // the depot: the ticket window (docs/RAIL.md)
+                // the depot: the ticket window (docs/RAIL.md); where the player stands is read each frame in its own scope
                 val rail = townData?.rail
-                val pw = com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.walk
-                if (frameTick.longValue >= 0 && inside == null && rail != null && pw != null && RailTrip.ride == null && !ticketOpen && RailTrip.atDepot(rail, pw.wx, pw.wz))
-                    Chip("Take the train", false) { MoveInput.holdUntilNeutral(); ticketOpen = true }
-                if (frameTick.longValue >= 0 && inside == null && rail != null && pw != null && RailTrip.ride == null && LoopSession.view != null && RailTrip.atDepot(rail, pw.wx, pw.wz))
-                    Chip("🗺 Maps", standOpen) { MoveInput.holdUntilNeutral(); standOpen = !standOpen }
+                if (inside == null && rail != null) DepotChips(frameTick, rail, ticketOpen, standOpen,
+                    onTicket = { MoveInput.holdUntilNeutral(); ticketOpen = true }, onStand = { MoveInput.holdUntilNeutral(); standOpen = !standOpen })
             }
         }
         townData?.rail?.let { rail ->
@@ -1405,13 +1402,12 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     val go = { RailTrip.request = com.lifemax.rpg.feature.habits.domain.RailRide(rail, route) }
                     if (LoopSession.view != null && route.fare > 0.0) LoopSession.buyTicket(ctx, route.km, go) else go() },
                 onClose = { ticketOpen = false }, modifier = Modifier.align(Alignment.Center).padding(16.dp))
-            val ride = if (frameTick.longValue >= 0) RailTrip.ride else null
-            if (ride != null) RideOverlay(rail, ride, RailTrip.progress, onDone = {
+            RideNow(frameTick, rail, Modifier.align(Alignment.TopCenter).padding(top = 110.dp)) { ride ->
                 // the clock moves on by the trip (the arrival's time of day); the ride's world goes
                 val arrive = ride.route.legs?.lastOrNull()?.arrive
                 if (arrive != null) { hour = ((arrive % 1440.0) / 60.0).toFloat(); LoopSession.clock(hour, wrap = true) }
                 RailTrip.stop = true
-            }, modifier = Modifier.align(Alignment.TopCenter).padding(top = 110.dp))
+            }
         }
         // the town being built (the first view nearest the player): a simple loading screen until it is ready
         if (townLoading && inside == null) Box(Modifier.fillMaxSize().background(Color(0xF0101420)), contentAlignment = Alignment.Center) {
@@ -2563,6 +2559,29 @@ private fun Chip(label: String, on: Boolean, modifier: Modifier = Modifier, onCl
         }.padding(horizontal = 10.dp, vertical = 6.dp),
         contentAlignment = Alignment.Center,
     ) { Text(label, 13.sp) }
+}
+
+/**
+ * The depot's chips (the ticket window, the map stand). They depend on where the player stands, so they read [frameTick]
+ * here, in their own small scope: read in the game screen's own, it recomposed the whole screen every frame (0.1.930: "HUD
+ * composed 570 times" in 10 s, ~1 collection a second, and every worst frame of 100-150 ms had one in it).
+ */
+@Composable
+private fun DepotChips(frameTick: androidx.compose.runtime.LongState, rail: com.lifemax.rpg.feature.habits.domain.RailNet,
+                       ticketOpen: Boolean, standOpen: Boolean, onTicket: () -> Unit, onStand: () -> Unit) {
+    if (frameTick.longValue < 0) return
+    val pw = com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.walk ?: return
+    if (RailTrip.ride != null || !RailTrip.atDepot(rail, pw.wx, pw.wz)) return
+    if (!ticketOpen) Chip("Take the train", false, onClick = onTicket)
+    if (LoopSession.view != null) Chip("🗺 Maps", standOpen, onClick = onStand)
+}
+
+/** The train ride's overlay while one is under way ([RailTrip.ride], looked at each frame here, not in the game screen). */
+@Composable
+private fun RideNow(frameTick: androidx.compose.runtime.LongState, rail: com.lifemax.rpg.feature.habits.domain.RailNet, modifier: Modifier,
+                    onArrive: (com.lifemax.rpg.feature.habits.domain.RailRide) -> Unit) {
+    val ride = if (frameTick.longValue >= 0) RailTrip.ride else null
+    if (ride != null) RideOverlay(rail, ride, RailTrip.progress, onDone = { onArrive(ride) }, modifier = modifier)
 }
 
 /** A panel over the street takes the touches on it: none of them fall through to the stick under it. */
