@@ -24,6 +24,16 @@ object ModelFiles {
      *  llama.cpp's Hexagon code was first built around. */
     const val LIVE = "qwen3.5-4b-q4_0.gguf"
     const val LIVE_BYTES = 2_583_221_408L
+    /** The light model as downloaded now: the same 4B with its multi-token prediction layer (unsloth's
+     *  Qwen3.5-4B-MTP-GGUF, Q4_0), for MTP guesses in play. [LIVE] above (no MTP layer) is the fallback while this one
+     *  downloads, deleted once it is complete. Both are prepared once on the phone ([ModelPrep]: the English-first
+     *  vocabulary order) into [ModelPrep.preparedName], which replaces the download. */
+    const val LIVE_MTP = "qwen3.5-4b-mtp-q4_0.gguf"
+    const val LIVE_MTP_BYTES = 2_669_209_920L
+    /** The light model file to load (prepared, else as downloaded; the MTP one first), or where it will be. */
+    fun live(ctx: Context): File = ModelPrep.live(dir(ctx))?.file ?: File(dir(ctx), LIVE_MTP)
+    /** The light model file to load has the MTP layer. */
+    fun liveHasMtp(ctx: Context): Boolean = ModelPrep.live(dir(ctx))?.mtp == true
     /** A smaller model of the same family for live replies on the NPU, when the light one's copy does not fit beside the
      *  town (docs/CONVERSATION.md, "A smaller live model"): any size, put in place by hand for now; the NPU fit test
      *  tries it when it is there. Q4_0, as [LIVE]. */
@@ -37,7 +47,6 @@ object ModelFiles {
 
     fun dir(ctx: Context): File = File(ctx.filesDir, "models")
     fun file(ctx: Context): File = File(dir(ctx), NAME)
-    fun live(ctx: Context): File = File(dir(ctx), LIVE)
     private fun part(ctx: Context): File = File(dir(ctx), "$NAME.part")
 
     /** A copy left half-done when the app was killed. */

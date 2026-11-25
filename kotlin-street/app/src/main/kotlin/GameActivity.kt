@@ -2156,7 +2156,7 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
         // in play the light model answers; without it nothing does (the main one does not fit beside the town)
         if (s.needLive) {
             Text("The light model for replies in play is not downloaded.", 12.sp, color = Color(0xFFFFB4A0))
-            if (voices.downloading < 0f) Chip("Download the light model (${com.timerpg.street.dialogue.ModelFiles.LIVE_BYTES shr 20} MB)", false) { voices.downloadLive { engine.reload() } }
+            if (voices.downloading < 0f) Chip("Download the light model (${com.timerpg.street.dialogue.ModelFiles.LIVE_MTP_BYTES shr 20} MB)", false) { voices.downloadLive { engine.reload() } }
         }
         // the last thing said by voice: how long each step took and who answered
         VoiceTurns.last?.let { Text("Last voice turn: $it", 11.sp, color = DIM) }
@@ -2379,7 +2379,18 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
                 null -> "Live replies: no model loaded"
             } + " · needs ${s.liveNeedMb} MB free (light), ${s.bankNeedMb} MB (main)", 12.sp, color = DIM)
             Chip(if (s.forceBank) "Live replies: main model (comparison)" else "Live replies: light model", s.forceBank) { engine.setForceBank(!s.forceBank) }
+            // the light model's file: its MTP layer, and the English-first head the phone made from the download (ModelPrep)
+            Text("Light model: " + (if (s.liveMtp) "4B with the MTP layer" else "4B without MTP (the MTP file replaces it once downloaded)") +
+                " · " + (if (s.liveHeadK > 0) "English-first head, ${"%,d".format(s.liveHeadK)} tokens" else "whole vocabulary (not prepared yet)"), 12.sp, color = DIM)
+            val k = engine.headKWanted
+            Chip("English head: " + if (k == com.timerpg.street.dialogue.ModelPrep.K_QUALITY) "65,536 tokens (quality)" else "49,152 tokens (fast)",
+                k == com.timerpg.street.dialogue.ModelPrep.K_QUALITY) {
+                engine.setHeadK(if (k == com.timerpg.street.dialogue.ModelPrep.K_QUALITY) com.timerpg.street.dialogue.ModelPrep.K_DEFAULT else com.timerpg.street.dialogue.ModelPrep.K_QUALITY)
+            }
         }
+        // the light model's one-time preparation (the English-first vocabulary order, made here from the download)
+        s.prep?.let { Text(it, 12.sp) }
+        s.prepNote?.let { Text(it, 11.sp, color = DIM) }
         voices.lastTiming?.let { Text("Voice: $it", 12.sp, color = DIM) }
         s.rejected?.let { Text("Last line written again: $it", 12.sp, color = DIM) }
         run {

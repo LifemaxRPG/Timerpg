@@ -19,10 +19,14 @@ object ModelDownloads {
     private const val EMBED_URL = "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B-GGUF/resolve/main/Qwen3-Embedding-0.6B-Q8_0.gguf"
     private const val EMBED_BYTES = 639_150_592L
     private const val QWEN = "https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-Q4_K_M.gguf"
-    private const val LIVE = "https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/main/Qwen3.5-4B-Q4_0.gguf"
+    /** The light model: the 4B with its MTP layer (2,669,209,920 bytes, SHA-256 14e6ef39...3669 per Hugging Face's listing,
+     *  checked 2026-11-25). Earlier builds downloaded unsloth/Qwen3.5-4B-GGUF/Qwen3.5-4B-Q4_0.gguf ([ModelFiles.LIVE]),
+     *  which is used until this one is complete ([ModelPrep]). */
+    private const val LIVE = "https://huggingface.co/unsloth/Qwen3.5-4B-MTP-GGUF/resolve/main/Qwen3.5-4B-Q4_0.gguf"
 
-    /** One file: where it comes from, where it goes (under filesDir/models), and its size in bytes. */
-    class Item(val url: String, val path: String, val bytes: Long)
+    /** One file: where it comes from, where it goes (under filesDir/models), and its size in bytes. [prepared]: the file
+     *  the phone makes from it once ([ModelPrep]), which replaces it: with that one in place nothing is missing. */
+    class Item(val url: String, val path: String, val bytes: Long, val prepared: String? = null)
 
     // Kokoro's English voices (US and UK); the game blends two per NPC
     private val KOKORO_VOICES = listOf(
@@ -35,7 +39,7 @@ object ModelDownloads {
     val ITEMS: List<Item> = buildList {
         add(Item(QWEN, ModelFiles.NAME, 5_680_522_464L))
         // live replies in play, on the NPU beside the town (the main model's NPU copy does not fit there)
-        add(Item(LIVE, ModelFiles.LIVE, ModelFiles.LIVE_BYTES))
+        add(Item(LIVE, ModelFiles.LIVE_MTP, ModelFiles.LIVE_MTP_BYTES, prepared = ModelPrep.preparedName(ModelFiles.LIVE_MTP)))
         // hearing the player with the game's own speech model: the small one (the default, a third of the memory) and the
         // large one (the AI panel's quality choice), each with its audio encoder
         add(Item("https://huggingface.co/ggml-org/Qwen3-ASR-0.6B-GGUF/resolve/main/Qwen3-ASR-0.6B-Q8_0.gguf", com.timerpg.street.voice.PlayerVoice.ASR_SMALL_MODEL, 804_749_248L))
@@ -77,7 +81,15 @@ object ModelDownloads {
     fun dir(ctx: Context): File = ModelFiles.dir(ctx)
 
     /** The files still missing (or the wrong size). */
-    fun missing(ctx: Context, items: List<Item> = ITEMS): List<Item> = items.filter { val f = File(dir(ctx), it.path); !f.isFile || (it.bytes > 0 && f.length() != it.bytes) }
+    fun missing(ctx: Context, items: List<Item> = ITEMS): List<Item> = missingIn(dir(ctx), items)
+
+    /** [missing] for a directory (unit tested): a file is there at its size, or as the file prepared from it. */
+    fun missingIn(dir: File, items: List<Item>): List<Item> = items.filter { item ->
+        val f = File(dir, item.path)
+        val whole = f.isFile && (item.bytes <= 0 || f.length() == item.bytes)
+        val prepared = item.prepared != null && ModelPrep.SOURCES.any { it.name == item.path && ModelPrep.isPrepared(dir, it) }
+        !whole && !prepared
+    }
 
     /** The extras' files on the device (whole or partly downloaded), so they can be removed to free the space. */
     fun extrasOnDevice(ctx: Context): List<File> = EXTRAS.flatMap { listOf(File(dir(ctx), it.path), File(dir(ctx), it.path + ".part")) }.filter { it.isFile }
@@ -93,8 +105,10 @@ object ModelDownloads {
     /**
      * Downloads every missing file, reporting (bytes done so far across everything, total) a few times a second.
      * [cancelled] is checked between chunks; a cancelled or failed download keeps its partial file to resume next time.
+     * [onItem] is told of each file once it is in place (the light model's is used and prepared at once, not after the
+     * rest of a long download).
      */
-    fun download(ctx: Context, cancelled: () -> Boolean, items: List<Item> = ITEMS, progress: (Long, Long) -> Unit): Result {
+    fun download(ctx: Context, cancelled: () -> Boolean, items: List<Item> = ITEMS, onItem: (Item) -> Unit = {}, progress: (Long, Long) -> Unit): Result {
         val root = dir(ctx); root.mkdirs()
         val todo = missing(ctx, items)
         val total = size(items)
@@ -142,6 +156,7 @@ object ModelDownloads {
                     if (!part.renameTo(target)) throw java.io.IOException("could not move ${item.path} into place")
                     done += if (item.bytes > 0) item.bytes else 300_000L
                     progress(done, total)
+                    runCatching { onItem(item) }
                     break
                 } catch (e: Exception) {
                     attempt++

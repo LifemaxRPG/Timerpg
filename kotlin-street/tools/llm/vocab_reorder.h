@@ -50,6 +50,14 @@ enum class ReorderResult { Done, AlreadyDone, Cancelled, Failed };
 ReorderResult reorder_vocab(const std::string & src, const std::string & dst, const HeadVocab & list,
                             const ReorderOptions & opt, std::string & err);
 
+/**
+ * Changes K (`timerpg.head_vocab`) of a file reordered with [list], in place. The order does not depend on K (the
+ * permutation is the whole ranked list), so a file made at K = 49,152 differs from one made at 65,536 only in that u32:
+ * the 4 bytes are rewritten where they are (one pwrite, then fsync; the header is re-read to check it). AlreadyDone when
+ * the file has that K already; Failed (err says why) when it is not ordered by this list, or K is outside 1..ranked.
+ */
+ReorderResult retarget_head_vocab(const std::string & path, const HeadVocab & list, uint32_t k, std::string & err);
+
 /** The metadata keys written into DST. */
 constexpr const char * KEY_HEAD_VOCAB = "timerpg.head_vocab";    // u32: K, the head's rows that matter
 constexpr const char * KEY_VOCAB_ORDER = "timerpg.vocab_order";  // string: "head_vocab v1 <hash of the ranked list>"

@@ -17,6 +17,9 @@
 // --ngram N [--ngram-min M]: guess N tokens ahead by n-gram lookup. --spec-test: those guesses against none, greedy and
 //   sampled (token-identical replies), with and without the speaker's other lines as the pool; tok/s and acceptance.
 #include "llm_core.h"
+#include "vocab_reorder.h"
+#include "ggml.h"
+#include "gguf.h"
 
 #include <nlohmann/json.hpp>  // llama.cpp's vendored copy
 
@@ -910,9 +913,137 @@ void snapshot_test(const std::string & model, int mtp, int threads, int n_ctx, i
     clear_dir(dir);
 }
 
+/**
+ * --prepare-test DIR: the one-time preparation the app runs on the phone (llm::prepare_head_vocab and
+ * llm::retarget_head_vocab, the JNI's path) on a small made-up GGUF with every kind of vocabulary-sized tensor an MTP
+ * file may carry (token_embd, output, blk.N.nextn.shared_head_head, blk.N.nextn.embed_tokens): each row where the
+ * permutation puts it, the tokenizer's arrays and ids moved, cancel leaving nothing, a rerun "already", K changed in place.
+ */
+void prepare_test(const std::string & dir) {
+    std::printf("\n== model preparation (vocabulary order) on a made-up file ==\n");
+    const uint32_t V = 1000, E = 8;
+    const std::string src = dir + "/prep-src.gguf", dst = dir + "/prep-dst.gguf", lst = dir + "/prep-list.txt";
+    std::remove(src.c_str()); std::remove(dst.c_str()); std::remove((dst + ".part").c_str());
+    const char * names[4] = {"token_embd.weight", "output.weight", "blk.1.nextn.shared_head_head.weight", "blk.1.nextn.embed_tokens.weight"};
+    {
+        ggml_init_params ip{ (size_t) 5 * V * E * sizeof(float) + 8 * ggml_tensor_overhead() + (1u << 16), nullptr, false };
+        ggml_context * m = ggml_init(ip);
+        gguf_context * g = gguf_init_empty();
+        gguf_set_val_str(g, "general.architecture", "qwen35");
+        std::vector<std::string> toks(V);
+        std::vector<const char *> tp(V);
+        std::vector<int32_t> types(V, 1);
+        for (uint32_t i = 0; i < V; ++i) { toks[i] = "tok" + std::to_string(i); tp[i] = toks[i].c_str(); }
+        gguf_set_arr_str(g, "tokenizer.ggml.tokens", tp.data(), V);
+        gguf_set_arr_data(g, "tokenizer.ggml.token_type", GGUF_TYPE_INT32, types.data(), V);
+        gguf_set_val_u32(g, "tokenizer.ggml.eos_token_id", 7);
+        for (int t = 0; t < 4; ++t) {
+            ggml_tensor * w = ggml_new_tensor_2d(m, GGML_TYPE_F32, E, V);
+            ggml_set_name(w, names[t]);
+            auto * d = (float *) w->data;
+            for (uint32_t r = 0; r < V; ++r) for (uint32_t c = 0; c < E; ++c) d[r * E + c] = (float) r + 0.25f * (float) t + 0.01f * (float) c;
+            gguf_add_tensor(g, w);
+        }
+        ggml_tensor * n = ggml_new_tensor_1d(m, GGML_TYPE_F32, E);  // a tensor that does not move
+        ggml_set_name(n, "output_norm.weight");
+        for (uint32_t c = 0; c < E; ++c) ((float *) n->data)[c] = 1.0f + (float) c;
+        gguf_add_tensor(g, n);
+        check(gguf_write_to_file(g, src.c_str(), false), "made the test file");
+        gguf_free(g); ggml_free(m);
+    }
+    std::string err;
+    const std::string hash = timerpg::vocab_hash(src, err);
+    // the list: 300 ids ranked (odd ids from the top down), default K 200
+    std::vector<uint32_t> ranked;
+    for (uint32_t id = V - 1; ranked.size() < 300; id -= 2) ranked.push_back(id);
+    {
+        std::ofstream f(lst);
+        f << "# vocab_hash " << hash << "\n# n_vocab " << V << "\n# k 200\n# ranked 300\n";
+        for (uint32_t id : ranked) f << id << "\n";
+    }
+    std::vector<uint32_t> perm, inv(V, UINT32_MAX);
+    for (uint32_t id : ranked) { inv[id] = (uint32_t) perm.size(); perm.push_back(id); }
+    for (uint32_t id = 0; id < V; ++id) if (inv[id] == UINT32_MAX) { inv[id] = (uint32_t) perm.size(); perm.push_back(id); }
+
+    // cancelled at once: nothing left behind
+    llm::PrepResult c = llm::prepare_head_vocab(src, dst, lst, 0, [&](double) { return false; });
+    struct stat st{};
+    check(c.code == "cancelled" && stat(dst.c_str(), &st) != 0 && stat((dst + ".part").c_str(), &st) != 0,
+          "a cancelled preparation leaves no file (" + c.code + ")");
+    // done
+    double last = 0; bool rising = true;
+    llm::PrepResult r = llm::prepare_head_vocab(src, dst, lst, 0, [&](double f) { rising = rising && f >= last; last = f; return true; });
+    check(r.code == "done" && r.error.empty(), "prepared (" + r.code + (r.error.empty() ? "" : ": " + r.error) + ", " + std::to_string(r.ms) +
+          " ms, peak RSS " + std::to_string(r.rss_peak_kb / 1024) + " MB)");
+    check(rising && last == 1.0, "progress rises to 1");
+    check(llm::head_vocab(dst) == 200, "timerpg.head_vocab is the list's default K");
+    {
+        ggml_context * m = nullptr;
+        gguf_init_params gp{false, &m};
+        gguf_context * g = gguf_init_from_file(dst.c_str(), gp);
+        check(g != nullptr, "the prepared file reads");
+        if (g) {
+            for (int t = 0; t < 4; ++t) {
+                const ggml_tensor * w = ggml_get_tensor(m, names[t]);
+                bool ok = w != nullptr;
+                for (uint32_t r2 = 0; ok && r2 < V; ++r2) for (uint32_t c2 = 0; c2 < E; ++c2)
+                    ok = ok && ((const float *) w->data)[r2 * E + c2] == (float) perm[r2] + 0.25f * (float) t + 0.01f * (float) c2;
+                check(ok, std::string("every row of ") + names[t] + " is where the order puts it");
+            }
+            const ggml_tensor * n = ggml_get_tensor(m, "output_norm.weight");
+            bool same = n != nullptr;
+            for (uint32_t c2 = 0; same && c2 < E; ++c2) same = ((const float *) n->data)[c2] == 1.0f + (float) c2;
+            check(same, "a tensor without the vocabulary is unchanged");
+            const int64_t kt = gguf_find_key(g, "tokenizer.ggml.tokens");
+            bool toks = kt >= 0;
+            for (uint32_t i = 0; toks && i < V; ++i) toks = std::string(gguf_get_arr_str(g, kt, i)) == "tok" + std::to_string(perm[i]);
+            check(toks, "the token strings are in the new order");
+            const int64_t ke = gguf_find_key(g, "tokenizer.ggml.eos_token_id");
+            check(ke >= 0 && gguf_get_val_u32(g, ke) == inv[7], "the end token's id is remapped");
+            gguf_free(g);
+        }
+        if (m) ggml_free(m);
+    }
+    check(llm::prepare_head_vocab(src, dst, lst, 0, nullptr).code == "already", "a rerun is already done");
+    // K changed in place, from the same file
+    llm::PrepResult k1 = llm::retarget_head_vocab(dst, lst, 300);
+    check(k1.code == "done" && llm::head_vocab(dst) == 300, "K changed in place to 300 (" + k1.code + " " + k1.error + ")");
+    check(llm::retarget_head_vocab(dst, lst, 300).code == "already", "the same K again is already done");
+    check(llm::retarget_head_vocab(dst, lst, 301).code == "failed", "a K beyond the ranked list is refused");
+    check(llm::retarget_head_vocab(src, lst, 250).code == "failed", "a file not reordered cannot be retargeted");
+    check(llm::retarget_head_vocab(dst, lst, 200).code == "done" && llm::head_vocab(dst) == 200, "and back to 200");
+    std::remove((dst + "2").c_str());
+    check(llm::prepare_head_vocab(dst, dst + "2", lst, 0, nullptr).code == "failed", "a reordered file is not reordered again");
+    // a list made for another tokenizer is refused
+    {
+        std::ofstream f(lst);
+        f << "# vocab_hash 0123456789abcdef\n# n_vocab " << V << "\n# k 200\n";
+        for (uint32_t id : ranked) f << id << "\n";
+    }
+    std::remove((dst + "x").c_str());
+    llm::PrepResult bad = llm::prepare_head_vocab(src, dst + "x", lst, 0, nullptr);
+    check(bad.code == "failed" && bad.error.find("another tokenizer") != std::string::npos, "a list for another tokenizer is refused");
+    std::remove(src.c_str()); std::remove(dst.c_str()); std::remove(lst.c_str());
+}
+
 }  // namespace
 
 int main(int argc, char ** argv) {
+    // the model files' one-time preparation, the app's own code path (llm::prepare_head_vocab); no model needed
+    if (argc == 3 && std::strcmp(argv[1], "--prepare-test") == 0) {
+        prepare_test(argv[2]);
+        std::printf("\n%s (%d failed checks)\n", failures ? "FAILED" : "ALL CHECKS PASSED", failures);
+        return failures ? 1 : 0;
+    }
+    //   --prepare SRC DST LIST [K]: one real file, as the phone does it
+    if ((argc == 5 || argc == 6) && std::strcmp(argv[1], "--prepare") == 0) {
+        int last = -1;
+        const llm::PrepResult r = llm::prepare_head_vocab(argv[2], argv[3], argv[4], argc == 6 ? (uint32_t) std::strtoul(argv[5], nullptr, 10) : 0,
+            [&](double f) { const int pc = (int) (f * 100); if (pc != last) { last = pc; std::fprintf(stderr, "\r%3d%%", pc); } return true; });
+        std::printf("\n%s in %lld ms, RSS %lld MB before, peak %lld MB%s%s\n", r.code.c_str(), (long long) r.ms, (long long) r.rss_start_kb / 1024,
+                    (long long) r.rss_peak_kb / 1024, r.error.empty() ? "" : ": ", r.error.c_str());
+        return r.code == "done" || r.code == "already" ? 0 : 1;
+    }
     if (argc < 2) {
         std::fprintf(stderr, "usage: %s model.gguf [--threads N] [--ctx N] [--max N] [--prompts FILE] [--cpu-lib NAME]... [--verbose]\n", argv[0]);
         return 2;

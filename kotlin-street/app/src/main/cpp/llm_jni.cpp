@@ -121,6 +121,50 @@ extern "C" JNIEXPORT jlong JNICALL FN(nativeHeadVocab)(JNIEnv * env, jclass, jby
     try { return (jlong) llm::head_vocab(from_bytes(env, path)); } catch (...) { return 0; }
 }
 
+namespace {
+/** llm::PrepResult as "code\nms\nrss_start_kb\nrss_peak_kb\nerror" (NativeLlm.Prep.parse). */
+jstring prep_string(JNIEnv * env, const llm::PrepResult & r) {
+    return to_jstring(env, r.code + "\n" + std::to_string(r.ms) + "\n" + std::to_string(r.rss_start_kb) + "\n" +
+                           std::to_string(r.rss_peak_kb) + "\n" + r.error);
+}
+}  // namespace
+
+/** The English-first vocabulary order of a model file (llm::prepare_head_vocab): [sink].onProgress(fraction) returns
+ *  false to cancel. */
+extern "C" JNIEXPORT jstring JNICALL FN(nativeReorderVocab)(JNIEnv * env, jclass, jbyteArray src, jbyteArray dst, jbyteArray list,
+                                                           jint k, jobject sink) {
+    try {
+        jmethodID on_progress = nullptr;
+        if (sink) {
+            jclass cls = env->GetObjectClass(sink);
+            on_progress = cls ? env->GetMethodID(cls, "onProgress", "(D)Z") : nullptr;
+            if (env->ExceptionCheck()) env->ExceptionClear();
+            if (cls) env->DeleteLocalRef(cls);
+        }
+        const llm::PrepResult r = llm::prepare_head_vocab(from_bytes(env, src), from_bytes(env, dst), from_bytes(env, list), (uint32_t) k,
+            [&](double f) {
+                if (!on_progress) return true;
+                const jboolean more = env->CallBooleanMethod(sink, on_progress, (jdouble) f);
+                if (env->ExceptionCheck()) { env->ExceptionClear(); return false; }
+                return more == JNI_TRUE;
+            });
+        return prep_string(env, r);
+    } catch (...) {
+        llm::PrepResult r; r.code = "failed"; r.error = "native exception";
+        return prep_string(env, r);
+    }
+}
+
+/** K of a file already in the English-first order, changed in place (llm::retarget_head_vocab). */
+extern "C" JNIEXPORT jstring JNICALL FN(nativeRetargetVocab)(JNIEnv * env, jclass, jbyteArray path, jbyteArray list, jint k) {
+    try {
+        return prep_string(env, llm::retarget_head_vocab(from_bytes(env, path), from_bytes(env, list), (uint32_t) k));
+    } catch (...) {
+        llm::PrepResult r; r.code = "failed"; r.error = "native exception";
+        return prep_string(env, r);
+    }
+}
+
 /** When the GPU's backend loads (llm::set_gpu_backend): at start, or only when a load asks for the GPU. */
 extern "C" JNIEXPORT void JNICALL FN(nativeSetGpuBackend)(JNIEnv *, jclass, jboolean at_start) {
     try { llm::set_gpu_backend(at_start == JNI_TRUE); } catch (...) {}

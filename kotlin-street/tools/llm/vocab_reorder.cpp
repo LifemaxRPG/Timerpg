@@ -375,4 +375,44 @@ ReorderResult reorder_vocab(const std::string & src, const std::string & dst, co
     return ReorderResult::Done;
 }
 
+ReorderResult retarget_head_vocab(const std::string & path, const HeadVocab & list, uint32_t k, std::string & err) {
+    if (k == 0 || k > list.ranked.size()) { err = "k must be 1.." + std::to_string(list.ranked.size()); return ReorderResult::Failed; }
+    uint64_t meta_size = 0;
+    uint32_t old_k = 0;
+    {
+        GgufPtr g;
+        if (!open_meta(path, g, false, err)) return ReorderResult::Failed;
+        const int64_t ko = gguf_find_key(g.g, KEY_VOCAB_ORDER), kk = gguf_find_key(g.g, KEY_HEAD_VOCAB);
+        if (ko < 0 || kk < 0 || gguf_get_kv_type(g.g, kk) != GGUF_TYPE_UINT32 || gguf_get_kv_type(g.g, ko) != GGUF_TYPE_STRING) {
+            err = path + " is not reordered"; return ReorderResult::Failed;
+        }
+        if (order_id(list) != gguf_get_val_str(g.g, ko)) { err = path + " is ordered by another list"; return ReorderResult::Failed; }
+        old_k = gguf_get_val_u32(g.g, kk);
+        meta_size = gguf_get_data_offset(g.g);
+    }
+    if (old_k == k) return ReorderResult::AlreadyDone;
+    // the key as gguf serializes it: u64 length, the name, u32 type (GGUF_TYPE_UINT32), u32 value; found exactly once
+    std::vector<uint8_t> pat;
+    const uint64_t len = std::strlen(KEY_HEAD_VOCAB);
+    const uint32_t type = GGUF_TYPE_UINT32;
+    auto put = [&](const void * p, size_t n) { pat.insert(pat.end(), (const uint8_t *) p, (const uint8_t *) p + n); };
+    put(&len, 8); put(KEY_HEAD_VOCAB, len); put(&type, 4); put(&old_k, 4);
+    Fd f; f.fd = ::open(path.c_str(), O_RDWR);
+    if (f.fd < 0) { err = "cannot open " + path + ": " + std::strerror(errno); return ReorderResult::Failed; }
+    std::vector<uint8_t> head((size_t) meta_size);
+    if (!read_at(f.fd, head.data(), head.size(), 0)) { err = "cannot read the header of " + path; return ReorderResult::Failed; }
+    uint64_t at = UINT64_MAX;
+    for (auto it = head.begin(); (it = std::search(it, head.end(), pat.begin(), pat.end())) != head.end(); ++it) {
+        if (at != UINT64_MAX) { err = "the key is in the header twice"; return ReorderResult::Failed; }
+        at = (uint64_t) (it - head.begin()) + pat.size() - 4;
+    }
+    if (at == UINT64_MAX) { err = "the key's bytes were not found"; return ReorderResult::Failed; }
+    if (!write_at(f.fd, &k, 4, at) || ::fsync(f.fd) != 0) { err = "write failed: " + path; return ReorderResult::Failed; }
+    GgufPtr v;
+    if (!open_meta(path, v, false, err)) return ReorderResult::Failed;
+    const int64_t kk = gguf_find_key(v.g, KEY_HEAD_VOCAB);
+    if (kk < 0 || gguf_get_val_u32(v.g, kk) != k || gguf_get_data_offset(v.g) != meta_size) { err = "the new K did not read back"; return ReorderResult::Failed; }
+    return ReorderResult::Done;
+}
+
 }  // namespace timerpg

@@ -9,21 +9,24 @@ APK. Nothing here is uploaded anywhere, and nothing needs publishing.
 Everything below marked *measured* was measured on this build server (4 shared Xeon cores, no GPU, 16 GB RAM shared with
 other jobs); nothing was measured on the S25 Ultra. Every S25 figure is an estimate.
 
-## What the phone does, in order
+## What the phone does, in order (as built in the app, 2026-11-25)
 
-1. **Download** (as today) the Hugging Face GGUF, e.g. `unsloth/Qwen3.5-4B-GGUF/Qwen3.5-4B-Q4_0.gguf`
-   (2,583,221,408 bytes). With the calibrated quantization (below): instead the full-precision
-   `unsloth/Qwen3.5-4B-GGUF/Qwen3.5-4B-BF16.gguf` (8.42 GB) once, then step 2.
-2. *(Calibrated quantization)* `llama_model_quantize()` with our importance matrix (`imatrix-qwen3.5-4b.gguf`, in the
-   APK) and the parameters in "Calibrated quantization": BF16 -> Q4_0 (the NPU's) and/or Q4_K_M. The BF16 file can then
-   be deleted (or kept to requantize when a new imatrix ships).
-3. **Reorder the vocabulary** with `timerpg::reorder_vocab()` (`vocab_reorder.cpp/.h`) and `head_vocab.txt` (in the
-   APK): a few seconds, the file stays the same size (+160 bytes of keys).
-4. The runtime patch (ENGINE_TAILORING.md idea 1, step 3; the other job's) reads `timerpg.head_vocab` and computes the
-   head for the first K tokens only.
+1. **Download** (as before, `ModelDownloads`) the light model: now `unsloth/Qwen3.5-4B-MTP-GGUF/Qwen3.5-4B-Q4_0.gguf`
+   (2,669,209,920 bytes, the 4B with its MTP layer; CONVERSATION.md, "The light model's file"). The old
+   `unsloth/Qwen3.5-4B-GGUF/Qwen3.5-4B-Q4_0.gguf` (2,583,221,408 bytes) of earlier builds is the fallback until it is
+   complete.
+2. **Reorder the vocabulary** once (`dialogue/ModelPrep.kt`, `ModelPrepJob.kt`): `timerpg::reorder_vocab()`
+   (`vocab_reorder.cpp`, compiled into the app's `libtimerpg_llm.so` from `tools/llm`, not copied) with `head_vocab.txt`
+   (an APK asset, copied from `tools/llm` at build time) into `qwen3.5-4b-mtp-q4_0-en.gguf`, K = 49,152; verified, renamed
+   into place, then the download is deleted. In the background, never during a conversation, safe to interrupt.
+3. The runtime patch (`patches/llama-head-vocab.patch`) reads `timerpg.head_vocab` and computes the head for the first
+   K tokens only, on the NPU. K = 65,536 (the AI panel's quality setting) is the same file with the 4-byte key
+   rewritten in place (`retarget_head_vocab`).
 
-Steps 2 and 3 commute (the importance matrix is per input column, the permutation moves output rows), but 3 after 2 is
-cheaper: it rewrites the 2.6 GB file, not the 8.4 GB one.
+**The calibrated quantization is not wired in** (the lead's decision, 2026-11-25): it showed no measurable gain (below),
+so the app downloads no BF16 and runs no `quantize_ours`; the tool and the imatrix stay in `tools/llm` for a later,
+better-measured try (it would go before step 2: the two commute, the matrix is per input column and the permutation
+moves output rows).
 
 ## 1. English-first vocabulary order
 
@@ -285,21 +288,36 @@ the owner's phone for the owner is fine under it, and nothing modified is redist
 `head_vocab.txt` (390 KB, token ids) and `imatrix-qwen3.5-4b.gguf` (7.3 MB, activation statistics), both derived by us.
 The English corpora (PG-19, WikiText-103 CC BY-SA, TinyStories) were only counted; no text of them ships.
 
+## In the app (2026-11-25)
+
+- **Native**: `app/src/main/cpp/CMakeLists.txt` adds `tools/llm/vocab_reorder.cpp` to `llm_core` (and its directory to
+  the include path). `llm::prepare_head_vocab(src, dst, list, k, progress)` and `llm::retarget_head_vocab(path, list,
+  k)` (`llm_core.h`) wrap it with the time and the peak resident size (sampled at every progress step); JNI
+  `NativeLlm.reorderVocab` (progress and cancel through a callback) and `NativeLlm.retargetVocab`, each answering done /
+  already / cancelled / failed with the reason.
+- **K in place**: `timerpg::retarget_head_vocab()` (new): the permutation is the whole ranked list whatever K is, so
+  files at two K differ only in the u32; it finds the key's serialized bytes (exactly once in the header), rewrites the
+  value, fsyncs and re-reads the header. `vocab_reorder --retarget FILE --list L --k N` on the command line.
+- **MTP files**: the tool already moved every `ne[1] == n_vocab` tensor and checked its rows; now proven for the names an
+  MTP file may carry: `llm_host_test --prepare-test DIR` makes a GGUF with `token_embd`, `output`,
+  `blk.1.nextn.shared_head_head` and `blk.1.nextn.embed_tokens` and checks every row of each where the order puts it,
+  the token strings, the remapped end id, an unmoved tensor, cancel (no file left), a rerun ("already"), K changed and
+  back, and the refusals (a K beyond the list, a file not reordered, a reordered file again, a list for another
+  tokenizer): 21 of 21. The real 4B MTP file has none of those but `token_embd` (`vocab_reorder --info`: 441 tensors,
+  `token_embd` [2560 x 248320] Q6_K 521.5 MB; `nextn_predict_layers` 1; tokenizer `e43bb84cc590a5a5`).
+- **Measured (server)**: the app's path (`llm_host_test --prepare`) on `Qwen3.5-4B-MTP-GGUF/Qwen3.5-4B-Q4_0.gguf`:
+  **3.8 s, peak RSS 89 MB**, 2,669,210,048 bytes (+128); a rerun "already" in 0.17 s. On the 0.8B MTP file
+  (`Qwen3.5-0.8B-MTP-GGUF/Qwen3.5-0.8B-Q4_0.gguf`): 1.1 s, peak RSS 97 MB, **byte-identical** to the command-line tool's
+  output. Decoding through the app's engine (`llm_host_test`, its 5 prompts, 40 tokens, MTP 2, n-gram 3), original vs
+  prepared: 4B MTP greedy **5 of 5 replies identical, the same guesses accepted** (57 of 93); 0.8B MTP greedy and sampled
+  (0.3, seed 42): 5 of 5 and 5 of 5, guesses identical.
+
 ## What remains
 
-For the app job (the next one; nothing here touched `app/src/main/cpp`, `llm/` or `dialogue/`):
-1. Compile `vocab_reorder.cpp` (and `quantize_ours.cpp`) into the native library; JNI entry points with a progress
-   callback; ship `head_vocab.txt` and `imatrix-qwen3.5-4b.gguf` as assets.
-2. `ModelDownloads`/`ModelFiles`: the BF16 as an optional download; `qwen3.5-4b-q4_0-en.gguf` (or the calibrated one) as
-   a derived file with its expected size computed from the source (same size + the three keys); a job on the charger
-   (the writer's process) that runs quantize, then reorder, then deletes the intermediate.
-3. The runtime patch (ENGINE_TAILORING idea 1, step 3) reading `timerpg.head_vocab`; then `llm_core.cpp`'s CPU
-   override for the head off for files with the key.
-4. Re-run the identity check through the app's own engine (`llm_host_test --dialogue` on the original and the
-   reordered file: replies must be identical; the ids differ, the text not).
-
-Needs the S25 (estimates above, nothing measured there): reorder and quantize time and peak memory on the phone, heat
-during them, and whether the NPU runs the Q8_0 head rows and the Q5_K `ssm_out` (else `--ssm-out-q8`).
+- The 9B (the bank) is not prepared on the phone yet: the same code applies (its tokenizer matches), but its MTP and
+  Q4_0 files are optional extras; add them to `ModelPrep.SOURCES`-like handling when the bank's NPU head is wanted.
+- Needs the S25 (nothing measured there): the preparation's time and peak memory (estimate ~5-15 s, ~90 MB), heat
+  (seconds of sequential IO), the NPU copy with the cut head and its tok/s, MTP acceptance in play against n-grams alone.
 
 Not done here, for lack of memory on this server: the 9B (commands above), more pass-rate seeds and the gamma set, KL
 divergence against BF16. The vendored llama.cpp was not edited (all builds were from a copy in `/dev/shm`).

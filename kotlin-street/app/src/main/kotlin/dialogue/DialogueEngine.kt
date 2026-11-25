@@ -91,6 +91,13 @@ data class AiStatus(
     val bank: ReplyCache.Bank = ReplyCache.Bank(),
     /** While the overnight writer runs: what it is writing and how far it is. */
     val night: NightProgress? = null,
+    /** The light model's one-time preparation (the English-first vocabulary order, [ModelPrep]): while it runs, what it
+     *  does and how far ("Preparing the light model: 42%"); null otherwise. [prepNote]: how the last run ended. */
+    val prep: String? = null,
+    val prepNote: String? = null,
+    /** The light model file has the MTP layer (its guesses are on in play), and its English-first head's size (0: none). */
+    val liveMtp: Boolean = false,
+    val liveHeadK: Long = 0,
 )
 
 /**
@@ -676,7 +683,7 @@ class DialogueEngine private constructor(private val app: Context) {
         "${what}_${role.name.lowercase()}_${if (kvQ8Wanted) "q8" else "f16"}_${contextFor(role)}" +
         (dev?.let { "_d${it}_m${modelSize(role)}" } ?: "") + (batch?.let { "_b$it" } ?: "")
 
-    private fun modelSize(role: ModelRole): Long = if (role == ModelRole.LIVE) ModelFiles.LIVE_BYTES else ModelFiles.file(app).length()
+    private fun modelSize(role: ModelRole): Long = if (role == ModelRole.LIVE) ModelFiles.live(app).length() else ModelFiles.file(app).length()
 
     /**
      * The prompt's batch on [dev]: the panel's setting when one was made ("batch"), else 128 on the NPU (its compute
@@ -737,7 +744,7 @@ class DialogueEngine private constructor(private val app: Context) {
 
     /** What [role]'s copy on its device needs (MB to bytes), with its measured working memory, copy and the adaptive margin. */
     private fun copyNeed(role: ModelRole, bankFile: File): Long {
-        val size = if (role == ModelRole.LIVE) ModelFiles.LIVE_BYTES else bankFile.length()
+        val size = if (role == ModelRole.LIVE) ModelFiles.live(app).length() else bankFile.length()
         return ModelRoles.needBytes(size, true, workWanted(role), com.timerpg.street.llm.NpuGate.margin(app) shl 20, copyWanted(role, size))
     }
 
@@ -806,6 +813,8 @@ class DialogueEngine private constructor(private val app: Context) {
 
     /** Which model is loaded ([ModelRole]); whether it was copied to its device (not mapped) and its file's size. */
     @Volatile private var loadedRole: ModelRole? = null
+    /** The file the loaded model came from (a prepared light model replaces its download: [onLiveFileChanged]). */
+    @Volatile private var loadedFile: File? = null
     @Volatile private var loadedCopied = false
     /** The loaded model runs on the CPU (never kept in play: [loadModel] lets it go there). */
     @Volatile private var loadedOnCpu = false
@@ -887,7 +896,65 @@ class DialogueEngine private constructor(private val app: Context) {
     }
 
     /** Loads the model again (after an error, or after it was unloaded). */
-    fun reload() = command { memoryUnloads = 0; memoryWaits = 0; loadModel() }
+    fun reload() { prep.kick("reload"); command { memoryUnloads = 0; memoryWaits = 0; loadModel() } }
+
+    // ------------------------------------------------------------------------------------------------ the light model's preparation
+
+    /** The one-time preparation of the light model's download ([ModelPrep], run by [ModelPrepJob]). */
+    private val prep = ModelPrepJob(app, this)
+    // (a while after start: the town's build and the first load go first; a download already on the phone is prepared then)
+    init { prep.kick("start", delayMs = ModelPrepJob.START_DELAY_MS) }
+
+    /** The English-first head's size for the light model: the AI panel's setting ("ai" pref "headK"; 49,152, or 65,536 for
+     *  quality), applied to the prepared file in place. */
+    val headKWanted: Int get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getInt("headK", ModelPrep.K_DEFAULT)
+        .let { if (it == ModelPrep.K_QUALITY) it else ModelPrep.K_DEFAULT }
+
+    fun setHeadK(k: Int) {
+        app.getSharedPreferences("ai", Context.MODE_PRIVATE).edit().putInt("headK", k).apply()
+        prep.kick("K set to $k")
+    }
+
+    /** MTP guesses for the light model (its MTP file): tokens ahead ("npu" pref "mtp_live", 0 off; default 2), stacked
+     *  with the n-gram guesses as for the main model. */
+    val liveMtpWanted: Int get() = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getInt("mtp_live", 2)
+
+    fun setLiveMtp(n: Int) {
+        app.getSharedPreferences("npu", Context.MODE_PRIVATE).edit().putInt("mtp_live", n).apply()
+        lock.withLock { running?.let { cancelLocked(it) } }
+        command { closeBackend(); loadModel() }
+    }
+
+    /**
+     * The preparation may run now: never during a conversation (the player talking, speaking or turning a corner, a line
+     * they are waiting for), never while a model loads or the town is being built (their reads and memory come first).
+     * Pre-generation may go on beside it: its reads of the same file are not disturbed.
+     */
+    fun quietForPrep(): Boolean = !loadingNow && !closed && lock.withLock {
+        demand == null && loadHolds.isEmpty() && pauses.none { it == "talking" || it == "listening" || it == "turn" || it == "town-load" }
+    }
+
+    /** The preparation's progress for the panel ([AiStatus.prep], [AiStatus.prepNote]). */
+    internal fun prepStatus(now: String?, note: String? = _status.value.prepNote) {
+        _status.update { it.copy(prep = now, prepNote = note) }
+    }
+
+    /**
+     * The light model's file changed (prepared, its download deleted, or K changed): a light model loaded from the old
+     * file loads again from the new one, when no conversation holds it (else [ModelPrepJob] calls again later).
+     * Returns false when it must wait.
+     */
+    internal fun onLiveFileChanged(): Boolean {
+        if (!quietForPrep()) return false
+        val now = ModelFiles.live(app)
+        _status.update { it.copy(liveMtp = ModelFiles.liveHasMtp(app), liveHeadK = com.timerpg.street.llm.NativeLlm.headVocab(now)) }
+        if (backend?.loaded == true && loadedRole == ModelRole.LIVE) {
+            com.timerpg.street.shot.Crumbs.add("dialogue model: the light model loads again from ${now.name} (was ${loadedFile?.name})")
+            lock.withLock { running?.let { cancelLocked(it) } }
+            command { closeBackend(); loadModel() }
+        } else command { loadModel() }
+        return true
+    }
 
     /** Deletes the model file (it can be picked again). */
     fun removeModel() {
@@ -919,6 +986,7 @@ class DialogueEngine private constructor(private val app: Context) {
     /** Stops the worker and frees the model (on the worker thread; this returns at once). */
     fun close() {
         closed = true
+        prep.close()
         copyCancel = true
         main.removeCallbacks(liftMemoryPause)
         main.removeCallbacks(retryLoad)
@@ -1203,7 +1271,7 @@ class DialogueEngine private constructor(private val app: Context) {
     /** The free memory each model's copy on its device needs now (MB): the main one, the light one (0: not on the phone). */
     fun copyNeedsMb(): Pair<Long, Long> {
         val main = ModelFiles.file(app).length().takeIf { it > 0 }?.let { ModelRoles.needBytes(it, true, workWanted(ModelRole.BANK)) shr 20 } ?: 0L
-        val light = if (ModelFiles.live(app).length() == ModelFiles.LIVE_BYTES) ModelRoles.needBytes(ModelFiles.LIVE_BYTES, true, workWanted(ModelRole.LIVE)) shr 20 else 0L
+        val light = ModelFiles.live(app).takeIf { it.isFile }?.let { ModelRoles.needBytes(it.length(), true, workWanted(ModelRole.LIVE)) shr 20 } ?: 0L
         return main to light
     }
 
@@ -1457,9 +1525,12 @@ class DialogueEngine private constructor(private val app: Context) {
         val mtpFile = java.io.File(ModelFiles.dir(app), ModelFiles.MTP)
         val useMtp = mtpWanted > 0 && mtpFile.length() == ModelFiles.MTP_BYTES && !(wantsQ40 && onNpu && q40.length() == 5_379_417_312L)
         val bankFile = if (wantsQ40 && onNpu && q40.length() == 5_379_417_312L) q40 else if (useMtp) mtpFile else ModelFiles.file(app)
-        val liveFile = ModelFiles.live(app)
+        // the light model: prepared (the English-first head), else as downloaded; the MTP file first, else the old one
+        // while the MTP one downloads (ModelPrep)
+        val liveNow = ModelPrep.live(ModelFiles.dir(app))
+        val liveFile = liveNow?.file ?: ModelFiles.live(app)
         val bankOk = ModelFiles.problem(bankFile) == null
-        val liveOk = liveFile.length() == ModelFiles.LIVE_BYTES && ModelFiles.problem(liveFile) == null
+        val liveOk = liveNow != null && ModelFiles.problem(liveFile) == null
         fun choose(): ModelRoles.Choice {
             val (avail, low) = memoryNow()
             // a model already loaded gives its copy back if it is let go: counted as free when deciding what goes in its place
@@ -1473,7 +1544,7 @@ class DialogueEngine private constructor(private val app: Context) {
             gateNote = reclaim?.let { "${it.reclaimMb} MB counted beyond the free memory: ${it.why}" }
             val margin = com.timerpg.street.llm.NpuGate.margin(app)
             val liveWork = workWanted(ModelRole.LIVE); val liveWorkNote = workNote
-            val liveCopy = copyWanted(ModelRole.LIVE, ModelFiles.LIVE_BYTES)
+            val liveCopy = copyWanted(ModelRole.LIVE, liveFile.length())
             val input = ModelRoles.Input(
                 foreground = foreground, sceneBuilt = holds.isEmpty(), freeBytes = avail + held, lowMemory = low && held == 0L,
                 bankBytes = if (bankOk) bankFile.length() else 0L, liveBytes = if (liveOk) liveFile.length() else 0L,
@@ -1489,13 +1560,14 @@ class DialogueEngine private constructor(private val app: Context) {
             val role = (c as? ModelRoles.Load)?.role ?: if (liveOk && !forceBankWanted && !night) ModelRole.LIVE else ModelRole.BANK
             gateLine = "free ${(avail + held) shr 20} MB" + (if (held > 0) " (${held shr 20} of it the loaded model's)" else "") +
                 ", reclaim counted ${reclaim?.reclaimMb ?: 0} MB, margin $margin MB, need ${ModelRoles.copyNeed(input, role) shr 20} MB for the " +
-                "${if (role == ModelRole.LIVE) "light" else "main"} copy (weights ${(if (role == ModelRole.LIVE) liveCopy.takeIf { it > 0 }?.let { "${it shr 20} measured" } else null) ?: "${(if (role == ModelRole.LIVE) ModelFiles.LIVE_BYTES else bankFile.length()) shr 20} file"}" +
+                "${if (role == ModelRole.LIVE) "light" else "main"} copy (weights ${(if (role == ModelRole.LIVE) liveCopy.takeIf { it > 0 }?.let { "${it shr 20} measured" } else null) ?: "${(if (role == ModelRole.LIVE) liveFile.length() else bankFile.length()) shr 20} file"}" +
                 (if (role == ModelRole.LIVE) ", own ${liveWork shr 20} $liveWorkNote" else "") + ", batch ${batchFor(com.timerpg.street.llm.NativeLlm.NPU)})" +
                 (if (earlyOk) ", before the town" else "") + ": ${describe(c)}" + ((c as? ModelRoles.Load)?.takeIf { it.tried }?.let { " (a try)" } ?: "")
             return c
         }
         _status.update { it.copy(hasLive = liveOk, forceBank = forceBankWanted, needLive = false,
-            liveNeedMb = (if (accelerated) copyNeed(ModelRole.LIVE, bankFile) else ModelRoles.needBytes(ModelFiles.LIVE_BYTES, false)) shr 20,
+            liveMtp = liveNow?.mtp == true, liveHeadK = if (liveNow?.prepared == true) com.timerpg.street.llm.NativeLlm.headVocab(liveFile) else 0L,
+            liveNeedMb = (if (accelerated) copyNeed(ModelRole.LIVE, bankFile) else ModelRoles.needBytes(liveFile.length().takeIf { l -> l > 0 } ?: ModelFiles.LIVE_MTP_BYTES, false)) shr 20,
             bankNeedMb = ModelRoles.needBytes(bankFile.length().takeIf { l -> l > 0 } ?: 5_680_522_464L, accelerated) shr 20) }
         var choice = choose()
         // before the town, only a load that fits now (or as a try): else the town goes first, as before
@@ -1615,8 +1687,13 @@ class DialogueEngine private constructor(private val app: Context) {
         // (repacked CPU kernels copy the weights too: not when falling back for memory)
         native?.fastCpu = fastCpuWanted && !cpuFallback
         val mtpSet = app.getSharedPreferences("npu", Context.MODE_PRIVATE).contains("mtp")
-        // (MTP is the main model's own build: the light one runs without it)
-        native?.mtp = if (role == ModelRole.BANK && useMtp && (mtpSet || native?.device == com.timerpg.street.llm.NativeLlm.NPU)) mtpWanted else 0
+        // (MTP: the main model's MTP build, and the light model's MTP file; the engine uses it only when the file has the
+        // nextn layer. The light one's cut head covers the MTP block's use of it: ENGINE_TAILORING.md, item F)
+        native?.mtp = when {
+            role == ModelRole.BANK && useMtp && (mtpSet || native?.device == com.timerpg.street.llm.NativeLlm.NPU) -> mtpWanted
+            role == ModelRole.LIVE && liveNow?.mtp == true -> liveMtpWanted
+            else -> 0
+        }
         // n-gram guesses (no model of their own: either role), stacked before MTP's
         native?.ngram = ngramWanted
         native?.fixedSteps = fixedStepsWanted
@@ -1747,6 +1824,7 @@ class DialogueEngine private constructor(private val app: Context) {
         pregenOff = null
         stats(b)
         loadedRole = role
+        loadedFile = f
         loadedCopied = native != null && (native.runsOn != com.timerpg.street.llm.NativeLlm.CPU || native.fastCpu)
         loadedOnCpu = native != null && native.runsOn == com.timerpg.street.llm.NativeLlm.CPU
         // (a device copy's weights as copied: what letting it go gives back; the tied head kept mapped is not in it)

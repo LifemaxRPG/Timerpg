@@ -9,7 +9,8 @@ simulation already decided (see `tools/export-dialogue.ts`, `src/llm/factsheet.t
 - **Bank** (the main model, the strongest that fits the phone): writes the lines ahead of time, mostly overnight with the
   game closed. Its NPU copy needs about 6.6 GB free with the margin, and beside the built town the S25 Ultra had about
   4.1 GB (measured), so it is not resident in play unless there is room.
-- **Live** (a lighter model of the same family, Q4_0 for the Hexagon NPU, 2.4 GB): loaded on the NPU right after the town
+- **Live** (a lighter model of the same family, Q4_0 for the Hexagon NPU, 2.5 GB: the 4B with its MTP layer, prepared on
+  the phone, below): loaded on the NPU right after the town
   is built, it answers in play: what the player says, and lines the bank does not have yet. It does not write ahead:
   pre-generation is paused while it is loaded (the overnight writer fills the bank with the main model). Its NPU load
   needs about 3.7 GB free with the same margin.
@@ -20,6 +21,43 @@ simulation already decided (see `tools/export-dialogue.ts`, `src/llm/factsheet.t
   looks again every 30 s with no limit; an NPU load that fails in play falls back to neither the GPU nor the CPU. Behind
   the game, the main model (on the CPU from its file if its copy does not fit); Writer mode and overnight as below. Nothing loads while the town is built. The AI panel shows which is live, on which device and
   what each needs, with a switch to put the main model in play for comparison.
+
+## The light model's file: the 4B with its MTP layer, prepared on the phone (2026-11-25)
+
+- **The download** is now `unsloth/Qwen3.5-4B-MTP-GGUF`, `Qwen3.5-4B-Q4_0.gguf` (2,669,209,920 bytes, SHA-256
+  `14e6ef39...3669`, both checked against Hugging Face's listing; `ModelFiles.LIVE_MTP`): the same 4B weights plus one
+  MTP (nextn) block, 33 layers, 86 MB more than the old file. Its tokenizer is the 9B family's (`vocab_hash
+  e43bb84cc590a5a5`), so `head_vocab.txt` applies; its only vocabulary-sized tensor is `token_embd` (Q6_K, the tied
+  head): the MTP block has no `shared_head_head` or `embed_tokens` of its own and uses the main head and embeddings.
+- **The old file** (`qwen3.5-4b-q4_0.gguf`, earlier builds' download) is no longer downloaded but stays the fallback:
+  with it on the phone and the MTP one not (or still downloading), the old one loads; once the MTP file is complete the
+  old one (and anything made from it) is deleted. `ModelPrep.live()` decides (unit tested, `ModelPrepTest`).
+- **The one-time preparation** (`ModelPrep`, `ModelPrepJob`; docs/MODEL_FILES.md): the light file as downloaded is
+  rewritten once into `*-en.gguf`, the English-first vocabulary order with `timerpg.head_vocab` = K, by
+  `tools/llm/vocab_reorder.cpp` compiled into the app's library. Verified before it is renamed into place; then the
+  download is deleted: the prepared file is the model from then on, and `ModelDownloads` counts it as the download.
+  It runs on its own background thread, a while after start, after a download (the engine's reload) and when K
+  changes; **never during a conversation, a model load or the town's build** (`DialogueEngine.quietForPrep`): a
+  conversation that begins cancels it through its progress callback (its part file removed) and it runs again 30 s
+  later. One process at a time (a lock file: the game's and the writer's both have the engine). The free space for a
+  second copy is checked first (plus what a better file's download still needs). The AI panel shows its progress and
+  how it ended; the breadcrumbs each step with its time and peak memory. Then a light model loaded from the old file
+  loads again from the new one (when no conversation holds it).
+- **K**: 49,152 by default; the AI panel's "English head" chip sets 65,536 (quality). The order does not depend on K,
+  so a K change rewrites 4 bytes of the prepared file in place (`retarget_head_vocab`), no new reorder or download.
+- **MTP in play**: the light role loads with MTP guesses when its file has the layer ("npu" pref `mtp_live`, default
+  2; 0 off), stacked with the n-gram guesses as built (the n-gram guess first, the MTP head when it has none). The
+  engine's head patch cuts the MTP block's head to K rows too.
+- **Measured (server, CPU, not the S25)**: the app's code path (`llm_host_test --prepare`, the same
+  `llm::prepare_head_vocab` the JNI calls) on the real 2.67 GB file, tmpfs: **3.8 s, peak RSS 89 MB**; its output is
+  byte-identical to the command-line tool's (checked on the 0.8B MTP file: `cmp`); +128 bytes. Through the app's engine
+  (`llm_host_test`, 5 built-in prompts, 40 tokens, greedy, MTP 2 + n-gram 3), the original and the prepared file give
+  **5 of 5 identical replies and identical guess counts** for the 4B MTP file (57 of 93 guesses right; 5.9-6.0 tok/s on
+  4 shared cores) and for the 0.8B MTP file (greedy, and sampled at 0.3 with the same seed).
+- **Needs the S25**: the preparation's time and peak memory there (UFS; estimate ~5-15 s), the NPU copy with the cut
+  head (`copy_live_*_k49152` in the gate's figures), tok/s and the MTP acceptance in play (the panel's guesses line)
+  against n-grams alone (`mtp_live` 0), and the MTP block's extra memory (its KV and rollback planes, in the load's
+  breadcrumb).
 
 ## Getting the live model onto the NPU (2026-11-22)
 
