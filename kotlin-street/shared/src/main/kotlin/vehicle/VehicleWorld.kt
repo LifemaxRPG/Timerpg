@@ -176,7 +176,8 @@ class VehicleWorld(
         cars.clear(); driven = null; phase = Phase.ON_FOOT; spawned = null
         if (this.town != null && this.town !== town) wreck.clear()
         this.town = town; parkedYards = yards
-        val fits = specs.filter { it.era(year) != VehicleEra.NONE }
+        // (a race build is not parked in the streets: the player spawns it with the car button)
+        val fits = specs.filter { it.era(year) != VehicleEra.NONE && it.race == null }
         if (fits.isEmpty()) return cars
         val sp = town.row(town.spawn.row).pointAt(town.spawn.x, town.spawn.lane)
         val street = VehicleSpots.street(town, sp.x, sp.z, collision)
@@ -245,8 +246,13 @@ class VehicleWorld(
     @Volatile var spawnNote: String? = null; private set
     @Volatile var spawnCount = 0; private set
 
-    /** The test button: at the next [step], the next of the five cars beside the player (replacing the last one spawned). */
-    fun requestSpawn() { spawnWanted = true }
+    @Volatile private var spawnKey: String? = null
+
+    /**
+     * The car button: at the next [step], the car [key] (a [VehicleSpec.key]: the player's pick from the list) beside
+     * the player, replacing the last one spawned; null: the next of the cars in turn.
+     */
+    fun requestSpawn(key: String? = null) { spawnKey = key; spawnWanted = true }
 
     /**
      * Where a car of [s] can be spawned for a player at ([x], [z]): the nearest kerbside spot ([VehicleSpots.street])
@@ -268,15 +274,18 @@ class VehicleWorld(
     }
 
     /**
-     * Spawns the next of the five cars (whatever the year: a test) beside the player at ([x], [z]), replacing the one
-     * spawned last. Null (and [spawnNote] says why) when there is no town, the player is in a car, or no clear kerb is near.
+     * Spawns car [key] (null: the next of the cars in turn; whatever the year: the player's choice) beside the player at
+     * ([x], [z]), replacing the one spawned last. Null (and [spawnNote] says why) when there is no town, the player is in a
+     * car, there is no such car, or no clear kerb is near.
      */
-    fun spawnNear(x: Float, z: Float, yards: TownYards? = parkedYards): Car? {
+    fun spawnNear(x: Float, z: Float, yards: TownYards? = parkedYards, key: String? = null): Car? {
         val t = town ?: run { spawnNote = "no town"; spawnCount++; return null }
         if (phase != Phase.ON_FOOT || specs.isEmpty()) { spawnNote = "not while in a car"; spawnCount++; return null }
+        val s = if (key != null) specs.firstOrNull { it.key == key } ?: run { spawnNote = "no car $key"; spawnCount++; return null }
+            else specs[Math.floorMod(spawnNext, specs.size)]
+        spawnNext++
         spawned?.let { remove(it) }
         spawned = null
-        val s = specs[Math.floorMod(spawnNext++, specs.size)]
         val spot = spawnSpot(t, s, x, z, yards)
         if (spot == null) { spawnNote = "${s.name}: no clear kerb near here"; spawnCount++; return null }
         val colour = s.colours[Math.floorMod((t.seed + s.key + spawnNext).hashCode(), s.colours.size)]
@@ -370,7 +379,7 @@ class VehicleWorld(
         if (groundDirty) { groundDirty = false; dropStreamed() }
         if (resetWanted) { resetWanted = false; if (d != null && phase == Phase.DRIVING) rescue(d, "the player's reset") }
         while (true) { val j = jobs.poll() ?: break; runCatching { j() } }
-        if (spawnWanted) { spawnWanted = false; spawnNear(walk.wx, walk.wz) }
+        if (spawnWanted) { spawnWanted = false; spawnNear(walk.wx, walk.wz, key = spawnKey) }
         if (bringWanted) { bringWanted = false; bringFirstNear(walk.wx, walk.wz) }
         when (phase) {
             Phase.ON_FOOT -> enterable = doorNear(walk.wx, walk.wz)
@@ -659,12 +668,12 @@ class VehicleWorld(
 
     companion object {
         /**
-         * The V1 cars for [town] ([VehicleSpec.V1] read by [read]: a path under assets/vehicles, e.g.
+         * The cars for [town] ([VehicleSpec.CATALOGUE] read by [read]: a path under assets/vehicles, e.g.
          * "northcairn-1956/model-info.json"), parked ([park], for [year]); null where the physics library does not load.
          */
         fun start(town: Town, collision: TownCollision?, yards: TownYards, read: (String) -> String?, year: Int = town.year,
                   ground: ((xM: Float, zM: Float) -> Float?)? = null, flat: FloatArray? = null): VehicleWorld? {
-            val specs = VehicleSpec.V1.mapNotNull { k -> read("$k/model-info.json")?.let { runCatching { VehicleSpec.parse(it) }.getOrNull() } }
+            val specs = VehicleSpec.CATALOGUE.mapNotNull { k -> read("$k/model-info.json")?.let { runCatching { VehicleSpec.parse(it) }.getOrNull() } }
             if (specs.isEmpty()) return null
             val ph = Physics.create() ?: return null
             return VehicleWorld(ph, collision, specs, ground, flat).also { it.park(town, yards, year) }

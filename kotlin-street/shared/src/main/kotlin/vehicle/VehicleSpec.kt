@@ -37,7 +37,39 @@ class VehicleSpec(
     val doorOpen: Map<String, Float>,
     /** Its folder under assets/vehicles. */
     val folder: String = key,
+    /** A race build's own setup (model-info.json `race`: engine, gears, suspension, tyres, downforce); null: a road car. */
+    val race: Race? = null,
+    /** Its liveries (paint.liveries): decals drawn when the car's colour is the livery's body colour. */
+    val liveries: List<Livery> = emptyList(),
+    /** The rear tyres' width (m; wheel_axles.rear.width_m), for a race build's physics; 0 where not given. */
+    val tyreWidth: Float = 0f,
 ) {
+    /**
+     * A race build's setup (estimates for the build, not measured on anything): the engine's peak torque and its revs,
+     * the gears, the brakes, the steering lock, the suspension (travel, spring frequency, damping), the tyres' grip (a
+     * share of Jolt's modern radial), the body's drag, the centre of mass's height and the downforce (N at 200 km/h,
+     * growing with the square of the speed; its front share).
+     */
+    class Race(
+        val torqueNm: Float, val minRpm: Float, val maxRpm: Float, val gears: FloatArray, val reverse: Float,
+        val brakeNm: Float, val handbrakeNm: Float, val lockDeg: Float,
+        val travelMin: Float, val travelMax: Float, val springHz: Float, val damping: Float,
+        val grip: Float, val drag: Float, val comY: Float,
+        val downforceAt200: Float, val downforceFront: Float,
+    ) {
+        /** Downforce (N) per (m/s)^2 of speed: the physics' VehicleDesc.DOWNFORCE. */
+        val downforceK: Float get() = downforceAt200 / ((200f / 3.6f) * (200f / 3.6f))
+    }
+
+    /** A livery: its [id] (its decals' nodes are `livery_<id>_*`), name, and the body colour (ARGB) that shows it. */
+    class Livery(val id: String, val name: String, val colour: Int)
+
+    /** The livery a car painted [colour] wears (null: plain paint, none drawn). */
+    fun liveryFor(colour: Int): Livery? = liveries.firstOrNull { it.colour == colour }
+
+    /** Its short name in a list: the model and year from its key ("Torrel 1988 RS" for torrel-1988-rs). */
+    val label: String get() = labelOf(key)
+
     class Node(val name: String, val x: Float, val y: Float, val z: Float, val parent: String?, val axis: FloatArray?)
 
     fun node(n: String): Node? = nodes[n]
@@ -107,6 +139,22 @@ class VehicleSpec(
             val doorOpen = HashMap<String, Float>()
             for (k in listOf("door_preview_degrees", "cargo_preview_degrees")) nearLod.optJSONObject(k)?.let { d -> for (n in d.keys()) doorOpen[n] = d.getDouble(n).toFloat() }
             val lodM = v.optJSONObject("suggested_lod_m")
+            val race = v.optJSONObject("race")?.let { r ->
+                fun pair(k: String, i: Int) = r.getJSONArray(k).getDouble(i).toFloat()
+                val g = r.getJSONArray("gears")
+                Race(
+                    r.getDouble("engine_torque_nm").toFloat(), pair("engine_rpm", 0), pair("engine_rpm", 1), FloatArray(g.length()) { g.getDouble(it).toFloat() },
+                    r.optDouble("reverse", -3.3).toFloat(), r.getDouble("brake_torque_nm").toFloat(), r.getDouble("handbrake_torque_nm").toFloat(),
+                    r.getDouble("lock_deg").toFloat(), pair("suspension_travel_m", 0), pair("suspension_travel_m", 1),
+                    r.getDouble("spring_hz").toFloat(), r.getDouble("damping").toFloat(), r.getDouble("tyre_grip").toFloat(),
+                    r.getDouble("drag").toFloat(), r.getDouble("com_y_m").toFloat(),
+                    r.optDouble("downforce_n_at_200_kmh", 0.0).toFloat(), r.optDouble("downforce_front", .5).toFloat(),
+                )
+            }
+            val liveries = paint?.optJSONArray("liveries")?.let { a ->
+                (0 until a.length()).map { a.getJSONObject(it) }.map { Livery(it.getString("id"), it.optString("name"), colour(it.getString("body"))) }
+            } ?: emptyList()
+            val tyreW = v.optJSONObject("wheel_axles")?.optJSONObject("rear")?.optDouble("width_m", 0.0)?.toFloat() ?: 0f
             return VehicleSpec(
                 v.getString("key"), v.getString("name"), years.getInt(0), years.getInt(years.length() - 1),
                 v.getDouble("estimated_mass_kg").toFloat(), v.getDouble("estimated_top_speed_kmh").toFloat(),
@@ -114,13 +162,26 @@ class VehicleSpec(
                 boxes.toFloatArray(), nodes, lamps, cols, paint?.optString("stock_secondary")?.takeIf { it.isNotBlank() }?.let { colour(it) } ?: colour("#d2c4a5"),
                 nearLod.getString("file"), lodFile("mid"), lodFile("far"),
                 lodM?.optDouble("mid", 38.0)?.toFloat() ?: 38f, lodM?.optDouble("far", 95.0)?.toFloat() ?: 95f, doorOpen,
+                race = race, liveries = liveries, tyreWidth = tyreW,
             )
         }
 
         fun colour(hex: String): Int = (0xFF000000L or hex.removePrefix("#").toLong(16)).toInt()
 
-        /** The five cars V1 drives (docs/VEHICLES.md), by their asset folders. */
+        /** The five cars V1 drives (docs/VEHICLES.md), by their asset folders: the ones parked in the towns. */
         val V1 = listOf("alderwick-1928", "fenmere-1938", "northcairn-1956", "rowanvale-1970", "tallmere-1972", "torrel-1968", "torrel-1988")
+
+        /** Every car the player can spawn (the car button's list, docs/CARS.md): V1 and the race Torrel (C046), not parked. */
+        val CATALOGUE = V1 + listOf("torrel-1988-rs")
+
+        /** A key's short name: the model capitalised, the year, a build's letters ("torrel-1988-rs": "Torrel 1988 RS"). */
+        fun labelOf(key: String): String = key.split('-').joinToString(" ") { w ->
+            when {
+                w.isEmpty() || w[0].isDigit() -> w
+                w.length <= 3 -> w.uppercase()
+                else -> w.replaceFirstChar { it.uppercase() }
+            }
+        }
     }
 }
 
@@ -170,13 +231,17 @@ class Drivetrain(
     val comY: Float,
     /** 0 rear-wheel drive, 1 front, 2 all. */
     val drive: Int = 0,
+    /** Downforce: N per (m/s)^2 (0: none, every road car) and its front share. */
+    val downforceK: Float = 0f,
+    val downforceFront: Float = .5f,
 ) {
     /** The physics description for [s]. */
     fun desc(s: VehicleSpec): FloatArray {
         val d = FloatArray(VehicleDesc.COUNT)
         d[VehicleDesc.MASS] = s.massKg
         d[VehicleDesc.WHEEL_RADIUS] = s.wheelRadius
-        d[VehicleDesc.WHEEL_WIDTH] = (s.wheelRadius * .55f).coerceIn(.14f, .26f)
+        // (a race build's real tyre width: wider than the road cars' estimate from the radius)
+        d[VehicleDesc.WHEEL_WIDTH] = if (s.race != null && s.tyreWidth > 0f) s.tyreWidth else (s.wheelRadius * .55f).coerceIn(.14f, .26f)
         d[VehicleDesc.WHEEL_X] = s.halfTrack
         d[VehicleDesc.WHEEL_Y] = s.axleY
         d[VehicleDesc.FRONT_Z] = s.frontZ
@@ -203,6 +268,8 @@ class Drivetrain(
         // (shifts up near the top of the rev range, down well below it: an automatic's gentle pattern)
         d[VehicleDesc.SHIFT_UP_RPM] = maxRpm * .82f
         d[VehicleDesc.SHIFT_DOWN_RPM] = maxRpm * .36f
+        d[VehicleDesc.DOWNFORCE] = downforceK
+        d[VehicleDesc.DOWNFORCE_FRONT] = downforceFront
         return d
     }
 
@@ -214,7 +281,13 @@ class Drivetrain(
     }
 
     companion object {
-        fun of(s: VehicleSpec): Drivetrain = when {
+        fun of(s: VehicleSpec): Drivetrain = s.race?.let { r ->
+            // a race build's own setup (model-info.json `race`): its numbers as they are
+            Drivetrain(torqueNm = r.torqueNm, minRpm = r.minRpm, maxRpm = r.maxRpm, gears = r.gears, reverse = r.reverse,
+                brakeNm = r.brakeNm, handbrakeNm = r.handbrakeNm, lockDeg = r.lockDeg, travelMin = r.travelMin, travelMax = r.travelMax,
+                springHz = r.springHz, damping = r.damping, grip = r.grip, drag = r.drag, comY = r.comY,
+                downforceK = r.downforceK, downforceFront = r.downforceFront)
+        } ?: when {
             s.from < 1932 -> Drivetrain(torqueNm = 230f, minRpm = 500f, maxRpm = 3000f, gears = floatArrayOf(3.0f, 1.65f, 1f), reverse = -3.5f,
                 brakeNm = 900f, handbrakeNm = 1400f, lockDeg = 34f, travelMin = .06f, travelMax = .26f, springHz = 1.6f, damping = .35f,
                 grip = .75f, drag = .04f, comY = .72f)

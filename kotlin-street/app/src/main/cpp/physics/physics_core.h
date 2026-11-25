@@ -41,6 +41,8 @@ enum VehicleDesc {
     VD_FRICTION_LAT,
     VD_SHIFT_UP_RPM,
     VD_SHIFT_DOWN_RPM,
+    VD_DOWNFORCE,           // N per (m/s)^2 of forward speed: a wing's and splitter's push down (0: none, the road cars)
+    VD_DOWNFORCE_FRONT,     // 0..1: the share of it on the front axle (the rest on the rear)
     VD_COUNT
 };
 

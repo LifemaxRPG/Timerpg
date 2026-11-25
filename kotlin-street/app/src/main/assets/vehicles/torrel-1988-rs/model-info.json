@@ -1,0 +1,1583 @@
+{
+ "task": "C046",
+ "format": "glTF metres, +Y up, +Z forward, +X vehicle left",
+ "origin": "Ground below the axle midpoint",
+ "texel_m": 0.0388,
+ "vehicle": {
+  "key": "torrel-1988-rs",
+  "name": "Rillhaven Torrel RS (Halvane race build)",
+  "years": [
+   1988,
+   1996
+  ],
+  "estimated_mass_kg": 968.0,
+  "estimated_top_speed_kmh": 278.0,
+  "wheelbase_m": 2.36,
+  "track_m": 1.6,
+  "wheel_radius_m": 0.3,
+  "mid_engine": true,
+  "driven_axle": "rear",
+  "weight_distribution": {
+   "front": 0.41,
+   "rear": 0.59
+  },
+  "wheel_axles": {
+   "front": {
+    "track_m": 1.6,
+    "radius_m": 0.3,
+    "width_m": 0.245
+   },
+   "rear": {
+    "track_m": 1.66,
+    "radius_m": 0.312,
+    "width_m": 0.285
+   }
+  },
+  "estimated_0_100_kmh_s": 4.9,
+  "suggested_final_drive": 3.63,
+  "suggested_top_gear_ratio": 0.92,
+  "suggested_power_kw": 196,
+  "suggested_lod_m": {
+   "mid": 38,
+   "far": 95
+  },
+  "roof_panel": {
+   "node": "roof_panel",
+   "operation": "remove",
+   "mount_gltf_m": [
+    0.0,
+    1.061,
+    -0.228
+   ]
+  },
+  "collision_boxes": [
+   {
+    "center_gltf_m": [
+     0,
+     0.44,
+     0
+    ],
+    "size_gltf_m": [
+     1.66,
+     0.6,
+     4.1
+    ]
+   },
+   {
+    "center_gltf_m": [
+     0,
+     0.852,
+     -0.225
+    ],
+    "size_gltf_m": [
+     1.09,
+     0.453,
+     1.239
+    ]
+   },
+   {
+    "center_gltf_m": [
+     0,
+     1.17,
+     -1.82
+    ],
+    "size_gltf_m": [
+     1.76,
+     0.14,
+     0.44
+    ]
+   },
+   {
+    "center_gltf_m": [
+     0.91,
+     0.45,
+     1.18
+    ],
+    "size_gltf_m": [
+     0.15,
+     0.36,
+     0.92
+    ]
+   },
+   {
+    "center_gltf_m": [
+     -0.91,
+     0.45,
+     1.18
+    ],
+    "size_gltf_m": [
+     0.15,
+     0.36,
+     0.92
+    ]
+   },
+   {
+    "center_gltf_m": [
+     0.955,
+     0.46,
+     -1.18
+    ],
+    "size_gltf_m": [
+     0.16,
+     0.36,
+     0.96
+    ]
+   },
+   {
+    "center_gltf_m": [
+     -0.955,
+     0.46,
+     -1.18
+    ],
+    "size_gltf_m": [
+     0.16,
+     0.36,
+     0.96
+    ]
+   }
+  ],
+  "paint": {
+   "preset_body_colours": [
+    "#ece4cc",
+    "#2c3a46",
+    "#d5a843",
+    "#b84b47",
+    "#417458",
+    "#ce5e31"
+   ],
+   "named_presets": {
+    "halvane_stripes": "#ece4cc",
+    "ostrand_flash": "#2c3a46",
+    "yellow": "#d5a843",
+    "red": "#b84b47",
+    "racing_green": "#417458",
+    "orange": "#ce5e31"
+   },
+   "stock_secondary": "#323c45",
+   "masks": {
+    "primary": "textures/torrel-1988-rs-primary-mask.png",
+    "secondary": "textures/torrel-1988-rs-secondary-mask.png",
+    "race_kit": "textures/torrel-1988-rs-race-kit.png"
+   },
+   "liveries": [
+    {
+     "id": "a",
+     "name": "Halvane stripes",
+     "body": "#ece4cc",
+     "number": "27",
+     "nodes": "livery_a_*"
+    },
+    {
+     "id": "b",
+     "name": "Ostrand flash",
+     "body": "#2c3a46",
+     "number": "7",
+     "nodes": "livery_b_*"
+    }
+   ],
+   "livery_note": "Each livery is decals (race_kit) under nodes livery_<id>_<part>, on the part they move with; the game draws a livery's nodes when the car's colour is that livery's body colour and none for the plain colours."
+  },
+  "lods": [
+   {
+    "file": "torrel-1988-rs.glb",
+    "lod": "near",
+    "triangles": 3869,
+    "bounds_gltf_m": [
+     [
+      -1.0419,
+      1.0419
+     ],
+     [
+      0.0102,
+      1.39
+     ],
+     [
+      -2.17,
+      2.16
+     ]
+    ],
+    "materials": [
+     "glass_vehicle",
+     "glow_lamps",
+     "hardware_and_trim",
+     "paint_primary",
+     "paint_secondary",
+     "race_kit"
+    ],
+    "nodes": {
+     "hood": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.0,
+       0.664,
+       0.684
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "trunk": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.0,
+       0.733,
+       -0.936
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "roof_panel": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.0,
+       1.061,
+       -0.228
+      ]
+     },
+     "steer_fl": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.8,
+       0.3,
+       1.18
+      ],
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "parent": "steer_fl",
+      "center_gltf_m": [
+       0.8,
+       0.3,
+       1.18
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.83,
+       0.312,
+       -1.18
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.8,
+       0.3,
+       1.18
+      ],
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "parent": "steer_fr",
+      "center_gltf_m": [
+       -0.8,
+       0.3,
+       1.18
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.83,
+       0.312,
+       -1.18
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "door_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.72,
+       0.483,
+       0.573
+      ],
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.72,
+       0.483,
+       0.573
+      ],
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "steering_wheel": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.334,
+       0.747,
+       0.391
+      ],
+      "axis_local_gltf": [
+       0,
+       0.34,
+       0.940425
+      ]
+     },
+     "seat_driver": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.347,
+       0.301,
+       -0.235
+      ]
+     },
+     "seat_pillion": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.347,
+       0.301,
+       -0.235
+      ]
+     },
+     "seat_passenger": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.347,
+       0.301,
+       -0.235
+      ]
+     },
+     "exit_left": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       1.13,
+       0.0,
+       0.03
+      ]
+     },
+     "exit_right": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -1.13,
+       0.0,
+       0.03
+      ]
+     },
+     "badge_plate": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.0,
+       0.55,
+       1.878
+      ]
+     },
+     "light_head_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.534,
+       0.484,
+       2.006
+      ]
+     },
+     "light_turn_front_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.606,
+       0.393,
+       2.008
+      ]
+     },
+     "light_tail_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.656,
+       0.584,
+       -2.015
+      ]
+     },
+     "light_brake_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.468,
+       0.584,
+       -2.017
+      ]
+     },
+     "light_turn_rear_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.287,
+       0.584,
+       -2.016
+      ]
+     },
+     "light_reverse_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.41,
+       0.502,
+       -2.016
+      ]
+     },
+     "light_head_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.534,
+       0.484,
+       2.006
+      ]
+     },
+     "light_turn_front_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.606,
+       0.393,
+       2.008
+      ]
+     },
+     "light_tail_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.656,
+       0.584,
+       -2.015
+      ]
+     },
+     "light_brake_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.468,
+       0.584,
+       -2.017
+      ]
+     },
+     "light_turn_rear_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.287,
+       0.584,
+       -2.016
+      ]
+     },
+     "light_reverse_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.41,
+       0.502,
+       -2.016
+      ]
+     }
+    },
+    "door_preview_degrees": {
+     "door_l": -62,
+     "door_r": 62
+    },
+    "cargo_preview_degrees": {
+     "hood": -43,
+     "trunk": 46
+    },
+    "lamps": {
+     "light_head_r": {
+      "role": "head",
+      "direction_gltf": [
+       0,
+       0,
+       1
+      ],
+      "zone": "head"
+     },
+     "light_turn_front_r": {
+      "role": "turn",
+      "direction_gltf": [
+       0,
+       0,
+       1
+      ],
+      "zone": "turn"
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "tail"
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "brake"
+     },
+     "light_turn_rear_r": {
+      "role": "turn",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "turn"
+     },
+     "light_reverse_r": {
+      "role": "reverse",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "reverse"
+     },
+     "light_head_l": {
+      "role": "head",
+      "direction_gltf": [
+       0,
+       0,
+       1
+      ],
+      "zone": "head"
+     },
+     "light_turn_front_l": {
+      "role": "turn",
+      "direction_gltf": [
+       0,
+       0,
+       1
+      ],
+      "zone": "turn"
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "tail"
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "brake"
+     },
+     "light_turn_rear_l": {
+      "role": "turn",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "turn"
+     },
+     "light_reverse_l": {
+      "role": "reverse",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "reverse"
+     }
+    },
+    "triangles_drawn": 3628
+   },
+   {
+    "file": "torrel-1988-rs-mid.glb",
+    "lod": "mid",
+    "triangles": 1340,
+    "bounds_gltf_m": [
+     [
+      -1.0419,
+      1.0419
+     ],
+     [
+      0.0228,
+      1.39
+     ],
+     [
+      -2.1,
+      2.16
+     ]
+    ],
+    "materials": [
+     "glass_vehicle",
+     "glow_lamps",
+     "hardware_and_trim",
+     "paint_primary",
+     "paint_secondary",
+     "race_kit"
+    ],
+    "nodes": {
+     "hood": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.0,
+       0.664,
+       0.684
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "trunk": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.0,
+       0.733,
+       -0.936
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "roof_panel": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.0,
+       1.061,
+       -0.228
+      ]
+     },
+     "steer_fl": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.8,
+       0.3,
+       1.18
+      ],
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "parent": "steer_fl",
+      "center_gltf_m": [
+       0.8,
+       0.3,
+       1.18
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.83,
+       0.312,
+       -1.18
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.8,
+       0.3,
+       1.18
+      ],
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "parent": "steer_fr",
+      "center_gltf_m": [
+       -0.8,
+       0.3,
+       1.18
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.83,
+       0.312,
+       -1.18
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "door_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.72,
+       0.483,
+       0.573
+      ],
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.72,
+       0.483,
+       0.573
+      ],
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "steering_wheel": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.334,
+       0.747,
+       0.391
+      ],
+      "axis_local_gltf": [
+       0,
+       0.34,
+       0.940425
+      ]
+     },
+     "seat_driver": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.347,
+       0.301,
+       -0.235
+      ]
+     },
+     "seat_pillion": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.347,
+       0.301,
+       -0.235
+      ]
+     },
+     "seat_passenger": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.347,
+       0.301,
+       -0.235
+      ]
+     },
+     "exit_left": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       1.13,
+       0.0,
+       0.03
+      ]
+     },
+     "exit_right": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -1.13,
+       0.0,
+       0.03
+      ]
+     },
+     "badge_plate": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.0,
+       0.55,
+       1.878
+      ]
+     },
+     "light_head_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.534,
+       0.484,
+       2.006
+      ]
+     },
+     "light_turn_front_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.606,
+       0.393,
+       2.008
+      ]
+     },
+     "light_tail_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.656,
+       0.584,
+       -2.015
+      ]
+     },
+     "light_brake_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.468,
+       0.584,
+       -2.017
+      ]
+     },
+     "light_turn_rear_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.287,
+       0.584,
+       -2.016
+      ]
+     },
+     "light_reverse_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.41,
+       0.502,
+       -2.016
+      ]
+     },
+     "light_head_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.534,
+       0.484,
+       2.006
+      ]
+     },
+     "light_turn_front_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.606,
+       0.393,
+       2.008
+      ]
+     },
+     "light_tail_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.656,
+       0.584,
+       -2.015
+      ]
+     },
+     "light_brake_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.468,
+       0.584,
+       -2.017
+      ]
+     },
+     "light_turn_rear_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.287,
+       0.584,
+       -2.016
+      ]
+     },
+     "light_reverse_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.41,
+       0.502,
+       -2.016
+      ]
+     }
+    },
+    "door_preview_degrees": {
+     "door_l": -62,
+     "door_r": 62
+    },
+    "cargo_preview_degrees": {
+     "hood": -43,
+     "trunk": 46
+    },
+    "lamps": {
+     "light_head_r": {
+      "role": "head",
+      "direction_gltf": [
+       0,
+       0,
+       1
+      ],
+      "zone": "head"
+     },
+     "light_turn_front_r": {
+      "role": "turn",
+      "direction_gltf": [
+       0,
+       0,
+       1
+      ],
+      "zone": "turn"
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "tail"
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "brake"
+     },
+     "light_turn_rear_r": {
+      "role": "turn",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "turn"
+     },
+     "light_reverse_r": {
+      "role": "reverse",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "reverse"
+     },
+     "light_head_l": {
+      "role": "head",
+      "direction_gltf": [
+       0,
+       0,
+       1
+      ],
+      "zone": "head"
+     },
+     "light_turn_front_l": {
+      "role": "turn",
+      "direction_gltf": [
+       0,
+       0,
+       1
+      ],
+      "zone": "turn"
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "tail"
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "brake"
+     },
+     "light_turn_rear_l": {
+      "role": "turn",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "turn"
+     },
+     "light_reverse_l": {
+      "role": "reverse",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "reverse"
+     }
+    },
+    "triangles_drawn": 1138
+   },
+   {
+    "file": "torrel-1988-rs-far.glb",
+    "lod": "far",
+    "triangles": 146,
+    "bounds_gltf_m": [
+     [
+      -1.035,
+      1.035
+     ],
+     [
+      0.0402,
+      1.39
+     ],
+     [
+      -2.1,
+      2.1
+     ]
+    ],
+    "materials": [
+     "glass_vehicle",
+     "paint_primary",
+     "paint_secondary",
+     "race_kit"
+    ],
+    "nodes": {
+     "hood": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.0,
+       0.664,
+       0.684
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "trunk": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.0,
+       0.733,
+       -0.936
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "roof_panel": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.0,
+       1.061,
+       -0.228
+      ]
+     },
+     "steer_fl": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.8,
+       0.3,
+       1.18
+      ],
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fl": {
+      "parent": "steer_fl",
+      "center_gltf_m": [
+       0.8,
+       0.3,
+       1.18
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rl": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.83,
+       0.312,
+       -1.18
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "steer_fr": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.8,
+       0.3,
+       1.18
+      ],
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "wheel_fr": {
+      "parent": "steer_fr",
+      "center_gltf_m": [
+       -0.8,
+       0.3,
+       1.18
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "wheel_rr": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.83,
+       0.312,
+       -1.18
+      ],
+      "axis_local_gltf": [
+       1,
+       0,
+       0
+      ]
+     },
+     "door_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.72,
+       0.483,
+       0.573
+      ],
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "door_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.72,
+       0.483,
+       0.573
+      ],
+      "axis_local_gltf": [
+       0,
+       1,
+       0
+      ]
+     },
+     "steering_wheel": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.334,
+       0.747,
+       0.391
+      ],
+      "axis_local_gltf": [
+       0,
+       0.34,
+       0.940425
+      ]
+     },
+     "seat_driver": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.347,
+       0.301,
+       -0.235
+      ]
+     },
+     "seat_pillion": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.347,
+       0.301,
+       -0.235
+      ]
+     },
+     "seat_passenger": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.347,
+       0.301,
+       -0.235
+      ]
+     },
+     "exit_left": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       1.13,
+       0.0,
+       0.03
+      ]
+     },
+     "exit_right": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -1.13,
+       0.0,
+       0.03
+      ]
+     },
+     "badge_plate": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.0,
+       0.55,
+       1.878
+      ]
+     },
+     "light_head_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.534,
+       0.484,
+       2.006
+      ]
+     },
+     "light_turn_front_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.606,
+       0.393,
+       2.008
+      ]
+     },
+     "light_tail_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.656,
+       0.584,
+       -2.015
+      ]
+     },
+     "light_brake_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.468,
+       0.584,
+       -2.017
+      ]
+     },
+     "light_turn_rear_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.287,
+       0.584,
+       -2.016
+      ]
+     },
+     "light_reverse_r": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       -0.41,
+       0.502,
+       -2.016
+      ]
+     },
+     "light_head_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.534,
+       0.484,
+       2.006
+      ]
+     },
+     "light_turn_front_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.606,
+       0.393,
+       2.008
+      ]
+     },
+     "light_tail_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.656,
+       0.584,
+       -2.015
+      ]
+     },
+     "light_brake_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.468,
+       0.584,
+       -2.017
+      ]
+     },
+     "light_turn_rear_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.287,
+       0.584,
+       -2.016
+      ]
+     },
+     "light_reverse_l": {
+      "parent": "torrel-1988-rs",
+      "center_gltf_m": [
+       0.41,
+       0.502,
+       -2.016
+      ]
+     }
+    },
+    "door_preview_degrees": {
+     "door_l": -62,
+     "door_r": 62
+    },
+    "cargo_preview_degrees": {
+     "hood": -43,
+     "trunk": 46
+    },
+    "lamps": {
+     "light_head_r": {
+      "role": "head",
+      "direction_gltf": [
+       0,
+       0,
+       1
+      ],
+      "zone": "head"
+     },
+     "light_turn_front_r": {
+      "role": "turn",
+      "direction_gltf": [
+       0,
+       0,
+       1
+      ],
+      "zone": "turn"
+     },
+     "light_tail_r": {
+      "role": "tail",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "tail"
+     },
+     "light_brake_r": {
+      "role": "brake",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "brake"
+     },
+     "light_turn_rear_r": {
+      "role": "turn",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "turn"
+     },
+     "light_reverse_r": {
+      "role": "reverse",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "reverse"
+     },
+     "light_head_l": {
+      "role": "head",
+      "direction_gltf": [
+       0,
+       0,
+       1
+      ],
+      "zone": "head"
+     },
+     "light_turn_front_l": {
+      "role": "turn",
+      "direction_gltf": [
+       0,
+       0,
+       1
+      ],
+      "zone": "turn"
+     },
+     "light_tail_l": {
+      "role": "tail",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "tail"
+     },
+     "light_brake_l": {
+      "role": "brake",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "brake"
+     },
+     "light_turn_rear_l": {
+      "role": "turn",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "turn"
+     },
+     "light_reverse_l": {
+      "role": "reverse",
+      "direction_gltf": [
+       0,
+       0,
+       -1
+      ],
+      "zone": "reverse"
+     }
+    },
+    "triangles_drawn": 146
+   }
+  ],
+  "based_on": "torrel-1988",
+  "race": {
+   "note": "the race build's setup, read by the game's physics (VehicleSpec.Race); the road car's in brackets",
+   "engine_torque_nm": 330,
+   "engine_rpm": [
+    900,
+    8200.0
+   ],
+   "gears": [
+    3.0,
+    2.1,
+    1.6,
+    1.3,
+    1.08,
+    0.92
+   ],
+   "reverse": -3.3,
+   "final_drive": 3.63,
+   "brake_torque_nm": 2400,
+   "handbrake_torque_nm": 2400,
+   "lock_deg": 30,
+   "suspension_travel_m": [
+    0.035,
+    0.15
+   ],
+   "spring_hz": 2.9,
+   "damping": 0.62,
+   "tyre_grip": 1.34,
+   "drag": 0.016,
+   "com_y_m": 0.36,
+   "downforce_n_at_100_kmh": 650,
+   "downforce_n_at_200_kmh": 2600,
+   "downforce_front": 0.38,
+   "ride_height_m": 0.104,
+   "splitter_height_m": 0.09,
+   "road_car": {
+    "mass_kg": 1088,
+    "top_speed_kmh": 224,
+    "0_100_kmh_s": 6.4,
+    "engine_torque_nm": 260,
+    "engine_rpm": [
+     800,
+     7000
+    ],
+    "gears": [
+     3.3,
+     2.1,
+     1.5,
+     1.2,
+     1.0
+    ],
+    "tyre_grip": 1.05,
+    "spring_hz": 2.0,
+    "damping": 0.52,
+    "suspension_travel_m": [
+     0.05,
+     0.22
+    ],
+    "com_y_m": 0.42,
+    "ride_height_m": 0.154,
+    "downforce_n_at_200_kmh": 0
+   }
+  },
+  "rs_parts": [
+   "rs_wing",
+   "rs_arch_fl",
+   "rs_arch_fr",
+   "rs_arch_rl",
+   "rs_arch_rr",
+   "rs_front",
+   "rs_tail",
+   "rs_cabin"
+  ]
+ }
+}

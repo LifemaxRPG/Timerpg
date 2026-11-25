@@ -13,6 +13,8 @@ import kotlin.math.sqrt
  * suspension), the doors, hood and trunk (hinged), the steering wheel, and each lamp's lens (lit on its own: head, tail,
  * brake, turn, reverse). Everything else is one static body, merged by material. Paint: the `paint_primary` picture
  * recoloured to the car's colour (its own shading kept), glass made a dark tinted solid (our material does not blend).
+ * A race build's liveries (the race Torrel's, C046) are decals under `livery_<id>_*` nodes: the one whose body colour
+ * the car wears is drawn ([VehicleSpec.liveryFor]), the others left out.
  */
 
 /** One part of a car: its meshes by material in its node's frame ([node] -1: the static body, in the car's frame). */
@@ -59,9 +61,18 @@ internal object VehicleKit {
         val inv = HashMap<Int, FloatArray>()
         val tmp = FloatArray(3)
         var tris = 0
+        // a race build's liveries (decals under `livery_<id>_*` nodes): only the one the colour names, none for plain paint
+        val livery = spec.liveryFor(colour)?.id
+        fun liveryOf(i: Int): String? {
+            var k = i
+            while (k >= 0) { val nm = names[k]; if (nm.startsWith("livery_")) return nm.removePrefix("livery_").substringBefore('_'); k = parent[k] }
+            return null
+        }
         for (nd in glb.nodes) {
             if (nd.mesh < 0) continue
             if (nd.extras?.has("render") == true && !nd.extras.optBoolean("render", true)) continue
+            val lv = liveryOf(nd.index)
+            if (lv != null && lv != livery) continue
             for (p in glb.primitives(nd.mesh)) {
                 val mat = glb.materials.getOrNull(p.material)?.name ?: "untitled"
                 val o = owner(nd.index, mat)
