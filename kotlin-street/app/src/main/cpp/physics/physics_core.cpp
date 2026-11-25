@@ -323,14 +323,17 @@ int addHeightfield(World *w, float x0, float z0, int n, float cell, const float 
     if (n < 4 || cell <= 0.f) return -1;
     HeightFieldShapeSettings s(heights, Vec3(0.f, 0.f, 0.f), Vec3(cell, 1.f, cell), (uint32) n);
     s.mBlockSize = 4;
-    // (Jolt wants the sample count a multiple of the block size: pad by repeating the far edge)
+    // (Jolt wants the sample count a multiple of the block size: the padding is holes, no collision, so the field ends
+    // at its last sample. It used to repeat the far edge: a flat shelf of up to 3 cells reaching into the next streamed
+    // chunk at the edge's height, which a car rode out onto and dropped off wherever the ground fell away:
+    // HeightfieldSeamTest)
     std::vector<float> padded;
     uint32 need = ((uint32) n + s.mBlockSize - 1) / s.mBlockSize * s.mBlockSize;
     if (need != (uint32) n) {
         padded.resize((size_t) need * need);
         for (uint32 z = 0; z < need; ++z)
             for (uint32 x = 0; x < need; ++x)
-                padded[z * need + x] = heights[std::min<uint32>(z, n - 1) * n + std::min<uint32>(x, n - 1)];
+                padded[z * need + x] = x < (uint32) n && z < (uint32) n ? heights[z * n + x] : HeightFieldShapeConstants::cNoCollisionValue;
         s.mHeightSamples.assign(padded.begin(), padded.end());
         s.mSampleCount = need;
     }
