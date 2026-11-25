@@ -287,9 +287,12 @@ int cmd_decode(int argc, char ** argv) {
     FILE * dump = dump_path.empty() ? nullptr : std::fopen(dump_path.c_str(), "w");
 
     struct PerK { uint64_t steps_out_top40 = 0, tokens_out_top40 = 0, steps_out_nucleus = 0; double max_p_nucleus = 0;
-                  long best_rank = -1; double max_mass = 0; std::string worst; std::map<int, long> outside; };
+                  long best_rank = -1; double max_mass = 0; std::string worst; std::map<int, long> outside;
+                  uint64_t nucleus_differs = 0; double max_tv = 0, sum_tv = 0; };
     std::vector<PerK> pk(ks.size());
     uint64_t steps = 0, runs = 0;
+    std::vector<uint8_t> state;
+    std::vector<float> first_logits;
     const auto t0 = std::chrono::steady_clock::now();
 
     for (size_t pi = 0; pi < prompts.size(); ++pi) {
@@ -303,14 +306,27 @@ int cmd_decode(int argc, char ** argv) {
         for (int run = 0; run <= samples; ++run) {
             const float t = run == 0 ? 0.0f : temp;
             std::mt19937 rng(1234u + (uint32_t) pi * 7919u + (uint32_t) run);
-            llama_memory_clear(llama_get_memory(A.c), true);
-            if (!A.eval(tm)) { std::fprintf(stderr, "decode failed\n"); return 1; }
+            // the prompt is processed once; the sampled runs restore its state and its last logits (as the app's saved
+            // states do), so a prompt costs one prefill
+            if (run == 0) {
+                llama_memory_clear(llama_get_memory(A.c), true);
+                if (!A.eval(tm)) { std::fprintf(stderr, "decode failed\n"); return 1; }
+                if (samples > 0) {
+                    state.resize(llama_state_seq_get_size(A.c, 0));
+                    llama_state_seq_get_data(A.c, state.data(), state.size(), 0);
+                    const float * l0 = llama_get_logits_ith(A.c, -1);
+                    first_logits.assign(l0, l0 + nv);
+                }
+            } else {
+                llama_memory_clear(llama_get_memory(A.c), true);
+                if (llama_state_seq_set_data(A.c, state.data(), state.size(), 0) != state.size()) { std::fprintf(stderr, "restore failed\n"); return 1; }
+            }
             std::vector<llama_token> gen;    // original numbering
             std::vector<llama_token> gen_m;  // the model's numbering
             std::vector<float> la(nv);
             std::vector<int> idx(nv);
             for (int step = 0; step < max_tok; ++step) {
-                const float * raw = llama_get_logits_ith(A.c, -1);
+                const float * raw = run > 0 && step == 0 ? first_logits.data() : llama_get_logits_ith(A.c, -1);
                 for (int i = 0; i < nv; ++i) la[(size_t) orig_id(i)] = raw[i];  // original order
                 if (dump) {
                     uint64_t h = 1469598103934665603ULL;
@@ -347,6 +363,42 @@ int cmd_decode(int argc, char ** argv) {
                     long rank = 1;
                     for (int i = 0; i < nv; ++i) rank += la[i] > best;
                     pk[ki].max_mass = std::max(pk[ki].max_mass, mass / z);
+                    // the exact question for the runtime: the app's chain (top-k 40, top-p 0.9, temperature) over the
+                    // trimmed logits (outside K = -INF) against the full ones: the same candidates? how far apart?
+                    {
+                        auto chain = [&](bool trim, float temp_c, std::vector<std::pair<int, double>> & out_p) {
+                            std::vector<int> c; c.reserve(40);
+                            for (int r = 0; r < 40; ++r) if (!trim || p.inv[(size_t) idx[r]] < K) c.push_back(idx[r]);
+                            if (trim && c.size() < 40) {  // refill from the next best tokens inside K
+                                std::vector<int> rest;
+                                for (int i = 0; i < nv; ++i) if (p.inv[(size_t) i] < K && std::find(c.begin(), c.end(), i) == c.end()) rest.push_back(i);
+                                const size_t need = 40 - c.size();
+                                std::partial_sort(rest.begin(), rest.begin() + (long) std::min(need, rest.size()), rest.end(),
+                                                  [&](int a, int b) { return la[a] != la[b] ? la[a] > la[b] : a < b; });
+                                for (size_t i = 0; i < need && i < rest.size(); ++i) c.push_back(rest[i]);
+                            }
+                            const double m0 = la[c[0]];
+                            double s = 0, cum = 0; for (int id : c) s += std::exp((double) la[id] - m0);
+                            size_t keep = c.size();
+                            for (size_t r = 0; r < c.size(); ++r) { cum += std::exp((double) la[c[r]] - m0) / s; if (cum >= 0.9) { keep = r + 1; break; } }
+                            double s2 = 0;
+                            out_p.clear();
+                            for (size_t r = 0; r < keep; ++r) { const double w = std::exp(((double) la[c[r]] - m0) / temp_c); out_p.push_back({c[r], w}); s2 += w; }
+                            for (auto & e : out_p) e.second /= s2;
+                        };
+                        const float tc = t > 0 ? t : 0.3f;  // greedy runs: judged at the app's 0.3
+                        std::vector<std::pair<int, double>> full, trim;
+                        chain(false, tc, full); chain(true, tc, trim);
+                        std::map<int, double> d;
+                        for (auto & e : full) d[e.first] += e.second;
+                        for (auto & e : trim) d[e.first] -= e.second;
+                        double tv = 0; for (auto & e : d) tv += std::fabs(e.second); tv *= 0.5;
+                        bool same = full.size() == trim.size();
+                        for (size_t r = 0; same && r < full.size(); ++r) same = full[r].first == trim[r].first;
+                        if (!same) pk[ki].nucleus_differs++;
+                        pk[ki].max_tv = std::max(pk[ki].max_tv, tv);
+                        pk[ki].sum_tv += tv;
+                    }
                     if (pk[ki].best_rank < 0 || rank < pk[ki].best_rank) {
                         pk[ki].best_rank = rank;
                         pk[ki].worst = "prompt " + std::to_string(pi) + " run " + std::to_string(run) + " step " + std::to_string(step) +
@@ -378,6 +430,10 @@ int cmd_decode(int argc, char ** argv) {
                     "(%llu tokens); best rank of any token outside K: %ld (%s); max softmax mass outside K: %.3g\n", ks[ki],
                     (unsigned long long) pk[ki].steps_out_nucleus, pk[ki].max_p_nucleus, (unsigned long long) pk[ki].steps_out_top40,
                     (unsigned long long) pk[ki].tokens_out_top40, pk[ki].best_rank, pk[ki].worst.c_str(), pk[ki].max_mass);
+        std::printf("K=%u chain: the app's sampling (top-k 40, top-p 0.9, temperature; greedy runs at 0.3) on trimmed vs full "
+                    "logits: candidate sets differ at %llu of %llu steps; total variation max %.3g, mean %.3g\n", ks[ki],
+                    (unsigned long long) pk[ki].nucleus_differs, (unsigned long long) steps, pk[ki].max_tv,
+                    steps ? pk[ki].sum_tv / (double) steps : 0.0);
         std::vector<std::pair<long, int>> o;
         for (auto & kv : pk[ki].outside) o.push_back({kv.second, kv.first});
         std::sort(o.rbegin(), o.rend());
@@ -413,7 +469,8 @@ int cmd_compare(int argc, char ** argv) {
 }
 
 /** Line-start forms: for each of the first N ranked tokens that is a space + word (" word"), the tokens of "word",
- *  "Word" and "\"Word" with no space before them (a reply's first word, a word after a line break or a quote).
+ *  "Word" and "\"Word" with no space before them (a reply's first word, a word after a line break or a quote), and
+ *  " Word" and " word" (a sentence start after ". ", a lower-case use).
  *  Writes "source_id<TAB>form ids..." per source token, in rank order (make_head_vocab.py --forms). */
 int cmd_forms(int argc, char ** argv) {
     if (argc < 5) return 2;
@@ -429,7 +486,7 @@ int cmd_forms(int argc, char ** argv) {
         std::string w = pc.substr(1), W = w;
         W[0] = (char) std::toupper((unsigned char) W[0]);
         std::fprintf(o, "%u", l.ranked[r]);
-        for (const std::string & f : {w, W, std::string("\"") + W})
+        for (const std::string & f : {w, W, std::string("\"") + W, std::string(" ") + W, std::string(" ") + w})
             for (llama_token t : tokenize(v, f, false)) std::fprintf(o, "\t%d", t);
         std::fprintf(o, "\n");
         written++;

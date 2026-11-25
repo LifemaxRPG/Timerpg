@@ -12,7 +12,8 @@ Order (each tier sorted by its score, ties by id):
      literals), most frequent first;
   2. the rest by their share of each English corpus (--weigh FILE=W: sum of W * count / corpus tokens), most first;
   with --forms (vocab_test forms over a first pass's list): right after each word token " word", the tokens of
-     "word", "Word" and "\"Word" with no space before them (a reply's first word, after a line break or a quote);
+     "word", "Word" and "\"Word" with no space before them (a reply's first word, after a line break or a quote) and
+     " Word", " word" (a sentence start after ". ", a lower-case use);
 the first --max are written (ids in the original numbering); every other token keeps its original order after them.
 Prints the coverage of each corpus and --report file for K = 32k, 48k, 64k. Needs gguf-py (llama.cpp's) (set GGUF_PY to its gguf-py directory).
 Server-side only.
