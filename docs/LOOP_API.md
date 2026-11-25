@@ -145,6 +145,7 @@ Supported `event.kind` values:
 - `take` — `subkind`: `'shoplift' | 'yard' | 'house' | 'pickpocket'`; `item.value` in integer cents.
 - `take_vehicle` — vehicle theft (`car_theft`); `vehicle.value` in integer cents.
 - `enter` — legitimate during open hours; trespass (`isOpen: false`) or burglary (`forcedEntry: true`) when closed.
+- `fence_sale` — off-the-books sale of hot goods to a real person acting as a fence (`src/economy/fence.ts`). Uses `fenceDeal` (when `catalogueItemId` is supplied) and `fenceRisk(fence, year)` with a deterministic keyed roll; never writes a pawn registry entry. Clean deals raise the fence's standing and `attitude()`; high heat triggers a `too_hot` refusal; a triggered `fenceRisk` roll queues an informant tip to police via era latency.
 
 **Example input (`work_shift`):**
 ```json
@@ -192,7 +193,7 @@ Supported `event.kind` values:
 
 ### 3. `advance(sim: LoopSim, hours: number, options?: AdvanceOptions): AdvanceResult`
 
-Advances the clock by `hours`, stepping crossed days through G005/G008 `advanceDay`, collecting scene traces on open cases, matching pawn-shop leads, stepping the real G009 police engine (`stepPoliceTick`), and returning new `policePlans`, `attitudeChanges`, `newPoliceCases`, and `pawnLeadsMatched`.
+Advances the clock by `hours`, stepping crossed days through G005/G008 `advanceDay`, delivering timed civilian/informant reports when their era latency elapses (including sub-day telephone calls), collecting scene traces on open cases, matching pawn-shop leads, stepping the real G009 police engine (`stepPoliceTick`), booking any arrest that finishes transport to the station (`transportedToStation: true`, returned in `bookingEvents`), and returning new `policePlans`, `attitudeChanges`, `newPoliceCases`, and `pawnLeadsMatched`.
 
 ---
 
@@ -294,6 +295,25 @@ Loop stand-in for arrest resolution (replaced later by G010 trials):
   "totalCaseStrength": 0.34,
   "confiscatedItems": ["item:peaches_1"],
   "coldCasesTriggered": [],
+  "booking": {
+    "jurisdictionId": "jur:capital",
+    "suspectId": "player",
+    "day": 3,
+    "year": 1978,
+    "printsEnrolled": true,
+    "dnaEnrolled": false,
+    "scope": "national",
+    "coldCaseHits": [],
+    "pawnLinks": [],
+    "findings": [
+      "Fingerprints taken at booking and filed with national records.",
+      "Confiscated 1 stolen item at booking."
+    ]
+  },
+  "bookingFindings": [
+    "Fingerprints taken at booking and filed with national records.",
+    "Confiscated 1 stolen item at booking."
+  ],
   "policePlans": [],
   "attitudeChanges": [],
   "newPoliceCases": [],
@@ -301,8 +321,27 @@ Loop stand-in for arrest resolution (replaced later by G010 trials):
 }
 ```
 
+Booking respects `FORENSIC_ERA` (`fingerprintLocalYear = 1910`, `fingerprintNationalYear = 1924`, `dnaAnalysisYear = 1987`), runs `reexamineColdCases` immediately and again on subsequent ticks, checks unresolved pawn-ledger links, and returns plain-English `bookingFindings[]` ready to show the player.
+
 ---
 
-### 8. `save(sim: LoopSim): string` and `load(serialized: string): LoopSim`
+### 8. `civilianSpotted(sim: LoopSim, personId: string, sighting?: CivilianSightingInput): CivilianSpotResult`
 
-Exact JSON serialization round-trip of the entire `LoopSim` (including `world`, `crimeState`, `policeState`, `idMap`, `officers`, `crimeMeta`, `stolenItems`, `pawnRecords`, `familiarity`, `stopPolicy`, and `priorOffenses`).
+Evaluates a civilian spotting the player in the world (also exposed as `TimerpgSim.civilianSpotted(personId, sightingJson)`, `civilianSpottedJson`, and `simCall({"method":"civilianSpotted","args":[personId, sighting]})`):
+- If `attitude(sim, personId).stance !== 'report_on_sight'` or line of sight is blocked / too far / too dark, returns `reported: false` without mutating state.
+- Otherwise queues `PendingReport` entries for the civilian's known unresolved crimes involving the player using G005 `reportLatencyForEra` (slow in-person/early-telephone in 1925 vs fast same-day telephone in 1990).
+- When `advance()` reaches the report's `arrivalDay` / `arrivalHour`, the report is ingested into the jurisdiction and wakes an available officer to respond.
+
+---
+
+### 9. `tipOff(sim: LoopSim, input: TipOffInput): TipOffResult`
+
+Files an informant's tip to the police (used internally when `act({ kind: 'fence_sale' })` triggers `fenceRisk`, and also callable directly via `tipOff()`, `TimerpgSim.tipOff(inputJson)`, `tipOffJson`, or `simCall({"method":"tipOff","args":[input]})`):
+- Queues an era-delayed report via `reportLatencyForEra` through the same delivery and dispatch pipeline as `civilianSpotted`.
+- Marks any referenced stolen item as traced to the player and updates the informant's `attitude()` to reflect the betrayal.
+
+---
+
+### 10. `save(sim: LoopSim): string`, `load(serialized: string): LoopSim`, and `pruneResolvedState(sim: LoopSim): LoopSim`
+
+Compact JSON serialization round-trip of the entire `LoopSim`. Both `arrest()` and `save()` run `pruneResolvedState(sim)` to drop what resolved (or completely forgotten) crimes no longer need — `toldPairs`, scene `traces`, stale `pendingReports`, resolved police `cases`, resolved `respondedCases`, resolved `pawnRecords`, and expired `backupAlerts` — while compacting resolved-crime memories so `attitude()`, `identityFiles`, `priorOffenses`, and all active unresolved crimes round-trip cleanly and continue identically.

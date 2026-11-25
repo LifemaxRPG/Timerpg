@@ -8,7 +8,10 @@ export {
   attitude,
   policeView,
   spotted,
+  civilianSpotted,
+  tipOff,
   arrest,
+  pruneResolvedState,
   save,
   load,
 } from './facade';

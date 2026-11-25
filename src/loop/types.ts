@@ -12,6 +12,7 @@ import type {
   WeatherKind,
 } from '../crime/types';
 import type { OfficerAssignment, PoliceState } from '../police/types';
+import type { Fence } from '../economy/fence';
 import type { Id, Person, World } from '../sim/types';
 
 export type LoopPlaceKind =
@@ -237,7 +238,36 @@ export interface PlayerFamiliarity {
   trustDelta: number;
   positiveFacts: string[];
   bannedFromPlaceIds: string[];
+  /** Number of completed fence deals with this person. */
+  fenceDeals?: number;
+  /** Fence standing in 0..1 matching `src/economy/fence.ts` `fenceDeal` trust. */
+  fenceTrust?: number;
+  /** True once this person has informed on the player to police. */
+  informedOnPlayer?: boolean;
+  /** True if this fence recently turned away goods for being too hot. */
+  fenceRefusedTooHot?: boolean;
 }
+
+/** Compact per-person memory retained for a resolved crime after pruning. */
+export interface ResolvedCrimeMemory {
+  /** 'f' = first-hand witness, 'h' = hearsay. */
+  s: 'f' | 'h';
+  /** Person id who told them (for hearsay). */
+  h?: string;
+  /** 1 if this person was the victim/owner. */
+  v?: 1;
+}
+
+/** Sub-day arrival schedule & sighting metadata for reports queued by `civilianSpotted` or `tipOff`. */
+export interface PendingReportMeta {
+  /** Absolute simulation hour (`day * 24 + hour`) when the report reaches the police station. */
+  arrivalTotalHours: number;
+  /** Place id where the player was spotted or where the tip originated. */
+  sightingPlaceId?: string;
+  kind: 'civilian_sighting' | 'informant_tip';
+}
+
+export type ReportMeans = 'in_person' | 'early_telephone' | 'telephone' | 'mobile';
 
 export interface PriorOffenseRecord {
   id: string;
@@ -303,6 +333,12 @@ export interface LoopSim {
   workShifts: WorkShiftRecord[];
   familiarity: Record<string, PlayerFamiliarity>;
   priorOffenses: PriorOffenseRecord[];
+  /** Compact memories retained for pruned resolved crimes so `attitude()` stays accurate. */
+  resolvedCrimeMemories?: Record<string, Record<string, ResolvedCrimeMemory>>;
+  /** Sub-day arrival timestamps & sighting places for civilian/informant reports. */
+  pendingReportMeta?: Record<string, PendingReportMeta>;
+  /** Most recent confirmed sighting/tip place per active crime id. */
+  latestSightingPlaceByCrime?: Record<string, string>;
   /** Cached stance per personId so `advance` reports exact attitude diffs. */
   lastStances: Record<string, AttitudeStance>;
   nextSeq: number;
@@ -393,6 +429,21 @@ export type LoopActionEvent =
       forcedEntry?: boolean;
       ownerId?: string;
       gloved?: boolean;
+    } & SceneSnapshot)
+  | ({
+      kind: 'fence_sale';
+      placeId: string;
+      /** Person id of the fence (a real person in `world.people` / `peopleMeta`). */
+      fenceId: string;
+      item: LoopItemPayload;
+      /** Optional Sam `Fence` profile from `src/economy/fence.ts`; derived from the person if omitted. */
+      fence?: Partial<Fence>;
+      /** Optional economy catalogue item id (e.g. 'pocket_watch') for `fenceDeal` pricing. */
+      catalogueItemId?: string;
+      /** Optional police heat override in 0..1; defaults to current jurisdiction heat / 100. */
+      heat?: number;
+      /** Optional explicit override for the `fenceRisk` informant tip roll (useful in tests/scripts). */
+      forceTip?: boolean;
     } & SceneSnapshot);
 
 export interface WitnessNotice {
@@ -424,6 +475,18 @@ export interface ActResult {
   witnessedBy: WitnessNotice[];
   tracesLeft: ActTraceSummary[];
   pawnTraceFlagged?: boolean;
+  /** Populated on `fence_sale`: whether the fence accepted the goods. */
+  fenceAccepted?: boolean;
+  /** Populated on rejected `fence_sale`. */
+  fenceRefusalReason?: 'category' | 'too_hot' | 'no_offer';
+  /** Updated 0..1 fence standing after a `fence_sale`. */
+  fenceTrustAfter?: number;
+  /** True when an informant fence decided to tip off police on this deal. */
+  tipOffQueued?: boolean;
+  tipDelayHours?: number;
+  tipArrivalDay?: number;
+  tipArrivalHour?: number;
+  tipMeans?: ReportMeans;
   /** Updated sim clock and world changes when `act` advances time (owned by `work_shift`). */
   day?: number;
   hour?: number;
@@ -481,6 +544,8 @@ export interface AdvanceResult {
   attitudeChanges: AttitudeChange[];
   newPoliceCases: string[];
   pawnLeadsMatched: PawnLeadMatch[];
+  /** Booking reports produced when a G009 arrest completes transport to the station during `advance()`. */
+  bookingEvents?: BookingReport[];
 }
 
 export interface AttitudeResult {
@@ -598,9 +663,100 @@ export interface ArrestOutcomeResult {
   totalCaseStrength: number;
   confiscatedItems: string[];
   coldCasesTriggered: string[];
+  /** Structured booking result (enrolled prints/DNA, cold-case hits, pawn links). Omitted on street-stop release. */
+  booking?: BookingReport;
+  /** Plain-English facts found during station booking (prints/DNA, cold-case matches, pawn links, seizures). */
+  bookingFindings: string[];
   policePlans: OfficerPlanDirective[];
   attitudeChanges: AttitudeChange[];
   newPoliceCases: string[];
+  summary: string;
+}
+
+export interface BookingColdCaseHit {
+  crimeId: string;
+  kind: CrimeKind;
+  placeName: string;
+  method: string;
+  confidence: number;
+  /** Plain-English fact describing the forensic match. */
+  fact: string;
+}
+
+export interface BookingReport {
+  jurisdictionId: string;
+  suspectId: string;
+  day: number;
+  year: number;
+  printsEnrolled: boolean;
+  dnaEnrolled: boolean;
+  scope: 'local' | 'national';
+  coldCaseHits: BookingColdCaseHit[];
+  pawnLinks: PawnLeadMatch[];
+  /** Plain-English facts for the game to show or pass to dialogue. */
+  findings: string[];
+}
+
+export interface CivilianSightingInput {
+  /** Place id where the civilian spotted the player (defaults to civilian workplace/home). */
+  placeId?: string;
+  /** Distance in meters between civilian and player (default 8 m). */
+  distance?: number;
+  /** Ambient light level in 0..1 (defaults to era/hour lighting). */
+  light?: number;
+  /** Line-of-sight flag supplied by the 3D renderer (default true). */
+  hasLineOfSight?: boolean;
+  /** Optional player appearance override (defaults to `sim.playerAppearance`). */
+  appearance?: CulpritAppearance;
+  /** Optional jurisdiction override (defaults to sighting place or civilian home jurisdiction). */
+  jurisdictionId?: string;
+}
+
+export interface CivilianSpotResult {
+  sim: LoopSim;
+  personId: string;
+  name: string;
+  stance: AttitudeStance;
+  reported: boolean;
+  jurisdictionId?: string;
+  crimeIds: string[];
+  reportIds: string[];
+  /** Reporting delay in hours from G005 `reportLatencyForEra`. */
+  delayHours: number;
+  arrivalDay?: number;
+  arrivalHour?: number;
+  means?: ReportMeans;
+  reason: string;
+  summary: string;
+}
+
+export interface TipOffInput {
+  informantId: string;
+  itemId?: string;
+  crimeId?: string;
+  placeId?: string;
+  jurisdictionId?: string;
+  /** Confidence in 0..1 (default 0.82). */
+  confidence?: number;
+  /** Optional plain-English reason for the tip. */
+  reason?: string;
+  /** Whether the informant names the player to police (defaults to true if they know/dealt with the player). */
+  identifiesPlayer?: boolean;
+}
+
+export interface TipOffResult {
+  sim: LoopSim;
+  informantId: string;
+  informantName: string;
+  jurisdictionId: string;
+  queued: boolean;
+  crimeId?: string;
+  reportId?: string;
+  delayHours: number;
+  arrivalDay: number;
+  arrivalHour: number;
+  means: ReportMeans;
+  reason: string;
   summary: string;
 }
 
