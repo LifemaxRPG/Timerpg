@@ -114,8 +114,11 @@ android {
 // The DSP libraries the Hexagon build makes are not CMake targets Gradle packages itself: copied after each native build.
 tasks.matching { it.name.startsWith("buildCMake") }.configureEach {
     doLast {
+        // a build with our ggml-hexagon patches (llama.cpp-patched/) over an older one without (llama.cpp/), newest first
+        val skels = fileTree(projectDir.resolve(".cxx")) { include("**/arm64-v8a/**/libggml-htp-v*.so") }.files
+        val patched = skels.filter { "/llama.cpp-patched/" in it.invariantSeparatorsPath }
         copy {
-            from(fileTree(projectDir.resolve(".cxx")) { include("**/arm64-v8a/**/libggml-htp-v*.so") })
+            from((patched.ifEmpty { skels }).sortedByDescending { it.lastModified() })
             into(layout.buildDirectory.dir("htp/arm64-v8a"))
             eachFile { path = name }
             includeEmptyDirs = false

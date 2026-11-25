@@ -102,6 +102,25 @@ extern "C" JNIEXPORT jint JNICALL FN(nativePurge)(JNIEnv *, jclass) {
     return r;
 }
 
+// The NPU's power vote (llm_core.h, npu_power_policy): set before the backends load; its state and events for the app.
+extern "C" JNIEXPORT void JNICALL FN(nativeSetNpuPower)(JNIEnv * env, jclass, jbyteArray mode, jint hold_ms) {
+    try { llm::npu_power_policy(from_bytes(env, mode), hold_ms); } catch (...) {}
+}
+
+extern "C" JNIEXPORT jstring JNICALL FN(nativeNpuPower)(JNIEnv * env, jclass) {
+    std::string s;
+    try { s = llm::npu_power_status(); } catch (...) { s = "unknown"; }
+    return to_jstring(env, s);
+}
+
+extern "C" JNIEXPORT jstring JNICALL FN(nativeNpuPowerEvents)(JNIEnv * env, jclass) {
+    std::string s;
+    try {
+        for (const auto & e : llm::npu_power_events()) s += e + "\n";
+    } catch (...) {}
+    return to_jstring(env, s);
+}
+
 extern "C" JNIEXPORT void JNICALL FN(nativeSetDevice)(JNIEnv *, jobject, jlong h, jint kind) {
     if (h) engine(h)->set_device(kind);
 }
