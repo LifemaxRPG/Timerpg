@@ -1,0 +1,258 @@
+{
+  "kind": "night",
+  "start": "2026-11-25T14:28:52.265-0500",
+  "end": "2026-11-25T14:52:39.858-0500",
+  "minutes": 23.8,
+  "how": "service",
+  "stopReason": "unplugged",
+  "inPlainWords": "Wrote 11 lines and 0 variants with the light model on the NPU in 1 min of writing (23 min in all); 10 min closing the game to free its memory; 8 min paused because the phone was too hot (thermal status up to 3); 4 min resting between short bursts because the phone was warm (thermal status up to 3). It stopped: unplugged.",
+  "app": {
+    "versionName": "0.1.976 (58216b0)",
+    "versionCode": 976,
+    "git": "58216b0",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "written": {
+    "lines": 11,
+    "variants": 0,
+    "rejected": 0,
+    "timedOut": 0,
+    "failed": 0,
+    "lastFailure": null,
+    "linesPerHour": 27.7,
+    "linesPerWritingHour": 459.1
+  },
+  "speed": {
+    "model": "light model on the NPU",
+    "runsOn": "NPU",
+    "genTokens": 234,
+    "genTokPerSec": 2.5,
+    "prefillTokens": 1227,
+    "prefillTokPerSec": 87.5
+  },
+  "time": {
+    "writingMin": 1.4,
+    "coolingMin": 4,
+    "hotPausedMin": 8.1,
+    "burstRestMin": 0,
+    "batteryWaitMin": 0,
+    "pausedByYouMin": 0,
+    "heldMin": 0,
+    "heldBy": null,
+    "closingGameMin": 10,
+    "modelLoadMin": 0.1
+  },
+  "model": {
+    "loaded": "light model on the NPU",
+    "problem": null,
+    "engineAtEnd": "ready: Ready: the light model answers in play. Lines ahead of time are written by the main model (overnight, or when it fits).",
+    "lastRejected": null,
+    "freeAtStartMb": 1285,
+    "freedByClosingGameMb": 3929,
+    "freeBeforeLoadMb": 5561,
+    "androidThresholdMb": 216,
+    "mainCopyNeedsMb": 7200,
+    "lightCopyNeedsMb": 4253,
+    "freeAfterLoadMb": 2841
+  },
+  "heat": {
+    "coolDowns": 1,
+    "hotPauses": 1,
+    "maxThermalStatus": 3
+  },
+  "battery": {
+    "start": 5,
+    "end": 8,
+    "pluggedAtStart": true,
+    "pluggedAtEnd": false
+  },
+  "bank": {
+    "prompts": 2115,
+    "ready": 119,
+    "templates": 0,
+    "missing": 1996,
+    "lines": 119,
+    "variantsDone": 0,
+    "stale": 1,
+    "years": [
+      2025
+    ],
+    "light": 119,
+    "left": 2353,
+    "etaMin": 2935
+  },
+  "queue": {
+    "byYear": {
+      "2025": 2353
+    },
+    "byPerson": {
+      "Ernest Reyes": 41,
+      "Betty Chen": 32,
+      "Clyde Novak": 30,
+      "Robert Kowalski": 30,
+      "Vera Singh": 30,
+      "William Kowalski": 30,
+      "Gladys Novak": 29,
+      "Louise Radcliffe": 29,
+      "others (141)": 2102
+    },
+    "byTopic": {
+      "your themes": 1288,
+      "chat": 381,
+      "work": 180,
+      "family": 165,
+      "rumors": 165,
+      "secret": 165,
+      "follow-ups": 9
+    }
+  },
+  "recent": [
+    {
+      "who": "Carl Thorne",
+      "topic": "family",
+      "how": "line",
+      "text": "I have a wife named Lois Kowalski. She is my only family I know well in Mapleridge."
+    },
+    {
+      "who": "Carl Thorne",
+      "topic": "work",
+      "how": "line",
+      "text": "Retired. I sit in the plaza and watch the world go by."
+    },
+    {
+      "who": "Opal Brennan",
+      "topic": "chat",
+      "how": "line",
+      "text": "Indeed it is."
+    },
+    {
+      "who": "Harold Chen",
+      "topic": "chat",
+      "how": "line",
+      "text": "Indeed it is, the sun shines just as it did when I first arrived in Mapleridge. Perhaps you would like to see one of the movies at Avalon 8 this evening?"
+    },
+    {
+      "who": "Lois Kowalski",
+      "topic": "chat",
+      "how": "line",
+      "text": "Lovely day for it, isn't it? I was just thinking about how the weather has been so nice since we moved here."
+    },
+    {
+      "who": "Frank Thorne",
+      "topic": "chat",
+      "how": "line",
+      "text": "It's just another Tuesday. Keep your eyes on the road, stranger."
+    },
+    {
+      "who": "Edith Abbott",
+      "topic": "chat",
+      "how": "line",
+      "text": "Yes, the sun is shining just as it does in Mapleridge. It's a good day to be out and about."
+    },
+    {
+      "who": "Ernest Holloway",
+      "topic": "chat",
+      "how": "line",
+      "text": "It's a bright day, though the wind is cutting. What do you want?"
+    }
+  ],
+  "player": {
+    "themes": [
+      {
+        "label": "other: yo, hear",
+        "kind": "other",
+        "asked": 3,
+        "live": 3,
+        "people": 3
+      },
+      {
+        "label": "the town: secrets, town",
+        "kind": "the town",
+        "asked": 2,
+        "live": 2,
+        "people": 2
+      },
+      {
+        "label": "the town: town, find",
+        "kind": "the town",
+        "asked": 2,
+        "live": 2,
+        "people": 1
+      },
+      {
+        "label": "personal: name, asked",
+        "kind": "personal",
+        "asked": 4,
+        "live": 0,
+        "people": 2
+      },
+      {
+        "label": "other: local, merchant",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: anyways, asking",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: better, bro",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "flirting: nice, pretty",
+        "kind": "flirting",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: ask, asked",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: buddy, right",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      }
+    ],
+    "answersByDay": [
+      {
+        "day": "2026-11-18",
+        "ready": 0,
+        "live": 0,
+        "template": 1,
+        "readyShare": 0
+      },
+      {
+        "day": "2026-11-23",
+        "ready": 0,
+        "live": 7,
+        "template": 0,
+        "readyShare": 0
+      },
+      {
+        "day": "2026-11-25",
+        "ready": 0,
+        "live": 16,
+        "template": 7,
+        "readyShare": 0
+      }
+    ]
+  }
+}
