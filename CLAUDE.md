@@ -40,7 +40,9 @@ one major feature rather than the whole premise:
   fleeing to another continent to hide out is a real option. Evidence, descriptions and policing follow the era.
 - **Next milestone: the first playable loop in a few capital blocks** (the owner's decision, 2026-11-23, on Sam's
   proposal): arrive, earn money legit or not, get noticed, and meet a consequence later that traces back to what you
-  did. Planet-wide towns and the organic street upgrade wait until it is playable and the owner has played it. The
+  did. (Superseded 2026-11-25, the owner's decision: with the optimization work done, the planet-scale features start
+  now, in parallel with the loop: world streaming (terrain, coast, ocean), towns everywhere, travel between them, then
+  the second hand-made city. Each step is measured on the S25 before the next.) The
   TypeScript crime/plan/police code runs on the phone as-is in an embedded JS engine (kotlin-street/docs/LOOP.md).
 - Everything else (the living simulated world, NPC dialogue on-device, eras, towns, travel by road, rail and sea)
   serves an open world the player is free to live in.
