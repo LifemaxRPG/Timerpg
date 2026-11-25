@@ -178,15 +178,15 @@ def main(src, dst):
     })
     # ambience beds (stereo loops)
     beds = {
-        'city_day': (fs('amb_city'), 40, 4, -27),
-        'city_morning': (fs('amb_city_morning'), 40, 6, -27),
-        'residential': (fs('amb_residential_traffic'), 50, 20, -29),
-        'night_town': (fs('amb_night_traffic'), 50, 10, -31),
-        'birds_day': (fs('amb_birdsong'), 50, 30, -27),
-        'birds_park': (fs('amb_park_birds'), 40, 5, -27),
+        'city_day': (fs('amb_city'), 30, 4, -27),
+        'city_morning': (fs('amb_city_morning'), 30, 6, -27),
+        'residential': (fs('amb_residential_traffic'), 32, 20, -29),
+        'night_town': (fs('amb_night_traffic'), 32, 10, -31),
+        'birds_day': (fs('amb_birdsong'), 36, 30, -27),
+        'birds_park': (fs('amb_park_birds'), 30, 5, -27),
         'birds_garden': (S('amb_birds1', 'birds-isaiah658.ogg'), 28, 0, -28),
         'crowd': (fs('amb_crowd_murmur'), 20, 1, -26),
-        'waves': (fs('amb_waves_1') if os.path.exists(fs('amb_waves_1')) else fs('waves_1'), 45, 10, -25),
+        'waves': (fs('waves_1'), 30, 10, -25),
         'river': (fs('river_1'), 30, 1, -26),
         'fountain': (fs('fountain_1'), 25, 2, -25),
         'highway_far': (S('foot_rubberduck', 'x', 'sfx100v2_loop_highway.ogg'), 15, 0, -30),
