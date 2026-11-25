@@ -8,6 +8,8 @@ import {
   recordCrime,
   recordTraces,
   reexamineColdCases,
+  reportingProbability,
+  DEFAULT_SEVERITY,
   type CrimeEvent,
   type CrimeState,
   type CulpritAppearance,
@@ -28,6 +30,7 @@ import {
   runRetrial,
   runTrial,
   selectJury,
+  statuteForCrime,
 } from './index';
 
 const FIRST_NAMES = [
@@ -823,7 +826,9 @@ describe('src/court — trials, juries, verdicts, tampering & exoneration', () =
     expect(bribe.tampering).toBeDefined();
     // New crime exists in CrimeState AND opened a new police case in jur:capital!
     expect(bribe.crimeState.crimes[bribe.crimeId]).toBeDefined();
+    expect(bribe.crimeState.crimes[bribe.crimeId]!.kind).toBe('bribery');
     expect(bribe.crimeState.jurisdictions['jur:capital']!.cases[bribe.crimeId]).toBeDefined();
+    expect(bribe.crimeState.jurisdictions['jur:capital']!.cases[bribe.crimeId]!.kind).toBe('bribery');
 
     // Re-running the trial with the bribed juror flips GUILTY -> HUNG!
     const taintedOutcome = runTrial({
@@ -1043,7 +1048,9 @@ describe('src/court — trials, juries, verdicts, tampering & exoneration', () =
     expect(perjuryRes.succeeded).toBe(false);
     expect(perjuryRes.targetReported).toBe(true);
     expect(perjuryRes.crimeState.crimes[perjuryRes.crimeId]).toBeDefined();
+    expect(perjuryRes.crimeState.crimes[perjuryRes.crimeId]!.kind).toBe('perjury');
     expect(perjuryRes.crimeState.jurisdictions['jur:capital']!.cases[perjuryRes.crimeId]).toBeDefined();
+    expect(perjuryRes.crimeState.jurisdictions['jur:capital']!.cases[perjuryRes.crimeId]!.kind).toBe('perjury');
 
     const threatRes = commitTrialInterference({
       seed: 'perjury-threat',
@@ -1062,6 +1069,502 @@ describe('src/court — trials, juries, verdicts, tampering & exoneration', () =
     });
 
     expect(threatRes.crimeState.crimes[threatRes.crimeId]).toBeDefined();
-    expect(threatRes.crimeState.crimes[threatRes.crimeId]!.kind).toBe('assault');
+    expect(threatRes.crimeState.crimes[threatRes.crimeId]!.kind).toBe('intimidation');
+    expect(threatRes.crimeState.jurisdictions['jur:capital']!.cases[threatRes.crimeId]).toBeDefined();
+    expect(threatRes.crimeState.jurisdictions['jur:capital']!.cases[threatRes.crimeId]!.kind).toBe('intimidation');
+  });
+
+  it('G013: fairer lawyer spread over 60 seeds for weak, contested, and strong physical-evidence cases', () => {
+    const year = 1978;
+    const SEEDS = 60;
+    const tiers = ['public_defender', 'local_attorney', 'retained_counsel', 'elite_defense'] as const;
+    type TierKey = (typeof tiers)[number];
+    type TierStats = Record<TierKey, { acq: number; hung: number; guilty: number; twoRoundAcq: number }>;
+
+    const makeEmpty = (): TierStats => ({
+      public_defender: { acq: 0, hung: 0, guilty: 0, twoRoundAcq: 0 },
+      local_attorney: { acq: 0, hung: 0, guilty: 0, twoRoundAcq: 0 },
+      retained_counsel: { acq: 0, hung: 0, guilty: 0, twoRoundAcq: 0 },
+      elite_defense: { acq: 0, hung: 0, guilty: 0, twoRoundAcq: 0 },
+    });
+
+    const weakStats = makeEmpty();
+    const contestedStats = makeEmpty();
+    const strongStats = makeEmpty();
+    const appearance: CulpritAppearance = {
+      height: 'average',
+      build: 'average',
+      hair: 'brown',
+      clothingColor: 'navy',
+    };
+
+    for (let s = 0; s < SEEDS; s++) {
+      const seed = `lawyer-odds-seed-${s}`;
+      const town = makeTestTown(seed, year, 44);
+
+      // 1. Weak case: witness-only (one mistaken detail), no physical evidence
+      const weakEvent: CrimeEvent = {
+        id: `crime:weak:${s}`,
+        kind: 'burglary',
+        severity: 0.64,
+        placeId: 'place:store',
+        position: { x: 30, y: 12 },
+        when: { year, day: 10, hour: 22 },
+        culpritId: town.defendantId,
+        culpritAppearance: appearance,
+        victimId: town.victimId,
+      };
+      let weakState = recordCrime(createCrimeState(seed, 10), weakEvent, []);
+      let weakJur = ingestPoliceReport(undefined, weakEvent, {
+        id: `rep:w:${s}:1`,
+        crimeId: weakEvent.id,
+        reporterId: town.witnessIds[0]!,
+        jurisdictionId: 'jur:capital',
+        filedDay: 10,
+        receivedDay: 10,
+        delayHours: 1,
+        source: 'first_hand',
+        isVictim: false,
+        confidence: 0.88,
+        identifiedCulpritId: town.defendantId,
+        description: { ...appearance },
+      });
+      weakJur = ingestPoliceReport(weakJur, weakEvent, {
+        id: `rep:w:${s}:2`,
+        crimeId: weakEvent.id,
+        reporterId: town.witnessIds[1]!,
+        jurisdictionId: 'jur:capital',
+        filedDay: 11,
+        receivedDay: 11,
+        delayHours: 1,
+        source: 'first_hand',
+        isVictim: false,
+        confidence: 0.82,
+        identifiedCulpritId: town.defendantId,
+        description: { height: 'average', build: 'average', hair: 'brown', clothingColor: 'gray' },
+      });
+      weakState = { ...weakState, jurisdictions: { 'jur:capital': weakJur } };
+      const weakCase = weakJur.cases[weakEvent.id]!;
+
+      // 2. Contested case: two eyewitnesses with minor mistakes + partial fingerprint
+      const contEvent: CrimeEvent = {
+        id: `crime:borderline:${s}`,
+        kind: 'burglary',
+        severity: 0.64,
+        placeId: 'place:store',
+        position: { x: 30, y: 12 },
+        when: { year, day: 10, hour: 22 },
+        culpritId: town.defendantId,
+        culpritAppearance: appearance,
+        victimId: town.victimId,
+      };
+      let contState = recordCrime(createCrimeState(seed, 10), contEvent, []);
+      let contJur = ingestPoliceReport(undefined, contEvent, {
+        id: `rep:b:${s}:1`,
+        crimeId: contEvent.id,
+        reporterId: town.witnessIds[0]!,
+        jurisdictionId: 'jur:capital',
+        filedDay: 10,
+        receivedDay: 10,
+        delayHours: 1,
+        source: 'first_hand',
+        isVictim: false,
+        confidence: 0.80,
+        identifiedCulpritId: town.defendantId,
+        description: { height: 'average', build: 'average', hair: 'brown', clothingColor: 'gray' },
+      });
+      contJur = ingestPoliceReport(contJur, contEvent, {
+        id: `rep:b:${s}:2`,
+        crimeId: contEvent.id,
+        reporterId: town.witnessIds[1]!,
+        jurisdictionId: 'jur:capital',
+        filedDay: 11,
+        receivedDay: 11,
+        delayHours: 1,
+        source: 'first_hand',
+        isVictim: false,
+        confidence: 0.72,
+        identifiedCulpritId: town.defendantId,
+        description: { height: 'average', build: 'slim', hair: 'brown', clothingColor: 'navy' },
+      });
+      contState = { ...contState, jurisdictions: { 'jur:capital': contJur } };
+      const contCase: PoliceCase = {
+        ...contJur.cases[contEvent.id]!,
+        evidenceMatches: [
+          {
+            traceId: `trace:fp:${s}`,
+            traceKind: 'fingerprint',
+            crimeId: contEvent.id,
+            suspectId: town.defendantId,
+            matchedYear: year,
+            matchedDay: 12,
+            confidence: 0.62,
+            method: 'fingerprint_local_manual',
+            coldCase: false,
+            yearsToMatch: 0,
+            impossibleTimeline: false,
+            beforeBirth: false,
+            beforeEraArrival: false,
+            anomalies: [],
+          },
+        ],
+      };
+
+      // 3. Strong case with physical evidence: two eyewitnesses + strong fingerprint match
+      const strongEvent: CrimeEvent = {
+        id: `crime:strong:${s}`,
+        kind: 'robbery',
+        severity: 0.80,
+        placeId: 'place:bank',
+        position: { x: 20, y: 10 },
+        when: { year, day: 10, hour: 14 },
+        culpritId: town.defendantId,
+        culpritAppearance: appearance,
+        victimId: town.victimId,
+      };
+      let strongState = recordCrime(createCrimeState(seed, 10), strongEvent, []);
+      let strongJur = ingestPoliceReport(undefined, strongEvent, {
+        id: `rep:s:${s}:1`,
+        crimeId: strongEvent.id,
+        reporterId: town.witnessIds[0]!,
+        jurisdictionId: 'jur:capital',
+        filedDay: 10,
+        receivedDay: 10,
+        delayHours: 0.5,
+        source: 'first_hand',
+        isVictim: false,
+        confidence: 0.82,
+        identifiedCulpritId: town.defendantId,
+        description: { ...appearance, clothingColor: 'black' },
+      });
+      strongJur = ingestPoliceReport(strongJur, strongEvent, {
+        id: `rep:s:${s}:2`,
+        crimeId: strongEvent.id,
+        reporterId: town.witnessIds[1]!,
+        jurisdictionId: 'jur:capital',
+        filedDay: 10,
+        receivedDay: 10,
+        delayHours: 0.5,
+        source: 'first_hand',
+        isVictim: false,
+        confidence: 0.78,
+        identifiedCulpritId: town.defendantId,
+        description: { ...appearance },
+      });
+      strongState = { ...strongState, jurisdictions: { 'jur:capital': strongJur } };
+      const strongCase: PoliceCase = {
+        ...strongJur.cases[strongEvent.id]!,
+        evidenceMatches: [
+          {
+            traceId: `trace:sfp:${s}`,
+            traceKind: 'fingerprint',
+            crimeId: strongEvent.id,
+            suspectId: town.defendantId,
+            matchedYear: year,
+            matchedDay: 11,
+            confidence: 0.86,
+            method: 'fingerprint_local_manual',
+            coldCase: false,
+            yearsToMatch: 0,
+            impossibleTimeline: false,
+            beforeBirth: false,
+            beforeEraArrival: false,
+            anomalies: [],
+          },
+        ],
+      };
+
+      const recordVerdict = (bucket: TierStats, tier: TierKey, res: ReturnType<typeof runTrial>) => {
+        if (res.verdict === 'not_guilty') {
+          bucket[tier].acq++;
+          if (res.deliberationRounds === 2) bucket[tier].twoRoundAcq++;
+        } else if (res.verdict === 'hung') {
+          bucket[tier].hung++;
+        } else {
+          bucket[tier].guilty++;
+        }
+      };
+
+      for (const tier of tiers) {
+        recordVerdict(
+          weakStats,
+          tier,
+          runTrial({
+            seed,
+            world: town.world,
+            crimeState: weakState,
+            policeCase: weakCase,
+            defendantId: town.defendantId,
+            jurisdictionId: 'jur:capital',
+            year,
+            day: 22,
+            lawyerTier: tier,
+          }),
+        );
+        recordVerdict(
+          contestedStats,
+          tier,
+          runTrial({
+            seed,
+            world: town.world,
+            crimeState: contState,
+            policeCase: contCase,
+            defendantId: town.defendantId,
+            jurisdictionId: 'jur:capital',
+            year,
+            day: 22,
+            lawyerTier: tier,
+          }),
+        );
+        recordVerdict(
+          strongStats,
+          tier,
+          runTrial({
+            seed,
+            world: town.world,
+            crimeState: strongState,
+            policeCase: strongCase,
+            defendantId: town.defendantId,
+            jurisdictionId: 'jur:capital',
+            year,
+            day: 22,
+            lawyerTier: tier,
+          }),
+        );
+      }
+    }
+
+    const fmtRow = (label: string, st: TierStats) =>
+      `[G013 ${label}] ` +
+      tiers
+        .map(
+          (t) =>
+            `${t}: acq=${((st[t].acq / SEEDS) * 100).toFixed(1)}% hung=${((st[t].hung / SEEDS) * 100).toFixed(1)}% guilty=${((st[t].guilty / SEEDS) * 100).toFixed(1)}%`,
+        )
+        .join(' | ');
+
+    console.log(fmtRow('WEAK (60 seeds)', weakStats) + ` [pd 2-round acq=${weakStats.public_defender.twoRoundAcq}]`);
+    console.log(fmtRow('CONTESTED (60 seeds)', contestedStats));
+    console.log(fmtRow('STRONG (60 seeds)', strongStats));
+
+    // Weak case: public defender wins a meaningful share (including 2-round acquittals), and better counsel helps
+    expect(weakStats.public_defender.acq).toBeGreaterThanOrEqual(15);
+    expect(weakStats.public_defender.twoRoundAcq).toBeGreaterThanOrEqual(1);
+    expect(weakStats.elite_defense.acq).toBeGreaterThan(weakStats.public_defender.acq);
+
+    // Contested case: money clearly helps, but neither extreme is 0%/100%
+    expect(contestedStats.public_defender.acq).toBeGreaterThan(0);
+    expect(contestedStats.public_defender.guilty).toBeLessThan(SEEDS);
+    expect(contestedStats.elite_defense.acq).toBeLessThan(SEEDS);
+    expect(contestedStats.elite_defense.guilty + contestedStats.elite_defense.hung).toBeGreaterThan(0);
+    expect(contestedStats.elite_defense.acq).toBeGreaterThan(contestedStats.retained_counsel.acq);
+    expect(contestedStats.retained_counsel.acq).toBeGreaterThan(contestedStats.local_attorney.acq);
+    expect(contestedStats.local_attorney.acq).toBeGreaterThan(contestedStats.public_defender.acq);
+    expect(contestedStats.elite_defense.guilty).toBeLessThan(contestedStats.public_defender.guilty);
+
+    // Strong case with physical evidence: even elite counsel usually loses, while still outperforming PD
+    expect(strongStats.elite_defense.guilty).toBeGreaterThanOrEqual(Math.round(SEEDS * 0.65));
+    expect(strongStats.elite_defense.guilty).toBeLessThan(strongStats.public_defender.guilty);
+  });
+
+  it('G013: court crime kinds (bribery, perjury, intimidation) open dedicated cases, statutes, and reporting profiles', () => {
+    const year = 1988;
+    const town = makeTestTown('g013-court-crimes', year);
+    const { crimeState } = makeRobberyCase({
+      seed: 'g013-court-crimes',
+      world: town.world,
+      crimeId: 'crime:base_rob',
+      year,
+      day: 10,
+      culpritId: town.defendantId,
+      victimId: town.victimId,
+      witnessIds: town.witnessIds,
+      jurisdictionId: 'jur:capital',
+    });
+
+    // 1. Dedicated statutes exist for bribery, perjury, and intimidation
+    for (const kind of ['bribery', 'perjury', 'intimidation'] as const) {
+      const st = statuteForCrime(kind, year);
+      expect(st.crimeKind).toBe(kind);
+      expect(st.felony).toBe(true);
+      expect(st.maxJailDays).toBeGreaterThan(st.minJailDays);
+      expect(DEFAULT_SEVERITY[kind]).toBeGreaterThan(0.5);
+    }
+
+    // 2. Bribing a juror opens a 'bribery' case (here a diligent juror refuses a small bribe and reports it)
+    const jurorId = 'p:citizen_000';
+    town.world.people[jurorId]!.traits.diligence = 0.95;
+    town.world.people[jurorId]!.traits.ambition = 0.15;
+    const bribe = commitTrialInterference({
+      seed: 'g013-court-crimes',
+      world: town.world,
+      crimeState,
+      jurisdictionId: 'jur:capital',
+      placeId: 'place:courthouse_hall',
+      position: { x: 4, y: 4 },
+      year,
+      day: 20,
+      culpritId: town.defendantId,
+      culpritAppearance: { height: 'tall', build: 'average', hair: 'dark', clothingColor: 'black' },
+      kind: 'bribe_juror',
+      targetId: jurorId,
+      bribeAmount: 50,
+      bystanders: [{ personId: town.bystanderId, position: { x: 6, y: 4 }, attention: 0.95 }],
+    });
+    expect(bribe.crimeState.crimes[bribe.crimeId]!.kind).toBe('bribery');
+    expect(bribe.crimeState.jurisdictions['jur:capital']!.cases[bribe.crimeId]!.kind).toBe('bribery');
+
+    // 3. Perjury caught in court opens a 'perjury' case even when reported by a court officer ID
+    const perjury = commitTrialInterference({
+      seed: 'g013-court-crimes',
+      world: town.world,
+      crimeState: bribe.crimeState,
+      jurisdictionId: 'jur:capital',
+      placeId: 'place:courtroom',
+      position: { x: 0, y: 0 },
+      year,
+      day: 21,
+      culpritId: town.defendantId,
+      culpritAppearance: { height: 'tall', build: 'average', hair: 'dark', clothingColor: 'black' },
+      kind: 'perjury',
+      targetId: 'judge:jur:capital',
+      caughtInCourt: true,
+    });
+    expect(perjury.crimeState.crimes[perjury.crimeId]!.kind).toBe('perjury');
+    expect(perjury.crimeState.jurisdictions['jur:capital']!.cases[perjury.crimeId]!.kind).toBe('perjury');
+
+    // 4. Intimidating a juror/witness opens an 'intimidation' case
+    const threat = commitTrialInterference({
+      seed: 'g013-court-crimes',
+      world: town.world,
+      crimeState: perjury.crimeState,
+      jurisdictionId: 'jur:capital',
+      placeId: 'place:alley',
+      position: { x: 10, y: 5 },
+      year,
+      day: 22,
+      culpritId: town.defendantId,
+      culpritAppearance: { height: 'tall', build: 'average', hair: 'dark', clothingColor: 'black' },
+      kind: 'threaten_juror',
+      targetId: 'p:citizen_001',
+      bystanders: [{ personId: town.bystanderId, position: { x: 12, y: 5 }, attention: 0.92 }],
+    });
+    expect(threat.crimeState.crimes[threat.crimeId]!.kind).toBe('intimidation');
+    expect(threat.crimeState.jurisdictions['jur:capital']!.cases[threat.crimeId]!.kind).toBe('intimidation');
+
+    // 5. Reporting behaviour: an intimidated victim is less willing to go to police than an assault victim,
+    //    while a third-party witness still reports intimidation reliably.
+    const victimPerson = town.world.people[town.witnessIds[0]!]!;
+    const bystanderPerson = town.world.people[town.bystanderId]!;
+    const baseEv = {
+      id: 'crime:rep_cmp',
+      severity: 0.70,
+      placeId: 'place:alley',
+      position: { x: 0, y: 0 },
+      when: { year, day: 22, hour: 15 },
+      culpritId: town.defendantId,
+      culpritAppearance: { height: 'tall' as const, build: 'average' as const, hair: 'dark' as const, clothingColor: 'black' as const },
+      victimId: victimPerson.id,
+    };
+    const victimAccount = {
+      crimeId: 'crime:rep_cmp',
+      knowerId: victimPerson.id,
+      source: 'first_hand' as const,
+      hops: 0,
+      isVictim: true,
+      confidence: 0.90,
+      dayLearned: 22,
+      initialConfidence: 0.90,
+      lastRefreshedDay: 22,
+      refreshes: 0,
+      reported: false,
+      description: { height: 'tall' as const },
+    };
+    const witnessAccount = {
+      ...victimAccount,
+      knowerId: bystanderPerson.id,
+      isVictim: false,
+    };
+    const pAssaultVictim = reportingProbability('rep-cmp', town.world, { ...baseEv, kind: 'assault' }, victimAccount, victimPerson, 0.99);
+    const pIntimVictim = reportingProbability('rep-cmp', town.world, { ...baseEv, kind: 'intimidation' }, victimAccount, victimPerson, 0.99);
+    const pIntimWitness = reportingProbability('rep-cmp', town.world, { ...baseEv, kind: 'intimidation' }, witnessAccount, bystanderPerson, 0.99);
+    expect(pIntimVictim).toBeLessThan(pAssaultVictim);
+    expect(pIntimWitness).toBeGreaterThan(pIntimVictim);
+  });
+
+  it('G013 first encounter: public defender on a thin case gets a 2-round not-guilty verdict', () => {
+    const year = 1978;
+    const appearance: CulpritAppearance = {
+      height: 'average',
+      build: 'average',
+      hair: 'brown',
+      clothingColor: 'navy',
+    };
+    let found: ReturnType<typeof runTrial> | undefined;
+    for (let s = 0; s < 60 && !found; s++) {
+      const seed = `lawyer-odds-seed-${s}`;
+      const town = makeTestTown(seed, year, 44);
+      const ev: CrimeEvent = {
+        id: `crime:weak:${s}`,
+        kind: 'burglary',
+        severity: 0.64,
+        placeId: 'place:store',
+        position: { x: 30, y: 12 },
+        when: { year, day: 10, hour: 22 },
+        culpritId: town.defendantId,
+        culpritAppearance: appearance,
+        victimId: town.victimId,
+      };
+      let state = recordCrime(createCrimeState(seed, 10), ev, []);
+      let jur = ingestPoliceReport(undefined, ev, {
+        id: `rep:w:${s}:1`,
+        crimeId: ev.id,
+        reporterId: town.witnessIds[0]!,
+        jurisdictionId: 'jur:capital',
+        filedDay: 10,
+        receivedDay: 10,
+        delayHours: 1,
+        source: 'first_hand',
+        isVictim: false,
+        confidence: 0.88,
+        identifiedCulpritId: town.defendantId,
+        description: { ...appearance },
+      });
+      jur = ingestPoliceReport(jur, ev, {
+        id: `rep:w:${s}:2`,
+        crimeId: ev.id,
+        reporterId: town.witnessIds[1]!,
+        jurisdictionId: 'jur:capital',
+        filedDay: 11,
+        receivedDay: 11,
+        delayHours: 1,
+        source: 'first_hand',
+        isVictim: false,
+        confidence: 0.82,
+        identifiedCulpritId: town.defendantId,
+        description: { height: 'average', build: 'average', hair: 'brown', clothingColor: 'gray' },
+      });
+      state = { ...state, jurisdictions: { 'jur:capital': jur } };
+      const outcome = runTrial({
+        seed,
+        world: town.world,
+        crimeState: state,
+        policeCase: jur.cases[ev.id]!,
+        defendantId: town.defendantId,
+        jurisdictionId: 'jur:capital',
+        year,
+        day: 22,
+        lawyerTier: 'public_defender',
+      });
+      if (outcome.verdict === 'not_guilty' && outcome.deliberationRounds === 2) {
+        found = outcome;
+      }
+    }
+    expect(found).toBeDefined();
+    expect(found!.pretrial.lawyer.tier).toBe('public_defender');
+    expect(found!.deliberationRounds).toBe(2);
+    expect(found!.verdict).toBe('not_guilty');
+    expect(found!.notGuiltyVotes).toBe(12);
+    expect(found!.sentence).toBeUndefined();
   });
 });

@@ -254,6 +254,15 @@ function mapCrimeKindToSim(
 
     case 'assault':
       return targetId ? [{ kind: 'rumor', year, targetId, amount: -0.35 }] : [];
+    case 'intimidation':
+      return targetId ? [{ kind: 'rumor', year, targetId, amount: -0.28 }] : [];
+    case 'bribery':
+      if (businessId) {
+        return [{ kind: 'invest', year, businessId, amount: -(Math.abs(amount ?? 25)) }];
+      }
+      return targetId ? [{ kind: 'rumor', year, targetId, amount: -0.18 }] : [];
+    case 'perjury':
+      return targetId ? [{ kind: 'rumor', year, targetId, amount: -0.15 }] : [];
 
     case 'car_theft':
       if (targetId) return [{ kind: 'rumor', year, targetId, amount: -0.18 }];
