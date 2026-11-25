@@ -3,11 +3,13 @@ import {
   advance,
   arrest,
   attitude,
+  civilianSpotted,
   create,
   load,
   policeView,
   save,
   spotted,
+  tipOff,
 } from './facade';
 import * as economy from '../economy';
 import { arrears, dailyBudget, dailyNeeds, dueOn, lodgingOf } from '../economy/living';
@@ -23,10 +25,12 @@ import { fenceDeal, fenceLeads, fenceRisk, townFences } from '../economy/fence';
 import type {
   AdvanceOptions,
   ArrestInput,
+  CivilianSightingInput,
   LoopActionEvent,
   LoopInit,
   LoopSim,
   OfficerSightingInput,
+  TipOffInput,
 } from './types';
 
 let activeSim: LoopSim | null = null;
@@ -76,6 +80,22 @@ export function arrestJson(simJson: string, inputJson: string): string {
   const sim = load(simJson);
   const input = JSON.parse(inputJson) as ArrestInput;
   return JSON.stringify(arrest(sim, input));
+}
+
+export function civilianSpottedJson(
+  simJson: string,
+  personId: string,
+  sightingJson?: string,
+): string {
+  const sim = load(simJson);
+  const sighting = sightingJson ? (JSON.parse(sightingJson) as CivilianSightingInput) : {};
+  return JSON.stringify(civilianSpotted(sim, personId, sighting));
+}
+
+export function tipOffJson(simJson: string, inputJson: string): string {
+  const sim = load(simJson);
+  const input = JSON.parse(inputJson) as TipOffInput;
+  return JSON.stringify(tipOff(sim, input));
 }
 
 /**
@@ -128,6 +148,24 @@ export const TimerpgSim = {
     return JSON.stringify(spotted(requireActive(), officerId, sighting));
   },
 
+  civilianSpotted(personId: string, sightingJson?: string): string {
+    const current = requireActive();
+    const sighting = sightingJson ? (JSON.parse(sightingJson) as CivilianSightingInput) : {};
+    const res = civilianSpotted(current, personId, sighting);
+    activeSim = res.sim;
+    const { sim: _omit, ...delta } = res;
+    return JSON.stringify(delta);
+  },
+
+  tipOff(inputJson: string): string {
+    const current = requireActive();
+    const input = JSON.parse(inputJson) as TipOffInput;
+    const res = tipOff(current, input);
+    activeSim = res.sim;
+    const { sim: _omit, ...delta } = res;
+    return JSON.stringify(delta);
+  },
+
   arrest(inputJson: string): string {
     const current = requireActive();
     const input = JSON.parse(inputJson) as ArrestInput;
@@ -159,6 +197,8 @@ export const TimerpgSim = {
   attitudeJson,
   policeViewJson,
   spottedJson,
+  civilianSpottedJson,
+  tipOffJson,
   arrestJson,
 };
 

@@ -1,5 +1,6 @@
 import {
   DEFAULT_SEVERITY,
+  FORENSIC_ERA,
   advanceDay,
   ambientLightAt,
   caseHeatOnDay,
@@ -16,6 +17,7 @@ import {
   recordCrime,
   recordTraces,
   reexamineColdCases,
+  reportLatencyForEra,
   witnessesOf,
   type Bystander,
   type CrimeAccount,
@@ -25,6 +27,7 @@ import {
   type CrimeState,
   type CulpritAppearance,
   type IdentityFileRecord,
+  type PendingReport,
   type PoliceCase,
   type PoliceReport,
   type StreetLamp,
@@ -35,6 +38,7 @@ import { affinity, pairKey } from '../sim/social';
 import type { Business, Id, Person, World } from '../sim/types';
 import { cloneIdMap, createIdMap, registerPlanId, toPlanId } from './ids';
 import { FIRST_YEAR, LAST_YEAR, formatMoney, priceIndex, wage } from '../economy/eras';
+import { fenceDeal, fenceRisk, type Fence } from '../economy/fence';
 import {
   POLICE_ERA,
   decideSpotAction,
@@ -58,6 +62,10 @@ import type {
   AttitudeChange,
   AttitudeResult,
   AttitudeStance,
+  BookingColdCaseHit,
+  BookingReport,
+  CivilianSightingInput,
+  CivilianSpotResult,
   CrimeMetaRecord,
   LoopActionEvent,
   LoopInit,
@@ -70,14 +78,19 @@ import type {
   OfficerSightingInput,
   PawnLeadMatch,
   PawnRecord,
+  PendingReportMeta,
   PlayerFamiliarity,
   PoliceViewCase,
   PoliceViewResult,
   PriorOffenseRecord,
+  ReportMeans,
+  ResolvedCrimeMemory,
   SceneBystander,
   SpotResult,
   SpotStopOutcome,
   StolenItemRecord,
+  TipOffInput,
+  TipOffResult,
   WitnessNotice,
   WorkShiftRecord,
 } from './types';
@@ -161,6 +174,92 @@ function cloneFamiliarity(f?: PlayerFamiliarity): PlayerFamiliarity {
     trustDelta: f.trustDelta,
     positiveFacts: f.positiveFacts.slice(),
     bannedFromPlaceIds: f.bannedFromPlaceIds.slice(),
+    ...(f.fenceDeals !== undefined ? { fenceDeals: f.fenceDeals } : {}),
+    ...(f.fenceTrust !== undefined ? { fenceTrust: f.fenceTrust } : {}),
+    ...(f.informedOnPlayer !== undefined ? { informedOnPlayer: f.informedOnPlayer } : {}),
+    ...(f.fenceRefusedTooHot !== undefined ? { fenceRefusedTooHot: f.fenceRefusedTooHot } : {}),
+  };
+}
+
+function stationDistanceKmForPlace(sim: LoopSim, placeId?: string): number {
+  const origin = placeId ? sim.places[placeId] : undefined;
+  let bestMeters = Infinity;
+  if (origin) {
+    for (const pl of Object.values(sim.places)) {
+      if (pl.kind !== 'police_station') continue;
+      const d = Math.hypot(pl.position.x - origin.position.x, pl.position.y - origin.position.y);
+      if (d < bestMeters) bestMeters = d;
+    }
+  }
+  if (!Number.isFinite(bestMeters)) return 1.5;
+  return Math.max(0.5, Math.round((bestMeters / 1000) * 100) / 100);
+}
+
+function reportMeansForEra(year: number, delayHours: number): ReportMeans {
+  if (year < 1900) return 'in_person';
+  if (year < 1935) return delayHours >= 6 ? 'in_person' : 'early_telephone';
+  if (year < 2000) return 'telephone';
+  return 'mobile';
+}
+
+function formatReportMeansLabel(means: ReportMeans): string {
+  switch (means) {
+    case 'in_person':
+      return 'in person';
+    case 'early_telephone':
+      return 'by early telephone';
+    case 'telephone':
+      return 'by telephone';
+    case 'mobile':
+      return 'by mobile phone';
+  }
+}
+
+function formatEvidenceMethodLabel(method: string): string {
+  switch (method) {
+    case 'fingerprint':
+      return 'fingerprints';
+    case 'dna':
+      return 'DNA';
+    case 'serial_registry':
+      return 'serial registry';
+    case 'plate_registry':
+      return 'licence plate registry';
+    case 'camera_face':
+      return 'camera footage';
+    default:
+      return method.replace(/_/g, ' ');
+  }
+}
+
+function buildFenceProfile(
+  sim: LoopSim,
+  fenceId: string,
+  placeName: string,
+  overrides?: Partial<Fence>,
+): Fence {
+  const person = sim.world.people[fenceId];
+  const derivedHonesty = person
+    ? clamp01(0.15 + person.traits.diligence * 0.25 + ((person.reputation + 1) * 0.2))
+    : 0.3;
+  const derivedGreed = person
+    ? clamp01(0.45 + person.traits.ambition * 0.45)
+    : 0.65;
+  return {
+    personId: fenceId,
+    cover: overrides?.cover ?? 'secondhand dealer',
+    where: overrides?.where ?? placeName,
+    hours: overrides?.hours ?? ([20, 2] as const),
+    categories: overrides?.categories ?? [
+      'valuables',
+      'hand_tools',
+      'power_tools',
+      'electronics',
+      'instruments',
+      'clothing',
+    ],
+    honesty: clamp01(overrides?.honesty ?? derivedHonesty),
+    greed: clamp01(overrides?.greed ?? derivedGreed),
   };
 }
 
@@ -200,6 +299,7 @@ function buildCrimeContext(sim: LoopSim, weather?: AdvanceOptions['weather']): C
     placeTownOf: (placeId: string) => sim.places[placeId]?.townId ?? defaultTown,
     jurisdictionOf: (placeId: string) => sim.places[placeId]?.jurisdictionId ?? defaultJur,
     workplaceOf: (personId: Id) => sim.peopleMeta[personId]?.workplacePlaceId,
+    stationDistanceKm: (placeId: string) => stationDistanceKmForPlace(sim, placeId),
     escalateJurisdictionOf: (jurId: string, crime: CrimeEvent) => {
       if (crime.severity < 0.75) return undefined;
       return sim.escalateJurisdiction[jurId];
@@ -837,6 +937,177 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
     };
   }
 
+  // --- 3b. FENCE_SALE (Sam's fences: standing from deals, fenceRisk informant tips via era latency) ---
+  if (event.kind === 'fence_sale') {
+    const fenceId = event.fenceId;
+    const fenceMeta = sim.peopleMeta[fenceId];
+    const fencePerson = sim.world.people[fenceId];
+    const fenceName =
+      fenceMeta?.name ?? (fencePerson ? `${fencePerson.first} ${fencePerson.surname}` : fenceId);
+    const fenceProfile = buildFenceProfile(sim, fenceId, placeName, event.fence);
+
+    const jurId =
+      place?.jurisdictionId ?? Object.values(sim.places)[0]?.jurisdictionId ?? 'capital';
+    const existingStolen = sim.stolenItems[event.item.id];
+    const linkedCrimeId = event.item.stolenFromCrimeId ?? existingStolen?.crimeId;
+    const isHot = Boolean(linkedCrimeId || existingStolen);
+
+    const curHeat = policeKnowledge(activeCrimeStateForPolice(sim), jurId, sim.currentDay).heat;
+    const heat01 = clamp01(event.heat !== undefined ? event.heat : curHeat / 100);
+    const prevFam = sim.familiarity[fenceId];
+    const prevTrust = clamp01(prevFam?.fenceTrust ?? 0);
+    const clampedYear = clampEconomyYear(sim.year);
+
+    let accepted = false;
+    let offerCents = 0;
+    let trustAfter = prevTrust;
+    let refusalReason: 'category' | 'too_hot' | 'no_offer' | undefined;
+
+    if (event.catalogueItemId) {
+      const deal = fenceDeal(fenceProfile, event.catalogueItemId, clampedYear, heat01, prevTrust);
+      if (deal.accepted) {
+        accepted = true;
+        offerCents = deal.offerCents;
+        trustAfter = deal.trustAfter;
+      } else {
+        refusalReason = deal.reason;
+      }
+    } else if (heat01 > 0.7 + 0.3 * prevTrust) {
+      refusalReason = 'too_hot';
+    } else {
+      const baseValue = Math.max(
+        10,
+        Math.round(event.item.value ?? existingStolen?.value ?? Math.round(2500 * eraPriceIndex(sim.year))),
+      );
+      const bargaining = 0.42 - 0.1 * fenceProfile.greed + 0.14 * prevTrust;
+      const heatDiscount = 1 - heat01 * (0.45 - 0.25 * prevTrust);
+      offerCents = Math.max(1, Math.floor(baseValue * bargaining * heatDiscount));
+      trustAfter = Math.min(100, Math.round(prevTrust * 100) + 10) / 100;
+      accepted = true;
+    }
+
+    const nextFamiliarity: Record<string, PlayerFamiliarity> = { ...sim.familiarity };
+    const fam = cloneFamiliarity(nextFamiliarity[fenceId]);
+
+    if (!accepted) {
+      if (refusalReason === 'too_hot') {
+        fam.fenceRefusedTooHot = true;
+        fam.trustDelta = Math.round((fam.trustDelta - 0.08) * 1000) / 1000;
+        const fact = 'I turned away your hot goods — too much police heat right now.';
+        if (!fam.positiveFacts.includes(fact)) fam.positiveFacts.push(fact);
+      }
+      nextFamiliarity[fenceId] = fam;
+      const refusedSim: LoopSim = {
+        ...sim,
+        playerAppearance,
+        familiarity: nextFamiliarity,
+      };
+      const nextStance = attitude(refusedSim, fenceId).stance;
+      const updatedSim: LoopSim = {
+        ...refusedSim,
+        lastStances: { ...sim.lastStances, [fenceId]: nextStance },
+      };
+      return {
+        sim: updatedSim,
+        kind: 'fence_sale',
+        legit: false,
+        hot: isHot,
+        payEarned: 0,
+        pawnTraceFlagged: false,
+        fenceAccepted: false,
+        fenceRefusalReason: refusalReason,
+        fenceTrustAfter: prevTrust,
+        tipOffQueued: false,
+        witnessedBy: [],
+        tracesLeft: [],
+        summary:
+          refusalReason === 'too_hot'
+            ? `${fenceName} refused ${event.item.label} — too much police heat.`
+            : `${fenceName} declined to buy ${event.item.label} (${refusalReason ?? 'no_offer'}).`,
+      };
+    }
+
+    // Accepted fence sale: mark stolen item fenced (no pawn registry!) and grow fence standing
+    const nextStolenItems: Record<string, StolenItemRecord> = { ...sim.stolenItems };
+    if (existingStolen) {
+      nextStolenItems[event.item.id] = {
+        ...existingStolen,
+        pawnedAtPlaceId: event.placeId,
+      };
+    }
+
+    const dealCount = (fam.fenceDeals ?? 0) + 1;
+    fam.fenceDeals = dealCount;
+    fam.fenceTrust = trustAfter;
+    fam.fenceRefusedTooHot = false;
+    fam.trustDelta = Math.min(0.85, Math.round((fam.trustDelta + 0.08) * 1000) / 1000);
+    fam.positiveFacts = fam.positiveFacts.filter(
+      (f) => !f.startsWith("We've done quiet business before") && !f.startsWith("I turned away your hot goods"),
+    );
+    fam.positiveFacts.push(
+      `We've done quiet business before (${dealCount} ${dealCount === 1 ? 'deal' : 'deals'}).`,
+    );
+    nextFamiliarity[fenceId] = fam;
+
+    let nextSim: LoopSim = {
+      ...sim,
+      playerAppearance,
+      stolenItems: nextStolenItems,
+      familiarity: nextFamiliarity,
+      nextSeq: sim.nextSeq + 1,
+    };
+
+    // Roll Sam's fenceRisk(fence, year) with keyed deterministic RNG to see if the fence informs
+    const riskProb = fenceRisk(fenceProfile, clampedYear) ?? 0.12;
+    const roll = rand(sim.seed, 'fence_tip', sim.currentDay, fenceId, event.item.id, sim.nextSeq);
+    const shouldTip = event.forceTip !== undefined ? event.forceTip : roll < riskProb;
+
+    let tipRes: TipOffResult | undefined;
+    if (shouldTip) {
+      tipRes = tipOff(nextSim, {
+        informantId: fenceId,
+        itemId: event.item.id,
+        ...(linkedCrimeId !== undefined ? { crimeId: linkedCrimeId } : {}),
+        placeId: event.placeId,
+        jurisdictionId: jurId,
+        reason: `${fenceName} tipped off police after buying ${event.item.label}.`,
+      });
+      nextSim = tipRes.sim;
+    } else {
+      const updatedStance = attitude(nextSim, fenceId).stance;
+      nextSim = {
+        ...nextSim,
+        lastStances: { ...nextSim.lastStances, [fenceId]: updatedStance },
+      };
+    }
+
+    const payText = eraFormatMoney(offerCents, sim.year);
+    return {
+      sim: nextSim,
+      kind: 'fence_sale',
+      legit: false,
+      hot: isHot,
+      payEarned: offerCents,
+      pawnTraceFlagged: false,
+      fenceAccepted: true,
+      fenceTrustAfter: trustAfter,
+      tipOffQueued: Boolean(tipRes?.queued),
+      ...(tipRes?.queued
+        ? {
+            tipDelayHours: tipRes.delayHours,
+            tipArrivalDay: tipRes.arrivalDay,
+            tipArrivalHour: tipRes.arrivalHour,
+            tipMeans: tipRes.means,
+          }
+        : {}),
+      witnessedBy: [],
+      tracesLeft: [],
+      summary: tipRes?.queued
+        ? `Fenced ${event.item.label} to ${fenceName} for ${payText} (informant tipped off police).`
+        : `Fenced ${event.item.label} to ${fenceName} for ${payText}.`,
+    };
+  }
+
   // --- 4. ENTER (legit when open and unforced; trespass / burglary otherwise) ---
   if (event.kind === 'enter') {
     const isOpen = placeIsOpen(place, sim.currentHour, event.isOpen);
@@ -1214,6 +1485,295 @@ function warnUnawareVictims(sim: LoopSim, crimeState: CrimeState, day: number): 
   return ledgerCopied ? { ...crimeState, ledger: nextLedger } : crimeState;
 }
 
+function formatBookingColdCaseFact(kind: CrimeKind, placeName: string, method: string): string {
+  const kindLabel = kind.replace(/_/g, ' ');
+  const methodLabel = formatEvidenceMethodLabel(method);
+  if (method === 'fingerprint') {
+    return `Booking fingerprints matched an unsolved ${kindLabel} at ${placeName}.`;
+  }
+  if (method === 'dna') {
+    return `Booking DNA matched an unsolved ${kindLabel} at ${placeName}.`;
+  }
+  return `Booking ${methodLabel} matched an unsolved ${kindLabel} at ${placeName}.`;
+}
+
+function collectBookingPawnLinks(
+  sim: LoopSim,
+  suspectId: string,
+  excludedCrimeIds?: ReadonlySet<string>,
+): PawnLeadMatch[] {
+  const out: PawnLeadMatch[] = [];
+  const seen = new Set<string>();
+  for (let i = 0; i < sim.pawnRecords.length; i++) {
+    const pawn = sim.pawnRecords[i]!;
+    if (pawn.sellerId !== suspectId || !pawn.stolenFromCrimeId) continue;
+    if (sim.crimeMeta[pawn.stolenFromCrimeId]?.resolved) continue;
+    if (excludedCrimeIds?.has(pawn.stolenFromCrimeId)) continue;
+    const traced =
+      pawn.reportedToPolice ||
+      Boolean(sim.stolenItems[pawn.itemId]?.tracedToPlayer) ||
+      pawn.serialNumber !== undefined;
+    if (!traced) continue;
+    const key = `${pawn.stolenFromCrimeId}:${pawn.itemId}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({
+      crimeId: pawn.stolenFromCrimeId,
+      ...(pawn.serialNumber !== undefined ? { serialNumber: pawn.serialNumber } : {}),
+      pawnShopId: pawn.placeId,
+      suspectId,
+    });
+  }
+  return out;
+}
+
+/**
+ * Shared station booking pipeline (G008 identityFiles + cold-case re-examination + pawn links).
+ * Called both by `arrest()` and when a G009 police arrest finishes transport to the station during `advance()`.
+ */
+function bookSuspectAtStation(params: {
+  sim: LoopSim;
+  crimeState: CrimeState;
+  jurisdictionId: string;
+  suspectId: string;
+  day: number;
+  seq: number;
+  confiscatedItems?: readonly string[];
+}): {
+  crimeState: CrimeState;
+  report: BookingReport;
+  coldCasesTriggered: string[];
+} {
+  const { sim, jurisdictionId, suspectId, day, seq, confiscatedItems } = params;
+  let nextCrimeState = params.crimeState;
+
+  const beforeMatches = new Set<string>();
+  for (const j of Object.values(nextCrimeState.jurisdictions)) {
+    for (const c of Object.values(j.cases)) {
+      for (const m of c.evidenceMatches ?? []) {
+        beforeMatches.add(`${c.crimeId}:${m.traceId}`);
+      }
+    }
+  }
+
+  const printsEnrolled = sim.year >= FORENSIC_ERA.fingerprintLocalYear;
+  const dnaEnrolled = sim.year >= FORENSIC_ERA.dnaAnalysisYear;
+  const scope: 'local' | 'national' =
+    sim.year >= FORENSIC_ERA.fingerprintNationalYear ? 'national' : 'local';
+
+  nextCrimeState = enrollOnFile(nextCrimeState, {
+    id: `file:arrest:${jurisdictionId}:${day}:${seq}`,
+    personId: suspectId,
+    jurisdictionId,
+    scope,
+    reason: 'arrest',
+    enrolledDay: day,
+    enrolledYear: sim.year,
+    hasPrints: printsEnrolled,
+    hasDna: dnaEnrolled,
+  });
+
+  const ctx = buildCrimeContext(sim);
+  nextCrimeState = reexamineColdCases(nextCrimeState, sim.world, day, ctx);
+
+  const coldCaseHits: BookingColdCaseHit[] = [];
+  const coldCasesTriggered: string[] = [];
+  const jurIds = Object.keys(nextCrimeState.jurisdictions).sort();
+  for (let ji = 0; ji < jurIds.length; ji++) {
+    const j = nextCrimeState.jurisdictions[jurIds[ji]!]!;
+    const caseIds = Object.keys(j.cases).sort();
+    for (let ci = 0; ci < caseIds.length; ci++) {
+      const c = j.cases[caseIds[ci]!]!;
+      if (sim.crimeMeta[c.crimeId]?.resolved) continue;
+      for (const m of c.evidenceMatches ?? []) {
+        const key = `${c.crimeId}:${m.traceId}`;
+        if (!beforeMatches.has(key) && m.suspectId === suspectId) {
+          const placeName =
+            sim.crimeMeta[c.crimeId]?.placeName ?? sim.places[c.placeId]?.name ?? c.placeId;
+          const fact = formatBookingColdCaseFact(c.kind, placeName, m.method);
+          coldCaseHits.push({
+            crimeId: c.crimeId,
+            kind: c.kind,
+            placeName,
+            method: m.method,
+            confidence: Math.round(m.confidence * 1000) / 1000,
+            fact,
+          });
+          if (!coldCasesTriggered.includes(c.crimeId)) {
+            coldCasesTriggered.push(c.crimeId);
+          }
+        }
+      }
+    }
+  }
+  coldCasesTriggered.sort();
+
+  const pawnLinks = collectBookingPawnLinks(sim, suspectId);
+  const findings: string[] = [];
+
+  if (printsEnrolled && dnaEnrolled) {
+    findings.push(`Fingerprints and DNA taken at booking and filed with ${scope} records.`);
+  } else if (printsEnrolled) {
+    findings.push(`Fingerprints taken at booking and filed with ${scope} records.`);
+  } else {
+    findings.push('Booked at the station (before fingerprinting was in use).');
+  }
+
+  for (let i = 0; i < coldCaseHits.length; i++) {
+    findings.push(coldCaseHits[i]!.fact);
+  }
+
+  for (let i = 0; i < pawnLinks.length; i++) {
+    const link = pawnLinks[i]!;
+    const shopName = sim.places[link.pawnShopId]?.name ?? link.pawnShopId;
+    const pawnRec = sim.pawnRecords.find(
+      (r) => r.stolenFromCrimeId === link.crimeId && r.placeId === link.pawnShopId,
+    );
+    const itemDesc = pawnRec?.label ?? sim.crimeMeta[link.crimeId]?.itemLabel ?? 'stolen property';
+    const serialNote = link.serialNumber ? ` (serial ${link.serialNumber})` : '';
+    findings.push(`Pawn ledger at ${shopName} linked ${itemDesc}${serialNote} to you.`);
+  }
+
+  if (confiscatedItems && confiscatedItems.length > 0) {
+    findings.push(
+      `Confiscated ${confiscatedItems.length} stolen ${confiscatedItems.length === 1 ? 'item' : 'items'} at booking.`,
+    );
+  }
+
+  return {
+    crimeState: nextCrimeState,
+    coldCasesTriggered,
+    report: {
+      jurisdictionId,
+      suspectId,
+      day,
+      year: sim.year,
+      printsEnrolled,
+      dnaEnrolled,
+      scope,
+      coldCaseHits,
+      pawnLinks,
+      findings,
+    },
+  };
+}
+
+function deliverDueTimedReports(params: {
+  sim: LoopSim;
+  crimeState: CrimeState;
+  pendingReportMeta: Record<string, PendingReportMeta>;
+  respondedCases: Record<string, string>;
+  latestSightingPlaceByCrime: Record<string, string>;
+  upToTotalHours: number;
+  day: number;
+}): {
+  crimeState: CrimeState;
+  pendingReportMeta: Record<string, PendingReportMeta>;
+  respondedCases: Record<string, string>;
+  latestSightingPlaceByCrime: Record<string, string>;
+  deliveredCount: number;
+  deliveredCrimeIds: string[];
+} {
+  const { sim, upToTotalHours, day } = params;
+  let crimeState = params.crimeState;
+  const remainingPending: PendingReport[] = [];
+  let nextMeta = params.pendingReportMeta;
+  let metaCopied = false;
+  let nextResponded = params.respondedCases;
+  let respondedCopied = false;
+  let nextSightings = params.latestSightingPlaceByCrime;
+  let sightingsCopied = false;
+  let deliveredCount = 0;
+  const deliveredCrimeIds: string[] = [];
+
+  for (let i = 0; i < crimeState.pendingReports.length; i++) {
+    const rep = crimeState.pendingReports[i]!;
+    const meta = nextMeta[rep.id];
+    if (!meta || meta.arrivalTotalHours > upToTotalHours) {
+      remainingPending.push(rep);
+      continue;
+    }
+
+    if (!metaCopied) {
+      nextMeta = { ...nextMeta };
+      metaCopied = true;
+    }
+    delete nextMeta[rep.id];
+
+    if (sim.crimeMeta[rep.crimeId]?.resolved) continue;
+    const crime = crimeState.crimes[rep.crimeId];
+    if (!crime) continue;
+
+    const delivered: PoliceReport = {
+      id: rep.id,
+      crimeId: rep.crimeId,
+      reporterId: rep.reporterId,
+      jurisdictionId: rep.jurisdictionId,
+      filedDay: rep.filedDay,
+      receivedDay: day,
+      delayHours: rep.delayHours,
+      source: rep.source,
+      isVictim: rep.isVictim,
+      confidence: rep.confidence,
+      ...(rep.identifiedCulpritId ? { identifiedCulpritId: rep.identifiedCulpritId } : {}),
+      description: rep.description,
+    };
+
+    const prevJur = crimeState.jurisdictions[rep.jurisdictionId];
+    crimeState = {
+      ...crimeState,
+      jurisdictions: {
+        ...crimeState.jurisdictions,
+        [rep.jurisdictionId]: ingestPoliceReport(prevJur, crime, delivered),
+      },
+    };
+
+    const sceneTraces = crimeState.traces?.[rep.crimeId];
+    if (sceneTraces && sceneTraces.some((t) => !t.collected && !t.destroyed)) {
+      crimeState = collectCrimeTraces(crimeState, sim.world, rep.crimeId, rep.jurisdictionId, day, {
+        year: sim.year,
+      });
+    }
+
+    // Fresh civilian sighting or informant tip wakes police response for this case
+    const respKey = `${rep.jurisdictionId}:${rep.crimeId}`;
+    if (nextResponded[respKey]) {
+      if (!respondedCopied) {
+        nextResponded = { ...nextResponded };
+        respondedCopied = true;
+      }
+      delete nextResponded[respKey];
+    }
+
+    if (meta.sightingPlaceId) {
+      if (!sightingsCopied) {
+        nextSightings = { ...nextSightings };
+        sightingsCopied = true;
+      }
+      nextSightings[rep.crimeId] = meta.sightingPlaceId;
+    }
+
+    deliveredCrimeIds.push(rep.crimeId);
+    deliveredCount++;
+  }
+
+  if (deliveredCount > 0 || remainingPending.length !== crimeState.pendingReports.length) {
+    crimeState = {
+      ...crimeState,
+      pendingReports: remainingPending,
+    };
+  }
+
+  return {
+    crimeState,
+    pendingReportMeta: nextMeta,
+    respondedCases: nextResponded,
+    latestSightingPlaceByCrime: nextSightings,
+    deliveredCount,
+    deliveredCrimeIds,
+  };
+}
+
 /**
  * Advances the simulation by `hours` simulated hours:
  * - steps whole days through G005/G008 `advanceDay` (gossip, era-delayed reporting, trace decay, cold cases);
@@ -1232,10 +1792,19 @@ export function advance(sim: LoopSim, hours: number, options?: AdvanceOptions): 
 
   const beforeCases = openPoliceCaseIds(sim);
   let crimeState = sim.crimeState;
+  let nextPendingReportMeta: Record<string, PendingReportMeta> = sim.pendingReportMeta
+    ? { ...sim.pendingReportMeta }
+    : {};
+  let nextLatestSightings: Record<string, string> = sim.latestSightingPlaceByCrime
+    ? { ...sim.latestSightingPlaceByCrime }
+    : {};
+  let nextPoliceResponded: Record<string, string> = { ...sim.policeState.respondedCases };
+  const freshlyDeliveredCrimeIds = new Set<string>();
   const nextPawnRecords = sim.pawnRecords.map((r) => ({ ...r }));
   const nextStolenItems = { ...sim.stolenItems };
   const pawnLeadsMatched: PawnLeadMatch[] = [];
   const ctx = buildCrimeContext(sim, options?.weather);
+  const endTotalHours = Math.round((toDay * 24 + toHour) * 1000) / 1000;
 
   // Track already-known forensic pawn matches so we only emit newly matched leads
   const seenMatchIds = new Set<string>();
@@ -1253,8 +1822,48 @@ export function advance(sim: LoopSim, hours: number, options?: AdvanceOptions): 
     // 1. Eyewitnesses of a local shop/home theft warn the victim
     crimeState = warnUnawareVictims(sim, crimeState, d);
 
+    // 1b. Hold timed civilian/informant reports aside during advanceDay so exact arrivalHour is respected
+    const heldTimed: PendingReport[] = [];
+    if (Object.keys(nextPendingReportMeta).length > 0 && crimeState.pendingReports.length > 0) {
+      const regularPending: PendingReport[] = [];
+      for (let i = 0; i < crimeState.pendingReports.length; i++) {
+        const rep = crimeState.pendingReports[i]!;
+        if (nextPendingReportMeta[rep.id]) {
+          heldTimed.push(rep);
+        } else {
+          regularPending.push(rep);
+        }
+      }
+      if (heldTimed.length > 0) {
+        crimeState = { ...crimeState, pendingReports: regularPending };
+      }
+    }
+
     // 2. Run G005/G008 daily engine (decay, gossip, era-delayed reporting, trace decay, cold-case match)
     crimeState = advanceDay(crimeState, sim.world, d, ctx);
+
+    // 2b. Restore timed reports and deliver any whose arrivalTotalHours <= end of this step
+    if (heldTimed.length > 0) {
+      crimeState = {
+        ...crimeState,
+        pendingReports: [...crimeState.pendingReports, ...heldTimed],
+      };
+      const dayCutoff = d === toDay ? endTotalHours : d * 24 + 24;
+      const delivered = deliverDueTimedReports({
+        sim,
+        crimeState,
+        pendingReportMeta: nextPendingReportMeta,
+        respondedCases: nextPoliceResponded,
+        latestSightingPlaceByCrime: nextLatestSightings,
+        upToTotalHours: dayCutoff,
+        day: d,
+      });
+      crimeState = delivered.crimeState;
+      nextPendingReportMeta = delivered.pendingReportMeta;
+      nextPoliceResponded = delivered.respondedCases;
+      nextLatestSightings = delivered.latestSightingPlaceByCrime;
+      for (const cid of delivered.deliveredCrimeIds) freshlyDeliveredCrimeIds.add(cid);
+    }
 
     // 3. Police collect scene traces on reported, unresolved cases so G008 serial/print matching fires
     const jurIds = Object.keys(crimeState.jurisdictions).sort();
@@ -1386,7 +1995,55 @@ export function advance(sim: LoopSim, hours: number, options?: AdvanceOptions): 
     }
   }
 
+  // Also deliver any sub-day timed civilian/informant reports when advancing within the same day
+  if (daysElapsed === 0 && Object.keys(nextPendingReportMeta).length > 0) {
+    const delivered = deliverDueTimedReports({
+      sim,
+      crimeState,
+      pendingReportMeta: nextPendingReportMeta,
+      respondedCases: nextPoliceResponded,
+      latestSightingPlaceByCrime: nextLatestSightings,
+      upToTotalHours: endTotalHours,
+      day: toDay,
+    });
+    crimeState = delivered.crimeState;
+    nextPendingReportMeta = delivered.pendingReportMeta;
+    nextPoliceResponded = delivered.respondedCases;
+    nextLatestSightings = delivered.latestSightingPlaceByCrime;
+    for (const cid of delivered.deliveredCrimeIds) freshlyDeliveredCrimeIds.add(cid);
+  }
+
   // Step real G009 police (src/police/engine.ts) for active (unresolved) cases
+  let policeInputState =
+    nextPoliceResponded !== sim.policeState.respondedCases
+      ? { ...sim.policeState, respondedCases: nextPoliceResponded }
+      : sim.policeState;
+  if (freshlyDeliveredCrimeIds.size > 0) {
+    let rearmed = false;
+    const nextOfficers = { ...policeInputState.officers };
+    for (const [oid, o] of Object.entries(policeInputState.officers)) {
+      if (
+        o.targetCrimeId &&
+        freshlyDeliveredCrimeIds.has(o.targetCrimeId) &&
+        (o.assignment === 'respond_crime' || o.assignment === 'stakeout')
+      ) {
+        rearmed = true;
+        nextOfficers[oid] = {
+          ...o,
+          assignment: 'patrol',
+          targetCrimeId: undefined,
+          targetNodeId: undefined,
+          planSource: undefined,
+          planState: undefined,
+        };
+      }
+    }
+    if (rearmed) {
+      policeInputState = { ...policeInputState, officers: nextOfficers };
+    }
+  }
+  const hasPendingMeta = Object.keys(nextPendingReportMeta).length > 0;
+  const hasLatestSightings = Object.keys(nextLatestSightings).length > 0;
   const interimSim: LoopSim = {
     ...sim,
     currentDay: toDay,
@@ -1395,10 +2052,18 @@ export function advance(sim: LoopSim, hours: number, options?: AdvanceOptions): 
     pawnRecords: nextPawnRecords,
     stolenItems: nextStolenItems,
     idMap: cloneIdMap(sim.idMap),
+    ...(hasPendingMeta ? { pendingReportMeta: nextPendingReportMeta } : {}),
+    ...(hasLatestSightings ? { latestSightingPlaceByCrime: nextLatestSightings } : {}),
   };
+  if (!hasPendingMeta && interimSim.pendingReportMeta !== undefined) {
+    delete interimSim.pendingReportMeta;
+  }
+  if (!hasLatestSightings && interimSim.latestSightingPlaceByCrime !== undefined) {
+    delete interimSim.latestSightingPlaceByCrime;
+  }
   const activeState = activeCrimeStateForPolice(interimSim);
   const policeTick = stepLoopPolice({
-    policeState: sim.policeState,
+    policeState: policeInputState,
     activeCrimeState: activeState,
     fullCrimeState: crimeState,
     world: sim.world,
@@ -1408,15 +2073,42 @@ export function advance(sim: LoopSim, hours: number, options?: AdvanceOptions): 
     hour: toHour,
     year: sim.year,
     idMap: interimSim.idMap,
+    latestSightingPlaceByCrime: hasLatestSightings ? nextLatestSightings : undefined,
   });
+
+  // Booking pipeline for any G009 arrest that just completed transport to the station
+  let postTickCrimeState = policeTick.crimeState;
+  let nextSeq = interimSim.nextSeq;
+  const bookingEvents: BookingReport[] = [];
+  const previouslyTransported = new Set<string>();
+  for (let i = 0; i < sim.policeState.arrests.length; i++) {
+    const a = sim.policeState.arrests[i]!;
+    if (a.transportedToStation) previouslyTransported.add(a.id);
+  }
+  for (let i = 0; i < policeTick.policeState.arrests.length; i++) {
+    const a = policeTick.policeState.arrests[i]!;
+    if (!a.transportedToStation || previouslyTransported.has(a.id)) continue;
+    const booked = bookSuspectAtStation({
+      sim: interimSim,
+      crimeState: postTickCrimeState,
+      jurisdictionId: a.jurisdictionId,
+      suspectId: a.suspectId,
+      day: toDay,
+      seq: nextSeq++,
+      confiscatedItems: a.seizedContraband,
+    });
+    postTickCrimeState = booked.crimeState;
+    bookingEvents.push(booked.report);
+  }
 
   const nextSim: LoopSim = {
     ...interimSim,
-    crimeState: policeTick.crimeState,
+    crimeState: postTickCrimeState,
     policeState: policeTick.policeState,
     officers: policeTick.officers,
     respondedCases: { ...policeTick.policeState.respondedCases },
     lastStances: { ...sim.lastStances },
+    nextSeq,
   };
 
   // Detect newly opened police cases
@@ -1458,6 +2150,7 @@ export function advance(sim: LoopSim, hours: number, options?: AdvanceOptions): 
     attitudeChanges,
     newPoliceCases,
     pawnLeadsMatched,
+    ...(bookingEvents.length > 0 ? { bookingEvents } : {}),
   };
 }
 
@@ -1472,8 +2165,12 @@ interface AttitudeEvalCache {
 }
 
 function buildAttitudeCache(sim: LoopSim): AttitudeEvalCache {
+  const idSet = new Set<string>(Object.keys(sim.crimeState.ledger));
+  if (sim.resolvedCrimeMemories) {
+    for (const cid of Object.keys(sim.resolvedCrimeMemories)) idSet.add(cid);
+  }
   return {
-    crimeIds: Object.keys(sim.crimeState.ledger).sort(),
+    crimeIds: Array.from(idSet).sort(),
     activePolice: activeCrimeStateForPolice(sim),
     wantedByJur: {},
   };
@@ -1501,18 +2198,52 @@ export function attitude(
     }
   }
 
-  // Gather every crime account this person holds involving the player
-  const knownCrimes: Array<{ meta: CrimeMetaRecord; account: CrimeAccount }> = [];
-  const crimeIds = _cache ? _cache.crimeIds : Object.keys(sim.crimeState.ledger).sort();
+  // Gather every crime account (active or pruned resolved memory) this person holds involving the player
+  const knownCrimes: Array<{
+    meta: CrimeMetaRecord;
+    source: 'first_hand' | 'second_hand';
+    heardFrom?: string;
+    isVictim: boolean;
+    confidence: number;
+    severity: number;
+  }> = [];
+  const crimeIds = _cache
+    ? _cache.crimeIds
+    : Array.from(
+        new Set([
+          ...Object.keys(sim.crimeState.ledger),
+          ...(sim.resolvedCrimeMemories ? Object.keys(sim.resolvedCrimeMemories) : []),
+        ]),
+      ).sort();
   for (let i = 0; i < crimeIds.length; i++) {
     const cid = crimeIds[i]!;
-    const acc = sim.crimeState.ledger[cid]?.[personId];
-    if (!acc) continue;
     const cMeta = sim.crimeMeta[cid];
     if (!cMeta) continue;
-    const crime = sim.crimeState.crimes[cid];
-    if (!crime || crime.culpritId !== sim.playerId) continue;
-    knownCrimes.push({ meta: cMeta, account: acc });
+    const acc = sim.crimeState.ledger[cid]?.[personId];
+    if (acc) {
+      const crime = sim.crimeState.crimes[cid];
+      if (!crime || crime.culpritId !== sim.playerId) continue;
+      knownCrimes.push({
+        meta: cMeta,
+        source: acc.source,
+        ...(acc.heardFrom !== undefined ? { heardFrom: acc.heardFrom } : {}),
+        isVictim: acc.isVictim,
+        confidence: acc.confidence,
+        severity: crime.severity,
+      });
+      continue;
+    }
+    const prunedMem = sim.resolvedCrimeMemories?.[cid]?.[personId];
+    if (prunedMem) {
+      knownCrimes.push({
+        meta: cMeta,
+        source: prunedMem.s === 'f' ? 'first_hand' : 'second_hand',
+        ...(prunedMem.h !== undefined ? { heardFrom: prunedMem.h } : {}),
+        isVictim: prunedMem.v === 1,
+        confidence: 1,
+        severity: 0,
+      });
+    }
   }
 
   let worstUnresolvedSeverity = 0;
@@ -1522,8 +2253,8 @@ export function attitude(
   let criminalPenalty = 0;
 
   for (let i = 0; i < knownCrimes.length; i++) {
-    const { meta: cMeta, account: acc } = knownCrimes[i]!;
-    const crime = sim.crimeState.crimes[cMeta.crimeId]!;
+    const acc = knownCrimes[i]!;
+    const cMeta = acc.meta;
     const phrase = formatCrimePhrase(cMeta);
     const tellerName = acc.heardFrom ? sim.peopleMeta[acc.heardFrom]?.name : undefined;
     const isOwnerOrVictim = acc.isVictim || cMeta.ownerId === personId;
@@ -1559,7 +2290,7 @@ export function attitude(
 
     if (!cMeta.resolved) {
       if (isOwnerOrVictim) victimizedByPlayer = true;
-      if (crime.severity > worstUnresolvedSeverity) worstUnresolvedSeverity = crime.severity;
+      if (acc.severity > worstUnresolvedSeverity) worstUnresolvedSeverity = acc.severity;
       if (acc.confidence > maxConfidence) maxConfidence = acc.confidence;
       criminalPenalty += (isOwnerOrVictim ? 0.65 : acc.source === 'first_hand' ? 0.45 : 0.25) * acc.confidence;
     } else {
@@ -1588,11 +2319,17 @@ export function attitude(
     facts.push(`Local police are actively looking for you${descSuffix}.`);
   }
 
-  const baseTrust = (fam?.trustDelta ?? 0) - criminalPenalty;
+  const isActiveFence = Boolean(fam?.fenceDeals && fam.fenceDeals > 0 && !fam.informedOnPlayer);
+  const effectivePenalty = isActiveFence && !victimizedByPlayer ? criminalPenalty * 0.2 : criminalPenalty;
+  const baseTrust = (fam?.trustDelta ?? 0) - effectivePenalty;
   const trust = Math.round(Math.max(-1, Math.min(1, baseTrust)) * 1000) / 1000;
 
   let stance: AttitudeStance = 'serve';
-  if (
+  if (fam?.informedOnPlayer) {
+    stance = wantedHere ? 'report_on_sight' : 'refuse';
+  } else if (isActiveFence && !victimizedByPlayer) {
+    stance = fam?.fenceRefusedTooHot || trust < -0.15 ? 'wary' : 'serve';
+  } else if (
     (wantedHere && (victimizedByPlayer || sawPlayerDirectly || worstUnresolvedSeverity >= 0.55)) ||
     (worstUnresolvedSeverity >= 0.55 && maxConfidence >= 0.45)
   ) {
@@ -1843,6 +2580,397 @@ export function spotted(
 }
 
 /**
+ * Evaluates a civilian spotting the player in the world. If `personId`'s attitude is
+ * `report_on_sight` and they can make the player out, queues report(s) to the jurisdiction's
+ * police using G005 era reporting latency (`reportLatencyForEra`), so an officer can be
+ * dispatched once the report reaches the station.
+ */
+export function civilianSpotted(
+  sim: LoopSim,
+  personId: string,
+  sighting: CivilianSightingInput = {},
+): CivilianSpotResult {
+  const att = attitude(sim, personId);
+  const meta = sim.peopleMeta[personId];
+  const sightingPlaceId = sighting.placeId ?? meta?.workplacePlaceId ?? meta?.homePlaceId;
+  const jurId =
+    sighting.jurisdictionId ??
+    (sightingPlaceId ? sim.places[sightingPlaceId]?.jurisdictionId : undefined) ??
+    (meta?.homePlaceId ? sim.places[meta.homePlaceId]?.jurisdictionId : undefined) ??
+    Object.values(sim.places)[0]?.jurisdictionId ??
+    'capital';
+
+  if (sighting.hasLineOfSight === false) {
+    return {
+      sim,
+      personId,
+      name: att.name,
+      stance: att.stance,
+      reported: false,
+      jurisdictionId: jurId,
+      crimeIds: [],
+      reportIds: [],
+      delayHours: 0,
+      reason: 'No line of sight to the player.',
+      summary: `${att.name} did not have a clear line of sight.`,
+    };
+  }
+
+  const dist = sighting.distance ?? 8;
+  const light =
+    sighting.light ??
+    ambientLightAt(
+      sim.currentHour,
+      sightingPlaceId && sim.places[sightingPlaceId] ? sim.places[sightingPlaceId]!.position : { x: 0, y: 0 },
+      sim.streetLamps,
+    );
+
+  if (dist > 55 || light < 0.05) {
+    return {
+      sim,
+      personId,
+      name: att.name,
+      stance: att.stance,
+      reported: false,
+      jurisdictionId: jurId,
+      crimeIds: [],
+      reportIds: [],
+      delayHours: 0,
+      reason: dist > 55 ? 'Too far away to recognize the player.' : 'Too dark to recognize the player.',
+      summary: `${att.name} could not make you out in time.`,
+    };
+  }
+
+  if (att.stance !== 'report_on_sight') {
+    return {
+      sim,
+      personId,
+      name: att.name,
+      stance: att.stance,
+      reported: false,
+      jurisdictionId: jurId,
+      crimeIds: [],
+      reportIds: [],
+      delayHours: 0,
+      reason: `Attitude is "${att.stance}", not "report_on_sight".`,
+      summary: `${att.name} saw you (${att.stance}) and did not call the police.`,
+    };
+  }
+
+  // Gather all unresolved crimes involving the player that this civilian knows about
+  const knownUnresolved: Array<{ crime: CrimeEvent; account: CrimeAccount }> = [];
+  const allCrimeIds = Object.keys(sim.crimeState.ledger).sort();
+  for (let i = 0; i < allCrimeIds.length; i++) {
+    const cid = allCrimeIds[i]!;
+    if (sim.crimeMeta[cid]?.resolved) continue;
+    const acc = sim.crimeState.ledger[cid]?.[personId];
+    if (!acc) continue;
+    const crime = sim.crimeState.crimes[cid];
+    if (!crime || crime.culpritId !== sim.playerId) continue;
+    knownUnresolved.push({ crime, account: acc });
+  }
+
+  if (knownUnresolved.length === 0) {
+    return {
+      sim,
+      personId,
+      name: att.name,
+      stance: att.stance,
+      reported: false,
+      jurisdictionId: jurId,
+      crimeIds: [],
+      reportIds: [],
+      delayHours: 0,
+      reason: 'No unresolved crimes known to report.',
+      summary: `${att.name} had no open incident to report.`,
+    };
+  }
+
+  knownUnresolved.sort(
+    (a, b) => b.crime.severity - a.crime.severity || (a.crime.id < b.crime.id ? -1 : 1),
+  );
+
+  const primary = knownUnresolved[0]!;
+  const stationDistKm = stationDistanceKmForPlace(sim, sightingPlaceId ?? primary.crime.placeId);
+  const latency = reportLatencyForEra(
+    sim.year,
+    primary.crime.severity,
+    stationDistKm,
+    sim.seed,
+    primary.crime.id,
+    personId,
+  );
+  const delayHours = latency.delayHours;
+  const arrivalTotalHours =
+    Math.round((sim.currentDay * 24 + sim.currentHour + delayHours) * 1000) / 1000;
+  const arrivalDay = Math.floor(arrivalTotalHours / 24);
+  const arrivalHour = Math.round((arrivalTotalHours - arrivalDay * 24) * 1000) / 1000;
+  const means = reportMeansForEra(sim.year, delayHours);
+
+  const appearance = sighting.appearance ?? sim.playerAppearance;
+  const distFactor = clamp01(1 - Math.max(0, dist - 4) / 55);
+  const lightFactor = clamp01(0.45 + 0.55 * light);
+
+  const nextPendingReports = sim.crimeState.pendingReports.slice();
+  const nextPendingMeta: Record<string, PendingReportMeta> = {
+    ...(sim.pendingReportMeta ?? {}),
+  };
+  let nextSeq = sim.nextSeq;
+  const reportedCrimeIds: string[] = [];
+  const reportIds: string[] = [];
+
+  for (let i = 0; i < knownUnresolved.length; i++) {
+    const { crime, account } = knownUnresolved[i]!;
+    // Avoid duplicating an identical still-in-transit sighting report from the same person & crime
+    const alreadyQueued = nextPendingReports.some(
+      (r) => r.crimeId === crime.id && r.reporterId === personId && r.jurisdictionId === jurId,
+    );
+    if (alreadyQueued) {
+      reportedCrimeIds.push(crime.id);
+      continue;
+    }
+
+    const reportId = `rep:civ:${personId}:${crime.id}:${sim.currentDay}:${nextSeq++}`;
+    const sightConf = clamp01(Math.max(account.confidence, 0.55 + 0.4 * distFactor * lightFactor));
+    const identifies =
+      att.knowsPlayerName ||
+      Boolean(account.identifiedCulpritId) ||
+      (account.source === 'first_hand' && sightConf >= 0.72);
+
+    const pending: PendingReport = {
+      id: reportId,
+      crimeId: crime.id,
+      reporterId: personId,
+      jurisdictionId: jurId,
+      filedDay: sim.currentDay,
+      arrivalDay,
+      delayHours,
+      source: 'first_hand',
+      isVictim: account.isVictim || sim.crimeMeta[crime.id]?.ownerId === personId,
+      confidence: Math.round(sightConf * 1000) / 1000,
+      ...(identifies ? { identifiedCulpritId: sim.playerId } : {}),
+      description: {
+        height: appearance.height,
+        build: appearance.build,
+        hair: appearance.hair,
+        clothingColor: appearance.clothingColor,
+        ...(appearance.vehicle ? { vehicle: { ...appearance.vehicle } } : {}),
+      },
+    };
+    nextPendingReports.push(pending);
+    nextPendingMeta[reportId] = {
+      arrivalTotalHours,
+      ...(sightingPlaceId !== undefined ? { sightingPlaceId } : {}),
+      kind: 'civilian_sighting',
+    };
+    reportedCrimeIds.push(crime.id);
+    reportIds.push(reportId);
+  }
+
+  const nextSim: LoopSim = {
+    ...sim,
+    crimeState: {
+      ...sim.crimeState,
+      pendingReports: nextPendingReports,
+    },
+    pendingReportMeta: nextPendingMeta,
+    nextSeq,
+  };
+
+  const meansLabel = formatReportMeansLabel(means);
+  return {
+    sim: nextSim,
+    personId,
+    name: att.name,
+    stance: att.stance,
+    reported: true,
+    jurisdictionId: jurId,
+    crimeIds: reportedCrimeIds,
+    reportIds,
+    delayHours,
+    arrivalDay,
+    arrivalHour,
+    means,
+    reason: `Spotted you and sent word ${meansLabel} (${delayHours}h delay).`,
+    summary: `${att.name} spotted you and reported it ${meansLabel}; expected at the station in ${delayHours}h.`,
+  };
+}
+
+/**
+ * Files an informant's tip to the police (for example from a fence who flipped under `fenceRisk`).
+ * Travels through the exact same era-delayed reporting pipeline (`reportLatencyForEra`) as a
+ * civilian report and triggers police dispatch when it arrives.
+ */
+export function tipOff(sim: LoopSim, input: TipOffInput): TipOffResult {
+  const informantId = input.informantId;
+  const infoMeta = sim.peopleMeta[informantId];
+  const infoPerson = sim.world.people[informantId];
+  const informantName =
+    infoMeta?.name ?? (infoPerson ? `${infoPerson.first} ${infoPerson.surname}` : informantId);
+  const placeId = input.placeId ?? infoMeta?.workplacePlaceId ?? infoMeta?.homePlaceId;
+  const jurId =
+    input.jurisdictionId ??
+    (placeId ? sim.places[placeId]?.jurisdictionId : undefined) ??
+    (infoMeta?.homePlaceId ? sim.places[infoMeta.homePlaceId]?.jurisdictionId : undefined) ??
+    Object.values(sim.places)[0]?.jurisdictionId ??
+    'capital';
+
+  let crimeState = sim.crimeState;
+  const nextCrimeMeta = { ...sim.crimeMeta };
+  const nextStolenItems = { ...sim.stolenItems };
+  let nextSeq = sim.nextSeq;
+
+  const stolenRec = input.itemId ? nextStolenItems[input.itemId] : undefined;
+  let crimeId = input.crimeId ?? stolenRec?.crimeId;
+  if (crimeId && (!crimeState.crimes[crimeId] || nextCrimeMeta[crimeId]?.resolved)) {
+    crimeId = undefined;
+  }
+
+  // Fallback to the player's most recent unresolved crime in this jurisdiction
+  if (!crimeId) {
+    const unresolved = Object.values(nextCrimeMeta)
+      .filter((m) => !m.resolved && m.jurisdictionId === jurId && Boolean(crimeState.crimes[m.crimeId]))
+      .sort((a, b) => b.day - a.day || (a.crimeId < b.crimeId ? -1 : 1));
+    crimeId = unresolved[0]?.crimeId;
+  }
+
+  // If no underlying crime exists yet (e.g. direct tip on hot goods), create a stolen-goods incident
+  if (!crimeId) {
+    crimeId = `crime:tip:${sim.currentDay}:${nextSeq++}`;
+    const tipPlace = placeId ? sim.places[placeId] : Object.values(sim.places)[0];
+    const tipPlaceId = tipPlace?.id ?? placeId ?? 'town';
+    const tipPlaceName = tipPlace?.name ?? tipPlaceId;
+    const tipEvent: CrimeEvent = {
+      id: crimeId,
+      kind: 'theft',
+      culpritId: sim.playerId,
+      placeId: tipPlaceId,
+      townId: tipPlace?.townId ?? jurId,
+      position: tipPlace ? { x: tipPlace.position.x, y: tipPlace.position.y } : { x: 0, y: 0 },
+      when: { year: sim.year, day: sim.currentDay, hour: sim.currentHour },
+      severity: 0.48,
+      culpritAppearance: { ...sim.playerAppearance },
+      ...(input.itemId ? { stolenItemIds: [input.itemId] } : {}),
+    };
+    crimeState = recordCrime(crimeState, tipEvent, []);
+    nextCrimeMeta[crimeId] = {
+      crimeId,
+      kind: 'theft',
+      placeId: tipPlaceId,
+      placeName: tipPlaceName,
+      jurisdictionId: jurId,
+      day: sim.currentDay,
+      dayName: dayNameFor(sim.startDay, sim.startDayOfWeek, sim.currentDay),
+      itemLabel: stolenRec?.label ?? input.itemId ?? 'stolen goods',
+      ...(stolenRec?.value !== undefined ? { itemValue: stolenRec.value } : {}),
+      resolved: false,
+    };
+  }
+
+  if (input.itemId && nextStolenItems[input.itemId]) {
+    nextStolenItems[input.itemId] = {
+      ...nextStolenItems[input.itemId]!,
+      tracedToPlayer: true,
+    };
+  }
+
+  const crime = crimeState.crimes[crimeId]!;
+  const stationDistKm = stationDistanceKmForPlace(sim, placeId ?? crime.placeId);
+  const latency = reportLatencyForEra(
+    sim.year,
+    Math.max(0.4, crime.severity),
+    stationDistKm,
+    sim.seed,
+    crimeId,
+    informantId,
+  );
+  const delayHours = latency.delayHours;
+  const arrivalTotalHours =
+    Math.round((sim.currentDay * 24 + sim.currentHour + delayHours) * 1000) / 1000;
+  const arrivalDay = Math.floor(arrivalTotalHours / 24);
+  const arrivalHour = Math.round((arrivalTotalHours - arrivalDay * 24) * 1000) / 1000;
+  const means = reportMeansForEra(sim.year, delayHours);
+
+  const reportId = `rep:tip:${informantId}:${crimeId}:${sim.currentDay}:${nextSeq++}`;
+  const confidence = clamp01(input.confidence ?? 0.84);
+  const identifiesPlayer = input.identifiesPlayer ?? true;
+
+  const pending: PendingReport = {
+    id: reportId,
+    crimeId,
+    reporterId: informantId,
+    jurisdictionId: jurId,
+    filedDay: sim.currentDay,
+    arrivalDay,
+    delayHours,
+    source: 'first_hand',
+    isVictim: false,
+    confidence: Math.round(confidence * 1000) / 1000,
+    ...(identifiesPlayer ? { identifiedCulpritId: sim.playerId } : {}),
+    description: {
+      height: sim.playerAppearance.height,
+      build: sim.playerAppearance.build,
+      hair: sim.playerAppearance.hair,
+      clothingColor: sim.playerAppearance.clothingColor,
+    },
+  };
+
+  const nextPendingReports = [...crimeState.pendingReports, pending];
+  const nextPendingMeta: Record<string, PendingReportMeta> = {
+    ...(sim.pendingReportMeta ?? {}),
+    [reportId]: {
+      arrivalTotalHours,
+      ...(placeId !== undefined ? { sightingPlaceId: placeId } : {}),
+      kind: 'informant_tip',
+    },
+  };
+
+  const nextFamiliarity: Record<string, PlayerFamiliarity> = { ...sim.familiarity };
+  const fam = cloneFamiliarity(nextFamiliarity[informantId]);
+  fam.informedOnPlayer = true;
+  fam.trustDelta = Math.max(-1, Math.round((fam.trustDelta - 0.55) * 1000) / 1000);
+  const tipFact = 'I tipped the police off about the hot goods you brought me.';
+  if (!fam.positiveFacts.includes(tipFact)) fam.positiveFacts.push(tipFact);
+  nextFamiliarity[informantId] = fam;
+
+  const interimSim: LoopSim = {
+    ...sim,
+    crimeState: {
+      ...crimeState,
+      pendingReports: nextPendingReports,
+    },
+    crimeMeta: nextCrimeMeta,
+    stolenItems: nextStolenItems,
+    familiarity: nextFamiliarity,
+    pendingReportMeta: nextPendingMeta,
+    nextSeq,
+  };
+  const newStance = attitude(interimSim, informantId).stance;
+  const nextSim: LoopSim = {
+    ...interimSim,
+    lastStances: { ...sim.lastStances, [informantId]: newStance },
+  };
+
+  const reason = input.reason ?? `Informant ${informantName} tipped off police.`;
+  const meansLabel = formatReportMeansLabel(means);
+  return {
+    sim: nextSim,
+    informantId,
+    informantName,
+    jurisdictionId: jurId,
+    queued: true,
+    crimeId,
+    reportId,
+    delayHours,
+    arrivalDay,
+    arrivalHour,
+    means,
+    reason,
+    summary: `${informantName} tipped off the police ${meansLabel}; expected at the station in ${delayHours}h.`,
+  };
+}
+
+/**
  * Stand-in arrest resolution for the playable loop (replaced later by G010 court):
  * - When called from a street stop (`fromStop: true` or `why: 'approach_and_question'`) on a thin
  *   case below `sim.stopPolicy.stopArrestStrength`, releases the player with a warning and no booking.
@@ -1909,53 +3037,13 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
       totalCaseStrength,
       confiscatedItems: [],
       coldCasesTriggered: [],
+      bookingFindings: [],
       policePlans: [],
       attitudeChanges: [],
       newPoliceCases: [],
       summary: 'Stopped and questioned, then released — the case is too thin to arrest.',
     };
   }
-
-  // Enroll booking prints/DNA into G008 identityFiles (and check for cold cases!)
-  const beforeColdMatches = new Set<string>();
-  for (const j of Object.values(sim.crimeState.jurisdictions)) {
-    for (const c of Object.values(j.cases)) {
-      for (const m of c.evidenceMatches ?? []) {
-        beforeColdMatches.add(`${c.crimeId}:${m.traceId}`);
-      }
-    }
-  }
-
-  let nextCrimeState = enrollOnFile(sim.crimeState, {
-    id: `file:arrest:${jurId}:${sim.currentDay}:${sim.nextSeq}`,
-    personId: sim.playerId,
-    jurisdictionId: jurId,
-    scope: sim.year >= 1990 ? 'national' : 'local',
-    reason: 'arrest',
-    enrolledDay: sim.currentDay,
-    enrolledYear: sim.year,
-    hasPrints: sim.year >= 1905,
-    hasDna: sim.year >= 1986,
-  });
-
-  const ctx = buildCrimeContext(sim);
-  nextCrimeState = reexamineColdCases(nextCrimeState, sim.world, sim.currentDay, ctx);
-
-  const coldCasesTriggered: string[] = [];
-  for (const j of Object.values(nextCrimeState.jurisdictions)) {
-    for (const c of Object.values(j.cases)) {
-      if (sim.crimeMeta[c.crimeId]?.resolved) continue;
-      for (const m of c.evidenceMatches ?? []) {
-        const key = `${c.crimeId}:${m.traceId}`;
-        if (!beforeColdMatches.has(key) && m.suspectId === sim.playerId) {
-          if (!coldCasesTriggered.includes(c.crimeId)) {
-            coldCasesTriggered.push(c.crimeId);
-          }
-        }
-      }
-    }
-  }
-  coldCasesTriggered.sort();
 
   const priorCount = sim.priorOffenses.length;
   const maxSeverity = charges.reduce((m, c) => Math.max(m, c.severity), 0);
@@ -2076,7 +3164,33 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
     });
   }
 
-  const bookedSim: LoopSim = {
+  // Run station booking pipeline (prints/DNA into G008 identityFiles, cold cases, pawn ledger links)
+  const preBookingSim: LoopSim = {
+    ...sim,
+    crimeMeta: nextCrimeMeta,
+    stolenItems: nextStolenItems,
+    familiarity: nextFamiliarity,
+    priorOffenses: nextPriorOffenses,
+  };
+  const bookingOutcome = bookSuspectAtStation({
+    sim: preBookingSim,
+    crimeState: sim.crimeState,
+    jurisdictionId: jurId,
+    suspectId: sim.playerId,
+    day: sim.currentDay,
+    seq: sim.nextSeq,
+    confiscatedItems,
+  });
+  const nextCrimeState = bookingOutcome.crimeState;
+  const coldCasesTriggered = bookingOutcome.coldCasesTriggered.slice();
+  const bookingReport: BookingReport = {
+    ...bookingOutcome.report,
+    coldCaseHits: bookingOutcome.report.coldCaseHits.slice(),
+    pawnLinks: bookingOutcome.report.pawnLinks.slice(),
+    findings: bookingOutcome.report.findings.slice(),
+  };
+
+  const bookedSim = pruneResolvedState({
     ...sim,
     crimeState: nextCrimeState,
     policeState: {
@@ -2089,7 +3203,7 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
     familiarity: nextFamiliarity,
     priorOffenses: nextPriorOffenses,
     nextSeq,
-  };
+  });
 
   // Run any cell / jail time through advance() so gossip, reports, decay & police plans run normally
   let finalSim = bookedSim;
@@ -2099,12 +3213,62 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
   let newPoliceCases: string[] = [];
 
   if (jailHours > 0) {
+    const preAdvMatchKeys = new Set<string>();
+    for (const j of Object.values(bookedSim.crimeState.jurisdictions)) {
+      for (const c of Object.values(j.cases)) {
+        for (const m of c.evidenceMatches ?? []) {
+          preAdvMatchKeys.add(`${c.crimeId}:${m.traceId}`);
+        }
+      }
+    }
     const adv = advance(bookedSim, jailHours);
-    finalSim = adv.sim;
+    finalSim = pruneResolvedState(adv.sim);
     daysElapsed = adv.daysElapsed;
     policePlans = adv.policePlans;
     attitudeChanges = adv.attitudeChanges;
     newPoliceCases = adv.newPoliceCases;
+
+    // Merge any cold-case hits or pawn links discovered overnight while in custody
+    for (const j of Object.values(finalSim.crimeState.jurisdictions)) {
+      for (const c of Object.values(j.cases)) {
+        if (finalSim.crimeMeta[c.crimeId]?.resolved) continue;
+        for (const m of c.evidenceMatches ?? []) {
+          const key = `${c.crimeId}:${m.traceId}`;
+          if (!preAdvMatchKeys.has(key) && m.suspectId === sim.playerId) {
+            const placeName =
+              finalSim.crimeMeta[c.crimeId]?.placeName ??
+              finalSim.places[c.placeId]?.name ??
+              c.placeId;
+            const fact = formatBookingColdCaseFact(c.kind, placeName, m.method);
+            bookingReport.coldCaseHits.push({
+              crimeId: c.crimeId,
+              kind: c.kind,
+              placeName,
+              method: m.method,
+              confidence: Math.round(m.confidence * 1000) / 1000,
+              fact,
+            });
+            bookingReport.findings.push(fact);
+            if (!coldCasesTriggered.includes(c.crimeId)) {
+              coldCasesTriggered.push(c.crimeId);
+            }
+          }
+        }
+      }
+    }
+    for (let i = 0; i < adv.pawnLeadsMatched.length; i++) {
+      const link = adv.pawnLeadsMatched[i]!;
+      if (link.suspectId !== sim.playerId) continue;
+      if (bookingReport.pawnLinks.some((p) => p.crimeId === link.crimeId && p.pawnShopId === link.pawnShopId)) {
+        continue;
+      }
+      bookingReport.pawnLinks.push(link);
+      const shopName = finalSim.places[link.pawnShopId]?.name ?? link.pawnShopId;
+      const itemDesc = finalSim.crimeMeta[link.crimeId]?.itemLabel ?? 'stolen property';
+      const serialNote = link.serialNumber ? ` (serial ${link.serialNumber})` : '';
+      bookingReport.findings.push(`Pawn ledger at ${shopName} linked ${itemDesc}${serialNote} to you.`);
+    }
+    coldCasesTriggered.sort();
   }
 
   const fineText = eraFormatMoney(fineAmount, sim.year);
@@ -2132,6 +3296,8 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
     totalCaseStrength,
     confiscatedItems,
     coldCasesTriggered,
+    booking: bookingReport,
+    bookingFindings: bookingReport.findings,
     policePlans,
     attitudeChanges,
     newPoliceCases,
@@ -2139,9 +3305,289 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
   };
 }
 
-/** Serializes the entire simulation state to a plain JSON string. */
+/**
+ * Prunes state that resolved (or completely forgotten) crimes no longer need:
+ * - `crimeState.toldPairs` for resolved crimes and forgotten crimes (zero remaining knowers)
+ * - `crimeState.traces`, `crimeState.pendingReports`, and `crimeState.jurisdictions[*].cases` for resolved crimes
+ * - Compacts resolved `crimeState.ledger` + `crimeState.crimes` into lightweight `resolvedCrimeMemories`
+ *   so `attitude()` retains identical facts & penalties without keeping full gossip/crime graphs
+ * - `policeState.respondedCases`, `sim.respondedCases`, `pawnRecords`, disposed `stolenItems`,
+ *   stale `pendingReportMeta`, `latestSightingPlaceByCrime`, and expired `backupAlerts`.
+ *
+ * Preserves `identityFiles`, `priorOffenses`, `policeState.arrests`, and all active unresolved crimes
+ * so `load(save(sim))` continues identically. Returns `sim` untouched when nothing is prunable.
+ */
+export function pruneResolvedState(sim: LoopSim): LoopSim {
+  const resolvedIds = new Set<string>();
+  for (const [cid, meta] of Object.entries(sim.crimeMeta)) {
+    if (meta.resolved) resolvedIds.add(cid);
+  }
+
+  // Also identify unresolved crimes where every knower has forgotten and non-empty toldPairs remain
+  const forgottenToldIds = new Set<string>();
+  for (const [cid, byTeller] of Object.entries(sim.crimeState.toldPairs)) {
+    if (resolvedIds.has(cid)) continue;
+    if (Object.keys(byTeller).length === 0) continue;
+    const led = sim.crimeState.ledger[cid];
+    if (!led || Object.keys(led).length === 0) {
+      forgottenToldIds.add(cid);
+    }
+  }
+
+  const nowSec = sim.currentDay * 86400 + sim.currentHour * 3600;
+  const activePendingIds = new Set<string>();
+  let pendingChanged = false;
+  for (let i = 0; i < sim.crimeState.pendingReports.length; i++) {
+    const r = sim.crimeState.pendingReports[i]!;
+    if (resolvedIds.has(r.crimeId)) {
+      pendingChanged = true;
+    } else {
+      activePendingIds.add(r.id);
+    }
+  }
+
+  let hasExpiredBackup = false;
+  for (let i = 0; i < sim.policeState.backupAlerts.length; i++) {
+    if (sim.policeState.backupAlerts[i]!.expiresAtSec <= nowSec) {
+      hasExpiredBackup = true;
+      break;
+    }
+  }
+
+  let hasStalePendingMeta = false;
+  if (sim.pendingReportMeta) {
+    for (const rid of Object.keys(sim.pendingReportMeta)) {
+      if (!activePendingIds.has(rid)) {
+        hasStalePendingMeta = true;
+        break;
+      }
+    }
+  }
+
+  let hasResolvedSightings = false;
+  if (sim.latestSightingPlaceByCrime) {
+    for (const cid of Object.keys(sim.latestSightingPlaceByCrime)) {
+      if (resolvedIds.has(cid)) {
+        hasResolvedSightings = true;
+        break;
+      }
+    }
+  }
+
+  // Quick check: if there are no resolved crimes and nothing else to prune, return sim untouched
+  if (
+    resolvedIds.size === 0 &&
+    forgottenToldIds.size === 0 &&
+    !pendingChanged &&
+    !hasExpiredBackup &&
+    !hasStalePendingMeta &&
+    !hasResolvedSightings
+  ) {
+    return sim;
+  }
+
+  let changed = false;
+  const nextCrimes: Record<string, CrimeEvent> = {};
+  for (const [cid, c] of Object.entries(sim.crimeState.crimes)) {
+    if (resolvedIds.has(cid)) {
+      changed = true;
+    } else {
+      nextCrimes[cid] = c;
+    }
+  }
+
+  const nextResolvedMemories: Record<string, Record<string, ResolvedCrimeMemory>> = {
+    ...(sim.resolvedCrimeMemories ?? {}),
+  };
+  let memoriesChanged = false;
+  const nextLedger: Record<string, Record<Id, CrimeAccount>> = {};
+  for (const [cid, byPerson] of Object.entries(sim.crimeState.ledger)) {
+    if (resolvedIds.has(cid)) {
+      changed = true;
+      const crime = sim.crimeState.crimes[cid];
+      if (!crime || crime.culpritId === sim.playerId) {
+        const compact: Record<string, ResolvedCrimeMemory> = {
+          ...(nextResolvedMemories[cid] ?? {}),
+        };
+        let hasAny = Object.keys(compact).length > 0;
+        for (const [pid, acc] of Object.entries(byPerson)) {
+          compact[pid] = {
+            s: acc.source === 'first_hand' ? 'f' : 'h',
+            ...(acc.heardFrom !== undefined ? { h: acc.heardFrom } : {}),
+            ...(acc.isVictim ? { v: 1 as const } : {}),
+          };
+          hasAny = true;
+        }
+        if (hasAny) {
+          nextResolvedMemories[cid] = compact;
+          memoriesChanged = true;
+        }
+      }
+    } else {
+      nextLedger[cid] = byPerson;
+    }
+  }
+
+  const nextToldPairs: Record<string, Record<Id, Id[]>> = {};
+  for (const [cid, byTeller] of Object.entries(sim.crimeState.toldPairs)) {
+    if (resolvedIds.has(cid) || forgottenToldIds.has(cid)) {
+      changed = true;
+    } else {
+      nextToldPairs[cid] = byTeller;
+    }
+  }
+
+  let nextTraces = sim.crimeState.traces;
+  if (sim.crimeState.traces) {
+    let tracesChanged = false;
+    const filteredTraces: Record<string, NonNullable<CrimeState['traces']>[string]> = {};
+    for (const [cid, list] of Object.entries(sim.crimeState.traces)) {
+      if (resolvedIds.has(cid)) {
+        tracesChanged = true;
+      } else {
+        filteredTraces[cid] = list;
+      }
+    }
+    if (tracesChanged) {
+      nextTraces = filteredTraces;
+      changed = true;
+    }
+  }
+
+  const nextPendingReports = pendingChanged
+    ? sim.crimeState.pendingReports.filter((r) => !resolvedIds.has(r.crimeId))
+    : sim.crimeState.pendingReports;
+  if (pendingChanged) changed = true;
+
+  let jursChanged = false;
+  const nextJurisdictions: CrimeState['jurisdictions'] = {};
+  for (const [jurId, jur] of Object.entries(sim.crimeState.jurisdictions)) {
+    let casesChanged = false;
+    const keptCases: Record<string, PoliceCase> = {};
+    for (const [cid, c] of Object.entries(jur.cases)) {
+      if (resolvedIds.has(cid)) {
+        casesChanged = true;
+      } else {
+        keptCases[cid] = c;
+      }
+    }
+    if (casesChanged) {
+      jursChanged = true;
+      nextJurisdictions[jurId] = { jurisdictionId: jurId, cases: keptCases };
+    } else {
+      nextJurisdictions[jurId] = jur;
+    }
+  }
+  if (jursChanged) changed = true;
+
+  const filterResponded = (rec: Record<string, string>): { next: Record<string, string>; pruned: boolean } => {
+    let pruned = false;
+    const out: Record<string, string> = {};
+    for (const [key, val] of Object.entries(rec)) {
+      const colon = key.indexOf(':');
+      const cid = colon >= 0 ? key.slice(colon + 1) : key;
+      if (resolvedIds.has(cid)) {
+        pruned = true;
+      } else {
+        out[key] = val;
+      }
+    }
+    return { next: pruned ? out : rec, pruned };
+  };
+
+  const policeResp = filterResponded(sim.policeState.respondedCases);
+  const simResp = filterResponded(sim.respondedCases);
+  if (policeResp.pruned || simResp.pruned) changed = true;
+
+  const nextBackupAlerts = hasExpiredBackup
+    ? sim.policeState.backupAlerts.filter((a) => a.expiresAtSec > nowSec)
+    : sim.policeState.backupAlerts;
+  if (hasExpiredBackup) changed = true;
+
+  const nextPawnRecords = sim.pawnRecords.filter(
+    (r) => !r.stolenFromCrimeId || !resolvedIds.has(r.stolenFromCrimeId),
+  );
+  if (nextPawnRecords.length !== sim.pawnRecords.length) changed = true;
+
+  let stolenChanged = false;
+  const nextStolenItems: Record<string, StolenItemRecord> = {};
+  for (const [itemId, rec] of Object.entries(sim.stolenItems)) {
+    if (resolvedIds.has(rec.crimeId)) {
+      stolenChanged = true;
+    } else {
+      nextStolenItems[itemId] = rec;
+    }
+  }
+  if (stolenChanged) changed = true;
+
+  let nextPendingMeta = sim.pendingReportMeta;
+  if (hasStalePendingMeta && sim.pendingReportMeta) {
+    const kept: Record<string, PendingReportMeta> = {};
+    for (const [rid, m] of Object.entries(sim.pendingReportMeta)) {
+      if (activePendingIds.has(rid)) kept[rid] = m;
+    }
+    nextPendingMeta = Object.keys(kept).length > 0 ? kept : undefined;
+    changed = true;
+  }
+
+  let nextSightings = sim.latestSightingPlaceByCrime;
+  if (hasResolvedSightings && sim.latestSightingPlaceByCrime) {
+    const kept: Record<string, string> = {};
+    for (const [cid, pid] of Object.entries(sim.latestSightingPlaceByCrime)) {
+      if (!resolvedIds.has(cid)) kept[cid] = pid;
+    }
+    nextSightings = Object.keys(kept).length > 0 ? kept : undefined;
+    changed = true;
+  }
+
+  if (!changed && !memoriesChanged) return sim;
+
+  const nextCrimeState: CrimeState = {
+    ...sim.crimeState,
+    crimes: nextCrimes,
+    ledger: nextLedger,
+    pendingReports: nextPendingReports,
+    jurisdictions: nextJurisdictions,
+    toldPairs: nextToldPairs,
+    ...(nextTraces !== undefined ? { traces: nextTraces } : {}),
+  };
+
+  const nextPoliceState =
+    policeResp.pruned || hasExpiredBackup
+      ? {
+          ...sim.policeState,
+          respondedCases: policeResp.next,
+          backupAlerts: nextBackupAlerts,
+        }
+      : sim.policeState;
+
+  const out: LoopSim = {
+    ...sim,
+    crimeState: nextCrimeState,
+    policeState: nextPoliceState,
+    respondedCases: simResp.next,
+    pawnRecords: nextPawnRecords,
+    stolenItems: stolenChanged ? nextStolenItems : sim.stolenItems,
+    ...(Object.keys(nextResolvedMemories).length > 0
+      ? { resolvedCrimeMemories: nextResolvedMemories }
+      : {}),
+  };
+  if (nextPendingMeta !== undefined) {
+    out.pendingReportMeta = nextPendingMeta;
+  } else {
+    delete out.pendingReportMeta;
+  }
+  if (nextSightings !== undefined) {
+    out.latestSightingPlaceByCrime = nextSightings;
+  } else {
+    delete out.latestSightingPlaceByCrime;
+  }
+  return out;
+}
+
+/** Serializes the simulation state to a compact plain JSON string (pruning resolved-crime bloat first). */
 export function save(sim: LoopSim): string {
-  return JSON.stringify(sim);
+  return JSON.stringify(pruneResolvedState(sim));
 }
 
 /** Restores a `LoopSim` from a JSON string produced by `save()`. */

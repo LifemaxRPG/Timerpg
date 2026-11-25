@@ -539,6 +539,7 @@ export function stepLoopPolice(params: {
   year: number;
   idMap: IdMapState;
   filterJurisdictionId?: string;
+  latestSightingPlaceByCrime?: Record<string, string>;
 }): {
   policeState: PoliceState;
   crimeState: CrimeState;
@@ -557,6 +558,7 @@ export function stepLoopPolice(params: {
     year,
     idMap,
     filterJurisdictionId,
+    latestSightingPlaceByCrime,
   } = params;
 
   const graph = toPoliceStreetGraph(streetGraph, idMap);
@@ -607,9 +609,11 @@ export function stepLoopPolice(params: {
     planWorld,
     policeEra: POLICE_ERA,
     lastSeenNodeOf: (crimeId) => {
+      const sightedPlaceId = latestSightingPlaceByCrime?.[crimeId];
       const crime = activeCrimeState.crimes[crimeId];
-      if (!crime) return undefined;
-      const place = places[crime.placeId];
+      const placeId = sightedPlaceId ?? crime?.placeId;
+      if (!placeId) return undefined;
+      const place = places[placeId];
       if (!place) return undefined;
       const planNode = toPlanId(idMap, place.nodeId, 'node');
       return graph.nodes[planNode] ? planNode : undefined;
