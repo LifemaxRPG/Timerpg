@@ -590,6 +590,15 @@ class DialogueEngine private constructor(private val app: Context) {
     /** Told of every line written ahead of time (worker thread), so its voice can be made ahead too. */
     @Volatile var onWritten: ((Npc, String) -> Unit)? = null
 
+    /** validate()-aware sampling ("npu" pref "guided", default off until the owner has judged the blind side-by-side):
+     *  see [com.timerpg.street.llm.NativeLlm.guided]. Read for every reply. */
+    val guidedWanted: Boolean get() = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getBoolean("guided", false)
+    /** Fixed-shape guess-and-check passes from the next load ("npu" pref "fixed_steps", default off: to A/B on the S25),
+     *  see [com.timerpg.street.llm.NativeLlm.fixedSteps]. */
+    val fixedStepsWanted: Boolean get() = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getBoolean("fixed_steps", false)
+    /** Overnight, the main model writes this many lines per pass ("npu" pref "writer_batch", 0/1 off, at most 8; default
+     *  off until measured on the S25: ENGINE_TAILORING.md, idea 6). */
+    val writerBatchWanted: Int get() = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getInt("writer_batch", 0).coerceIn(0, 8)
     /** MTP speculative decoding: tokens to guess ahead (0 off; default 2), see [com.timerpg.street.llm.NativeLlm.mtp]. */
     val mtpWanted: Int get() = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getInt("mtp", 2)
 

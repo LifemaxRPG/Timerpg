@@ -495,6 +495,87 @@ void spec_test(const std::string & model, int threads, int n_ctx, int max_tokens
     }
 }
 
+// ------------------------------------------------------------------------------------------------ the guide (idea 2)
+
+/** The guide's rules on hand-made cases (no model): what validate() would reject is taken away, nothing else. */
+void test_guide_rules() {
+    std::printf("\n== the guide's rules (validate()-aware sampling)\n");
+    llm::GuideRules r;
+    r.build(kPrompts[0].text, "William Calloway", {"It is a lovely day for a walk."});
+    struct Case { const char * text; const char * piece; bool banned; };
+    const Case cases[] = {
+        {"I'm married to ", "Louise", false}, {"I'm married to ", "Lou", false}, {"I'm married to Lou", "ise", false},
+        {"I'm married to ", "Jake", true},    {"We have two, ", "Lisa", true},  {"", "Jake", false},
+        {"Well. ", "Jake", false},            {"One child, ", "Frank", false},  {"I like ", "Monday", false},
+        {"I'm married to Louise, and ", "I", false}, {"Louise and ", "Rad", false}, {"Louise and Rad", "x", true},
+        {"He ", "nods", true},                {"I", " smile", true},            {"Married to Louise. I ", "nodded", false},
+        {"", "*", true},                       {"Fine ", "*laughs", true},       {"We met at the ", "library", true},
+        {"We met at the old ", "mill", true}, {"We met at ", "church", false},  {"We met at the old ", "mills", true},
+        {"It is a lovely day for", " a", true}, {"It is a lovely day", " today", false},
+        {"", "As an AI", true},               {"Sorry, ", "I", true},           {"I am ", "William Calloway", true},
+        {"Eta Springs", ", 2025", true},       {"Let me ", "know", true},        {"I'm not an ", "assistant", true},
+        {"Is there ", "anything else", true}, {"The ", "fire", true},           {"I'm on ", "fire", false},
+        {"You are gruff and ", "guarded", true}, {"I'm married to Louise Radcliffe", ".", false},
+    };
+    int ok = 0;
+    for (const auto & c : cases) {
+        const char * why = r.check(c.text, c.piece);
+        const bool banned = *why != 0;
+        if (banned == c.banned) ++ok;
+        else std::printf("  case \"%s\" + \"%s\": %s (expected %s)\n", c.text, c.piece, banned ? why : "allowed", c.banned ? "banned" : "allowed");
+    }
+    const int n = (int) (sizeof cases / sizeof cases[0]);
+    check(ok == n, std::to_string(ok) + " of " + std::to_string(n) + " cases as validate() would judge them");
+    check(std::binary_search(r.names().begin(), r.names().end(), std::string("Radcliffe")) &&
+              std::find(r.banned_places().begin(), r.banned_places().end(), std::string("library")) != r.banned_places().end(),
+          "names from the sheet allowed, places it lacks banned (" + std::to_string(r.names().size()) + " names, " +
+              std::to_string(r.banned_places().size()) + " places banned)");
+}
+
+/**
+ * --guide-eval FILE: every prompt twice per mode, as DialogueEngine does (MAX_TRIES 2: a second try with another seed),
+ * without the guide ("old") and with it ("guided"), sampled at the app's temperature; the raw replies, their prompts and
+ * must/self go to FILE (tools: validate() then judges first-try and final pass rates, and the blind side-by-side is made
+ * from them).
+ */
+void guide_eval(const std::string & model, int threads, int n_ctx, int max_tokens, float temperature, const std::vector<Prompt> & prompts,
+                const std::string & out_file, uint32_t seed) {
+    std::printf("\n== guide eval: %zu prompts, 2 tries each, without and with the guide\n", prompts.size());
+    nlohmann::json out = nlohmann::json::array();
+    llm::Engine e;
+    e.arm();
+    if (!e.load(model, threads, n_ctx)) { check(false, "load: " + e.error()); return; }
+    long banned = 0, fallbacks = 0, gen_old = 0, gen_guided = 0;
+    int64_t ms_old = 0, ms_guided = 0;
+    for (size_t i = 0; i < prompts.size(); ++i) {
+        const Prompt & p = prompts[i];
+        nlohmann::json row = {{"label", p.label}, {"prompt", p.text}, {"must", p.must}, {"self", p.self}};
+        for (int guided = 0; guided < 2; ++guided) {
+            nlohmann::json tries = nlohmann::json::array();
+            for (int t = 0; t < 2; ++t) {
+                e.set_guide(guided != 0, p.self, {});
+                e.sampling().seed = seed + (uint32_t) (i * 7 + t * 1000);
+                const std::string r = e.generate(p.text, max_tokens, temperature, nullptr);
+                const llm::Stats s = e.stats();
+                (guided ? gen_guided : gen_old) += s.gen_tokens;
+                (guided ? ms_guided : ms_old) += s.gen_ms;
+                banned += s.guide_banned;
+                fallbacks += s.guide_fallbacks;
+                tries.push_back({{"raw", r}, {"banned", s.guide_banned}, {"fallbacks", s.guide_fallbacks}});
+            }
+            row[guided ? "guided" : "old"] = tries;
+        }
+        std::printf("  %zu/%zu %s\n", i + 1, prompts.size(), p.label.c_str());
+        std::fflush(stdout);
+        out.push_back(row);
+    }
+    std::ofstream f(out_file);
+    f << out.dump(1, ' ', false, nlohmann::json::error_handler_t::replace) << "\n";
+    check(f.good(), "wrote " + out_file);
+    std::printf("  guided: %ld candidate tokens taken away, %ld steps left unguided (every candidate broke a rule)\n", banned, fallbacks);
+    std::printf("  host CPU: old %.1f tok/s, guided %.1f tok/s\n", per_sec(gen_old, ms_old), per_sec(gen_guided, ms_guided));
+}
+
 // ------------------------------------------------------------------------------------------------ the English-first head
 
 /**
@@ -831,8 +912,13 @@ int main(int argc, char ** argv) {
     std::printf("backend: %s\n%s\n", info.c_str(), llama_print_system_info());
     if (!backend) return 1;
 
-    if (checks) {
+    if (checks || rules_only) {
         test_text_helpers();
+        test_guide_rules();
+        if (rules_only) {
+            std::printf("\n%s (%d failed checks)\n", failures ? "FAILED" : "ALL CHECKS PASSED", failures);
+            return failures ? 1 : 0;
+        }
         const char * tmp = std::getenv("TMPDIR");
         test_bad_models(tmp && *tmp ? tmp : "/tmp");
     }

@@ -1335,6 +1335,31 @@ bool Engine::decode_tokens(const std::vector<int32_t> & toks, size_t from, size_
     return ok;
 }
 
+llama_sampler * Engine::make_chain(float temperature, uint32_t seed) {
+    llama_sampler_chain_params sp = llama_sampler_chain_default_params();
+    sp.no_perf = true;
+    llama_sampler * smpl = llama_sampler_chain_init(sp);
+    // As the WebAssembly version: repeat penalty, top-k, top-p, temperature.
+    llama_sampler_chain_add(smpl, llama_sampler_init_penalties(llama_vocab_n_tokens(vocab_), sampling_.repeat_last_n,
+                                                               sampling_.repeat_penalty, 0.0f, 0.0f));
+    if (temperature <= 0.0f) {
+        // (greedy: the guide needs the candidates in order, so the best 40 first; without it the best of all, as before)
+        if (guide_on_) {
+            llama_sampler_chain_add(smpl, llama_sampler_init_top_k(sampling_.top_k));
+            llama_sampler_chain_add(smpl, guide_sampler(vocab_, &guide_rules_, &guide_counts_));
+        }
+        llama_sampler_chain_add(smpl, llama_sampler_init_greedy());
+    } else {
+        llama_sampler_chain_add(smpl, llama_sampler_init_top_k(sampling_.top_k));
+        // the guide on the top-k: the tokens that would fail validate() go, the rest keep their order and odds
+        if (guide_on_) llama_sampler_chain_add(smpl, guide_sampler(vocab_, &guide_rules_, &guide_counts_));
+        llama_sampler_chain_add(smpl, llama_sampler_init_top_p(sampling_.top_p, 1));
+        llama_sampler_chain_add(smpl, llama_sampler_init_temp(temperature));
+        llama_sampler_chain_add(smpl, llama_sampler_init_dist(seed));
+    }
+    return smpl;
+}
+
 std::string Engine::generate(const std::string & prompt, int max_tokens, float temperature, const OnText & on_text) {
     error_.clear();
     const Stats keep = stats_;
@@ -1390,8 +1415,12 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
         stats_.prompt_tokens = (int32_t) toks.size();
         stats_.reused_tokens = (int32_t) reuse;
 
+        guide_counts_ = {};
+        if (guide_on_) guide_rules_.build(prompt, guide_self_, guide_recent_);
         if ((spec_ || ngram_used_ > 0) && max_tokens > 0) {
             std::string r = generate_mtp(toks, reuse, max_tokens, temperature, on_text, t0);
+            stats_.guide_banned = guide_counts_.banned;
+            stats_.guide_fallbacks = guide_counts_.fallbacks;
             return r;
         }
         const int64_t tp = now_ms();
@@ -1417,20 +1446,7 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
         }
         if (max_tokens == 0) return {};  // prefill only (warms the cache for this prompt)
 
-        llama_sampler_chain_params sp = llama_sampler_chain_default_params();
-        sp.no_perf = true;
-        smpl = llama_sampler_chain_init(sp);
-        // As the WebAssembly version: repeat penalty, top-k, top-p, temperature.
-        llama_sampler_chain_add(smpl, llama_sampler_init_penalties(llama_vocab_n_tokens(vocab_), sampling_.repeat_last_n,
-                                                                   sampling_.repeat_penalty, 0.0f, 0.0f));
-        if (temperature <= 0.0f) {
-            llama_sampler_chain_add(smpl, llama_sampler_init_greedy());
-        } else {
-            llama_sampler_chain_add(smpl, llama_sampler_init_top_k(sampling_.top_k));
-            llama_sampler_chain_add(smpl, llama_sampler_init_top_p(sampling_.top_p, 1));
-            llama_sampler_chain_add(smpl, llama_sampler_init_temp(temperature));
-            llama_sampler_chain_add(smpl, llama_sampler_init_dist(sampling_.seed));
-        }
+        smpl = make_chain(temperature, sampling_.seed);
 
         Utf8Joiner joiner;
         StopFilter stop({"<|im_end|>", "<|im_start|>", "<|endoftext|>"});
@@ -1474,6 +1490,8 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
         if (!stopped) emit(stop.push(joiner.flush(), &stopped));
         if (!stopped) emit(stop.flush());
         stats_.gen_ms = now_ms() - tg;
+        stats_.guide_banned = guide_counts_.banned;
+        stats_.guide_fallbacks = guide_counts_.fallbacks;
     } catch (const std::bad_alloc &) {
         error_ = "out of memory while generating";
     } catch (const std::exception & e) {
@@ -1544,8 +1562,12 @@ std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, i
     ps.penalty_repeat = sampling_.repeat_penalty;
     ps.penalty_last_n = sampling_.repeat_last_n;
     ps.no_perf = true;
-    common_sampler * smpl = common_sampler_init(model_, ps);
-    if (!smpl) { error_ = "could not set up sampling"; return {}; }
+    // guided: our own chain (the guide in it), each verify position sampled in order as common_sampler does;
+    // otherwise llama.cpp's common sampler as before
+    common_sampler * smpl = guide_on_ ? nullptr : common_sampler_init(model_, ps);
+    llama_sampler * gchain = guide_on_ ? make_chain(temperature, sampling_.seed) : nullptr;
+    if (!smpl && !gchain) { error_ = "could not set up sampling"; return {}; }
+    const int pad_to = fixed_steps_ ? std::max(ngram_used_, spec_ ? mtp_n_ : 0) : 0;
 
     Utf8Joiner joiner;
     StopFilter stop({"<|im_end|>", "<|im_start|>", "<|endoftext|>"});
@@ -1603,7 +1625,16 @@ std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, i
             if (spec_) common_speculative_process(spec_, bt);
             // each position sampled as without guesses, a guess kept only while it is what was sampled: the same tokens
             // (greedy) and the same distribution (sampling), one draw per token either way
-            const std::vector<llama_token> ids = common_sampler_sample_and_accept_n(smpl, ctx_, draft);
+            std::vector<llama_token> ids;
+            if (smpl) {
+                ids = common_sampler_sample_and_accept_n(smpl, ctx_, draft);
+            } else {
+                for (size_t i = 0; i <= draft.size(); ++i) {
+                    const llama_token t = llama_sampler_sample(gchain, ctx_, (int32_t) i);  // (accepts it too)
+                    ids.push_back(t);
+                    if (i == draft.size() || t != draft[i]) break;
+                }
+            }
             if (ids.empty()) { error_ = "sampling failed"; stats_.end = End::error; break; }
             if (spec_) common_speculative_accept(spec_, 0, (uint16_t) (ids.size() - 1));
             ++stats_.steps;
@@ -1649,10 +1680,12 @@ std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, i
             if (!done && in_ctx.size() + 2 >= n_ctx) { stats_.end = End::context; done = true; }
         }
     } catch (...) {
-        common_sampler_free(smpl);
+        if (smpl) common_sampler_free(smpl);
+        if (gchain) llama_sampler_free(gchain);
         throw;
     }
-    common_sampler_free(smpl);
+    if (smpl) common_sampler_free(smpl);
+    if (gchain) llama_sampler_free(gchain);
     if (!stopped) emit(stop.push(joiner.flush(), &stopped));
     if (!stopped) emit(stop.flush());
     cached_ = in_ctx;

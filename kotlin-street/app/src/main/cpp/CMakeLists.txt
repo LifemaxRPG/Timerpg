@@ -250,7 +250,7 @@ endif()
 # EXCLUDE_FROM_ALL: only what our targets need gets built.
 add_subdirectory("${LLAMA_DIR}" ${TIMERPG_LLAMA_BINARY_DIR} EXCLUDE_FROM_ALL)
 
-add_library(llm_core STATIC llm_core.cpp asr_core.cpp embed_core.cpp)
+add_library(llm_core STATIC llm_core.cpp guide.cpp asr_core.cpp embed_core.cpp)
 target_include_directories(llm_core PUBLIC "${CMAKE_CURRENT_LIST_DIR}")
 target_link_libraries(llm_core PUBLIC llama mtmd llama-common)
 set_target_properties(llm_core PROPERTIES POSITION_INDEPENDENT_CODE ON)

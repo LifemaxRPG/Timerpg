@@ -45,6 +45,29 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     /** Lines the n-gram guesses may also copy from in the next [generate]: the person's lines in the bank, one a line. */
     @Volatile var draftPool: String = ""
     private var poolSent: String? = null
+    /**
+     * validate()-aware sampling in the next [generate]s (docs/ENGINE_TAILORING.md, idea 2; native guide.cpp): tokens that
+     * would certainly fail the reply check (an action, AI talk, a stage direction, a name or place the prompt's facts do not
+     * have, four words of one of [guideRecent] again) are never sampled. [guideSelf]: the speaker's full name;
+     * [guideRecent]: their last replies. Off by default ("npu" pref "guided") until the owner has judged it.
+     */
+    @Volatile var guided = false
+    @Volatile var guideSelf: String = ""
+    @Volatile var guideRecent: List<String> = emptyList()
+    /**
+     * From the next load: every guess-and-check pass the same length (a short guess padded with filler, checked like any
+     * guess, so lossless), so llama.cpp and the NPU backend reuse one graph instead of rebuilding it whenever the length
+     * changes (ENGINE_TAILORING.md, idea 4; "npu" pref "fixed_steps").
+     */
+    @Volatile var fixedSteps = false
+    /**
+     * Sequences the context holds from the next load, for [generateBatch] (the overnight writer: several prompts in one
+     * pass; ENGINE_TAILORING.md, idea 6). 0 or 1: one, as in play. Each costs one more recurrent state (and its rollback
+     * planes) and room in the attention cache; [workBytes] counts them after the load.
+     */
+    @Volatile var batchSeqs = 0
+    /** What the loaded context holds for [generateBatch] (1: one sequence; then [generateBatch] runs them one by one). */
+    val batchSeqsLoaded: Int get() = if (handle == 0L) 0 else runCatching { nativeBatchSeqs(handle) }.getOrDefault(0)
     /** The attention cache (KV) in 8 bits from the next load (about half its memory; falls back to 16 where it cannot). */
     @Volatile var kvQ8 = false
     /** The batch the prompt is processed in from the next load (512, 256 or 128 tokens): smaller shrinks the compute
@@ -333,6 +356,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
             if (!begin(req, entrySeq)) return generateFailed("cancelled")
             val sink = TokenSink(onToken)
             draftPool.let { p -> if (p != poolSent) { runCatching { nativeSetPool(handle, p.toByteArray(Charsets.UTF_8)) }; poolSent = p } }
+            runCatching { nativeSetGuide(handle, guided, guideSelf.toByteArray(Charsets.UTF_8), guideRecent.joinToString("\n") { it.replace('\n', ' ') }.toByteArray(Charsets.UTF_8)) }
             val text = try {
                 nativeGenerate(handle, prompt.toByteArray(Charsets.UTF_8), maxTokens.coerceIn(0, 4096), temperature, sink)
             } catch (e: Throwable) {
@@ -382,7 +406,9 @@ class NativeLlm(context: Context? = null) : LlmBackend {
         return LlmStats(loadMs = s[0], promptTokens = s[1].toInt(), reusedTokens = s[2].toInt(), prefillMs = s[3],
             genTokens = s[4].toInt(), genMs = s[5], firstTokenMs = s[6], threads = s[7].toInt(),
             drafted = s.getOrElse(8) { 0L }.toInt(), accepted = s.getOrElse(9) { 0L }.toInt(),
-            ngramDrafted = s.getOrElse(10) { 0L }.toInt(), ngramAccepted = s.getOrElse(11) { 0L }.toInt())
+            ngramDrafted = s.getOrElse(10) { 0L }.toInt(), ngramAccepted = s.getOrElse(11) { 0L }.toInt(),
+            steps = s.getOrElse(12) { 0L }.toInt(), padded = s.getOrElse(13) { 0L }.toInt(), padAccepted = s.getOrElse(14) { 0L }.toInt(),
+            guideBanned = s.getOrElse(15) { 0L }.toInt(), guideFallbacks = s.getOrElse(16) { 0L }.toInt())
     }
 
     private fun loadFailed(why: String): Boolean {
@@ -433,6 +459,10 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     private external fun nativeSetSnapshots(handle: Long, dir: ByteArray, budgetBytes: Long, hot: Boolean, points: Int)
     private external fun nativeBake(handle: Long, prompt: ByteArray): Int
     private external fun nativeSetPool(handle: Long, lines: ByteArray)
+    private external fun nativeSetGuide(handle: Long, on: Boolean, self: ByteArray, recent: ByteArray)
+    private external fun nativeGenerateBatch(handle: Long, prompts: Array<ByteArray>, maxTokens: Int, temperature: Float, seeds: IntArray): Array<String?>?
+    private external fun nativeBatchStats(handle: Long): LongArray?
+    private external fun nativeBatchSeqs(handle: Long): Int
     private external fun nativeSnapStats(handle: Long): LongArray?
 
     /** How the model's work splits between devices (llama.cpp's "graph splits" line; more: more fell back to the CPU). */

@@ -200,9 +200,45 @@ extern "C" JNIEXPORT jstring JNICALL FN(nativeLoadInfo)(JNIEnv * env, jobject) {
 
 extern "C" JNIEXPORT jlongArray JNICALL FN(nativeStats)(JNIEnv * env, jobject, jlong h) {
     const llm::Stats s = h ? engine(h)->stats() : llm::Stats{};
-    const jlong v[13] = {s.load_ms, s.prompt_tokens, s.reused_tokens, s.prefill_ms, s.gen_tokens, s.gen_ms, s.first_token_ms, s.threads,
-                         s.drafted, s.accepted, s.ngram_drafted, s.ngram_accepted, s.steps};
-    jlongArray a = env->NewLongArray(13);
+    const jlong v[17] = {s.load_ms, s.prompt_tokens, s.reused_tokens, s.prefill_ms, s.gen_tokens, s.gen_ms, s.first_token_ms, s.threads,
+                         s.drafted, s.accepted, s.ngram_drafted, s.ngram_accepted, s.steps, s.padded, s.pad_accepted,
+                         s.guide_banned, s.guide_fallbacks};
+    jlongArray a = env->NewLongArray(17);
+    if (!a) {
+        if (env->ExceptionCheck()) env->ExceptionClear();
+        return nullptr;
+    }
+    env->SetLongArrayRegion(a, 0, 17, v);
+    return a;
+}
+
+/** validate()-aware sampling for the next generate() calls (llm::Engine::set_guide): [recent] one reply a line. */
+extern "C" JNIEXPORT void JNICALL FN(nativeSetGuide)(JNIEnv * env, jobject, jlong h, jboolean on, jbyteArray self, jbyteArray recent) {
+    if (!h) return;
+    try {
+        std::vector<std::string> lines;
+        const std::string all = from_bytes(env, recent);
+        size_t at = 0;
+        while (at < all.size()) {
+            size_t e = all.find('\n', at);
+            if (e == std::string::npos) e = all.size();
+            if (e > at) lines.push_back(all.substr(at, e - at));
+            at = e + 1;
+        }
+        engine(h)->set_guide(on == JNI_TRUE, from_bytes(env, self), lines);
+    } catch (...) {}
+}
+
+namespace {
+jlongArray stats_array(JNIEnv * env, const std::vector<llm::Stats> & all) {
+    std::vector<jlong> v;
+    for (const auto & s : all) {
+        const jlong one[17] = {s.load_ms, s.prompt_tokens, s.reused_tokens, s.prefill_ms, s.gen_tokens, s.gen_ms, s.first_token_ms, s.threads,
+                               s.drafted, s.accepted, s.ngram_drafted, s.ngram_accepted, s.steps, s.padded, s.pad_accepted,
+                               s.guide_banned, s.guide_fallbacks};
+        v.insert(v.end(), one, one + 17);
+    }
+    jlongArray a = env->NewLongArray((jsize) v.size());
     if (!a) {
         if (env->ExceptionCheck()) env->ExceptionClear();
         return nullptr;

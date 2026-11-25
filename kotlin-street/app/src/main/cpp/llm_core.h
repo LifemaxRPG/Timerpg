@@ -10,6 +10,7 @@
 
 #include "llama.h"
 #include "ggml-backend.h"
+#include "guide.h"
 
 struct common_speculative;
 
@@ -138,6 +139,12 @@ struct Stats {
     int32_t ngram_accepted = 0;
     /** Verification passes (one per batch of [last token, guesses...]); gen_tokens / steps is the tokens per pass. */
     int32_t steps = 0;
+    /** Fixed-shape steps (set_device bit 20): filler tokens added to short guesses, and how many of them were right. */
+    int32_t padded = 0;
+    int32_t pad_accepted = 0;
+    /** The guide (set_guide): candidate tokens it took away, and steps where every candidate broke a rule. */
+    int32_t guide_banned = 0;
+    int32_t guide_fallbacks = 0;
 };
 
 /** The saved model states of a recurrent or hybrid model (Engine::set_snapshot_dir): where they are and what they cost. */
@@ -195,7 +202,24 @@ public:
      *  497 MB for Qwen3.5-4B Q4_0). No effect on a model with its own output weights. */
     void set_device(int kind) { device_ = kind & 3; repack_ = (kind & 16) != 0; kv_q8_ = (kind & 32) != 0; mtp_n_ = (kind >> 8) & 15;
                                 const int b = (kind >> 12) & 7; batch_max_ = b == 1 ? 256 : b == 2 ? 128 : 512;
-                                head_mapped_ = (kind & (1 << 15)) != 0; ngram_n_ = (kind >> 16) & 15; }
+                                head_mapped_ = (kind & (1 << 15)) != 0; ngram_n_ = (kind >> 16) & 15;
+                                fixed_steps_ = (kind & (1 << 20)) != 0; n_seq_ = 1 + ((kind >> 24) & 7); }
+    /** Bit 20: every guess-and-check pass the same length (1 + the most tokens guessed ahead): a short guess is padded
+     *  with filler tokens (checked like any guess: lossless), so llama.cpp and the NPU backend reuse one graph for every
+     *  step instead of rebuilding it each time the length changes (ENGINE_TAILORING.md, idea 4). */
+    /** Bits 24-26: sequences the context holds at once, minus one (generate_batch: the overnight writer's prompts in one
+     *  pass). 0: one, as in play. */
+    /**
+     * validate()-aware sampling from the next generate() on (ENGINE_TAILORING.md, idea 2; guide.h): tokens that would
+     * break the reply check are never sampled. [self]: the speaker's full name; [recent]: their last replies. The prompt
+     * itself gives the facts. Off: sampling exactly as before.
+     */
+    void set_guide(bool on, const std::string & self, const std::vector<std::string> & recent) {
+        guide_on_ = on; guide_self_ = self; guide_recent_ = recent;
+    }
+    bool guide_on() const { return guide_on_; }
+    /** The guide's rules for the last reply (for tests). */
+    const GuideRules & guide_rules() const { return guide_rules_; }
     /** Bits 16-19 of set_device's kind: tokens to guess ahead by n-gram lookup (0: off). The guess is what followed the
      *  last [ngram_min]..4 tokens where they appeared before: in the prompt (the fact sheet, the conversation so far),
      *  the reply so far, or the pool (set_draft_pool). Checked like MTP's guesses (lossless), tried before the MTP head. */
@@ -314,6 +338,23 @@ private:
     std::vector<std::vector<int32_t>> pool_; // set_draft_pool's lines, tokenized
     int batch_max_ = 512;                    // the prompt's batch (n_batch = n_ubatch), at most the context
     bool head_mapped_ = false;               // a tied output head kept on the CPU, mapped (set_device bit 15)
+    bool fixed_steps_ = false;               // guess-and-check passes padded to one length (set_device bit 20)
+    int n_seq_ = 1;                          // sequences the context holds (set_device bits 24-26)
+    int n_seq_used_ = 1;                     // what the loaded context has
+    std::vector<Stats> batch_stats_;
+    std::vector<std::vector<int32_t>> batch_tokens_;
+    /** generate()'s prompt reading on sequence 0 (the cache's common prefix, the saved states, the line-end snapshots),
+     *  the last token's logits ready. False on failure (error_ set). */
+    bool prefill(const std::vector<int32_t> & toks);
+    /** Empties sequence 0 (the whole memory when the context has only it). */
+    void clear_seq0();
+    bool guide_on_ = false;                  // validate()-aware sampling (set_guide)
+    std::string guide_self_;
+    std::vector<std::string> guide_recent_;
+    GuideRules guide_rules_;
+    GuideCounts guide_counts_;
+    /** The sampler chain: penalties, top-k, the guide (when on), then top-p, temperature and a draw (or the best). */
+    llama_sampler * make_chain(float temperature, uint32_t seed);
     llama_model_tensor_buft_override overrides_[2] = {};  // (alive through the load: llama.cpp reads it there)
     llama_context * dft_ = nullptr;          // the MTP head's context (shares the main context's memory)
     common_speculative * spec_ = nullptr;
