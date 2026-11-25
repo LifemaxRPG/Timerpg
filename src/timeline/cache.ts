@@ -11,6 +11,7 @@ import {
   type World,
 } from '../sim';
 import type { Lot } from '../town/layout';
+import { advanceSettlement } from '../town/properties';
 import { compileSimInterventions } from './interventions';
 import type {
   BuildingDemolishedEntry,
@@ -26,8 +27,20 @@ import type {
   TimelineIntervention,
 } from './types';
 
+/** Maximum number of cached simulation timelines and present snapshots (LRU cap for phone RAM). */
+export const TIMELINE_CACHE_LIMIT = 16;
+
+export interface PresentAtOptions {
+  /**
+   * When true, asks `runTimeline` to skip intermediate snapshot clones and store only the final
+   * target year snapshot (useful for one-shot jumps on tight memory budgets).
+   */
+  onlyFinalSnapshot?: boolean;
+}
+
 interface CachedSimEntry {
   sim: SimTimeline;
+  onlyFinal: boolean;
 }
 
 const simCache = new Map<string, CachedSimEntry>();
@@ -37,6 +50,24 @@ let simReplays = 0;
 let simCacheHits = 0;
 let presentCacheHits = 0;
 let presentCacheMisses = 0;
+
+function lruGet<K, V>(map: Map<K, V>, key: K): V | undefined {
+  if (!map.has(key)) return undefined;
+  const value = map.get(key)!;
+  map.delete(key);
+  map.set(key, value);
+  return value;
+}
+
+function lruSet<K, V>(map: Map<K, V>, key: K, value: V, limit = TIMELINE_CACHE_LIMIT): void {
+  if (map.has(key)) map.delete(key);
+  map.set(key, value);
+  while (map.size > limit) {
+    const oldest = map.keys().next().value;
+    if (oldest === undefined) break;
+    map.delete(oldest);
+  }
+}
 
 /** Clears internal replay and present caches (useful for benchmarks and isolated tests). */
 export function clearTimelineCache(): void {
@@ -78,6 +109,7 @@ function canonicalPresentKey(timeline: Timeline, year: number): string {
       businessId: iv.businessId,
       amount: iv.amount,
       crimeKind: iv.crimeKind,
+      atNight: iv.atNight,
       slot: iv.slot,
       buildingLabel: iv.buildingLabel,
       replacementLotLabel: iv.replacementLotLabel,
@@ -93,31 +125,142 @@ function canonicalPresentKey(timeline: Timeline, year: number): string {
   ]);
 }
 
+function hasSnapshotAt(entry: CachedSimEntry, year: number): boolean {
+  if (!entry.onlyFinal) return entry.sim.endYear >= year;
+  return entry.sim.endYear === year;
+}
+
 /**
- * Replays or retrieves from cache a `SimTimeline` covering `[startYear, year]`.
- * If an entry for `(seed, startYear, simIvs)` already simulated to `endYear >= year`, zero replay occurs.
+ * Replays or retrieves from cache a `SimTimeline` covering `[startYear, endYear]`.
+ * - Baseline runs (`simIvs.length === 0`) keep full annual snapshots so any altered branch can
+ *   resume from a baseline checkpoint at `earliestInterventionYear - 1`.
+ * - Extending a shorter cached baseline resumes from its last snapshot via `checkpoint`.
+ * - Altered runs resume from the baseline checkpoint at `earliestInterventionYear - 1` and
+ *   defer intermediate `advanceSettlement` passes (or use `onlyFinalSnapshot` when requested).
  */
 function getOrRunSim(
   seed: string,
   startYear: number,
   endYear: number,
   simIvs: SimIntervention[],
+  opts?: { baselineSim?: SimTimeline; onlyFinalSnapshot?: boolean },
 ): SimTimeline {
   const key = canonicalSimKey(seed, startYear, simIvs);
-  const existing = simCache.get(key);
-  if (existing && existing.sim.endYear >= endYear) {
+  const existing = lruGet(simCache, key);
+  if (existing && hasSnapshotAt(existing, endYear)) {
     simCacheHits += 1;
     return existing.sim;
   }
+
   simReplays += 1;
-  const sim = runTimeline({
+
+  // Baseline run (no interventions): keep full annual snapshots for checkpointing, and if a
+  // shorter baseline is already cached, extend it forward from its last snapshot.
+  if (simIvs.length === 0) {
+    if (existing && !existing.onlyFinal && existing.sim.endYear < endYear) {
+      const ckptYear = existing.sim.endYear;
+      const ckptWorld = worldAt(existing.sim, ckptYear);
+      const ext = runTimeline({
+        seed,
+        startYear,
+        endYear,
+        interventions: [],
+        checkpoint: ckptWorld,
+        checkpointYear: ckptYear,
+      });
+      const stitched: SimTimeline = {
+        seed,
+        startYear,
+        endYear,
+        snapshots: [...existing.sim.snapshots, ...ext.snapshots.slice(1)],
+        chronicle: [...existing.sim.chronicle, ...ext.chronicle],
+      };
+      lruSet(simCache, key, { sim: stitched, onlyFinal: false });
+      return stitched;
+    }
+
+    const sim = runTimeline({
+      seed,
+      startYear,
+      endYear,
+      interventions: [],
+    });
+    lruSet(simCache, key, { sim, onlyFinal: false });
+    return sim;
+  }
+
+  // Altered run: resume from baseline snapshot at the year before the earliest intervention.
+  const baseline = opts?.baselineSim ?? getOrRunSim(seed, startYear, endYear, []);
+  const earliestIvYear = simIvs.reduce((min, iv) => (iv.year < min ? iv.year : min), simIvs[0]!.year);
+  const checkpointYear = Math.max(startYear, Math.min(endYear, earliestIvYear - 1));
+  const checkpoint = worldAt(baseline, checkpointYear);
+  const settlementBaseline = worldAt(baseline, endYear).settlement;
+  const onlyFinal = opts?.onlyFinalSnapshot === true;
+
+  const resumed = runTimeline({
     seed,
     startYear,
     endYear,
     interventions: simIvs,
+    checkpoint,
+    checkpointYear,
+    onlyFinalSnapshot: onlyFinal,
+    deferSettlement: !onlyFinal,
+    settlementBaseline,
   });
-  simCache.set(key, { sim });
-  return sim;
+
+  const prefixChronicle = baseline.chronicle.filter((e) => e.year <= checkpointYear);
+  const combined: SimTimeline = onlyFinal
+    ? {
+        seed,
+        startYear,
+        endYear,
+        snapshots: resumed.snapshots,
+        chronicle: [...prefixChronicle, ...resumed.chronicle],
+      }
+    : {
+        seed,
+        startYear,
+        endYear,
+        snapshots: [
+          ...baseline.snapshots.slice(0, checkpointYear - startYear),
+          ...resumed.snapshots,
+        ],
+        chronicle: [...prefixChronicle, ...resumed.chronicle],
+      };
+
+  lruSet(simCache, key, { sim: combined, onlyFinal });
+  return combined;
+}
+
+/**
+ * Lazily materializes `alteredWorld.settlement` when an earlier year is requested from a cached
+ * branch whose intermediate settlements were deferred. Uses baseline's settlement for that year
+ * (minus any lots cleared by active arsons <= year) plus a single `advanceSettlement` pass.
+ */
+function ensureSettlementAt(
+  alteredWorld: World,
+  baselineWorld: World,
+  activeIvs: readonly TimelineIntervention[],
+): void {
+  if (alteredWorld.settlement) return;
+  const burnedBizIds = new Set<Id>();
+  const burnedSlots = new Set<string>();
+  for (const iv of activeIvs) {
+    if (iv.kind === 'arson') {
+      if (iv.businessId) burnedBizIds.add(iv.businessId);
+      if (iv.slot) burnedSlots.add(iv.slot);
+    }
+  }
+  if (baselineWorld.settlement) {
+    alteredWorld.settlement = {
+      properties: baselineWorld.settlement.properties
+        .filter((l) => !(l.kind === 'shop' && (burnedSlots.has(l.slot) || burnedBizIds.has(l.refId))))
+        .map((l) => ({ ...l, heads: l.heads.slice(), residents: l.residents.slice() })),
+      roads: baselineWorld.settlement.roads.slice(),
+    };
+  }
+  advanceSettlement(alteredWorld);
 }
 
 function personName(id: Id | undefined, ...worlds: World[]): string {
@@ -305,7 +448,38 @@ function buildChangesReport(
   const newlyBuilt: BuildingNewEntry[] = [];
   const reportedDemolishedSlots = new Set<string>();
 
+  // Explicit `arson` / `demolish` interventions mapped to lots & businesses first so cleared
+  // lots are reported in `demolishedOrReplaced` rather than misclassified as `neverBuilt`.
+  for (const iv of activeIvs) {
+    if (iv.kind !== 'arson' && iv.kind !== 'demolish') continue;
+    const baseLot =
+      (iv.slot ? baseLots.get(iv.slot) : undefined) ??
+      (iv.businessId ? [...baseLots.values()].find((l) => l.kind === 'shop' && l.refId === iv.businessId) : undefined);
+    const altLot = baseLot ? altLots.get(baseLot.slot) : iv.slot ? altLots.get(iv.slot) : undefined;
+    const baseBiz = iv.businessId ? baseline.businesses[iv.businessId] : undefined;
+
+    const slot = baseLot?.slot ?? iv.slot ?? `lot:${iv.businessId ?? iv.id}`;
+    const beforeLabel = baseLot?.label ?? baseBiz?.name ?? iv.buildingLabel ?? 'Building';
+    const afterLabel =
+      iv.replacementLotLabel ??
+      (altLot && altLot.vacantSince === undefined && altLot.refId !== iv.businessId
+        ? altLot.label
+        : 'Vacant / cleared lot');
+
+    demolishedOrReplaced.push({
+      slot,
+      beforeLabel,
+      afterLabel,
+      kind: baseLot?.kind ?? (iv.businessId ? 'shop' : 'landmark'),
+      cause: iv.kind === 'arson' ? `Burned down in ${iv.year} arson` : `Demolished in ${iv.year}`,
+      year: iv.year,
+      ...(iv.businessId ? { businessId: iv.businessId } : {}),
+    });
+    reportedDemolishedSlots.add(slot);
+  }
+
   for (const [slot, lot] of [...baseLots.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    if (reportedDemolishedSlots.has(slot)) continue;
     if (!altLots.has(slot)) {
       neverBuilt.push({
         slot,
@@ -337,35 +511,6 @@ function buildChangesReport(
         cause: iv.summary ?? `Prevented in ${iv.year}`,
       });
     }
-  }
-
-  // Explicit `arson` / `demolish` interventions mapped to lots & businesses
-  for (const iv of activeIvs) {
-    if (iv.kind !== 'arson' && iv.kind !== 'demolish') continue;
-    const baseLot =
-      (iv.slot ? baseLots.get(iv.slot) : undefined) ??
-      (iv.businessId ? [...baseLots.values()].find((l) => l.kind === 'shop' && l.refId === iv.businessId) : undefined);
-    const altLot = baseLot ? altLots.get(baseLot.slot) : iv.slot ? altLots.get(iv.slot) : undefined;
-    const baseBiz = iv.businessId ? baseline.businesses[iv.businessId] : undefined;
-
-    const slot = baseLot?.slot ?? iv.slot ?? `lot:${iv.businessId ?? iv.id}`;
-    const beforeLabel = baseLot?.label ?? baseBiz?.name ?? iv.buildingLabel ?? 'Building';
-    const afterLabel =
-      iv.replacementLotLabel ??
-      (altLot && altLot.vacantSince === undefined && altLot.refId !== iv.businessId
-        ? altLot.label
-        : 'Vacant / cleared lot');
-
-    demolishedOrReplaced.push({
-      slot,
-      beforeLabel,
-      afterLabel,
-      kind: baseLot?.kind ?? (iv.businessId ? 'shop' : 'landmark'),
-      cause: iv.kind === 'arson' ? `Burned down in ${iv.year} arson` : `Demolished in ${iv.year}`,
-      year: iv.year,
-      ...(iv.businessId ? { businessId: iv.businessId } : {}),
-    });
-    reportedDemolishedSlots.add(slot);
   }
 
   // Indirect lot replacements (shop lot became vacant or changed tenant compared to baseline)
@@ -474,13 +619,17 @@ function buildChangesReport(
  * Cached by `(seed, startYear, active interventions <= year, year)` so repeated jumps or queries
  * cost zero additional replays.
  */
-export function presentAt(timeline: Timeline, year: number): PresentSnapshot {
+export function presentAt(
+  timeline: Timeline,
+  year: number,
+  options?: PresentAtOptions,
+): PresentSnapshot {
   if (year < timeline.startYear) {
     throw new Error(`year ${year} is before timeline startYear ${timeline.startYear}`);
   }
 
   const key = canonicalPresentKey(timeline, year);
-  const hit = presentCache.get(key);
+  const hit = lruGet(presentCache, key);
   if (hit) {
     presentCacheHits += 1;
     return { ...hit, fromCache: true };
@@ -492,11 +641,17 @@ export function presentAt(timeline: Timeline, year: number): PresentSnapshot {
   const alteredSim =
     activeSimIvs.length === 0
       ? baselineSim
-      : getOrRunSim(timeline.seed, timeline.startYear, year, activeSimIvs);
+      : getOrRunSim(timeline.seed, timeline.startYear, year, activeSimIvs, {
+          baselineSim,
+          onlyFinalSnapshot: options?.onlyFinalSnapshot,
+        });
 
   const baselineWorld = worldAt(baselineSim, year);
   const alteredWorld = worldAt(alteredSim, year);
   const activeIvs = timeline.interventions.filter((iv) => iv.year <= year);
+  if (alteredSim !== baselineSim) {
+    ensureSettlementAt(alteredWorld, baselineWorld, activeIvs);
+  }
   const changes = buildChangesReport(baselineWorld, alteredWorld, activeIvs);
 
   const snapshot: PresentSnapshot = {
@@ -508,7 +663,7 @@ export function presentAt(timeline: Timeline, year: number): PresentSnapshot {
     fromCache: false,
   };
 
-  presentCache.set(key, snapshot);
+  lruSet(presentCache, key, snapshot);
   return snapshot;
 }
 
@@ -517,6 +672,8 @@ export function presentAt(timeline: Timeline, year: number): PresentSnapshot {
  * through the same replay cache.
  */
 export function getSimulatedTimeline(timeline: Timeline, endYear: number): SimTimeline {
+  const baselineSim = getOrRunSim(timeline.seed, timeline.startYear, endYear, []);
   const activeSimIvs = compileSimInterventions(timeline, endYear);
-  return getOrRunSim(timeline.seed, timeline.startYear, endYear, activeSimIvs);
+  if (activeSimIvs.length === 0) return baselineSim;
+  return getOrRunSim(timeline.seed, timeline.startYear, endYear, activeSimIvs, { baselineSim });
 }

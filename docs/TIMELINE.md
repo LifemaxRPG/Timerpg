@@ -86,9 +86,9 @@ Creates a fresh plain-JSON `Timeline` ledger and deterministically generates the
 Returns a new `Timeline` with `intervention` appended. Never mutates the original `timeline`.
 
 Supported `kind` values:
-- Native `src/sim` wrappers: `kill`, `invest`, `sabotage`, `introduce`, `rumor`, `gift`
+- Native `src/sim` wrappers: `kill`, `invest`, `sabotage`, `arson`, `introduce`, `rumor`, `gift`
 - Player crime acts: `crime` (with `crimeKind` imported from `src/crime/types.ts`: `vandalism`, `shoplifting`, `theft`, `car_theft`, `burglary`, `assault`, `robbery`, `murder`)
-- Timeline/world acts: `arson`, `demolish`, `prevent_building`, `self_erase`, `record_fire`, `record_flood`
+- Timeline/world acts: `demolish`, `prevent_building`, `self_erase`, `record_fire`, `record_flood`
 
 **Call:**
 ```ts
@@ -106,11 +106,13 @@ You can also convert a `CrimeEvent` from `src/crime` directly via `crimeEventToI
 
 ---
 
-### 3. `presentAt(timeline, year)`
+### 3. `presentAt(timeline, year, options?)`
 
 Replays `src/sim` for `(seed, startYear, active interventions <= year)` and returns the replayed `world` plus a structured `changes` report built on `src/sim/diff.ts` (`diffWorlds` & `describeDiff`).
 
-Results and underlying sim runs are cached by `(seed, startYear, active interventions, year)` so repeated jumps cost zero replays. Use `getTimelineCacheStats()` to inspect cache hits/misses and `clearTimelineCache()` to reset the cache.
+- **Checkpoints & deferred settlement (`src/sim/simulate.ts`):** Altered branches resume from the cached baseline snapshot at `earliestInterventionYear - 1` via `RunOptions.checkpoint` / `checkpointYear`, skipping untouched decades and intermediate `advanceSettlement` passes. Pass `{ onlyFinalSnapshot: true }` to skip intermediate snapshot clones as well for one-shot jumps.
+- **Native `arson` (`src/sim/types.ts`):** `kind: 'arson'` maps directly to `src/sim`'s native `arson` intervention (`atNight?: boolean`, default `true`), closing the store in that year with one `"<Store> burned down"` chronicle event, adding a Gazette story (`"<Store> burns down"`), risking nighttime injuries or deaths by seeded chance, and leaving the shop lot empty to be rebuilt by normal settlement rules.
+- **16-entry LRU cache (`TIMELINE_CACHE_LIMIT = 16`):** Both `simCache` and `presentCache` are bounded LRU caches (16 entries) to keep phone memory bounded while keeping repeated jumps at zero replays. Use `getTimelineCacheStats()` to inspect cache hits/misses and `clearTimelineCache()` to reset the cache.
 
 **Call:**
 ```ts

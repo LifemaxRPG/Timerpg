@@ -191,7 +191,23 @@ export function mapToSimInterventions(
         ? [{ kind: 'gift', year: y, targetId: iv.targetId, amount: Math.max(0, iv.amount ?? 50) }]
         : [];
 
-    case 'arson':
+    case 'arson': {
+      if (iv.businessId) {
+        return [
+          {
+            kind: 'arson',
+            year: y,
+            businessId: iv.businessId,
+            ...(iv.atNight !== undefined ? { atNight: iv.atNight } : {}),
+          },
+        ];
+      }
+      if (iv.targetId) {
+        return [{ kind: 'rumor', year: y, targetId: iv.targetId, amount: -0.4 }];
+      }
+      return [];
+    }
+
     case 'demolish': {
       // Twelve sequential sabotage hits multiply capital by 0.4^12 (~1.6e-5), driving any open
       // business below the sim's bankruptcy floor (< 5) so `economy()` closes it that very year.

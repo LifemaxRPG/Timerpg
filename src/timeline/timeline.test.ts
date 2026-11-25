@@ -20,7 +20,10 @@ import {
   createTimeline,
   crimeEventToIntervention,
   generateProfessorTrail,
+  TIMELINE_CACHE_LIMIT,
+  getSimulatedTimeline,
   getTimelineCacheStats,
+  mapToSimInterventions,
   inspectCarriedItems,
   looseThreads,
   npcMemoryOfPlayer,
@@ -618,6 +621,81 @@ describe('src/timeline — time travel & timeline engine (G017)', () => {
     expect(compiled.some((iv) => iv.kind === 'invest' && iv.businessId === 'b:gen:0')).toBe(true);
   });
 
+  it('maps arson to the native sim arson verb with one burned-down chronicle event and a 1952 Gazette story', () => {
+    const base = createTimeline({ seed: 'alpha', startYear: 1950, placeId: 'capital' });
+    const w1952 = presentAt(base, 1952).world;
+    const store = Object.values(w1952.businesses).find((b) => b.closedYear === undefined)!;
+
+    const burned = branch(base, {
+      year: 1952,
+      placeId: 'capital',
+      kind: 'arson',
+      businessId: store.id,
+      atNight: false,
+    });
+
+    const mapped = mapToSimInterventions(burned.interventions[0]!);
+    expect(mapped).toEqual([{ kind: 'arson', year: 1952, businessId: store.id, atNight: false }]);
+
+    const sim = getSimulatedTimeline(burned, 2025);
+    const storeEvents = sim.chronicle.filter((e) => e.subject === store.id && e.year === 1952);
+    expect(storeEvents).toHaveLength(1);
+    expect(storeEvents[0]!.text).toBe(`${store.name} burned down`);
+
+    const in1952 = presentAt(burned, 1952);
+    const gazette = (in1952.world.stories ?? []).find((s) => s.template === 'arson' && s.business === store.id);
+    expect(gazette).toBeDefined();
+    expect(gazette!.headline).toBe(`${store.name} burns down`);
+  });
+
+  it('enforces the 16-entry LRU cache cap by evicting the oldest unused entry', () => {
+    clearTimelineCache();
+    expect(TIMELINE_CACHE_LIMIT).toBe(16);
+
+    const base = createTimeline({ seed: 'alpha', startYear: 1950, placeId: 'capital' });
+    const w1952 = presentAt(base, 1952).world;
+    const person = Object.values(w1952.people).find(isAlive)!;
+
+    // Create 17 distinct altered branches on the same seed (baseline + 17 branches = 18 > 16 cap).
+    const branches: Timeline[] = [];
+    for (let i = 0; i < TIMELINE_CACHE_LIMIT + 1; i++) {
+      branches.push(
+        branch(base, {
+          year: 1952,
+          placeId: 'capital',
+          kind: 'gift',
+          targetId: person.id,
+          amount: 10 + i,
+        }),
+      );
+    }
+
+    // Fill cache with branches[0..15] (16 altered entries; baseline is touched on every miss so it stays hot)
+    for (let i = 0; i < TIMELINE_CACHE_LIMIT; i++) {
+      presentAt(branches[i]!, 1955);
+    }
+    // Touch branches[1] so branches[0] is definitely the oldest unused entry in both caches
+    const touchedHit = presentAt(branches[1]!, 1955);
+    expect(touchedHit.fromCache).toBe(true);
+
+    // Insert branches[16] — forces eviction of the oldest unused entry (branches[0])
+    presentAt(branches[TIMELINE_CACHE_LIMIT]!, 1955);
+
+    const statsAfterOverflow = getTimelineCacheStats();
+    expect(statsAfterOverflow.simCacheEntries).toBeLessThanOrEqual(TIMELINE_CACHE_LIMIT);
+    expect(statsAfterOverflow.presentCacheEntries).toBeLessThanOrEqual(TIMELINE_CACHE_LIMIT);
+
+    // Most recent and recently-touched entries are still cached
+    expect(presentAt(branches[TIMELINE_CACHE_LIMIT]!, 1955).fromCache).toBe(true);
+    expect(presentAt(branches[1]!, 1955).fromCache).toBe(true);
+
+    // Oldest entry (branches[0]) was evicted -> cache miss and triggers a replay
+    const replaysBefore = getTimelineCacheStats().simReplays;
+    const oldestRequery = presentAt(branches[0]!, 1955);
+    expect(oldestRequery.fromCache).toBe(false);
+    expect(getTimelineCacheStats().simReplays).toBeGreaterThan(replaysBefore);
+  });
+
   it('measures replay and cache timing on the capital-sized town (gamma)', () => {
     // Warm immutable town plan cache once (one-time per seed in the game)
     planTown('gamma');
@@ -628,7 +706,8 @@ describe('src/timeline — time travel & timeline engine (G017)', () => {
     const base2025 = presentAt(base, 2025);
     const baseMs = performance.now() - tBase0;
 
-    const biz = Object.values(base2025.world.businesses)[0]!;
+    const openBusinesses = Object.values(base2025.world.businesses);
+    const biz = openBusinesses[0]!;
     const burned = branch(base, {
       year: 1952,
       placeId: 'capital',
@@ -649,13 +728,27 @@ describe('src/timeline — time travel & timeline engine (G017)', () => {
     presentAt(burned, 1953);
     const earlierCachedMs = performance.now() - tEarlier;
 
+    // Also measure one-shot onlyFinalSnapshot cold jump on a second distinct 1952 arson
+    const biz2 = openBusinesses[1]!;
+    const burned2 = branch(base, {
+      year: 1952,
+      placeId: 'capital',
+      kind: 'arson',
+      businessId: biz2.id,
+    });
+    const tOnlyFinal = performance.now();
+    presentAt(burned2, 2025, { onlyFinalSnapshot: true });
+    const onlyFinalMs = performance.now() - tOnlyFinal;
+
     console.log(
-      `PERF_G017_CAPITAL(gamma, pop=${Object.values(alt2025.world.people).filter(isAlive).length}): ` +
+      `PERF_G018_CAPITAL(gamma, pop=${Object.values(alt2025.world.people).filter(isAlive).length}): ` +
         `baseline2025=${baseMs.toFixed(1)}ms | jump2025=${jump2025Ms.toFixed(1)}ms | ` +
-        `cacheHit=${cacheHitMs.toFixed(3)}ms | earlierYearCached=${earlierCachedMs.toFixed(2)}ms`,
+        `onlyFinalJump2025=${onlyFinalMs.toFixed(1)}ms | cacheHit=${cacheHitMs.toFixed(3)}ms | ` +
+        `earlierYearCached=${earlierCachedMs.toFixed(2)}ms`,
     );
 
+    // Assert only cache hit against cache miss (never absolute wall-clock ms thresholds)
     expect(hit2025.fromCache).toBe(true);
-    expect(cacheHitMs).toBeLessThan(10);
+    expect(cacheHitMs).toBeLessThan(jump2025Ms);
   });
 });

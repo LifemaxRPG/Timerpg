@@ -16,6 +16,8 @@ export {
   clearTimelineCache,
   getTimelineCacheStats,
   getSimulatedTimeline,
+  TIMELINE_CACHE_LIMIT,
+  type PresentAtOptions,
 } from './cache';
 export {
   addCarriedItem,
