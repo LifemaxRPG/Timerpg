@@ -1,6 +1,6 @@
 export * from './types';
 export * from './ids';
-export * from './policeAdapter';
+export { STOP_POLICY, resolveStopPolicy } from './policeBridge';
 export {
   create,
   act,

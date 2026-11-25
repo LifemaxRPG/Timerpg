@@ -11,6 +11,7 @@ import type {
   VehicleKind,
   WeatherKind,
 } from '../crime/types';
+import type { OfficerAssignment, PoliceState } from '../police/types';
 import type { Id, Person, World } from '../sim/types';
 
 export type LoopPlaceKind =
@@ -61,6 +62,8 @@ export interface LoopPlaceInit {
   kind: LoopPlaceKind;
   position: Vec2;
   ownerId?: string;
+  /** Staff who work here (clerks, coworkers): see crimes while open and learn the player's name after a shift. */
+  staff?: string[];
   jurisdictionId: string;
   townId?: string;
   /** Opening & closing hours in [0, 24] (e.g. `[8, 19]`). */
@@ -89,6 +92,35 @@ export interface LoopStreetGraph {
   edges: LoopStreetEdge[];
 }
 
+/**
+ * Single tunable policy table governing how officers decide to watch, stop & question,
+ * release after questioning, or arrest when spotting a suspect on the street.
+ */
+export interface StopPolicyTable {
+  /** Minimum recognition chance to passively watch a person. */
+  watchRecognition: number;
+  /** Minimum recognition chance to stop and question an unidentified match. */
+  questionRecognition: number;
+  /** Minimum recognition chance to stop and question a named suspect. */
+  namedQuestionRecognition: number;
+  /** Minimum recognition chance to arrest immediately on sight (unidentified). */
+  directArrestRecognition: number;
+  /** Minimum case strength (or severity) required for immediate arrest on sight. */
+  directArrestStrength: number;
+  /** Minimum recognition chance to arrest immediately when suspect is named. */
+  namedDirectArrestRecognition: number;
+  /** Minimum case strength for immediate arrest of a named suspect. */
+  namedDirectArrestStrength: number;
+  /** Minimum case strength to arrest after stopping & questioning (below this -> released). */
+  stopArrestStrength: number;
+  /** Recognition boost when the target is actively fleeing. */
+  fleeingBonus: number;
+  /** Minimum jurisdiction heat to request papers during a stop (era >= papersCheckStartYear). */
+  papersCheckHeat: number;
+  /** Minimum case severity to request papers during a stop (era >= papersCheckStartYear). */
+  papersCheckSeverity: number;
+}
+
 export interface LoopInit {
   seed: string;
   year: number;
@@ -98,7 +130,11 @@ export interface LoopInit {
   startDayOfWeek?: number;
   playerId?: string;
   playerName?: string;
+  /** Optional short plain-English description of the player for NPC dialogue facts (e.g. `"a tall stranger in a grey coat"`). */
+  playerDescription?: string;
   playerAppearance?: CulpritAppearance;
+  /** Optional overrides for the street-stop & arrest decision thresholds. */
+  stopPolicy?: Partial<StopPolicyTable>;
   people: LoopPersonInit[];
   places: LoopPlaceInit[];
   streetGraph: LoopStreetGraph;
@@ -119,6 +155,7 @@ export interface LoopPlaceRecord {
   kind: LoopPlaceKind;
   position: Vec2;
   ownerId?: string;
+  staff: string[];
   jurisdictionId: string;
   townId: string;
   openHours?: [number, number];
@@ -131,11 +168,12 @@ export interface LoopPersonMeta {
   homePlaceId: string;
   workplacePlaceId?: string;
   townId: string;
-  siblingIds: string[];
+  siblingIds?: string[];
 }
 
 export interface LoopOfficer {
   id: string;
+  /** Plan-safe identifier used inside G007 plans. */
   planId: string;
   jurisdictionId: string;
   role: 'constable' | 'patrol' | 'detective';
@@ -145,17 +183,16 @@ export interface LoopOfficer {
   hasRadio: boolean;
   stationNodeId: string;
   beatNodeIds: string[];
-  assignment: 'off_duty' | 'patrol' | 'respond_crime' | 'search_suspect' | 'stakeout';
+  assignment: OfficerAssignment;
   targetCrimeId?: string;
   targetPlaceId?: string;
-  targetPersonId?: string;
-  planSource?: string;
   routePlaceIds: string[];
 }
 
 export interface StolenItemRecord {
   itemId: string;
   label: string;
+  /** Item value in integer cents (era money). */
   value: number;
   crimeId: string;
   placeId: string;
@@ -174,6 +211,7 @@ export interface PawnRecord {
   clerkId?: string;
   itemId: string;
   label: string;
+  /** Sale/item value in integer cents (era money). */
   value: number;
   day: number;
   serialNumber?: string;
@@ -189,6 +227,7 @@ export interface WorkShiftRecord {
   coworkerIds: string[];
   day: number;
   hours: number;
+  /** Wages earned in integer cents (era money). */
   payEarned: number;
 }
 
@@ -208,6 +247,7 @@ export interface PriorOffenseRecord {
   jurisdictionId: string;
   day: number;
   penalty: 'warning' | 'fine' | 'cell_night' | 'jail';
+  /** Fine in integer cents (era money). */
   fineAmount: number;
   jailHours: number;
 }
@@ -221,6 +261,7 @@ export interface CrimeMetaRecord {
   day: number;
   dayName: string;
   itemLabel?: string;
+  /** Item value in integer cents (era money). */
   itemValue?: number;
   ownerId?: string;
   trespass?: boolean;
@@ -240,15 +281,20 @@ export interface LoopSim {
   startDayOfWeek: number;
   playerId: string;
   playerName: string;
+  playerDescription?: string;
   playerAppearance: CulpritAppearance;
+  stopPolicy: StopPolicyTable;
   world: World;
   crimeState: CrimeState;
+  /** Authoritative G009 police state (`src/police/`). */
+  policeState: PoliceState;
   idMap: IdMapState;
   places: Record<string, LoopPlaceRecord>;
   peopleMeta: Record<string, LoopPersonMeta>;
   streetGraph: LoopStreetGraph;
   streetLamps: StreetLamp[];
   escalateJurisdiction: Record<string, string>;
+  /** Projected officer view kept in sync with `policeState.officers` (sim-domain node ids). */
   officers: Record<string, LoopOfficer>;
   respondedCases: Record<string, string>;
   crimeMeta: Record<string, CrimeMetaRecord>;
@@ -289,6 +335,7 @@ export interface SceneSnapshot {
 export interface LoopItemPayload {
   id: string;
   label: string;
+  /** Item value in integer cents (era money). */
   value?: number;
   serialNumber?: string;
   stolenFromCrimeId?: string;
@@ -311,6 +358,7 @@ export type LoopActionEvent =
       kind: 'work_shift';
       placeId: string;
       hours?: number;
+      /** Shift wages in integer cents (era money). Defaults to era shop-clerk wage * hours. */
       pay?: number;
       employerId?: string;
       coworkerIds?: string[];
@@ -332,6 +380,7 @@ export type LoopActionEvent =
         kind: VehicleKind;
         color: ClothingColor;
         plateNumber?: string;
+        /** Vehicle value in integer cents (era money). */
         value?: number;
       };
       ownerId?: string;
@@ -366,12 +415,23 @@ export interface ActResult {
   sim: LoopSim;
   kind: LoopActionEvent['kind'];
   legit: boolean;
+  /** True when selling a stolen ("hot") item; false for clean sales. */
+  hot?: boolean;
   crimeId?: string;
+  /** Wages earned on `work_shift`, in integer cents (era money). */
   payEarned?: number;
   stolenSerialNumber?: string;
   witnessedBy: WitnessNotice[];
   tracesLeft: ActTraceSummary[];
   pawnTraceFlagged?: boolean;
+  /** Updated sim clock and world changes when `act` advances time (owned by `work_shift`). */
+  day?: number;
+  hour?: number;
+  daysElapsed?: number;
+  policePlans?: OfficerPlanDirective[];
+  attitudeChanges?: AttitudeChange[];
+  newPoliceCases?: string[];
+  pawnLeadsMatched?: PawnLeadMatch[];
   summary: string;
 }
 
@@ -430,7 +490,7 @@ export interface AttitudeResult {
   knowsPlayerName: boolean;
   playerNameKnown?: string;
   trust: number;
-  /** Short, plain-English facts ready for the dialogue model's fact sheet. */
+  /** Short, plain-English facts written for speaking to the player ("you"), ready for the dialogue model's fact sheet. */
   facts: string[];
 }
 
@@ -470,6 +530,16 @@ export interface OfficerSightingInput {
 
 export type LoopSpotAction = 'ignore' | 'watch' | 'approach_and_question' | 'arrest';
 
+/** Outcome of a real street stop (era-gated papers check, questions, then release or arrest by case strength). */
+export interface SpotStopOutcome {
+  checkedPapers: boolean;
+  questioned: boolean;
+  outcome: 'released' | 'arrested';
+  reason: string;
+  caseStrength: number;
+  thresholdUsed: number;
+}
+
 export interface SpotResult {
   officerId: string;
   jurisdictionId: string;
@@ -478,6 +548,8 @@ export interface SpotResult {
   recognitionChance: number;
   matchedCaseId?: string;
   reason: string;
+  /** Populated when `action === 'approach_and_question'`: real papers/questions stop outcome. */
+  stopOutcome?: SpotStopOutcome;
   /** Optional bound G007 plan for the officer to act out when `action !== 'ignore'`. */
   planSource?: string;
 }
@@ -486,9 +558,16 @@ export interface ArrestInput {
   jurisdictionId: string;
   officerId?: string;
   crimeIds?: string[];
+  /** Player's cash on hand in integer cents (era money). */
   playerCash?: number;
   carriedItemIds?: string[];
   surrendered?: boolean;
+  /** True when initiated from an `approach_and_question` street stop; thin cases release without booking. */
+  fromStop?: boolean;
+  /** Optional caller reason (e.g. `'approach_and_question'`); treated as `fromStop` when equal to `'approach_and_question'`. */
+  why?: string;
+  /** Bypass thin-case stop release and force booking/sentencing. */
+  forceArrest?: boolean;
 }
 
 export interface ArrestChargeSummary {
@@ -503,14 +582,25 @@ export interface ArrestOutcomeResult {
   sim: LoopSim;
   jurisdictionId: string;
   penalty: 'warning' | 'fine' | 'cell_night' | 'jail';
+  /** Fine in integer cents (era money, scaled by `priceIndex(year)`). */
   fineAmount: number;
   jailHours: number;
   jailNights: number;
+  /** New simulation day after any jail hours are advanced. */
+  day: number;
+  /** New simulation hour after any jail hours are advanced. */
+  hour: number;
+  daysElapsed: number;
+  /** True if this was a street stop released because the case was too weak to arrest. */
+  releasedAfterStop?: boolean;
   charges: ArrestChargeSummary[];
   priorOffenses: number;
   totalCaseStrength: number;
   confiscatedItems: string[];
   coldCasesTriggered: string[];
+  policePlans: OfficerPlanDirective[];
+  attitudeChanges: AttitudeChange[];
+  newPoliceCases: string[];
   summary: string;
 }
 

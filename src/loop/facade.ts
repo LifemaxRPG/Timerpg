@@ -16,7 +16,6 @@ import {
   recordCrime,
   recordTraces,
   reexamineColdCases,
-  refreshWitnessMemory,
   witnessesOf,
   type Bystander,
   type CrimeAccount,
@@ -35,7 +34,19 @@ import { clamp01, rand } from '../sim/rng';
 import { affinity, pairKey } from '../sim/social';
 import type { Business, Id, Person, World } from '../sim/types';
 import { cloneIdMap, createIdMap, registerPlanId, toPlanId } from './ids';
-import { buildInitialOfficers, planPoliceForTick, validateLoopPlan } from './policeAdapter';
+import { FIRST_YEAR, LAST_YEAR, formatMoney, priceIndex, wage } from '../economy/eras';
+import {
+  POLICE_ERA,
+  decideSpotAction,
+  getActiveWantedCases,
+  selectBestMatchingCase,
+} from '../police';
+import {
+  compileSpotPlan,
+  createLoopPolice,
+  resolveStopPolicy,
+  stepLoopPolice,
+} from './policeBridge';
 import type {
   ActResult,
   ActTraceSummary,
@@ -50,7 +61,6 @@ import type {
   CrimeMetaRecord,
   LoopActionEvent,
   LoopInit,
-  LoopOfficer,
   LoopPersonInit,
   LoopPersonMeta,
   LoopPlaceRecord,
@@ -66,6 +76,7 @@ import type {
   PriorOffenseRecord,
   SceneBystander,
   SpotResult,
+  SpotStopOutcome,
   StolenItemRecord,
   WitnessNotice,
   WorkShiftRecord,
@@ -92,6 +103,25 @@ function dayNameFor(startDay: number, startDayOfWeek: number, day: number): stri
   const offset = day - startDay;
   const idx = (((startDayOfWeek + offset) % 7) + 7) % 7;
   return DAY_NAMES[idx]!;
+}
+
+function clampEconomyYear(year: number): number {
+  return Math.max(FIRST_YEAR, Math.min(LAST_YEAR, Math.round(year)));
+}
+
+function eraPriceIndex(year: number): number {
+  return priceIndex(clampEconomyYear(year)) ?? 1;
+}
+
+function eraFormatMoney(cents: number, year: number): string {
+  const rounded = Math.round(cents);
+  return formatMoney(rounded, clampEconomyYear(year)) ?? `$${(rounded / 100).toFixed(2)}`;
+}
+
+function defaultShiftPayCents(hours: number, year: number): number {
+  const w = wage('shop_clerk', clampEconomyYear(year));
+  const hourlyCents = w ? w.hourlyCents : Math.max(10, Math.round(1750 * eraPriceIndex(year)));
+  return Math.max(1, Math.round(hours * hourlyCents));
 }
 
 function splitName(p: LoopPersonInit): { first: string; surname: string; display: string } {
@@ -347,6 +377,7 @@ export function create(init: LoopInit): LoopSim {
       kind: p.kind,
       position: { x: p.position.x, y: p.position.y },
       ...(p.ownerId !== undefined ? { ownerId: p.ownerId } : {}),
+      staff: p.staff ? Array.from(new Set(p.staff)) : [],
       jurisdictionId: p.jurisdictionId,
       townId: p.townId ?? p.jurisdictionId,
       ...(p.openHours !== undefined ? { openHours: [p.openHours[0], p.openHours[1]] as [number, number] } : {}),
@@ -393,6 +424,17 @@ export function create(init: LoopInit): LoopSim {
       townId,
       siblingIds: raw.siblingIds ? raw.siblingIds.slice() : [],
     };
+  }
+
+  // Link explicit place.staff entries into peopleMeta.workplacePlaceId when unset
+  for (const place of Object.values(places)) {
+    for (let si = 0; si < place.staff.length; si++) {
+      const sid = place.staff[si]!;
+      const meta = peopleMeta[sid];
+      if (meta && meta.workplacePlaceId === undefined) {
+        meta.workplacePlaceId = place.id;
+      }
+    }
   }
 
   // Normalize symmetric relationships (spouses, parents/children, siblings, friends -> bonds)
@@ -486,12 +528,16 @@ export function create(init: LoopInit): LoopSim {
   };
 
   const crimeState = createCrimeState(init.seed, startDay);
-  const officers = buildInitialOfficers({
+  const stopPolicy = resolveStopPolicy(init.stopPolicy);
+  const { policeState, officers } = createLoopPolice({
     seed: init.seed,
     year: init.year,
+    startDay,
+    startHour,
     places,
     streetGraph,
     peopleCount: Object.keys(peopleMeta).length,
+    crimeState,
     idMap,
   });
 
@@ -510,9 +556,12 @@ export function create(init: LoopInit): LoopSim {
     startDayOfWeek,
     playerId,
     playerName,
+    ...(init.playerDescription !== undefined ? { playerDescription: init.playerDescription } : {}),
     playerAppearance,
+    stopPolicy,
     world,
     crimeState,
+    policeState,
     idMap,
     places,
     peopleMeta,
@@ -523,7 +572,7 @@ export function create(init: LoopInit): LoopSim {
     })),
     escalateJurisdiction: { ...(init.escalateJurisdiction ?? {}) },
     officers,
-    respondedCases: {},
+    respondedCases: { ...policeState.respondedCases },
     crimeMeta: {},
     stolenItems: {},
     pawnRecords: [],
@@ -590,12 +639,22 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
     };
   }
 
-  // --- 2. WORK SHIFT (legitimate pay; employer & coworkers learn player's name) ---
+  // --- 2. WORK SHIFT (legitimate era-cent pay; advances shift hours itself; staff & employer learn player's name) ---
   if (event.kind === 'work_shift') {
     const hours = Math.max(1, event.hours ?? 4);
-    const payEarned = event.pay ?? Math.round(hours * 12);
+    const payEarned =
+      event.pay !== undefined
+        ? Math.max(0, Math.round(event.pay))
+        : defaultShiftPayCents(hours, sim.year);
     const employerId = event.employerId ?? place?.ownerId;
     const coworkerSet = new Set<string>(event.coworkerIds ?? []);
+    if (place?.staff) {
+      for (const sid of place.staff) {
+        if (sid !== employerId && sid !== sim.playerId && sim.peopleMeta[sid]) {
+          coworkerSet.add(sid);
+        }
+      }
+    }
     if (event.bystanders) {
       for (const b of event.bystanders) {
         if (b.id !== employerId && b.id !== sim.playerId && sim.peopleMeta[b.id]?.workplacePlaceId === event.placeId) {
@@ -609,8 +668,9 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
       }
     }
     const coworkerIds = Array.from(coworkerSet).sort();
+
     const taskPhrase = event.taskLabel ? ` (${event.taskLabel})` : '';
-    const factLine = `${sim.playerName} worked an honest ${hours}-hour shift${taskPhrase} at ${placeName} on ${dayName}.`;
+    const factLine = `You (${sim.playerName}) worked an honest ${hours}-hour shift${taskPhrase} at ${placeName} on ${dayName}.`;
 
     const acquaint = (pid: string, trustBump: number): void => {
       if (!sim.peopleMeta[pid]) return;
@@ -636,25 +696,36 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
       payEarned,
     };
 
-    const nextSim: LoopSim = {
+    const interimSim: LoopSim = {
       ...sim,
       playerAppearance,
       workShifts: [...sim.workShifts, shiftRecord],
       familiarity: nextFamiliarity,
       nextSeq,
     };
+
+    // Clock ownership: work_shift advances the shift's hours itself and returns world changes
+    const adv = advance(interimSim, hours, event.weather ? { weather: event.weather } : undefined);
+
     return {
-      sim: nextSim,
+      sim: adv.sim,
       kind: 'work_shift',
       legit: true,
       payEarned,
       witnessedBy: [],
       tracesLeft: [],
-      summary: `Worked a ${hours}-hour shift at ${placeName} for $${payEarned}.`,
+      day: adv.toDay,
+      hour: adv.toHour,
+      daysElapsed: adv.daysElapsed,
+      policePlans: adv.policePlans,
+      attitudeChanges: adv.attitudeChanges,
+      newPoliceCases: adv.newPoliceCases,
+      pawnLeadsMatched: adv.pawnLeadsMatched,
+      summary: `Worked a ${hours}-hour shift at ${placeName} for ${eraFormatMoney(payEarned, sim.year)}.`,
     };
   }
 
-  // --- 3. SELL (pawn shop tracks item, serial & seller identity; stolen items can trace back) ---
+  // --- 3. SELL (pawn shop tracks item, serial & seller identity; stolen items return legit: false, hot: true) ---
   if (event.kind === 'sell') {
     const clerkId = event.clerkId ?? place?.ownerId;
     const isPawnShop = place?.kind === 'pawn_shop';
@@ -673,12 +744,18 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
 
     const serialNumber = event.item.serialNumber ?? matchedStolen?.serialNumber;
     const stolenFromCrimeId = event.item.stolenFromCrimeId ?? matchedStolen?.crimeId;
+    const isHot = Boolean(matchedStolen || event.item.stolenFromCrimeId);
+    const saleValueCents =
+      event.item.value !== undefined
+        ? Math.max(0, Math.round(event.item.value))
+        : Math.max(1, Math.round(1000 * eraPriceIndex(sim.year)));
+
     let nextCrimeState = sim.crimeState;
     const nextStolenItems = { ...sim.stolenItems };
     const nextPawnRecords = sim.pawnRecords.slice();
     let pawnTraceFlagged = false;
 
-    if (isPawnShop || matchedStolen) {
+    if (isPawnShop || isHot) {
       const pawnId = `pawn:${sim.currentDay}:${nextSeq++}`;
       const record: PawnRecord = {
         id: pawnId,
@@ -686,7 +763,7 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
         ...(clerkId !== undefined ? { clerkId } : {}),
         itemId: event.item.id,
         label: event.item.label,
-        value: event.item.value ?? 10,
+        value: saleValueCents,
         day: sim.currentDay,
         ...(serialNumber !== undefined ? { serialNumber } : {}),
         ...(stolenFromCrimeId !== undefined ? { stolenFromCrimeId } : {}),
@@ -695,13 +772,15 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
       };
       nextPawnRecords.push(record);
 
-      if (matchedStolen) {
+      if (isHot) {
         pawnTraceFlagged = true;
-        nextStolenItems[matchedStolen.itemId] = {
-          ...matchedStolen,
-          pawnedAtPlaceId: event.placeId,
-          pawnedDay: sim.currentDay,
-        };
+        if (matchedStolen) {
+          nextStolenItems[matchedStolen.itemId] = {
+            ...matchedStolen,
+            pawnedAtPlaceId: event.placeId,
+            pawnedDay: sim.currentDay,
+          };
+        }
       }
 
       // Pawn shops log seller ID & serial numbers into the local pawn registry (G008)
@@ -736,14 +815,18 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
       familiarity: nextFamiliarity,
       nextSeq,
     };
+
     return {
       sim: nextSim,
       kind: 'sell',
-      legit: true,
+      legit: !isHot,
+      hot: isHot,
       pawnTraceFlagged,
       witnessedBy: [],
       tracesLeft: [],
-      summary: `Sold ${event.item.label} at ${placeName}.`,
+      summary: isHot
+        ? `Sold stolen ${event.item.label} at ${placeName} (flagged hot).`
+        : `Sold ${event.item.label} at ${placeName}.`,
     };
   }
 
@@ -792,7 +875,13 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
         : subkind === 'house'
           ? 'burglary'
           : 'theft';
-    const valBoost = event.item.value ? Math.min(0.14, event.item.value / 400) : 0;
+    const idx = Math.max(0.02, eraPriceIndex(sim.year));
+    const resolvedItemCents =
+      event.item.value !== undefined
+        ? Math.max(0, Math.round(event.item.value))
+        : Math.max(1, Math.round(500 * idx));
+    const normalized2025Cents = resolvedItemCents / idx;
+    const valBoost = resolvedItemCents > 0 ? Math.min(0.14, normalized2025Cents / 40000) : 0;
     severity = clamp01(
       (subkind === 'shoplift'
         ? 0.28
@@ -805,7 +894,7 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
     ownerId = event.ownerId ?? place?.ownerId;
     itemId = event.item.id;
     itemLabel = event.item.label;
-    itemValue = event.item.value ?? 5;
+    itemValue = resolvedItemCents;
     explicitSerial = event.item.serialNumber;
     gloved = Boolean(event.gloved);
     exposure = subkind === 'yard' || subkind === 'pickpocket' ? 'outdoor' : 'indoor';
@@ -815,7 +904,10 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
     ownerId = event.ownerId ?? place?.ownerId;
     itemId = event.vehicle.id;
     itemLabel = `${event.vehicle.color} ${event.vehicle.kind}`;
-    itemValue = event.vehicle.value ?? 800;
+    itemValue =
+      event.vehicle.value !== undefined
+        ? Math.max(0, Math.round(event.vehicle.value))
+        : Math.max(100, Math.round(80000 * eraPriceIndex(sim.year)));
     vehiclePlate = event.vehicle.plateNumber;
     gloved = Boolean(event.gloved);
     exposure = 'outdoor';
@@ -837,14 +929,35 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
 
   const crimeId = `crime:${sim.currentDay}:${nextSeq++}`;
 
-  // Determine whether the victim (owner) is actually present and able to see the crime
-  const sceneBystanders = event.bystanders ?? [];
+  // Determine bystanders present: start with explicit scene bystanders, then add on-duty place.staff
+  // when the shop/place is open (unless explicitly overridden in event.bystanders).
+  const sceneBystanders: SceneBystander[] = (event.bystanders ?? []).slice();
   const sceneById = new Map<string, SceneBystander>();
   for (let i = 0; i < sceneBystanders.length; i++) {
     const sb = sceneBystanders[i]!;
     sceneById.set(sb.id, sb);
   }
-
+  const isShopOpenNow = placeIsOpen(
+    place,
+    sim.currentHour,
+    event.kind === 'enter' ? event.isOpen : undefined,
+  );
+  if (place && isShopOpenNow && place.staff.length > 0) {
+    for (let si = 0; si < place.staff.length; si++) {
+      const staffId = place.staff[si]!;
+      if (staffId === sim.playerId || sceneById.has(staffId) || !sim.world.people[staffId]) {
+        continue;
+      }
+      const staffBystander: SceneBystander = {
+        id: staffId,
+        position: { x: place.position.x, y: place.position.y },
+        activity: 'working',
+        hasLineOfSight: true,
+      };
+      sceneBystanders.push(staffBystander);
+      sceneById.set(staffId, staffBystander);
+    }
+  }
   const ownerScene = ownerId ? sceneById.get(ownerId) : undefined;
   const victimCanSee = ownerScene !== undefined && canSeeBystander(ownerScene, pos);
 
@@ -1266,7 +1379,7 @@ export function advance(sim: LoopSim, hours: number, options?: AdvanceOptions): 
     }
   }
 
-  // Compile G007 police plans for active (unresolved) cases
+  // Step real G009 police (src/police/engine.ts) for active (unresolved) cases
   const interimSim: LoopSim = {
     ...sim,
     currentDay: toDay,
@@ -1277,29 +1390,25 @@ export function advance(sim: LoopSim, hours: number, options?: AdvanceOptions): 
     idMap: cloneIdMap(sim.idMap),
   };
   const activeState = activeCrimeStateForPolice(interimSim);
-  const policeTick = planPoliceForTick({
-    seed: sim.seed,
-    day: toDay,
-    hour: toHour,
-    officers: sim.officers,
-    respondedCases: sim.respondedCases,
-    crimeState: activeState,
+  const policeTick = stepLoopPolice({
+    policeState: sim.policeState,
+    activeCrimeState: activeState,
+    fullCrimeState: crimeState,
+    world: sim.world,
     places: sim.places,
     streetGraph: sim.streetGraph,
+    day: toDay,
+    hour: toHour,
+    year: sim.year,
     idMap: interimSim.idMap,
   });
 
-  // Refresh witness memory for anyone interviewed by responding officers
-  for (let i = 0; i < policeTick.interviewedWitnesses.length; i++) {
-    const iv = policeTick.interviewedWitnesses[i]!;
-    crimeState = refreshWitnessMemory(crimeState, iv.crimeId, iv.witnessId, toDay, 'police_interview');
-  }
-
   const nextSim: LoopSim = {
     ...interimSim,
-    crimeState,
+    crimeState: policeTick.crimeState,
+    policeState: policeTick.policeState,
     officers: policeTick.officers,
-    respondedCases: policeTick.respondedCases,
+    respondedCases: { ...policeTick.policeState.respondedCases },
     lastStances: { ...sim.lastStances },
   };
 
@@ -1377,7 +1486,7 @@ export function attitude(
 
   const facts: string[] = [];
   if (knowsPlayerName && playerNameKnown) {
-    facts.push(`You know this person by name as ${playerNameKnown}.`);
+    facts.push(`I know you by name as ${playerNameKnown}.`);
   }
   if (fam?.positiveFacts) {
     for (let i = 0; i < fam.positiveFacts.length; i++) {
@@ -1413,13 +1522,25 @@ export function attitude(
     const isOwnerOrVictim = acc.isVictim || cMeta.ownerId === personId;
 
     if (acc.source === 'first_hand') {
-      facts.push(`You saw this person ${phrase} on ${cMeta.dayName}.`);
+      facts.push(`I saw you ${phrase} on ${cMeta.dayName}.`);
       sawPlayerDirectly = true;
     } else if (isOwnerOrVictim) {
       facts.push(
         tellerName
-          ? `${tellerName} told you this person managed to ${phrase} on ${cMeta.dayName}.`
-          : `You heard this person managed to ${phrase} on ${cMeta.dayName}.`,
+          ? `${tellerName} told me you managed to ${phrase} on ${cMeta.dayName}.`
+          : `I heard you managed to ${phrase} on ${cMeta.dayName}.`,
+      );
+    } else if (knowsPlayerName) {
+      facts.push(
+        tellerName
+          ? `${tellerName} mentioned you tried to ${phrase} on ${cMeta.dayName}.`
+          : `Word around town is you tried to ${phrase} on ${cMeta.dayName}.`,
+      );
+    } else if (sim.playerDescription) {
+      facts.push(
+        tellerName
+          ? `${tellerName} mentioned someone matching ${sim.playerDescription} tried to ${phrase} on ${cMeta.dayName}.`
+          : `Word around town is someone matching ${sim.playerDescription} tried to ${phrase} on ${cMeta.dayName}.`,
       );
     } else {
       facts.push(
@@ -1456,7 +1577,8 @@ export function attitude(
     }
   }
   if (wantedHere && knownCrimes.length > 0) {
-    facts.push('Local police are actively looking for this person.');
+    const descSuffix = sim.playerDescription && !knowsPlayerName ? ` (${sim.playerDescription})` : '';
+    facts.push(`Local police are actively looking for you${descSuffix}.`);
   }
 
   const baseTrust = (fam?.trustDelta ?? 0) - criminalPenalty;
@@ -1496,6 +1618,7 @@ export function attitude(
 export function policeView(sim: LoopSim, jurisdictionId: string): PoliceViewResult {
   const activeState = activeCrimeStateForPolice(sim);
   const snap = policeKnowledge(activeState, jurisdictionId, sim.currentDay);
+
   const cases: PoliceViewCase[] = snap.cases
     .slice()
     .sort((a, b) => b.severity - a.severity || (a.crimeId < b.crimeId ? -1 : 1))
@@ -1525,25 +1648,21 @@ export function policeView(sim: LoopSim, jurisdictionId: string): PoliceViewResu
       };
     });
 
-  // Compile current directives for officers in this jurisdiction
+  // Compile live directives via real G009 police (non-mutating copy)
   const idMapCopy = cloneIdMap(sim.idMap);
-  const jurOfficers: Record<string, LoopOfficer> = {};
-  for (const o of Object.values(sim.officers)) {
-    if (o.jurisdictionId === jurisdictionId) jurOfficers[o.id] = o;
-  }
-  const tick = planPoliceForTick({
-    seed: sim.seed,
-    day: sim.currentDay,
-    hour: sim.currentHour,
-    officers: jurOfficers,
-    respondedCases: sim.respondedCases,
-    crimeState: activeState,
+  const tick = stepLoopPolice({
+    policeState: sim.policeState,
+    activeCrimeState: activeState,
+    fullCrimeState: sim.crimeState,
+    world: sim.world,
     places: sim.places,
     streetGraph: sim.streetGraph,
+    day: sim.currentDay,
+    hour: sim.currentHour,
+    year: sim.year,
     idMap: idMapCopy,
+    filterJurisdictionId: jurisdictionId,
   });
-
-  const directives: OfficerPlanDirective[] = tick.directives;
 
   return {
     jurisdictionId,
@@ -1551,35 +1670,40 @@ export function policeView(sim: LoopSim, jurisdictionId: string): PoliceViewResu
     year: sim.year,
     heat: Math.round(snap.heat * 1000) / 1000,
     wantedIds: snap.wantedIds.slice(),
-    officers: directives,
+    officers: tick.directives,
     cases,
   };
 }
 
 /**
- * Evaluates an officer seeing the player (`G005 recognitionChance`) and returns what
- * the officer decides to do (`ignore | watch | approach_and_question | arrest`) plus
- * an optional compiled G007 plan string to act out.
+ * Evaluates an officer seeing the player via G005 `recognitionChance` and G009 `src/police/spotting.ts`,
+ * returning `ignore | watch | approach_and_question | arrest`.
+ *
+ * When `action === 'approach_and_question'`, runs a real street stop (era-gated papers check,
+ * questions, then `released` or `arrested` by case strength) governed by `sim.stopPolicy` (`STOP_POLICY`).
  */
 export function spotted(
   sim: LoopSim,
   officerId: string,
   sighting: OfficerSightingInput,
 ): SpotResult {
+  const realOfficer = sim.policeState.officers[officerId];
   const officer = sim.officers[officerId];
   const jurisdictionId =
+    realOfficer?.jurisdictionId ??
     officer?.jurisdictionId ??
     (sighting.placeId ? sim.places[sighting.placeId]?.jurisdictionId : undefined) ??
     Object.values(sim.places)[0]?.jurisdictionId ??
     'capital';
   const targetId = sighting.targetId ?? sim.playerId;
   const appearance = sighting.appearance ?? sim.playerAppearance;
-  const activeState = activeCrimeStateForPolice(sim);
+  const policy = sim.stopPolicy;
 
+  const activeState = activeCrimeStateForPolice(sim);
   const chance = recognitionChance(
     activeState,
     sim.world,
-    officerId,
+    realOfficer?.personId ?? officerId,
     { id: targetId, appearance },
     sim.currentDay,
     {
@@ -1592,52 +1716,110 @@ export function spotted(
   );
 
   const snap = policeKnowledge(activeState, jurisdictionId, sim.currentDay);
+  const activeWanted = getActiveWantedCases(snap.cases, sim.currentDay);
+  const targetPlace = sighting.placeId ? sim.places[sighting.placeId] : undefined;
+  const observedTarget = {
+    personId: targetId,
+    position: targetPlace ? targetPlace.position : { x: 0, y: 0 },
+    nodeId: targetPlace?.nodeId ?? 'street',
+    jurisdictionId,
+    appearance,
+    fleeing: Boolean(sighting.fleeing),
+  };
+
+  // Delegate matching to real G009 selectBestMatchingCase, falling back to open cases if needed
+  const bestMatch = selectBestMatchingCase(activeWanted, observedTarget);
   const openCases = snap.cases.slice().sort((a, b) => b.severity - a.severity);
   const topCase =
+    bestMatch?.matchedCase.policeCase ??
     openCases.find((c) => c.merged.namedSuspectId === targetId) ??
     openCases[0];
+
   const topStrength = topCase ? caseStrength(topCase, sim.currentDay).combinedScore : 0;
   const named = topCase?.merged.namedSuspectId === targetId;
 
   let action: LoopSpotAction = 'ignore';
   let reason = 'No active interest in this person.';
+  let stopOutcome: SpotStopOutcome | undefined;
+  let askPapers = false;
 
   if (topCase) {
-    const effective = clamp01(chance + (sighting.fleeing ? 0.22 : 0));
+    const effective = clamp01(chance + (sighting.fleeing ? policy.fleeingBonus : 0));
+    const g009Action = realOfficer
+      ? decideSpotAction({
+          officer: realOfficer,
+          person: observedTarget,
+          policeCase: topCase,
+          recognition: effective,
+          heat: snap.heat,
+          year: sim.year,
+          era: POLICE_ERA,
+        })
+      : 'question';
+
     if (
-      (effective >= 0.72 && (named || topCase.severity >= 0.45 || topStrength >= 0.45)) ||
-      (named && effective >= 0.52 && topStrength >= 0.55)
+      (effective >= policy.directArrestRecognition &&
+        (named || topStrength >= policy.directArrestStrength || topCase.severity >= 0.65)) ||
+      (named &&
+        effective >= policy.namedDirectArrestRecognition &&
+        topStrength >= policy.namedDirectArrestStrength) ||
+      (Boolean(sighting.fleeing) &&
+        effective >= policy.questionRecognition &&
+        (named || topStrength >= policy.stopArrestStrength))
     ) {
       action = 'arrest';
       reason = named
         ? `Officer positively identified named suspect for ${topCase.kind}.`
         : `Officer matched suspect closely for ${topCase.kind}.`;
-    } else if (effective >= 0.36 || (named && effective >= 0.24)) {
+    } else if (
+      effective >= policy.questionRecognition ||
+      (named && effective >= policy.namedQuestionRecognition)
+    ) {
       action = 'approach_and_question';
-      reason = `Officer recognized description matching open ${topCase.kind} case.`;
-    } else if (effective >= 0.16) {
+      askPapers =
+        sim.year >= POLICE_ERA.papersCheckStartYear &&
+        (g009Action === 'ask_papers' ||
+          snap.heat >= policy.papersCheckHeat ||
+          topCase.severity >= policy.papersCheckSeverity);
+
+      const roundedStrength = Math.round(topStrength * 1000) / 1000;
+      const shouldArrest = topStrength >= policy.stopArrestStrength || Boolean(sighting.fleeing);
+      stopOutcome = {
+        checkedPapers: askPapers,
+        questioned: true,
+        outcome: shouldArrest ? 'arrested' : 'released',
+        caseStrength: roundedStrength,
+        thresholdUsed: policy.stopArrestStrength,
+        reason: shouldArrest
+          ? askPapers
+            ? `Checked papers and asked questions; case strength (${roundedStrength}) meets arrest threshold (${policy.stopArrestStrength}).`
+            : `Asked questions; case strength (${roundedStrength}) meets arrest threshold (${policy.stopArrestStrength}).`
+          : askPapers
+            ? `Checked papers and asked questions, but case strength (${roundedStrength}) is below arrest threshold (${policy.stopArrestStrength}); released.`
+            : `Asked questions, but case strength (${roundedStrength}) is below arrest threshold (${policy.stopArrestStrength}); released.`,
+      };
+      reason = stopOutcome.reason;
+    } else if (effective >= policy.watchRecognition) {
       action = 'watch';
       reason = `Officer noticed someone loosely fitting the ${topCase.kind} description.`;
     }
   }
 
   let planSource: string | undefined;
-  if (officer && action !== 'ignore') {
+  if (realOfficer && action !== 'ignore') {
     const idMap = cloneIdMap(sim.idMap);
     const targetPlanId = toPlanId(idMap, targetId, 'person');
-    const allPlacePlanIds = Array.from(
-      new Set([
-        ...sim.streetGraph.nodes.map((n) => toPlanId(idMap, n.id, 'node')),
-        ...Object.keys(sim.places).map((pid) => toPlanId(idMap, pid, 'place')),
-      ]),
-    );
-    const rawPlan =
-      action === 'arrest'
-        ? `go person:${targetPlanId} quickly then restrain person:${targetPlanId} with item:cuffs_${officer.planId}`
-        : action === 'approach_and_question'
-          ? `go person:${targetPlanId} then ask person:${targetPlanId} politely`
-          : `watch person:${targetPlanId} carefully`;
-    planSource = validateLoopPlan(officer, rawPlan, allPlacePlanIds, [targetPlanId]);
+    const timeSec = sim.currentDay * 86400 + sim.currentHour * 3600;
+    planSource = compileSpotPlan({
+      officer: realOfficer,
+      action,
+      targetPlanId,
+      streetGraph: sim.streetGraph,
+      idMap,
+      timeSec,
+      askPapers,
+      highSeverity: (topCase?.severity ?? 0) >= 0.65,
+    });
   }
 
   return {
@@ -1648,15 +1830,19 @@ export function spotted(
     recognitionChance: Math.round(chance * 1000) / 1000,
     ...(topCase && action !== 'ignore' ? { matchedCaseId: topCase.crimeId } : {}),
     reason,
+    ...(stopOutcome !== undefined ? { stopOutcome } : {}),
     ...(planSource !== undefined ? { planSource } : {}),
   };
 }
 
 /**
  * Stand-in arrest resolution for the playable loop (replaced later by G010 court):
- * imposes a fine or night(s) in a cell based on severity, case strength, and prior record,
- * confiscates stolen items, enrolls booking prints/DNA into G008 `identityFiles`
- * (which can surface cold cases), and marks resolved cases closed.
+ * - When called from a street stop (`fromStop: true` or `why: 'approach_and_question'`) on a thin
+ *   case below `sim.stopPolicy.stopArrestStrength`, releases the player with a warning and no booking.
+ * - Otherwise imposes era-scaled integer-cent fines (via `priceIndex(year)`) or cell/jail time,
+ *   confiscates stolen items, enrolls booking prints/DNA into G008 `identityFiles` (cold cases),
+ *   records real G009 `ArrestRecord` entries, and runs any `jailHours` through `advance()` so
+ *   gossip, reports, heat decay, and police plans progress during time served.
  */
 export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
   const jurId = input.jurisdictionId;
@@ -1672,6 +1858,56 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
     }
   }
   targetCases.sort((a, b) => b.severity - a.severity || (a.crimeId < b.crimeId ? -1 : 1));
+
+  const charges: ArrestChargeSummary[] = targetCases.map((c) => {
+    const str = caseStrength(c, sim.currentDay);
+    const meta = sim.crimeMeta[c.crimeId];
+    return {
+      crimeId: c.crimeId,
+      kind: c.kind,
+      severity: c.severity,
+      caseStrength: Math.round(str.combinedScore * 1000) / 1000,
+      placeName: meta?.placeName ?? sim.places[c.placeId]?.name ?? c.placeId,
+    };
+  });
+
+  const maxCaseStrength = charges.reduce((m, c) => Math.max(m, c.caseStrength), 0);
+  const totalCaseStrength =
+    charges.length > 0
+      ? Math.round(
+          (charges.reduce((s, c) => s + c.caseStrength, 0) / charges.length) * 1000,
+        ) / 1000
+      : 0;
+
+  // Real street stop release when called from questioning on a thin case
+  const isFromStop = Boolean(input.fromStop || input.why === 'approach_and_question');
+  if (
+    isFromStop &&
+    !input.forceArrest &&
+    (charges.length === 0 || maxCaseStrength < sim.stopPolicy.stopArrestStrength)
+  ) {
+    return {
+      sim,
+      jurisdictionId: jurId,
+      penalty: 'warning',
+      fineAmount: 0,
+      jailHours: 0,
+      jailNights: 0,
+      day: sim.currentDay,
+      hour: sim.currentHour,
+      daysElapsed: 0,
+      releasedAfterStop: true,
+      charges: [],
+      priorOffenses: sim.priorOffenses.length,
+      totalCaseStrength,
+      confiscatedItems: [],
+      coldCasesTriggered: [],
+      policePlans: [],
+      attitudeChanges: [],
+      newPoliceCases: [],
+      summary: 'Stopped and questioned, then released — the case is too thin to arrest.',
+    };
+  }
 
   // Enroll booking prints/DNA into G008 identityFiles (and check for cold cases!)
   const beforeColdMatches = new Set<string>();
@@ -1714,26 +1950,11 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
   }
   coldCasesTriggered.sort();
 
-  const charges: ArrestChargeSummary[] = targetCases.map((c) => {
-    const str = caseStrength(c, sim.currentDay);
-    const meta = sim.crimeMeta[c.crimeId];
-    return {
-      crimeId: c.crimeId,
-      kind: c.kind,
-      severity: c.severity,
-      caseStrength: Math.round(str.combinedScore * 1000) / 1000,
-      placeName: meta?.placeName ?? sim.places[c.placeId]?.name ?? c.placeId,
-    };
-  });
-
   const priorCount = sim.priorOffenses.length;
   const maxSeverity = charges.reduce((m, c) => Math.max(m, c.severity), 0);
-  const totalCaseStrength =
-    charges.length > 0
-      ? Math.round(
-          (charges.reduce((s, c) => s + c.caseStrength, 0) / charges.length) * 1000,
-        ) / 1000
-      : 0;
+  const idx = eraPriceIndex(sim.year);
+  const surrenderMult = input.surrendered ? 0.8 : 1;
+  const minCashForFineCents = Math.max(10, Math.round(1500 * idx));
 
   let penalty: ArrestOutcomeResult['penalty'] = 'warning';
   let fineAmount = 0;
@@ -1745,14 +1966,27 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
     penalty = 'jail';
     const nights = Math.min(7, 2 + priorCount + Math.floor(maxSeverity * 3));
     jailHours = nights * 24;
-    fineAmount = Math.round((40 + maxSeverity * 160 + priorCount * 25) * (input.surrendered ? 0.8 : 1));
-  } else if (maxSeverity >= 0.36 || priorCount >= 1 || (input.playerCash !== undefined && input.playerCash < 15)) {
+    fineAmount = Math.max(
+      25,
+      Math.round((4000 + maxSeverity * 16000 + priorCount * 2500) * surrenderMult * idx),
+    );
+  } else if (
+    maxSeverity >= 0.36 ||
+    priorCount >= 1 ||
+    (input.playerCash !== undefined && input.playerCash < minCashForFineCents)
+  ) {
     penalty = 'cell_night';
     jailHours = 12 + priorCount * 12;
-    fineAmount = Math.round((15 + maxSeverity * 60) * (input.surrendered ? 0.8 : 1));
+    fineAmount = Math.max(
+      10,
+      Math.round((1500 + maxSeverity * 6000) * surrenderMult * idx),
+    );
   } else {
     penalty = 'fine';
-    fineAmount = Math.max(10, Math.round((15 + maxSeverity * 50) * (input.surrendered ? 0.8 : 1)));
+    fineAmount = Math.max(
+      10,
+      Math.round((1500 + maxSeverity * 5000) * surrenderMult * idx),
+    );
     jailHours = 0;
   }
 
@@ -1772,11 +2006,19 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
   }
   confiscatedItems.sort();
 
-  // Mark charged crimes resolved & ban player from victimized shops
+  // Mark charged crimes resolved, ban player from victimized shops, and append G009 ArrestRecord entries
   const nextCrimeMeta: Record<string, CrimeMetaRecord> = { ...sim.crimeMeta };
   const nextFamiliarity: Record<string, PlayerFamiliarity> = { ...sim.familiarity };
   const nextPriorOffenses: PriorOffenseRecord[] = sim.priorOffenses.slice();
+  const nextPoliceArrests = sim.policeState.arrests.slice();
+  let policeSeq = sim.policeState.nextSeq;
   let nextSeq = sim.nextSeq + 1;
+
+  const arrestingOfficerId =
+    input.officerId ??
+    Object.values(sim.policeState.officers).find((o) => o.jurisdictionId === jurId)?.id ??
+    'officer_unknown';
+  const timeSec = sim.currentDay * 86400 + sim.currentHour * 3600;
 
   for (let i = 0; i < charges.length; i++) {
     const ch = charges[i]!;
@@ -1802,19 +2044,39 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
       fineAmount: i === 0 ? fineAmount : 0,
       jailHours: i === 0 ? jailHours : 0,
     });
+    const arrestingOfficer = sim.policeState.officers[arrestingOfficerId];
+    const stationNodeId = arrestingOfficer?.stationNodeId ?? 'station';
+    const stationPlace = Object.values(sim.places).find(
+      (p) => p.jurisdictionId === jurId && p.kind === 'police_station',
+    );
+    nextPoliceArrests.push({
+      id: `arrest_${policeSeq++}`,
+      crimeId: ch.crimeId,
+      suspectId: sim.playerId,
+      arrestingOfficerId,
+      assistingOfficerIds: [],
+      jurisdictionId: jurId,
+      stationNodeId,
+      arrestDay: sim.currentDay,
+      arrestYear: sim.year,
+      arrestTimeSec: timeSec,
+      arrestPosition: stationPlace ? { x: stationPlace.position.x, y: stationPlace.position.y } : { x: 0, y: 0 },
+      method: input.surrendered ? 'surrender' : 'foot_pursuit',
+      searchedInventory: (input.carriedItemIds ?? []).slice(),
+      seizedContraband: confiscatedItems.slice(),
+      cuffed: true,
+      transportedToStation: true,
+    });
   }
 
-  // Advance clock if spending night(s) in a cell
-  const totalHours = sim.currentHour + jailHours;
-  const extraDays = Math.floor(totalHours / 24);
-  const nextDay = sim.currentDay + extraDays;
-  const nextHour = Math.round((totalHours - extraDays * 24) * 1000) / 1000;
-
-  const nextSim: LoopSim = {
+  const bookedSim: LoopSim = {
     ...sim,
-    currentDay: nextDay,
-    currentHour: nextHour,
     crimeState: nextCrimeState,
+    policeState: {
+      ...sim.policeState,
+      arrests: nextPoliceArrests,
+      nextSeq: policeSeq,
+    },
     crimeMeta: nextCrimeMeta,
     stolenItems: nextStolenItems,
     familiarity: nextFamiliarity,
@@ -1822,27 +2084,50 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
     nextSeq,
   };
 
+  // Run any cell / jail time through advance() so gossip, reports, decay & police plans run normally
+  let finalSim = bookedSim;
+  let daysElapsed = 0;
+  let policePlans: OfficerPlanDirective[] = [];
+  let attitudeChanges: AttitudeChange[] = [];
+  let newPoliceCases: string[] = [];
+
+  if (jailHours > 0) {
+    const adv = advance(bookedSim, jailHours);
+    finalSim = adv.sim;
+    daysElapsed = adv.daysElapsed;
+    policePlans = adv.policePlans;
+    attitudeChanges = adv.attitudeChanges;
+    newPoliceCases = adv.newPoliceCases;
+  }
+
+  const fineText = eraFormatMoney(fineAmount, sim.year);
   const summary =
     penalty === 'warning'
       ? 'Released with a stern warning.'
       : penalty === 'fine'
-        ? `Fined $${fineAmount} for ${charges.length} charge(s).`
+        ? `Fined ${fineText} for ${charges.length} charge(s).`
         : penalty === 'cell_night'
-          ? `Held in a cell for ${jailHours}h and fined $${fineAmount}.`
-          : `Jailed for ${jailHours}h (${jailNights} night(s)) and fined $${fineAmount}.`;
+          ? `Held in a cell for ${jailHours}h and fined ${fineText}.`
+          : `Jailed for ${jailHours}h (${jailNights} night(s)) and fined ${fineText}.`;
 
   return {
-    sim: nextSim,
+    sim: finalSim,
     jurisdictionId: jurId,
     penalty,
     fineAmount,
     jailHours,
     jailNights,
+    day: finalSim.currentDay,
+    hour: finalSim.currentHour,
+    daysElapsed,
     charges,
     priorOffenses: nextPriorOffenses.length,
     totalCaseStrength,
     confiscatedItems,
     coldCasesTriggered,
+    policePlans,
+    attitudeChanges,
+    newPoliceCases,
     summary,
   };
 }
@@ -1860,6 +2145,27 @@ export function load(serialized: string): LoopSim {
   }
   if (!parsed.world || !parsed.crimeState || !parsed.idMap || !parsed.places || !parsed.peopleMeta) {
     throw new Error('Invalid LoopSim save payload: missing required state fields');
+  }
+  if (!parsed.stopPolicy) {
+    parsed.stopPolicy = resolveStopPolicy();
+  }
+  for (const place of Object.values(parsed.places)) {
+    if (!Array.isArray(place.staff)) place.staff = [];
+  }
+  if (!parsed.policeState && parsed.streetGraph) {
+    const restored = createLoopPolice({
+      seed: parsed.seed ?? 'restored',
+      year: parsed.year ?? 1978,
+      startDay: parsed.currentDay ?? 0,
+      startHour: parsed.currentHour ?? 8,
+      places: parsed.places,
+      streetGraph: parsed.streetGraph,
+      peopleCount: Object.keys(parsed.peopleMeta).length,
+      crimeState: parsed.crimeState,
+      idMap: parsed.idMap,
+    });
+    parsed.policeState = restored.policeState;
+    parsed.officers = restored.officers;
   }
   return parsed as LoopSim;
 }

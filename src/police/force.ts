@@ -146,8 +146,39 @@ export function shortestNodePath(
 }
 
 /**
- * Partitions a jurisdiction's street nodes into `officerCount` connected patrol beats
- * starting near `stationNodeId` and fanning out across streets, intersections, and buildings.
+ * Computes exact BFS hop distances from `startId` to every reachable non-border node
+ * inside `jurisdictionId`.
+ */
+function bfsHopDistances(
+  adj: Map<string, string[]>,
+  graph: StreetGraph,
+  jurisdictionId: string,
+  startId: string,
+): Map<string, number> {
+  const dist = new Map<string, number>();
+  if (!graph.nodes[startId]) return dist;
+  dist.set(startId, 0);
+  const queue: string[] = [startId];
+  let head = 0;
+  while (head < queue.length) {
+    const cur = queue[head++]!;
+    const d = dist.get(cur)!;
+    const nbs = adj.get(cur) ?? [];
+    for (let i = 0; i < nbs.length; i++) {
+      const nb = nbs[i]!;
+      if (dist.has(nb)) continue;
+      const node = graph.nodes[nb];
+      if (!node || node.jurisdictionId !== jurisdictionId || node.kind === 'border') continue;
+      dist.set(nb, d + 1);
+      queue.push(nb);
+    }
+  }
+  return dist;
+}
+
+/**
+ * Partitions a jurisdiction's street nodes into `officerCount` compact patrol beats
+ * built strictly by graph distance (nearby corners), independent of node ID numbering.
  */
 export function buildBeats(
   graph: StreetGraph,
@@ -159,75 +190,147 @@ export function buildBeats(
   const jurNodes = Object.values(graph.nodes)
     .filter((n) => n.jurisdictionId === jurisdictionId && n.kind !== 'border')
     .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-
   if (jurNodes.length === 0) {
     return Array.from({ length: Math.max(1, officerCount) }, () => [stationNodeId]);
   }
 
   const adj = getAdjacency(graph);
   const count = Math.max(1, officerCount);
-  const beats: string[][] = [];
+  const jurIds = jurNodes.map((n) => n.id);
+  const patrolCandidates = jurIds.filter((id) => id !== stationNodeId);
+  const pool = patrolCandidates.length > 0 ? patrolCandidates : jurIds;
+  const poolSet = new Set<string>(pool);
 
-  // Deterministic BFS ordering from station so beats radiate cleanly along streets
-  const bfsOrder: string[] = [];
-  const seen = new Set<string>();
-  const startId = graph.nodes[stationNodeId] ? stationNodeId : jurNodes[0]!.id;
-  const q: string[] = [startId];
-  seen.add(startId);
-  while (q.length > 0) {
-    const cur = q.shift()!;
-    bfsOrder.push(cur);
-    const nbs = adj.get(cur) ?? [];
-    for (let i = 0; i < nbs.length; i++) {
-      const nb = nbs[i]!;
-      if (seen.has(nb)) continue;
-      const node = graph.nodes[nb];
-      if (!node || node.jurisdictionId !== jurisdictionId || node.kind === 'border') continue;
-      seen.add(nb);
-      q.push(nb);
-    }
-  }
-  // Include any disconnected nodes in the jurisdiction
-  for (let i = 0; i < jurNodes.length; i++) {
-    if (!seen.has(jurNodes[i]!.id)) bfsOrder.push(jurNodes[i]!.id);
-  }
-
-  // Build one connected loop per officer of 3–6 waypoints
-  const patrolCandidates = bfsOrder.filter((id) => id !== stationNodeId);
-  const pool = patrolCandidates.length > 0 ? patrolCandidates : bfsOrder;
+  // Pick officer anchors spread across town by graph-distance farthest-point sampling
+  // starting near the police station (never slicing raw sorted node IDs).
+  const startId = graph.nodes[stationNodeId] ? stationNodeId : pool[0]!;
+  const distFromStation = bfsHopDistances(adj, graph, jurisdictionId, startId);
+  const anchors: string[] = [];
+  const anchorSet = new Set<string>();
+  const minDistToAnchors = new Map<string, number>();
 
   for (let oi = 0; oi < count; oi++) {
-    const startIdx = (oi * Math.max(1, Math.floor(pool.length / count))) % pool.length;
-    const anchor = pool[startIdx]!;
+    let chosen: string | undefined;
+    if (oi === 0) {
+      // First anchor: closest patrol corner to the station by graph hops
+      let bestDist = Infinity;
+      let bestTie = Infinity;
+      for (let i = 0; i < pool.length; i++) {
+        const id = pool[i]!;
+        const d = distFromStation.get(id) ?? 1e6;
+        const tie = rand(seed, 'beat_anchor', jurisdictionId, oi, id);
+        if (d < bestDist || (d === bestDist && tie < bestTie)) {
+          bestDist = d;
+          bestTie = tie;
+          chosen = id;
+        }
+      }
+    } else {
+      // Subsequent anchors: farthest node by graph hops from already-chosen anchors
+      const unused = pool.filter((id) => !anchorSet.has(id));
+      const candidates = unused.length > 0 ? unused : pool;
+      let bestDist = -1;
+      let bestTie = Infinity;
+      for (let i = 0; i < candidates.length; i++) {
+        const id = candidates[i]!;
+        const d = minDistToAnchors.get(id) ?? 1e6;
+        const tie = rand(seed, 'beat_anchor', jurisdictionId, oi, id);
+        if (d > bestDist || (d === bestDist && tie < bestTie)) {
+          bestDist = d;
+          bestTie = tie;
+          chosen = id;
+        }
+      }
+    }
+    const anchor = chosen ?? pool[oi % pool.length]!;
+    anchors.push(anchor);
+    anchorSet.add(anchor);
+    const dAnchor = bfsHopDistances(adj, graph, jurisdictionId, anchor);
+    for (let i = 0; i < pool.length; i++) {
+      const id = pool[i]!;
+      const d = dAnchor.get(id);
+      if (d !== undefined) {
+        const prev = minDistToAnchors.get(id);
+        if (prev === undefined || d < prev) minDistToAnchors.set(id, d);
+      }
+    }
+  }
+
+  // Grow each beat around its anchor using nearby graph-connected corners only
+  const beats: string[][] = [];
+  const claimed = new Set<string>();
+  const targetLen = Math.min(
+    pool.length,
+    Math.max(3, Math.min(6, Math.ceil(pool.length / Math.max(1, count * 0.5)))),
+  );
+
+  for (let oi = 0; oi < count; oi++) {
+    const anchor = anchors[oi]!;
+    const distFromAnchor = bfsHopDistances(adj, graph, jurisdictionId, anchor);
     const beat: string[] = [anchor];
     const used = new Set<string>([anchor]);
-    const targetLen = Math.min(pool.length, Math.max(3, Math.min(6, Math.ceil(pool.length / Math.max(1, count * 0.5)))));
-
+    claimed.add(anchor);
     let cur = anchor;
+
     for (let step = 1; step < targetLen; step++) {
-      const nbs = (adj.get(cur) ?? []).filter((nb) => {
-        const node = graph.nodes[nb];
-        return node && node.jurisdictionId === jurisdictionId && node.kind !== 'border' && !used.has(nb);
-      });
+      const directNbs = (adj.get(cur) ?? []).filter(
+        (nb) => poolSet.has(nb) && !used.has(nb),
+      );
       let next: string | undefined;
-      if (nbs.length > 0) {
-        const pick = Math.floor(rand(seed, 'beat', jurisdictionId, oi, step) * nbs.length);
-        next = nbs[pick]!;
+
+      if (directNbs.length > 0) {
+        // Prefer unclaimed direct neighbors that stay close to the beat anchor
+        let bestScore = Infinity;
+        let bestTie = Infinity;
+        for (let i = 0; i < directNbs.length; i++) {
+          const nb = directNbs[i]!;
+          const dAnchor = distFromAnchor.get(nb) ?? 100;
+          const claimPenalty = claimed.has(nb) ? 10 : 0;
+          const score = claimPenalty + dAnchor;
+          const tie = rand(seed, 'beat_step', jurisdictionId, oi, step, nb);
+          if (score < bestScore || (score === bestScore && tie < bestTie)) {
+            bestScore = score;
+            bestTie = tie;
+            next = nb;
+          }
+        }
       } else {
-        // Fallback: next unused node in pool
-        for (let k = 0; k < pool.length; k++) {
-          const cand = pool[(startIdx + step + k) % pool.length]!;
-          if (!used.has(cand)) {
+        // Dead end: step to the closest reachable unused corner by graph hops from cur
+        const distFromCur = bfsHopDistances(adj, graph, jurisdictionId, cur);
+        let bestHops = Infinity;
+        let bestAnchorHops = Infinity;
+        let bestClaimed = 2;
+        let bestTie = Infinity;
+        for (const [cand, hops] of distFromCur.entries()) {
+          if (!poolSet.has(cand) || used.has(cand)) continue;
+          const anchorHops = distFromAnchor.get(cand) ?? 100;
+          const isClaimed = claimed.has(cand) ? 1 : 0;
+          const tie = rand(seed, 'beat_hop', jurisdictionId, oi, step, cand);
+          if (
+            hops < bestHops ||
+            (hops === bestHops && anchorHops < bestAnchorHops) ||
+            (hops === bestHops && anchorHops === bestAnchorHops && isClaimed < bestClaimed) ||
+            (hops === bestHops &&
+              anchorHops === bestAnchorHops &&
+              isClaimed === bestClaimed &&
+              tie < bestTie)
+          ) {
+            bestHops = hops;
+            bestAnchorHops = anchorHops;
+            bestClaimed = isClaimed;
+            bestTie = tie;
             next = cand;
-            break;
           }
         }
       }
+
       if (!next) break;
       beat.push(next);
       used.add(next);
+      claimed.add(next);
       cur = next;
     }
+
     beats.push(beat);
   }
 
