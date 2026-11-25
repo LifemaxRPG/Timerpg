@@ -86,6 +86,15 @@ bool ensure_gpu_backend();
 bool has_gpu();
 bool has_npu();
 
+/**
+ * For llama_model_params::devices: no accelerator at all (an empty, null-terminated list). Without it llama.cpp takes
+ * every device it knows even with n_gpu_layers 0: the weights then go to the first device's "host" buffer (on the S25
+ * HTP0's shared DMA memory, copied out of the mapped file) and the scheduler runs every matrix product of that model on
+ * the NPU, through the same HTP session the dialogue model uses, unvoted (idle clocks) and from another thread. The
+ * memory model (embedder), the reranker, speech and a CPU dialogue load all pass this.
+ */
+ggml_backend_dev_t * cpu_only_devices();
+
 // ---------------------------------------------------------------------------------------------------- the NPU's power vote
 
 /**

@@ -448,7 +448,10 @@ internal object FilamentModels {
                 val high = abs(xe - ax) < .5f
                 val top = if (high) g.y1 else g.y0
                 if (top - wallTop > .5f && wd1 > wd0 + .5f) {
-                    plain(wall, arrayOf(p(xw, top, wd0), p(xw, top, wd1), p(xw, wallTop, wd1), p(xw, wallTop, wd0)), if (left) LEFT else RIGHT)
+                    // a hair back into the house: where the wall stands under the eave's edge (xw == xe) the eave's board
+                    // above lies in the same plane over its top 2.5 pixels, and the two fought (0.1.930, 085016: the
+                    // porch's small gable on villa_4, x 41 and 119, y 58.5..61, all along its depth)
+                    plain(wall, arrayOf(p(xw, top, wd0), p(xw, top, wd1), p(xw, wallTop, wd1), p(xw, wallTop, wd0)), if (left) LEFT else RIGHT, inset = .2f)
                 }
             }
             // the back gable end, where the roof ends (not where it runs into another)

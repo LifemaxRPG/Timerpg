@@ -1388,13 +1388,10 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 stopHere?.let { sp -> if (inside == null) Chip("🚏 ${LoopSession.view?.transit?.get(sp.id)?.mode?.takeIf { it.isNotEmpty() } ?: "Bus"} stop", stopOpen) { stopOpen = !stopOpen; lodgeOpen = false; MoveInput.holdUntilNeutral() } }
                 if (inside != null) Chip("Leave", false) { doorTo = false to null }
                 else if (roomHere != null) Chip("Go inside", false) { doorTo = true to roomHere }
-                // the depot: the ticket window (docs/RAIL.md)
+                // the depot: the ticket window (docs/RAIL.md); where the player stands is read each frame in its own scope
                 val rail = townData?.rail
-                val pw = com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.walk
-                if (frameTick.longValue >= 0 && inside == null && rail != null && pw != null && RailTrip.ride == null && !ticketOpen && RailTrip.atDepot(rail, pw.wx, pw.wz))
-                    Chip("Take the train", false) { MoveInput.holdUntilNeutral(); ticketOpen = true }
-                if (frameTick.longValue >= 0 && inside == null && rail != null && pw != null && RailTrip.ride == null && LoopSession.view != null && RailTrip.atDepot(rail, pw.wx, pw.wz))
-                    Chip("🗺 Maps", standOpen) { MoveInput.holdUntilNeutral(); standOpen = !standOpen }
+                if (inside == null && rail != null) DepotChips(frameTick, rail, ticketOpen, standOpen,
+                    onTicket = { MoveInput.holdUntilNeutral(); ticketOpen = true }, onStand = { MoveInput.holdUntilNeutral(); standOpen = !standOpen })
             }
         }
         townData?.rail?.let { rail ->
@@ -1405,13 +1402,12 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     val go = { RailTrip.request = com.lifemax.rpg.feature.habits.domain.RailRide(rail, route) }
                     if (LoopSession.view != null && route.fare > 0.0) LoopSession.buyTicket(ctx, route.km, go) else go() },
                 onClose = { ticketOpen = false }, modifier = Modifier.align(Alignment.Center).padding(16.dp))
-            val ride = if (frameTick.longValue >= 0) RailTrip.ride else null
-            if (ride != null) RideOverlay(rail, ride, RailTrip.progress, onDone = {
+            RideNow(frameTick, rail, Modifier.align(Alignment.TopCenter).padding(top = 110.dp)) { ride ->
                 // the clock moves on by the trip (the arrival's time of day); the ride's world goes
                 val arrive = ride.route.legs?.lastOrNull()?.arrive
                 if (arrive != null) { hour = ((arrive % 1440.0) / 60.0).toFloat(); LoopSession.clock(hour, wrap = true) }
                 RailTrip.stop = true
-            }, modifier = Modifier.align(Alignment.TopCenter).padding(top = 110.dp))
+            }
         }
         // the town being built (the first view nearest the player): a simple loading screen until it is ready
         if (townLoading && inside == null) Box(Modifier.fillMaxSize().background(Color(0xF0101420)), contentAlignment = Alignment.Center) {
@@ -1712,6 +1708,8 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
     fun askSaid(engine: DialogueEngine, text: String, voices: com.timerpg.street.voice.NpcVoiceService? = null,
                 memory: com.timerpg.street.dialogue.MemoryService? = null) {
         request?.close()
+        stopWatchdog()
+        val watch = com.timerpg.street.dialogue.TurnWatch()
         said = text
         asked++
         // (a bubble shows the answer to these words only: not the last one while their memories are looked up)
@@ -1730,10 +1728,15 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
         var asked: DialogueEngine.Request? = null
         var askedTopic: Topic? = null
         var vec: FloatArray? = null
-        fun heard(l: Line) {
+        fun heard(l: Line, byWatchdog: Boolean = false) {
+            // (the watchdog gave the template already: a reply coming after it is not said too)
+            if (watch.isEnded && !byWatchdog) return
             if (l.ai && tFirst == 0L && tAsk > 0L) tFirst = android.os.SystemClock.elapsedRealtime()
+            if (l.ai && !l.final) watch.stage("writing (${l.text.length} chars shown)")
             if (!early && voices != null) early = earlyVoice(l, voices)
             if (!l.final || l.text == spoken) return
+            if (!byWatchdog && !watch.end()) return
+            stopWatchdog()
             spoken = l.text; replies += l.text
             run {
                 // the whole turn's timing, for the AI panel and the breadcrumbs: from the end of the player's speech to the
@@ -1762,11 +1765,13 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
             finishTurn(tt, l, engine)
         }
         fun go(remembered: List<String>, v: FloatArray?) {
-            if (said != text) return   // something else was asked meanwhile
+            if (said != text || watch.isEnded) return   // something else was asked meanwhile, or the watchdog answered
             tAsk = android.os.SystemClock.elapsedRealtime()
+            watch.stage("asked the model (${remembered.size} memories)")
             vec = v
             tt.memories = remembered.size
-            val (tp, r) = engine.askFree(npc, text, remembered, v, replies.toList()) { line = it; heard(it) } ?: return
+            val (tp, r) = engine.askFree(npc, text, remembered, v, replies.toList()) { if (!watch.isEnded) line = it; heard(it) }
+                ?: run { watch.stage("no topic for the words"); return }
             asked = r; askedTopic = tp
             topic = tp
             request = r
@@ -1774,11 +1779,34 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
             if (r.first?.final != true && echo == null) filler(text, voices)
             heard(r.first)
         }
+        // a turn that gives the player nothing in time ends with the topic's template, and says where it was stuck
+        val dog = Runnable {
+            if (said != text || !watch.end()) return@Runnable
+            val note = "${watch.note()}; memory worker ${memory?.describe() ?: "none"}; engine ${engine.stageNote()}"
+            com.timerpg.street.shot.Crumbs.add("talk watchdog (${npc.first}): no reply to '${text.take(60)}' in " +
+                "${com.timerpg.street.dialogue.TurnWatch.GIVE_UP_MS / 1000} s: $note")
+            tt.watchdog = note
+            request?.close()
+            val tp = askedTopic ?: DialogueEngine.topicFor(npc, text) ?: npc.topics.firstOrNull() ?: return@Runnable
+            if (askedTopic == null) { askedTopic = tp; topic = tp }
+            val fb = Line(tp.template, ai = false, final = true, note = "built-in · no reply in time",
+                info = com.timerpg.street.dialogue.ReplyInfo("template", why = "no reply in ${com.timerpg.street.dialogue.TurnWatch.GIVE_UP_MS / 1000} s: ${watch.stage}"))
+            line = fb
+            heard(fb, byWatchdog = true)
+        }
+        watchdog = dog
+        mainHandler.postDelayed(dog, com.timerpg.street.dialogue.TurnWatch.GIVE_UP_MS)
         // what they remember that bears on it goes into their fact sheet first
-        if (memory != null && memory.installed) memory.recall(npc.id, text) { facts, v -> go(facts, v) } else go(emptyList(), null)
+        if (memory != null && memory.installed) { watch.stage("looking up memories"); memory.recall(npc.id, text) { facts, v -> go(facts, v) } }
+        else go(emptyList(), null)
     }
 
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var watchdog: Runnable? = null
+    private fun stopWatchdog() { watchdog?.let { mainHandler.removeCallbacks(it) }; watchdog = null }
+
     fun close(voices: com.timerpg.street.voice.NpcVoiceService? = null) {
+        stopWatchdog()
         // walked away before the reply was final: the exchange is logged as such
         turn?.let { tt -> if (!tt.written) { tt.walkedAway = true; tt.reply = line?.text?.takeIf { line?.ai == true }; tt.finish(); com.timerpg.street.play.PlayLog.talk(tt) } }
         turn = null
@@ -2531,6 +2559,29 @@ private fun Chip(label: String, on: Boolean, modifier: Modifier = Modifier, onCl
         }.padding(horizontal = 10.dp, vertical = 6.dp),
         contentAlignment = Alignment.Center,
     ) { Text(label, 13.sp) }
+}
+
+/**
+ * The depot's chips (the ticket window, the map stand). They depend on where the player stands, so they read [frameTick]
+ * here, in their own small scope: read in the game screen's own, it recomposed the whole screen every frame (0.1.930: "HUD
+ * composed 570 times" in 10 s, ~1 collection a second, and every worst frame of 100-150 ms had one in it).
+ */
+@Composable
+private fun DepotChips(frameTick: androidx.compose.runtime.LongState, rail: com.lifemax.rpg.feature.habits.domain.RailNet,
+                       ticketOpen: Boolean, standOpen: Boolean, onTicket: () -> Unit, onStand: () -> Unit) {
+    if (frameTick.longValue < 0) return
+    val pw = com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.walk ?: return
+    if (RailTrip.ride != null || !RailTrip.atDepot(rail, pw.wx, pw.wz)) return
+    if (!ticketOpen) Chip("Take the train", false, onClick = onTicket)
+    if (LoopSession.view != null) Chip("🗺 Maps", standOpen, onClick = onStand)
+}
+
+/** The train ride's overlay while one is under way ([RailTrip.ride], looked at each frame here, not in the game screen). */
+@Composable
+private fun RideNow(frameTick: androidx.compose.runtime.LongState, rail: com.lifemax.rpg.feature.habits.domain.RailNet, modifier: Modifier,
+                    onArrive: (com.lifemax.rpg.feature.habits.domain.RailRide) -> Unit) {
+    val ride = if (frameTick.longValue >= 0) RailTrip.ride else null
+    if (ride != null) RideOverlay(rail, ride, RailTrip.progress, onDone = { onArrive(ride) }, modifier = modifier)
 }
 
 /** A panel over the street takes the touches on it: none of them fall through to the stick under it. */
