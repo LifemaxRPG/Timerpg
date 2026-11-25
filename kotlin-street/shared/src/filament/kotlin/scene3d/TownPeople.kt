@@ -88,7 +88,7 @@ internal class TownPeople(
             .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, vb!!, ib!!).material(0, mi).build(engine, e)
         engine.transformManager.create(e)
         scene.addEntity(e)
-        val pmi = proxyMat.createInstance().also { m -> m.setParameter("albedo", textures.white, nearest); m.setParameter("uvRect", 0f, 0f, 1f, 1f) }
+        val pmi = proxyMat.createInstance().also { m -> m.setParameter("albedo", textures.white, nearest); m.setParameter("uvRect", 0f, 0f, 1f, 1f); Cutouts.castOnly(m) }
         val p = EntityManager.get().create()
         RenderableManager.Builder(1).boundingBox(Box(.5f, .5f, 0f, .5f, .5f, .1f)).culling(false).castShadows(true).receiveShadows(false)
             .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, vb!!, ib!!).material(0, pmi).build(engine, p)

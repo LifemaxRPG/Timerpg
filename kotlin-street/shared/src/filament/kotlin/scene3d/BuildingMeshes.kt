@@ -512,7 +512,7 @@ internal class BuildingMeshes(
         var proxy = 0
         var pmis: Array<MaterialInstance> = emptyArray()
         if (proxyMat != null) {
-            pmis = Array(faces.size) { j -> proxyMat.createInstance().also { mi -> mi.setParameter("albedo", tex[j], crisp); mi.setParameter("uvRect", 0f, 0f, 1f, 1f) } }
+            pmis = Array(faces.size) { j -> proxyMat.createInstance().also { mi -> mi.setParameter("albedo", tex[j], crisp); mi.setParameter("uvRect", 0f, 0f, 1f, 1f); Cutouts.castOnly(mi) } }
             proxy = EntityManager.get().create()
             val pb = RenderableManager.Builder(faces.size).boundingBox(box).castShadows(true).receiveShadows(false)
             for (j in faces.indices) pb.geometry(j, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices, first + ranges[j][0], ranges[j][1]).material(j, pmis[j])

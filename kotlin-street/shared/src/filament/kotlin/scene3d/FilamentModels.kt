@@ -1445,7 +1445,7 @@ internal object FilamentModels {
             pmis = Array(parts.size) { j ->
                 (if (proxyOpaque != null && parts[j].opaque) proxyOpaque else proxyMat).createInstance().also { mi ->
                     val (tex, smp) = albedoOf(parts[j].key)
-                    mi.setParameter("albedo", tex, smp); mi.setParameter("uvRect", 0f, 0f, 1f, 1f); geo.decode(mi)
+                    mi.setParameter("albedo", tex, smp); mi.setParameter("uvRect", 0f, 0f, 1f, 1f); geo.decode(mi); Cutouts.castOnly(mi)
                 }
             }
             proxy = EntityManager.get().create()

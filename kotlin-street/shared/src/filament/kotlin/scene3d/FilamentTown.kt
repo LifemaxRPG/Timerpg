@@ -722,6 +722,11 @@ class FilamentTown(
         view.colorGrading = grading
         view.isShadowingEnabled = true
         view.shadowType = View.ShadowType.PCF
+        // (OSS_TAILORING F5, the froxels' depth range in our units, ~21 a metre: Filament's 5-100 puts nearly the whole
+        // street in its last slice. NOT identical: the desktop's night renders change a lot with it, the street lamps' pools
+        // of light appear on the pavements that the default range drops (the last slice's lights over its limit, it
+        // seems), so it waits for the owner's eye: -DlightRange=1 / [lightRange] to see it)
+        if (lightRange) view.setDynamicLightingOptions(LIGHT_NEAR, LIGHT_FAR)
         camera.setExposure(1f)
         val shadow = shadowOptions.apply {
             mapSize = shadowMap
@@ -743,6 +748,8 @@ class FilamentTown(
     private fun load(name: String, bytes: (String) -> ByteArray): Material {
         val b = bytes(name)
         val buf = TownMemory.direct(b.size).put(b).flip()
+        // (OSS_TAILORING F8, 2 bands of spherical harmonics in the materials, is not identical: the desktop's night renders
+        // moved by up to 21 levels over a quarter of their pixels, so the materials keep Filament's 3)
         return Material.Builder().payload(buf, b.size).build(engine)
     }
 
@@ -2533,6 +2540,11 @@ class FilamentTown(
         const val HIDE_FAR = 1; const val HIDE_BUILDINGS = 2; const val HIDE_YARDS = 4; const val HIDE_GREEN = 8; const val HIDE_GROUND = 16
         /** With the far boxes up, the trees' cards are drawn this far past the view's range (street units), into thick haze. */
         const val GREEN_PAST_RANGE = 2000f
+        /** The froxels' depth range set for the lights (off by default: it changes the night picture, see where it is set). */
+        @JvmField var lightRange = System.getProperty("lightRange") == "1"
+        /** That range (street units): from about the camera's near to past the lamps in view. */
+        const val LIGHT_NEAR = 30f
+        const val LIGHT_FAR = 3000f
         /** How long a chunk's greenery takes to cross over between its cards and its 3D trees (s). */
         const val GREEN_SWITCH_SECONDS = .35f
         /**

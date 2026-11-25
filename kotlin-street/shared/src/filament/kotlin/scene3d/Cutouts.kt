@@ -183,6 +183,18 @@ internal class Cutouts private constructor(private val w: Int, private val h: In
             return true
         }
 
+        /**
+         * A shadow twin's instance ([mi], shadow_proxy) drawn in the shadow passes only: Filament draws the twins near
+         * the view in the colour pass too, where they shade (a texture read) and write nothing. A FRONT_AND_BACK culling
+         * mode makes the colour pass skip the command (RenderPass.cpp: "cancel command if both front and back faces are
+         * culled"), while the shadow passes use the shadow culling mode, NONE as the material's own (OSS_TAILORING (a)).
+         * -DcastOnly=0: drawn in the colour pass as before (to compare).
+         */
+        fun castOnly(mi: MaterialInstance) {
+            if (CAST_ONLY) mi.setCullingMode(Material.CullingMode.FRONT_AND_BACK, Material.CullingMode.NONE)
+        }
+        private val CAST_ONLY = System.getProperty("castOnly") != "0"
+
         // the opaque twin of each masked town material (FilamentTown registers them; anything else stays masked)
         private val twins = java.util.IdentityHashMap<Material, Material>()
         fun register(masked: Material, opaque: Material) { synchronized(twins) { twins[masked] = opaque } }

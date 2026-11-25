@@ -306,7 +306,7 @@ internal class PropLayer(
         var pmi: MaterialInstance? = null
         var pomi: MaterialInstance? = null
         if (casts && proxy != null) {
-            val pinit: (MaterialInstance) -> Unit = { m -> m.setParameter("albedo", tex, crisp); m.setParameter("uvRect", 0f, 0f, 1f, 1f); geo.decode(m) }
+            val pinit: (MaterialInstance) -> Unit = { m -> m.setParameter("albedo", tex, crisp); m.setParameter("uvRect", 0f, 0f, 1f, 1f); geo.decode(m); Cutouts.castOnly(m) }
             // (the shadow twin is never faded nor cut: its opaque part stays opaque, its shadow pass depth only)
             pomi = if (no > 0) Cutouts.twin(proxy)?.createInstance()?.also(pinit) else null
             val psplit = pomi != null && no < geo.count
