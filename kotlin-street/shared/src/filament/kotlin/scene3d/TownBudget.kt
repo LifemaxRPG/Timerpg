@@ -57,9 +57,9 @@ object TownBudget {
     /**
      * The radius budget: Filament's whole count (as [parts]' "total") at any frame of the fixed walk and drive through the
      * capital ([GpuRouteTest]) with streaming on. It must not grow as the capital grows: adding districts adds far boxes
-     * and far yards only.
+     * and far yards only. The peak measured 2026-11-25 after step 4: 475-478 MB (704.2 with step 4 off, ROUTE_STEP4=0).
      */
-    const val ROUTE_MB = 800.0
+    const val ROUTE_MB = 495.0
 
     /** One part's figure against its budget. */
     class Row(val part: String, val mb: Double?, val budget: Double) {

@@ -15,8 +15,11 @@ internal class GeomSlice internal constructor(
     val vb: VertexBuffer, val ib: IndexBuffer, val first: Int, val count: Int,
     internal val vPage: BufferArena.Page?, internal val vOff: Int, internal val vLen: Int,
     internal val iPage: BufferArena.Page?, internal val iOff: Int, internal val iLen: Int,
-    /** Quantised ([TownVertex.quantize]): how the materials read its positions and texture coordinates back; null: floats. */
-    internal val quant: TownVertex.Quant? = null,
+    /**
+     * Quantised ([TownVertex.quantize]): how the materials read its positions and texture coordinates back (the map only,
+     * never the vertices: a slice lives as long as its batch); null: floats.
+     */
+    internal val quant: TownVertex.QuantMap? = null,
 ) {
     @Volatile var freed = false; private set
 
@@ -28,13 +31,7 @@ internal class GeomSlice internal constructor(
      * vertices back: the quantised batch's `posMap`, `posScale` and `uvMap`, or nothing for floats (the materials' default, 0, reads
      * them as they are). Every material instance made for a slice must have it.
      */
-    fun decode(mi: com.google.android.filament.MaterialInstance) {
-        val q = quant ?: return
-        val m = mi.material
-        if (m.hasParameter("posMap")) mi.setParameter("posMap", q.posMap[0], q.posMap[1], q.posMap[2], q.posMap[3])
-        if (m.hasParameter("posScale")) mi.setParameter("posScale", q.posScale[0], q.posScale[1], q.posScale[2], q.posScale[3])
-        if (m.hasParameter("uvMap")) mi.setParameter("uvMap", q.uvMap[0], q.uvMap[1], q.uvMap[2], q.uvMap[3])
-    }
+    fun decode(mi: com.google.android.filament.MaterialInstance) { quant?.decode(mi) }
 
     /** Its triangles. */
     val triangles: Int get() = count / 3
@@ -108,6 +105,14 @@ object BufferArena {
     val quantized = java.util.concurrent.atomic.AtomicLong()
     val unquantized = java.util.concurrent.atomic.AtomicLong()
 
+    /**
+     * [vb] ([n] vertices as floats, [TownVertex.put]'s layout) quantised for [upload] when [quantize] is on and it keeps the
+     * precision ([TownVertex.quantize]; [texW] x [texH]: the batch's picture), else null. Any thread: the packing workers
+     * call it on the buffer they just packed, which is quantised in place (no second buffer).
+     */
+    internal fun quantized(vb: ByteBuffer, n: Int, texW: Int, texH: Int): TownVertex.Quant? =
+        if (quantize) TownVertex.quantize(vb.duplicate().order(ByteOrder.nativeOrder()), n, texW, texH, inPlace = true) else null
+
     /** How many sets of pages an engine keeps: [lane] 0 for what stays for the town's life, 1 for what is streamed in and out. */
     const val LANES = 2
     /**
@@ -124,21 +129,21 @@ object BufferArena {
      * Puts a packed batch on the GPU: [vb] ([nv] vertices in [TownVertex]'s layout) and [ib] ([ni] indices, 16-bit when
      * [short], counted from 0), into the pages when it is small enough, else into buffers of its own.
      */
-    internal fun upload(engine: Engine, vb: ByteBuffer, nv: Int, ib: ByteBuffer, ni: Int, short: Boolean, texW: Int = 0, texH: Int = 0): GeomSlice {
+    internal fun upload(engine: Engine, vb: ByteBuffer, nv: Int, ib: ByteBuffer, ni: Int, short: Boolean, quant: TownVertex.Quant? = null): GeomSlice {
+        // ([quant]: [vb] is quantised already, [quantized] on the packing worker)
         if (!enabled || !short || nv > MAX_PACKED_VERTICES || nv <= 0 || ni <= 0) {
-            // (a big batch with buffers of its own: quantised too where it keeps the precision)
-            val qo = if (quantize && nv > 0 && ni > 0) TownVertex.quantize(vb.duplicate().order(ByteOrder.nativeOrder()), nv, texW, texH) else null
+            // (a big batch with buffers of its own: quantised too where it kept the precision)
+            val qo = quant?.takeIf { nv > 0 }
             if (qo != null) quantized.addAndGet(nv.toLong()) else unquantized.addAndGet(maxOf(nv, 0).toLong())
             val v = if (qo != null) TownVertex.quantBuffer(engine, nv).also { GpuAccount.addBuffer(it, nv.toLong() * TownVertex.QSTRIDE) }
                 else TownVertex.buffer(engine, kotlin.math.max(1, nv))
-            v.setBufferAt(engine, 0, qo?.vb ?: vb)
+            v.setBufferAt(engine, 0, vb)
             val i = TownVertex.indices(engine, kotlin.math.max(1, ni), short); i.setBuffer(engine, ib)
-            return GeomSlice(v, i, 0, ni, null, 0, 0, null, 0, 0, qo)
+            return GeomSlice(v, i, 0, ni, null, 0, 0, null, 0, 0, qo?.map)
         }
         val pool = synchronized(pools) { pools.getOrPut(engine) { Pool() } }
         val ln = pool.lanes[lane.coerceIn(0, LANES - 1)]
-        // (quantised where it keeps the precision: positions to under half a millimetre, texel edges exact)
-        val qt = if (quantize) TownVertex.quantize(vb.duplicate().order(ByteOrder.nativeOrder()), nv, texW, texH) else null
+        val qt = quant
         if (qt != null) quantized.addAndGet(nv.toLong()) else unquantized.addAndGet(nv.toLong())
         val stride = if (qt != null) TownVertex.QSTRIDE else TownVertex.STRIDE
         val (vp, vo) = place(engine, if (qt != null) ln.qPages else ln.vPages, nv, PAGE_VERTICES, if (qt != null) 2 else 1, lane)
@@ -146,7 +151,7 @@ object BufferArena {
         val il = (ni + 1) and 1.inv()
         val (ip, io) = place(engine, ln.iPages, il, PAGE_INDICES, 0, lane)
         // the vertices at their place in the page
-        val vsrc = (qt?.vb ?: vb).duplicate().order(vb.order()); vsrc.position(0); vsrc.limit(nv * stride)
+        val vsrc = vb.duplicate().order(vb.order()); vsrc.position(0); vsrc.limit(nv * stride)
         vp.vb!!.setBufferAt(engine, 0, vsrc, vo * stride, nv * stride)
         // the indices counted from there (a copy: the packed batch may be uploaded again, by a layer made anew)
         val src = ib.duplicate().order(ByteOrder.nativeOrder()); src.position(0)
@@ -155,7 +160,7 @@ object BufferArena {
         if (il > ni) dst.putShort(vo.toShort())
         dst.flip()
         ip.ib!!.setBuffer(engine, dst, io * 2, il * 2)
-        val s = GeomSlice(vp.vb, ip.ib, io, ni, vp, vo, nv, ip, io, il, qt)
+        val s = GeomSlice(vp.vb, ip.ib, io, ni, vp, vo, nv, ip, io, il, qt?.map)
         GpuAccount.addBuffer(s, nv.toLong() * stride + ni * 2L, gpu = false)
         return s
     }

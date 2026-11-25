@@ -36,7 +36,7 @@ class VertexQuantTest {
         val vb = batch(n) { src[it] }
         val q = TownVertex.quantize(vb, n, w, h)
         assertNotNull("a building-sized batch is quantised", q); q!!
-        val pm = q.posMap; val ps = q.posScale; val um = q.uvMap
+        val pm = q.map.posMap; val ps = q.map.posScale; val um = q.map.uvMap
         assertEquals(1f, pm[3])
         val out = q.vb.duplicate().order(ByteOrder.nativeOrder())
         for (i in 0 until n) {

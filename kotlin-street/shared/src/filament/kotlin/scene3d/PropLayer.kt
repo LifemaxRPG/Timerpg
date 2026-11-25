@@ -111,6 +111,8 @@ internal class PropLayer(
         private val ownPictures: Boolean = true,
         /** Its indices are 16-bit ([TownVertex.short]). */
         internal val shortIndices: Boolean = false,
+        /** [vb] quantised ([TownVertex.quantize], made on the packing worker): how its materials read it back; null: floats. */
+        internal val quant: TownVertex.Quant? = null,
     ) {
         val bytes: Int get() = vb.capacity() + ib.capacity()
         /** What it alone holds until its upload: vertices, indices and, unless shared, its pictures (on the phone, Java heap). */
@@ -119,7 +121,7 @@ internal class PropLayer(
 
     /** Uploads a [Packed] batch (the engine's thread); [casts]: it throws a shadow; [tiled]: its picture repeats. */
     fun upload(p: Packed, casts: Boolean, tiled: Boolean = false): MaterialInstance {
-        val geo = BufferArena.upload(engine, p.vb, p.vertices, p.ib, p.indices, p.shortIndices, p.tex.w, p.tex.h)
+        val geo = BufferArena.upload(engine, p.vb, p.vertices, p.ib, p.indices, p.shortIndices, p.quant)
         textures.gpu.buffers(p.vb.limit(), p.ib.limit())
         com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.bytes += p.vb.limit() + p.ib.limit()
         val b = p.box
@@ -169,7 +171,9 @@ internal class PropLayer(
         val (tex, fresh) = StreetTextures.prepareShared(mesh.tex, mesh.texW, mesh.texH, linear = false, share)
         // (the mask is sampled nearest, its level 0 only: no mipmaps for it)
         val mask = mesh.mask?.let { StreetTextures.prepareShared(it, mesh.texW, mesh.texH, linear = true, share, mips = false).first }
-        return Packed(vb, ib, nv, mesh.idx.size * at.size, box, tex, mask, fresh, short)
+        // (quantised here on the worker: the float vertices let go at once, only the 20-byte ones wait for the upload)
+        val qt = BufferArena.quantized(vb, nv, mesh.texW, mesh.texH)
+        return Packed(qt?.vb ?: vb, ib, nv, mesh.idx.size * at.size, box, tex, mask, fresh, short, qt)
         }
 
         /**
@@ -214,7 +218,8 @@ internal class PropLayer(
             val box = floatArrayOf((minX + maxX) / 2f, (minY + maxY) / 2f, (minZ + maxZ) / 2f, (maxX - minX) / 2f + .5f, (maxY - minY) / 2f + .5f, (maxZ - minZ) / 2f + .5f)
             val (tex, fresh) = StreetTextures.prepareShared(mesh.tex, mesh.texW, mesh.texH, linear = false, share)
             val mask = mesh.mask?.let { StreetTextures.prepareShared(it, mesh.texW, mesh.texH, linear = true, share, mips = false).first }
-            return Packed(vb, ib, nv, mesh.idx.size, box, tex, mask, fresh, short)
+            val qt = BufferArena.quantized(vb, nv, mesh.texW, mesh.texH)
+            return Packed(qt?.vb ?: vb, ib, nv, mesh.idx.size, box, tex, mask, fresh, short, qt)
         }
 
         /** [props] packed for [upload] by look (one batch each), on any thread: each batch, whether it casts, how many props. */

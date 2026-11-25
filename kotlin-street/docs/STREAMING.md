@@ -119,6 +119,10 @@ far side at 600), 62,568 street units, 11,484 frames. Filament's whole count eve
 cells into detail: trees 168.6 MB at the end with streaming off, 31.5 MB with it on.) The radius budget
 `TownBudget.ROUTE_MB` is 800 MB; the test fails over it.
 
+Since MEMORY_AUDIT.md's step 4 (the night masks as window pages, 20-byte vertices, the yards' shared atlas; the same
+day) the route peaks at **475-478 MB** with streaming on (704.2 with step 4 off: `ROUTE_STEP4=0`), 378.6 MB after the
+build at the origin, and `ROUTE_MB` is 495.
+
 The downtown preview shots (`-Dshots=downtown`) hold 583-626 MB with streaming, against 1057.9 MB for the whole town; the
 near views are the same pictures (the contact sheet below), the far views gain the lights at night.
 

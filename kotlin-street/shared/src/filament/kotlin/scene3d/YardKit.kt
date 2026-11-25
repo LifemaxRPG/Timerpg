@@ -1028,14 +1028,21 @@ object YardKit {
 
     /** The shared atlas of every near picture of [lots] (each a patch's near items, as [bake] bakes them). */
     fun nearAtlas(lots: List<List<YardItem>>, maxAtlas: Int = 2048): SharedAtlas? {
-        val found = lots.parallelStream().map { items -> collect(items, far = false).byKind.values.flatMap { l -> l.map { it.mesh } }.distinct() }
-            .collect(java.util.stream.Collectors.toList())
+        // (each lot's meshes looked at and let go at once: only each new atlas's pictures are kept, in a mesh with no
+        // shape, so the pass holds a few MB, not the whole town's yard meshes: those ran a phone-sized heap out)
+        val found = java.util.concurrent.ConcurrentHashMap<Int, Pair<PropMesh, Long>>()
+        val none = FloatArray(0)
+        lots.parallelStream().forEach { items ->
+            for (l in collect(items, far = false).byKind.values) for (p in l) {
+                val m = p.mesh
+                found.computeIfAbsent(atlasKey(m)) { PropMesh(none, none, none, none, IntArray(0), m.texW, m.texH, m.tex, m.mask, none) to sig(m) }
+            }
+        }
+        if (found.isEmpty()) return null
         // (by key, so the layout is the same from run to run whatever order the workers finished in)
         val atlases = java.util.TreeMap<Int, PropMesh>()
-        val sigs = HashMap<Int, Long>()
-        for (l in found) for (m in l) { val k = atlasKey(m); if (k !in atlases) { atlases[k] = m; sigs[k] = sig(m) } }
-        if (atlases.isEmpty()) return null
-        return SharedAtlas(layOut(atlases, maxAtlas), sigs)
+        for ((k, v) in found) atlases[k] = v.first
+        return SharedAtlas(layOut(atlases, maxAtlas), found.mapValues { it.value.second })
     }
 
     /**

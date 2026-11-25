@@ -59,7 +59,25 @@ internal object TownVertex {
     val rejected = java.util.concurrent.atomic.AtomicLongArray(3)
 
     /** A batch quantised: its [vb] in [QSTRIDE]'s layout, and how the materials read it back. */
-    class Quant(val vb: ByteBuffer, val posMap: FloatArray, val posScale: FloatArray, val uvMap: FloatArray)
+    class Quant(val vb: ByteBuffer, posMap: FloatArray, posScale: FloatArray, uvMap: FloatArray) {
+        /** How its materials read it back (what a slice keeps once uploaded: the vertices themselves are let go). */
+        val map = QuantMap(posMap, posScale, uvMap)
+        fun decode(mi: com.google.android.filament.MaterialInstance) = map.decode(mi)
+    }
+
+    /** A quantised batch's read-back: its materials' `posMap`, `posScale` and `uvMap`. */
+    class QuantMap(val posMap: FloatArray, val posScale: FloatArray, val uvMap: FloatArray) {
+        /**
+         * Tells [mi] (street_lit, street_albedo or shadow_proxy) how to read this batch back: `posMap`, `posScale`, `uvMap`
+         * (unset, a material reads floats). Every material instance drawing the batch must have it.
+         */
+        fun decode(mi: com.google.android.filament.MaterialInstance) {
+            val m = mi.material
+            if (m.hasParameter("posMap")) mi.setParameter("posMap", posMap[0], posMap[1], posMap[2], posMap[3])
+            if (m.hasParameter("posScale")) mi.setParameter("posScale", posScale[0], posScale[1], posScale[2], posScale[3])
+            if (m.hasParameter("uvMap")) mi.setParameter("uvMap", uvMap[0], uvMap[1], uvMap[2], uvMap[3])
+        }
+    }
 
     /**
      * [vb] ([n] vertices in the float layout, as [put] writes it) quantised for the pages, or null when it would not keep
@@ -67,7 +85,9 @@ internal object TownVertex {
      * 1 / ([texW] k) and 1 / ([texH] k), k a power of two (at least [UV_STEPS_MIN]) as fine as the batch's range of them
      * allows, so every texel edge of a [texW] x [texH] picture is a whole number of steps: exact, as the floats were.
      */
-    fun quantize(vb: ByteBuffer, n: Int, texW: Int, texH: Int): Quant? {
+    fun quantize(vb: ByteBuffer, n: Int, texW: Int, texH: Int,
+        /** Written over [vb] itself (its first 20 n bytes; the packing's own fresh buffer): no second buffer held meanwhile. */
+        inPlace: Boolean = false): Quant? {
         if (n <= 0 || texW <= 0 || texH <= 0) { rejected.addAndGet(0, n.toLong()); return null }
         val lo = FloatArray(5) { Float.MAX_VALUE }; val hi = FloatArray(5) { -Float.MAX_VALUE }
         for (i in 0 until n) {
@@ -94,13 +114,16 @@ internal object TownVertex {
             uvStep[a] = 1f / (size.toFloat() * k)
             uv0[a] = kotlin.math.floor(lo[3 + a] / uvStep[a]) * uvStep[a]
         }
-        val out = TownMemory.direct(n * QSTRIDE).order(ByteOrder.nativeOrder())
+        val out = if (inPlace) vb.duplicate().order(ByteOrder.nativeOrder()).also { it.clear() } else TownMemory.direct(n * QSTRIDE).order(ByteOrder.nativeOrder())
         fun q(f: Float, o: Float, s: Float): Short = ((f - o) / s).roundToInt().coerceIn(0, 65535).toShort()
         for (i in 0 until n) {
+            // (the vertex read whole before it is written: in place, its 20 bytes land at or before its own 28, never on a
+            // later vertex's)
             val o = i * STRIDE
-            out.putShort(q(vb.getFloat(o), org[0], step[0])).putShort(q(vb.getFloat(o + 4), org[1], step[1])).putShort(q(vb.getFloat(o + 8), org[2], step[2])).putShort((-1).toShort())
-            out.putShort(q(vb.getFloat(o + 12), uv0[0], uvStep[0])).putShort(q(vb.getFloat(o + 16), uv0[1], uvStep[1]))
-            out.putShort(vb.getShort(o + 20)).putShort(vb.getShort(o + 22)).putShort(vb.getShort(o + 24)).putShort(vb.getShort(o + 26))
+            val x = q(vb.getFloat(o), org[0], step[0]); val y = q(vb.getFloat(o + 4), org[1], step[1]); val z = q(vb.getFloat(o + 8), org[2], step[2])
+            val u = q(vb.getFloat(o + 12), uv0[0], uvStep[0]); val v = q(vb.getFloat(o + 16), uv0[1], uvStep[1])
+            val t0 = vb.getShort(o + 20); val t1 = vb.getShort(o + 22); val t2 = vb.getShort(o + 24); val t3 = vb.getShort(o + 26)
+            out.putShort(x).putShort(y).putShort(z).putShort((-1).toShort()).putShort(u).putShort(v).putShort(t0).putShort(t1).putShort(t2).putShort(t3)
         }
         out.flip()
         // (read back as a normalised short a = q / 65535: position = origin + a x step x 65535; the material's v is Filament's

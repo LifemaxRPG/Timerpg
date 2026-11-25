@@ -116,6 +116,8 @@ internal object FilamentModels {
         internal val ranges: List<IntArray>,
         internal val bounds: FloatArray, internal val body: FloatArray,
         internal val night: Night, internal val linear: Boolean,
+        /** [vb] quantised on the worker ([TownVertex.quantize]); null: floats. */
+        internal val quant: TownVertex.Quant? = null,
     ) {
         /** The pictures read ahead for it ([StreetTextures.warm]): let go once it is finished ([StreetTextures.drop]). */
         internal var warmed: List<ImageBitmap> = emptyList()
@@ -1234,15 +1236,15 @@ internal object FilamentModels {
      * [pw] x [ph] texels, the table (an entry a tile of the atlas, row by row: its page's column and row, as the first two
      * bytes of a texel) in its first rows, the pages from tile row [row0], [cols] to a row, page 0 the empty one.
      */
-    internal class Pages(val w: Int, val h: Int, val tw: Int, val th: Int, private val page: IntArray, val cols: Int, val row0: Int, val pw: Int, val ph: Int) {
+    internal class Pages(val w: Int, val h: Int, val tw: Int, val th: Int, private val page: CharArray, val cols: Int, val row0: Int, val pw: Int, val ph: Int) {
         /** The byte offset of the atlas's pixel [i] (rows top first, as the runs count them) in the paged texture ([st] bytes a texel). */
         fun offset(i: Int, st: Int): Int { val x = i % w; return fetch(x, h - 1 - i / w) * st }
         /** Writes the table into [buf] ([st] bytes a texel). */
         fun table(buf: java.nio.ByteBuffer, st: Int) {
-            for (e in page.indices) { val k = page[e]; if (k == 0) continue; buf.put(e * st, (k % cols).toByte()); buf.put(e * st + 1, (k / cols).toByte()) }
+            for (e in page.indices) { val k = page[e].code; if (k == 0) continue; buf.put(e * st, (k % cols).toByte()); buf.put(e * st + 1, (k / cols).toByte()) }
         }
         /** The texel (index into the paged texture) that holds the atlas's texel ([x], [y]: bottom row first). */
-        fun fetch(x: Int, y: Int): Int { val k = page[(y shr 3) * tw + (x shr 3)]; return ((row0 + k / cols) * TILE + (y and 7)) * pw + (k % cols) * TILE + (x and 7) }
+        fun fetch(x: Int, y: Int): Int { val k = page[(y shr 3) * tw + (x shr 3)].code; return ((row0 + k / cols) * TILE + (y and 7)) * pw + (k % cols) * TILE + (x and 7) }
         /** The paged texture's texels. */
         val texels: Long get() = pw.toLong() * ph
 
@@ -1274,10 +1276,11 @@ internal object FilamentModels {
                 val row0 = ((e + pw - 1) / pw + TILE - 1) / TILE
                 val ph = (row0 + (n + cols - 1) / cols) * TILE
                 if (pw.toLong() * ph > w.toLong() * h * 9 / 10) return null
-                val page = IntArray(e)
+                // (kept for the model's life, every hour's mask written through it: two bytes a tile, the pages at most 256 x 256)
+                val page = CharArray(e)
                 var k = 1
                 var i = used.nextSetBit(0)
-                while (i >= 0) { page[i] = k++; i = used.nextSetBit(i + 1) }
+                while (i >= 0) { page[i] = k++.toChar(); i = used.nextSetBit(i + 1) }
                 return Pages(w, h, tw, th, page, cols, row0, pw, ph)
             }
         }
@@ -1340,14 +1343,15 @@ internal object FilamentModels {
         vb.flip(); ib.flip()
         // (the groups' own arrays go: they are packed, and only their keys and counts are wanted from here)
         for (gp in groups) { gp.v = FloatArray(0); gp.idx = IntArray(0) }
-        return Ready(g.atlas, groups, vb, ib, nv, ni, ranges, bounds, body, night, linear)
+        val qt = BufferArena.quantized(vb, nv, g.atlas.width, g.atlas.height)
+        return Ready(g.atlas, groups, qt?.vb ?: vb, ib, nv, ni, ranges, bounds, body, night, linear, qt)
     }
 
     /** Makes a [prepare]d model Filament's (the engine's thread): its buffers, pictures, materials and renderables. */
     fun finish(engine: Engine, visibleMat: Material, proxyMat: Material?, textures: StreetTextures, r: Ready): ModelMesh {
         val groups = r.groups; val nv = r.nv; val ni = r.ni; val vb = r.vb; val ib = r.ib; val ranges = r.ranges
         val bounds = r.bounds; val body = r.body; val night = r.night; val linear = r.linear
-        val geo = BufferArena.upload(engine, vb, nv, ib, ni, TownVertex.short(nv), r.atlas.width, r.atlas.height)
+        val geo = BufferArena.upload(engine, vb, nv, ib, ni, TownVertex.short(nv), r.quant)
         val vertices = geo.vb; val indices = geo.ib; val first = geo.first
         textures.gpu.buffers(vb.limit(), ib.limit())
         val bbox = Box((bounds[0] + bounds[3]) / 2f, (bounds[1] + bounds[4]) / 2f, (bounds[2] + bounds[5]) / 2f,
