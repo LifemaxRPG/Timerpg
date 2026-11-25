@@ -73,6 +73,12 @@ class VehicleWorld(
         val fz: Float get() = forwardZ(now)
         /** Its speed along its own forward (m/s; negative reversing). */
         val forwardSpeed: Float get() = now[VehicleState.FORWARD_SPEED]
+        /** For the sound (docs/SOUND.md "Engines"): its velocity (m/s, world x and z), the engine's speed and gear the physics reports, the gas now (0..1, reverse too). */
+        val vx: Float get() = now[VehicleState.VX]
+        val vz: Float get() = now[VehicleState.VZ]
+        val rpm: Float get() = now[VehicleState.RPM]
+        val gear: Int get() = now[VehicleState.GEAR].toInt()
+        var throttle = 0f; internal set
 
         /** A point of the model's frame (metres) in the world (street units), its y ignored: into [out] (x, z). */
         fun world(mx: Float, mz: Float, out: FloatArray): FloatArray {
@@ -453,6 +459,7 @@ class VehicleWorld(
         val atSpeed = 1f / (1f + (abs(v) / STEER_FADE) * (abs(v) / STEER_FADE))
         val hb = if (handbrake) 1f else 0f
         physics.input(c.handle, forward, c.steer * atSpeed * (.7f + .3f * gripScale), brake, hb)
+        c.throttle = abs(forward)
         c.braking = brake > .05f || (hb > 0f && abs(v) > .5f)
         c.reversing = forward < 0f
         c.signal = if (abs(c.steer) > .6f && abs(v) < 9f) (if (c.steer > 0f) 1 else -1) else 0
