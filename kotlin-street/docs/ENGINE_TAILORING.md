@@ -39,7 +39,7 @@ patches touch (now `src` and `ggml/src/ggml-hexagon`), every other entry a link.
 | 4 knobs | fixed-shape steps (`fixed_steps`, off), "1 session" configs in NpuTune, `play_sessions`, `oppoll` (off), OpenCL only when asked (default) | padded passes lossless (below) | every speed number |
 | 5 tiles | `patches/ggml-hexagon-tile-cache.patch`, "npu" pref `tile_cache` (default off) | compiles (APK build); cannot run here | all of it, first |
 | 6 writer batches | `Engine::generate_batch`, "npu" pref `writer_batch` (default 0: off) | token-identical at 4 a pass; not always at 8 (below) | lines/hour, heat, 9B memory |
-| 7 MTP for the 4B | not built: the light file has no MTP head | - | - |
+| 7 MTP for the 4B | the light file is now the 4B MTP file, prepared on the phone; `mtp_live` (default 2) | identical replies and guesses through the reorder (CONVERSATION.md) | tok/s, acceptance vs n-grams alone |
 
 ### 1. The English-first head (`patches/llama-head-vocab.patch`)
 
@@ -145,13 +145,14 @@ patches touch (now `src` and `ggml/src/ggml-hexagon`), every other entry a link.
   sequences; the worker takes the next night jobs of the same kind (`nightGroup`), writes their first tries in one pass
   (`NativeLlm.generateBatch`), then judges and, where needed, retries each alone as before (`generate(g, pre)`).
 
-### 7. MTP for the light 4B: not built
+### 7. MTP for the light 4B: built (2026-11-25)
 
-The light model's file (`qwen3.5-4b-q4_0.gguf`, 2,583,221,408 bytes) has no `nextn` layers, so idea 1 cannot make its
-MTP cheap yet. unsloth publishes `Qwen3.5-4B-MTP-GGUF` with a Q4_0 (2,669,209,920 bytes, 86 MB more). To use it:
-download entry + reorder like the plain file, let `DialogueEngine` set `mtp` for the light role (today only the BANK
-role), and A/B on the S25 against n-grams alone. The engine side is ready (the cut head covers `shared_head_head` and
-the MTP graph's use of `output`).
+The light model's download is now `unsloth/Qwen3.5-4B-MTP-GGUF` Q4_0 (2,669,209,920 bytes, one nextn block; the old
+2,583,221,408-byte file is the fallback until it is complete), prepared once on the phone into the English-first order
+(MODEL_FILES.md, "In the app"), and `DialogueEngine` sets `mtp` for the light role when its file has the layer
+("npu" pref `mtp_live`, default 2), n-gram guesses stacked as before. Server, CPU, the app's engine: the prepared
+file's replies and accepted guesses are identical to the original's (5 of 5, 57 of 93 guesses right). A/B against
+n-grams alone (`mtp_live` 0) on the S25 is next (CONVERSATION.md, "The light model's file").
 
 ---
 
