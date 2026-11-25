@@ -132,7 +132,7 @@ tasks.register<JavaExec>("preview") {
     dependsOn(physicsHost)
     jvmArgs("-Dtimerpg.physics.lib=" + physicsLib.absolutePath)
     // the cars' preview (-Dmode=filament-cars): which year, which shots
-    for (k in listOf("carYear", "cars")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    for (k in listOf("carYear", "cars", "city2")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // (more JVM flags for a measurement, space separated: -Djvm="-Xlog:gc -XX:ActiveProcessorCount=8")
     System.getProperty("jvm")?.let { jvmArgs(it.split(' ').filter(String::isNotBlank)) }
     System.getProperty("seamdebug")?.let { jvmArgs("-Dseamdebug=$it") }

@@ -1,6 +1,6 @@
 import { rand } from '../../sim/rng';
-import { align, type Alignment, type Vertex, type XZ } from './align';
-import { CITY2_SEED } from './site';
+import { align, boxSmooth, type Alignment, type Vertex, type XZ } from './align';
+import { CITY2_SEED, groundHeight } from './site';
 
 // THE SECOND CITY'S ROADS (kotlin-street/docs/CITY2.md): hand-authored alignments (align.ts) for every road that
 // matters, and the New Town's grid generated from the seed. Every road is a real road of a real city first (a seafront
@@ -36,6 +36,9 @@ export interface RoadSpec {
   verts: Vertex[];
   /** The junctions at its ends. */
   ends: [string, string];
+  /** Profile from the land (default): the road follows the ground within its grade limit, its ends at its junctions'
+   *  heights; false keeps the authored heights (the flat seafront, the quay and its humpbacked bridge, the Bayway's deck). */
+  fit?: boolean;
   /** Part of the loop the city's arterials happen to make. */
   loop?: number;
   note: string;
@@ -46,40 +49,40 @@ const I = (x: number, z: number, r: number, y: number): Vertex => ({ pi: [x, z],
 const C = (x: number, z: number, r: number, turn: 'L' | 'R', y: number): Vertex => ({ c: [x, z], r, turn, y });
 
 /** The junctions (named places where roads meet). */
-export const JUNCTIONS: Record<string, { at: XZ; kind: 'roundabout' | 'junction' | 'interchange' | 'end'; r?: number; name: string }> = {
-  fountain: { at: [-720, 210], kind: 'roundabout', r: 30, name: 'Fountain Circus' },
-  strandEnd: { at: [-2693, 1963], kind: 'roundabout', r: 24, name: 'Strand End' },
-  crownFoot: { at: [-649, -1028], kind: 'junction', name: 'Crown Foot' },
-  crownTop: { at: [-300, -1600], kind: 'junction', name: 'Crown Top' },
-  neck: { at: [1264, -327], kind: 'junction', name: 'Neck Cross' },
-  quayEast: { at: [250, 215], kind: 'junction', name: 'Quay East' },
-  headQuay: { at: [480, 190], kind: 'junction', name: 'Head Quay' },
-  tunnelWest: { at: [560, 150], kind: 'junction', name: 'Tunnel West' },
-  eastcove: { at: [2700, 300], kind: 'end', name: 'Eastcove (container port)' },
-  knot: { at: [-893, 310], kind: 'interchange', name: 'The Knot' },
-  coastWest: { at: [-3700, 2420], kind: 'end', name: 'Coast Highway west (to the coast towns)' },
-  passNorth: { at: [-1560, -3300], kind: 'end', name: 'Pass Road north (the pass, 11 km, and the interior)' },
-  steepFoot: { at: [0, 200], kind: 'junction', name: 'Custom House Square' },
-  steepTop: { at: [-80, -720], kind: 'junction', name: 'Chapel Corner' },
+export const JUNCTIONS: Record<string, { at: XZ; y: number; kind: 'roundabout' | 'junction' | 'interchange' | 'end'; r?: number; name: string }> = {
+  fountain: { at: [-720, 210], y: 5, kind: 'roundabout', r: 30, name: 'Fountain Circus' },
+  strandEnd: { at: [-2693, 1963], y: 5, kind: 'roundabout', r: 24, name: 'Strand End' },
+  crownFoot: { at: [-649, -1028], y: 118, kind: 'junction', name: 'Crown Foot' },
+  crownTop: { at: [-300, -1600], y: 255, kind: 'junction', name: 'Crown Top' },
+  neck: { at: [1264, -327], y: 115, kind: 'junction', name: 'Neck Cross' },
+  quayEast: { at: [250, 215], y: 6, kind: 'junction', name: 'Quay East' },
+  headQuay: { at: [480, 190], y: 6, kind: 'junction', name: 'Head Quay' },
+  tunnelWest: { at: [560, 150], y: 7, kind: 'junction', name: 'Tunnel West' },
+  eastcove: { at: [2700, 300], y: 6, kind: 'end', name: 'Eastcove (marina and shrimp dock)' },
+  mainland: { at: [-4400, 1700], y: 3, kind: 'end', name: 'Marsh Causeway west (the mainland, the coast towns)' },
+  passNorth: { at: [-1560, -3300], y: 140, kind: 'end', name: 'Pass Road north (the pass, 11 km, and the interior)' },
+  millFoot: { at: [-250.37, 241.74], y: 5, kind: 'junction', name: 'Mill Foot' },
+  steepFoot: { at: [0, 200], y: 5, kind: 'junction', name: 'Custom House Square' },
+  steepTop: { at: [-80, -720], y: 110, kind: 'junction', name: 'Chapel Corner' },
 };
 
 const asphaltFrom = (y: number, lanes: number, note?: string): Era => ({ from: y, surface: 'asphalt', lanes, note });
 
 export const ROADS: RoadSpec[] = [
   {
-    id: 'esplanade', name: 'The Esplanade', cls: 'boulevard', width: 20, design: 90, emax: 0.04, lv: 120, maxGrade: 0.04,
+    fit: false, id: 'esplanade', name: 'The Esplanade', cls: 'boulevard', width: 20, design: 90, emax: 0.04, lv: 120, maxGrade: 0.04,
     built: 1905, loop: 1, ends: ['fountain', 'strandEnd'],
     eras: [{ from: 1905, surface: 'gravel', lanes: 2, note: 'a carriage drive behind the promenade' }, { from: 1924, surface: 'macadam', lanes: 2, note: 'trams down the middle 1912-1954' }, asphaltFrom(1958, 4, 'dual carriageway, palms in the median'), { from: 2034, surface: 'asphalt', lanes: 2, note: 'two lanes and the tram back' }],
     verts: [P(-720, 210, 5), I(-1049, 400, 700, 5), I(-1308, 731, 450, 5), I(-1661, 919, 300, 6), I(-1873, 1234, 500, 5), I(-2222, 1469, 650, 5), I(-2433, 1760, 900, 5), P(-2693, 1963, 5)],
     note: 'the seafront: 2.7 km following the scalloped beach, sweepers of R 450-900 linked left-right, and one committed kink round the pier head (Pavilion Bend, R 300)',
   },
   {
-    id: 'fellside', name: 'Fellside Road', cls: 'arterial', width: 12, design: 100, emax: 0.07, lv: 160, maxGrade: 0.06,
+    id: 'fellside', name: 'Fellside Road', cls: 'arterial', width: 12, design: 100, emax: 0.07, lv: 110, maxGrade: 0.06,
     built: 1832, loop: 2, ends: ['strandEnd', 'crownFoot'],
     eras: [{ from: 1832, surface: 'dirt', lanes: 2, note: 'the old turnpike to the Cleft' }, { from: 1910, surface: 'macadam', lanes: 2 }, asphaltFrom(1930, 2), asphaltFrom(1962, 4, 'rebuilt with the Fellside Viaduct')],
-    spans: [{ near: [-990, -965], half: 210, kind: 'viaduct' }],
+    spans: [{ near: [-990, -965], half: 420, kind: 'viaduct' }],
     verts: [P(-2693, 1963, 5), I(-2606, 1552, 400, 14), I(-2685, 1180, 180, 23), I(-2568, 861, 220, 32), I(-2613, 544, 160, 40), I(-2444, 226, 400, 48), I(-2132, -55, 300, 55), I(-1974, -378, 200, 60), I(-1618, -601, 350, 65), I(-1411, -896, 280, 69), P(-649, -1028, 75)],
-    note: 'up the Fells\' foot in a chain of rising esses (R 160-400, the Fell Esses), then straight across the Cleft on the viaduct, 45 m over the river',
+    note: 'up the Fells\' foot in a chain of rising esses (R 160-400, the Fell Esses), then straight across the Cleft on the viaduct (770 m, up to 85 m over the river)',
   },
   {
     id: 'crown', name: 'Crown Road', cls: 'hill', width: 7, design: 50, emax: 0.08, lv: 30, maxGrade: 0.09,
@@ -89,7 +92,7 @@ export const ROADS: RoadSpec[] = [
     note: 'four stacked hairpins (R 16-18) on the Crown\'s west face, legs of 330-400 m at 8%: 150 m of climb in 2.1 km',
   },
   {
-    id: 'ridge', name: 'Ridge Drive', cls: 'scenic', width: 8, design: 90, emax: 0.07, lv: 140, maxGrade: 0.07,
+    id: 'ridge', name: 'Ridge Drive', cls: 'scenic', width: 8, design: 90, emax: 0.07, lv: 90, maxGrade: 0.1,
     built: 1936, loop: 4, ends: ['crownTop', 'neck'],
     eras: [{ from: 1936, surface: 'asphalt', lanes: 2, note: 'a Depression public work: stone walls and overlooks' }, asphaltFrom(1990, 2, 'Ridge Park; closed to cars at night 2045 on')],
     verts: [P(-300, -1600, 225), I(114, -1527, 200, 214), I(505, -1610, 150, 208), I(913, -1420, 180, 186), I(1142, -1092, 250, 170), I(1445, -917, 120, 146), I(1274, -447, 200, 116), P(1264, -327, 108)],
@@ -98,16 +101,16 @@ export const ROADS: RoadSpec[] = [
   {
     id: 'neckhill', name: 'Neck Hill', cls: 'street', width: 9, design: 50, emax: 0.03, lv: 40, maxGrade: 0.12,
     built: 1802, loop: 5, ends: ['neck', 'quayEast'],
-    eras: [{ from: 1802, surface: 'cobbles', lanes: 2, note: 'the way up to the fort' }, asphaltFrom(1938, 2), asphaltFrom(1972, 3, 'the container trucks to Eastcove, until the tunnel')],
+    eras: [{ from: 1802, surface: 'cobbles', lanes: 2, note: 'the way up to the fort' }, asphaltFrom(1938, 2), asphaltFrom(1972, 2)],
     verts: [P(1264, -327, 108), I(821, -249, 110, 92), I(656, 37, 90, 55), I(366, 115, 60, 22), P(250, 215, 6)],
     note: 'the old town\'s steep high street, 100 m down in 1.2 km, 11% at its steepest, two linked lefts and a right',
   },
   {
-    id: 'harbour', name: 'Harbour Road', cls: 'quay', width: 12, design: 50, emax: 0.02, lv: 20, maxGrade: 0.08,
+    fit: false, id: 'harbour', name: 'Harbour Road', cls: 'quay', width: 12, design: 50, emax: 0.02, lv: 50, maxGrade: 0.08,
     built: 1780, loop: 6, ends: ['quayEast', 'fountain'],
     eras: [{ from: 1780, surface: 'cobbles', lanes: 2, note: 'the quay; tram and dock rails in the setts' }, asphaltFrom(1955, 4)],
     spans: [{ near: [-380, 238], half: 30, kind: 'bridge' }],
-    verts: [P(250, 215, 6), I(60, 190, 40, 5), I(-120, 245, 35, 5), I(-320, 240, 600, 5), I(-380, 238, 800, 9.5), I(-440, 236, 600, 5), P(-720, 210, 5)],
+    verts: [P(250, 215, 6), I(60, 190, 40, 5), I(-120, 245, 35, 5), I(-320, 240, 600, 5), I(-380, 238, 800, 7.5), I(-440, 236, 600, 5), P(-720, 210, 5)],
     note: 'the quay: two square corners round the Custom House and the fish market, then the humpbacked Sallow Bridge (1840)',
   },
   {
@@ -118,20 +121,12 @@ export const ROADS: RoadSpec[] = [
     note: 'round the Head on the cliff tops, the lighthouse loop at the point, back along the bay side to the quay (7 km)',
   },
   {
-    id: 'tunnel', name: 'Headland Tunnel', cls: 'expressway', width: 15, design: 90, emax: 0.05, lv: 200, maxGrade: 0.04,
-    built: 1984, ends: ['tunnelWest', 'eastcove'],
-    eras: [asphaltFrom(1984, 4, 'twin bores')],
-    spans: [{ near: [1180, 115], half: 430, kind: 'tunnel' }],
+    id: 'tunnel', name: 'Headland Tunnel', cls: 'arterial', width: 9, design: 90, emax: 0.05, lv: 200, maxGrade: 0.04,
+    built: 1942, ends: ['tunnelWest', 'eastcove'],
+    eras: [{ from: 1942, to: 1984, surface: 'concrete', lanes: 1, note: 'the naval yard\'s tunnel, closed to the public' }, asphaltFrom(1984, 2, 'opened to traffic when the yard closed: the short way to Eastcove')],
+    spans: [{ near: [1180, 115], half: 520, kind: 'tunnel' }],
     verts: [P(560, 150, 7), I(1100, 110, 1500, 9), I(1800, 160, 900, 10), I(2200, 260, 400, 8), P(2700, 300, 6)],
-    note: 'under the Neck in one long curve (R 1,500), so the container trucks stop climbing Neck Hill',
-  },
-  {
-    id: 'bayway', name: 'The Bayway', cls: 'expressway', width: 16, design: 100, emax: 0.06, lv: 160, maxGrade: 0.05,
-    built: 1966, gone: 2018, ends: ['knot', 'tunnelWest'],
-    eras: [{ from: 1966, to: 2018, surface: 'concrete', lanes: 4, note: 'elevated over the quay; pulled down after the 2017 quake damage' }, { from: 2021, surface: 'asphalt', lanes: 4, note: 'Bayside Boulevard on the ground in its place' }],
-    spans: [{ near: [-150, 80], half: 600, kind: 'elevated' }],
-    verts: [P(-893, 310, 5), I(-650, 80, 350, 14), I(-100, 80, 500, 15), I(400, 120, 600, 13), P(560, 150, 7)],
-    note: 'the 1960s elevated expressway over the harbour: R 400-600 at 100 km/h, 9 m up, from the Knot to the tunnel mouth',
+    note: 'under the Neck in one long curve (R 1,500): the wartime naval tunnel, a public road since 1984',
   },
   {
     id: 'pass', name: 'Pass Road', cls: 'arterial', width: 8, design: 80, emax: 0.07, lv: 120, maxGrade: 0.07,
@@ -141,21 +136,29 @@ export const ROADS: RoadSpec[] = [
     note: 'up the Cleft\'s east side under the rock walls, sweepers over the river, on towards the pass',
   },
   {
-    id: 'coastwest', name: 'Coast Highway', cls: 'arterial', width: 10, design: 100, emax: 0.06, lv: 160, maxGrade: 0.05,
-    built: 1928, ends: ['strandEnd', 'coastWest'],
-    eras: [asphaltFrom(1928, 2), asphaltFrom(1964, 4)],
-    verts: [P(-2693, 1963, 5), I(-3100, 2150, 700, 9), P(-3700, 2420, 10)],
-    note: 'west along the coast to the next towns',
+    fit: false, id: 'causeway', name: 'Marsh Causeway', cls: 'arterial', width: 10, design: 100, emax: 0.05, lv: 160, maxGrade: 0.05,
+    built: 1887, ends: ['strandEnd', 'mainland'],
+    eras: [{ from: 1887, surface: 'gravel', lanes: 2, note: 'a shell road on the old tramway\'s embankment across the marsh' }, asphaltFrom(1923, 2, 'the Heron Creek swing bridge'), asphaltFrom(1964, 2, 'the bascule bridge; still two lanes')],
+    spans: [{ near: [-3430, 1840], half: 45, kind: 'bridge' }],
+    verts: [P(-2693, 1963, 5), I(-3150, 1930, 1500, 3), I(-3430, 1840, 1200, 7), I(-3750, 1760, 1500, 3), P(-4400, 1700, 3)],
+    note: 'the way in: 1.7 km on a low embankment across Heron Marsh, a drawbridge over Heron Creek, sunsets over the marsh',
   },
   {
-    id: 'steep', name: 'Steep Street', cls: 'lane', width: 6, design: 30, emax: 0, lv: 15, maxGrade: 0.12,
+    id: 'mill', name: 'Mill Road', cls: 'street', width: 10, design: 60, emax: 0.04, lv: 60, maxGrade: 0.1,
+    built: 1861, ends: ['crownFoot', 'millFoot'],
+    eras: [{ from: 1861, surface: 'cobbles', lanes: 2, note: 'the mills\' road down the gorge\'s east bank beside the line' }, asphaltFrom(1949, 2), asphaltFrom(1996, 2, 'trees and a riverside walk: the mills are lofts')],
+    verts: [P(-649, -1028, 118), I(-520, -420, 500, 40), P(-250.37, 241.74, 5)],
+    note: 'straight down the gorge from Crown Foot to the harbour: the city\'s spine (the dove\'s body)',
+  },
+  {
+    id: 'steep', name: 'Steep Street', cls: 'lane', width: 6, design: 30, emax: 0, lv: 15, maxGrade: 0.13,
     built: 1790, ends: ['steepFoot', 'steepTop'],
     eras: [{ from: 1790, surface: 'cobbles', lanes: 1, note: 'one way uphill from 1961' }],
     verts: [P(0, 200, 5), I(20, 0, 25, 16), I(-60, -180, 20, 31), I(30, -330, 18, 46), I(-50, -480, 15, 62), I(10, -600, 20, 76), P(-80, -720, 85)],
     note: 'the old town\'s twisting cobbled climb, R 15-25, 6 m between the walls',
   },
   {
-    id: 'crownlane', name: 'Crown Lane', cls: 'lane', width: 6, design: 40, emax: 0.03, lv: 25, maxGrade: 0.1,
+    id: 'crownlane', name: 'Crown Lane', cls: 'lane', width: 6, design: 40, emax: 0.03, lv: 25, maxGrade: 0.12,
     built: 1810, ends: ['steepTop', 'crownFoot'],
     eras: [{ from: 1810, surface: 'cobbles', lanes: 2 }, asphaltFrom(1960, 2)],
     verts: [P(-80, -720, 85), I(-250, -820, 40, 88), I(-450, -900, 60, 82), P(-649, -1028, 75)],
@@ -177,8 +180,42 @@ export function buildRoads(): BuiltRoad[] {
       }
       return { from: Math.max(0, at - sp.half), to: Math.min(a.length, at + sp.half), kind: sp.kind };
     });
+    if (spec.fit !== false) fitProfile(spec, a, spans);
     return { spec, a, spans };
   });
+}
+
+/**
+ * The road laid on the land: the natural ground under its centre line (smoothed over two vertical curves, so it does
+ * not copy every knoll; straight from end to end over a bridge or through a tunnel), its ends at its junctions' heights,
+ * held to its grade limit (3% round a hill road's hairpin, level for 30 m each side of a junction, so a switchback's turn and a crossing are nearly level) by passes from both ends, then
+ * the vertical curves.
+ */
+function fitProfile(spec: RoadSpec, a: Alignment, spans: BuiltSpan[]): void {
+  const ss = a.samples, n = ss.length;
+  const ds = a.length / (n - 1);
+  const t = ss.map((q) => groundHeight(q.x, q.z));
+  for (const sp of spans) {
+    const i0 = Math.max(0, Math.floor(sp.from / ds)), i1 = Math.min(n - 1, Math.ceil(sp.to / ds));
+    for (let i = i0; i <= i1; i++) t[i] = t[i0]! + ((t[i1]! - t[i0]!) * (i - i0)) / Math.max(1, i1 - i0);
+  }
+  const y = boxSmooth(t, Math.max(1, Math.round((2 * spec.lv) / ds)));
+  const y0 = JUNCTIONS[spec.ends[0]]!.y, y1 = JUNCTIONS[spec.ends[1]]!.y;
+  y[0] = y0; y[n - 1] = y1;
+  // (a junction is level: 0.5% for 30 m each side, 2.5% to 60 m, so two roads meeting at a crest do not throw a car: the first
+  // drive flew 0.75 s off Crown Top, where the Crown Road arrived at 8% and Ridge Drive left at -9%)
+  const flat = Math.min(60, 0.05 * a.length);
+  const lim = ss.map((q) => {
+    const e = Math.min(q.s, a.length - q.s);
+    return (e < flat / 2 ? 0.005 : e < flat ? 0.025 : spec.cls === 'hill' && Math.abs(q.k) > 1 / 40 ? 0.03 : spec.maxGrade * 0.92) * ds;
+  });
+  for (let pass = 0; pass < 6; pass++) {
+    for (let i = 1; i < n - 1; i++) y[i] = Math.min(y[i - 1]! + lim[i]!, Math.max(y[i - 1]! - lim[i]!, y[i]!));
+    for (let i = n - 2; i > 0; i--) y[i] = Math.min(y[i + 1]! + lim[i]!, Math.max(y[i + 1]! - lim[i]!, y[i]!));
+  }
+  const w = Math.max(1, Math.round(spec.lv / ds));
+  const v = boxSmooth(boxSmooth(y, w), w);
+  ss.forEach((q, i) => { q.y = v[i]!; });
 }
 
 /** The loop's roads in order. */

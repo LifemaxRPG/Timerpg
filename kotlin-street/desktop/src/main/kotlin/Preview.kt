@@ -363,6 +363,14 @@ fun main(args: Array<String>) {
             kotlin.system.exitProcess(1)
         }
     }
+    if (mode == "filament-city2") {
+        // Dove Beach, the second city's road prototype on its ground (FilamentCity2Preview.kt; -Dcity2=<tools/city2-dump.ts dir>)
+        val k = runCatching { Class.forName("FilamentCity2PreviewKt") }.getOrNull() ?: error("Filament is not built in: run tools/build-filament.sh")
+        try { k.getMethod("renderCity2", String::class.java).invoke(null, out) } catch (t: Throwable) {
+            (if (t is java.lang.reflect.InvocationTargetException) t.targetException else t).printStackTrace()
+            kotlin.system.exitProcess(1)
+        }
+    }
     if (mode == "filament-farms") {
         // the farms round the town: a farmstead from every side, fields through the year, the town's edge (FilamentFarmsPreview.kt)
         val k = runCatching { Class.forName("FilamentFarmsPreviewKt") }.getOrNull() ?: error("Filament is not built in: run tools/build-filament.sh")

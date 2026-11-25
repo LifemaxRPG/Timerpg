@@ -44,10 +44,10 @@ rgb = np.zeros((H, W, 3))
 for c in range(3):
     rgb[..., c] = np.interp(hi, [s[0] for s in stops], [s[1][c] for s in stops])
 land = hi > 0
-rgb[land] *= (0.62 + 0.5 * shade[land])[:, None]
+rgb[land] *= (0.38 + 0.85 * shade[land] ** 1.5)[:, None]
 # contours every 20 m
 cont = (np.floor(hi / 20) != np.floor(np.roll(hi, 1, 0) / 20)) | (np.floor(hi / 20) != np.floor(np.roll(hi, 1, 1) / 20))
-rgb[cont & land] *= 0.82
+rgb[cont & land] *= 0.72
 img = Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8)).convert('RGBA')
 
 try:
@@ -56,10 +56,40 @@ try:
 except Exception:
     f12 = f14 = f16 = f20 = f28 = f40 = ImageFont.load_default()
 
+# ---- the marsh (cordgrass, its creeks), the dunes
+over = Image.new('RGBA', img.size, (0, 0, 0, 0))
+od = ImageDraw.Draw(over)
+if d.get('marsh'):
+    od.polygon([px(*p) for p in d['marsh']], fill=(122, 138, 74, 150))
+    mx0 = min(p[0] for p in d['marsh']); mx1 = max(p[0] for p in d['marsh']); mz0 = min(p[1] for p in d['marsh']); mz1 = max(p[1] for p in d['marsh'])
+    rnd = np.random.default_rng(3)
+    for _ in range(2500):
+        x, z = rnd.uniform(mx0, mx1), rnd.uniform(mz0, mz1)
+        X, Y = px(x, z)
+        if 0 <= int(Y) < H and 0 <= int(X) < W and 0 < hi[int(Y), int(X)] < 1.2:
+            od.line([(X, Y), (X + 2, Y - 5)], fill=(90, 110, 50, 200), width=1)
+for c in d.get('creeks', []):
+    od.line([px(*p) for p in c], fill=(70, 130, 180, 255), width=7, joint='curve')
+if d.get('dunes'):
+    od.line([px(*p) for p in d['dunes']], fill=(236, 222, 170, 255), width=26, joint='curve')
+    pts_ = [px(*p) for p in d['dunes']]
+    for i in range(len(pts_) - 1):
+        (x0, y0), (x1, y1) = pts_[i], pts_[i + 1]
+        L = math.hypot(x1 - x0, y1 - y0)
+        for t in np.arange(0, L, 7):
+            a = t / L
+            od.ellipse([x0 + (x1 - x0) * a - 2, y0 + (y1 - y0) * a - 6, x0 + (x1 - x0) * a + 2, y0 + (y1 - y0) * a - 2], fill=(150, 160, 90, 255))
+        # boardwalk crossings every 200 m (to the sea, south-east)
+        for t in np.arange(30, L, 200 / M):
+            a = t / L
+            cx, cy = x0 + (x1 - x0) * a, y0 + (y1 - y0) * a
+            od.line([(cx - 10, cy - 10), (cx + 28, cy + 28)], fill=(150, 110, 70, 255), width=3)
+img = Image.alpha_composite(img, over)
+
 # ---- districts
 over = Image.new('RGBA', img.size, (0, 0, 0, 0))
 od = ImageDraw.Draw(over)
-DCOL = {'harbour': (60, 90, 160), 'oldtown': (170, 80, 60), 'mills': (120, 90, 70), 'newtown': (200, 150, 60), 'strand': (230, 120, 160),
+DCOL = {'marsh': (90, 120, 60), 'harbour': (60, 90, 160), 'oldtown': (170, 80, 60), 'mills': (120, 90, 70), 'newtown': (200, 150, 60), 'strand': (230, 120, 160),
         'fellside': (110, 160, 90), 'crown': (150, 90, 170), 'ridge': (70, 140, 120), 'eastcove': (90, 110, 130), 'head': (90, 130, 70), 'uplands': (150, 150, 90)}
 for di in d['districts']:
     c = DCOL.get(di['id'], (128, 128, 128))
@@ -67,6 +97,19 @@ for di in d['districts']:
     od.polygon(pts, fill=c + (46,), outline=c + (200,))
 img = Image.alpha_composite(img, over)
 dr = ImageDraw.Draw(img)
+
+# ---- the moles (breakwaters)
+for m in d.get('moles', []):
+    dr.line([px(*p) for p in m['line']], fill=(120, 116, 108), width=9)
+    dr.line([px(*p) for p in m['line']], fill=(196, 190, 176), width=5)
+
+# ---- the pier and its pavilion
+if d.get('pier'):
+    a, b = d['pier']
+    dr.line([px(*a), px(*b)], fill=(90, 66, 44), width=7)
+    dr.line([px(*a), px(*b)], fill=(170, 130, 90), width=4)
+    X, Y = px(*b)
+    dr.rectangle([X - 9, Y - 9, X + 9, Y + 9], fill=(250, 250, 245), outline=(90, 66, 44), width=2)
 
 # ---- river and rail
 dr.line([px(*p['at']) for p in d['river']], fill=(70, 130, 190), width=9, joint='curve')
@@ -89,10 +132,13 @@ for s in d['streets']:
 CLS = {'boulevard': ((255, 255, 255), 11), 'arterial': ((255, 226, 120), 9), 'expressway': ((255, 170, 80), 11), 'scenic': ((255, 240, 200), 7),
        'hill': ((255, 240, 200), 6), 'street': ((250, 250, 245), 6), 'lane': ((240, 230, 215), 4), 'quay': ((250, 250, 245), 8), 'ramp': ((255, 190, 110), 5)}
 roads = d['roads']
-# the loop's glow first
+# the loop's glow first, and the rest of the dove's outline (Mill Road, Head Road) in a paler glow
+DOVE = ('mill', 'head')
 for r in roads:
     if r['loop'] is not None:
         dr.line([px(p[0], p[1]) for p in r['pts']], fill=(230, 40, 40, 255), width=CLS[r['cls']][1] + 12, joint='curve')
+    elif r['id'] in DOVE:
+        dr.line([px(p[0], p[1]) for p in r['pts']], fill=(240, 140, 130, 255), width=CLS[r['cls']][1] + 10, joint='curve')
 
 
 def span_of(r, i):
@@ -154,7 +200,7 @@ def label_along(text, pts, font, at=0.5, fill=(20, 20, 20), halo=(255, 255, 255)
     img.alpha_composite(t, (int(cx - t.width / 2), int(cy - t.height / 2)))
 
 
-AT = {'esplanade': .55, 'fellside': .45, 'crown': .2, 'ridge': .4, 'neckhill': .35, 'harbour': .3, 'head': .42, 'tunnel': .5, 'bayway': .3, 'pass': .6, 'coastwest': .6, 'steep': .5, 'crownlane': .5}
+AT = {'mill': .45, 'esplanade': .55, 'fellside': .45, 'crown': .2, 'ridge': .4, 'neckhill': .35, 'harbour': .3, 'head': .42, 'tunnel': .5, 'bayway': .3, 'pass': .6, 'causeway': .55, 'steep': .5, 'crownlane': .5}
 for r in roads:
     pts = [px(p[0], p[1]) for p in r['pts']]
     nm = r['name'] + (f" ({r['built']}-{r['gone']})" if r['gone'] else '')
@@ -185,7 +231,7 @@ for k, j in d['junctions'].items():
     dr.text((x + 14, y - 22), j['name'], font=f12, fill=(40, 30, 30), stroke_width=2, stroke_fill=(255, 255, 230))
 
 # water names
-for name, (x, z) in {'THE BELL (the bay)': (-300, 1700), 'Long Strand': (-2150, 1800), 'Sallow': (-1270, -2100), 'Eastcove': (2550, 650), 'Lighthouse Point': (1380, 3000)}.items():
+for name, (x, z) in {'West Mole': (-560, 520), 'East Mole': (-90, 520), 'Strand Pier': (-1330, 1250), 'Heron Creek': (-3250, 2420), 'THE BELL (the bay)': (-300, 1700), 'Long Strand': (-2150, 1800), 'Sallow': (-1270, -2100), 'Eastcove': (2550, 650), 'Lighthouse Point': (1380, 3000)}.items():
     X, Y = px(x, z)
     dr.text((X, Y), name, font=f20 if 'BELL' in name else f14, fill=(230, 240, 255) if 'BELL' in name else (30, 60, 110), stroke_width=2, stroke_fill=(40, 80, 130) if 'BELL' in name else (230, 240, 255))
 
@@ -216,6 +262,8 @@ for r in sorted([r for r in roads if r['loop'] is not None], key=lambda r: r['lo
     cd.text((X + 250, y + 2), f"{r['length'] / 1000:.2f} km  max {r['maxGrade'] * 100:.0f}%  slowest {slow} km/h", font=f12, fill=(60, 60, 60))
     y += 24
 cd.text((X, y), f'Loop length {total / 1000:.1f} km', font=f16, fill=(30, 30, 30)); y += 22
+cd.line([(X, y + 9), (X + 60, y + 9)], fill=(240, 140, 130), width=14)
+cd.text((X + 74, y), 'Rest of the dove outline: Mill Road, Head Road', font=f14, fill=(30, 30, 30)); y += 24
 cd.text((X, y), '(corner speeds: race Torrel estimate from its grip)', font=f12, fill=(90, 90, 90)); y += 34
 
 cd.text((X, y), 'Roads', font=f20, fill=(30, 30, 30)); y += 30
@@ -224,14 +272,18 @@ for lab, key in [('Boulevard (Esplanade)', 'boulevard'), ('Arterial', 'arterial'
     cd.line([(X, y + 9), (X + 60, y + 9)], fill=(70, 60, 50), width=w + 4)
     cd.line([(X, y + 9), (X + 60, y + 9)], fill=col, width=w)
     cd.text((X + 74, y), lab, font=f14, fill=(30, 30, 30)); y += 26
-cd.line([(X, y + 9), (X + 60, y + 9)], fill=(250, 250, 245), width=4); cd.text((X + 74, y), 'New Town grid (generated from the seed)', font=f14, fill=(30, 30, 30)); y += 26
+cd.line([(X, y + 9), (X + 60, y + 9)], fill=(250, 250, 245), width=4); cd.text((X + 74, y), 'Seagrove grid (generated from the seed)', font=f14, fill=(30, 30, 30)); y += 26
 cd.line([(X, y + 3), (X + 60, y + 3)], fill=(20, 20, 20), width=2); cd.line([(X, y + 15), (X + 60, y + 15)], fill=(20, 20, 20), width=2)
 cd.text((X + 74, y), 'Bridge, viaduct, elevated', font=f14, fill=(30, 30, 30)); y += 26
 for i in range(4):
     cd.line([(X + i * 15, y + 9), (X + i * 15 + 7, y + 9)], fill=(120, 110, 100), width=10)
 cd.text((X + 74, y), 'Tunnel', font=f14, fill=(30, 30, 30)); y += 26
 cd.line([(X, y + 9), (X + 60, y + 9)], fill=(60, 60, 60), width=5); cd.text((X + 74, y), 'Railway', font=f14, fill=(30, 30, 30)); y += 26
-cd.line([(X, y + 9), (X + 60, y + 9)], fill=(70, 130, 190), width=9); cd.text((X + 74, y), 'River Sallow', font=f14, fill=(30, 30, 30)); y += 36
+cd.line([(X, y + 9), (X + 60, y + 9)], fill=(70, 130, 190), width=9); cd.text((X + 74, y), 'River Sallow', font=f14, fill=(30, 30, 30)); y += 26
+cd.line([(X, y + 9), (X + 60, y + 9)], fill=(196, 190, 176), width=7); cd.text((X + 74, y), 'Breakwater moles (1868): the beak', font=f14, fill=(30, 30, 30)); y += 26
+cd.line([(X, y + 9), (X + 60, y + 9)], fill=(236, 222, 170), width=14); cd.text((X + 74, y), 'Dunes, sea oats, boardwalk crossings', font=f14, fill=(30, 30, 30)); y += 26
+cd.rectangle([X, y + 2, X + 60, y + 16], fill=(122, 138, 74)); cd.text((X + 74, y), 'Salt marsh and tidal creeks', font=f14, fill=(30, 30, 30)); y += 26
+cd.line([(X, y + 9), (X + 60, y + 9)], fill=(170, 130, 90), width=4); cd.text((X + 74, y), 'Strand Pier and pavilion (1909)', font=f14, fill=(30, 30, 30)); y += 36
 
 cd.text((X, y), 'Landmarks', font=f20, fill=(30, 30, 30)); y += 30
 for n, l in enumerate(d['landmarks'], 1):
