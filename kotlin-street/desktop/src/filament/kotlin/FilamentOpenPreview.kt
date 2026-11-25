@@ -130,6 +130,8 @@ fun renderFilamentOpen(out: String) {
     // (-Dworld=1: gamma on the planet, the world's far view round it: FilamentWorldPreview.kt)
     val worldSite = WorldPreview.site(town)
     val world = worldSite?.let { WorldPreview.attach(ft, town, it) }
+    // (-DworldVis=<m>: the air's visibility at sea level, for the far view and the horizon ring; a clear day 90 km)
+    System.getProperty("worldVis")?.toDoubleOrNull()?.let { ft.air = com.lifemax.rpg.feature.habits.domain.WorldAir(it) }
     // (a still picture shows everyone in its one frame)
     ft.sheetsOnWorker = false
     // (and the see-through cone open or shut at once in it)

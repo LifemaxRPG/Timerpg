@@ -35,7 +35,7 @@ internal object WorldPreview {
         return site
     }
 
-    fun attach(ft: FilamentTown, town: Town, site: WorldSite): WorldFar = WorldFar.attach(ft, {
+    fun attach(ft: FilamentTown, town: Town, site: WorldSite): WorldFar = WorldFar.also { it.ringOn = System.getProperty("horizon") != "0" }.attach(ft, {
         val t0 = System.nanoTime()
         // (-DworldYear=1990: the world's roads as they are that year, Highways v2)
         site.plan(System.getProperty("worldYear")?.toIntOrNull() ?: town.year).also { println("  world: far view planned in %.0f ms: %s".format((System.nanoTime() - t0) / 1e6, it.report)) }
@@ -341,8 +341,39 @@ internal object WorldPreview {
             val fx = mx + dx / dd * ((g[2] - g[0]) / 2f); val fz = mz + dz / dd * ((g[3] - g[1]) / 2f)
             look("world_towns", "${p.name} (a ${p.type} town, %.0f km off) from the capital's edge, 250 m up (a 7 degree lens)".format(dd / u / 1000), fx, fz, at[0], at[1], 250f, 7f, 15f)
         }
+        // 6. the horizon ring (docs/STREAMING.md step 4): from 400 m over the town's edge, a 30 degree lens on the tallest
+        // range past the far view's reach, by day, at dusk and by night (the ring baked for that eye first)
+        run {
+            val eyeY = ground(mx, mz) + 400f * u
+            val warm = eyePose(mx, eyeY, mz, 0f, 0f, 30f, w, h, reach, u)
+            if (WorldFar.ringOn) for (k in 0 until 600) { ft.frame(warm, 15f); if (far.horizon != null) break; Thread.sleep(20) }
+            // (with the ring off, the same panorama made here only to aim the camera the same way)
+            val hp = far.horizon ?: com.lifemax.rpg.feature.habits.domain.HorizonPanorama(sk, f.world(mx.toDouble(), mz.toDouble()), plan.baseElev + eyeY / u)
+            val W = com.lifemax.rpg.feature.habits.domain.HorizonPanorama.W
+            // (the column whose ground stands highest, in rows)
+            var best = 0; var bestTop = -1
+            for (i in 0 until W) { var top = -1; for (j in 0 until com.lifemax.rpg.feature.habits.domain.HorizonPanorama.H) if (hp.pixels[(j * W + i) * 4 + 3].toInt() != 0) top = j; if (top > bestTop) { bestTop = top; best = i } }
+            val yaw = ((best + .5f) / W * 360f)
+            val cap = "the horizon ring: the tallest range past the far view, looking %s from 400 m over the town (a 30 degree lens)".format(compass(yaw.toDouble()))
+            shot("world_ring", cap, eyePose(mx, eyeY, mz, yaw, 1f, 30f, w, h, reach, u), 15f)
+            shot("world_ring_dusk", "$cap, at dusk", eyePose(mx, eyeY, mz, yaw, 1f, 30f, w, h, reach, u), 19.6f)
+            shot("world_ring_night", "$cap, at night", eyePose(mx, eyeY, mz, yaw, 1f, 30f, w, h, reach, u), 23f)
+        }
         w5(::shot, town, site, plan, far, f, g, u, w, h, reach, mx, mz)
         report.appendLine(far.report)
+        // (the horizon ring's panorama as baked: colour, and its distance code as grey, 4 rows a texel row)
+        far.horizon?.let { hp ->
+            val W = com.lifemax.rpg.feature.habits.domain.HorizonPanorama.W; val H = com.lifemax.rpg.feature.habits.domain.HorizonPanorama.H
+            val img = java.awt.image.BufferedImage(W, H * 2, java.awt.image.BufferedImage.TYPE_INT_RGB)
+            for (j in 0 until H) for (i in 0 until W) {
+                val o = (j * W + i) * 4
+                val a = hp.pixels[o + 3].toInt() and 255
+                val c = if (a == 0) 0x203040 else ((hp.pixels[o].toInt() and 255) shl 16) or ((hp.pixels[o + 1].toInt() and 255) shl 8) or (hp.pixels[o + 2].toInt() and 255)
+                img.setRGB(i, H - 1 - j, c)
+                img.setRGB(i, 2 * H - 1 - j, if (a == 0) 0x203040 else a * 0x10101)
+            }
+            javax.imageio.ImageIO.write(img, "png", File(dir, "horizon_panorama.png"))
+        }
         far.near?.let { report.appendLine(it.report) }
         report.appendLine(WorldMemory.line())
         File(dir, "world_shots.txt").writeText(sheet.joinToString("\n") { "${it.first}\t${it.second}" })

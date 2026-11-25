@@ -46,6 +46,37 @@ class SkySurface(
     private val indexBuffer: IndexBuffer
     private val cloudTexture: Texture
     private val moonTexture: Texture
+    private var horizonTexture: Texture
+    private var horizonOn = false
+    private val horizonSampler = TextureSampler(TextureSampler.MinFilter.NEAREST, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE)
+
+    /**
+     * The horizon ring (sky.mat section 7; [com.lifemax.rpg.feature.habits.domain.HorizonPanorama]): [pixels] (RGBA8,
+     * [w] x [h], row 0 at [elev0] rad, [step] rad a texel) drawn where the sky shows, its alpha a distance from [r0] to
+     * [r1] m; null takes it away. The old texture is let go once the new one is bound (the engine's thread).
+     */
+    fun setHorizon(pixels: ByteArray?, w: Int = 0, h: Int = 0, r0: Double = 0.0, r1: Double = 1.0, elev0: Double = 0.0, step: Double = 1.0) {
+        if (pixels == null) { horizonOn = false; materialInstance.setParameter("horizonAir", 0f, 0f, 0f, 0f); return }
+        val tex = Texture.Builder().width(w).height(h).levels(1).sampler(Texture.Sampler.SAMPLER_2D)
+            .format(Texture.InternalFormat.RGBA8).build(engine)
+        val buf = ByteBuffer.allocateDirect(pixels.size).order(ByteOrder.nativeOrder()).put(pixels)
+        buf.flip()
+        tex.setImage(engine, 0, Texture.PixelBufferDescriptor(buf, Texture.Format.RGBA, Texture.Type.UBYTE, 1))
+        materialInstance.setParameter("horizonTex", tex, horizonSampler)
+        engine.destroyTexture(horizonTexture)
+        horizonTexture = tex
+        horizonBytes = pixels.size.toLong()
+        materialInstance.setParameter("horizonSpan", r0.toFloat(), (r1 - r0).toFloat(), elev0.toFloat(), step.toFloat())
+        horizonOn = true
+    }
+
+    /** The horizon ring's texture (bytes), for the memory count. */
+    var horizonBytes = 0L; private set
+
+    /** The air the horizon ring is seen through: extinction at sea level (per m), 1 / its scale height (per m), the eye's height above sea level (m). */
+    fun horizonAir(extinction: Float, invScaleHeight: Float, eyeM: Float) {
+        materialInstance.setParameter("horizonAir", extinction, invScaleHeight, eyeM, if (horizonOn) 1f else 0f)
+    }
 
     private val cloudSampler = TextureSampler(
         TextureSampler.MinFilter.NEAREST,
@@ -92,6 +123,13 @@ class SkySurface(
         moonTexture = buildMoonTexture(engine)
         materialInstance.setParameter("cloudTex", cloudTexture, cloudSampler)
         materialInstance.setParameter("moonTex", moonTexture, moonSampler)
+        // (the horizon ring: none until a panorama is given; an empty texel bound so the sampler always has a texture)
+        horizonTexture = Texture.Builder().width(1).height(1).levels(1).sampler(Texture.Sampler.SAMPLER_2D)
+            .format(Texture.InternalFormat.RGBA8).build(engine)
+        horizonTexture.setImage(engine, 0, Texture.PixelBufferDescriptor(ByteBuffer.allocateDirect(4), Texture.Format.RGBA, Texture.Type.UBYTE, 1))
+        materialInstance.setParameter("horizonTex", horizonTexture, horizonSampler)
+        materialInstance.setParameter("horizonAir", 0f, 0f, 0f, 0f)
+        materialInstance.setParameter("horizonSpan", 0f, 1f, 0f, 1f)
 
         RenderableManager.Builder(1)
             .boundingBox(Box(0f, 0f, 0f, 1e6f, 1e6f, 1e6f))
@@ -223,6 +261,7 @@ class SkySurface(
         engine.destroyIndexBuffer(indexBuffer)
         engine.destroyTexture(cloudTexture)
         engine.destroyTexture(moonTexture)
+        engine.destroyTexture(horizonTexture)
         engine.destroyMaterialInstance(materialInstance)
     }
 

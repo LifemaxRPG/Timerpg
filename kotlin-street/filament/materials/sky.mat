@@ -99,7 +99,15 @@ material {
 
         // Nearest-filtered pixel-art textures ONLY (MinFilter.NEAREST, MagFilter.NEAREST):
         { type : sampler2d, name : cloudTex, precision : medium },
-        { type : sampler2d, name : moonTex, precision : medium }
+        { type : sampler2d, name : moonTex, precision : medium },
+
+        // The horizon ring (HorizonPanorama, docs/STREAMING.md step 4): the world past the far view's reach as a
+        // panorama (azimuth x elevation, RGBA8: ground colour, alpha its distance code; 0 empty), hazed here by the air:
+        //   horizonAir  = (extinction at sea level per m, 1 / scale height per m, eye m above sea level, on 0/1)
+        //   horizonSpan = (r0 m, r1 - r0 m, elevation of row 0 rad, rad a texel)
+        { type : float4, name : horizonAir, precision : high },
+        { type : float4, name : horizonSpan, precision : high },
+        { type : sampler2d, name : horizonTex, precision : medium }
     ]
 }
 
@@ -620,6 +628,43 @@ fragment {
         if (ray.y < 0.024) {
             float seam = 1.0 - smoothstep(0.0, 0.024, ray.y);
             col = mix(col, materialParams.skyBelow.rgb, seam * 0.45);
+        }
+
+        // =====================================================================
+        // 7. THE HORIZON RING: far ranges and distant towns' lights past the far view (HorizonPanorama)
+        // =====================================================================
+        if (materialParams.horizonAir.w > 0.5) {
+            highp vec4 hs = materialParams.horizonSpan;
+            highp float hrow = floor((asin(clamp(ray.y, -1.0, 1.0)) - hs.z) / hs.w);
+            if (hrow >= 0.0 && hrow < 64.0) {
+                highp float hcol = floor(fract(atan(ray.x, -ray.z) / SKY_TWO_PI + 1.0) * 4096.0);
+                vec4 t = texelFetch(materialParams_horizonTex, ivec2(int(hcol), int(hrow)), 0);
+                if (t.a > 0.5 / 255.0) {
+                    highp float d = hs.x + (t.a * 255.0 - 1.0) / 253.0 * hs.y;
+                    // the air along the way: Filament's height fog's law (FilamentTown.haze), from the eye up to the ground there
+                    highp vec4 air = materialParams.horizonAir;
+                    highp float yEye = air.z;
+                    highp float dy = ray.y / max(length(ray.xz), 1e-4) * d;
+                    highp float k = air.y * dy;
+                    highp float shape = abs(k) > 1e-3 ? (1.0 - exp(-k)) / k : 1.0;
+                    highp float tau = air.x * (1.0 - 0.3 * dark) * exp(-yEye * air.y) * shape * d;
+                    float haze = clamp(1.0 - exp(-tau), 0.0, 1.0);
+                    haze = max(haze, clamp(lowHaze * 0.88, 0.0, 0.92));
+                    bool isLit = t.r > 0.99 && t.g < 0.01 && t.b > 0.99;
+                    vec3 albedo = isLit ? vec3(0.30, 0.29, 0.28) : t.rgb * t.rgb; // (about linear, as the far view's)
+                    // the light on it: the day's, warm at dusk, a little moonlight at night
+                    vec3 sunLight = mix(vec3(1.0), materialParams.duskEmber.rgb * 1.6, duskW * 0.5);
+                    vec3 lightCol = mix(sunLight * 0.95, vec3(0.05, 0.06, 0.09), smoothstep(0.35, 0.95, dark));
+                    vec3 g = albedo * lightCol;
+                    vec3 ringCol = mix(g, col, haze);
+                    if (isLit) {
+                        // (a town's lights carry farther than its walls: thinned haze, by night only)
+                        float on = smoothstep(0.45, 0.85, dark);
+                        ringCol = mix(ringCol, vec3(1.0, 0.72, 0.38), on * clamp(1.0 - haze * 0.55, 0.0, 1.0));
+                    }
+                    col = ringCol;
+                }
+            }
         }
 
         // (a tiny per-pixel dither so the smooth gradient doesn't show 8-bit banding on the phone's surface)

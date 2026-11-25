@@ -1558,6 +1558,8 @@ class FilamentTown(
             val fl = pose.fl.coerceAtLeast(1f)
             ss.update(skyState, pose.rx, pose.ry, pose.rz, pose.ux, pose.uy, pose.uz, pose.fx, pose.fy, pose.fz,
                 pose.w / (2f * fl), pose.h / (2f * fl), (pose.w / 2f - pose.cx) / fl, (pose.cy - pose.h / 2f) / fl)
+            // (the horizon ring's air: the world's haze, as [haze] sets the fog for the far view, from the eye's height)
+            worldBaseM?.let { base -> ss.horizonAir(air.extinction.toFloat(), (1.0 / air.scaleHeightM).toFloat(), (base + pose.ey / worldUnitsPerMetre).toFloat()) }
         }
         haze(pose, sky)
         val dark = sky.dark
@@ -2316,6 +2318,20 @@ class FilamentTown(
     var air = com.lifemax.rpg.feature.habits.domain.WorldAir.CLEAR
     /** The town's ground height above sea level (m) and street units a metre, once the world is attached: the haze's sea level. */
     internal var worldBaseM: Double? = null
+
+    /**
+     * The horizon ring past the far view (docs/STREAMING.md step 4): the sky draws [p] where nothing nearer is (the engine's
+     * thread; WorldFar bakes it on a worker and hands it over); null takes it away.
+     */
+    internal fun horizon(p: com.lifemax.rpg.feature.habits.domain.HorizonPanorama?) {
+        val ss = skySurface ?: return
+        if (p == null) { ss.setHorizon(null); return }
+        ss.setHorizon(p.pixels, com.lifemax.rpg.feature.habits.domain.HorizonPanorama.W, com.lifemax.rpg.feature.habits.domain.HorizonPanorama.H,
+            p.r0, p.r1, com.lifemax.rpg.feature.habits.domain.HorizonPanorama.ELEV0, com.lifemax.rpg.feature.habits.domain.HorizonPanorama.STEP)
+    }
+
+    /** The horizon ring's texture (bytes; 0 without one). */
+    internal val horizonBytes: Long get() = skySurface?.horizonBytes ?: 0L
     internal var worldUnitsPerMetre = 1.0
     /** (Measuring) what is left out of the frame: [HIDE_FAR] and the rest, or-ed (the preview's GPU cost breakdown). */
     var debugHide = 0

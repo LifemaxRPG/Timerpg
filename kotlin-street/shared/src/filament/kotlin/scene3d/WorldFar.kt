@@ -52,7 +52,7 @@ internal class WorldFar(
     private var buildMs = 0f
 
     override val pending: Boolean get() = parts?.any { it.layer == null } ?: true
-    override val report: String get() = "world far view: ${plan?.report ?: "not planned yet"}; ${WorldMemory.triangles} triangles in ${WorldMemory.draws} draws, built in %.0f ms".format(java.util.Locale.US, buildMs)
+    override val report: String get() = "world far view: ${plan?.report ?: "not planned yet"}; ${WorldMemory.triangles} triangles in ${WorldMemory.draws} draws, built in %.0f ms".format(java.util.Locale.US, buildMs) + (horizon?.let { "; ${it.report}" } ?: "")
 
     override fun step() {
         if (job == null && parts == null) job = kit.pool.submit(java.util.concurrent.Callable { val t0 = System.nanoTime(); build().also { buildMs = (System.nanoTime() - t0) / 1e6f } })
@@ -95,11 +95,42 @@ internal class WorldFar(
             if (shown) { draws += l.draws; tris += l.triangles }
         }
         lastFrame = f
+        ring(f)
         out[0] = draws; out[1] = tris; out[2] = 0
         return out
     }
 
     private var lastFrame: TownExtra.Frame? = null
+
+    // ---------------------------------------------------------------- the horizon ring (docs/STREAMING.md step 4)
+
+    /** Where the horizon ring goes once baked (FilamentTown.horizon; set by [attach]); null: no ring. */
+    var onHorizon: ((com.lifemax.rpg.feature.habits.domain.HorizonPanorama?) -> Unit)? = null
+    /** The ring drawn now, and the one baking on a worker. */
+    @Volatile var horizon: com.lifemax.rpg.feature.habits.domain.HorizonPanorama? = null; private set
+    private var ringJob: java.util.concurrent.Future<com.lifemax.rpg.feature.habits.domain.HorizonPanorama>? = null
+
+    /** Bakes the ring again on a worker when the eye has gone far enough from where the last was baked; hands a finished one over. */
+    private fun ring(f: TownExtra.Frame) {
+        val give = onHorizon ?: return
+        val pl = plan ?: return
+        ringJob?.let { j ->
+            if (!j.isDone) return
+            ringJob = null
+            val r = try { j.get() } catch (e: java.util.concurrent.ExecutionException) { throw BuildFailure("baking the horizon ring", e.cause ?: e) }
+            horizon = r
+            give(if (hidden) null else r)
+            return
+        }
+        // (the eye in the world: the render origin plus the pose's eye, in metres; its height over sea level)
+        val u = origin.unitsPerMetre
+        val at = origin.origin.plus(f.pose.ex / u, f.pose.ez / u)
+        val eye = pl.baseElev + f.pose.ey / u
+        val h = horizon
+        if (h != null && !h.stale(at, eye)) return
+        val sk = pl.sk
+        ringJob = kit.pool.submit(java.util.concurrent.Callable { com.lifemax.rpg.feature.habits.domain.HorizonPanorama(sk, at, eye) })
+    }
     /** The root blocks the near terrain draws this frame ([blockKey]); their parts of the far view are hidden. */
     private var covered: Set<Long> = emptySet()
 
@@ -127,7 +158,7 @@ internal class WorldFar(
     /** The near terrain drawn with it (W5a), if any. */
     var near: WorldNear? = null
 
-    override fun destroy() { job?.cancel(true); parts?.forEach { it.layer?.destroy() }; parts = null; WorldMemory.gpuBuffers = 0; WorldMemory.gpuTextures = 0; WorldMemory.triangles = 0; WorldMemory.draws = 0 }
+    override fun destroy() { job?.cancel(true); ringJob?.cancel(true); ringJob = null; parts?.forEach { it.layer?.destroy() }; parts = null; WorldMemory.gpuBuffers = 0; WorldMemory.gpuTextures = 0; WorldMemory.triangles = 0; WorldMemory.draws = 0 }
 
     // ---------------------------------------------------------------- building (a worker)
 
@@ -484,6 +515,7 @@ internal class WorldFar(
             val u = origin.unitsPerMetre
             val grass = if (near) TownGround.boundsOf(town.town).let { b -> doubleArrayOf(b[0] / u, b[1] / u, b[2] / u, b[3] / u) } else null
             val far = town.addExtra { WorldFar(it, plan, origin, grass) }
+            if (ringOn) far.onHorizon = { town.horizon(it) }
             if (near) { far.near = WorldNear.attach(town, far, origin, grass); town.farFields = false }
             return far
         }
@@ -494,5 +526,8 @@ internal class WorldFar(
 
         /** Whether the near terrain (W5a) comes with the far view (previews: -DworldNear=0 for W4's far view alone). */
         @JvmStatic var nearOn = true
+
+        /** Whether the horizon ring is drawn past the far view (previews: -Dhorizon=0 to compare). */
+        @JvmStatic var ringOn = true
     }
 }
