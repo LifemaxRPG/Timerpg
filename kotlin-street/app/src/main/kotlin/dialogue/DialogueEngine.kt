@@ -207,6 +207,13 @@ class DialogueEngine private constructor(private val app: Context) {
     /** Where the saved states go: noBackupFilesDir (never in a cloud backup: they are rebuilt from the model). */
     private val stateDir: File get() = File(app.noBackupFilesDir, "llm-states")
 
+    /** Where the NPU's pre-tiled weights go (docs/ENGINE_TAILORING.md, idea 5): rebuilt from the model, never backed up. */
+    private val tileDir: File get() = File(app.noBackupFilesDir, "npu-tiles")
+    @Volatile private var tileCrumbPending = false
+    /** Pre-tiled NPU weights ("npu" pref "tile_cache", default off until measured on the S25: it cannot be tried on a
+     *  computer). Tiles are written only overnight or while charging (writing ~2 GB then costs no one a wait). */
+    val tileCacheWanted: Boolean get() = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getBoolean("tile_cache", false)
+
     /** The state files' budget: [STATE_BUDGET_BYTES], but never more than what keeps half the storage free. */
     private fun stateBudget(): Long {
         val dir = stateDir
@@ -1569,6 +1576,15 @@ class DialogueEngine private constructor(private val app: Context) {
         // the saved states of the hybrid model on flash, not in RAM (NOVEL_OPTIMIZATIONS.md, idea 2): shared by this
         // process and the writer's, kept across sessions; their budget leaves the phone's storage at least half free
         native?.stateDir = stateDir
+        // the NPU's pre-tiled weights (idea 5): read when there, written overnight or on the charger; their budget is the
+        // main and light models' tiles together, never more than a quarter of the free storage
+        if (native != null) {
+            val on = tileCacheWanted && native.device == com.timerpg.street.llm.NativeLlm.NPU
+            val held = if (on) tileDir.listFiles()?.sumOf { it.length() } ?: 0L else 0L
+            val free = runCatching { app.noBackupFilesDir.usableSpace }.getOrDefault(0L)
+            com.timerpg.street.llm.NativeLlm.tileCache(if (on) tileDir else null,
+                write = night || com.timerpg.street.night.NightWriter.charging(app), budgetBytes = minOf(TILE_BUDGET_BYTES, (free + held) / 4))
+        }
         native?.stateBudgetBytes = stateBudget()
         // writing the bank, only the shared rules' state: thousands of prompts a night would otherwise write a state of
         // ~100 MB each for each person and fact sheet (wear on the flash), most of them never read again; in play every
@@ -1661,6 +1677,10 @@ class DialogueEngine private constructor(private val app: Context) {
         val acc = native?.accelerators ?: 0
         com.timerpg.street.llm.AiLane.dialogueOffCpu = (native?.runsOn ?: 0) != 0
         _status.update { it.copy(runsOn = native?.runsOn ?: 0, hasGpu = acc and 1 != 0, hasNpu = acc and 2 != 0, gpuNote = gpuNote, loadInfo = native?.loadInfo) }
+        if (ok && native?.runsOn == com.timerpg.street.llm.NativeLlm.NPU && tileCacheWanted) {
+            com.timerpg.street.shot.Crumbs.add("npu tiles after load: ${com.timerpg.street.llm.NativeLlm.tileStatus()}")
+            tileCrumbPending = true
+        }
         if (closed) return
         if (!ok || !b.loaded) {
             val why = (try { b.error } catch (t: Throwable) { null }) ?: thrown ?: "unknown error"
@@ -1941,6 +1961,8 @@ class DialogueEngine private constructor(private val app: Context) {
             val nativeError = (b as? NativeLlm)?.lastGenerateError
             if (raw != null && nativeError != null && nativeError != "cancelled") { error = nativeError; raw = null }
             stats(b)
+            // the first reply after an NPU load repacks what the tile cache did not have: what that cost, once
+            if (tileCrumbPending) { tileCrumbPending = false; com.timerpg.street.shot.Crumbs.add("npu tiles after the first reply: ${com.timerpg.street.llm.NativeLlm.tileStatus()}") }
             if (night && !g.speed) countNight(b)
             if (g.timedOut) { end = End.TIMEOUT; break }
             if (g.cancelled || closed) { end = End.CANCELLED; break }
@@ -2224,6 +2246,8 @@ class DialogueEngine private constructor(private val app: Context) {
         const val LIVE_CONTEXT_TOKENS = 1024
         /** Tries per line before it stays the template. */
         const val MAX_TRIES = 2
+        /** The NPU tile cache's most: both models' tiles (Q4_0 4B ~2.1 GB, 9B ~5.5 GB) with room to spare. */
+        const val TILE_BUDGET_BYTES = 9L shl 30
         private val SENTENCE_END = Regex("[.!?]+[\"”’')]*\\s+(?=\\S)")
 
         /**

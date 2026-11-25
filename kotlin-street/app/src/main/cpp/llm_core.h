@@ -113,6 +113,18 @@ public:
 private:
     bool held_ = false;
 };
+// ---------------------------------------------------------------------------------------------------- pre-tiled NPU weights
+
+/**
+ * Pre-tiled NPU weights on flash (docs/ENGINE_TAILORING.md, idea 5; patches/ggml-hexagon-tile-cache.patch): from the next
+ * NPU load on, ggml-hexagon reads each weight's tiles from [dir] when they are there (no raw copy, no repack at the first
+ * compute) and, with [write], writes those it had to make, within [budget_bytes] for the whole directory. Keyed by the
+ * model file (its size, time and sampled bytes) and the backend's build. "" turns it off. Any failure only skips the cache.
+ */
+void npu_tile_cache(const std::string & dir, bool write, int64_t budget_bytes);
+/** What the cache did since the last NPU load (for the breadcrumbs), or why it is off. */
+std::string npu_tile_status();
+
 /** Called right before a compute starts and after it ends: the first one after a burst vote is logged (wake latency). */
 void npu_compute_begin();
 void npu_compute_end(int n_tokens);

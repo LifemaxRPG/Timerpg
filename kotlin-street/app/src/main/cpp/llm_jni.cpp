@@ -107,6 +107,15 @@ extern "C" JNIEXPORT void JNICALL FN(nativeSetNpuPower)(JNIEnv * env, jclass, jb
     try { llm::npu_power_policy(from_bytes(env, mode), hold_ms); } catch (...) {}
 }
 
+/** The NPU's pre-tiled weights (llm::npu_tile_cache): [dir] empty turns it off. */
+extern "C" JNIEXPORT void JNICALL FN(nativeSetTileCache)(JNIEnv * env, jclass, jbyteArray dir, jboolean write, jlong budget) {
+    try { llm::npu_tile_cache(from_bytes(env, dir), write == JNI_TRUE, budget); } catch (...) {}
+}
+
+extern "C" JNIEXPORT jstring JNICALL FN(nativeTileStatus)(JNIEnv * env, jclass) {
+    try { return to_jstring(env, llm::npu_tile_status()); } catch (...) { return nullptr; }
+}
+
 /** "timerpg.head_vocab" of a model file (llm::head_vocab): 0 for a file with the whole vocabulary. */
 extern "C" JNIEXPORT jlong JNICALL FN(nativeHeadVocab)(JNIEnv * env, jclass, jbyteArray path) {
     try { return (jlong) llm::head_vocab(from_bytes(env, path)); } catch (...) { return 0; }

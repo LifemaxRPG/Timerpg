@@ -618,6 +618,80 @@ int64_t head_vocab(const std::string & path) {
     return last_k;
 }
 
+namespace {
+struct TileCache {
+    std::mutex m;
+    std::string dir;
+    bool write = false;
+    int64_t budget = 0;
+    std::string last;  // what the last load set up
+};
+TileCache & tile_cache() {
+    static TileCache * t = new TileCache();
+    return *t;
+}
+using SetTilesFn = int (*)(const char * dir, const char * key, int write, int64_t budget);
+using TileStatsFn = int (*)(char * buf, size_t size);
+
+/** The model file's identity for its tiles: size, modification time and 64 KB samples at 17 places (not a full hash:
+ *  reading 2-6 GB at every load would cost what the cache saves). */
+std::string file_key(const std::string & path) {
+    struct stat st;
+    if (stat(path.c_str(), &st) != 0) return {};
+    uint64_t h = fnv1a(&st.st_size, sizeof st.st_size);
+    const int64_t mt = mtime_ns(st);
+    h ^= fnv1a(&mt, sizeof mt);
+    const int fd = open(path.c_str(), O_RDONLY | O_CLOEXEC);
+    if (fd < 0) return {};
+    std::vector<uint8_t> buf(65536);
+    for (int i = 0; i <= 16; ++i) {
+        const off_t at = (off_t) ((st.st_size > (off_t) buf.size() ? st.st_size - (off_t) buf.size() : 0) * i / 16);
+        const ssize_t n = pread(fd, buf.data(), buf.size(), at);
+        if (n > 0) h = h * 1099511628211ULL ^ fnv1a(buf.data(), (size_t) n);
+    }
+    close(fd);
+    return hex16(h) + "-" + std::to_string((long long) st.st_size);
+}
+
+/** Before an NPU load: tells ggml-hexagon (our patch) where the tiles of [path] are. */
+void tiles_for_load(const std::string & path) {
+    TileCache & t = tile_cache();
+    std::lock_guard<std::mutex> l(t.m);
+    ggml_backend_reg_t reg = ggml_backend_reg_by_name("HTP");
+    auto fn = reg ? reinterpret_cast<SetTilesFn>(ggml_backend_reg_get_proc_address(reg, "ggml_backend_hexagon_set_tile_cache")) : nullptr;
+    if (!fn) { t.last = reg ? "this ggml-hexagon has no tile cache (unpatched)" : "no NPU backend"; return; }
+    try {
+        const int64_t t0 = now_ms();
+        const std::string key = t.dir.empty() ? std::string() : file_key(path);
+        const int rc = fn(t.dir.c_str(), key.c_str(), t.write ? 1 : 0, t.budget);
+        t.last = t.dir.empty() ? "off" : rc != 0 ? "could not use " + t.dir : "key " + key + " (" + std::to_string((long long) (now_ms() - t0)) + " ms)";
+    } catch (...) {
+        t.last = "failed to set up";
+    }
+    log_msg(GGML_LOG_LEVEL_INFO, "llm: npu tiles: " + t.last);
+}
+}  // namespace
+
+void npu_tile_cache(const std::string & dir, bool write, int64_t budget_bytes) {
+    TileCache & t = tile_cache();
+    std::lock_guard<std::mutex> l(t.m);
+    t.dir = dir;
+    while (t.dir.size() > 1 && t.dir.back() == '/') t.dir.pop_back();
+    t.write = write;
+    t.budget = budget_bytes;
+}
+
+std::string npu_tile_status() {
+    TileCache & t = tile_cache();
+    std::lock_guard<std::mutex> l(t.m);
+    ggml_backend_reg_t reg = ggml_backend_reg_by_name("HTP");
+    auto fn = reg ? reinterpret_cast<TileStatsFn>(ggml_backend_reg_get_proc_address(reg, "ggml_backend_hexagon_tile_cache_stats")) : nullptr;
+    if (!fn) return t.last.empty() ? "no NPU backend" : t.last;
+    char buf[512] = {};
+    try { fn(buf, sizeof buf); } catch (...) { return "failed"; }
+    return std::string(buf);
+}
+
 bool init_backend(const std::vector<std::string> & cpu_libs, std::string * info) {
     static std::once_flag once;
     static bool ok = false;
@@ -1162,6 +1236,7 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
             devs_.push_back(nullptr);
             mp.devices = devs_.data();
             mp.n_gpu_layers = 999;
+            if (device_ == 2) tiles_for_load(path);  // (the NPU's pre-tiled weights for this file, when set up)
         } else {
             mp.n_gpu_layers = 0;
         }
