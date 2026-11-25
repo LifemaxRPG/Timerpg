@@ -98,6 +98,9 @@ height, entries, counts, file and bytes, times, and problems. `summary.json` has
 Such a place is never baked; its manifest row points at the folder (`handmade`). Adding a pre-made city later is one
 line. The capital's data is unchanged.
 
+The second hand-made city, **Dove Beach** (a beach town on the second launch port's slot), is designed in CITY2.md;
+its line here comes with its bake (CITY2.md, phase 2b and 7).
+
 ## Size and time (measured, desktop 4-core build server, 4 workers; not the S25)
 
 | rank | places | baked | time per town | pack size | of it JSON | of it pictures | buildings | people | built size (m) |
