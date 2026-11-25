@@ -337,6 +337,109 @@ and the purge are to be read from the breadcrumbs. To confirm on the S25: the `m
 `free`, `memAvail` and `npuRoom` over 5 minutes of the same walk as 0.1.848's play log, the "town built, GPU budget" and
 "memory trimmed" breadcrumbs, and one night walk past a farm.
 
+### Step 4 as built (2026-11-25; desktop measured, not yet measured on the S25)
+
+The memory-structure work: the same pictures and shapes in less memory, nothing visible given up. Measured with Filament's
+own count on the desktop (build server, llvmpipe; it matched the phone's within ~2% in section 1.2), two ways: the whole
+capital held at once (`GpuBudgetTest`, streaming off) and what is resident along the fixed walk and drive with streaming
+on (`GpuRouteTest`; `ROUTE_STEP4=0` runs the same route with step 4 off). Before = this step's start (990a5cf).
+
+**The whole capital** (GpuBudgetTest), each item measured on top of the one before:
+
+| part | before | after G3 pages | after G5 vertices | after the yard atlas | saved |
+|---|---:|---:|---:|---:|---:|
+| yards | 362.5 | 362.5 | 291.2 | **206.0** | -156.5 |
+| buildings and stores | 334.2 | 155.2 | 153.1 | **153.1** | -181.1 |
+| farms | 127.5 | 107.7 | 85.9 | **85.9** | -41.6 |
+| GLB landmarks | 41.4 | 41.4 | 39.1 | **39.1** | -2.3 |
+| props (trees, ground, street things, rail) | 74.2 | 74.2 | 62.3 | **62.3** | -11.9 |
+| vertex + index buffers (with the pages' free space) | 451.6 | 451.6 | 343.8 | **343.8** | -107.8 |
+| textures | 489.6 | 290.8 | 290.8 | **205.6** | -284.0 |
+| render targets + surfaces (2340 x 1080) | 118.8 | 118.8 | 118.8 | 118.8 | 0 |
+| **Filament total** | **1060.0** | **861.2** | **753.3** | **668.1** | **-391.9 (-37%)** |
+
+**Resident along the route** (GpuRouteTest, streaming on, 11,484 frames): peak **704.2 -> 475.2 MB** (-229.0; a second
+run 478.1), after the build at the origin 538.2 -> 378.6 MB; CPU ms a frame (llvmpipe, read only against each other)
+median 2.71 -> 2.54, p99 21.1 -> 22.7. The radius budget `TownBudget.ROUTE_MB` is lowered from 800 to 495 MB.
+
+The items, by measured payoff:
+
+1. **G3, the houses' night masks as window pages (-198.8 MB whole town).** A model's night mask was an atlas-sized RG8 or
+   RGBA8 texture (181 MB for the capital's houses) or exact ASTC (the farmhouses'), though only its windows, panes and signs
+   hold anything. Now (`FilamentModels.Pages`) only the atlas's 8 x 8 tiles that hold a glowing or glass pixel are kept,
+   packed one after another in a small texture with a table at its start (an entry a tile: its page's column and row);
+   `street_lit.mat` reads the table, then the page, with two `texelFetch` (nearest, clamped as before): the same texel the
+   whole mask gave. The hourly update writes only the pages (11 MB for all 289 models instead of 211). A mask stays ASTC
+   only where its pages would be bigger (none now). `NightMaskPagesTest` reads every paged mask as the shader does, at
+   mixed hours, byte for byte against the whole mask. Renders: pixel-identical (downtown day, dusk, night, the skyline at
+   night, a backyard at night, Main Street at night); the farmstead differs by at most 3 levels in 132 px (llvmpipe's ASTC
+   decode rounding: the RGBA8 pages hold the exact value). `-DmaskPages=0` / `TownQuality.maskPages` to compare.
+2. **G5, quantised vertices, 28 -> 20 bytes (-107.8 MB whole town).** Each batch is quantised where it is packed, on the
+   packing worker and in place in its own buffer (`BufferArena.quantized` -> `TownVertex.quantize`; the builders still
+   write floats, and the slice keeps only the read-back map, never the vertices): the position as three 16-bit unorm shorts in the
+   batch's own box, each axis its own power-of-two step (at most 1/16 unit across and 1/64 up: within 1.5 mm and 0.4 mm;
+   a flat batch's height exact; the origin a whole number of steps, so batches of the same steps share corners exactly,
+   and the error does not grow at the town's far edges), the texture coordinates as two unorm shorts on a grid of
+   1 / (texture size x k), k >= 16 a power of two, so every texel edge comes back exactly on its edge (also for the
+   512 x 924 atlases, which floats could not hold exactly); the tangent quaternion as before. `street_lit`,
+   `street_albedo` and `shadow_proxy` read them back by `posMap` / `posScale` / `uvMap` (`GeomSlice.decode` sets them on
+   every material instance of the slice; unset, a material reads floats). 14.3 M vertices quantised, 1.0 M left float
+   (boxes over 4096 units, a few very wide tilings). `VertexQuantTest` checks the read-back at the town's edge. Renders:
+   0.2-1.3% of pixels differ, nearly all by a few levels (light and shadow from sub-millimetre moves), 40-1250 px by more,
+   single pixels along edges; no cracks or z-fighting found. Octahedral normals would not save more (the frame is
+   already a short4 quaternion). `-Dquant=0` / `BufferArena.quantize` to compare.
+3. **G7 as the tile-sharing item: the yards' pictures on one shared atlas (-85.2 MB whole town).** Every lot's near patch
+   and far version laid out sheets of its own with the same yard kit pictures again: 361 lot atlases, 70 MB of ASTC with
+   mips and 20 MB of masks, for ~1 M distinct texels. `YardKit.nearAtlas` lays the whole town's near pictures out once
+   (one 2048 x 1024 sheet for the 2025 capital, in a fixed order), and `merge` lays a batch's meshes on it whenever all
+   their pictures are on it (a lot rebuilt with a picture the town lacks falls back to sheets of its own); the sinks pack
+   the sheet once (`SharedAtlas.shareFor`), so it is one texture. Yards' textures 90.3 -> 5.1 MB; the town built faster
+   (24.4 -> 22.5 s: no per-lot ASTC encoding). Level 0 is the same pixels; renders differ where the mip levels of thin yard
+   things sample their neighbours (the old per-lot sheets bled a blue-grey line under fence rails and shed walls, gone
+   now): up to 7% of a backyard view's pixels, at most 79 levels, the near views the same picture. Cost: the sheet's
+   pixels (and its mask) stay on the Java heap for the town's life, 2 x 8 MB, so rebuilt lots wear the same texture.
+   `-DyardAtlas=0` / `TownQuality.yardAtlas` to compare.
+4. **G6, instancing repeated yard props: measured, not built.** `-DyardRepeats=1` counts it: the near yards place 6.97 M
+   vertices that are copies of 1.39 M in 1,188 distinct meshes (trees 3.08 M placed / 0.72 M distinct, flower beds
+   0.67 / 0.19, side fences 0.41 / 0.04, veg beds 0.35 / 0.01, bushes 0.25 / 0.03, bins 0.18 / 0.004). One mesh per model
+   would hold ~5.6 M fewer vertices: ~107 MB of vertices and ~16 MB of indices **in the whole-town count (estimate)**. But
+   with streaming only the lots near the player have near versions (33 of 282 at the route's peak, ~32 MB estimated),
+   so on the route it would save some 20-25 MB (estimate), while it would break what the per-lot patches carry: one or
+   two draws a lot (instancing per model would be several times more draws unless instanced per cell), the camera
+   cutting away one tall thing (each yard tree is a patch of its own), a lot baked again after a car wrecks it, a lot
+   streamed in and out whole. Not worth that now; revisit if the radius grows (a bigger near ring) or draws allow.
+5. **Palette (indexed) textures: skipped, no gain at our formats.** The atlases are ASTC 4x4 already, a byte a texel:
+   an 8-bit index texture is the same size, so only a 4-bit index (16 colours a picture) would halve it, and it would need
+   our own index mips and an integer-sampler path in every material. The buildings' atlases (123.5 MB of the whole town,
+   ~19 MB est. resident at the route's peak) are already shared by content and unique per sprite; the yard version of
+   "share the tiles" is item 3. Not built; worth measuring only if the buildings' atlases become the largest part again.
+
+Budgets (`TownBudget`), lowered to the new figures with 1-2% room (props keep their 10 MB for the phone's tree cells):
+yards 210, buildings 156, farms 88, landmarks 41, props 73, buffers 350, textures 210, render targets 120, total 682;
+the route 495.
+
+**The build's Java heap** (`townMemoryCheck`, the cold build at a phone's heap): it **fails before this step too**: at the
+start commit the build runs out of the 320 MB heap after the first view (the check's budget, 256 MB held, is already far
+below what the streamed town holds; to look at in its own job). Measured at a 640 MB heap instead, the held peak (live heap
++ direct buffers) is 455-471 MB at the start commit, 491 MB with step 4's three switches off and 489-514 MB with them on
+(the runs vary by ~20 MB): about +20-40 MB at the build's peak, from the shared yard sheet's pixels (2 x 8 MB, kept) and
+the pass that gathers the town's yard pictures. Two first versions were far worse and are fixed: slices that kept their
+quantised vertices (+300 MB of direct buffers) and a second buffer per batch while quantising (now in place).
+
+**Estimated on the S25 (not measured):** Filament's account should fall by the same ~392 MB with the whole town and
+~229 MB at the route's peak (it matched the desktop within ~2%); GL mtrack and graphics PSS with it, plus the driver's
+rounding of the 289 smaller mask textures (fewer and smaller allocations, so if anything more). By section 3's rule
+(30-100% of a cut reaches Android's "free"), the NPU headroom (`npuRoom`) rises by ~70-230 MB in play with streaming, up
+to ~390 MB where the whole town is held. GPU time: two dependent `texelFetch` instead of one `texture` for the lit
+models' masks, and 20-byte vertices (less vertex fetch bandwidth: Qualcomm's guidance favours it); both expected neutral
+or better on the Adreno 830, unmeasured. Java heap: +16 MB held for the shared yard sheet (on ART the direct buffers are
+heap too), and the build's peak ~20-40 MB higher (desktop, above).
+
+To check on the S25: the `mem` line's `gfx`, `glMtrack`, `gfxDev`, `free`, `memAvail` and `npuRoom` over 5 minutes of the
+same walk as 0.1.848's log, and the "town built, GPU budget" breadcrumb (the parts against the new budgets); one night
+walk downtown and past a farm (the windows lit as before); a backyard close up and from above (no cracks, no fighting
+surfaces, the fence rails clean); a frame-time trace (Perfetto) of a night view downtown against 0.1.848's.
+
 ### The memory budget guard
 
 So a new feature that blows the budget fails a test instead of breaking the NPU on the phone:

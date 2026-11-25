@@ -319,7 +319,8 @@ internal class TownBike(
 
     private fun make(mesh: PropMesh): Part {
         val packed = PropLayer.Packing.pack(mesh, listOf(floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f)))!!
-        val vb = TownVertex.buffer(engine, packed.vertices).also { it.setBufferAt(engine, 0, packed.vb) }
+        // (in the layout it was packed in: quantised, or floats)
+        val vb = (if (packed.quant != null) TownVertex.quantBuffer(engine, packed.vertices) else TownVertex.buffer(engine, packed.vertices)).also { it.setBufferAt(engine, 0, packed.vb) }
         val ib = TownVertex.indices(engine, packed.indices, packed.shortIndices).also { it.setBuffer(engine, packed.ib) }
         val tex = textures.make(packed.tex)
         val mask = packed.mask?.let { textures.make(it) } ?: textures.black
@@ -330,13 +331,14 @@ internal class TownBike(
             mm.setParameter("uvRect", 0f, 0f, 1f, 1f); mm.setParameter("tint", 1f, 1f, 1f, 1f)
             mm.setParameter("glow", 0f, 0f, 0f, 0f); mm.setParameter("glass", 1f, 1f, 1f, 1f)
             mm.setParameter("fade", 1f); mm.setParameter("cell", 2f)
+            packed.quant?.decode(mm)
         }
         val e = EntityManager.get().create()
         RenderableManager.Builder(1).boundingBox(box).culling(false).castShadows(false).receiveShadows(true).priority(4)
             .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, vb, ib).material(0, mi).build(engine, e)
         engine.transformManager.create(e)
         scene.addEntity(e)
-        val pmi = proxyMat.createInstance().also { mm -> mm.setParameter("albedo", tex, crisp); mm.setParameter("uvRect", 0f, 0f, 1f, 1f) }
+        val pmi = proxyMat.createInstance().also { mm -> mm.setParameter("albedo", tex, crisp); mm.setParameter("uvRect", 0f, 0f, 1f, 1f); packed.quant?.decode(mm) }
         val p = EntityManager.get().create()
         RenderableManager.Builder(1).boundingBox(box).culling(false).castShadows(true).receiveShadows(false)
             .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, vb, ib).material(0, pmi).build(engine, p)

@@ -110,6 +110,7 @@ tasks.register<Test>("crossroadsTest") {
     maxHeapSize = "3g"
     // (GpuRouteTest's comparison run: ROUTE_STREAM=0 holds the whole town; an input, so the switch reruns the test)
     inputs.property("routeStream", System.getenv("ROUTE_STREAM") ?: "")
+    inputs.property("routeStep4", System.getenv("ROUTE_STEP4") ?: "")
     if (withFilament) {
         jvmArgs("-Djava.library.path=" + File(filamentDist, "lib").absolutePath)
         environment("EGL_PLATFORM", "surfaceless")
@@ -170,7 +171,7 @@ tasks.register<JavaExec>("preview") {
     // builder (kit, or placeholder: flat colours)
     for (k in listOf("town", "assetsRoot", "townYards", "memtrace", "heapBudget", "memlive", "coldOnly", "coldLandmarks")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // the open world's preview (-Dmode=filament-open): -DtownLod=0 bakes no far yards (to compare)
-    for (k in listOf("at", "levelProbe", "seqCount", "seqNoShadow", "treeLevel", "seqScales", "seqViews", "world", "worldFile", "worldYear", "worldNear", "townLod", "townFar", "folk", "see", "farmTag", "farms", "debugeye", "bench", "benchSecs", "gpucost", "rail", "texStats", "astc", "astcExact", "astcCache", "maskFormats", "glbAs", "glbTag", "glbFile", "gpuOnly", "sky3d", "skyWeather", "skyDay", "stream", "streamDebug", "streamOff", "farLights", "horizon", "worldVis", "impostors", "slod")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    for (k in listOf("at", "levelProbe", "seqCount", "seqNoShadow", "treeLevel", "seqScales", "seqViews", "world", "worldFile", "worldYear", "worldNear", "townLod", "townFar", "folk", "see", "farmTag", "farms", "debugeye", "bench", "benchSecs", "gpucost", "rail", "texStats", "astc", "astcExact", "astcCache", "maskFormats", "maskPages", "quant", "yardRepeats", "yardAtlas", "glbAs", "glbTag", "glbFile", "gpuOnly", "sky3d", "skyWeather", "skyDay", "stream", "streamDebug", "streamOff", "farLights", "horizon", "worldVis", "impostors", "slod")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     if (withFilament) {
         jvmArgs("-Djava.library.path=" + File(filamentDist, "lib").absolutePath)
         // Mesa's EGL with no display: headless software GL

@@ -11,15 +11,29 @@ material {
     doubleSided : true,
     parameters : [
         { type : sampler2d, name : albedo, precision : medium },
-        { type : float4, name : uvRect }
+        { type : float4, name : uvRect, precision : high },
+        // a batch of quantised vertices (as street_lit's): position origin and range, texture coordinates' map; 0: floats
+        { type : float4, name : posMap, precision : high },
+        { type : float4, name : posScale, precision : high },
+        { type : float4, name : uvMap, precision : high }
     ],
     requires : [ uv0 ]
+}
+
+vertex {
+    void materialVertex(inout MaterialVertexInputs material) {
+        // (a quantised batch's positions back in its box; floats as they are)
+        highp vec4 pm = materialParams.posMap;
+        if (pm.w != 0.0) material.worldPosition = getWorldFromModelMatrix() * vec4(pm.xyz + getPosition().xyz * materialParams.posScale.xyz, 1.0);
+    }
 }
 
 fragment {
     void material(inout MaterialInputs material) {
         prepareMaterial(material);
-        vec2 uv = materialParams.uvRect.xy + getUV0() * materialParams.uvRect.zw;
+        highp vec2 uv0 = getUV0();
+        if (materialParams.uvMap.z != 0.0) uv0 = materialParams.uvMap.xy + uv0 * materialParams.uvMap.zw;
+        highp vec2 uv = materialParams.uvRect.xy + uv0 * materialParams.uvRect.zw;
         material.baseColor = texture(materialParams_albedo, uv);
 #if !defined(VARIANT_DEPTH)
         // never seen: only the shadow map's (depth) pass keeps it

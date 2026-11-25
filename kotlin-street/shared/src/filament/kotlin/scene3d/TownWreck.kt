@@ -87,7 +87,7 @@ internal class TownWreck(
             val r = lk.rect
             if (lk.source == "yard" && r != null) {
                 val item = YardItem(lk.kind, r[0], r[1], r[2], r[3], lk.faceX, lk.faceZ, lk.variant, lk.layer, null, lk.zone)
-                for (b in YardKit.bake(listOf(item), perKind = false)) PropLayer.Packing.pack(b.mesh, IDENTITY)?.let { out += it to b.casts }
+                for (b in YardKit.bake(listOf(item), perKind = false)) PropLayer.Packing.pack(b.mesh, IDENTITY, YardKit.sharedAtlas?.shareFor(b.mesh))?.let { out += it to b.casts }
             } else if (drawn != null) {
                 val a = drawn.at.copyOf()
                 a[0] -= lk.spawnX; a[1] -= lk.spawnZ

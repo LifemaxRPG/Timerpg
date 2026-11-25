@@ -95,6 +95,9 @@ object YardKitBuilder : YardBuilder {
             if (l.items.isEmpty()) continue
             add(l.id, l.items, patchOf(l))
         }
+        // (the near pictures, the whole town's, on a few shared sheets every lot's near patch and far version lays its meshes
+        // on: MEMORY_AUDIT.md, "Step 4 as built")
+        YardKit.sharedAtlas = if (TownQuality.yardAtlas) YardKit.nearAtlas(work.map { it.near }) else null
         // (the far versions' own pictures, the whole town's: one atlas every lot's far version shares)
         farPictures = if (far) YardKit.farPictures(work.mapNotNull { it.far }) else emptyList()
         bakeAll(work, sink)

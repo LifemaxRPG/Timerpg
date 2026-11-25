@@ -8,7 +8,7 @@ package com.lifemax.rpg.feature.habits.presentation.scene3d
  * The parts are [GpuAccount.categories]' (Filament's own count, which the desktop matches to within ~2% of the phone)
  * gathered as the audit budgets them. The budgets are MB, set from the capital (gamma) as the open-world preview builds
  * it, after step 3 of the audit's plan (2026-11-24: far yards on their near atlases, the farms' night masks in exact
- * ASTC): each part's measured figure and a little room (1-2%) for the capital's growth between budget reviews; the props
+ * ASTC; lowered after step 4, 2026-11-25: the models' night masks as window pages): each part's measured figure and a little room (1-2%) for the capital's growth between budget reviews; the props
  * keep ~10 MB more because the phone brings tree cells into detail as the player walks (trees 23-40 MB measured there,
  * 32 on the desktop's build). Lower them as each later step lands; raise one only on purpose, with the reason here.
  */
@@ -22,26 +22,27 @@ object TownBudget {
     private val NOT_PROPS = OWN + setOf("buffer pages, free space", "shadow map", "render targets + surfaces", "total")
 
     val parts: List<Part> = listOf(
-        // measured 2026-11-24 after step 3 (desktop, gamma): 362.5 (was 453.7)
-        Part("yards", 368.0) { mb(it, "yards") },
-        // 334.2 (unchanged: the night masks' RG8 are step 4's, G3)
-        Part("buildings", 340.0) { mb(it, "buildings and stores") },
-        // 127.5 (was 191.7)
-        Part("farms", 130.0) { mb(it, "farms") },
-        // the GLB landmarks (their models, through FilamentModels' kin and PropLayer): 41.4
-        Part("landmarks", 43.0) { mb(it, "GLB landmarks") },
-        // trees 32.0, ground and terrain 21.4, street things and greenery 14.2, rail 6.0, the rest: 73.6
-        Part("props", 85.0) { c -> c.entries.filter { it.key !in NOT_PROPS }.sumOf { (it.value["mb"] as? Number)?.toDouble() ?: 0.0 } },
-        // every part's vertex and index buffers and the shared pages' free space: 451.2
-        Part("vertex/index buffers", 458.0) { c -> c.entries.filter { it.key !in setOf("total", "shadow map", "render targets + surfaces") }
+        // measured 2026-11-25 after step 4 (desktop, gamma): 206.0 (362.5 after step 3, 453.7 before; textures 5.1 on the shared yard atlas)
+        Part("yards", 210.0) { mb(it, "yards") },
+        // 153.1 after step 4 (was 334.2: the night masks' 181 MB of RG8 as window pages, 11 MB)
+        Part("buildings", 156.0) { mb(it, "buildings and stores") },
+        // 85.9 after step 4 (127.5 after step 3, 191.7 before: the farmhouses' masks paged, the vertices quantised)
+        Part("farms", 88.0) { mb(it, "farms") },
+        // the GLB landmarks (their models, through FilamentModels' kin and PropLayer): 39.1 (41.4 before step 4)
+        Part("landmarks", 41.0) { mb(it, "GLB landmarks") },
+        // trees, ground and terrain, street things and greenery, rail, the rest: 62.3 after step 4 (73.6 before)
+        Part("props", 73.0) { c -> c.entries.filter { it.key !in NOT_PROPS }.sumOf { (it.value["mb"] as? Number)?.toDouble() ?: 0.0 } },
+        // every part's vertex and index buffers and the shared pages' free space: 343.8 after step 4's quantised
+        // vertices (451.2 before)
+        Part("vertex/index buffers", 350.0) { c -> c.entries.filter { it.key !in setOf("total", "shadow map", "render targets + surfaces") }
             .sumOf { e -> (e.value["buffersMb"] as? Number)?.toDouble() ?: (if (e.key == "buffer pages, free space") (e.value["mb"] as? Number)?.toDouble() ?: 0.0 else 0.0) } },
-        // every texture: 489.1 (was 644.5)
-        Part("textures", 497.0) { c -> c.entries.filter { it.key != "total" }.sumOf { (it.value["texturesMb"] as? Number)?.toDouble() ?: 0.0 } },
+        // every texture: 205.6 after step 4 (489.1 after step 3, 644.5 before)
+        Part("textures", 210.0) { c -> c.entries.filter { it.key != "total" }.sumOf { (it.value["texturesMb"] as? Number)?.toDouble() ?: 0.0 } },
         // the shadow map (2048 x 4 cascades) and the render targets and surfaces of a 2340 x 1080 view: 118.8; unknown
         // where no view's estimate was given
         Part("render targets", 120.0) { c -> if (c["shadow map"] == null) null else mb(c, "shadow map") + mb(c, "render targets + surfaces") },
-        // 1059.2 (was 1213.8)
-        Part("total", 1080.0) { c -> mb(c, "total") },
+        // 668.1 after step 4 (window pages, quantised vertices, the shared yard atlas; 1059.2 after step 3, 1213.8 before)
+        Part("total", 682.0) { c -> mb(c, "total") },
     )
 
     // ------------------------------------------------------------------ streaming (docs/STREAMING.md)
@@ -56,9 +57,9 @@ object TownBudget {
     /**
      * The radius budget: Filament's whole count (as [parts]' "total") at any frame of the fixed walk and drive through the
      * capital ([GpuRouteTest]) with streaming on. It must not grow as the capital grows: adding districts adds far boxes
-     * and far yards only.
+     * and far yards only. The peak measured 2026-11-25 after step 4: 475-478 MB (704.2 with step 4 off, ROUTE_STEP4=0).
      */
-    const val ROUTE_MB = 800.0
+    const val ROUTE_MB = 495.0
 
     /** One part's figure against its budget. */
     class Row(val part: String, val mb: Double?, val budget: Double) {

@@ -7,6 +7,7 @@ import com.lifemax.rpg.feature.habits.presentation.scene3d.Astc
 import com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentModels
 import com.lifemax.rpg.feature.habits.presentation.scene3d.StreetTextures
 import com.lifemax.rpg.feature.habits.presentation.scene3d.TownEngine
+import com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -16,7 +17,9 @@ import org.jetbrains.skia.Image as SkiaImage
 /**
  * The night masks kept in ASTC 4x4 (MEMORY_AUDIT.md, G4: the farmhouses' masks, 85.6 MB of RGBA8 before): every model
  * whose mask the town makes ASTC decodes, at any mix of its lights on and off, to exactly the pixels the RGBA8 mask held,
- * so the windows and signs light as before. The farms' models and the capital's own.
+ * so the windows and signs light as before. The farms' models and the capital's own. (Since the window pages,
+ * NightMaskPagesTest, the town keeps a mask ASTC only where its pages would be bigger; this checks the ASTC path with the
+ * pages off, the quality setting's fallback.)
  */
 class NightMaskAstcTest {
     private val assets = listOf(File("app/src/main/assets"), File("../app/src/main/assets")).first { it.isDirectory }
@@ -25,6 +28,8 @@ class NightMaskAstcTest {
 
     @Test fun astcMasksDecodeToTheSamePixelsAtEveryHour() {
         Filament.init()
+        val pagesWere = TownQuality.maskPages
+        TownQuality.maskPages = false
         val engine = Engine.Builder().backend(Engine.Backend.OPENGL).config(TownEngine.config()).build()
         val textures = StreetTextures(engine, srgb = true)
         assertTrue("this GL reads ASTC", StreetTextures.useAstc)
@@ -67,6 +72,7 @@ class NightMaskAstcTest {
         }
         textures.destroy(all = true)
         engine.destroy()
+        TownQuality.maskPages = pagesWere
         println("night masks: $checked models with a glow picture, $astc of them in ASTC")
         assertTrue("some masks are ASTC ($astc of $checked)", astc > 0)
     }

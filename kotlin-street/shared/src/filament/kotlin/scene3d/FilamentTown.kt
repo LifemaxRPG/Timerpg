@@ -818,7 +818,7 @@ class FilamentTown(
             val out = ArrayList<Job>()
             val sink = object : YardSink {
                 override fun mesh(name: String, mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean, patch: YardPatch?, water: Boolean): MaterialInstance? {
-                    PropLayer.Packing.pack(mesh, at)?.let { out += Job(it, casts, tiled, patch = patch, yard = true, water = if (water) intArrayOf(mesh.texW, mesh.texH) else null) }
+                    PropLayer.Packing.pack(mesh, at, YardKit.sharedAtlas?.shareFor(mesh))?.let { out += Job(it, casts, tiled, patch = patch, yard = true, water = if (water) intArrayOf(mesh.texW, mesh.texH) else null) }
                     return null
                 }
                 override fun props(list: List<WorldProp>) {}
@@ -1062,7 +1062,7 @@ class FilamentTown(
                         val out = ArrayList<Job>()
                         val sink = object : YardSink {
                             override fun mesh(name: String, mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean, patch: YardPatch?, water: Boolean): MaterialInstance? {
-                                PropLayer.Packing.pack(mesh, at)?.let { out += Job(it, casts, tiled, patch = patch, yard = true, water = if (water) intArrayOf(mesh.texW, mesh.texH) else null) }
+                                PropLayer.Packing.pack(mesh, at, YardKit.sharedAtlas?.shareFor(mesh))?.let { out += Job(it, casts, tiled, patch = patch, yard = true, water = if (water) intArrayOf(mesh.texW, mesh.texH) else null) }
                                 return null
                             }
                             override fun props(list: List<WorldProp>) {}
@@ -1163,7 +1163,7 @@ class FilamentTown(
     private fun prepareYards() {
         val sink = object : YardSink {
             override fun mesh(name: String, mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean, patch: YardPatch?, water: Boolean): MaterialInstance? {
-                PropLayer.Packing.pack(mesh, at)?.let { offer(Job(it, casts, tiled, patch = patch, yard = true, water = if (water) intArrayOf(mesh.texW, mesh.texH) else null)) }
+                PropLayer.Packing.pack(mesh, at, YardKit.sharedAtlas?.shareFor(mesh))?.let { offer(Job(it, casts, tiled, patch = patch, yard = true, water = if (water) intArrayOf(mesh.texW, mesh.texH) else null)) }
                 return null
             }
             override fun props(list: List<WorldProp>) {
@@ -1498,7 +1498,7 @@ class FilamentTown(
             scene.addEntity(e)
         }
         s.built = built
-        if (stream) { val by = textures.sizeOf(s.held) + built.geo.vLen * TownVertex.STRIDE.toLong() + built.geo.iLen * 2L; slotBytes[s] = by; buildingBytes += by }
+        if (stream) { val by = textures.sizeOf(s.held) + built.geo.vLen * built.geo.stride.toLong() + built.geo.iLen * 2L; slotBytes[s] = by; buildingBytes += by }
         val bb = built.bounds
         placeBounds(s, bb)
         if (!s.known) addFar(s, bb)

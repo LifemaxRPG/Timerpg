@@ -22,6 +22,10 @@ class GpuRouteTest {
         System.setProperty("gpuOnly", "1")
         // (ROUTE_STREAM=0 in the environment: the same route with the whole town held, to compare)
         if (System.getenv("ROUTE_STREAM") == "0") System.setProperty("stream", "0")
+        // (ROUTE_STEP4=0: with the audit's step 4 off, the night masks whole, the vertices float, each lot's yard on its own
+        // sheets: the same route to compare)
+        val step4Off = System.getenv("ROUTE_STEP4") == "0"
+        if (step4Off) for (k in listOf("maskPages", "quant", "yardAtlas")) System.setProperty(k, "0")
         GpuAccount.reset()
         val log = StringBuilder()
         var peak = 0.0; var peakAt = ""
@@ -70,8 +74,8 @@ class GpuRouteTest {
             ok = true
         }
         val out = File("build/gpu-route").also { it.mkdirs() }
-        try { renderFilamentOpen(out.path) } finally { openBuilt = null; System.clearProperty("gpuOnly"); System.clearProperty("stream") }
-        File(out, "route.txt").writeText(log.toString())
+        try { renderFilamentOpen(out.path) } finally { openBuilt = null; System.clearProperty("gpuOnly"); System.clearProperty("stream"); for (k in listOf("maskPages", "quant", "yardAtlas")) System.clearProperty(k) }
+        File(out, if (step4Off) "route-step4off.txt" else "route.txt").writeText(log.toString())
         println("GPU along the route (desktop, Filament's own count):\n$log")
         assertTrue("the route was not played", ok)
         if (System.getenv("ROUTE_STREAM") == "0") return
