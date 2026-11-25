@@ -1498,7 +1498,7 @@ class FilamentTown(
             scene.addEntity(e)
         }
         s.built = built
-        if (stream) { val by = textures.sizeOf(s.held) + built.geo.vLen * TownVertex.STRIDE.toLong() + built.geo.iLen * 2L; slotBytes[s] = by; buildingBytes += by }
+        if (stream) { val by = textures.sizeOf(s.held) + built.geo.vLen * built.geo.stride.toLong() + built.geo.iLen * 2L; slotBytes[s] = by; buildingBytes += by }
         val bb = built.bounds
         placeBounds(s, bb)
         if (!s.known) addFar(s, bb)

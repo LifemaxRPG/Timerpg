@@ -119,7 +119,7 @@ internal class PropLayer(
 
     /** Uploads a [Packed] batch (the engine's thread); [casts]: it throws a shadow; [tiled]: its picture repeats. */
     fun upload(p: Packed, casts: Boolean, tiled: Boolean = false): MaterialInstance {
-        val geo = BufferArena.upload(engine, p.vb, p.vertices, p.ib, p.indices, p.shortIndices)
+        val geo = BufferArena.upload(engine, p.vb, p.vertices, p.ib, p.indices, p.shortIndices, p.tex.w, p.tex.h)
         textures.gpu.buffers(p.vb.limit(), p.ib.limit())
         com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.bytes += p.vb.limit() + p.ib.limit()
         val b = p.box
@@ -234,6 +234,7 @@ internal class PropLayer(
             m.setParameter("uvRect", 0f, 0f, 1f, 1f); m.setParameter("tint", 1f, 1f, 1f, 1f)
             m.setParameter("glow", 0f, 0f, 0f, 0f); m.setParameter("glass", 1f, 1f, 1f, 1f)
             m.setParameter("fade", 1f); m.setParameter("cell", 2f)
+            geo.decode(m)
         }
         val e = EntityManager.get().create()
         RenderableManager.Builder(1).boundingBox(box).culling(cull).castShadows(false).receiveShadows(true).priority(4)
@@ -242,7 +243,7 @@ internal class PropLayer(
         var pe = 0
         var pmi: MaterialInstance? = null
         if (casts && proxy != null) {
-            pmi = proxy.createInstance().also { m -> m.setParameter("albedo", tex, crisp); m.setParameter("uvRect", 0f, 0f, 1f, 1f) }
+            pmi = proxy.createInstance().also { m -> m.setParameter("albedo", tex, crisp); m.setParameter("uvRect", 0f, 0f, 1f, 1f); geo.decode(m) }
             pe = EntityManager.get().create()
             RenderableManager.Builder(1).boundingBox(box).castShadows(true).receiveShadows(false)
                 .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, geo.vb, geo.ib, geo.first, geo.count).material(0, pmi).build(engine, pe)

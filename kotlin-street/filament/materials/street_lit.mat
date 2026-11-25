@@ -18,6 +18,12 @@ material {
         // a night mask kept as window pages (FilamentModels.Pages): the atlas's size (xy), the table's width in 8 x 8
         // tiles (z), the first page's tile row (w); 0 (unset): the mask is read whole
         { type : float4, name : maskMap, precision : high },
+        // a batch of quantised vertices (TownVertex.quantize: 16-bit normalised): its position's origin (xyz; w: 1, on) and
+        // range along each axis (posScale),
+        // and its texture coordinates' map (xy + uv0 * zw, in the flipped v Filament hands the material); 0 (unset): floats
+        { type : float4, name : posMap, precision : high },
+        { type : float4, name : posScale, precision : high },
+        { type : float4, name : uvMap, precision : high },
         // multiplies the picture (flat-coloured ground uses a white picture)
         { type : float4, name : tint },
         // the window light's colour (rgb) and how far on it is (a)
@@ -54,10 +60,14 @@ material {
 
 vertex {
     void materialVertex(inout MaterialVertexInputs material) {
+        // (a quantised batch's positions back in its box: Filament's device domain applies the clip-space transform to
+        // the vertex as stored, so the scale-back is a matrix in it)
+        highp vec4 pm = materialParams.posMap; highp vec4 ps = materialParams.posScale;
+        highp mat4 dq = pm.w != 0.0 ? mat4(vec4(ps.x, 0.0, 0.0, 0.0), vec4(0.0, ps.y, 0.0, 0.0), vec4(0.0, 0.0, ps.z, 0.0), vec4(pm.xyz, 1.0)) : mat4(1.0);
         // the true place for light and shadow; the classic look for the screen
-        material.worldPosition = getWorldFromModelMatrix() * getPosition();
+        material.worldPosition = getWorldFromModelMatrix() * (dq * getPosition());
         // (Filament's shader world is centred on the camera; the look takes the user's world)
-        material.clipSpaceTransform = materialParams.look * getUserWorldFromWorldMatrix() * getWorldFromModelMatrix();
+        material.clipSpaceTransform = materialParams.look * getUserWorldFromWorldMatrix() * getWorldFromModelMatrix() * dq;
     }
 }
 
@@ -71,7 +81,9 @@ fragment {
     }
     void material(inout MaterialInputs material) {
         prepareMaterial(material);
-        highp vec2 uv = materialParams.uvRect.xy + getUV0() * materialParams.uvRect.zw;
+        highp vec2 uv0 = getUV0();
+        if (materialParams.uvMap.z != 0.0) uv0 = materialParams.uvMap.xy + uv0 * materialParams.uvMap.zw;
+        highp vec2 uv = materialParams.uvRect.xy + uv0 * materialParams.uvRect.zw;
         vec4 c = texture(materialParams_albedo, uv) * materialParams.tint;
         // the cut-out's edge (a tree's leaves, a fence's gaps) from a sharper mip than the colour: the mipmaps average the
         // alpha, so far off a crown's leaves fell under the mask's half and the crown went while its trunk stayed

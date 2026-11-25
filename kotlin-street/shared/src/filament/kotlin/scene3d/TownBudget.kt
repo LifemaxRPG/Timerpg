@@ -22,26 +22,27 @@ object TownBudget {
     private val NOT_PROPS = OWN + setOf("buffer pages, free space", "shadow map", "render targets + surfaces", "total")
 
     val parts: List<Part> = listOf(
-        // measured 2026-11-24 after step 3 (desktop, gamma): 362.5 (was 453.7)
-        Part("yards", 368.0) { mb(it, "yards") },
-        // 155.2 after step 4 (was 334.2: the night masks' 181 MB of RG8 as window pages, 11 MB)
-        Part("buildings", 158.0) { mb(it, "buildings and stores") },
-        // 107.7 after step 4 (127.5 after step 3, 191.7 before: the farmhouses' masks paged too)
-        Part("farms", 110.0) { mb(it, "farms") },
-        // the GLB landmarks (their models, through FilamentModels' kin and PropLayer): 41.4
-        Part("landmarks", 43.0) { mb(it, "GLB landmarks") },
-        // trees 32.0, ground and terrain 21.4, street things and greenery 14.2, rail 6.0, the rest: 73.6
-        Part("props", 85.0) { c -> c.entries.filter { it.key !in NOT_PROPS }.sumOf { (it.value["mb"] as? Number)?.toDouble() ?: 0.0 } },
-        // every part's vertex and index buffers and the shared pages' free space: 451.2
-        Part("vertex/index buffers", 458.0) { c -> c.entries.filter { it.key !in setOf("total", "shadow map", "render targets + surfaces") }
+        // measured 2026-11-25 after step 4 (desktop, gamma): 291.2 (362.5 after step 3, 453.7 before)
+        Part("yards", 297.0) { mb(it, "yards") },
+        // 153.1 after step 4 (was 334.2: the night masks' 181 MB of RG8 as window pages, 11 MB)
+        Part("buildings", 156.0) { mb(it, "buildings and stores") },
+        // 85.9 after step 4 (127.5 after step 3, 191.7 before: the farmhouses' masks paged, the vertices quantised)
+        Part("farms", 88.0) { mb(it, "farms") },
+        // the GLB landmarks (their models, through FilamentModels' kin and PropLayer): 39.1 (41.4 before step 4)
+        Part("landmarks", 41.0) { mb(it, "GLB landmarks") },
+        // trees, ground and terrain, street things and greenery, rail, the rest: 62.3 after step 4 (73.6 before)
+        Part("props", 73.0) { c -> c.entries.filter { it.key !in NOT_PROPS }.sumOf { (it.value["mb"] as? Number)?.toDouble() ?: 0.0 } },
+        // every part's vertex and index buffers and the shared pages' free space: 343.8 after step 4's quantised
+        // vertices (451.2 before)
+        Part("vertex/index buffers", 350.0) { c -> c.entries.filter { it.key !in setOf("total", "shadow map", "render targets + surfaces") }
             .sumOf { e -> (e.value["buffersMb"] as? Number)?.toDouble() ?: (if (e.key == "buffer pages, free space") (e.value["mb"] as? Number)?.toDouble() ?: 0.0 else 0.0) } },
         // every texture: 290.8 after step 4 (489.1 after step 3, 644.5 before)
         Part("textures", 297.0) { c -> c.entries.filter { it.key != "total" }.sumOf { (it.value["texturesMb"] as? Number)?.toDouble() ?: 0.0 } },
         // the shadow map (2048 x 4 cascades) and the render targets and surfaces of a 2340 x 1080 view: 118.8; unknown
         // where no view's estimate was given
         Part("render targets", 120.0) { c -> if (c["shadow map"] == null) null else mb(c, "shadow map") + mb(c, "render targets + surfaces") },
-        // 861.2 after step 4's window pages (1059.2 after step 3, 1213.8 before)
-        Part("total", 878.0) { c -> mb(c, "total") },
+        // 753.3 after step 4 (window pages, quantised vertices; 1059.2 after step 3, 1213.8 before)
+        Part("total", 768.0) { c -> mb(c, "total") },
     )
 
     // ------------------------------------------------------------------ streaming (docs/STREAMING.md)

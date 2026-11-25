@@ -33,6 +33,8 @@ fun renderFilamentFarms(out: String) {
     val dir = File(out, "filament-farms").also { it.mkdirs() }
     // (-DmaskPages=0: the night masks atlas-sized, as before the window pages, to compare)
     com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.maskPages = System.getProperty("maskPages") != "0"
+    // (-Dquant=0: the shared pages hold float vertices, 28 bytes, as before the quantised ones, to compare)
+    com.lifemax.rpg.feature.habits.presentation.scene3d.BufferArena.quantize = System.getProperty("quant") != "0"
     val townDir = System.getProperty("town")?.let { File(it) }
         ?: File("../app/src/main/assets/town/gamma").takeIf { File(it, "street.json").exists() } ?: File("../build-town/gamma")
     val tag = System.getProperty("farmTag")?.let { "_$it" } ?: ""

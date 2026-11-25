@@ -11,7 +11,11 @@ material {
         { type : mat4, name : look, precision : high },
         { type : sampler2d, name : albedo, precision : medium },
         { type : sampler2d, name : mask, precision : medium },
-        { type : float4, name : uvRect },
+        { type : float4, name : uvRect, precision : high },
+        // a batch of quantised vertices (as street_lit's): position origin and range, texture coordinates' map; 0: floats
+        { type : float4, name : posMap, precision : high },
+        { type : float4, name : posScale, precision : high },
+        { type : float4, name : uvMap, precision : high },
         { type : float4, name : tint },
         { type : float4, name : glow },
         // what the glass mirrors at this hour (multiplies the glass, the mask's green)
@@ -24,9 +28,11 @@ material {
 
 vertex {
     void materialVertex(inout MaterialVertexInputs material) {
-        material.worldPosition = getWorldFromModelMatrix() * getPosition();
+        highp vec4 pm = materialParams.posMap; highp vec4 ps = materialParams.posScale;
+        highp mat4 dq = pm.w != 0.0 ? mat4(vec4(ps.x, 0.0, 0.0, 0.0), vec4(0.0, ps.y, 0.0, 0.0), vec4(0.0, 0.0, ps.z, 0.0), vec4(pm.xyz, 1.0)) : mat4(1.0);
+        material.worldPosition = getWorldFromModelMatrix() * (dq * getPosition());
         // (Filament's shader world is centred on the camera; the look takes the user's world)
-        material.clipSpaceTransform = materialParams.look * getUserWorldFromWorldMatrix() * getWorldFromModelMatrix();
+        material.clipSpaceTransform = materialParams.look * getUserWorldFromWorldMatrix() * getWorldFromModelMatrix() * dq;
     }
 }
 
@@ -39,7 +45,9 @@ fragment {
     }
     void material(inout MaterialInputs material) {
         prepareMaterial(material);
-        vec2 uv = materialParams.uvRect.xy + getUV0() * materialParams.uvRect.zw;
+        highp vec2 uv0 = getUV0();
+        if (materialParams.uvMap.z != 0.0) uv0 = materialParams.uvMap.xy + uv0 * materialParams.uvMap.zw;
+        highp vec2 uv = materialParams.uvRect.xy + uv0 * materialParams.uvRect.zw;
         vec4 c = texture(materialParams_albedo, uv) * materialParams.tint;
         if (materialParams.fade < 1.0 && bayer4(gl_FragCoord.xy / materialParams.cell) > materialParams.fade) c.a = 0.0;
         material.baseColor = c;

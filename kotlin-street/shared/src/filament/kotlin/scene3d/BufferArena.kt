@@ -15,8 +15,26 @@ internal class GeomSlice internal constructor(
     val vb: VertexBuffer, val ib: IndexBuffer, val first: Int, val count: Int,
     internal val vPage: BufferArena.Page?, internal val vOff: Int, internal val vLen: Int,
     internal val iPage: BufferArena.Page?, internal val iOff: Int, internal val iLen: Int,
+    /** Quantised ([TownVertex.quantize]): how the materials read its positions and texture coordinates back; null: floats. */
+    internal val quant: TownVertex.Quant? = null,
 ) {
     @Volatile var freed = false; private set
+
+    /** Bytes a vertex of it takes on the GPU. */
+    val stride: Int get() = if (quant != null) TownVertex.QSTRIDE else TownVertex.STRIDE
+
+    /**
+     * Tells [mi] (any material instance drawing this slice: street_lit, street_albedo, shadow_proxy) how to read its
+     * vertices back: the quantised batch's `posMap`, `posScale` and `uvMap`, or nothing for floats (the materials' default, 0, reads
+     * them as they are). Every material instance made for a slice must have it.
+     */
+    fun decode(mi: com.google.android.filament.MaterialInstance) {
+        val q = quant ?: return
+        val m = mi.material
+        if (m.hasParameter("posMap")) mi.setParameter("posMap", q.posMap[0], q.posMap[1], q.posMap[2], q.posMap[3])
+        if (m.hasParameter("posScale")) mi.setParameter("posScale", q.posScale[0], q.posScale[1], q.posScale[2], q.posScale[3])
+        if (m.hasParameter("uvMap")) mi.setParameter("uvMap", q.uvMap[0], q.uvMap[1], q.uvMap[2], q.uvMap[3])
+    }
 
     /** Its triangles. */
     val triangles: Int get() = count / 3
@@ -53,8 +71,8 @@ object BufferArena {
     /** Off: every batch has buffers of its own, as before (to compare). */
     @Volatile var enabled = true
 
-    /** One buffer object, its free ranges (start -> length, in vertices or indices) kept merged. */
-    internal class Page(val vb: VertexBuffer?, val ib: IndexBuffer?, val capacity: Int, val lane: Int = 0) {
+    /** One buffer object, its free ranges (start -> length, in vertices or indices) kept merged; [stride]: bytes a vertex or index. */
+    internal class Page(val vb: VertexBuffer?, val ib: IndexBuffer?, val capacity: Int, val lane: Int = 0, val stride: Int = 2) {
         val free = java.util.TreeMap<Int, Int>().also { it[0] = capacity }
         var used = 0
         var destroyed = false
@@ -77,8 +95,18 @@ object BufferArena {
         }
     }
 
-    private class Lane { val vPages = ArrayList<Page>(); val iPages = ArrayList<Page>() }
-    private class Pool { val lanes = Array(LANES) { Lane() }; val vPages: List<Page> get() = lanes.flatMap { it.vPages }; val iPages: List<Page> get() = lanes.flatMap { it.iPages } }
+    /** A lane's pages: float vertices ([vPages]), quantised ones ([qPages]), indices. */
+    private class Lane { val vPages = ArrayList<Page>(); val qPages = ArrayList<Page>(); val iPages = ArrayList<Page>() }
+    private class Pool { val lanes = Array(LANES) { Lane() }; val vPages: List<Page> get() = lanes.flatMap { it.vPages + it.qPages }; val iPages: List<Page> get() = lanes.flatMap { it.iPages } }
+
+    /**
+     * The shared pages hold quantised vertices ([TownVertex.quantize]: 20 bytes instead of 28) for a batch whose picture's
+     * size is given and whose box and texture coordinates keep their precision; off: floats, as before (to measure).
+     */
+    @Volatile var quantize = true
+    /** Vertices uploaded quantised, and as floats (the reports'). */
+    val quantized = java.util.concurrent.atomic.AtomicLong()
+    val unquantized = java.util.concurrent.atomic.AtomicLong()
 
     /** How many sets of pages an engine keeps: [lane] 0 for what stays for the town's life, 1 for what is streamed in and out. */
     const val LANES = 2
@@ -96,21 +124,30 @@ object BufferArena {
      * Puts a packed batch on the GPU: [vb] ([nv] vertices in [TownVertex]'s layout) and [ib] ([ni] indices, 16-bit when
      * [short], counted from 0), into the pages when it is small enough, else into buffers of its own.
      */
-    internal fun upload(engine: Engine, vb: ByteBuffer, nv: Int, ib: ByteBuffer, ni: Int, short: Boolean): GeomSlice {
+    internal fun upload(engine: Engine, vb: ByteBuffer, nv: Int, ib: ByteBuffer, ni: Int, short: Boolean, texW: Int = 0, texH: Int = 0): GeomSlice {
         if (!enabled || !short || nv > MAX_PACKED_VERTICES || nv <= 0 || ni <= 0) {
-            val v = TownVertex.buffer(engine, kotlin.math.max(1, nv)); v.setBufferAt(engine, 0, vb)
+            // (a big batch with buffers of its own: quantised too where it keeps the precision)
+            val qo = if (quantize && nv > 0 && ni > 0) TownVertex.quantize(vb.duplicate().order(ByteOrder.nativeOrder()), nv, texW, texH) else null
+            if (qo != null) quantized.addAndGet(nv.toLong()) else unquantized.addAndGet(maxOf(nv, 0).toLong())
+            val v = if (qo != null) TownVertex.quantBuffer(engine, nv).also { GpuAccount.addBuffer(it, nv.toLong() * TownVertex.QSTRIDE) }
+                else TownVertex.buffer(engine, kotlin.math.max(1, nv))
+            v.setBufferAt(engine, 0, qo?.vb ?: vb)
             val i = TownVertex.indices(engine, kotlin.math.max(1, ni), short); i.setBuffer(engine, ib)
-            return GeomSlice(v, i, 0, ni, null, 0, 0, null, 0, 0)
+            return GeomSlice(v, i, 0, ni, null, 0, 0, null, 0, 0, qo)
         }
         val pool = synchronized(pools) { pools.getOrPut(engine) { Pool() } }
         val ln = pool.lanes[lane.coerceIn(0, LANES - 1)]
-        val (vp, vo) = place(engine, ln.vPages, nv, PAGE_VERTICES, true, lane)
+        // (quantised where it keeps the precision: positions to under half a millimetre, texel edges exact)
+        val qt = if (quantize) TownVertex.quantize(vb.duplicate().order(ByteOrder.nativeOrder()), nv, texW, texH) else null
+        if (qt != null) quantized.addAndGet(nv.toLong()) else unquantized.addAndGet(nv.toLong())
+        val stride = if (qt != null) TownVertex.QSTRIDE else TownVertex.STRIDE
+        val (vp, vo) = place(engine, if (qt != null) ln.qPages else ln.vPages, nv, PAGE_VERTICES, if (qt != null) 2 else 1, lane)
         // (an index range starts on an even index: Filament updates buffers at offsets of whole 4 bytes)
         val il = (ni + 1) and 1.inv()
-        val (ip, io) = place(engine, ln.iPages, il, PAGE_INDICES, false, lane)
+        val (ip, io) = place(engine, ln.iPages, il, PAGE_INDICES, 0, lane)
         // the vertices at their place in the page
-        val vsrc = vb.duplicate().order(vb.order()); vsrc.position(0); vsrc.limit(nv * TownVertex.STRIDE)
-        vp.vb!!.setBufferAt(engine, 0, vsrc, vo * TownVertex.STRIDE, nv * TownVertex.STRIDE)
+        val vsrc = (qt?.vb ?: vb).duplicate().order(vb.order()); vsrc.position(0); vsrc.limit(nv * stride)
+        vp.vb!!.setBufferAt(engine, 0, vsrc, vo * stride, nv * stride)
         // the indices counted from there (a copy: the packed batch may be uploaded again, by a layer made anew)
         val src = ib.duplicate().order(ByteOrder.nativeOrder()); src.position(0)
         val dst = ByteBuffer.allocateDirect(il * 2).order(ByteOrder.nativeOrder())
@@ -118,22 +155,26 @@ object BufferArena {
         if (il > ni) dst.putShort(vo.toShort())
         dst.flip()
         ip.ib!!.setBuffer(engine, dst, io * 2, il * 2)
-        val s = GeomSlice(vp.vb, ip.ib, io, ni, vp, vo, nv, ip, io, il)
-        GpuAccount.addBuffer(s, nv.toLong() * TownVertex.STRIDE + ni * 2L, gpu = false)
+        val s = GeomSlice(vp.vb, ip.ib, io, ni, vp, vo, nv, ip, io, il, qt)
+        GpuAccount.addBuffer(s, nv.toLong() * stride + ni * 2L, gpu = false)
         return s
     }
 
-    private fun place(engine: Engine, pages: ArrayList<Page>, n: Int, cap: Int, vertex: Boolean, lane: Int): Pair<Page, Int> {
+    /** [kind]: 0 indices, 1 float vertices, 2 quantised vertices. */
+    private fun place(engine: Engine, pages: ArrayList<Page>, n: Int, cap: Int, kind: Int, lane: Int): Pair<Page, Int> {
         for (p in pages) { if (p.capacity - p.used < n) continue; val at = p.take(n); if (at >= 0) return p to at }
-        val p = if (vertex) Page(TownVertex.buffer(engine, cap, account = false), null, cap, lane)
-        else Page(null, IndexBuffer.Builder().indexCount(cap).bufferType(IndexBuffer.Builder.IndexType.USHORT).build(engine), cap, lane)
+        val p = when (kind) {
+            1 -> Page(TownVertex.buffer(engine, cap, account = false), null, cap, lane, TownVertex.STRIDE)
+            2 -> Page(TownVertex.quantBuffer(engine, cap), null, cap, lane, TownVertex.QSTRIDE)
+            else -> Page(null, IndexBuffer.Builder().indexCount(cap).bufferType(IndexBuffer.Builder.IndexType.USHORT).build(engine), cap, lane)
+        }
         pages += p
         return p to p.take(n)
     }
 
     internal fun giveBack(engine: Engine, s: GeomSlice) {
         val pool = synchronized(pools) { pools[engine] } ?: return
-        s.vPage?.let { if (!it.destroyed) { it.give(s.vOff, s.vLen); drop(engine, pool.lanes[it.lane].vPages, it) } }
+        s.vPage?.let { if (!it.destroyed) { it.give(s.vOff, s.vLen); pool.lanes[it.lane].let { l -> drop(engine, if (it.stride == TownVertex.QSTRIDE) l.qPages else l.vPages, it) } } }
         s.iPage?.let { if (!it.destroyed) { it.give(s.iOff, s.iLen); drop(engine, pool.lanes[it.lane].iPages, it) } }
     }
 
@@ -156,7 +197,7 @@ object BufferArena {
 
     /** Each page's bytes (over every engine). */
     fun pageSizes(): List<Long> = synchronized(pools) {
-        pools.values.flatMap { pool -> pool.vPages.map { it.capacity.toLong() * TownVertex.STRIDE } + pool.iPages.map { it.capacity * 2L } }
+        pools.values.flatMap { pool -> pool.vPages.map { it.capacity.toLong() * it.stride } + pool.iPages.map { it.capacity * 2L } }
     }
 
     /** The pages now, over every engine: buffer objects, bytes they hold, bytes of them in use. */
@@ -164,7 +205,7 @@ object BufferArena {
     fun stats(): Stats = synchronized(pools) {
         var n = 0; var b = 0L; var u = 0L
         for (pool in pools.values) {
-            for (p in pool.vPages) { n++; b += p.capacity.toLong() * TownVertex.STRIDE; u += p.used.toLong() * TownVertex.STRIDE }
+            for (p in pool.vPages) { n++; b += p.capacity.toLong() * p.stride; u += p.used.toLong() * p.stride }
             for (p in pool.iPages) { n++; b += p.capacity * 2L; u += p.used * 2L }
         }
         Stats(n, b, u)

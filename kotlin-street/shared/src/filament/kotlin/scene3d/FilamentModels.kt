@@ -1347,7 +1347,7 @@ internal object FilamentModels {
     fun finish(engine: Engine, visibleMat: Material, proxyMat: Material?, textures: StreetTextures, r: Ready): ModelMesh {
         val groups = r.groups; val nv = r.nv; val ni = r.ni; val vb = r.vb; val ib = r.ib; val ranges = r.ranges
         val bounds = r.bounds; val body = r.body; val night = r.night; val linear = r.linear
-        val geo = BufferArena.upload(engine, vb, nv, ib, ni, TownVertex.short(nv))
+        val geo = BufferArena.upload(engine, vb, nv, ib, ni, TownVertex.short(nv), r.atlas.width, r.atlas.height)
         val vertices = geo.vb; val indices = geo.ib; val first = geo.first
         textures.gpu.buffers(vb.limit(), ib.limit())
         val bbox = Box((bounds[0] + bounds[3]) / 2f, (bounds[1] + bounds[4]) / 2f, (bounds[2] + bounds[5]) / 2f,
@@ -1394,6 +1394,7 @@ internal object FilamentModels {
                 mi.setParameter("fade", 1f)
                 mi.setParameter("cell", 2f)
                 mi.setParameter("oneSided", if (key is Key.Card) 1f else 0f)
+                geo.decode(mi)
             }
         }
         val e = EntityManager.get().create()
@@ -1406,7 +1407,7 @@ internal object FilamentModels {
             pmis = Array(groups.size) { j ->
                 proxyMat.createInstance().also { mi ->
                     val (tex, smp) = albedoOf(groups[j].key)
-                    mi.setParameter("albedo", tex, smp); mi.setParameter("uvRect", 0f, 0f, 1f, 1f)
+                    mi.setParameter("albedo", tex, smp); mi.setParameter("uvRect", 0f, 0f, 1f, 1f); geo.decode(mi)
                 }
             }
             proxy = EntityManager.get().create()

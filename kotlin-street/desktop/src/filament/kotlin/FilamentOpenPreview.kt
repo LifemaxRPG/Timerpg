@@ -76,6 +76,8 @@ fun renderFilamentOpen(out: String) {
     System.getProperty("astcCache")?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astcCache = File(it) }
     com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.maskFormats = System.getProperty("maskFormats") != "0"
     com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.maskPages = System.getProperty("maskPages") != "0"
+    // (-Dquant=0: the shared pages hold float vertices, 28 bytes, as before the quantised ones, to compare)
+    com.lifemax.rpg.feature.habits.presentation.scene3d.BufferArena.quantize = System.getProperty("quant") != "0"
     System.getProperty("astcExact")?.toDoubleOrNull()?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astcExact = it }
     Filament.init()
     val engine = Engine.Builder().backend(Engine.Backend.OPENGL).config(com.lifemax.rpg.feature.habits.presentation.scene3d.TownEngine.config()).build()
@@ -161,6 +163,13 @@ fun renderFilamentOpen(out: String) {
     // (and against the budgets, MEMORY_AUDIT.md's guard: GpuBudgetTest fails on any part over its budget)
     report.append("GPU budget by part:\n" + com.lifemax.rpg.feature.habits.presentation.scene3d.TownBudget.let { b -> b.table(b.check(
         com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.categories(ft.gpuEstimate(2340, 1080)))) })
+    // (the vertices the shared pages hold quantised, 20 bytes, and those left as floats, 28: a batch too big or too
+    // coarse for 16 bits, or with buffers of its own)
+    com.lifemax.rpg.feature.habits.presentation.scene3d.BufferArena.let { ba ->
+        val r = com.lifemax.rpg.feature.habits.presentation.scene3d.TownVertex.rejected
+        report.appendLine("vertices uploaded: %.2f M quantised, %.2f M as floats (no picture size %.2f M, box too big %.2f M, texture coordinates too wide %.2f M)".format(
+            ba.quantized.get() / 1e6, ba.unquantized.get() / 1e6, r.get(0) / 1e6, r.get(1) / 1e6, r.get(2) / 1e6))
+    }
     openBuilt?.invoke(ft)
     if (System.getProperty("gpuOnly") != null) {
         File(dir, "town.txt").writeText(report.toString()); println(report)
