@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { priceIndex, wage } from '../economy/eras';
 import {
+  STOP_POLICY,
   act,
   advance,
   arrest,
@@ -32,7 +34,7 @@ describe('src/loop facade', () => {
       placeId: CAPITAL_IDS.haleStore,
       position: { x: 40, y: 4 },
       light: 0.95,
-      item: { id: 'item:peaches_1', label: 'a tin of peaches', value: 3 },
+      item: { id: 'item:peaches_1', label: 'a tin of peaches', value: 65 },
       bystanders: [
         {
           id: CAPITAL_IDS.marcusHale,
@@ -101,7 +103,7 @@ describe('src/loop facade', () => {
       kind: 'take',
       subkind: 'yard',
       placeId: CAPITAL_IDS.elmYard,
-      item: { id: 'item:wrench_1', label: 'a brass wrench', value: 8 },
+      item: { id: 'item:wrench_1', label: 'a brass wrench', value: 325 },
       gloved: true,
       bystanders: [
         // Nearby resident is asleep inside
@@ -139,7 +141,7 @@ describe('src/loop facade', () => {
       kind: 'work_shift',
       placeId: CAPITAL_IDS.market,
       hours: 5,
-      pay: 45,
+      pay: 1575,
       taskLabel: 'stocking crates',
       bystanders: [
         { id: CAPITAL_IDS.marketOwner, position: { x: 85, y: 5 }, activity: 'working' },
@@ -149,7 +151,7 @@ describe('src/loop facade', () => {
     sim = shift.sim;
 
     expect(shift.legit).toBe(true);
-    expect(shift.payEarned).toBe(45);
+    expect(shift.payEarned).toBe(1575);
     expect(shift.crimeId).toBeUndefined();
 
     const ownerAtt = attitude(sim, CAPITAL_IDS.marketOwner);
@@ -180,7 +182,7 @@ describe('src/loop facade', () => {
       item: {
         id: 'item:watch_serial_1',
         label: 'a gold Hamilton pocket watch',
-        value: 140,
+        value: 14000,
         serialNumber: 'HAM-448912',
       },
       bystanders: [],
@@ -196,12 +198,13 @@ describe('src/loop facade', () => {
       item: {
         id: 'item:watch_serial_1',
         label: 'a gold Hamilton pocket watch',
-        value: 70,
+        value: 7000,
         serialNumber: 'HAM-448912',
       },
     });
     sim = sell.sim;
-    expect(sell.legit).toBe(true);
+    expect(sell.legit).toBe(false);
+    expect(sell.hot).toBe(true);
     expect(sell.pawnTraceFlagged).toBe(true);
 
     // Advance 48 hours: pawn ledger audit / G008 serial registry traces it back to the player
@@ -252,7 +255,7 @@ describe('src/loop facade', () => {
       kind: 'take',
       subkind: 'shoplift',
       placeId: CAPITAL_IDS.haleStore,
-      item: { id: 'item:soap_1', label: 'a bar of soap', value: 2 },
+      item: { id: 'item:soap_1', label: 'a bar of soap', value: 55 },
       bystanders: [
         { id: CAPITAL_IDS.marcusHale, position: { x: 40, y: 5 }, facing: { x: 0, y: -1 }, activity: 'watching' },
       ],
@@ -263,7 +266,7 @@ describe('src/loop facade', () => {
     const firstArrest = arrest(sim, {
       jurisdictionId: CAPITAL_JURISDICTION,
       carriedItemIds: ['item:soap_1'],
-      playerCash: 50,
+      playerCash: 5000,
     });
     sim = firstArrest.sim;
     expect(firstArrest.penalty).toBe('fine');
@@ -276,7 +279,7 @@ describe('src/loop facade', () => {
     const carSteal = act(sim, {
       kind: 'take_vehicle',
       placeId: CAPITAL_IDS.market,
-      vehicle: { id: 'veh:sedan_1', kind: 'sedan', color: 'blue', plateNumber: 'CAP-309', value: 900 },
+      vehicle: { id: 'veh:sedan_1', kind: 'sedan', color: 'blue', plateNumber: 'CAP-309', value: 90000 },
       bystanders: [
         { id: CAPITAL_IDS.marketOwner, position: { x: 84, y: 6 }, facing: { x: 1, y: -1 }, activity: 'watching' },
         { id: CAPITAL_IDS.marketCoworker, position: { x: 86, y: 6 }, facing: { x: -1, y: -1 }, activity: 'watching' },
@@ -299,7 +302,7 @@ describe('src/loop facade', () => {
       kind: 'take',
       subkind: 'shoplift',
       placeId: CAPITAL_IDS.haleStore,
-      item: { id: 'item:tin_rt', label: 'a tin of beans', value: 3 },
+      item: { id: 'item:tin_rt', label: 'a tin of beans', value: 65 },
       bystanders: [
         { id: CAPITAL_IDS.windowWoman, position: { x: 40, y: -1 }, facing: { x: 0, y: 1 }, activity: 'watching' },
       ],
@@ -325,13 +328,13 @@ describe('src/loop facade', () => {
         kind: 'work_shift',
         placeId: CAPITAL_IDS.bakery,
         hours: 4,
-        pay: 36,
+        pay: 1260,
       }).sim;
       s = act(s, {
         kind: 'take',
         subkind: 'shoplift',
         placeId: CAPITAL_IDS.haleStore,
-        item: { id: 'item:peaches_det', label: 'a tin of peaches', value: 3 },
+        item: { id: 'item:peaches_det', label: 'a tin of peaches', value: 65 },
         bystanders: [
           { id: CAPITAL_IDS.windowWoman, position: { x: 40, y: -1 }, facing: { x: 0, y: 1 }, activity: 'watching' },
         ],
@@ -362,12 +365,12 @@ describe('src/loop facade', () => {
           kind: 'work_shift',
           placeId: CAPITAL_IDS.market,
           hours: 4,
-          pay: 40,
+          pay: 1260,
         }),
       ),
     );
     expect(actResp.legit).toBe(true);
-    expect(actResp.payEarned).toBe(40);
+    expect(actResp.payEarned).toBe(1260);
     expect(actResp.sim).toBeUndefined();
 
     const attResp = JSON.parse(TimerpgSim.attitude(CAPITAL_IDS.marketOwner));
@@ -408,7 +411,7 @@ describe('src/loop facade', () => {
       kind: "take",
       subkind: "shoplift",
       placeId: CAPITAL_IDS.haleStore,
-      item: { id: "item:candy", label: "a tin of mints", value: 2 },
+      item: { id: "item:candy", label: "a tin of mints", value: 50 },
       bystanders: [
         { id: CAPITAL_IDS.marcusHale, position: { x: 40, y: 5 }, facing: { x: 0, y: -1 }, activity: "watching" },
       ],
@@ -430,7 +433,7 @@ describe('src/loop facade', () => {
       kind: "take",
       subkind: "shoplift",
       placeId: CAPITAL_IDS.haleStore,
-      item: { id: "item:jar_1", label: "a jar of honey", value: 4 },
+      item: { id: "item:jar_1", label: "a jar of honey", value: 125 },
       bystanders: [
         { id: CAPITAL_IDS.marcusHale, position: { x: 40, y: 5 }, facing: { x: 0, y: -1 }, activity: "watching" },
       ],
@@ -447,6 +450,476 @@ describe('src/loop facade', () => {
     sim = advance(sim, 24 * 30).sim;
     const cooledView = policeView(sim, CAPITAL_JURISDICTION);
     expect(cooledView.heat).toBeLessThan(hotView.heat);
+  });
+});
+
+describe('G012: real police & wiring fixes', () => {
+  it('runs on real G009 PoliceState and records ArrestRecords on booking', () => {
+    let sim = create(buildStubCapital({ seed: 'g012-real-police', year: 1978, startHour: 10 }));
+    expect(sim.policeState).toBeDefined();
+    expect(Object.keys(sim.policeState.officers).length).toBe(Object.keys(sim.officers).length);
+    for (const o of Object.values(sim.policeState.officers)) {
+      expect(o.planSource).toBeDefined();
+      expect(parsePlan(o.planSource!).ok).toBe(true);
+    }
+
+    sim = act(sim, {
+      kind: 'take',
+      subkind: 'shoplift',
+      placeId: CAPITAL_IDS.haleStore,
+      item: { id: 'item:g012_1', label: 'a tin of coffee', value: 180 },
+      bystanders: [
+        { id: CAPITAL_IDS.marcusHale, position: { x: 40, y: 5 }, facing: { x: 0, y: -1 }, activity: 'watching' },
+      ],
+    }).sim;
+    sim = advance(sim, 24).sim;
+
+    const outcome = arrest(sim, {
+      jurisdictionId: CAPITAL_JURISDICTION,
+      carriedItemIds: ['item:g012_1'],
+      playerCash: 5000,
+    });
+    expect(outcome.sim.policeState.arrests.length).toBe(1);
+    expect(outcome.sim.policeState.arrests[0]!.suspectId).toBe(sim.playerId);
+    expect(outcome.sim.policeState.arrests[0]!.transportedToStation).toBe(true);
+  });
+
+  it('arrest() runs skipped jailHours through advance() (gossip, reports, decay) and returns day & hour', () => {
+    let sim = create(buildStubCapital({ seed: 'g012-arrest-clock', year: 1978, startDay: 1, startHour: 10 }));
+
+    // Crime 1: forced-entry burglary (severity 0.62 -> multi-day jail >= 48h) witnessed at bakery by Tom Miller (not Marcus Hale's circle)
+    const burg = act(sim, {
+      kind: 'enter',
+      placeId: CAPITAL_IDS.bakery,
+      isOpen: false,
+      forcedEntry: true,
+      bystanders: [
+        { id: CAPITAL_IDS.bakerOwner, position: { x: 10, y: 5 }, facing: { x: 0, y: -1 }, activity: 'watching' },
+      ],
+    });
+    sim = burg.sim;
+    sim = advance(sim, 24).sim; // Day 2, hour 10: burglary reported to police
+
+    // Crime 2: freshly witnessed shoplifting at Hale's (NOT yet reported or gossipped to Marcus!)
+    const shop = act(sim, {
+      kind: 'take',
+      subkind: 'shoplift',
+      placeId: CAPITAL_IDS.haleStore,
+      light: 0.95,
+      item: { id: 'item:g012_jam', label: 'a jar of jam', value: 95 },
+      bystanders: [
+        { id: CAPITAL_IDS.marcusHale, position: { x: 40, y: 5 }, facing: { x: 0, y: 1 }, activity: 'working' },
+        { id: CAPITAL_IDS.windowWoman, position: { x: 40, y: -1 }, facing: { x: 0, y: 1 }, activity: 'watching' },
+      ],
+    });
+    sim = shop.sim;
+    expect(attitude(sim, CAPITAL_IDS.marcusHale).stance).toBe('serve');
+
+    // Arrest ONLY for the car theft -> jail time >= 48h must advance clock AND run gossip/reports!
+    const dayBefore = sim.currentDay;
+    const hourBefore = sim.currentHour;
+    const res = arrest(sim, {
+      jurisdictionId: CAPITAL_JURISDICTION,
+      crimeIds: [burg.crimeId!],
+    });
+    expect(res.jailHours).toBeGreaterThanOrEqual(48);
+    expect(res.daysElapsed).toBe(Math.floor((hourBefore + res.jailHours) / 24));
+    expect(res.day).toBe(dayBefore + res.daysElapsed);
+    expect(res.hour).toBe((hourBefore + res.jailHours) % 24);
+    expect(res.sim.currentDay).toBe(res.day);
+    expect(res.sim.currentHour).toBe(res.hour);
+    // While sitting in jail, gossip spread across town, attitudes shifted, and the shoplifting case surfaced!
+    expect(res.attitudeChanges.length).toBeGreaterThan(0);
+    expect(res.attitudeChanges.some((c) => c.newStance !== 'serve')).toBe(true);
+    expect(res.newPoliceCases).toContain(shop.crimeId);
+    expect(res.policePlans.length).toBeGreaterThan(0);
+  });
+
+  it('work_shift advances the clock itself, pays era-scaled integer cents by default, and returns changes', () => {
+    let sim = create(buildStubCapital({ seed: 'g012-shift-clock', year: 1952, startDay: 1, startHour: 22 }));
+
+    // Crime witnessed before shift; shift crossing midnight advances into Day 2 and triggers gossip
+    sim = act(sim, {
+      kind: 'take',
+      subkind: 'shoplift',
+      placeId: CAPITAL_IDS.haleStore,
+      item: { id: 'item:g012_tea', label: 'a tin of tea', value: 45 },
+      bystanders: [
+        { id: CAPITAL_IDS.windowWoman, position: { x: 40, y: -1 }, facing: { x: 0, y: 1 }, activity: 'watching' },
+      ],
+    }).sim;
+
+    // Omit pay -> defaults to 1952 shop_clerk wage * 4 hours in integer cents
+    const expectedHourly = wage('shop_clerk', 1952)!.hourlyCents;
+    const shift = act(sim, {
+      kind: 'work_shift',
+      placeId: CAPITAL_IDS.market,
+      hours: 4,
+      taskLabel: 'unloading produce',
+    });
+
+    expect(shift.legit).toBe(true);
+    expect(shift.payEarned).toBe(expectedHourly * 4);
+    expect(Number.isInteger(shift.payEarned)).toBe(true);
+    expect(shift.day).toBe(2);
+    expect(shift.hour).toBe(2);
+    expect(shift.daysElapsed).toBe(1);
+    expect(shift.sim.currentDay).toBe(2);
+    expect(shift.sim.currentHour).toBe(2);
+    expect(shift.policePlans).toBeDefined();
+    expect(shift.policePlans!.length).toBeGreaterThan(0);
+    expect(shift.attitudeChanges).toBeDefined();
+  });
+
+  it('builds patrol beats on nearby corners by graph distance even with randomly scrambled node IDs', () => {
+    // Build a 5x5 grid (25 junctions) with scrambled non-Hilbert node IDs
+    const scrambledNames = [
+      'z99', 'a04', 'm17', 'b82', 'q11',
+      'f40', 'x03', 'c55', 'w28', 'd09',
+      'k71', 'e19', 't64', 'h02', 'v88',
+      'n31', 'g50', 'y14', 'j93', 'p07',
+      'r22', 'l60', 'u05', 's47', 'i81',
+    ];
+    const gridId = (r: number, c: number) => `j:${scrambledNames[r * 5 + c]}`;
+    const coordOf = new Map<string, { r: number; c: number }>();
+    const nodes = [];
+    const edges = [];
+    for (let r = 0; r < 5; r++) {
+      for (let c = 0; c < 5; c++) {
+        const id = gridId(r, c);
+        coordOf.set(id, { r, c });
+        nodes.push({
+          id,
+          position: { x: c * 40, y: r * 40 },
+          kind: (r === 2 && c === 2 ? 'station' : 'intersection') as 'station' | 'intersection',
+          jurisdictionId: 'jur:grid',
+          streetLight: 0.7,
+        });
+        if (c + 1 < 5) edges.push({ from: id, to: gridId(r, c + 1), distance: 40 });
+        if (r + 1 < 5) edges.push({ from: id, to: gridId(r + 1, c), distance: 40 });
+      }
+    }
+
+    const base = buildStubCapital({ seed: 'g012-scrambled-grid', year: 1978, peopleCount: 2000 });
+    const sim = create({
+      ...base,
+      places: [
+        {
+          id: 'place:grid_station',
+          name: 'Central Precinct',
+          kind: 'police_station',
+          position: { x: 80, y: 80 },
+          jurisdictionId: 'jur:grid',
+          nodeId: gridId(2, 2),
+        },
+      ],
+      streetGraph: { nodes, edges },
+    });
+
+    const officers = Object.values(sim.officers);
+    expect(officers.length).toBeGreaterThanOrEqual(4);
+    for (const o of officers) {
+      expect(o.beatNodeIds.length).toBeGreaterThanOrEqual(3);
+      // Every consecutive pair of beat corners must be adjacent (1 hop) or at most 2 hops (turning from a corner)
+      for (let i = 1; i < o.beatNodeIds.length; i++) {
+        const a = coordOf.get(o.beatNodeIds[i - 1]!)!;
+        const b = coordOf.get(o.beatNodeIds[i]!)!;
+        const manhattanHops = Math.abs(a.r - b.r) + Math.abs(a.c - b.c);
+        expect(manhattanHops).toBeLessThanOrEqual(2);
+      }
+      // Consecutive corners stay immediately adjacent on average and entire 6-corner beat stays locally clustered
+      let stepSum = 0;
+      for (let i = 1; i < o.beatNodeIds.length; i++) {
+        const a = coordOf.get(o.beatNodeIds[i - 1]!)!;
+        const b = coordOf.get(o.beatNodeIds[i]!)!;
+        stepSum += Math.abs(a.r - b.r) + Math.abs(a.c - b.c);
+      }
+      expect(stepSum / Math.max(1, o.beatNodeIds.length - 1)).toBeLessThanOrEqual(1.5);
+      let maxPairHops = 0;
+      for (let i = 0; i < o.beatNodeIds.length; i++) {
+        for (let j = i + 1; j < o.beatNodeIds.length; j++) {
+          const a = coordOf.get(o.beatNodeIds[i]!)!;
+          const b = coordOf.get(o.beatNodeIds[j]!)!;
+          maxPairHops = Math.max(maxPairHops, Math.abs(a.r - b.r) + Math.abs(a.c - b.c));
+        }
+      }
+      expect(maxPairHops).toBeLessThanOrEqual(5);
+    }
+  });
+
+  it('LoopPlaceInit.staff sees crimes in the open shop and learns the player name after a shift', () => {
+    const init = buildStubCapital({ seed: 'g012-staff', year: 1978, startHour: 10, playerName: 'Jordan Ellis' });
+    const clerkA = 'p:staff_clerk_a';
+    const clerkB = 'p:staff_clerk_b';
+    init.people.push(
+      { id: clerkA, first: 'Nora', surname: 'Reed', sex: 'F', age: 27, homePlaceId: 'place:home_04', traits: { diligence: 0.9 } },
+      { id: clerkB, first: 'Walter', surname: 'Price', sex: 'M', age: 31, homePlaceId: 'place:home_05', traits: { diligence: 0.85 } },
+    );
+    const halePlace = init.places.find((pl) => pl.id === CAPITAL_IDS.haleStore)!;
+    halePlace.staff = [clerkA, clerkB];
+
+    let sim = create(init);
+    expect(sim.places[CAPITAL_IDS.haleStore]!.staff).toEqual([clerkA, clerkB]);
+
+    // 1. Work a shift at Hale's -> both staff clerks learn the player's name & gain trust
+    const shift = act(sim, {
+      kind: 'work_shift',
+      placeId: CAPITAL_IDS.haleStore,
+      hours: 2,
+    });
+    sim = shift.sim;
+    for (const cid of [clerkA, clerkB]) {
+      const att = attitude(sim, cid);
+      expect(att.knowsPlayerName).toBe(true);
+      expect(att.playerNameKnown).toBe('Jordan Ellis');
+      expect(att.trust).toBeGreaterThan(0);
+    }
+
+    // 2. Shoplift while the shop is open with NO explicit bystanders passed -> on-duty staff witness it!
+    const openSteal = act(sim, {
+      kind: 'take',
+      subkind: 'shoplift',
+      placeId: CAPITAL_IDS.haleStore,
+      item: { id: 'item:staff_watch', label: 'a box of matches', value: 35 },
+      light: 0.95,
+    });
+    const witnessIds = openSteal.witnessedBy.map((w) => w.personId);
+    expect(witnessIds.some((id) => id === clerkA || id === clerkB)).toBe(true);
+
+    // 3. When the shop is closed (hour 23), staff have gone home and do NOT auto-witness
+    const nightSim = create({ ...init, startHour: 23 });
+    const closedSteal = act(nightSim, {
+      kind: 'take',
+      subkind: 'shoplift',
+      placeId: CAPITAL_IDS.haleStore,
+      item: { id: 'item:night_matches', label: 'a box of matches', value: 35 },
+    });
+    expect(closedSteal.witnessedBy).toHaveLength(0);
+  });
+
+  it('marks hot item sales legit: false and hot: true, while clean sales return legit: true and hot: false', () => {
+    let sim = create(buildStubCapital({ seed: 'g012-hot-sale', year: 1978 }));
+
+    const cleanSell = act(sim, {
+      kind: 'sell',
+      placeId: CAPITAL_IDS.pawnShop,
+      item: { id: 'item:clean_coat', label: 'an old wool coat', value: 800 },
+    });
+    sim = cleanSell.sim;
+    expect(cleanSell.legit).toBe(true);
+    expect(cleanSell.hot).toBe(false);
+    expect(cleanSell.pawnTraceFlagged).toBe(false);
+
+    const steal = act(sim, {
+      kind: 'take',
+      subkind: 'house',
+      placeId: CAPITAL_IDS.elmHouse,
+      item: { id: 'item:hot_radio', label: 'a transistor radio', value: 1800, serialNumber: 'RAD-771' },
+      bystanders: [],
+    });
+    sim = steal.sim;
+
+    const hotSell = act(sim, {
+      kind: 'sell',
+      placeId: CAPITAL_IDS.pawnShop,
+      item: { id: 'item:hot_radio', label: 'a transistor radio', value: 900, serialNumber: 'RAD-771' },
+    });
+    expect(hotSell.legit).toBe(false);
+    expect(hotSell.hot).toBe(true);
+    expect(hotSell.pawnTraceFlagged).toBe(true);
+  });
+
+  it('writes attitude facts using "you" (zero "this person") and uses playerDescription', () => {
+    const init = buildStubCapital({
+      seed: 'g012-you-facts',
+      year: 1978,
+      startDay: 1,
+      startDayOfWeek: 1,
+      playerName: 'Sam Rivera',
+    });
+    let sim = create({
+      ...init,
+      playerDescription: 'a slim stranger in a green coat',
+    });
+
+    // Work shift so Clara knows player's name
+    sim = act(sim, {
+      kind: 'work_shift',
+      placeId: CAPITAL_IDS.market,
+      hours: 2,
+    }).sim;
+
+    // Witnessed theft at Hale's
+    sim = act(sim, {
+      kind: 'take',
+      subkind: 'shoplift',
+      placeId: CAPITAL_IDS.haleStore,
+      item: { id: 'item:peaches_pov', label: 'a tin of peaches', value: 65 },
+      bystanders: [
+        { id: CAPITAL_IDS.marcusHale, position: { x: 40, y: 5 }, facing: { x: 0, y: 1 }, activity: 'working' },
+        { id: CAPITAL_IDS.windowWoman, position: { x: 40, y: -1 }, facing: { x: 0, y: 1 }, activity: 'watching' },
+      ],
+    }).sim;
+    sim = advance(sim, 48).sim;
+
+    const claraAtt = attitude(sim, CAPITAL_IDS.marketOwner);
+    expect(claraAtt.facts.some((f) => f.includes('you') && f.includes('Sam Rivera'))).toBe(true);
+
+    const marthaAtt = attitude(sim, CAPITAL_IDS.windowWoman);
+    expect(marthaAtt.facts.some((f) => /I saw you steal/.test(f))).toBe(true);
+
+    const marcusAtt = attitude(sim, CAPITAL_IDS.marcusHale);
+    expect(marcusAtt.facts.some((f) => f.includes('told me you managed to'))).toBe(true);
+
+    // Every single person in town has ZERO "this person" phrasing in their fact sheet
+    let sawDescriptionInHearsay = false;
+    for (const pid of Object.keys(sim.peopleMeta)) {
+      const att = attitude(sim, pid);
+      for (const fact of att.facts) {
+        expect(fact.toLowerCase()).not.toContain('this person');
+        if (fact.includes('a slim stranger in a green coat')) sawDescriptionInHearsay = true;
+      }
+    }
+    expect(sawDescriptionInHearsay).toBe(true);
+  });
+
+  it('scales arrest fines in era integer cents using economy priceIndex(year)', () => {
+    const runFineForYear = (year: number) => {
+      let sim = create(buildStubCapital({ seed: 'g012-era-fine', year, startHour: 10 }));
+      sim = act(sim, {
+        kind: 'take',
+        subkind: 'shoplift',
+        placeId: CAPITAL_IDS.haleStore,
+        item: { id: 'item:soap_era', label: 'a bar of soap', value: Math.max(5, Math.round(250 * priceIndex(year)!)) },
+        bystanders: [
+          { id: CAPITAL_IDS.marcusHale, position: { x: 40, y: 5 }, facing: { x: 0, y: -1 }, activity: 'watching' },
+        ],
+      }).sim;
+      sim = advance(sim, 24).sim;
+      return arrest(sim, { jurisdictionId: CAPITAL_JURISDICTION, playerCash: 100000 });
+    };
+
+    const res1952 = runFineForYear(1952);
+    const res1978 = runFineForYear(1978);
+    const res2025 = runFineForYear(2025);
+
+    expect(res1952.penalty).toBe('fine');
+    expect(res1978.penalty).toBe('fine');
+    expect(res2025.penalty).toBe('fine');
+
+    expect(Number.isInteger(res1952.fineAmount)).toBe(true);
+    expect(Number.isInteger(res1978.fineAmount)).toBe(true);
+    expect(Number.isInteger(res2025.fineAmount)).toBe(true);
+
+    // 1952 fine << 1978 fine << 2025 fine, closely proportional to priceIndex(year)
+    expect(res1952.fineAmount).toBeLessThan(res1978.fineAmount);
+    expect(res1978.fineAmount).toBeLessThan(res2025.fineAmount);
+
+    const ratio52 = res1952.fineAmount / res2025.fineAmount;
+    const expected52 = priceIndex(1952)! / priceIndex(2025)!;
+    expect(Math.abs(ratio52 - expected52)).toBeLessThan(0.015);
+  });
+
+  it('runs a real street stop that releases on a weak case, arrests on a strong case, and obeys tunable STOP_POLICY', () => {
+    // 1. Weak case: single second-hand report of petty shoplifting (unknown suspect, thin evidence)
+    let weakSim = create(buildStubCapital({ seed: 'first-encounter-1978', year: 1978, startDay: 1, startHour: 10, startDayOfWeek: 1 }));
+    weakSim = act(weakSim, {
+      kind: 'take',
+      subkind: 'shoplift',
+      placeId: CAPITAL_IDS.haleStore,
+      item: { id: 'item:weak_peaches', label: 'a tin of peaches', value: 65 },
+      gloved: true,
+      bystanders: [
+        { id: CAPITAL_IDS.marcusHale, position: { x: 40, y: 5 }, facing: { x: 0, y: 1 }, activity: 'working' },
+        { id: CAPITAL_IDS.windowWoman, position: { x: 40, y: -1 }, facing: { x: 0, y: 1 }, activity: 'watching' },
+      ],
+    }).sim;
+    weakSim = advance(weakSim, 48).sim;
+
+    const weakView = policeView(weakSim, CAPITAL_JURISDICTION);
+    expect(weakView.cases.length).toBe(1);
+    expect(weakView.cases[0]!.strength.combinedScore).toBeLessThan(STOP_POLICY.stopArrestStrength);
+
+    const officerId = Object.keys(weakSim.officers)[0]!;
+    const weakSpot = spotted(weakSim, officerId, { distance: 4, light: 0.95 });
+    expect(weakSpot.action).toBe('approach_and_question');
+    expect(weakSpot.stopOutcome).toBeDefined();
+    expect(weakSpot.stopOutcome!.questioned).toBe(true);
+    expect(weakSpot.stopOutcome!.outcome).toBe('released');
+    expect(weakSpot.stopOutcome!.thresholdUsed).toBe(STOP_POLICY.stopArrestStrength);
+    expect(weakSpot.planSource).toBeDefined();
+    expect(parsePlan(weakSpot.planSource!).ok).toBe(true);
+
+    // Routing a weak street stop into arrest() also releases with zero jail/fine/priors!
+    const stopRelease = arrest(weakSim, {
+      jurisdictionId: CAPITAL_JURISDICTION,
+      officerId,
+      why: 'approach_and_question',
+    });
+    expect(stopRelease.releasedAfterStop).toBe(true);
+    expect(stopRelease.penalty).toBe('warning');
+    expect(stopRelease.fineAmount).toBe(0);
+    expect(stopRelease.jailHours).toBe(0);
+    expect(stopRelease.priorOffenses).toBe(0);
+
+    // 2. Era-gated papers check: in 1900 (pre-1915), checkedPapers is false
+    let oldSim = create(buildStubCapital({ seed: 'first-encounter-1978', year: 1900, startDay: 1, startHour: 10, startDayOfWeek: 1 }));
+    oldSim = act(oldSim, {
+      kind: 'take',
+      subkind: 'shoplift',
+      placeId: CAPITAL_IDS.haleStore,
+      item: { id: 'item:old_peaches', label: 'a tin of peaches', value: 15 },
+      gloved: true,
+      bystanders: [
+        { id: CAPITAL_IDS.marcusHale, position: { x: 40, y: 5 }, facing: { x: 0, y: 1 }, activity: 'working' },
+        { id: CAPITAL_IDS.windowWoman, position: { x: 40, y: -1 }, facing: { x: 0, y: 1 }, activity: 'watching' },
+      ],
+    }).sim;
+    oldSim = advance(oldSim, 48).sim;
+    const oldSpot = spotted(oldSim, Object.keys(oldSim.officers)[0]!, { distance: 4, light: 0.95 });
+    if (oldSpot.stopOutcome) {
+      expect(oldSpot.stopOutcome.checkedPapers).toBe(false);
+    }
+
+    // 3. Tunable policy table: lowering stopArrestStrength turns the same weak stop into an arrest
+    const strictSim = {
+      ...weakSim,
+      stopPolicy: { ...weakSim.stopPolicy, stopArrestStrength: 0.15 },
+    };
+    const strictSpot = spotted(strictSim, officerId, { distance: 4, light: 0.95 });
+    expect(strictSpot.action).toBe('approach_and_question');
+    expect(strictSpot.stopOutcome!.outcome).toBe('arrested');
+
+    // 4. Strong case (named suspect via pawn serial match) -> arrested on stop or immediately!
+    let strongSim = create(buildStubCapital({ seed: 'g012-strong-stop', year: 1982, startHour: 10 }));
+    strongSim = act(strongSim, {
+      kind: 'take',
+      subkind: 'house',
+      placeId: CAPITAL_IDS.elmHouse,
+      item: { id: 'item:strong_watch', label: 'a pocket watch', value: 14000, serialNumber: 'STR-551' },
+      bystanders: [],
+    }).sim;
+    strongSim = act(strongSim, {
+      kind: 'sell',
+      placeId: CAPITAL_IDS.pawnShop,
+      item: { id: 'item:strong_watch', label: 'a pocket watch', value: 7000, serialNumber: 'STR-551' },
+    }).sim;
+    strongSim = advance(strongSim, 48).sim;
+
+    const strongOfficer = Object.keys(strongSim.officers)[0]!;
+    const strongSpot = spotted(strongSim, strongOfficer, { distance: 5, light: 0.95 });
+    expect(['arrest', 'approach_and_question']).toContain(strongSpot.action);
+    if (strongSpot.action === 'approach_and_question') {
+      expect(strongSpot.stopOutcome!.outcome).toBe('arrested');
+    }
+    const strongArrest = arrest(strongSim, {
+      jurisdictionId: CAPITAL_JURISDICTION,
+      officerId: strongOfficer,
+      why: 'approach_and_question',
+    });
+    expect(strongArrest.releasedAfterStop).toBeUndefined();
+    expect(strongArrest.charges.length).toBeGreaterThan(0);
+    expect(strongArrest.priorOffenses).toBe(1);
   });
 });
 
