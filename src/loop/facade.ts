@@ -301,6 +301,13 @@ function formatCrimePhrase(meta: CrimeMetaRecord): string {
       return meta.itemLabel
         ? `steal ${meta.itemLabel} from ${meta.placeName}`
         : `steal a vehicle at ${meta.placeName}`;
+    // (the court's crime kinds, G013: said as a person would say them)
+    case 'bribery':
+      return `pay someone off at ${meta.placeName}`;
+    case 'perjury':
+      return `lie under oath at ${meta.placeName}`;
+    case 'intimidation':
+      return `threaten someone at ${meta.placeName}`;
     default:
       return `commit ${meta.kind.replace(/_/g, ' ')} at ${meta.placeName}`;
   }

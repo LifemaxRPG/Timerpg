@@ -1313,6 +1313,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
                 "burglary" -> "Somebody broke in there. You wouldn't know anything about that?"
                 "car_theft" -> "A car went missing near there. Know anything about it?"
                 "robbery", "assault" -> "Someone got hurt there. Your description came up."
+                "intimidation" -> "Somebody was threatened there. Your description came up."
+                "bribery", "perjury" -> "There are questions about what went on there. Your name came up."
                 null -> pick(officerId, "q2", "You look like someone we're looking for.", "Someone matching your description has been seen about.")
                 else -> "There was trouble there. Your description came up."
             }

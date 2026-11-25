@@ -6,8 +6,11 @@
     vandalism: 0.22,
     shoplifting: 0.28,
     theft: 0.44,
+    perjury: 0.56,
     car_theft: 0.58,
+    bribery: 0.64,
     burglary: 0.64,
+    intimidation: 0.7,
     assault: 0.72,
     robbery: 0.8,
     murder: 1
@@ -16,8 +19,11 @@
     vandalism: 0.65,
     shoplifting: 0.4,
     theft: 0.48,
+    perjury: 0.38,
     car_theft: 0.72,
+    bribery: 0.3,
     burglary: 0.58,
+    intimidation: 0.56,
     assault: 0.88,
     robbery: 0.9,
     murder: 0.94
@@ -792,6 +798,26 @@
     const delayHours = Math.round((0.05 + r() * 0.65 * (1.15 - 0.4 * urgency)) * 100) / 100;
     return { delayHours, delayDays: 0 };
   }
+  var CRIME_REPORTING_MODIFIERS = {
+    bribery: {
+      victimScale: 0.55,
+      witnessScale: 0.92,
+      hearsayScale: 0.6,
+      suppressVictimFloor: true
+    },
+    perjury: {
+      victimScale: 0.72,
+      witnessScale: 0.78,
+      hearsayScale: 0.4,
+      suppressVictimFloor: true
+    },
+    intimidation: {
+      victimScale: 0.42,
+      witnessScale: 1.05,
+      hearsayScale: 0.75,
+      suppressVictimFloor: true
+    }
+  };
   function reportingProbability(seed, world, crime, account, reporter, cachedRefusalRoll, socialIndex) {
     if (account.reported) return 0;
     if (reporter.id === crime.culpritId) return 0;
@@ -799,9 +825,17 @@
     if (account.source === "second_hand" && account.hops >= 2 && crime.severity < 0.7) return 0;
     if (refusesPolice(seed, reporter, crime.severity, cachedRefusalRoll)) return 0;
     let base = 0.05 + 0.72 * Math.pow(clamp01(crime.severity), 1.35);
+    const kindMod = CRIME_REPORTING_MODIFIERS[crime.kind];
     if (account.isVictim) {
-      base += 0.45;
-      if (crime.severity >= 0.45) base = Math.max(base, 0.9);
+      if (kindMod?.suppressVictimFloor) {
+        const resolveBoost = 0.75 + 0.5 * clamp01(reporter.traits.diligence);
+        base = (base + 0.25) * kindMod.victimScale * resolveBoost;
+      } else {
+        base += 0.45;
+        if (crime.severity >= 0.45) base = Math.max(base, 0.9);
+      }
+    } else if (kindMod) {
+      base *= account.source === "second_hand" ? kindMod.hearsayScale : kindMod.witnessScale;
     }
     if (account.source === "second_hand") {
       const teller = account.heardFrom ? world.people[account.heardFrom] : void 0;
@@ -6118,6 +6152,13 @@
         return meta.itemLabel ? `break into ${meta.placeName} and take ${meta.itemLabel}` : `break into ${meta.placeName}`;
       case "car_theft":
         return meta.itemLabel ? `steal ${meta.itemLabel} from ${meta.placeName}` : `steal a vehicle at ${meta.placeName}`;
+      // (the court's crime kinds, G013: said as a person would say them)
+      case "bribery":
+        return `pay someone off at ${meta.placeName}`;
+      case "perjury":
+        return `lie under oath at ${meta.placeName}`;
+      case "intimidation":
+        return `threaten someone at ${meta.placeName}`;
       default:
         return `commit ${meta.kind.replace(/_/g, " ")} at ${meta.placeName}`;
     }
