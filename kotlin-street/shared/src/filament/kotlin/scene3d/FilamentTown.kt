@@ -670,7 +670,7 @@ class FilamentTown(
     /** The day of the week the stores' car parks are filled for (0 Sunday .. 6 Saturday). */
     var weekday = 3
     /** The stores as built (for previews and tests): sprite, triangles, solid shapes, cars standing, whether drawn. */
-    val storeReport: List<String> get() = storeDraws.map { "${it.site.sprite} ${it.site.landmark}: ${it.triangles} triangles, ${it.solidCount} solid shapes, ${it.carCount} cars${if (it.shown) ", shown" else ""}" }
+    val storeReport: List<String> get() = storeDraws.map { "${it.site.sprite} ${it.site.landmark}: ${it.triangles} triangles, ${it.solidCount} solid shapes, ${it.carCount} cars (${it.carTriangles} triangles near)${if (it.shown) ", shown" else ""}" }
 
     /** The town's pictures: textures made, their texels, and how many asks were answered by one already made. */
     val textureStats: Triple<Int, Long, Int> get() = Triple(textures.madeCount, textures.texels, textures.shared)

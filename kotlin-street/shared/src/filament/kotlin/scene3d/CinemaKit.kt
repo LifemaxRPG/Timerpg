@@ -149,7 +149,9 @@ class CinemaLight(val x: Float, val y: Float, val z: Float, val r: Float, val g:
  * The whole theater: its [parts], its footprint as built (min x, min z, max x, max z: hoods, steps and the marquee's reach
  * over the pavement included), its height (the blade's crown), the main block's [width] and [depth] (lobby and auditorium).
  */
-class CinemaModel(val era: CinemaEra, val parts: List<CinemaPart>, val footprint: FloatArray, val height: Float, val width: Float, val depth: Float, val lights: List<CinemaLight> = emptyList()) {
+class CinemaModel(val era: CinemaEra, val parts: List<CinemaPart>, val footprint: FloatArray, val height: Float, val width: Float, val depth: Float, val lights: List<CinemaLight> = emptyList(),
+                  /** Cars standing in its car park, for the town to draw as real cars ([LotCars]; built with `realCars`), in the model's frame. */
+                  val parked: List<LotCar> = emptyList()) {
     /** Texels in all its pictures (each mesh's atlas, glow masks counted). */
     val texels: Long get() = parts.sumOf { p -> p.mesh.texW.toLong() * p.mesh.texH * (if (p.mesh.mask != null) 2 else 1) }
     /** The bytes those pictures take as ARGB ints on the Java heap (on the GPU as RGBA8 with mips, a third more). */
@@ -237,6 +239,9 @@ object CinemaKit {
         val page = Array(3) { MeshBuilder() }
         val lights = ArrayList<CinemaLight>()
         val tiles = LinkedHashMap<PixImg, TileMesh>()
+        /** The car park's cars as places (drawn as real cars by the town) when [realCars], else as boxes in [det]. */
+        var realCars = false
+        val parked = ArrayList<LotCar>()
         /** Tiles that throw no shadow (the recess floors). */
         fun tile(img: PixImg) = tiles.getOrPut(img) { TileMesh(img) }
         var phase = 0
@@ -826,7 +831,7 @@ object CinemaKit {
      * Builds the theater for [info] (its look by [CinemaInfo.era]) on its plot with the site round it (alleys, yard, car
      * park: [CinemaGrounds]); [seed] varies the wear, the people inside and the cars outside.
      */
-    fun build(info: CinemaInfo, seed: Int = 1): CinemaModel {
+    fun build(info: CinemaInfo, seed: Int = 1, realCars: Boolean = false): CinemaModel {
         val p = plot(info)
         val b = when (info.era) {
             CinemaEra.PALACE -> palace(info, p, seed)
@@ -835,9 +840,10 @@ object CinemaKit {
             CinemaEra.MULTIPLEX -> multiplex(info, p, seed)
         }
         val body = b.model(FloatArray(4), 0f, p.w, -p.back).let { if (p.cx != 0f) shifted(it, p.cx) else it }
-        val site = CinemaGrounds.build(info.era, p, body.footprint, seed).model(FloatArray(4), 0f, p.lot, p.deep)
+        val siteB = CinemaGrounds.build(info.era, p, body.footprint, seed, realCars)
+        val site = siteB.model(FloatArray(4), 0f, p.lot, p.deep)
         val fp = floatArrayOf(min(body.footprint[0], site.footprint[0]), min(body.footprint[1], site.footprint[1]), max(body.footprint[2], site.footprint[2]), max(body.footprint[3], site.footprint[3]))
-        return CinemaModel(info.era, body.parts + site.parts, fp, max(body.height, site.height), p.lot, p.deep, body.lights + site.lights)
+        return CinemaModel(info.era, body.parts + site.parts, fp, max(body.height, site.height), p.lot, p.deep, body.lights + site.lights, siteB.parked.toList())
     }
 
     /** [m] moved [dx] along the street (its meshes' places, bounds and lights). */

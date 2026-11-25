@@ -252,9 +252,33 @@ object StoreCars {
         return b.model(info.kind, info.lot, info.deep)
     }
 
-    /** The cars into [m] (the store's own builder, for [StoreKit.build]'s single model). */
+    /** The cars into [m] as boxes (the store's own builder, for [StoreKit.build]'s single model; the town draws [spots] as real cars). */
     internal fun place(b: StoreB, m: MeshBuilder, info: StoreInfo, bays: List<StoreBay>) {
-        if (bays.isEmpty()) return
+        for (s in spots(info, bays)) box(b, m, info.year, s)
+    }
+
+    /** A box car standing at [s] (the old look: what a lot drew before its real cars, and the cars' solid shapes). */
+    internal fun box(b: StoreB, m: MeshBuilder, year: Int, s: LotCar) {
+        val look = StoreGrounds.carLook(b, year, 0, Math.floorMod(s.seed, 10))
+        val along = kotlin.math.abs(kotlin.math.sin(s.turn)) > .5f
+        val nose = if (along) kotlin.math.sin(s.turn) else kotlin.math.cos(s.turn)
+        StoreGrounds.car(b, m, s.x, s.z, look, if (nose >= 0f) 1f else -1f, along)
+    }
+
+    /** The cars as boxes alone (their solid shapes for the walk and the cars' physics). */
+    fun boxes(info: StoreInfo, cars: List<LotCar>): CinemaModel {
+        val b = StoreB()
+        val m = b.det("cars")
+        for (s in cars) box(b, m, info.year, s)
+        return b.model(info.kind, info.lot, info.deep)
+    }
+
+    /**
+     * Where the cars stand at [info]'s hour (the shoppers' bays nearest the doors likeliest, seeded; the staff's at the far
+     * end), each nudged a little in its bay, its nose the bay's way, and a seed for its model and paint.
+     */
+    fun spots(info: StoreInfo, bays: List<StoreBay>): List<LotCar> {
+        if (bays.isEmpty()) return emptyList()
         val shop = bays.filter { !it.staff }
         val staffBays = bays.filter { it.staff }.ifEmpty { shop.sortedByDescending { it.door } }
         val n = min(StoreTraffic.shoppers(info), shop.size)
@@ -266,11 +290,15 @@ object StoreCars {
         val picked = shop.map { it to r.next().coerceAtLeast(1e-6f).toDouble().pow(1.0 / (1.0 / (1.0 + it.door / scale))) }.sortedByDescending { it.second }.take(n).map { it.first }
         val taken = HashSet<StoreBay>(picked)
         val staff = staffBays.filter { it !in taken }.take(ns)
-        for (bay in picked + staff) {
-            val look = StoreGrounds.carLook(b, info.year, 0, r.int(10))
-            StoreGrounds.car(b, m, bay.x + (r.next() - .5f) * 4f, bay.z + (r.next() - .5f) * 5f, look, bay.nose, bay.along)
+        return (picked + staff).map { bay ->
+            val k = r.int(10)
+            val x = bay.x + (r.next() - .5f) * 4f; val z = bay.z + (r.next() - .5f) * 5f
+            val turn = if (bay.along) (if (bay.nose > 0f) PI_F / 2f else -PI_F / 2f) else (if (bay.nose > 0f) 0f else PI_F)
+            LotCar(x, z, turn, k + 10 * (info.seed * 131 + bays.indexOf(bay) * 7 + info.year))
         }
     }
+
+    private const val PI_F = Math.PI.toFloat()
 }
 
 /**

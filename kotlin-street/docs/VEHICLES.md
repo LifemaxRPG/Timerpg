@@ -152,6 +152,41 @@ The C012 Stoneweir Wayfarer is left out while it is in revision. The Pinelatch C
 The capital (gamma) is set in 2025, so all five cars appear there as classics. In 1950 only the 1928 and 1938 cars
 appear, as working cars; in 1920 there are none.
 
+## Parked in the lots (2026-11-25)
+
+The cars in the stores' car parks were boxes until 2026-11-25. So were the movie theater's lot and a general store's
+truck on its drive. They are now our real cars (`LotCars`). The owner had asked to "replace all fake cars in our models
+with real cars".
+
+- Places: the lots keep their own logic for where cars stand. `StoreCars.spots` and `StoreTraffic` decide by the hour
+  and the day which bays fill. `CinemaGrounds` lays out the theater's rows. `StoreGrounds` puts the owner's truck on
+  the drive.
+- Models: each place gets a model of the town's year (`LotCars.pick`, weighted by `VehicleEra`). A model in its working
+  years weighs 1. A classic weighs less the longer ago its working life ended, and nothing more than 35 years past that
+  shows up. The race build is never parked. In 2025 the late-80s Torrel is the commonest; in 1958 only the 1938 and
+  1956 cars and a rare 1928.
+- Colours: one of the delivery's preset colours, seeded.
+- Static: each car is drawn from its mid or far .glb, whole. No physics, and its lamps stay unlit.
+- Sharing: a model in a colour is built once and shared. A lot's cars are packed into one batch per model, colour and
+  material.
+- Level of detail by distance: the far models are always up. The mid models are made only when the player comes within
+  ~90 m of the lot's edge, shown within ~45 m, and let go past ~140 m (`TownStore.CAR_MID`, `MID_LEAD`, `MID_DROP`).
+  The theater's few cars keep both models up.
+- Collision: the walk's and the cars' solid shapes still come from the old boxes at the same places.
+- Fallback: without `LotCars.files` (set by `TownCars.attach`; the open preview sets it, `-DlotCars=0` to compare)
+  the boxes are drawn as before.
+
+The cost, measured on the build server (`LotCarsTest`): gamma's superstore on its busiest hour, Saturday 3 pm, parks
+159 cars.
+
+| Models | Triangles | Batches | Size |
+| --- | ---: | ---: | ---: |
+| Mid | 160,026 | 120 | 10.7 MB |
+| Far | 22,110 | 73 | 1.4 MB |
+| Old boxes (before) | 9,540 | 1 | |
+
+The frame cost on the S25 near a full lot is not yet measured.
+
 ## Numbers
 
 These were measured on the 4-core x86 build server, not on the S25.

@@ -41,7 +41,11 @@ internal class TownCinema(
     private val layer = PropLayer(engine, scene, lit, proxy, sharedTextures = textures, cull = true)
     private val glow = CinemaLayer(layer)
     private val lamps = CinemaLights(engine, scene)
-    private var job: java.util.concurrent.Future<Triple<List<CinemaLayer.Packed>, FloatArray, List<CinemaLight>>>? = null
+    /** The car park's cars as our real cars ([LotCars]): their mid models near, their far ones further (none: boxes in [layer]). */
+    private val carsMid = PropLayer(engine, scene, lit, proxy, sharedTextures = textures, cull = true)
+    private val carsFar = PropLayer(engine, scene, lit, proxy, sharedTextures = textures, cull = true)
+    private var hasCars = false
+    private var job: java.util.concurrent.Future<Built>? = null
     /** It is up (uploaded), or it failed (the town goes on without it). */
     var done = false; private set
     /** A sphere round it in the world, its height's middle, once built (a guess before). */
@@ -96,8 +100,12 @@ internal class TownCinema(
         if (job != null || done) return
         val a = at
         job = pool.submit(priority, "cinema", null, java.util.concurrent.Callable {
-            val m = CinemaKit.build(site.info, seed)
-            Triple(CinemaLayer.pack(m, a), floatArrayOf(m.footprint[0], m.footprint[1], m.footprint[2], m.footprint[3], m.height), m.lights)
+            // (the car park's cars as real cars where they can be read, else the boxes as before)
+            val real = LotCars.specs().isNotEmpty()
+            val m = CinemaKit.build(site.info, seed, realCars = real)
+            val mid = LotCars.pack(m.parked, site.info.year, a, LotCars.Lod.MID)?.batches.orEmpty()
+            val far = LotCars.pack(m.parked, site.info.year, a, LotCars.Lod.FAR)?.batches.orEmpty()
+            Built(CinemaLayer.pack(m, a), floatArrayOf(m.footprint[0], m.footprint[1], m.footprint[2], m.footprint[3], m.height), m.lights, mid, far)
         })
     }
 
@@ -106,13 +114,17 @@ internal class TownCinema(
         if (done) return true
         val f = job ?: return false
         if (!f.isDone) return false
-        val (parts, fp, ls) = try { f.get() } catch (e: java.util.concurrent.ExecutionException) {
+        val built = try { f.get() } catch (e: java.util.concurrent.ExecutionException) {
             val c = e.cause ?: e
             if (c is VirtualMachineError) throw BuildFailure("building the cinema on a worker", c)
             done = true; job = null; return true
         }
+        val parts = built.parts; val fp = built.box; val ls = built.lights
         glow.upload(parts)
         lamps.add(ls, at)
+        for (p in built.mid) carsMid.upload(p, true)
+        for (p in built.far) carsFar.upload(p, true)
+        hasCars = built.mid.isNotEmpty()
         job = null
         // its sphere from what was built (the footprint in the model's frame: x along, z out; the height)
         val mx = (fp[0] + fp[2]) / 2f; val mz = (fp[1] + fp[3]) / 2f
@@ -141,8 +153,20 @@ internal class TownCinema(
         shown = on
         if (on) { out[0] = layer.draws; out[1] = layer.triangles }
         if (near) out[2] = layer.casters
+        if (hasCars) {
+            val cd = pose.distance(cx, 20f, cz) - r
+            val carsOn = on && cd < TownStore.CAR_RANGE
+            val midOn = carsOn && cd < TownStore.CAR_MID
+            val farOn = carsOn && !midOn
+            carsMid.update(look, dark, midOn, fade, midOn && cd < TownStore.CAR_SHADOWS)
+            carsFar.update(look, dark, farOn, fade, farOn && cd < TownStore.CAR_SHADOWS)
+            val l = if (midOn) carsMid else if (farOn) carsFar else null
+            if (l != null) { out[0] += l.draws; out[1] += l.triangles; if (cd < TownStore.CAR_SHADOWS) out[2] += l.casters }
+        }
         return out
     }
 
-    fun destroy() { job?.cancel(true); layer.destroy(); lamps.destroy() }
+    fun destroy() { job?.cancel(true); layer.destroy(); carsMid.destroy(); carsFar.destroy(); lamps.destroy() }
+
+    private class Built(val parts: List<CinemaLayer.Packed>, val box: FloatArray, val lights: List<CinemaLight>, val mid: List<PropLayer.Packed>, val far: List<PropLayer.Packed>)
 }

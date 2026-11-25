@@ -155,6 +155,9 @@ internal class StoreB {
     /** The lights left on at a shut store (a wall-pack or two, one lot lamp), and the car park's bays ([StoreCars]). */
     val secLights = ArrayList<CinemaLight>()
     val bays = ArrayList<StoreBay>()
+    /** Cars standing on the store's own grounds (the owner's truck on the drive): drawn as real cars by the town when [realCars], else as boxes. */
+    val parked = ArrayList<LotCar>()
+    var realCars = false
     /** The entrances a walker goes in by: (x, z) on the front wall in the model's frame, facing out (+z). */
     val doors = ArrayList<FloatArray>()
     /** Every word the store's signs spell (for the tests: never a real chain's, nor its trade dress). */
@@ -242,6 +245,8 @@ object StoreKit {
         val b = StoreB()
         b.dark = info.state == StoreState.CLOSED
         b.roof = roofFor(info.kind, info.year, info.seed, b.dark)
+        // (the town parks real cars ([LotCars]) where this would draw boxes: the lot's and the grounds' own)
+        b.realCars = !cars
         val pack = info.style.removePrefix("pack:").takeIf { PackStores.isPack(info.style) && info.kind != StoreKind.SUPERSTORE }
         val site = if (pack != null) PackStores.build(b, info, pack) else when (info.kind) {
             StoreKind.GENERAL -> general(b, info)
@@ -252,7 +257,7 @@ object StoreKit {
         StoreGrounds.build(b, info, site)
         if (cars) StoreCars.place(b, b.det("cars"), info, b.bays)
         val model = b.model(info.kind, info.lot, info.deep)
-        return StoreModel(model, floatArrayOf(site.x0, site.zf, site.x1, site.zb), b.names.toList(), b.bays.toList(), b.texts.toList(), b.doors.toList())
+        return StoreModel(model, floatArrayOf(site.x0, site.zf, site.x1, site.zb), b.names.toList(), b.bays.toList(), b.texts.toList(), b.doors.toList(), b.parked.toList())
     }
 
     /** The pack's own store buildings the builder has (`style` = "pack:<id>"; src/town/stores.ts PACK_LOOKS lists the same). */
@@ -314,7 +319,9 @@ object StoreKit {
      */
     class StoreModel(val model: CinemaModel, val block: FloatArray, val names: List<String> = emptyList(), val bays: List<StoreBay> = emptyList(), val texts: List<String> = emptyList(),
                      /** The entrances: (x, z) on the front wall, facing out (+z), in the model's frame. */
-                     val doors: List<FloatArray> = emptyList())
+                     val doors: List<FloatArray> = emptyList(),
+                     /** Cars standing on its grounds (not the lot's), for the town to draw as real cars (built with `cars = false`). */
+                     val parked: List<LotCar> = emptyList())
 
     /**
      * Where the building stands on its plot, for the grounds: the main block [x0]..[x1] from its front wall [zf] back to

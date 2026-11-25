@@ -107,6 +107,9 @@ fun renderFilamentOpen(out: String) {
         com.lifemax.rpg.feature.habits.domain.ModelShape.parseAll(File(bdir, "models.json").takeIf { it.exists() }?.readText()),
         com.lifemax.rpg.feature.habits.domain.CinemaSiteShape.parse(root), com.lifemax.rpg.feature.habits.domain.StoreLots.parse(root).map { it.sprite }.toSet())
     val storeSites = com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root)
+    // the stores' parked cars as our real cars (LotCars; -DlotCars=0: the old boxes, to compare)
+    val vehDir = File("../app/src/main/assets/vehicles")
+    com.lifemax.rpg.feature.habits.presentation.scene3d.lotCarFiles(if (System.getProperty("lotCars") == "0") null else { p -> File(vehDir, p).takeIf { it.exists() }?.readBytes() })
     com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown.farLod = System.getProperty("townFar") != "0"
     // the sky: the town's own (SkySurface; -Dsky3d=0: none, see-through over -Dsky=stage's 2D Backdrop as before), its
     // weather (-DskyWeather=overcast, rain, mist, cloudy) and date (-DskyDay=yyyy-MM-dd: the moon's phase)
@@ -374,6 +377,11 @@ fun renderFilamentOpen(out: String) {
     System.getProperty("at")?.split(",")?.mapNotNull { it.trim().toFloatOrNull() }?.takeIf { it.size >= 5 }?.let { a ->
         // (every landmark model up first: their solids and their cut are what such a spot is about)
         while (!ft.landmarkReport.all { !it.contains(": building") }) { run.build(a[0], a[1], 8f); Thread.sleep(1) }
+        // (and the stores' parked cars for the hour, as a phone's would stand by the time anyone looks)
+        run { var k = 0; while (!ft.parkStores(a.getOrElse(5) { 17.6f }) && k++ < 20000) { run.build(a[0], a[1], 8f); Thread.sleep(2) } }
+        view("at_spot", a[0], a[1], 1f, 0f, a[2], a[3], a[4], a.getOrElse(5) { 17.6f }, "the spot asked for (-Dat)")
+        // (the lot's near cars are made as the camera comes near them: once made, the same view again)
+        run { var k = 0; while (!ft.parkStores(a.getOrElse(5) { 17.6f }) && k++ < 20000) Thread.sleep(2) }
         view("at_spot", a[0], a[1], 1f, 0f, a[2], a[3], a[4], a.getOrElse(5) { 17.6f }, "the spot asked for (-Dat)")
         // (-DlevelProbe=dx,dz,len: the height fields' spans every 2 units from the spot along (dx, dz), into levels.txt)
         System.getProperty("levelProbe")?.split(",")?.mapNotNull { it.trim().toFloatOrNull() }?.takeIf { it.size == 3 }?.let { q ->

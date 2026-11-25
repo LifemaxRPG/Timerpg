@@ -133,7 +133,11 @@ internal object StoreGrounds {
         tree(b, px0 + 72f, s.zb - 72f, 1.2f, info.seed)
         if (L > 300f) tree(b, px1 - 62f, max(pzb + 64f, s.zb - 220f), 1f, info.seed + 3)
         // the owner's truck on the drive (or none when it has shut), the era's
-        if (!closed) car(b, b.det("cars"), (dx0 + px1) / 2f, s.zf - 40f, carLook(b, info.year, 0, r.int(8), truck = info.year < 1990 || r.next() < .5f), nose = -1f, along = false)
+        if (!closed) {
+            val k = r.int(8); val truck = info.year < 1990 || r.next() < .5f
+            if (b.realCars) b.parked += LotCar((dx0 + px1) / 2f, s.zf - 40f, Math.PI.toFloat(), info.seed * 17 + k)
+            else car(b, b.det("cars"), (dx0 + px1) / 2f, s.zf - 40f, carLook(b, info.year, 0, k, truck = truck), nose = -1f, along = false)
+        }
         if (info.state == StoreState.OPEN && info.year >= 1950) yardLight(b, dx0 + 6f, -30f, info.year)
         // a closed store: tall weeds along the porch, a FOR SALE sign; a chapel's notice board; an antiques shop's flag
         if (closed) {
