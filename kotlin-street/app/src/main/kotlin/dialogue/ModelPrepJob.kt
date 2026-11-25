@@ -26,23 +26,33 @@ class ModelPrepJob(private val app: Context, private val engine: DialogueEngine)
     @Volatile private var reloadPending = false
     private val retry = Runnable { kick("retry") }
 
+    /** How a run that did something ended, this process: for the boot card and its toast ([com.timerpg.street.upgrade]). */
+    data class Run(val ok: Boolean, val stopped: String?, val seconds: Double, val file: String?, val k: Long, val noSpace: Boolean)
+    @Volatile var last: Run? = null
+        private set
+    /** A run is going now, or one is due (held by a conversation, or the first one after start not yet run). */
+    val busy: Boolean get() = running || waiting
+    @Volatile private var waiting = false
+
     fun close() { closed = true; main.removeCallbacks(retry) }
 
     fun kick(why: String, delayMs: Long = 0) {
         if (closed) return
         main.removeCallbacks(retry)
-        if (delayMs > 0) { main.postDelayed(retry, delayMs); return }
+        if (delayMs > 0) { waiting = true; main.postDelayed(retry, delayMs); return }
+        waiting = false
         synchronized(this) { if (running) return; running = true }
         Thread({
             try { Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND) } catch (_: Throwable) {}
             try { runOnce(why) } catch (t: Throwable) {
                 com.timerpg.street.shot.Crumbs.add("model prep: stopped by ${t.javaClass.simpleName}: ${t.message}")
                 engine.prepStatus(null, "Preparation stopped: ${t.message ?: t.javaClass.simpleName}")
+                last = Run(false, "failed: ${t.message ?: t.javaClass.simpleName}", 0.0, null, 0L, false)
             } finally { running = false }
         }, "model-prep").apply { isDaemon = true }.start()
     }
 
-    private fun later(ms: Long) { if (!closed) main.postDelayed(retry, ms) }
+    private fun later(ms: Long) { if (!closed) { waiting = ms <= RETRY_MS; main.postDelayed(retry, ms) } }
 
     private fun runOnce(why: String) {
         val dir = ModelFiles.dir(app)
@@ -60,6 +70,7 @@ class ModelPrepJob(private val app: Context, private val engine: DialogueEngine)
             val list = listFile() ?: run {
                 held.release()
                 engine.prepStatus(null, "Preparation not possible: head_vocab.txt is missing from the app")
+                last = Run(false, "failed: head_vocab.txt is missing from the app", 0.0, null, 0L, false)
                 com.timerpg.street.shot.Crumbs.add("model prep: head_vocab.txt missing from the assets"); return
             }
             val t0 = SystemClock.elapsedRealtime()
@@ -85,6 +96,8 @@ class ModelPrepJob(private val app: Context, private val engine: DialogueEngine)
             }
             com.timerpg.street.shot.Crumbs.add("model prep: ${if (out.ok) "done" else out.stopped} after ${"%.1f".format(s)} s; ${dir.usableSpace shr 20} MB free")
             engine.prepStatus(null, note)
+            last = Run(out.ok, out.stopped, s, live?.file?.name, live?.file?.let { NativeLlm.headVocab(it) } ?: 0L,
+                noSpace = out.stopped?.startsWith("not enough free space") == true)
             if (out.changed) reloadPending = !engine.onLiveFileChanged()
             when {
                 out.ok -> if (reloadPending) later(RETRY_MS)

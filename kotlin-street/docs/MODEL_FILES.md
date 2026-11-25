@@ -312,6 +312,10 @@ The English corpora (PG-19, WikiText-103 CC BY-SA, TinyStories) were only counte
   prepared: 4B MTP greedy **5 of 5 replies identical, the same guesses accepted** (57 of 93); 0.8B MTP greedy and sampled
   (0.3, seed 42): 5 of 5 and 5 of 5, guesses identical.
 
+- **Without the owner hunting for it** (2026-11-25): the MTP file downloads by itself on Wi-Fi, the preparation runs by
+  itself as before, and anything that needs the owner's say-so comes up in a boot card. A toast says once when each step
+  is done (CONVERSATION.md, "Since then: nothing to hunt for"; `upgrade/`).
+
 ## What remains
 
 - The 9B (the bank) is not prepared on the phone yet: the same code applies (its tokenizer matches), but its MTP and
