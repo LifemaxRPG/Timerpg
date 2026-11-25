@@ -46,8 +46,14 @@ class MemoryService(private val ctx: Context) {
             runCatching { if (file.isFile) memory.load(file.readText()) }.onFailure { Log.w(TAG, "memories unreadable: $it") }
         }
         // only with room for it (on the NPU the dialogue model holds most of the phone's memory)
-        if (!embedder.loaded && installed && freeMb() >= (modelFile.length() shr 20) + com.timerpg.street.llm.Ram.MARGIN_MB)
-            staged("loading the memory model") { AiLane.run("memory") { embedder.load(modelFile) } }
+        if (!embedder.loaded && installed && freeMb() >= (modelFile.length() shr 20) + com.timerpg.street.llm.Ram.MARGIN_MB) {
+            // (what it cost, for the breadcrumbs: 0.1.930's graphics grew 376 MB as it loaded, its weights then in the
+            // NPU's shared memory; on the CPU, mapped, it should cost little until it runs)
+            val before = freeMb(); val t0 = android.os.SystemClock.elapsedRealtime()
+            val ok = staged("loading the memory model") { AiLane.run("memory") { embedder.load(modelFile) } }
+            com.timerpg.street.shot.Crumbs.add("memory model: ${if (ok) "loaded" else "not loaded (${embedder.error})"} on the CPU in " +
+                "${android.os.SystemClock.elapsedRealtime() - t0} ms, free $before -> ${freeMb()} MB (file ${modelFile.length() shr 20} MB, mapped)")
+        }
         return embedder.loaded
     }
 
