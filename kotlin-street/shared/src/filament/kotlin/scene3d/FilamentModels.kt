@@ -939,10 +939,22 @@ internal object FilamentModels {
         private var tall = false
         /** The mask (made on the engine's thread the first time it is asked for: [Night] itself is made on a worker). */
         val mask: Texture? by lazy(LazyThreadSafetyMode.NONE) {
+            val p = pages
             if (!glows) null
             else if (astc) textures.make(StreetTextures.Prepared(encode(maskPixels(BooleanArray(seeds.size))), w, h, linear = true, key = null, fmt = StreetTextures.Fmt.ASTC, exact = 1.0))
+            else if (p != null) textures.make(StreetTextures.blankShared(p.pw, p.ph, linear = true, fmt = maskFmt))
             else textures.make(StreetTextures.blankShared(w, h, linear = true, fmt = maskFmt))
         }
+        /**
+         * The mask kept as window pages (MEMORY_AUDIT.md, G3, "Step 4 as built"): only the atlas's 8 x 8 tiles that hold a
+         * glowing or glass pixel are stored, packed one after another in a small texture, with a table at its start that
+         * says for each tile of the atlas which page holds it (page 0: the empty tile, opaque black). street_lit.mat reads
+         * the table, then the page (two texel fetches, nearest: the same texel the atlas-sized mask gave). Null: kept whole
+         * (ASTC, or nothing to gain). Most of a house's atlas is walls and roof, so the pages are a fraction of it.
+         */
+        internal val pages: Pages?
+        /** The material's `maskMap` for [pages]: the atlas's size, the table's width in tiles, the first page's tile row. */
+        val maskMap: FloatArray? get() = pages?.let { floatArrayOf(w.toFloat(), h.toFloat(), it.tw.toFloat(), it.row0.toFloat()) }
         /**
          * The mask in ASTC 4x4, exact (MEMORY_AUDIT.md, G4): every 4 x 4 block of it holds at most two of the values its
          * pixels can take at any hour (each light on or off), so every hour's mask is stored exactly, the same values as
@@ -1078,10 +1090,15 @@ internal object FilamentModels {
                     a.copyOf(r)
                 }
                 lit = BooleanArray(seeds.size)
-                astc = StreetTextures.useAstc && exactAlways()
+                // (the pages where they are smaller than the exact ASTC mask too: a farmhouse's few windows and its sign
+                // are a handful of tiles of a 1024-wide atlas)
+                val pg = if (TownQuality.maskPages) Pages.of(w, h, glowRuns, glassRuns) else null
+                astc = StreetTextures.useAstc && (pg == null || pg.texels * maskFmt.bytes >= Astc.levelBytes(w, h)) && exactAlways()
+                pages = if (astc) null else pg
             } else {
                 glowRuns = IntArray(0); glowRed = ByteArray(0); glowOwn = null; glassRuns = IntArray(0)
                 astc = false
+                pages = null
             }
         }
 
@@ -1171,24 +1188,30 @@ internal object FilamentModels {
         /** Bytes a pixel of the mask as [packed] writes it (RGBA8 4, RG8 2). */
         internal val maskBytes: Int get() = maskFmt.bytes
 
-        /** The mask with the lights [now] on as Filament takes it in [maskFmt] (RGBA8 or RG8, the bottom row first). */
-        internal fun packed(now: BooleanArray): java.nio.ByteBuffer {
+        /**
+         * The mask with the lights [now] on as Filament takes it in [maskFmt] (RGBA8 or RG8, the bottom row first): as
+         * [pages] when it has them and [whole] is false, else atlas-sized.
+         */
+        internal fun packed(now: BooleanArray, whole: Boolean = false): java.nio.ByteBuffer {
             val signs = seeds.size - 1
             // the mask as Filament takes it (RGBA, bottom row first): opaque black, the panes' glass green, then the glow
             // (in RG8, only red and green: no pixel then lights in its own colours or as the sign, and a missing alpha reads opaque)
             val fmt = maskFmt
             val st = fmt.bytes
-            val buf = StreetTextures.blank(w, h, linear = true, fmt = fmt).buf
-            if (st == 4) for (i in 0 until w * h) buf.put(StreetTextures.offset(i, w, h) + 3, 255.toByte())
+            val pg = if (whole) null else pages
+            val buf = if (pg != null) StreetTextures.blank(pg.pw, pg.ph, linear = true, fmt = fmt).buf else StreetTextures.blank(w, h, linear = true, fmt = fmt).buf
+            if (st == 4) { if (pg != null) for (i in 0 until pg.pw * pg.ph) buf.put(i * 4 + 3, 255.toByte()) else for (i in 0 until w * h) buf.put(StreetTextures.offset(i, w, h) + 3, 255.toByte()) }
+            pg?.table(buf, st)
+            fun at(i: Int): Int = if (pg != null) pg.offset(i, st) else StreetTextures.offset(i, w, h, st)
             val glassByte = PANE_GLASS.toByte()
-            for (g in 0 until glassRuns.size step 2) for (i in glassRuns[g] until glassRuns[g] + glassRuns[g + 1]) buf.put(StreetTextures.offset(i, w, h, st) + 1, glassByte)
+            for (g in 0 until glassRuns.size step 2) for (i in glassRuns[g] until glassRuns[g] + glassRuns[g + 1]) buf.put(at(i) + 1, glassByte)
             val own = glowOwn
             var k = 0
             for (r in 0 until glowRuns.size step 3) {
                 val owner = glowRuns[r + 2]
                 val on = now[owner]
                 for (i in glowRuns[r] until glowRuns[r] + glowRuns[r + 1]) {
-                    val o = StreetTextures.offset(i, w, h, st)
+                    val o = at(i)
                     // (as bright as the glow picture is there: its frames and bars stay darker than its panes)
                     val oc = own?.get(k) ?: -1
                     if (oc >= 0) {
@@ -1202,6 +1225,61 @@ internal object FilamentModels {
                 }
             }
             return buf
+        }
+    }
+
+    /**
+     * A night mask's window pages ([Night.pages]): which of a [w] x [h] atlas's [TILE] x [TILE] tiles (counted in the
+     * texture's own rows, the bottom row first) hold anything, each such tile's page, and the paged texture's layout:
+     * [pw] x [ph] texels, the table (an entry a tile of the atlas, row by row: its page's column and row, as the first two
+     * bytes of a texel) in its first rows, the pages from tile row [row0], [cols] to a row, page 0 the empty one.
+     */
+    internal class Pages(val w: Int, val h: Int, val tw: Int, val th: Int, private val page: IntArray, val cols: Int, val row0: Int, val pw: Int, val ph: Int) {
+        /** The byte offset of the atlas's pixel [i] (rows top first, as the runs count them) in the paged texture ([st] bytes a texel). */
+        fun offset(i: Int, st: Int): Int { val x = i % w; return fetch(x, h - 1 - i / w) * st }
+        /** Writes the table into [buf] ([st] bytes a texel). */
+        fun table(buf: java.nio.ByteBuffer, st: Int) {
+            for (e in page.indices) { val k = page[e]; if (k == 0) continue; buf.put(e * st, (k % cols).toByte()); buf.put(e * st + 1, (k / cols).toByte()) }
+        }
+        /** The texel (index into the paged texture) that holds the atlas's texel ([x], [y]: bottom row first). */
+        fun fetch(x: Int, y: Int): Int { val k = page[(y shr 3) * tw + (x shr 3)]; return ((row0 + k / cols) * TILE + (y and 7)) * pw + (k % cols) * TILE + (x and 7) }
+        /** The paged texture's texels. */
+        val texels: Long get() = pw.toLong() * ph
+
+        companion object {
+            const val TILE = 8
+            /**
+             * The pages for a [w] x [h] mask whose glowing runs ([glowRuns]: start, length, light) and glass runs
+             * ([glassRuns]: start, length) are given (pixels counted with rows top first); null when they would not save at
+             * least a tenth of the atlas-sized mask.
+             */
+            fun of(w: Int, h: Int, glowRuns: IntArray, glassRuns: IntArray): Pages? {
+                val tw = (w + TILE - 1) / TILE; val th = (h + TILE - 1) / TILE
+                val used = java.util.BitSet(tw * th)
+                fun mark(start: Int, len: Int) {
+                    if (len <= 0) return
+                    val y = h - 1 - start / w; val x0 = start % w
+                    // (a run never crosses a row)
+                    for (tx in (x0 shr 3)..((x0 + len - 1) shr 3)) used.set((y shr 3) * tw + tx)
+                }
+                for (r in 0 until glowRuns.size step 3) mark(glowRuns[r], glowRuns[r + 1])
+                for (g in 0 until glassRuns.size step 2) mark(glassRuns[g], glassRuns[g + 1])
+                val n = used.cardinality() + 1
+                val e = tw * th
+                // as square as it comes: the pages' columns (at most 256: a byte each way), the table in the rows over them
+                var cols = kotlin.math.ceil(kotlin.math.sqrt(n + e / (TILE * TILE).toDouble())).toInt().coerceIn(1, 256)
+                while ((n + cols - 1) / cols > 256 && cols < 256) cols++
+                if ((n + cols - 1) / cols > 256) return null
+                val pw = cols * TILE
+                val row0 = ((e + pw - 1) / pw + TILE - 1) / TILE
+                val ph = (row0 + (n + cols - 1) / cols) * TILE
+                if (pw.toLong() * ph > w.toLong() * h * 9 / 10) return null
+                val page = IntArray(e)
+                var k = 1
+                var i = used.nextSetBit(0)
+                while (i >= 0) { page[i] = k++; i = used.nextSetBit(i + 1) }
+                return Pages(w, h, tw, th, page, cols, row0, pw, ph)
+            }
         }
     }
 
@@ -1306,6 +1384,8 @@ internal object FilamentModels {
                 val (tex, smp) = albedoOf(key)
                 mi.setParameter("albedo", tex, smp)
                 mi.setParameter("mask", if (key is Key.Atlas || key is Key.Card) night.mask ?: textures.black else if (key is Key.Glass) glassMask(textures) else textures.black, if (key is Key.Glass) repeat else nearest)
+                // (a mask kept as window pages: where its table and pages are; unset (0), the mask is read whole)
+                if (key is Key.Atlas || key is Key.Card) night.maskMap?.let { mm -> if (visibleMat.hasParameter("maskMap")) mi.setParameter("maskMap", mm[0], mm[1], mm[2], mm[3]) }
                 mi.setParameter("uvRect", 0f, 0f, 1f, 1f)
                 val rgb = when (key) { is Key.Plain -> key.rgb; is Key.Glass -> key.rgb; else -> 0xFFFFFF }
                 mi.setParameter("tint", lin(((rgb shr 16) and 255) / 255f), lin(((rgb shr 8) and 255) / 255f), lin((rgb and 255) / 255f), 1f)

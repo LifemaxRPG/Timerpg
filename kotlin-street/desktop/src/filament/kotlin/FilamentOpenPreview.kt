@@ -75,6 +75,7 @@ fun renderFilamentOpen(out: String) {
     // (-DastcCache=DIR: the encoded pictures kept there from run to run, as the app keeps them in its cache folder)
     System.getProperty("astcCache")?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astcCache = File(it) }
     com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.maskFormats = System.getProperty("maskFormats") != "0"
+    com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.maskPages = System.getProperty("maskPages") != "0"
     System.getProperty("astcExact")?.toDoubleOrNull()?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astcExact = it }
     Filament.init()
     val engine = Engine.Builder().backend(Engine.Backend.OPENGL).config(com.lifemax.rpg.feature.habits.presentation.scene3d.TownEngine.config()).build()

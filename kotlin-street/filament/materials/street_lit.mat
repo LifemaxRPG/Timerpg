@@ -14,7 +14,10 @@ material {
         { type : sampler2d, name : albedo, precision : medium },
         { type : sampler2d, name : mask, precision : medium },
         // the picture's part this face wears (offset, size), for sprite sheets and tiled strips
-        { type : float4, name : uvRect },
+        { type : float4, name : uvRect, precision : high },
+        // a night mask kept as window pages (FilamentModels.Pages): the atlas's size (xy), the table's width in 8 x 8
+        // tiles (z), the first page's tile row (w); 0 (unset): the mask is read whole
+        { type : float4, name : maskMap, precision : high },
         // multiplies the picture (flat-coloured ground uses a white picture)
         { type : float4, name : tint },
         // the window light's colour (rgb) and how far on it is (a)
@@ -68,7 +71,7 @@ fragment {
     }
     void material(inout MaterialInputs material) {
         prepareMaterial(material);
-        vec2 uv = materialParams.uvRect.xy + getUV0() * materialParams.uvRect.zw;
+        highp vec2 uv = materialParams.uvRect.xy + getUV0() * materialParams.uvRect.zw;
         vec4 c = texture(materialParams_albedo, uv) * materialParams.tint;
         // the cut-out's edge (a tree's leaves, a fence's gaps) from a sharper mip than the colour: the mipmaps average the
         // alpha, so far off a crown's leaves fell under the mask's half and the crown went while its trunk stayed
@@ -76,7 +79,19 @@ fragment {
         vec2 ddx = dFdx(uv * ts); vec2 ddy = dFdy(uv * ts);
         float lod = 0.5 * log2(max(max(dot(ddx, ddx), dot(ddy, ddy)), 1e-8));
         c.a = textureLod(materialParams_albedo, uv, max(0.0, lod - 2.0)).a * materialParams.tint.a;
-        vec4 m = texture(materialParams_mask, uv);
+        vec4 m;
+        if (materialParams.maskMap.x > 0.0) {
+            // the window pages: the atlas's texel (as a nearest sample picks it, clamped to the edge), its tile's entry in
+            // the table at the texture's start, then the same texel in that page
+            highp vec2 at = materialParams.maskMap.xy;
+            highp ivec2 t = ivec2(clamp(floor(uv * at), vec2(0.0), at - 1.0));
+            highp int e = (t.y >> 3) * int(materialParams.maskMap.z) + (t.x >> 3);
+            highp int pw = textureSize(materialParams_mask, 0).x;
+            highp ivec2 pg = ivec2(texelFetch(materialParams_mask, ivec2(e % pw, e / pw), 0).rg * 255.0 + 0.5);
+            m = texelFetch(materialParams_mask, (pg + ivec2(0, int(materialParams.maskMap.w))) * 8 + (t & 7), 0);
+        } else {
+            m = texture(materialParams_mask, uv);
+        }
         // (a negative fade is the same screen door turned inside out: what crosses over to it (a far box) keeps exactly
         // the pixels a positive fade of 1 + fade drops, so at every step of a crossover each pixel shows one of the two)
         if (materialParams.fade < 1.0) {
