@@ -102,7 +102,7 @@ internal class TreeCells(
                 c.detail = try { job.get() } catch (e: java.util.concurrent.ExecutionException) { null }?.let { c.layer(it) }
                 c.detailJob = null
             }
-            if (c.detail != null && (!near || d > TownFrame.LOD_DETAIL + LET_GO)) { c.detail?.destroy(); c.detail = null }
+            if (c.detail != null && (!near || d > TownFrame.LOD_DETAIL + LET_GO)) { c.detail?.destroy(later = true); c.detail = null }
             // (the detail is shown only once it is whole on the GPU: never half a cell; and kept a little past the line it
             // came in at, so a walk or a turn along that line does not swap the cell back and forth)
             val showDetail = on && c.detail != null && (d < TownFrame.LOD_DETAIL + (if (c.detailed) HYSTERESIS else 0f) || FORCE == 1) && FORCE != 2
@@ -159,7 +159,7 @@ internal class TreeCells(
      * listed, so [pack] and [build] make them again as the chunk comes near.
      */
     fun drop() {
-        for (c in cells.values) { c.simple?.destroy(); c.simple = null; c.simplePacked = null; c.detail?.destroy(); c.detail = null; c.detailJob?.cancel(false); c.detailJob = null; c.detailed = false }
+        for (c in cells.values) { c.simple?.destroy(later = true); c.simple = null; c.simplePacked = null; c.detail?.destroy(later = true); c.detail = null; c.detailJob?.cancel(false); c.detailJob = null; c.detailed = false }
         simpleBuilt = false
     }
 

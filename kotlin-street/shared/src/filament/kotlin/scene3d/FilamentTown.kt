@@ -461,7 +461,7 @@ class FilamentTown(
         }
         /** Lets go of its 3D greenery (streaming: far again, its cards stand in); made again as it comes near. */
         fun dropNear() {
-            near?.destroy(); near = null
+            near?.destroy(later = true); near = null
             trees?.drop()
             packing?.cancel(false); packing = null
             is3d = false; t3 = 0f
@@ -701,6 +701,10 @@ class FilamentTown(
     private val tmp = FloatArray(16)
 
     init {
+        // (Filament 1.81 checks every renderable's every primitive at each MaterialInstance destroyed, a debug assertion on
+        // by default: with the town's thousands of renderables each destroy cost ~0.1-1 ms, and streaming destroys tens of
+        // thousands on a drive (the route's 40-250 ms frames: docs/HEAT.md). Our destroys always follow their renderable's.)
+        if (System.getProperty("miCheck") != "1") runCatching { engine.setFeatureFlag("engine.debug.assert_material_instance_in_use", false) }
         view.scene = scene
         view.camera = camera
         view.dithering = View.Dithering.NONE
@@ -919,6 +923,10 @@ class FilamentTown(
     /** The lots whose near version is let go now (only their far version is resident), and those being baked to come back. */
     private val yardOut = HashSet<String>()
     private val yardIn = HashMap<String, java.util.concurrent.Future<Pair<String?, List<Job>>>>()
+    /** Lots baked and coming in, their batches still to upload (a few a frame), and those begun (their old version let go). */
+    private val yardUp = java.util.ArrayDeque<Pair<String, java.util.ArrayDeque<Job>>>()
+    private val yardStarted = HashSet<String>()
+    private fun yardComing(id: String): Boolean = id in yardIn || yardUp.any { it.first == id }
     /** Each lot's yard items as last baked (what the cars left of it: [replaceYard]), by the owner the kit bakes it as. */
     private val yardNow = HashMap<String, List<com.lifemax.rpg.feature.habits.domain.TownYardItem>>()
     /** Each near lot's buffer bytes (its near patch and its tall things'), for the yards' pool. */
@@ -941,7 +949,7 @@ class FilamentTown(
         slots.count { !it.missing && !it.known }, slots.count { !it.missing && it.want && it.built == null }, far.allReady,
         extras.filter { it.pending }.joinToString { it.javaClass.simpleName }, yardIn.size, yardsBehind)
     /** Everything streaming wants resident is (a preview's jump waits for it, as a loading screen would). */
-    val streamSettled: Boolean get() = pending == 0 && (!stream || (yardIn.isEmpty() && yardsBehind == 0 &&
+    val streamSettled: Boolean get() = pending == 0 && (!stream || (yardIn.isEmpty() && yardUp.isEmpty() && yardsBehind == 0 &&
         chunks.values.none { it.hasNear && it.near == null && !focusX.isNaN() && hypot(it.cx - focusX, it.cz - focusZ) - it.r < TownFrame.LOD_NEAR + 600f })) &&
         (!TreeImpostors.on || (impAtlas != null || chunks.values.none { it.treeList.isNotEmpty() }) && chunks.values.none { it.impJob != null })
 
@@ -972,10 +980,12 @@ class FilamentTown(
         val b = s.built ?: return
         val em = EntityManager.get()
         for (e in listOf(b.entity, b.proxy)) if (e != 0) { scene.remove(e); engine.destroyEntity(e); em.destroy(e) }
-        for (mi in b.mis) engine.destroyMaterialInstance(mi)
-        for (mi in b.proxyMis) engine.destroyMaterialInstance(mi)
+        // (its material instances, then the textures only it held, over the next frames: [Graveyard])
+        for (mi in b.mis) Graveyard.bury(engine, mi)
+        for (mi in b.proxyMis) Graveyard.bury(engine, mi)
         b.geo.free(engine)
-        textures.release(s.held)
+        val held = ArrayList(s.held)
+        Graveyard.later { textures.release(held) }
         s.held.clear()
         s.built = null; s.shown = false; s.streamedOut++
         buildingBytes -= slotBytes.remove(s) ?: 0L
@@ -986,7 +996,7 @@ class FilamentTown(
     private fun unbuildLot(lot: String) {
         val gone = patches.keys.filter { k -> k == lot || k.startsWith("$lot#t") }
         for (k in gone) {
-            patches.remove(k)?.layer?.destroy()
+            patches.remove(k)?.layer?.destroy(later = true)
             patchTicks.remove(k)?.let { t -> synchronized(ticks) { ticks.removeAll(t.toSet()) } }
         }
         yardOut += lot
@@ -1027,6 +1037,7 @@ class FilamentTown(
             // (something wanted again: the build loop looks once more)
             if (s.want && s.built == null) todo = Int.MAX_VALUE
         }
+        var sec = streamer.section(0, t0)
         var did = false
         for (s in slots) {
             if (s.built == null || s.want) continue
@@ -1035,8 +1046,11 @@ class FilamentTown(
             val c = s.farCell
             if (c != null && c.layer != null && c.t < 1f && s.shown) continue
             if ('b' in TownStream.OFF) continue
+            val u0 = System.nanoTime()
             unbuild(s); did = true
+            streamer.worstUnbuildMs = max(streamer.worstUnbuildMs, (System.nanoTime() - u0) / 1e6f)
         }
+        sec = streamer.section(1, sec)
         // the yards' near versions
         if (groundBuilt && yardBuilder is YardKitBuilder) {
             if (lotInfo.isEmpty()) for (pt in patches.values) if (!pt.p.far && pt.p.follows == null) lotInfo[pt.p.id] = pt.p
@@ -1048,17 +1062,21 @@ class FilamentTown(
                 val d = streamer.circle(p.x, p.z, 0f)
                 val out = id in yardOut
                 val want = streamer.wants(d, yNeed, !out)
-                if (!want && !out && id !in yardIn && 'y' !in TownStream.OFF) {
-                    if (!did || (System.nanoTime() - t0) / 1e6f < TownStream.EVICT_MS) { unbuildLot(id); did = true }
-                } else if (want && out && id !in yardIn) wantBack += id to d
+                if (!want && !out && !yardComing(id) && 'y' !in TownStream.OFF) {
+                    if (!did || (System.nanoTime() - t0) / 1e6f < TownStream.EVICT_MS) {
+                        val u0 = System.nanoTime()
+                        unbuildLot(id); did = true
+                        streamer.worstLotOutMs = max(streamer.worstLotOutMs, (System.nanoTime() - u0) / 1e6f)
+                    }
+                } else if (want && out && !yardComing(id)) wantBack += id to d
             }
-            yardsBehind = wantBack.size + yardIn.size
+            yardsBehind = wantBack.size + yardIn.size + yardUp.size
             // (nearest first, a few at a time on the workers)
-            if (wantBack.isNotEmpty() && yardIn.size < TownStream.YARDS_IN_FLIGHT) {
+            if (wantBack.isNotEmpty() && yardIn.size + yardUp.size < TownStream.YARDS_IN_FLIGHT) {
                 wantBack.sortBy { it.second }
                 val kit = yardBuilder as YardKitBuilder
                 for ((id, d) in wantBack) {
-                    if (yardIn.size >= TownStream.YARDS_IN_FLIGHT) break
+                    if (yardIn.size + yardUp.size >= TownStream.YARDS_IN_FLIGHT) break
                     val p = lotInfo[id] ?: continue
                     val owner = ownerOf(p)
                     val items = itemsOf(owner) ?: continue
@@ -1075,29 +1093,42 @@ class FilamentTown(
                     })
                 }
             }
-            // those baked: swapped in, within the frame's share
-            if (yardIn.isNotEmpty()) {
+            sec = streamer.section(2, sec)
+            // those baked: their batches uploaded within the frame's share, a lot over as many frames as that takes (a
+            // lot's whole yard at once was up to 9-22 ms on the route), its old near version let go as its first goes up
+            if (yardIn.isNotEmpty() || yardUp.isNotEmpty()) {
                 val u0 = System.nanoTime()
                 val it = yardIn.entries.iterator()
-                var n = 0
                 while (it.hasNext()) {
                     val (id, f) = it.next()
                     if (!f.isDone) continue
-                    if (n > 0 && (System.nanoTime() - u0) / 1e6f > TownStream.YARD_UPLOAD_MS) break
                     it.remove()
                     val jobs = runCatching { f.get() }.getOrNull()?.second ?: continue
                     // (a lot the cars rebaked whole meanwhile is back already)
                     if (id !in yardOut) continue
                     yardOut.remove(id)
-                    for (k in patches.keys.filter { k -> k == id || k.startsWith("$id#t") }) patches.remove(k)?.layer?.destroy()
-                    lotBytes[id] = 0L
-                    for (j in jobs) upload(j)
-                    streamer.yardsIn++
+                    yardUp.addLast(id to java.util.ArrayDeque(jobs))
+                }
+                var n = 0
+                while (yardUp.isNotEmpty()) {
+                    // (within the yards' share, and the stream step's whole budget: [TownStream.STREAM_MS] a frame)
+                    if (n > 0 && ((System.nanoTime() - u0) / 1e6f > TownStream.YARD_UPLOAD_MS || (System.nanoTime() - t0) / 1e6f > TownStream.STREAM_MS)) break
+                    val (id, q) = yardUp.first()
+                    if (!yardStarted.contains(id)) {
+                        yardStarted += id
+                        for (k in patches.keys.filter { k -> k == id || k.startsWith("$id#t") }) patches.remove(k)?.layer?.destroy(later = true)
+                        lotBytes[id] = 0L
+                    }
+                    val l0 = System.nanoTime()
+                    q.pollFirst()?.let { upload(it) }
+                    streamer.worstLotInMs = max(streamer.worstLotInMs, (System.nanoTime() - l0) / 1e6f)
                     n++
+                    if (q.isEmpty()) { yardUp.removeFirst(); yardStarted.remove(id); streamer.yardsIn++ }
                 }
                 if (n > 0) { engine.flush(); did = true; streamer.worstYardUpMs = max(streamer.worstYardUpMs, (System.nanoTime() - u0) / 1e6f) }
             }
         }
+        streamer.section(3, sec)
         val ms = (System.nanoTime() - t0) / 1e6f
         if (did) { streamer.busyFrames++; streamer.worstMs = max(streamer.worstMs, ms) }
     }
@@ -1313,10 +1344,15 @@ class FilamentTown(
      * town always comes in), the rest only while the budget lasts. Call each frame until [pending] is 0.
      */
     fun buildNearest(x: Float, z: Float, budgetMs: Float): Int {
+        java.util.Arrays.fill(buildParts, 0L)
+        var pt = System.nanoTime()
+        fun part(i: Int) { val n = System.nanoTime(); buildParts[i] += n - pt; pt = n }
         if (!farCounted) { farCounted = true; if (farLod) for (s in slots) if (!s.missing && s.built == null) s.farCell = far.expect(s.cx, s.cz) }
         if (far.upload()) engine.flush()
+        part(BP_FAR)
         // (streaming: what should be resident now, what may go, the yards' near versions in and out: TownStream)
         streamStep(x, z, budgetMs)
+        part(BP_STREAM)
         impostorStep()
         // (the cinema, the stores and the landmark models within the first view's reach are its work, by their distance
         // like the buildings; those further off wait while [holdLater] holds, then go after every building the first view
@@ -1330,7 +1366,9 @@ class FilamentTown(
         for (lm in landmarkDraws) { if (!lm.done) { laterPriority(lm.cx, lm.cz, x, z)?.let { lm.start(pool, it) }; if (lm.step()) engine.flush() } else if (!holdLater) lm.stepLevels(pool, x, z, idle) }
         depotDraw?.let { lm -> if (!lm.done) { laterPriority(lm.cx, lm.cz, x, z)?.let { lm.start(pool, it) }; if (lm.step()) engine.flush() } else if (!holdLater) lm.stepLevels(pool, x, z, idle) }
         // (the extras' work (the farms, the world round the town) waits for the ground and the first view: the first view comes first)
+        part(BP_SITES)
         if (groundBuilt && !holdLater) for (x in extras) x.step()
+        part(BP_EXTRAS)
         if (todo == 0 && chunksTodo == 0 && groundBuilt) return 0
         val t0 = System.nanoTime()
         var n = 0
@@ -1379,6 +1417,7 @@ class FilamentTown(
             order.clear()
         }
         if (n > 0) engine.flush()
+        part(BP_BUILDINGS)
         val ms = (System.nanoTime() - t0) / 1e6f
         buildingsMs += ms
         if (n > 0) batches += n to ms
@@ -1406,8 +1445,15 @@ class FilamentTown(
                 chunksTodo = left
             }
         }
+        part(BP_CHUNKS)
         return n
     }
+
+    /**
+     * The last [buildNearest]'s time by part (ns; [BUILD_PARTS] names them): the far cells' uploads, streaming, the sites
+     * (cinema, stores, landmarks), the extras (the farms, the world round the town), the buildings, the chunks' greenery.
+     */
+    val buildParts = LongArray(6)
 
     /**
      * The first view is being built ([TownRun] sets it until its view is ready): only its own work goes to the workers
@@ -1547,6 +1593,8 @@ class FilamentTown(
 
     /** Brings the scene to camera [pose] at [hour]; [seconds] is the clock (the yards' water shimmers by it). */
     fun frame(pose: TownPose, hour: Float, seconds: Double = 0.0) {
+        // (what streaming let go of, destroyed a little a frame: docs/HEAT.md)
+        Graveyard.drain(TownStream.GRAVE_MS)
         if (TownQuality.msaa != msaaSet) { msaaSet = TownQuality.msaa; TownQuality.applyMsaa(view) }
         lastPose = pose
         lastHour = hour
@@ -1710,7 +1758,7 @@ class FilamentTown(
                 if (job != null && job.isDone) {
                     c.impJob = null
                     val pk = runCatching { job.get() }.getOrNull()
-                    c.imp?.destroy(); c.imp = null
+                    c.imp?.destroy(later = true); c.imp = null
                     if (pk != null) {
                         val l = PropLayer(engine, scene, lit, proxyMat, sharedTextures = textures, cull = true)
                         if (stream) BufferArena.streamed { GpuAccount.scoped("trees") { l.upload(pk, casts = true) } } else GpuAccount.scoped("trees") { l.upload(pk, casts = true) }
@@ -2387,6 +2435,7 @@ class FilamentTown(
     fun destroy() {
         closed = true
         synchronized(queueLock) { queueLock.notifyAll() }
+        Graveyard.drainAll()
         val em = EntityManager.get()
         crowd.destroy()
         cinemaDraw?.destroy()
@@ -2505,6 +2554,8 @@ class FilamentTown(
          * the phone's Java heap however many cores bake.
          */
         const val QUEUE_BYTES = 32L shl 20
+        const val BP_FAR = 0; const val BP_STREAM = 1; const val BP_SITES = 2; const val BP_EXTRAS = 3; const val BP_BUILDINGS = 4; const val BP_CHUNKS = 5
+        val BUILD_PARTS = arrayOf("far cells", "streaming", "sites", "extras", "buildings", "chunks")
         const val LAMP_REACH = 260f
         const val LAMP_LUMENS = 60000f
         /** How long the windows' night light may take a frame (ns): a building's first is a whole picture. */
