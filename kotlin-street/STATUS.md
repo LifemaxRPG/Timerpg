@@ -62,8 +62,14 @@
 - People: `TownPlay.people` stands the street life (StreetLife's passers, seeded per row) and the people to talk to at
   their doors on the rows `liveRows()` keeps, plus the player; `TownPeople` (scene3d) draws them as lit cards of our
   character sheets with shadow twins, cut with the near side. "Talk to <name>" and "Go inside" work at the building in
-  front; the always-listening mic picks the nearest person at their door on this row (`TownPlay.nearestKeeper`), and the
-  speech bubbles anchor on heads projected through the true camera (`TownPlay.projector` = `FilamentTown.project`).
+  front; the always-listening mic picks anyone within earshot (70 units) who is a person, at their door or walking by
+  (2026-11-25, `TownPlay.listener` / `shared/.../scene/Earshot.kt`: scored by distance times 1 + (1 - facing) / 2, so the
+  one the player faces and is nearest; the one listening is kept while near unless another is 20 units of score better;
+  a passer is the townsperson `LoopTown.passerId` makes them, so only while the loop runs, with the same loop facts in
+  their fact sheet as the people at their doors, looked up ahead for everyone in earshot; the conversation ends when
+  they have walked past `TalkRange.leaveDistance`; their bubble follows them; `lastListener` says "walking by" or "at
+  their door" and how far, or who the nearest person was), and the speech bubbles anchor on heads projected through
+  the true camera (`TownPlay.projector` = `FilamentTown.project`).
 - DialogueEngine: `useTown("town/gamma/")` loads that folder's dialogue.json against its street.json (same town and year);
   the pre-generation queue orders by rows (`setPlayerRow`: this row, then the live rows nearest first, then the rest).
   Cached lines of both towns are kept.

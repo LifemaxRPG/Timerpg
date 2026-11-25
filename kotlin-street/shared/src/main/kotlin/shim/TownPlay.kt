@@ -432,6 +432,46 @@ object TownPlay {
         return TalkRange.apart(w.x, w.lane, b.mid + TalkRange.KEEPER_DX, TalkRange.KEEPER_LANE)
     }
 
+    // ------------------------------------------------------------------ who hears the player (Earshot)
+
+    /**
+     * Everyone who could hear the player now: the people at their doors and the passers walking by, as drawn a moment ago
+     * ([crowd]: not the officers or a fence, who are the loop's own figures); positions in street units.
+     */
+    fun hearers(): List<Hearer> = crowd.map { Hearer(it.keeper, it.who, it.x, it.z) }
+
+    /**
+     * Who hears what the player says now ([Earshot.choose]: within [range], the one they face and are nearest, [current]
+     * kept while still in earshot), in the open world; on the street view's pavement the nearest person at a door, as before.
+     * Null: nobody in earshot, or mid-transit.
+     */
+    fun listener(current: String? = null, range: Float = TalkRange.distance, can: (Hearer) -> Boolean = { true }): Hearer? {
+        val w = walk ?: return null
+        if (w.transit != null) return null
+        if (w !is OpenWalk) return nearestKeeper(range)?.let { sp -> Hearer(sp, -1, w.wx, w.wz) }?.takeIf(can)
+        // ([can]: only those the game can answer for, e.g. a passer is a townsperson only while the loop runs)
+        return Earshot.choose(w.wx, w.wz, w.hx, w.hz, hearers().filter(can), range, current)
+    }
+
+    /** Where the passer [who] was drawn last (x, z), null when not drawn now (gone round a corner, off the live rows). */
+    fun passerAt(who: Int): Pair<Float, Float>? {
+        if (who < 0) return null
+        // (the render thread refills [figures] each frame; read without a lock, a torn read is one stale frame)
+        val n = figureCount
+        for (i in 0 until n) { val f = runCatching { figures[i] }.getOrNull() ?: return null; if (f.who == who && f.keeper == null) return f.x to f.z }
+        return crowd.firstOrNull { it.who == who && it.keeper == null }?.let { it.x to it.z }
+    }
+
+    /** How far the player is from the passer [who] (Float.MAX_VALUE when they are not drawn now). */
+    fun fromPasser(who: Int): Float {
+        val w = walk ?: return Float.MAX_VALUE
+        val (x, z) = passerAt(who) ?: return Float.MAX_VALUE
+        return hypot(x - w.wx, z - w.wz)
+    }
+
+    /** The passer [who]'s head on the screen (their bubble follows them as they walk on). */
+    fun passerHead(who: Int): androidx.compose.ui.geometry.Offset? = passerAt(who)?.let { (x, z) -> headOnScreen(x, z) }
+
     /** A head [TalkRange.HEAD_PIXELS] sprite pixels over the feet at world ([x], [z]), on the screen as last drawn. */
     fun headOnScreen(x: Float, z: Float, feet: Float = 0f): androidx.compose.ui.geometry.Offset? =
         projector?.invoke(x, feet + TalkRange.HEAD_PIXELS * SpriteArt.PIXEL, z)

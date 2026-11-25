@@ -967,17 +967,40 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     var playerSaid by remember { mutableStateOf<Triple<String, Long, Boolean>?>(null) }
     var partialKey by remember { mutableLongStateOf(0L) }
     var noOneNear by remember { mutableLongStateOf(0L) }
+    // (the town's people by id: a passer heard in the street is found by the loop's id for them, LoopTown.passerId)
+    val npcById = remember(people) { people?.npcs?.associateBy { it.id }.orEmpty() }
+    // who a hearer is as someone to talk to: the person at that door (or the loop's clerk standing there), or the passer's townsperson
+    val hearerNpc: (com.lifemax.rpg.feature.habits.presentation.scene.Hearer) -> Npc? = { h ->
+        if (h.sprite != null) people?.at(h.sprite)?.firstOrNull() ?: LoopSession.town?.clerks?.get(h.sprite)?.let { npcById[it] }
+        else LoopSession.town?.passerId(h.who)?.let { npcById[it] }
+    }
+    val hearerNpcNow by rememberUpdatedState(hearerNpc)
+    // (the loop's facts of everyone near enough to hear looked up ahead, as for the people at their doors, so a passer
+    // who hears the player answers knowing what they know: the same fact sheet; cached ones are not asked again)
+    LaunchedEffect(townMode) {
+        if (!townMode) return@LaunchedEffect
+        while (true) {
+            kotlinx.coroutines.delay(1500)
+            val w = townPlay.walk ?: continue
+            val ids = townPlay.hearers().filter { kotlin.math.hypot(it.x - w.wx, it.z - w.wz) <= com.lifemax.rpg.feature.habits.presentation.scene.TalkRange.leaveDistance }
+                .mapNotNull { hearerNpcNow(it)?.id }.distinct()
+            LoopSession.prefetch(ids)
+        }
+    }
     val heardNow by rememberUpdatedState<(String) -> Unit> { said ->
         if (!turning && doorTo == null) {
             // (the words already shown while they talked keep their bubble: it only stops changing)
             playerSaid = Triple(said, partialKey.takeIf { it != 0L } ?: System.nanoTime(), true)
             partialKey = 0L
-            // who is near enough to hear it: inside, the person here when standing by them; on the street, the nearest of
-            // the people standing at their doors within earshot
+            // who is near enough to hear it: inside, the person here when standing by them; in the town, anyone within
+            // earshot at their door or walking by, the one the player faces and is nearest (Earshot); on the old street,
+            // the nearest of the people standing at their doors
+            var heard: com.lifemax.rpg.feature.habits.presentation.scene.Hearer? = null
             val target: Pair<Npc, Int>? = if (inside != null) atHere.firstOrNull()?.takeIf { nearKeeper }?.let { it to near }
             else if (townMode) {
-                // the town: the nearest person at their door on this row, within earshot (TownPlay, from the walk's place)
-                townPlay.nearestKeeper()?.let { sp -> people?.at(sp)?.firstOrNull()?.let { it to near } }
+                val cur = talk?.takeIf { it.byVoice }?.let { t -> if (t.passer >= 0) "who:${t.passer}" else t.doorSprite }
+                heard = townPlay.listener(cur, can = { hearerNpc(it) != null })
+                heard?.let { h -> hearerNpc(h)?.let { it to near } }
             } else {
                 val doors = street.sprites.indices.mapNotNull { i -> people?.at(street.sprites[i])?.firstOrNull()?.let { i to it } }
                 val k = com.lifemax.rpg.feature.habits.presentation.scene.TalkRange.nearest(GameState.x, GameState.lane, doors.map { it.first }, GameState.centers)
@@ -985,12 +1008,18 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             }
             // who hears it and why, for the screenshot and the breadcrumbs (0.1.909: "NPCs couldn't hear me" left no trace
             // of whether the words came, nor of who was near): the chosen one, or the nearest person to talk to and how far
+            val earshot = com.lifemax.rpg.feature.habits.presentation.scene.TalkRange.distance
+            fun far(h: com.lifemax.rpg.feature.habits.presentation.scene.Hearer) = if (h.sprite != null) townPlay.fromPlayer(h.sprite) else townPlay.fromPasser(h.who)
             val why = when {
+                target != null && townMode && heard != null -> "${target.first.name} (${if (heard.walking) "walking by" else "at their door"}, %.0f units)".format(java.util.Locale.US, far(heard))
                 target != null -> "${target.first.name} (${if (inside != null) "the person here" else if (townMode) "at their door" else "at the door in front"})"
                 inside != null -> "nobody (inside: ${if (atHere.isEmpty()) "no one here" else "not standing by the person here"})"
-                townMode -> townPlay.nearestKeeper(Float.MAX_VALUE).let { k ->
-                    if (k == null) "nobody (no one at their door in the town now: ${townPlay.keepers.size} keepers)"
-                    else "nobody (the nearest at their door is %.0f units off; earshot %.0f)".format(java.util.Locale.US, townPlay.fromPlayer(k), com.lifemax.rpg.feature.habits.presentation.scene.TalkRange.distance)
+                townMode -> townPlay.walk.let { w ->
+                    val all = townPlay.hearers()
+                    val known = all.filter { hearerNpc(it) != null }
+                    val n = if (w == null) null else com.lifemax.rpg.feature.habits.presentation.scene.Earshot.nearest(w.wx, w.wz, known)
+                    if (n == null) "nobody (no one about to hear: ${all.size} people drawn, ${townPlay.keepers.size} keepers${if (LoopSession.town == null) ", passers unknown without the loop" else ""})"
+                    else "nobody (the nearest person, ${hearerNpc(n.first)?.name} ${if (n.first.walking) "walking by" else "at their door"}, is %.0f units off; earshot %.0f)".format(java.util.Locale.US, n.second, earshot)
                 }
                 else -> "nobody (no one at a door within earshot on this street)"
             }
@@ -1000,7 +1029,11 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             else {
                 com.timerpg.street.shot.Crumbs.add("mic: heard ${said.split(' ').size} words, to $why")
                 val (npc, door) = target
-                val t = talk?.takeIf { it.npc.id == npc.id } ?: Talk(npc, byVoice = true, door = door, doorSprite = if (townMode) npc.building else null).also { talk?.close(voices); talk = it }
+                // (their facts for the fact sheet, the same path as the people at their doors: looked up if not yet)
+                LoopSession.prefetch(listOf(npc.id))
+                val passer = heard?.takeIf { it.walking }?.who ?: -1
+                val t = talk?.takeIf { it.npc.id == npc.id && it.passer == passer } ?: Talk(npc, byVoice = true, door = door,
+                    doorSprite = if (townMode && passer < 0) heard?.sprite ?: npc.building else null, passer = passer).also { talk?.close(voices); talk = it }
                 t.heardNote = ears.lastHeard
                 t.heardInfo = ears.lastHeardInfo
                 t.askSaid(engine, said, voices, memory)
@@ -1038,6 +1071,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         while (talk === t) {
             androidx.compose.runtime.withFrameNanos { }
             val gone = if (inside != null) !nearKeeper
+                // (someone walking by: the conversation lasts while they are still near; they keep walking)
+                else if (t.passer >= 0) townPlay.fromPasser(t.passer) > com.lifemax.rpg.feature.habits.presentation.scene.TalkRange.leaveDistance
                 else if (t.doorSprite != null) townPlay.fromPlayer(t.doorSprite) > com.lifemax.rpg.feature.habits.presentation.scene.TalkRange.leaveDistance
                 else t.npc.street != streetNo || com.lifemax.rpg.feature.habits.presentation.scene.TalkRange.fromPlayer(t.door) > com.lifemax.rpg.feature.habits.presentation.scene.TalkRange.leaveDistance
             if (gone) { t.close(voices); talk = null }
@@ -1094,7 +1129,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 "linesWritten" to ai.lines, "builtIn" to ai.builtIn, "queued" to ai.queued, "paused" to ai.paused, "working" to ai.working,
                 "pregenOff" to ai.pregenOff, "prefillTokPerSec" to st.prefillPerSec, "genTokPerSec" to st.genPerSec, "firstTokenMs" to st.firstTokenMs,
                 "loadInfo" to ai.loadInfo),
-            "conversation" to talk?.let { linkedMapOf("npc" to it.npc.name, "byVoice" to it.byVoice, "topic" to it.topic?.label, "said" to it.said) },
+            "conversation" to talk?.let { linkedMapOf("npc" to it.npc.name, "byVoice" to it.byVoice, "passer" to it.passer.takeIf { p -> p >= 0 }, "topic" to it.topic?.label, "said" to it.said) },
             "voices" to linkedMapOf("enabled" to voices.enabled, "speaking" to voices.speaking, "only" to voices.only, "timing" to voices.lastTiming),
             "mic" to linkedMapOf("always" to micAlways, "granted" to micGranted, "listening" to canListen, "state" to ears.state.name,
                 "hearer" to ears.hearer.name.lowercase(), "hearing" to ears.hearing, "writing" to ears.writing, "problem" to ears.problem, "loop" to ears.loopStatus(),
@@ -1577,7 +1612,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
 }
 
 /** An open conversation: who, the topic asked, and the line on screen (updated as the model writes it). */
-private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -1, val doorSprite: String? = null) {
+/** A conversation with [npc]: at a [door] (the street's index) or [doorSprite] (the town's building), or with a [passer] walking by (their seed; -1: not a passer). */
+private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -1, val doorSprite: String? = null, val passer: Int = -1) {
     var topic by mutableStateOf<Topic?>(null)
     var line by mutableStateOf<Line?>(null)
     private var request: DialogueEngine.Request? = null
@@ -1903,6 +1939,7 @@ private fun SpeechBubbles(
         val text = when { l == null -> "…"; l.ai || l.final -> l.text; else -> "…" }
         Bubble(text, l?.final == true, think = l?.final != true, keyOf = talk.npc.id + "#" + talk.asked, frameTick = frameTick, placed = theirs) { w, h ->
             if (room != null) keeperSpot?.let { tr.inRoom(room, it.first, it.second, w, h) }
+            else if (talk.passer >= 0) com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.passerHead(talk.passer)
             else if (talk.doorSprite != null) com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.keeperHead(talk.doorSprite)
             else tr.keeperHead(talk.door)
         }
