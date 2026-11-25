@@ -122,15 +122,19 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     }
 
     /**
-     * The NPU's power profile for the whole process (the "npu" preference "power": ggml-hexagon's
-     * GGML_HEXAGON_POWER_MODE, e.g. "balanced", "sustained_high_performance"; unset: its default, "burst": clocks pinned at
-     * maximum and the DSP kept awake). ggml-hexagon reads it once, when its backend loads, and votes it for each HTP
-     * session for as long as the process lives (docs/CONVERSATION.md, "The NPU's power vote"), so it is set before
-     * anything loads the backends.
+     * The NPU's power vote (the "npu" preferences, docs/CONVERSATION.md, "The NPU's power vote"), read once, before
+     * anything loads the backends. "power": "auto" (the default, also when unset) votes full power (burst) only while a
+     * reply, bake or load computes and releases it (DCVS on, the DSP may sleep) "power_hold_ms" (default 400) after the
+     * last one ends, and at once when the model unloads. Any other name is ggml-hexagon's GGML_HEXAGON_POWER_MODE for the
+     * whole process, as before: "burst" (clocks pinned at maximum, the DSP kept awake), "balanced",
+     * "sustained_high_performance", ...
      */
     private fun powerEnv() {
-        val mode = appContext?.getSharedPreferences("npu", Context.MODE_PRIVATE)?.getString("power", null)?.takeIf { it.isNotBlank() } ?: return
-        runCatching { if (android.system.Os.getenv("GGML_HEXAGON_POWER_MODE") == null) android.system.Os.setenv("GGML_HEXAGON_POWER_MODE", mode, false) }
+        val prefs = appContext?.getSharedPreferences("npu", Context.MODE_PRIVATE)
+        val mode = prefs?.getString("power", null)?.trim()?.takeIf { it.isNotEmpty() } ?: "auto"
+        val hold = runCatching { prefs?.getInt("power_hold_ms", 400) }.getOrNull() ?: 400
+        if (mode != "auto") runCatching { if (android.system.Os.getenv("GGML_HEXAGON_POWER_MODE") == null) android.system.Os.setenv("GGML_HEXAGON_POWER_MODE", mode, false) }
+        runCatching { nativeSetNpuPower(mode.toByteArray(Charsets.UTF_8), hold) }
     }
 
     /**
@@ -505,6 +509,24 @@ class NativeLlm(context: Context? = null) : LlmBackend {
         fun purgeNativeHeap(): Int = if (libraryError != null) -1 else runCatching { nativePurge() }.getOrDefault(-1)
 
         @JvmStatic private external fun nativePurge(): Int
+
+        /**
+         * The NPU's power vote now, for the Debug tab and the probes: "auto idle, wake 1.20 ms +0.31 ms" (per burst; the
+         * last burst vote's cost and the gap to its first compute), "auto burst", "fixed burst", "not loaded" (the
+         * backends are not loaded in this process yet), "auto (unpatched: burst)". The vote's events since the last call
+         * (each burst's hold, wake cost and release) go to the breadcrumbs.
+         */
+        fun npuPower(): String {
+            if (libraryError != null || !backendReady) return "not loaded"
+            runCatching { nativeNpuPowerEvents() }.getOrNull()?.lineSequence()?.filter { it.isNotBlank() }?.forEach {
+                runCatching { com.timerpg.street.shot.Crumbs.add("npu: $it") }
+            }
+            return runCatching { nativeNpuPower() }.getOrNull() ?: "unknown"
+        }
+
+        @JvmStatic private external fun nativeSetNpuPower(mode: ByteArray, holdMs: Int)
+        @JvmStatic private external fun nativeNpuPower(): String?
+        @JvmStatic private external fun nativeNpuPowerEvents(): String?
 
         /** MemAvailable from /proc/meminfo in MB, or -1 if unknown. */
         private fun availableMemoryMb(): Long = runCatching {

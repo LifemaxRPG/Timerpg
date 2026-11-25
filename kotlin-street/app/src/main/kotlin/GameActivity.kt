@@ -1537,6 +1537,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                         HudRow("The loop") { HudButton(if (loopDebug) "Hide its debug panel" else "Show its debug panel", loopDebug) { loopDebug = !loopDebug } }
                         if (loopDebug) LoopDebugPanel()
                     }
+                    com.timerpg.street.play.BatteryDebugRows()
                 }
             }
         }

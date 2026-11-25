@@ -70,6 +70,37 @@ std::vector<std::string> cpu_variant_libs();
 bool has_gpu();
 bool has_npu();
 
+// ---------------------------------------------------------------------------------------------------- the NPU's power vote
+
+/**
+ * How the NPU (ggml-hexagon's HTP sessions) votes its clocks (docs/CONVERSATION.md, "The NPU's power vote"). "auto": full
+ * power (burst) only while a reply, bake, load or other compute runs, released (DCVS on, the DSP allowed to sleep)
+ * [hold_ms] after the last one ends and at once when a model unloads. Any other name (a GGML_HEXAGON_POWER_MODE profile:
+ * "burst", "balanced", ...): that profile for the whole process, as ggml-hexagon did before (the caller sets the
+ * environment variable). Set before the backends load. Without our ggml-hexagon patch "auto" changes nothing.
+ */
+void npu_power_policy(const std::string & mode, int hold_ms);
+/** The vote now and its last costs, for the HUD and the probes: e.g. "auto idle, wake 2.1 ms, first decode +0.3 ms". */
+std::string npu_power_status();
+/** The vote's events since the last call (each burst's hold, wake cost and release), for the app's breadcrumbs. */
+std::vector<std::string> npu_power_events();
+/** Releases the vote now if no compute holds it (a model unloads). */
+void npu_power_release_now(const char * why);
+
+/** Holds the burst vote while it lives ("auto" only; nests; costs a lock when the vote is already burst). */
+class NpuBurst {
+public:
+    explicit NpuBurst(const char * why);
+    ~NpuBurst();
+    NpuBurst(const NpuBurst &) = delete;
+    NpuBurst & operator=(const NpuBurst &) = delete;
+private:
+    bool held_ = false;
+};
+/** Called right before a compute starts and after it ends: the first one after a burst vote is logged (wake latency). */
+void npu_compute_begin();
+void npu_compute_end(int n_tokens);
+
 // ---------------------------------------------------------------------------------------------------- engine
 
 /** Why the last generate() stopped (for tests and logs; not passed to Kotlin). */

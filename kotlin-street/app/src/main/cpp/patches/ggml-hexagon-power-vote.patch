@@ -1,0 +1,334 @@
+--- a/ggml/src/ggml-hexagon/ggml-hexagon.cpp
++++ b/ggml/src/ggml-hexagon/ggml-hexagon.cpp
+@@ -103,6 +103,7 @@
+     { "high_performance",           HTP_POWER_MODE_HIGH_PERFORMANCE },
+     { "sustained_high_performance", HTP_POWER_MODE_SUSTAINED_HIGH_PERFORMANCE },
+     { "burst",                      HTP_POWER_MODE_BURST },
++    { "idle",                       HTP_POWER_MODE_IDLE },
+     { "default",                    HTP_POWER_MODE_BURST }, // flip this to change the default mode
+ };
+ 
+@@ -347,6 +348,9 @@
+     void allocate(const ggml_hexagon_device_config & config) noexcept(false);
+     void release() noexcept(true);
+ 
++    // a new power vote (htp_power_mode) for this session and its mdev peers, at run time; never throws
++    void set_power(int mode, int * n_ok, int * n_failed) noexcept(true);
++
+     uint8_t *   alloc_fence(uint32_t n_slots = 1);
+     void        free_fence(void * ptr, uint32_t n_slots = 1);
+     ggml_tensor make_fence_tensor(const volatile void * slot, uint32_t n_slots = 1) const;
+@@ -2313,6 +2317,24 @@
+     }
+ }
+ 
++void ggml_hexagon_session::set_power(int mode, int * n_ok, int * n_failed) noexcept(true) {
++    if (this->valid_iface) {
++        int err = htp_iface_power(this->handle, (uint32_t) mode);
++        if (err != 0) {
++            GGML_LOG_WARN("ggml-hex: %s power vote %s failed: 0x%08x\n", this->c_name(), htp_power_mode_to_str(mode), (unsigned) err);
++            ++*n_failed;
++        } else {
++            if (opt_verbose) {
++                GGML_LOG_INFO("ggml-hex: %s power mode: %s\n", this->c_name(), htp_power_mode_to_str(mode));
++            }
++            ++*n_ok;
++        }
++    }
++    for (auto & sub : this->mdev.sessions) {
++        sub->set_power(mode, n_ok, n_failed);
++    }
++}
++
+ void ggml_hexagon_session::release() noexcept(true) {
+     GGML_LOG_INFO("ggml-hex: releasing session: %s\n", this->name.c_str());
+ 
+@@ -3300,8 +3322,39 @@
+     return &dev_ctx->buffer_type;
+ }
+ 
++// Votes a power profile (a GGML_HEXAGON_POWER_MODE name, or "idle") for every live HTP session, at run time, and makes it
++// the profile sessions opened later start with. Returns the number of sessions voted, or -1 for an unknown name;
++// *n_failed (if given) counts the sessions whose vote failed (they keep the vote they had).
++static int ggml_backend_hexagon_set_power_mode(const char * name, int * n_failed) {
++    if (n_failed) *n_failed = 0;
++    const int mode = name ? htp_power_mode_from_str(name) : -1;
++    if (mode < 0) {
++        return -1;
++    }
++    static std::mutex           mutex;
++    std::lock_guard<std::mutex> lock(mutex);
++    opt_power_mode = mode;
++    ggml_backend_reg_t reg = ggml_backend_hexagon_reg();
++    auto hreg = reg ? static_cast<ggml_hexagon_registry *>(reg->context) : nullptr;
++    if (!hreg) {
++        return 0;
++    }
++    int ok = 0, failed = 0;
++    for (size_t i = 0; i < opt_ndev; i++) {
++        auto dev_ctx = static_cast<ggml_backend_hexagon_device_context *>(hreg->devices[i].context);
++        if (dev_ctx && dev_ctx->sess) {
++            dev_ctx->sess->set_power(mode, &ok, &failed);
++        }
++    }
++    if (n_failed) *n_failed = failed;
++    return ok;
++}
++
+ static void * ggml_backend_hexagon_get_proc_address(ggml_backend_reg_t reg, const char * name) {
+     GGML_UNUSED(reg);
++    if (strcmp(name, "ggml_backend_hexagon_set_power_mode") == 0) {
++        return (void *) ggml_backend_hexagon_set_power_mode;
++    }
+     if (strcmp(name, "ggml_backend_split_buffer_type") == 0) {
+         return (void *) ggml_backend_hexagon_split_buffer_type;
+     }
+--- a/ggml/src/ggml-hexagon/htp/htp-ops.h
++++ b/ggml/src/ggml-hexagon/htp/htp-ops.h
+@@ -231,6 +231,7 @@
+     HTP_POWER_MODE_HIGH_PERFORMANCE           = 5,
+     HTP_POWER_MODE_SUSTAINED_HIGH_PERFORMANCE = 6,
+     HTP_POWER_MODE_BURST                      = 7,
++    HTP_POWER_MODE_IDLE                       = 8, // between bursts: DCVS on, lowest corners, the DSP may sleep
+ 
+     HTP_POWER_MODE_COUNT
+ };
+--- a/ggml/src/ggml-hexagon/htp/htp_iface.idl
++++ b/ggml/src/ggml-hexagon/htp/htp_iface.idl
+@@ -18,6 +18,7 @@
+     AEEResult profiler(in uint32 mode, in htp_iface_pmu_conf pmu);
+     AEEResult etm(in uint32 enable);
+     AEEResult hwinfo(rout uint32 n_threads, rout uint32 n_hvx, rout uint32 n_hmx, rout uint64 vtcm_size);
++    AEEResult power(in uint32 power_mode);
+ };
+ 
+ #endif /* HTP_IDL */
+--- a/ggml/src/ggml-hexagon/htp/main.c
++++ b/ggml/src/ggml-hexagon/htp/main.c
+@@ -438,10 +438,128 @@
+         .hmx_target_corner  = HAP_DCVS_EXP_VCORNER_MAX,
+         .hmx_perf_mode      = HAP_CLK_PERF_HIGH,
+     },
++    // Between generation bursts (voted at run time through htp_iface_power): DCVS free to scale down to the lowest
++    // corners and, unlike every profile above, the DSP allowed to sleep.
++    [HTP_POWER_MODE_IDLE] = {
++        .dcvs_enable        = TRUE,
++        .bus_min_corner     = HAP_DCVS_VCORNER_SVS2,
++        .bus_max_corner     = HAP_DCVS_VCORNER_SVS,
++        .bus_target_corner  = HAP_DCVS_VCORNER_SVS2,
++        .core_min_corner    = HAP_DCVS_VCORNER_SVS2,
++        .core_max_corner    = HAP_DCVS_VCORNER_SVS,
++        .core_target_corner = HAP_DCVS_VCORNER_SVS2,
++        .sleep_disable      = FALSE,
++        .hmx_min_corner     = HAP_DCVS_EXP_VCORNER_MIN_SVS,
++        .hmx_max_corner     = HAP_DCVS_EXP_VCORNER_MIN_SVS,
++        .hmx_target_corner  = HAP_DCVS_EXP_VCORNER_MIN_SVS,
++        .hmx_perf_mode      = HAP_CLK_PERF_LOW,
++    },
+ };
+ 
+ #undef HTP_POWER_PROFILE_ENTRY
+ 
++static void htp_log_power(uint32_t power_mode, const struct htp_power_profile * pwr) {
++    FARF(ALWAYS, "power-mode %u : dcvs-enable %d bus[%u,%u,%u] core[%u,%u,%u] sleep-disable %d hmx[%u,%u,%u]",
++         (unsigned) power_mode, (int) pwr->dcvs_enable,
++         (unsigned) pwr->bus_min_corner, (unsigned) pwr->bus_max_corner, (unsigned) pwr->bus_target_corner,
++         (unsigned) pwr->core_min_corner, (unsigned) pwr->core_max_corner, (unsigned) pwr->core_target_corner,
++         (int) pwr->sleep_disable,
++         (unsigned) pwr->hmx_min_corner, (unsigned) pwr->hmx_max_corner, (unsigned) pwr->hmx_target_corner);
++}
++
++// The DCVS (and HMX clock) vote of a profile for this session's power client (ctx). At session start it also powers up
++// HVX (and, before v75, HMX); a later vote (htp_iface_power) changes only the clocks and whether the DSP may sleep.
++static int htp_apply_power(struct htp_context * ctx, const struct htp_power_profile * pwr, bool at_start) {
++    int err;
++    {
++        HAP_power_request_t request;
++        memset(&request, 0, sizeof(request));
++
++        request.type                              = HAP_power_set_DCVS_v3;
++        request.dcvs_v3.set_dcvs_enable           = TRUE;
++        request.dcvs_v3.dcvs_enable               = pwr->dcvs_enable;
++        request.dcvs_v3.set_bus_params            = TRUE;
++        request.dcvs_v3.bus_params.min_corner     = pwr->bus_min_corner;
++        request.dcvs_v3.bus_params.max_corner     = pwr->bus_max_corner;
++        request.dcvs_v3.bus_params.target_corner  = pwr->bus_target_corner;
++        request.dcvs_v3.set_core_params           = TRUE;
++        request.dcvs_v3.core_params.min_corner    = pwr->core_min_corner;
++        request.dcvs_v3.core_params.max_corner    = pwr->core_max_corner;
++        request.dcvs_v3.core_params.target_corner = pwr->core_target_corner;
++        request.dcvs_v3.set_sleep_disable         = TRUE;
++        request.dcvs_v3.sleep_disable             = pwr->sleep_disable;
++
++#if (__HEXAGON_ARCH__ >= 79)
++        HAP_set_dcvs_v3_protected_bus_corners(&request, 1);
++#endif
++        if ((err = HAP_power_set((void *) ctx, &request)) != 0) {
++            FARF(ERROR, "ggml-hex: DCVS vote failed: 0x%08x", (unsigned) err);
++            return err;
++        }
++
++        if (at_start) {
++            memset(&request, 0, sizeof(request));
++            request.type         = HAP_power_set_HVX;
++            request.hvx.power_up = TRUE;
++            if ((err = HAP_power_set((void *) ctx, &request)) != 0) {
++                return err;
++            }
++        }
++    }
++
++#if __HVX_ARCH__ >= 75
++    {
++        // Power on HMX and set HMX clock
++        HAP_power_request_t request;
++        memset(&request, 0, sizeof(HAP_power_request_t));
++        request.type = HAP_power_set_HMX_v2;
++        request.hmx_v2.set_power     = TRUE;
++        request.hmx_v2.power_up      = TRUE;
++        request.hmx_v2.set_clock     = TRUE;
++        request.hmx_v2.target_corner = pwr->hmx_target_corner;
++        request.hmx_v2.min_corner    = pwr->hmx_min_corner;
++        request.hmx_v2.max_corner    = pwr->hmx_max_corner;
++        request.hmx_v2.perf_mode     = pwr->hmx_perf_mode;
++        FARF(ALWAYS, "Setting HMX clock\n");
++        err = HAP_power_set((void *) ctx, &request);
++        if (err != AEE_SUCCESS) {
++            FARF(ERROR, "ggml-hex: error setting HMX clock.");
++            return err;
++        }
++    }
++#else
++    if (at_start) {
++        // Power on HMX
++        HAP_power_request_t request;
++        memset(&request, 0, sizeof(HAP_power_request_t));
++        request.type         = HAP_power_set_HMX;
++        request.hmx.power_up = TRUE;
++        FARF(ALWAYS, "Powering HMX on\n");
++        err = HAP_power_set((void *) ctx, &request);
++        if (err != AEE_SUCCESS) {
++            FARF(ERROR, "ggml-hex: error powering on HMX.");
++            return err;
++        }
++    }
++#endif
++    return AEE_SUCCESS;
++}
++
++// A new power vote for a started session (burst while generating, idle between replies), at run time.
++AEEResult htp_iface_power(remote_handle64 handle, uint32_t power_mode) {
++    struct htp_handle * h = (struct htp_handle *) handle;
++    if (!h || !h->ctx) {
++        return AEE_EBADPARM;
++    }
++    if (power_mode >= HTP_POWER_MODE_COUNT) {
++        FARF(ERROR, "invalid power-mode %u", (unsigned) power_mode);
++        return AEE_EBADPARM;
++    }
++    const struct htp_power_profile * pwr = &htp_power_profiles[power_mode];
++    htp_log_power(power_mode, pwr);
++    return htp_apply_power(h->ctx, pwr, false);
++}
++
+ AEEResult htp_iface_start(remote_handle64 handle, uint32_t sess_id, uint64_t dsp_queue_id, uint32_t n_hvx, uint32_t n_hmx, uint64_t vtcm_size, uint64_t max_vmem, uint32_t power_mode) {
+     struct htp_handle * h = (struct htp_handle *) handle;
+     if (!h) {
+@@ -453,12 +571,7 @@
+         power_mode = HTP_POWER_MODE_BURST;
+     }
+     const struct htp_power_profile * pwr = &htp_power_profiles[power_mode];
+-    FARF(ALWAYS, "power-mode %u : dcvs-enable %d bus[%u,%u,%u] core[%u,%u,%u] sleep-disable %d hmx[%u,%u,%u]",
+-         (unsigned) power_mode, (int) pwr->dcvs_enable,
+-         (unsigned) pwr->bus_min_corner, (unsigned) pwr->bus_max_corner, (unsigned) pwr->bus_target_corner,
+-         (unsigned) pwr->core_min_corner, (unsigned) pwr->core_max_corner, (unsigned) pwr->core_target_corner,
+-         (int) pwr->sleep_disable,
+-         (unsigned) pwr->hmx_min_corner, (unsigned) pwr->hmx_max_corner, (unsigned) pwr->hmx_target_corner);
++    htp_log_power(power_mode, pwr);
+ 
+     if (h->ctx) {
+         FARF(ERROR, "Queue already open");
+@@ -589,79 +702,11 @@
+         }
+     }
+ 
+-    // DCVS setup
+-    {
+-        HAP_power_request_t request;
+-        memset(&request, 0, sizeof(request));
+-
+-        request.type                              = HAP_power_set_DCVS_v3;
+-        request.dcvs_v3.set_dcvs_enable           = TRUE;
+-        request.dcvs_v3.dcvs_enable               = pwr->dcvs_enable;
+-        request.dcvs_v3.set_bus_params            = TRUE;
+-        request.dcvs_v3.bus_params.min_corner     = pwr->bus_min_corner;
+-        request.dcvs_v3.bus_params.max_corner     = pwr->bus_max_corner;
+-        request.dcvs_v3.bus_params.target_corner  = pwr->bus_target_corner;
+-        request.dcvs_v3.set_core_params           = TRUE;
+-        request.dcvs_v3.core_params.min_corner    = pwr->core_min_corner;
+-        request.dcvs_v3.core_params.max_corner    = pwr->core_max_corner;
+-        request.dcvs_v3.core_params.target_corner = pwr->core_target_corner;
+-        request.dcvs_v3.set_sleep_disable         = TRUE;
+-        request.dcvs_v3.sleep_disable             = pwr->sleep_disable;
+-
+-#if (__HEXAGON_ARCH__ >= 79)
+-        HAP_set_dcvs_v3_protected_bus_corners(&request, 1);
+-#endif
+-        if ((err = HAP_power_set((void *) ctx, &request)) != 0) {
+-            htp_iface_stop(handle);
+-            return err;
+-        }
+-
+-        memset(&request, 0, sizeof(request));
+-        request.type         = HAP_power_set_HVX;
+-        request.hvx.power_up = TRUE;
+-        if ((err = HAP_power_set((void *) ctx, &request)) != 0) {
+-            htp_iface_stop(handle);
+-            return err;
+-        }
+-    }
+-
+-#if __HVX_ARCH__ >= 75
+-    {
+-        // Power on HMX and set HMX clock
+-        HAP_power_request_t request;
+-        memset(&request, 0, sizeof(HAP_power_request_t));
+-        request.type = HAP_power_set_HMX_v2;
+-        request.hmx_v2.set_power     = TRUE;
+-        request.hmx_v2.power_up      = TRUE;
+-        request.hmx_v2.set_clock     = TRUE;
+-        request.hmx_v2.target_corner = pwr->hmx_target_corner;
+-        request.hmx_v2.min_corner    = pwr->hmx_min_corner;
+-        request.hmx_v2.max_corner    = pwr->hmx_max_corner;
+-        request.hmx_v2.perf_mode     = pwr->hmx_perf_mode;
+-        FARF(ALWAYS, "Setting HMX clock\n");
+-        err = HAP_power_set((void *) ctx, &request);
+-        if (err != AEE_SUCCESS) {
+-            FARF(ERROR, "ggml-hex: error setting HMX clock.");
+-            htp_iface_stop(handle);
+-            return err;
+-        }
+-    }
+-#else
+-    {
+-        // Power on HMX
+-        HAP_power_request_t request;
+-        memset(&request, 0, sizeof(HAP_power_request_t));
+-        request.type         = HAP_power_set_HMX;
+-        request.hmx.power_up = TRUE;
+-        FARF(ALWAYS, "Powering HMX on\n");
+-        err = HAP_power_set((void *) ctx, &request);
+-        if (err != AEE_SUCCESS) {
+-            FARF(ERROR, "ggml-hex: error powering on HMX.");
+-            htp_iface_stop(handle);
+-            return err;
+-        }
++    // DCVS, HVX and HMX votes (the same requests a later htp_iface_power makes, plus the power-ups)
++    if ((err = htp_apply_power(ctx, pwr, true)) != 0) {
++        htp_iface_stop(handle);
++        return err;
+     }
+-#endif
+ 
+     ctx->n_threads = n_threads;
+     ctx->n_hvx     = n_hvx;

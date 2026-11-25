@@ -105,6 +105,11 @@ class Probes(private val ctx: Context) {
         runCatching { npuRoom(mw.freeMb, meminfo?.get("SwapFree") ?: 0L) }.getOrNull()?.let { (room, need, reclaim) ->
             j.long("npuRoom", room).long("npuNeed", need).long("npuReclaim", reclaim)
         }
+        // the battery's draw over 10 s, the model loaded and the NPU's power vote (BatteryDraw; docs/CONVERSATION.md)
+        runCatching { BatteryDraw.sample(ctx) }.getOrNull()?.let { b ->
+            b.avgMa?.let { j.int("mA10s", it) }; b.sysAvgMa?.let { j.int("mAavg", it) }
+            j.str("llm", b.model).str("npuVote", b.npu)
+        }
         return j.end()
     }
 

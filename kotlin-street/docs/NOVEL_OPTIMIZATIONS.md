@@ -37,7 +37,7 @@ While reading the code I found four things that the existing docs do not mention
 | 6 | One shared "quad index buffer" for pure-quad batches | most index memory: ~25-45 MB route, ~45-80 MB whole town | M | none | next |
 | 7 | Ship the capital pre-baked: deterministic page blobs built at APK build time, mmapped and uploaded | first view from tens of seconds to a few; no cold-build heat; build heap peak gone; streaming becomes reads | L | none (same bytes) | biggest absolute; design now |
 | 8 | Draft-free n-gram speculation (fact sheet + bank as the draft source), stacked with MTP | decode +15-50% tok/s on fact-heavy lines (speculative) | S | none (lossless verification) | next |
-| 9 | Burst power votes for the Hexagon NPU (turbo only while generating) | idle NPU power between replies; size unknown | S | none | next (measure) |
+| 9 | Burst power votes for the Hexagon NPU (turbo only while generating) | idle NPU power between replies; size unknown | S | none | built 2026-11-25 (CONVERSATION.md); measure on the S25 |
 | 10 | Render only on change while the image is static (conversations, menus, map, pause) | most GPU frames skipped during conversations, which is when the NPU is hot | M | none if the dirty test is exact | later |
 | 11 | Pre-retiled NPU weights on flash, with model residency driven by encounter forecasts | ~2.2 GB freed on empty stretches; a 9B swap-in for long talks | L | none | later |
 | 12 | Encounter forecasting from deterministic schedules for bank pre-generation | higher bank hit rate, fewer live generations (heat) | M | none | later |
@@ -291,7 +291,7 @@ Check that `validate()` pass rates are unchanged.
 
 **Effort.** S (if the pinned llama.cpp has the ngram types; else a pin bump).
 
-## 9. Burst power votes for the Hexagon NPU — next (measure)
+## 9. Burst power votes for the Hexagon NPU — built (2026-11-25), measure on the S25
 
 **What.** The live model stays loaded all session. Recent llama.cpp exposes an HTP DCVS/HMX power mode
 (`GGML_HEXAGON_POWER_MODE`, release b11601, "keep HTP awake for DCVS power profiles";

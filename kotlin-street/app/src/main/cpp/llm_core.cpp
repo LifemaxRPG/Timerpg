@@ -9,9 +9,11 @@
 #include <algorithm>
 #include <cerrno>
 #include <chrono>
+#include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <deque>
 #include <mutex>
 #include <thread>
 
@@ -349,6 +351,220 @@ std::vector<ggml_backend_dev_t> devices_of(int kind) {
 bool has_gpu() { return !devices_of(1).empty(); }
 bool has_npu() { return !devices_of(2).empty(); }
 
+// ------------------------------------------------------------------------------------------------ the NPU's power vote
+
+namespace {
+
+int64_t now_us() {
+    return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+
+/** ggml-hexagon's runtime vote (our patch, patches/ggml-hexagon-power-vote.patch): sessions voted, or -1. */
+using SetPowerFn = int (*)(const char * mode, int * n_failed);
+
+struct NpuPower {
+    std::mutex m;
+    std::condition_variable cv;
+    bool per_burst = true;      // "auto"
+    std::string fixed;          // the profile for the whole process when not per burst
+    int hold_ms = 400;
+    SetPowerFn fn = nullptr;
+    bool attached = false;      // the backends are loaded and fn looked up
+    int active = 0;             // NpuBurst guards alive
+    int vote = -1;              // 1 burst, 0 idle, -1 none made yet
+    int64_t release_at_us = 0;  // the hold's end (0: no release pending)
+    bool timer = false;
+    int sessions = 0;           // HTP sessions the last vote reached
+    // the current burst, for the breadcrumb at its release
+    int64_t burst_at_us = 0;
+    double vote_ms = 0;         // how long the burst vote took (the FastRPC call and HAP_power_set: the clocks' ramp)
+    bool first_pending = false;
+    int64_t first_begin_us = 0;
+    double first_gap_ms = -1;   // from the vote to the first compute's start
+    double first_ms = -1;       // the first compute itself
+    int first_tokens = 0;
+    int bursts = 0;
+    std::deque<std::string> events;  // for the app's breadcrumbs (npu_power_events)
+};
+
+NpuPower & npu() {
+    static NpuPower * p = new NpuPower();  // (never destroyed: the hold's thread may outlive static destruction)
+    return *p;
+}
+
+void npu_event(NpuPower & p, const std::string & e) {
+    log_msg(GGML_LOG_LEVEL_INFO, "llm: npu: " + e);
+    p.events.push_back(e);
+    while (p.events.size() > 16) p.events.pop_front();
+}
+
+std::string fmt_ms(double ms) {
+    char b[32];
+    std::snprintf(b, sizeof b, ms < 10 ? "%.2f ms" : "%.0f ms", ms);
+    return b;
+}
+
+/** Votes (p.m held). A failure is logged and changes nothing else: the sessions keep the clocks they had. */
+void npu_vote(NpuPower & p, bool burst, const char * why) {
+    if (!p.fn) return;
+    const int64_t t0 = now_us();
+    int failed = 0;
+    int n = -1;
+    try { n = p.fn(burst ? "burst" : "idle", &failed); } catch (...) { n = -1; }
+    const double ms = (double) (now_us() - t0) / 1000.0;
+    if (n < 0) {
+        npu_event(p, std::string("vote ") + (burst ? "burst" : "idle") + " refused by ggml-hexagon (" + why + ")");
+        return;
+    }
+    const int prev = p.vote;
+    p.vote = burst ? 1 : 0;
+    p.sessions = n;
+    if (failed > 0) {
+        npu_event(p, std::string("vote ") + (burst ? "burst" : "idle") + " failed on " + std::to_string(failed) + " of " +
+                         std::to_string(n + failed) + " sessions (" + why + "); they keep their clocks");
+    }
+    if (n == 0) return;  // no session open yet: it only sets the profile sessions start with
+    if (burst) {
+        p.burst_at_us = t0;
+        p.vote_ms = ms;
+        p.first_pending = true;
+        p.first_begin_us = 0;
+        p.first_gap_ms = p.first_ms = -1;
+        p.first_tokens = 0;
+        ++p.bursts;
+        log_msg(GGML_LOG_LEVEL_INFO, "llm: npu: vote burst (" + std::string(why) + ", from " + (prev == 0 ? "idle" : "start") +
+                                         ") on " + std::to_string(n) + " sessions in " + fmt_ms(ms));
+    } else {
+        // one breadcrumb per burst: how long it held, what waking cost, then the release
+        std::string e = "burst #" + std::to_string(p.bursts) + " held " + fmt_ms((double) (t0 - p.burst_at_us) / 1000.0) +
+                        " (wake vote " + fmt_ms(p.vote_ms);
+        if (p.first_gap_ms >= 0) e += ", first compute +" + fmt_ms(p.first_gap_ms) + ": " + std::to_string(p.first_tokens) + " tok in " + fmt_ms(p.first_ms);
+        e += "), released to idle in " + fmt_ms(ms) + " (" + why + ", " + std::to_string(n) + " sessions)";
+        npu_event(p, e);
+    }
+}
+
+void npu_timer(NpuPower * pp) {
+    NpuPower & p = *pp;
+    std::unique_lock<std::mutex> l(p.m);
+    for (;;) {
+        if (p.release_at_us == 0) { p.cv.wait(l); continue; }
+        const int64_t now = now_us();
+        if (now < p.release_at_us) { p.cv.wait_for(l, std::chrono::microseconds(p.release_at_us - now)); continue; }
+        p.release_at_us = 0;
+        if (p.active == 0 && p.vote == 1) npu_vote(p, false, "hold over");
+    }
+}
+
+/** After the backends loaded (init_backend): finds the runtime vote and, per burst, starts released. */
+void npu_attach() {
+    NpuPower & p = npu();
+    std::lock_guard<std::mutex> l(p.m);
+    if (p.attached) return;
+    p.attached = true;
+    if (ggml_backend_reg_t reg = ggml_backend_reg_by_name("HTP")) {
+        p.fn = reinterpret_cast<SetPowerFn>(ggml_backend_reg_get_proc_address(reg, "ggml_backend_hexagon_set_power_mode"));
+        if (!p.fn) {
+            npu_event(p, "this ggml-hexagon has no runtime power vote (unpatched): its start profile stays for the process");
+        } else if (!p.per_burst) {
+            p.fn = nullptr;  // a fixed profile: ggml-hexagon's own (GGML_HEXAGON_POWER_MODE), never changed
+            npu_event(p, "fixed profile " + (p.fixed.empty() ? std::string("burst") : p.fixed) + " for the process");
+        } else {
+            npu_vote(p, false, "start");  // (no session yet: the profile the sessions start with)
+            npu_event(p, "per burst (hold " + std::to_string(p.hold_ms) + " ms)");
+        }
+    }
+}
+
+}  // namespace
+
+void npu_power_policy(const std::string & mode, int hold_ms) {
+    NpuPower & p = npu();
+    std::lock_guard<std::mutex> l(p.m);
+    if (p.attached) return;  // (read once, before the backends load, as ggml-hexagon reads its own)
+    p.per_burst = mode.empty() || mode == "auto";
+    p.fixed = p.per_burst ? std::string() : mode;
+    if (hold_ms >= 0) p.hold_ms = std::min(hold_ms, 60000);
+}
+
+std::string npu_power_status() {
+    NpuPower & p = npu();
+    std::lock_guard<std::mutex> l(p.m);
+    if (!p.attached) return "not loaded";
+    if (!p.per_burst) return "fixed " + (p.fixed.empty() ? std::string("burst") : p.fixed);
+    if (!p.fn) return "auto (unpatched: burst)";
+    std::string s = std::string("auto ") + (p.vote == 1 ? "burst" : p.vote == 0 ? "idle" : "-");
+    if (p.sessions == 0) s += " (no session)";
+    if (p.bursts > 0) {
+        s += ", wake " + fmt_ms(p.vote_ms);
+        if (p.first_gap_ms >= 0) s += " +" + fmt_ms(p.first_gap_ms);
+    }
+    return s;
+}
+
+std::vector<std::string> npu_power_events() {
+    NpuPower & p = npu();
+    std::lock_guard<std::mutex> l(p.m);
+    std::vector<std::string> out(p.events.begin(), p.events.end());
+    p.events.clear();
+    return out;
+}
+
+void npu_power_release_now(const char * why) {
+    NpuPower & p = npu();
+    std::lock_guard<std::mutex> l(p.m);
+    if (!p.fn || p.active > 0 || p.vote != 1) return;
+    p.release_at_us = 0;
+    npu_vote(p, false, why);
+}
+
+NpuBurst::NpuBurst(const char * why) {
+    NpuPower & p = npu();
+    std::lock_guard<std::mutex> l(p.m);
+    if (!p.fn) return;
+    held_ = true;
+    ++p.active;
+    p.release_at_us = 0;
+    if (p.vote != 1) npu_vote(p, true, why);
+}
+
+NpuBurst::~NpuBurst() {
+    if (!held_) return;
+    NpuPower & p = npu();
+    std::lock_guard<std::mutex> l(p.m);
+    if (--p.active > 0 || p.vote != 1) return;
+    if (p.hold_ms <= 0) { npu_vote(p, false, "done"); return; }
+    p.release_at_us = now_us() + (int64_t) p.hold_ms * 1000;
+    if (!p.timer) {
+        try {
+            std::thread(npu_timer, &p).detach();
+            p.timer = true;
+        } catch (...) {
+            npu_vote(p, false, "done (no timer thread)");
+            return;
+        }
+    }
+    p.cv.notify_all();
+}
+
+void npu_compute_begin() {
+    NpuPower & p = npu();
+    std::lock_guard<std::mutex> l(p.m);
+    if (!p.fn || !p.first_pending || p.first_begin_us != 0) return;
+    p.first_begin_us = now_us();
+    p.first_gap_ms = (double) (p.first_begin_us - p.burst_at_us) / 1000.0;
+}
+
+void npu_compute_end(int n_tokens) {
+    NpuPower & p = npu();
+    std::lock_guard<std::mutex> l(p.m);
+    if (!p.fn || !p.first_pending || p.first_begin_us == 0) return;
+    p.first_ms = (double) (now_us() - p.first_begin_us) / 1000.0;
+    p.first_tokens = n_tokens;
+    p.first_pending = false;
+    p.first_begin_us = 0;
+}
+
 bool init_backend(const std::vector<std::string> & cpu_libs, std::string * info) {
     static std::once_flag once;
     static bool ok = false;
@@ -380,6 +596,7 @@ bool init_backend(const std::vector<std::string> & cpu_libs, std::string * info)
             if (!getenv("GGML_HEXAGON_DEVICES")) setenv("GGML_HEXAGON_NDEV", "2", 0);
             ggml_backend_load("libggml-opencl.so");
             ggml_backend_load("libggml-hexagon.so");
+            npu_attach();  // (the NPU's power vote: per burst, or ggml-hexagon's fixed profile)
             for (size_t i = 0; i < ggml_backend_dev_count(); ++i) {
                 ggml_backend_dev_t d = ggml_backend_dev_get(i);
                 if (ggml_backend_dev_type(d) != GGML_BACKEND_DEVICE_TYPE_CPU) msg += std::string("; ") + ggml_backend_dev_name(d) + " " + ggml_backend_dev_description(d);
@@ -418,6 +635,7 @@ void Engine::free_mtp() {
 }
 
 void Engine::unload() {
+    const bool had = model_ != nullptr;
     free_mtp();
     if (batch_.token) llama_batch_free(batch_);
     batch_ = {};
@@ -433,6 +651,7 @@ void Engine::unload() {
     snap_stats_ = {};
     recurrent_ = false;
     n_batch_ = 0;
+    if (had) npu_power_release_now("unload");  // (the HTP sessions outlive the model: their vote must not)
 }
 
 std::vector<size_t> Engine::line_ends(const std::vector<int32_t> & toks) const {
@@ -746,6 +965,7 @@ int Engine::bake(const std::string & prompt) {
     error_.clear();
     if (!ctx_) { error_ = "no model loaded"; return -1; }
     if (!recurrent_) return 0;  // (an attention-only cache is cut back to any prefix: nothing to save)
+    const NpuBurst burst("bake");  // (the NPU at full clocks while it computes, released after: docs/CONVERSATION.md)
     try {
         if (cancel_.load()) { error_ = "cancelled"; return -1; }
         std::vector<int32_t> toks;
@@ -863,6 +1083,7 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
             error_ = info;
             return false;
         }
+        const NpuBurst burst("load");  // (loading at full clocks as before; released after the hold)
         // Friendly errors for the usual mistakes, before llama.cpp sees the file.
         FILE * f = std::fopen(path.c_str(), "rb");
         if (!f) {
@@ -1069,7 +1290,9 @@ bool Engine::decode_tokens(const std::vector<int32_t> & toks, size_t from, size_
             batch.logits[k] = logits_last && i + k == to - 1;
         }
         batch.n_tokens = (int32_t) n;
+        npu_compute_begin();
         const int rc = llama_decode(ctx_, batch);
+        npu_compute_end((int) n);
         if (rc != 0) {
             if (!cancel_.load()) error_ = "llama_decode failed (" + std::to_string(rc) + ")" + log_errors();
             resync_cache(std::vector<int32_t>(toks.begin(), toks.begin() + (ptrdiff_t) (i + n)));
@@ -1093,6 +1316,8 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
         error_ = "no model loaded";
         return {};
     }
+    // the NPU at full clocks from the prefill to the last token, released [hold] after (docs/CONVERSATION.md)
+    const NpuBurst burst("reply");
     std::string reply;
     llama_sampler * smpl = nullptr;
     try {
