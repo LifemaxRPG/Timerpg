@@ -39,6 +39,9 @@ class GpuRouteTest {
             val w = 2340f; val h = 1080f
             var clock = 0.0
             val frameMs = ArrayList<Float>()
+            // (the frame's two parts: streaming and building (buildNearest), then the frame itself (culling, uploads, render))
+            val buildMs = ArrayList<Float>(); val drawMs = ArrayList<Float>()
+            val parts = Parts(); val worst = ArrayList<Pair<Float, String>>()
             val start = System.nanoTime()
             var f = 0
             for (leg in route) {
@@ -47,10 +50,24 @@ class GpuRouteTest {
                     val x = leg.x0 + (leg.x1 - leg.x0) * t / leg.len; val z = leg.z0 + (leg.z1 - leg.z0) * t / leg.len
                     val yaw = Math.toDegrees(kotlin.math.atan2((leg.x1 - leg.x0).toDouble(), -(leg.z1 - leg.z0).toDouble())).toFloat()
                     val pose = TownFrame.orbit(x, 30f, z, yaw, 24f, if (leg.speed > 200f) 560f else 420f, w, h)
+                    val gc0 = gcMs()
                     val t0 = System.nanoTime()
                     ft.buildNearest(x, z, 4f)
+                    val t1 = System.nanoTime()
                     ft.frame(pose, 13f, clock)
                     frameMs += (System.nanoTime() - t0) / 1e6f
+                    buildMs += (t1 - t0) / 1e6f; drawMs += (System.nanoTime() - t1) / 1e6f
+                    // (each part's worst and how often it alone took over 4 ms: where a hitch comes from)
+                    val fw = com.lifemax.rpg.feature.habits.presentation.scene.FrameWork
+                    for (i in ft.buildParts.indices) parts.tally("build: " + FilamentTown.BUILD_PARTS[i], ft.buildParts[i] / 1e6f)
+                    for (i in fw.ns.indices) parts.tally("frame: " + fw.NAMES[i], fw.ns[i] / 1e6f)
+                    val ms = frameMs.last()
+                    if (worst.size < 12 || ms > worst.first().first) {
+                        worst += ms to ("frame %d %s: %.1f ms (GC %d ms) = ".format(f, leg.name, ms, gcMs() - gc0) + (ft.buildParts.indices.filter { ft.buildParts[it] > 500_000L }.map { "%s %.1f".format(FilamentTown.BUILD_PARTS[it], ft.buildParts[it] / 1e6f) } +
+                            fw.ns.indices.filter { fw.ns[it] > 500_000L }.map { "%s %.1f".format(fw.NAMES[it], fw.ns[it] / 1e6f) }).joinToString(", "))
+                        worst.sortBy { it.first }; if (worst.size > 12) worst.removeAt(0)
+                    }
+                    fw.reset()
                     if (f % SAMPLE == 0) {
                         ft.engine.flushAndWait()
                         val mb = total(ft)
@@ -68,6 +85,11 @@ class GpuRouteTest {
             val sorted = frameMs.sorted()
             log.appendLine("frames %d; CPU ms a frame (frame + streaming + building, this machine): median %.2f, p99 %.2f, worst %.2f".format(
                 frameMs.size, sorted[sorted.size / 2], sorted[(sorted.size * 99) / 100], sorted.last()))
+            fun q(a: List<Float>): String { val s = a.sorted(); return "median %.2f, p99 %.2f, p99.9 %.2f, worst %.2f".format(s[s.size / 2], s[(s.size * 99) / 100], s[(s.size * 999) / 1000], s.last()) }
+            log.appendLine("  of it, streaming and building: ${q(buildMs)}; the frame: ${q(drawMs)}; frames over 16.7 ms %d, over 8.3 ms %d".format(
+                frameMs.count { it > 16.7f }, frameMs.count { it > 8.3f }))
+            log.appendLine("  the parts (worst ms, frames over 4 ms): " + parts.line())
+            log.appendLine("  the slowest frames:"); for ((_, w) in worst.reversed()) log.appendLine("    $w")
             log.appendLine("peak GPU %.1f MB at %s (radius budget %.0f); %s".format(peak, peakAt, TownBudget.ROUTE_MB, ft.streamReport))
             log.appendLine(GpuAccount.categoryLine(ft.gpuEstimate(2340, 1080)))
             log.appendLine(com.lifemax.rpg.feature.habits.presentation.scene3d.BufferArena.stats().let { "buffer pages %d, %.1f MB, %.1f MB in use".format(it.pages, it.bytes / 1048576.0, it.used / 1048576.0) })
@@ -82,9 +104,19 @@ class GpuRouteTest {
         assertTrue("the route's resident GPU peaked at %.1f MB, over the radius budget %.0f (TownBudget.ROUTE_MB)".format(peak, TownBudget.ROUTE_MB), peak <= TownBudget.ROUTE_MB)
     }
 
+    /** Each part's worst (ms) and how many frames it took over 4 ms in. */
+    private class Parts {
+        val worst = LinkedHashMap<String, Float>(); val over = LinkedHashMap<String, Int>()
+        fun tally(k: String, ms: Float) { if (ms > (worst[k] ?: 0f)) worst[k] = ms; if (ms > 4f) over[k] = (over[k] ?: 0) + 1 }
+        fun line() = worst.entries.filter { it.value > 1f }.sortedByDescending { it.value }.joinToString(", ") { "%s %.1f (%d)".format(it.key, it.value, over[it.key] ?: 0) }
+    }
+
     private class Leg(val name: String, val x0: Float, val z0: Float, val x1: Float, val z1: Float, val speed: Float) {
         val len: Float get() = hypot(x1 - x0, z1 - z0)
     }
+
+    /** The collectors' time so far (ms): a slow frame that is a collection's pause, not the town's work. */
+    private fun gcMs(): Long = java.lang.management.ManagementFactory.getGarbageCollectorMXBeans().sumOf { it.collectionTime.coerceAtLeast(0L) }
 
     private fun total(ft: FilamentTown): Double =
         ((GpuAccount.categories(ft.gpuEstimate(2340, 1080))["total"] as? Map<*, *>)?.get("mb") as? Number)?.toDouble() ?: 0.0

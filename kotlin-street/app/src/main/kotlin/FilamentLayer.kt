@@ -85,6 +85,8 @@ object StreetRenderer {
         setBikeFollow(ctx, p.getBoolean("bikeFollow", true))
         setResolution(ctx, p.getFloat("resolution", com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.RES_AUTO))
         setAstc(ctx, p.getBoolean("astc", true))
+        setFps(ctx, p.getInt("fps", 60))
+        setMsaa(ctx, p.getInt("msaa", 4))
         // (the encoded pictures kept from start to start: the next start reads them instead of encoding them again)
         com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astcCache = java.io.File(ctx.cacheDir, "astc")
     }
@@ -102,6 +104,37 @@ object StreetRenderer {
         astc = on
         com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.astc = on
         prefs(ctx).edit().putBoolean("astc", on).apply()
+    }
+
+    /**
+     * The frame rate (Settings, "Frame rate", docs/HEAT.md): 60 a second (the default: about half the work, heat and
+     * battery of 120 for long play) or 120. The display is asked for the matching refresh and frames are paced evenly;
+     * the thermal governor may hold 120 at 60 while the phone is warm ([FramePace.heatCap]).
+     */
+    var fps by mutableStateOf(60)
+        private set
+    /** The activity asks the display for the new rate (set by it). */
+    var onFps: (() -> Unit)? = null
+
+    fun setFps(ctx: Context, hz: Int) {
+        val v = if (hz >= 90) 120 else 60
+        if (v != fps) com.timerpg.street.shot.Crumbs.add("frame rate: $v")
+        fps = v
+        com.lifemax.rpg.feature.habits.presentation.scene.FramePace.chosen = v
+        prefs(ctx).edit().putInt("fps", v).apply()
+        onFps?.invoke()
+    }
+
+    /** Multisample anti-aliasing (Settings, "Anti-aliasing"): 4 samples (the default) or off; see TownQuality.msaa. */
+    var msaa by mutableStateOf(4)
+        private set
+
+    fun setMsaa(ctx: Context, n: Int) {
+        val v = if (n > 1) 4 else 1
+        if (v != msaa) com.timerpg.street.shot.Crumbs.add("anti-aliasing: " + if (v > 1) "MSAA ${v}x" else "off")
+        msaa = v
+        com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.msaa = v
+        prefs(ctx).edit().putInt("msaa", v).apply()
     }
 
     /** The open world's drawing resolution (the AI panel's "Resolution"): see TownQuality.resolution. */
@@ -360,6 +393,51 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
     private var lastFrameNs = 0L
     private val onFrame: () -> Unit = { frame() }
 
+    // ---- frame pacing (docs/HEAT.md): the display's refresh, the rate aimed at, the vsync each frame is drawn for
+    /** The display's refresh (Hz) and the rate aimed at, as last given to Filament. */
+    private var displayHz = 0f
+    private var pacedFps = 0
+    /** Refreshes a frame is held for (120 Hz at 60: 2) and one refresh (ns). */
+    private var interval = 1
+    private var periodNs = 16_666_667L
+    /** The latest vsync the Choreographer told (ns, the monotonic clock Filament's beginFrame takes), and the one last drawn for. */
+    @Volatile private var vsyncNs = 0L
+    private var drawnVsync = 0L
+    private val vsync = object : android.view.Choreographer.FrameCallback {
+        override fun doFrame(frameTimeNanos: Long) {
+            vsyncNs = frameTimeNanos
+            if (alive) android.view.Choreographer.getInstance().postFrameCallback(this)
+        }
+    }
+    private var surface: Surface? = null
+    private var paceCheck = 0
+
+    /** Gives [r] the display's refresh and the rate aimed at, when either changed (each frame: cheap; the display may change mode). */
+    private fun pace(r: Renderer) {
+        @Suppress("DEPRECATION") val hz = runCatching { (ctx.getSystemService(Context.WINDOW_SERVICE) as android.view.WindowManager).defaultDisplay.refreshRate }.getOrDefault(60f)
+        val fps = com.lifemax.rpg.feature.habits.presentation.scene.FramePace.target
+        if (hz == displayHz && fps == pacedFps) return
+        displayHz = hz; pacedFps = fps
+        interval = com.lifemax.rpg.feature.habits.presentation.scene.FramePace.interval(hz, fps)
+        periodNs = (1e9 / hz.coerceAtLeast(1f)).toLong()
+        r.displayInfo = Renderer.DisplayInfo().apply { refreshRate = hz }
+        // (Filament's own frame timing: frames [interval] refreshes apart; its dynamic resolution stays off, ours is held steps)
+        r.frameRateOptions = Renderer.FrameRateOptions().apply { this.interval = this@FilamentHost.interval }
+        // the automatic resolution's GPU budget: the frame's time at the rate aimed at
+        com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.autoSteps.budgetMs = 1000f / fps
+        surface?.let { setFrameRate(it) }
+        com.timerpg.street.shot.Crumbs.add("frame pacing: display %.0f Hz, %d a second, a frame every %d refresh%s".format(java.util.Locale.US, hz, fps, interval, if (interval == 1) "" else "es"))
+    }
+
+    /** Tells the system the rate this surface is drawn at (Android 11+), so it can pick the display's mode to match. */
+    private fun setFrameRate(s: Surface) {
+        if (android.os.Build.VERSION.SDK_INT < 30 || pacedFps <= 0) return
+        runCatching {
+            if (android.os.Build.VERSION.SDK_INT >= 31) s.setFrameRate(pacedFps.toFloat(), Surface.FRAME_RATE_COMPATIBILITY_DEFAULT, Surface.CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS)
+            else s.setFrameRate(pacedFps.toFloat(), Surface.FRAME_RATE_COMPATIBILITY_DEFAULT)
+        }
+    }
+
     init {
         // (the stage puts off its own heavy art until the town is built: from now, as the town's data loads first)
         if (townMode) Stage3D.townBuilding = true
@@ -379,14 +457,10 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             engine = e
             renderer = e.createRenderer().also { r ->
                 r.clearOptions = Renderer.ClearOptions().apply { clear = true; setClearColor(0.0, 0.0, 0.0, if (ownSky) 1.0 else 0.0) }
-                // the display's fastest refresh (the S25's 120 Hz), as the classic asks for; the automatic resolution
-                // (TownQuality.resolution) aims at a steady 60 a second: with frames 16.7 ms apart the GPU's budget
-                r.frameRateOptions = Renderer.FrameRateOptions().apply { interval = 1 }
-                runCatching {
-                    @Suppress("DEPRECATION") val hz = (ctx.getSystemService(Context.WINDOW_SERVICE) as android.view.WindowManager).defaultDisplay.refreshRate
-                    r.displayInfo = Renderer.DisplayInfo().apply { refreshRate = hz }
-                    if (hz > 90f) r.frameRateOptions = Renderer.FrameRateOptions().apply { interval = 2 }
-                }
+                // the display's refresh and the frame rate aimed at (docs/HEAT.md: 60 by default, 120 as a setting; the
+                // activity asks the display for the matching mode): Filament's frame timing and its frames' spacing follow
+                // them (pace())
+                pace(r)
             }
             if (!townMode) street = FilamentStreet(e, mats)
             FilamentStats.loadMs = (System.nanoTime() - t0) / 1e6f
@@ -399,16 +473,21 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
                 override fun onNativeWindowChanged(surface: Surface) {
                     swap?.let { e.destroySwapChain(it) }
                     swap = e.createSwapChain(surface, if (ownSky) ui.swapChainFlags else ui.swapChainFlags or SwapChainFlags.CONFIG_TRANSPARENT)
+                    this@FilamentHost.surface = surface; setFrameRate(surface)
                     dirty = true
                 }
                 override fun onDetachedFromSurface() {
                     swap?.let { e.destroySwapChain(it); e.flushAndWait() }
-                    swap = null
+                    swap = null; this@FilamentHost.surface = null
                 }
                 override fun onResized(width: Int, height: Int) { w = width; h = height; dirty = true }
             }
             ui.attachTo(view)
             Stage3D.onFrame = onFrame
+            // (the vsync each frame is drawn for, and the heat governor and performance hints: docs/HEAT.md)
+            android.view.Choreographer.getInstance().postFrameCallback(vsync)
+            ContextHolder.ctx = ctx.applicationContext
+            Heat.start(ctx.applicationContext)
         } catch (t: Throwable) {
             StreetRenderer.failed(ctx, "Filament did not start: ${t.message ?: t.javaClass.simpleName}")
             destroy()
@@ -428,6 +507,12 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
         // (a town frame for the crossroads' layer, or the other way round: the switch between them is under way)
         if (f.town != townMode) return
         if (f.n == lastN && !dirty) return
+        // frame pacing (docs/HEAT.md): a frame every [interval] refreshes, evenly, at the rate aimed at (the display is
+        // asked for that rate's mode, so this is 1 there; 2 on a display left at 120 Hz for 60 a second)
+        if (++paceCheck % 30 == 1) pace(r)
+        val v = vsyncNs
+        if (!dirty && !com.lifemax.rpg.feature.habits.presentation.scene.FramePace.due(v, drawnVsync, periodNs, interval)) return
+        drawnVsync = v
         try {
             val t0 = System.nanoTime()
             val view = if (s != null) {
@@ -436,11 +521,14 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
                 s.view
             } else townFrame(e, f) ?: return
             val r0 = System.nanoTime()
-            if (r.beginFrame(sc, System.nanoTime())) {
+            // (the vsync this frame is for: Filament times its frame from it)
+            if (r.beginFrame(sc, if (v > 0L) v else System.nanoTime())) {
                 r.render(view)
                 r.endFrame()
             }
             com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.add(com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.RENDER, System.nanoTime() - r0)
+            // ADPF: the frame's work against the frame's time (and the workers' since the last frame against theirs)
+            Heat.frameDone(System.nanoTime() - t0, com.lifemax.rpg.feature.habits.presentation.scene.FramePace.target)
             lastN = f.n; dirty = false
             val cpu = (System.nanoTime() - t0) / 1e6f
             // the GPU's time for an earlier frame, where the driver reports it
@@ -452,6 +540,8 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
                 val tq = com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality
                 val dt = if (lastFrameNs == 0L) 0f else ((t0 - lastFrameNs) / 1e9f).coerceAtMost(.25f)
                 lastFrameNs = t0
+                // (the thermal governor moved its step: docs/HEAT.md)
+                if (Heat.resolutionChanged) { Heat.resolutionChanged = false; town?.view?.let { tq.applyResolution(it) } }
                 if (tq.resolution == tq.RES_AUTO && tq.autoSteps.feed(g, dt)) {
                     town?.view?.let { tq.applyResolution(it) }
                     com.timerpg.street.shot.Crumbs.add("resolution: auto, %.2f".format(java.util.Locale.US, tq.autoSteps.scale))
@@ -603,6 +693,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
     fun destroy() {
         if (!alive) return
         alive = false
+        runCatching { android.view.Choreographer.getInstance().removeFrameCallback(vsync) }
         com.timerpg.street.shot.Crumbs.add("Filament stop")
         if (Stage3D.onFrame === onFrame) Stage3D.onFrame = null
         if (townMode) { Stage3D.townBuilding = false; Stage3D.townSky3d = false }

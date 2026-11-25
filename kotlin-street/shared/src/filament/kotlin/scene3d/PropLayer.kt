@@ -389,17 +389,25 @@ internal class PropLayer(
         b.geo.free(engine)
     }
 
-    fun destroy() {
+    /**
+     * Lets go of everything: its entities at once; [later] (streaming: [Graveyard]) its material instances and own textures
+     * over the next frames, in order, instead of now.
+     */
+    fun destroy(later: Boolean = false) {
         val em = EntityManager.get()
         val held = batches.filter { !it.released }
         for (b in held) {
             scene.remove(b.entity); engine.destroyEntity(b.entity); em.destroy(b.entity)
             if (b.proxy != 0) { scene.remove(b.proxy); engine.destroyEntity(b.proxy); em.destroy(b.proxy) }
         }
-        for (b in held) { engine.destroyMaterialInstance(b.mi); b.pmi?.let { engine.destroyMaterialInstance(it) } }
+        val e = engine
+        for (b in held) {
+            if (later) { Graveyard.bury(e, b.mi); b.pmi?.let { Graveyard.bury(e, it) } }
+            else { e.destroyMaterialInstance(b.mi); b.pmi?.let { e.destroyMaterialInstance(it) } }
+        }
         for (b in held) b.geo.free(engine)
         batches.clear()
-        if (ownTextures) textures.destroy(all = true)
+        if (ownTextures) { val t = textures; if (later) Graveyard.later { t.destroy(all = true) } else t.destroy(all = true) }
         count = 0
     }
 

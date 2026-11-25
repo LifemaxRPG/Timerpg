@@ -58,7 +58,8 @@ object TownQuality {
     /** [view]'s resolution options for [resolution] (automatic: [autoSteps]' scale now, held). */
     fun applyResolution(view: com.google.android.filament.View) {
         val r = resolution
-        val k = if (r == RES_AUTO) autoSteps.scale else r
+        // (a fixed scale too is held under the thermal governor's step while the phone is warm: docs/HEAT.md)
+        val k = if (r == RES_AUTO) autoSteps.scale else minOf(r, com.lifemax.rpg.feature.habits.presentation.scene.ResolutionSteps.LEVELS[autoSteps.heatStep])
         view.dynamicResolutionOptions = com.google.android.filament.View.DynamicResolutionOptions().apply {
             enabled = k < 1f
             minScale = k
@@ -68,6 +69,31 @@ object TownQuality {
             homogeneousScaling = true
         }
     }
+
+    /**
+     * Multisample anti-aliasing on the lit pass (Settings, "Anti-aliasing"; docs/HEAT.md): 4 samples by default, 1 off.
+     * It smooths geometry's edges (roof lines, box silhouettes, poles against the sky) and leaves the nearest-filtered
+     * texels inside a face exactly as sharp (a pixel is shaded once, its samples only say how much of it a triangle
+     * covers). On the Adreno's tiles the samples live in tile memory and resolve on the way out (no extra memory traffic).
+     * A view takes a change at its next frame ([applyMsaa]).
+     */
+    @Volatile var msaa = 4
+
+    /** [view]'s multisampling for [msaa]. */
+    fun applyMsaa(view: com.google.android.filament.View) {
+        val n = msaa.coerceIn(1, 8)
+        view.multiSampleAntiAliasingOptions = com.google.android.filament.View.MultiSampleAntiAliasingOptions().apply {
+            enabled = n > 1; sampleCount = if (n > 1) n else 1; customResolve = false
+        }
+    }
+
+    /**
+     * The thermal governor's caps (docs/HEAT.md; [com.lifemax.rpg.feature.habits.presentation.scene.HeatSteps]): the sun's
+     * shadow cascades at most (4: none), and how many times as far the far view waits before it bakes the horizon ring
+     * again (1: as designed). Set by the app as the phone warms and cools; the town takes them at its next frame.
+     */
+    @Volatile var heatCascades = 4
+    @Volatile var rebakeStretch = 1f
 
     /** The largest shadow map Filament makes (texels square). */
     const val MAX_MAP = 2048

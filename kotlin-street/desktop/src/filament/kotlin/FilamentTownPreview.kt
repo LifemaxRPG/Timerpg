@@ -655,6 +655,10 @@ private fun coldStart(
         run.build(walk.wx, walk.wz, 4f)
         run.draw(walk, sw.toFloat(), shh.toFloat(), 13f, clock, sheets)
         playing += (System.nanoTime() - f0) / 1e6f
+        // (-Dmemtrace: and every 50 frames while the rest comes in, where the build's peak is)
+        if (System.getProperty("memtrace") != null && playing.size % 50 == 0) println("  memtrace playing %d: live %d MB, direct %d MB, ground queue %d MB, %d built".format(
+            playing.size, TownMemory.mb(TownMemory.live?.invoke() ?: 0L), TownMemory.mb(TownMemory.direct?.invoke() ?: 0L), TownMemory.mb(ft.queuedBytes), ft.slots.count { it.isBuilt }) +
+            if (TownMemory.tally) "; " + TownMemory.owners().entries.sortedByDescending { it.value }.take(4).joinToString(", ") { "${it.key.substringBefore('<')} %.0f".format(it.value / 1048576.0) } else "")
         pace(f0)
     }
     GameState.moveX = 0f
@@ -678,6 +682,8 @@ private fun coldStart(
     report.appendLine("cold start, ASTC: encoding %.1f s over all threads, pictures read from the cache %d, encoded %d".format(
         com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.nanos.get() / 1e9, com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.cacheHits, com.lifemax.rpg.feature.habits.presentation.scene3d.Astc.cacheMisses))
     report.appendLine("cold start, memory: " + TownMemory.summary() + "; the ground's queue peaked at ${TownMemory.mb(ft.queuedPeak)} MB")
+    report.appendLine("cold start, tree impostors: " + com.lifemax.rpg.feature.habits.presentation.scene3d.TreeImpostors.lastBake.ifEmpty { "not baked" })
+    println("  tree impostors: " + com.lifemax.rpg.feature.habits.presentation.scene3d.TreeImpostors.lastBake.ifEmpty { "not baked" })
     println("  memory: " + TownMemory.summary())
     // (-DmemOwners: what held the direct buffers at the peak, by the town's code that made them)
     if (TownMemory.tally) {

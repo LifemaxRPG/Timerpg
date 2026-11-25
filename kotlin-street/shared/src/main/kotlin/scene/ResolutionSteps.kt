@@ -11,11 +11,25 @@ package com.lifemax.rpg.feature.habits.presentation.scene
  * Pure logic (fed the GPU's frame times), so a test can drive it; allocates nothing.
  */
 class ResolutionSteps(
-    /** The GPU's budget a frame (ms): 60 frames a second. */
-    val budgetMs: Float = 16.7f,
+    /** The GPU's budget a frame (ms): 60 frames a second (the app sets it from the frame rate aimed at: 8.3 at 120). */
+    @Volatile var budgetMs: Float = 16.7f,
 ) {
-    /** The scale now (one of [LEVELS]). */
+    /** The scale now (one of [LEVELS]): its own step, or the thermal governor's [heatStep] where that is lower. */
     var scale = LEVELS[0]; private set
+    /**
+     * The thermal governor's least step ([HeatSteps.Plan.resStep]: 0 none): the scale is held at most at that step's while
+     * the phone is warm, before it throttles; true from [setHeatStep] when the scale changed (apply it).
+     */
+    var heatStep = 0; private set
+    fun setHeatStep(step: Int): Boolean {
+        val s = step.coerceIn(0, LEVELS.size - 1)
+        if (s == heatStep) return false
+        heatStep = s
+        val k = LEVELS[maxOf(level, heatStep)]
+        if (k == scale) return false
+        scale = k; since = 0f; over = 0f; under = 0f; changes++
+        return true
+    }
     private var level = 0
     private var avg = -1f
     private var over = 0f
@@ -44,11 +58,12 @@ class ResolutionSteps(
     }
 
     private fun changed(): Boolean {
-        scale = LEVELS[level]; since = 0f; over = 0f; under = 0f; changes++
-        return true
+        val was = scale
+        scale = LEVELS[maxOf(level, heatStep)]; since = 0f; over = 0f; under = 0f; changes++
+        return scale != was
     }
 
-    fun reset() { level = 0; scale = LEVELS[0]; avg = -1f; over = 0f; under = 0f; since = HOLD }
+    fun reset() { level = 0; heatStep = 0; scale = LEVELS[0]; avg = -1f; over = 0f; under = 0f; since = HOLD }
 
     companion object {
         /** The scales it draws at: the full screen, then two steps down to the least the automatic resolution allows. */

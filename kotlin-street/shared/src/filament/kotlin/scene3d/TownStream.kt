@@ -89,9 +89,14 @@ internal class TownStream {
     var worstMs = 0f; var busyFrames = 0
     /** Of which the worst swap of yards coming back in (ms). */
     var worstYardUpMs = 0f
+    /** The worst single building let go, lot let go, and lot's upload coming in (ms): what one item costs. */
+    var worstUnbuildMs = 0f; var worstLotOutMs = 0f; var worstLotInMs = 0f
+    /** The worst time of each section of a stream step (ms): what is wanted, buildings out, lots out, lots in. */
+    val worstSection = FloatArray(4)
+    fun section(i: Int, t0: Long): Long { val n = System.nanoTime(); worstSection[i] = kotlin.math.max(worstSection[i], (n - t0) / 1e6f); return n }
 
-    fun report(): String = "streaming: buildings in %d / out %d, yards in %d / out %d, chunks' 3D greenery out %d, worst stream step %.1f ms (yards' swap-in %.1f) over %d frames, speed %.0f u/s (ahead %.0f)".format(
-        java.util.Locale.US, buildingsIn, buildingsOut, yardsIn, yardsOut, chunksOut, worstMs, worstYardUpMs, busyFrames, hypot(vx, vz), ahead)
+    fun report(): String = "streaming: buildings in %d / out %d, yards in %d / out %d, chunks' 3D greenery out %d, worst stream step %.1f ms (yards' swap-in %.1f; one building out %.1f, one lot out %.1f, one lot in %.1f) over %d frames (sections: wanted %.1f, buildings out %.1f, lots out %.1f, lots in %.1f), speed %.0f u/s (ahead %.0f); destroyed later %d (at most %d waiting)".format(
+        java.util.Locale.US, buildingsIn, buildingsOut, yardsIn, yardsOut, chunksOut, worstMs, worstYardUpMs, worstUnbuildMs, worstLotOutMs, worstLotInMs, busyFrames, worstSection[0], worstSection[1], worstSection[2], worstSection[3], hypot(vx, vz), ahead, Graveyard.buried, Graveyard.peak)
 
     companion object {
         /** (Debugging: -DstreamOff=b,y,c leaves the buildings', yards' or chunks' greenery's letting go out.) */
@@ -110,7 +115,11 @@ internal class TownStream {
         const val EVICT_MS = 2f
         /** How many yards may be baked again at once for coming in (each a lot's near version, on the workers). */
         const val YARDS_IN_FLIGHT = 6
-        /** How long a frame may spend uploading yards coming in (ms) beyond the first. */
+        /** How long a frame may spend uploading yards coming in (ms) beyond the first batch (a lot's batches over frames). */
         const val YARD_UPLOAD_MS = 3f
+        /** The stream step's whole budget a frame (ms): letting go and yards coming in together, beyond the first item. */
+        const val STREAM_MS = 4f
+        /** How long a frame may spend destroying what streaming let go of ([Graveyard], ms) beyond the first item. */
+        const val GRAVE_MS = 1.5f
     }
 }

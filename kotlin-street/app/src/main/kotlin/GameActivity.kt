@@ -90,7 +90,9 @@ class GameActivity : ComponentActivity() {
         }
         PlatformImages.update = { img: ImageBitmap, px, w, h -> img.asAndroidBitmap().setPixels(px, 0, w, 0, 0, w, h) }
         immersive()
-        fastestRefresh()
+        // (the display's refresh follows the frame rate aimed at: the setting, then the thermal governor's cap)
+        StreetRenderer.onFps = { runOnUiThread { matchRefresh() } }
+        Heat.onTarget = { runOnUiThread { matchRefresh() } }
         // our characters: only the first 4 views x 6 frames (x < 768) of rows 0-2 and the seated row 4 (y < 320: the rider
         // on the bike) are ever drawn, so only that is decoded (about 8 MB of bitmaps instead of 75)
         SpriteSheets.sheets = (1..8).map { n ->
@@ -118,6 +120,7 @@ class GameActivity : ComponentActivity() {
         GameState.look = 1
         // which renderer draws the street (the AI panel's switch; the classic unless Filament was chosen)
         StreetRenderer.load(applicationContext)
+        matchRefresh()
         // the walkable town (TOWN.md T10): its people talk from the start, and its walk's events go to crash reports
         com.timerpg.street.dialogue.DialogueEngine.startDir = if (StreetRenderer.townMode) "town/${StreetRenderer.town}/" else ""
         com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.onEvent = { com.timerpg.street.shot.Crumbs.add(it) }
@@ -259,14 +262,23 @@ class GameActivity : ComponentActivity() {
         getSystemService(android.hardware.input.InputManager::class.java)?.registerInputDeviceListener(devices, null)
     }
 
-    /** Asks for the display's fastest refresh at its current resolution (120 Hz on the S25); the system may still choose less. */
-    private fun fastestRefresh() {
+    /**
+     * Asks the display for the refresh that matches the frame rate aimed at (docs/HEAT.md; FramePace.target: the player's
+     * 60 or 120, the thermal governor's cap) at its current resolution: 60 Hz for 60 a second, so every frame is shown for
+     * exactly one refresh (even spacing, no 16/8 ms alternation, and the display itself at half its rate); the system may
+     * still choose otherwise, and the renderer then holds each frame for a whole number of refreshes. Again whenever the
+     * target changes (the setting, the governor).
+     */
+    private fun matchRefresh() {
         @Suppress("DEPRECATION") val d = windowManager.defaultDisplay ?: return
         val now = d.mode
-        val best = d.supportedModes.filter { it.physicalWidth == now.physicalWidth && it.physicalHeight == now.physicalHeight }
-            .maxByOrNull { it.refreshRate } ?: return
-        window.attributes = window.attributes.apply { preferredDisplayModeId = best.modeId }
+        val modes = d.supportedModes.filter { it.physicalWidth == now.physicalWidth && it.physicalHeight == now.physicalHeight }
+        val fps = com.lifemax.rpg.feature.habits.presentation.scene.FramePace.target
+        val hz = com.lifemax.rpg.feature.habits.presentation.scene.FramePace.pickRefresh(modes.map { it.refreshRate }, fps) ?: return
+        val best = modes.minByOrNull { kotlin.math.abs(it.refreshRate - hz) } ?: return
+        window.attributes = window.attributes.apply { preferredDisplayModeId = best.modeId; preferredRefreshRate = best.refreshRate }
         FrameStats.display = best.refreshRate
+        com.timerpg.street.shot.Crumbs.add("display: %.0f Hz asked for %d frames a second".format(java.util.Locale.US, best.refreshRate, fps))
     }
 
     override fun onStart() {
@@ -2119,6 +2131,18 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             for ((r, label) in listOf(0f to "Auto", 1f to "Full", .85f to "85%", .75f to "75%"))
                 Chip(label, StreetRenderer.resolution == r) { StreetRenderer.setResolution(ctx, r) }
         }
+        // (the frame rate: 60, the default for long play, or 120; the display follows it: docs/HEAT.md)
+        if (StreetRenderer.filament) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Frame rate", 12.sp)
+            Chip("60 (cooler)", StreetRenderer.fps == 60) { StreetRenderer.setFps(ctx, 60) }
+            Chip("120", StreetRenderer.fps == 120) { StreetRenderer.setFps(ctx, 120) }
+        }
+        // (multisampling on the lit pass: smooth edges, the pixel art inside each face as sharp as before)
+        if (StreetRenderer.filament) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Anti-aliasing", 12.sp)
+            Chip("MSAA 4x", StreetRenderer.msaa > 1) { StreetRenderer.setMsaa(ctx, 4) }
+            Chip("Off", StreetRenderer.msaa <= 1) { StreetRenderer.setMsaa(ctx, 1) }
+        }
         // (the town's pictures: compressed ASTC, or exact RGBA8 as before, for the next town built)
         if (StreetRenderer.filament) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Textures", 12.sp)
@@ -2139,7 +2163,7 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             val pm = ctx.getSystemService(android.os.PowerManager::class.java)
             while (true) {
                 heat = if (android.os.Build.VERSION.SDK_INT >= 30 && pm != null)
-                    "Heat: status ${pm.currentThermalStatus} · headroom %.2f (1 = throttling)".format(java.util.Locale.US, pm.getThermalHeadroom(10))
+                    "Heat: status ${pm.currentThermalStatus} · headroom %.2f (1 = throttling) · governor: ${Heat.line()}".format(java.util.Locale.US, pm.getThermalHeadroom(10))
                 else ""
                 fil = if (StreetRenderer.filament) FilamentStats.summary() else ""
                 kotlinx.coroutines.delay(1000)

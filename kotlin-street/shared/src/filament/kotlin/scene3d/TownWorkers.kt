@@ -26,6 +26,7 @@ internal class TownWorkers(threads: Int) : ThreadPoolExecutor(
     threads, threads, 0L, TimeUnit.MILLISECONDS, PriorityBlockingQueue<Runnable>(),
     { r -> Thread(r, "town-build").also { it.isDaemon = true; it.priority = Thread.NORM_PRIORITY - 1 } },
 ) {
+    init { TownJobs.threads = threads }
     private val order = AtomicLong()
 
     /** A queued job: [task] run at [priority] (lower first, then in the order given), named for the log. */
@@ -35,8 +36,10 @@ internal class TownWorkers(threads: Int) : ThreadPoolExecutor(
         override fun compareTo(other: Job): Int = if (priority != other.priority) priority.compareTo(other.priority) else seq.compareTo(other.seq)
         override fun run() {
             val t0 = System.nanoTime()
+            TownJobs.started(t0)
             try { task.run() } finally {
                 val t1 = System.nanoTime()
+                TownJobs.ended(t0, t1)
                 TownJobs.done(kind, name, (t0 - queuedAt) / 1e6f, (t1 - t0) / 1e6f, priority)
             }
         }
@@ -91,6 +94,19 @@ object TownJobs {
     /** (kind, name or null, ms waiting in the queue, ms running, priority); called on the worker's thread. */
     @Volatile var onJob: ((kind: String, name: String?, waitMs: Float, runMs: Float, priority: Float) -> Unit)? = null
     const val QUIET_MS = 20f
+
+    /** How many workers the town has (0: none made yet). */
+    @Volatile var threads = 0
+    private val running = java.util.concurrent.ConcurrentHashMap<Thread, Long>()
+    private val doneNs = java.util.concurrent.atomic.AtomicLong()
+    internal fun started(t0: Long) { running[Thread.currentThread()] = t0 }
+    internal fun ended(t0: Long, t1: Long) { running.remove(Thread.currentThread()); doneNs.addAndGet(t1 - t0) }
+
+    /**
+     * The workers' time spent in jobs so far (ns, summed over the workers, the running jobs' part included): the difference
+     * between two readings is how long they worked between them (the app's performance hint for the workers, docs/HEAT.md).
+     */
+    fun busyNs(now: Long = System.nanoTime()): Long { var b = doneNs.get(); for (s in running.values) b += now - s; return b }
 
     internal fun done(kind: String, name: String?, waitMs: Float, runMs: Float, priority: Float) {
         val f = onJob ?: return
