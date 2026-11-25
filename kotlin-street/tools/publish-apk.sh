@@ -1,11 +1,11 @@
 #!/bin/sh
 # Publishes the built APK as the update the game finds (AppUpdater, BuildConfig.UPDATE_URL): the repository's "apk" branch
 # holds update.json and the APK, as one commit that is replaced each time (no history of binaries piles up).
-#   tools/publish-apk.sh ["what is new"]        (after gradle :app:assembleDebug)
+#   tools/publish-apk.sh ["what is new"]        (after gradle :app:assembleRelease: the release build, not debuggable, so ART compiles it fully)
 set -e
 here="$(cd "$(dirname "$0")/.." && pwd)"
-apk="$here/app/build/outputs/apk/debug/app-debug.apk"
-[ -f "$apk" ] || { echo "no APK at $apk: build it first (gradle :app:assembleDebug)" >&2; exit 1; }
+apk="$here/app/build/outputs/apk/release/app-release.apk"
+[ -f "$apk" ] || { echo "no APK at $apk: build it first (gradle :app:assembleRelease)" >&2; exit 1; }
 sdk="${ANDROID_HOME:-/opt/android-sdk}"
 bt="$sdk/build-tools/$(ls "$sdk/build-tools" | sort -V | tail -1)"
 badge="$("$bt/aapt2" dump badging "$apk" | head -1)"
