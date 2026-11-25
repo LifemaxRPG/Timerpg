@@ -123,10 +123,14 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
         // the rivers' and roads' surroundings calmed (the land's detail fading to the cells' own height towards them), the
         // rivers' beds carved
         val calmR = smoothstep(sat(d[WorldFarPlan.RIVER] / CALM_M))
-        val calmD = .4 + .6 * smoothstep(sat(min(d[WorldFarPlan.HIGHWAY], min(d[WorldFarPlan.COUNTY], d[WorldFarPlan.RAIL])) / CALM_ROAD_M))
+        // (a road or rail bed is graded: on it and its shoulders the ground is the cells' own smooth height, the land's
+        // detail coming back over [CALM_ROAD_M] beside it: cuttings and embankments, never the relief's cliffs under the
+        // wheels (WORLD_STREAM.md: the drive found a 60% terrace on the expressway))
+        val calmD = smoothstep(sat((min(d[WorldFarPlan.HIGHWAY], min(d[WorldFarPlan.COUNTY], d[WorldFarPlan.RAIL])) - SHOULDER_M) / CALM_ROAD_M))
         h = base + (h - base) * min(calmR, calmD)
         val bed = 1.0 - smoothstep(sat((d[WorldFarPlan.RIVER] + BANK_M) / BANK_M))
-        h -= RIVER_DEPTH_M * bed
+        // (no bed carved under a road or rail bed: it crosses on its grade (bridges are W6))
+        h -= RIVER_DEPTH_M * bed * calmD
         p.abs = h
         p.cliff = c * min(calmR, calmD)
         p.river = d[WorldFarPlan.RIVER]; p.road = d[WorldFarPlan.HIGHWAY]; p.county = d[WorldFarPlan.COUNTY]; p.rail = d[WorldFarPlan.RAIL]
@@ -149,9 +153,11 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
      */
     fun material(cx: Double, cz: Double, lx: Double, lz: Double, p: Point, quadSlope: Double): Int {
         // the lines first: they lie over everything
-        if (p.river < 0) return WATER
+        // (a road over a river keeps its surface: it crosses on its grade)
         if (p.road < 0) return ASPHALT
-        if (p.road < SHOULDER_M || p.county < 0 || p.rail < 0) return GRAVEL
+        if (p.county < 0 || p.rail < 0) return GRAVEL
+        if (p.river < 0) return WATER
+        if (p.road < SHOULDER_M) return GRAVEL
         val i = floor(cx).toInt(); val j = floor(cz).toInt()
         val land = sk.land(i, j)
         val above = p.abs
