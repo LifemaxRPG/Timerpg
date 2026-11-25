@@ -66,6 +66,24 @@ bool init_backend(const std::vector<std::string> & cpu_libs, std::string * info)
  *  patches/llama-head-vocab.patch computes only those), 0 for a file with the whole vocabulary. */
 int64_t head_vocab(const std::string & path);
 
+/**
+ * The one-time preparation of a downloaded model file (docs/MODEL_FILES.md: the English-first vocabulary order made on
+ * the phone): tools/llm/vocab_reorder.cpp, compiled into this library unchanged. [list_path] is head_vocab.txt (the
+ * app's asset, copied to a file). [code]: "done", "already" (DST holds this list and K already), "cancelled" (the
+ * progress callback said stop: nothing is left but the source), "failed" ([error] says why). Timing and memory for the
+ * breadcrumbs: [rss_peak_kb] is the highest resident size seen while it ran (sampled at every progress step), against
+ * [rss_start_kb] before it.
+ */
+struct PrepResult {
+    std::string code, error;
+    int64_t ms = 0, rss_start_kb = 0, rss_peak_kb = 0;
+};
+/** SRC (a Hugging Face Qwen3.5 GGUF) -> DST, ordered by the list, K = [k] (0: the list's default); verified, then renamed. */
+PrepResult prepare_head_vocab(const std::string & src, const std::string & dst, const std::string & list_path, uint32_t k,
+                              const std::function<bool(double)> & progress);
+/** K of a file already ordered by the list, changed in place (the order does not depend on K: only the u32 key moves). */
+PrepResult retarget_head_vocab(const std::string & path, const std::string & list_path, uint32_t k);
+
 /** "dotprod fp16 i8mm"-style list of the ARM features that matter for the kernels (empty elsewhere). */
 std::string cpu_features();
 /** The CPU kernel libraries to try on this phone, best first (Android arm64). */

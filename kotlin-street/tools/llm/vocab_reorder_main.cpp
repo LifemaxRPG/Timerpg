@@ -1,6 +1,7 @@
 // Command line for vocab_reorder.h (the same code the app will run on the phone):
 //   vocab_reorder SRC.gguf DST.gguf --list head_vocab.txt [--k N] [--no-verify] [--force]
 //   vocab_reorder --hash MODEL.gguf      prints the tokenizer's vocab_hash (the list's header must match it)
+//   vocab_reorder --retarget FILE.gguf --list head_vocab.txt --k N   changes K of a reordered file in place
 #include "vocab_reorder.h"
 
 #include "ggml.h"
@@ -33,6 +34,20 @@ int main(int argc, char ** argv) {
                             (long long) ne[0], (long long) ne[1], gguf_get_tensor_size(g, i) / 1e6);
         }
         gguf_free(g);
+        return 0;
+    }
+    if (argc >= 3 && std::strcmp(argv[1], "--retarget") == 0) {
+        std::string list_path, err;
+        uint32_t k = 0;
+        for (int i = 3; i + 1 < argc; i += 2) {
+            if (std::strcmp(argv[i], "--list") == 0) list_path = argv[i + 1];
+            else if (std::strcmp(argv[i], "--k") == 0) k = (uint32_t) std::strtoul(argv[i + 1], nullptr, 10);
+        }
+        timerpg::HeadVocab list;
+        if (list_path.empty() || !timerpg::load_head_vocab(list_path, list, err)) { std::fprintf(stderr, "%s\n", err.empty() ? "--list is required" : err.c_str()); return 2; }
+        const auto r = timerpg::retarget_head_vocab(argv[2], list, k ? k : list.k, err);
+        if (r == timerpg::ReorderResult::Failed) { std::fprintf(stderr, "failed: %s\n", err.c_str()); return 1; }
+        std::printf("%s: head_vocab %u\n", r == timerpg::ReorderResult::Done ? "done" : "already done", k ? k : list.k);
         return 0;
     }
     if (argc < 3) {

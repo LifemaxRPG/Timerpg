@@ -6,6 +6,7 @@
 
 #include "llama.h"
 #include "gguf.h"
+#include "vocab_reorder.h"
 
 #include <algorithm>
 #include <cerrno>
@@ -622,6 +623,62 @@ int64_t head_vocab(const std::string & path) {
     std::lock_guard<std::mutex> l(m);
     if (path != last_path || mtime_ns(st) != last_mt) { last_k = head_vocab_of(path); last_path = path; last_mt = mtime_ns(st); }
     return last_k;
+}
+
+namespace {
+int64_t rss_now_kb() {
+    long pages = 0, resident = 0;
+    FILE * f = std::fopen("/proc/self/statm", "r");
+    if (!f) return 0;
+    if (std::fscanf(f, "%ld %ld", &pages, &resident) != 2) resident = 0;
+    std::fclose(f);
+    return (int64_t) resident * (sysconf(_SC_PAGESIZE) / 1024);
+}
+const char * prep_code(timerpg::ReorderResult r) {
+    switch (r) {
+        case timerpg::ReorderResult::Done: return "done";
+        case timerpg::ReorderResult::AlreadyDone: return "already";
+        case timerpg::ReorderResult::Cancelled: return "cancelled";
+        default: return "failed";
+    }
+}
+}  // namespace
+
+PrepResult prepare_head_vocab(const std::string & src, const std::string & dst, const std::string & list_path, uint32_t k,
+                              const std::function<bool(double)> & progress) {
+    PrepResult out;
+    const int64_t t0 = now_us();
+    out.rss_start_kb = out.rss_peak_kb = rss_now_kb();
+    timerpg::HeadVocab list;
+    if (!timerpg::load_head_vocab(list_path, list, out.error)) { out.code = "failed"; return out; }
+    out.rss_peak_kb = std::max(out.rss_peak_kb, rss_now_kb());
+    timerpg::ReorderOptions opt;
+    opt.k = k;
+    opt.progress = [&](double f) {
+        out.rss_peak_kb = std::max(out.rss_peak_kb, rss_now_kb());
+        return !progress || progress(f);
+    };
+    const auto r = timerpg::reorder_vocab(src, dst, list, opt, out.error);
+    out.code = prep_code(r);
+    out.rss_peak_kb = std::max(out.rss_peak_kb, rss_now_kb());
+    out.ms = (now_us() - t0) / 1000;
+    log_msg(r == timerpg::ReorderResult::Failed ? GGML_LOG_LEVEL_WARN : GGML_LOG_LEVEL_INFO,
+            "llm: vocabulary order " + out.code + " in " + std::to_string(out.ms) + " ms, peak RSS " + std::to_string(out.rss_peak_kb / 1024) +
+            " MB (from " + std::to_string(out.rss_start_kb / 1024) + ")" + (out.error.empty() ? "" : ": " + out.error));
+    return out;
+}
+
+PrepResult retarget_head_vocab(const std::string & path, const std::string & list_path, uint32_t k) {
+    PrepResult out;
+    const int64_t t0 = now_us();
+    out.rss_start_kb = out.rss_peak_kb = rss_now_kb();
+    timerpg::HeadVocab list;
+    if (!timerpg::load_head_vocab(list_path, list, out.error)) { out.code = "failed"; return out; }
+    const auto r = timerpg::retarget_head_vocab(path, list, k ? k : list.k, out.error);
+    out.code = prep_code(r);
+    out.rss_peak_kb = std::max(out.rss_peak_kb, rss_now_kb());
+    out.ms = (now_us() - t0) / 1000;
+    return out;
 }
 
 namespace {

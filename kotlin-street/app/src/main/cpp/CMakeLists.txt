@@ -250,8 +250,12 @@ endif()
 # EXCLUDE_FROM_ALL: only what our targets need gets built.
 add_subdirectory("${LLAMA_DIR}" ${TIMERPG_LLAMA_BINARY_DIR} EXCLUDE_FROM_ALL)
 
-add_library(llm_core STATIC llm_core.cpp guide.cpp asr_core.cpp embed_core.cpp)
-target_include_directories(llm_core PUBLIC "${CMAKE_CURRENT_LIST_DIR}")
+# The phone-side model-file tool (docs/MODEL_FILES.md): the English-first vocabulary order, compiled from its place in
+# tools/llm (not copied: the command-line tool and the app run the same file).
+set(TIMERPG_TOOLS_LLM "${CMAKE_CURRENT_LIST_DIR}/../../../../tools/llm")
+get_filename_component(TIMERPG_TOOLS_LLM "${TIMERPG_TOOLS_LLM}" ABSOLUTE)
+add_library(llm_core STATIC llm_core.cpp guide.cpp asr_core.cpp embed_core.cpp "${TIMERPG_TOOLS_LLM}/vocab_reorder.cpp")
+target_include_directories(llm_core PUBLIC "${CMAKE_CURRENT_LIST_DIR}" "${TIMERPG_TOOLS_LLM}")
 target_link_libraries(llm_core PUBLIC llama mtmd llama-common)
 set_target_properties(llm_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
