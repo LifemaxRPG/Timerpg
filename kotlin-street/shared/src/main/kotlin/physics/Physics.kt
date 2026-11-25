@@ -89,7 +89,10 @@ object VehicleDesc {
     const val FRICTION_LAT = 30
     const val SHIFT_UP_RPM = 31
     const val SHIFT_DOWN_RPM = 32
-    const val COUNT = 33
+    /** Aerodynamic downforce: N per (m/s)^2 of forward speed (0: none), and the share of it on the front axle. */
+    const val DOWNFORCE = 33
+    const val DOWNFORCE_FRONT = 34
+    const val COUNT = 35
 }
 
 /** Indices into [Physics.state]'s output (physics_core.h VehicleStateIndex). */

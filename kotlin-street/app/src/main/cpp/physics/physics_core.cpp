@@ -85,6 +85,9 @@ struct Vehicle {
     Ref<VehicleConstraint> constraint;
     Ref<VehicleCollisionTester> tester;
     float wheelY = 0.f;     // the axle height at rest
+    float downforce = 0.f;  // N per (m/s)^2 (VD_DOWNFORCE)
+    float downFront = .5f;  // its front share
+    float frontZ = 0.f, rearZ = 0.f;
     float previousForward = 1.f;
     bool live = false;
 };
@@ -442,6 +445,10 @@ int addVehicle(World *w, const float *d, const float *boxes, int boxCount, float
     v.tester = new VehicleCollisionTesterCastCylinder(Layers::WHEEL);
     v.constraint->SetVehicleCollisionTester(v.tester);
     v.wheelY = d[VD_WHEEL_Y];
+    v.downforce = std::max(0.f, d[VD_DOWNFORCE]);
+    v.downFront = std::clamp(d[VD_DOWNFORCE_FRONT], 0.f, 1.f);
+    v.frontZ = d[VD_FRONT_Z];
+    v.rearZ = d[VD_REAR_Z];
     v.live = true;
     w->system.AddConstraint(v.constraint);
     w->system.AddStepListener(v.constraint);
@@ -511,6 +518,22 @@ void vehicleState(World *w, int vehicle, float *o) {
 int step(World *w, float dt, int collisionSteps) {
     w->dragCount = 0;
     w->stepNo++;
+    // aerodynamic downforce (a race car's wing and splitter): k v^2 along the body's down, split over the axles, so the
+    // tyres are pressed harder (more grip) the faster it goes; Jolt clears the forces after each update
+    {
+        BodyInterface &bi = w->system.GetBodyInterfaceNoLock();
+        for (Vehicle &v : w->vehicles) {
+            if (!v.live || v.downforce <= 0.f || !bi.IsActive(v.body)) continue;
+            RVec3 p; Quat q;
+            bi.GetPositionAndRotation(v.body, p, q);
+            const float fwd = (q.Conjugated() * bi.GetLinearVelocity(v.body)).GetZ();
+            const float f = v.downforce * fwd * fwd;
+            if (f < 1.f) continue;
+            const Vec3 down = q * Vec3(0.f, -1.f, 0.f);
+            bi.AddForce(v.body, down * (f * v.downFront), p + q * Vec3(0.f, v.wheelY, v.frontZ));
+            bi.AddForce(v.body, down * (f * (1.f - v.downFront)), p + q * Vec3(0.f, v.wheelY, v.rearZ));
+        }
+    }
     w->system.Update(dt, std::max(1, collisionSteps), &w->temp, &w->jobs);
     // what passed through something soft this step is slowed (horizontally: a bush does not hold a car up)
     if (w->dragCount > 0) {

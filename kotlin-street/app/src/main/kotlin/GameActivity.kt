@@ -805,6 +805,21 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     // the test button's car (with the 📷/🔖 test buttons): when it was tapped, and the car's name shown for a moment
     var carAskAt by remember { mutableStateOf(0L) }
     var carNote by remember { mutableStateOf<String?>(null) }
+    // the car button's list (docs/CARS.md, "Choosing the car"): open or not, and the last pick (kept between games)
+    var carPickOpen by remember { mutableStateOf(false) }
+    val carPrefs = remember { ctx.getSharedPreferences("cars", android.content.Context.MODE_PRIVATE) }
+    var carLast by remember { mutableStateOf(carPrefs.getString("last", null)) }
+    // a pick from the list ([key]) or "same again" (null): remembered, then spawned beside the player at the loop's next step
+    val spawnCar: (String?) -> Unit = { key ->
+        com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.cars?.let { vw ->
+            val picker = com.lifemax.rpg.feature.habits.vehicle.CarPicker.of(vw.specs, carLast)
+            val k = if (key == null) picker.again() else picker.pick(key)
+            carLast = picker.last
+            carPrefs.edit().putString("last", picker.last).apply()
+            if (k != null) { vw.requestSpawn(k); carAskAt = System.currentTimeMillis() }
+        }
+        carPickOpen = false
+    }
     LaunchedEffect(Unit) { while (true) { if (bikeOn != GameState.riding) bikeOn = GameState.riding; kotlinx.coroutines.delay(150) } }
     // off the bike to go in at a door or to talk to someone
     LaunchedEffect(doorTo) { if (doorTo != null) townPlay.dismount("door") }
@@ -1245,7 +1260,19 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     },
                 contentAlignment = Alignment.Center,
             ) { Text(if (bikeOn) "🚲✓" else "🚲", if (bikeOn) 18.sp else 24.sp) }
-        }
+            // the car button, right of the bike: a tap opens the list of cars, a long press brings the same car again
+            if (com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.cars != null && !bikeOn) Box(
+                Modifier.align(Alignment.BottomStart).padding(start = (stickW + 12 + 58 + 10).dp, bottom = 26.dp).size(50.dp)
+                    .background(if (carPickOpen) AI_BLUE.copy(alpha = .85f) else Color(0x99101420), CircleShape)
+                    .pointerInput(Unit) { detectTapGestures(onTap = { carPickOpen = !carPickOpen }, onLongPress = { spawnCar(null) }) },
+                contentAlignment = Alignment.Center,
+            ) { Text("🚗", 22.sp) }
+            if (carPickOpen) com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.cars?.let { vw ->
+                val picker = com.lifemax.rpg.feature.habits.vehicle.CarPicker.of(vw.specs, carLast)
+                com.lifemax.rpg.feature.habits.hud.HudCarPicker(picker.entries, picker.againLabel, onPick = { spawnCar(it) }, onAgain = { spawnCar(null) },
+                    onClose = { carPickOpen = false }, startPad = (stickW + 12).dp)
+            }
+        } else if (carPickOpen) LaunchedEffect(Unit) { carPickOpen = false }
         if (carAskAt != 0L) LaunchedEffect(carAskAt) {
             val vw = com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.cars
             val before = vw?.spawnCount ?: 0
@@ -1593,10 +1620,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     }
                     if (townMode && StreetRenderer.view == StreetRenderer.OPEN && com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.cars != null && !com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.inCar)
                         HudRow("Test car") {
-                            HudButton("🚗 A car beside me (the next of five)") {
-                                com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.cars?.let { it.requestSpawn(); carAskAt = System.currentTimeMillis() }
-                                aiPanel = false
-                            }
+                            HudButton("🚗 Choose a car…") { carPickOpen = true; aiPanel = false }
+                            carLast?.let { k -> HudButton("Same again: " + com.lifemax.rpg.feature.habits.vehicle.VehicleSpec.labelOf(k)) { spawnCar(null); aiPanel = false } }
                         }
                     if (townMode) {
                         HudRow("The loop") { HudButton(if (loopDebug) "Hide its debug panel" else "Show its debug panel", loopDebug) { loopDebug = !loopDebug } }

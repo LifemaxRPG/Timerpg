@@ -235,3 +235,24 @@ fun HudMenu(tabs: List<String>, selected: Int, onSelect: (Int) -> Unit, onClose:
         }
     }
 }
+
+/**
+ * The car button's list (docs/CARS.md, "Choosing the car"): a small panel of every car in [entries] (the last pick lit),
+ * the [again] quick option at its top ("Same again: Torrel 1988"), over the bottom left by the car button; a tap on a car
+ * picks it ([onPick]), anywhere outside the panel closes it ([onClose]).
+ */
+@Composable
+fun HudCarPicker(entries: List<com.lifemax.rpg.feature.habits.vehicle.CarPicker.Entry>, again: String?, onPick: (String) -> Unit, onAgain: () -> Unit,
+                 onClose: () -> Unit, startPad: Dp = 90.dp) {
+    val close by rememberUpdatedState(onClose)
+    val pick by rememberUpdatedState(onPick)
+    val same by rememberUpdatedState(onAgain)
+    Box(Modifier.fillMaxSize().hudTap { close() }) {
+        Column(Modifier.align(Alignment.BottomStart).padding(start = startPad, bottom = 88.dp).width(230.dp).hudPanel(solid = true)
+            .hudTap { }.verticalScroll(rememberScrollState()).padding(10.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            HudText("A car beside me", 14.sp, weight = FontWeight.Bold)
+            if (again != null) HudButton("↻ $again", modifier = Modifier.fillMaxWidth()) { same() }
+            for (e in entries) HudButton(e.label + if (e.last) "  ✓" else "", on = e.last, modifier = Modifier.fillMaxWidth()) { pick(e.key) }
+        }
+    }
+}

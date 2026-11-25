@@ -169,6 +169,9 @@ All five cars reach their top speed with the throttle held:
 | 1972 pickup | 147 km/h | 153 km/h | 6.6 s | 12.8 m | 6.2 m |
 | Torrel 1968 | 175 km/h | 188 km/h | 5.9 s | | 4.7 m |
 | Torrel 1988 | 216 km/h | 224 km/h | 4.8 s | | 5.0 m |
+| Torrel 1988 RS (race build, C046) | 273 km/h | 278 km/h | | 100-0: 33.4 m | |
+
+The race Torrel, its downforce and the car button's list are described in [CARS.md](CARS.md).
 
 The Torrels (976 and 1,088 kg two-seaters) once had the 1970 coupe's 560 Nm drivetrain: on a quarter throttle the
 one-tonne car spun up to 46 km/h and slid wide at full lock, a 23 m circle. They now have their own: a small
