@@ -1,0 +1,251 @@
+{
+  "kind": "night",
+  "start": "2026-11-25T08:51:27.814-0500",
+  "end": "2026-11-25T09:32:54.168-0500",
+  "minutes": 41.4,
+  "how": "service",
+  "stopReason": "unplugged",
+  "inPlainWords": "Wrote 35 lines and 0 variants with the light model on the NPU in 9 min of writing (41 min in all); 10 min closing the game to free its memory; 22 min resting between short bursts because the phone was warm (thermal status up to 2). It stopped: unplugged.",
+  "app": {
+    "versionName": "0.1.930 (c1cce84)",
+    "versionCode": 930,
+    "git": "c1cce84",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "written": {
+    "lines": 35,
+    "variants": 0,
+    "rejected": 0,
+    "timedOut": 0,
+    "failed": 0,
+    "lastFailure": null,
+    "linesPerHour": 50.7,
+    "linesPerWritingHour": 231.6
+  },
+  "speed": {
+    "model": "light model on the NPU",
+    "runsOn": "NPU",
+    "genTokens": 742,
+    "genTokPerSec": 1.3,
+    "prefillTokens": 4661,
+    "prefillTokPerSec": 72.7
+  },
+  "time": {
+    "writingMin": 9.1,
+    "coolingMin": 22.1,
+    "hotPausedMin": 0,
+    "burstRestMin": 0,
+    "batteryWaitMin": 0,
+    "pausedByYouMin": 0,
+    "heldMin": 0,
+    "heldBy": null,
+    "closingGameMin": 10.1,
+    "modelLoadMin": 0.1
+  },
+  "model": {
+    "loaded": "light model on the NPU",
+    "problem": null,
+    "engineAtEnd": "ready: Ready: the light model answers in play. Lines ahead of time are written by the main model (overnight, or when it fits).",
+    "lastRejected": null,
+    "freeAtStartMb": 2420,
+    "freedByClosingGameMb": 3359,
+    "freeBeforeLoadMb": 5160,
+    "androidThresholdMb": 216,
+    "mainCopyNeedsMb": 7200,
+    "lightCopyNeedsMb": 4239,
+    "freeAfterLoadMb": 2361
+  },
+  "heat": {
+    "coolDowns": 1,
+    "hotPauses": 0,
+    "maxThermalStatus": 2
+  },
+  "battery": {
+    "start": 2,
+    "end": 7,
+    "pluggedAtStart": true,
+    "pluggedAtEnd": false
+  },
+  "bank": {
+    "prompts": 1789,
+    "ready": 108,
+    "templates": 0,
+    "missing": 1681,
+    "lines": 108,
+    "variantsDone": 0,
+    "stale": 1,
+    "years": [
+      2025
+    ],
+    "light": 108,
+    "left": 2005,
+    "etaMin": 1792.5
+  },
+  "queue": {
+    "byYear": {
+      "2025": 2005
+    },
+    "byPerson": {
+      "Ernest Reyes": 35,
+      "Betty Chen": 28,
+      "Clyde Novak": 26,
+      "Robert Kowalski": 26,
+      "Vera Singh": 26,
+      "William Kowalski": 26,
+      "Gladys Novak": 25,
+      "Louise Radcliffe": 25,
+      "others (141)": 1788
+    },
+    "byTopic": {
+      "your themes": 966,
+      "chat": 369,
+      "work": 176,
+      "family": 163,
+      "rumors": 163,
+      "secret": 163,
+      "follow-ups": 5
+    }
+  },
+  "recent": [
+    {
+      "who": "Gladys Larsen",
+      "topic": "chat",
+      "how": "line",
+      "text": "It is what it is. I have work to do before the rain starts again."
+    },
+    {
+      "who": "Leonard Pruitt",
+      "topic": "chat",
+      "how": "line",
+      "text": "Indeed it is, the sun shines bright here in Mapleridge. Just hope you're not planning to head over to Avalon 8 soon; I saw \"Jax and the Thousand Doors\" there last week myself."
+    },
+    {
+      "who": "Gladys Novak",
+      "topic": "chat",
+      "how": "line",
+      "text": "Yes, the sky is clear."
+    },
+    {
+      "who": "Lloyd Kowalski",
+      "topic": "chat",
+      "how": "line",
+      "text": "Yes, it is a fine day. I hope you find something to do with the warm weather."
+    },
+    {
+      "who": "Florence Reyes",
+      "topic": "chat",
+      "how": "line",
+      "text": "Lovely day for it, isn't it? I was just thinking about how bright the sun is."
+    },
+    {
+      "who": "William Moreau",
+      "topic": "chat",
+      "how": "line",
+      "text": "Yes, it is. Shall we go inside?"
+    },
+    {
+      "who": "Ruth Lund",
+      "topic": "chat",
+      "how": "line",
+      "text": "Yes, it is a lovely day for walking the streets. I hope you find something to do with your time today."
+    },
+    {
+      "who": "William Kowalski",
+      "topic": "chat",
+      "how": "line",
+      "text": "Yes, it is. I was just heading toward the cinema to see \"Jax and the Thousand Doors."
+    }
+  ],
+  "player": {
+    "themes": [
+      {
+        "label": "the town: secrets, town",
+        "kind": "the town",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: anyways, asking",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "flirting: nice, pretty",
+        "kind": "flirting",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: ask, asked",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: hear, yo",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "gossip: library, new",
+        "kind": "gossip",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "personal: baby, meet",
+        "kind": "personal",
+        "asked": 1,
+        "live": 0,
+        "people": 1
+      },
+      {
+        "label": "personal: name",
+        "kind": "personal",
+        "asked": 1,
+        "live": 0,
+        "people": 1
+      },
+      {
+        "label": "personal: baby, old",
+        "kind": "personal",
+        "asked": 1,
+        "live": 0,
+        "people": 1
+      }
+    ],
+    "answersByDay": [
+      {
+        "day": "2026-11-18",
+        "ready": 0,
+        "live": 0,
+        "template": 1,
+        "readyShare": 0
+      },
+      {
+        "day": "2026-11-23",
+        "ready": 0,
+        "live": 7,
+        "template": 0,
+        "readyShare": 0
+      },
+      {
+        "day": "2026-11-25",
+        "ready": 0,
+        "live": 0,
+        "template": 1,
+        "readyShare": 0
+      }
+    ]
+  }
+}
