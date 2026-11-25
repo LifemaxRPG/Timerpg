@@ -397,13 +397,24 @@ class FilamentTown(
             hasNear = true
             val n = near
             // (a piece arriving after the chunk's 3D greenery was made goes straight in, or it would be lost)
-            if (n != null) PropLayer.Packing.pack(mesh, at)?.let { n.upload(it, casts) } else nearSrc += Triple(mesh, at, casts)
+            if (n != null) PropLayer.Packing.pack(mesh, at)?.let { n.upload(it, casts) }
+            // (kept even once made: streaming lets the 3D greenery go when the chunk is far, and makes it again from these;
+            // the meshes are the town's shared ones, the places a few floats each)
+            if (n == null || stream) nearSrc += Triple(mesh, at, casts)
         }
 
         /** Its trees and bushes in 3D, in cells at two levels of detail ([TreeCells]; null: none). */
         var trees: TreeCells? = null
+        /** The same trees far off as impostors ([TreeImpostors]): their looks and places, the card batches they stand in for. */
+        val treeList = ArrayList<Pair<TreeKit.Spec, FloatArray>>()
+        val treeCards = ArrayList<Int>()
+        var imp: PropLayer? = null
+        var impJob: java.util.concurrent.Future<PropLayer.Packed?>? = null
+        var impEx = Float.NaN; var impEz = Float.NaN
+        var cardsHidden = false
         fun addTrees(list: List<Pair<TreeKit.Spec, FloatArray>>) {
             hasNear = true
+            treeList.addAll(list)
             val t = trees ?: TreeCells(engine, scene, lit, proxyMat, textures, pool).also { trees = it }
             for ((s, a) in list) t.add(s, a)
         }
@@ -435,13 +446,24 @@ class FilamentTown(
             } ?: emptyList()
             val from = if (packing != null) packedCount else 0
             val l = PropLayer(engine, scene, lit, proxyMat, sharedTextures = textures, cull = true)
-            for ((p, casts) in got) l.upload(p, casts)
-            for (i in from until nearSrc.size) { val (m, at, casts) = nearSrc[i]; PropLayer.Packing.pack(m, at)?.let { l.upload(it, casts) } }
-            nearSrc.clear(); nearSrc.trimToSize(); packing = null
-            trees?.build()
+            fun put() {
+                for ((p, casts) in got) l.upload(p, casts)
+                for (i in from until nearSrc.size) { val (m, at, casts) = nearSrc[i]; PropLayer.Packing.pack(m, at)?.let { l.upload(it, casts) } }
+                trees?.build()
+            }
+            if (stream) BufferArena.streamed { put() } else put()
+            if (!stream) { nearSrc.clear(); nearSrc.trimToSize() }
+            packing = null
             near = l
         }
-        fun destroy() { base.destroy(); cards.destroy(); near?.destroy(); trees?.destroy() }
+        /** Lets go of its 3D greenery (streaming: far again, its cards stand in); made again as it comes near. */
+        fun dropNear() {
+            near?.destroy(); near = null
+            trees?.drop()
+            packing?.cancel(false); packing = null
+            is3d = false; t3 = 0f
+        }
+        fun destroy() { base.destroy(); cards.destroy(); near?.destroy(); trees?.destroy(); imp?.destroy(); impJob?.cancel(true) }
     }
     private val chunks = LinkedHashMap<String, Chunk>()
 
@@ -475,6 +497,17 @@ class FilamentTown(
         var occT = Float.MAX_VALUE
         /** The far cell its cheap box goes in ([TownFar]); null: none (drawn by code, or no art). */
         internal var farCell: TownFar.Cell? = null
+        /**
+         * Streaming ([TownStream], docs/STREAMING.md): its bounds in its own frame once made ready the first time (kept
+         * while it is let go: the camera's cut and [near] still see it), whether its far box is made ([known]), whether it
+         * should be resident in full now ([want]), and the textures its full version took ([held], let go with it).
+         */
+        var bounds: FloatArray? = null
+        var known = false
+        var want = true
+        internal val held = ArrayList<com.google.android.filament.Texture>()
+        /** Times it was streamed in and out (reports). */
+        var streamedIn = 0; var streamedOut = 0
 
         init {
             val c = place.world(0f, b.setback + b.depth / 2f)
@@ -638,12 +671,12 @@ class FilamentTown(
     /** How long the ground took (ms), the buildings so far (ms), and how many are left to build. */
     var groundMs = 0f; private set
     var buildingsMs = 0f; private set
-    val pending: Int get() = slots.count { it.built == null && !it.missing } + (if (cinemaDraw?.done == false) 1 else 0) + storeDraws.count { !it.done } + landmarkDraws.count { !it.done } + (if (depotDraw?.done == false) 1 else 0) +
+    val pending: Int get() = slots.count { !it.missing && (!it.known || (it.want && it.built == null)) } + (if (cinemaDraw?.done == false) 1 else 0) + storeDraws.count { !it.done } + landmarkDraws.count { !it.done } + (if (depotDraw?.done == false) 1 else 0) +
         (if (farCounted && !far.allReady) 1 else 0) + extras.count { it.pending }
     /** The far cells have been counted (each building's cell, at the first [buildNearest]). */
     private var farCounted = false
     /** The far boxes: cells, cells up, their triangles (for reports). */
-    val farReport: String get() = "far: ${far.readyCount} of ${far.cellCount} cells up, ${far.triangles} triangles"
+    val farReport: String get() = "far: ${far.readyCount} of ${far.cellCount} cells up, ${far.triangles} triangles; coarser level: ${far.districtReport}; lights far off: $farLightCount"
 
     // ------------------------------------------------------------------ more the town draws (the farms: TownFarms)
     private val extras = ArrayList<TownExtra>()
@@ -762,7 +795,7 @@ class FilamentTown(
             // (its lantern's light goes out: the nearest lantern to the post)
             var li = -1; var ld = 60f
             for (i in 0 until lanterns.size / 3) { val d = hypot(lanterns[i * 3] - at[0], lanterns[i * 3 + 2] - at[1]); if (d < ld) { ld = d; li = i } }
-            if (li >= 0) lanterns[li * 3 + 1] = -1e5f
+            if (li >= 0) { lanterns[li * 3 + 1] = -1e5f; farLightsDirty = true }
         }
         return Drawn(src.mesh, at)
     }
@@ -780,6 +813,7 @@ class FilamentTown(
      */
     internal fun replaceYard(owner: String, items: List<com.lifemax.rpg.feature.habits.domain.TownYardItem>) {
         val kit = yardBuilder as? YardKitBuilder ?: return
+        yardNow[owner] = items
         yardSwaps += YardSwap(pool.submit(java.util.concurrent.Callable {
             val out = ArrayList<Job>()
             val sink = object : YardSink {
@@ -803,6 +837,7 @@ class FilamentTown(
             it.remove()
             val (id, jobs) = runCatching { sw.f.get() }.getOrNull() ?: continue
             if (id == null) continue
+            yardOut.remove(id); lotBytes[id] = 0L
             val gone = patches.keys.filter { k -> k == id || k.startsWith("$id#") }
             for (k in gone) {
                 patches.remove(k)?.layer?.destroy()
@@ -866,6 +901,202 @@ class FilamentTown(
     /** Each building's far pictures, made on the worker that made it ready. */
     private val farPics = java.util.concurrent.ConcurrentHashMap<Slot, TownFar.Pics>()
     private val farOut = IntArray(2)
+
+    // ------------------------------------------------------------------ streaming (docs/STREAMING.md)
+
+    private val streamer = TownStream()
+    /** The streaming's counts in one line (the preview's report, the play log). */
+    val streamReport: String get() = streamer.report() + "; resident: %d of %d buildings (%.1f MB est.), %d of %d lots near (%.1f MB est.), margin x%.2f / x%.2f".format(
+        java.util.Locale.US, slots.count { it.built != null }, slots.count { !it.missing }, buildingBytes / 1048576.0, lotInfo.size - yardOut.size, lotInfo.size, lotBytesNow() / 1048576.0, bScale, yScale)
+    /** Where the player was told to be ([streamFocus], [buildNearest]); NaN before. */
+    private var focusX = Float.NaN; private var focusZ = Float.NaN
+    /** Each lot's (and lane's) near patch, kept while its near version is let go: what streaming walks. */
+    private val lotInfo = LinkedHashMap<String, YardPatch>()
+    /** The lots whose near version is let go now (only their far version is resident), and those being baked to come back. */
+    private val yardOut = HashSet<String>()
+    private val yardIn = HashMap<String, java.util.concurrent.Future<Pair<String?, List<Job>>>>()
+    /** Each lot's yard items as last baked (what the cars left of it: [replaceYard]), by the owner the kit bakes it as. */
+    private val yardNow = HashMap<String, List<com.lifemax.rpg.feature.habits.domain.TownYardItem>>()
+    /** Each near lot's buffer bytes (its near patch and its tall things'), for the yards' pool. */
+    private val lotBytes = HashMap<String, Long>()
+    private fun lotBytesNow(): Long { var b = 0L; for ((k, v) in lotBytes) if (k !in yardOut) b += v; return b }
+    /** The resident buildings' bytes (textures they took, counted whole, and their buffers): the buildings' pool. */
+    private var buildingBytes = 0L
+    private val slotBytes = HashMap<Slot, Long>()
+    /** Each tier's margin scale: below 1 while its pool is over its budget ([TownBudget.streamBuildingsMb], [TownBudget.streamYardsMb]). */
+    private var bScale = 1f; private var yScale = 1f
+
+    /** Lots wanted near but not resident yet (as last counted). */
+    private var yardsBehind = 0
+    /** [s]'s far cell's crossing (0 its building, 1 its far box) and how many of its buildings it waits for (a preview's debug). */
+    fun cellT(s: Slot): String = s.farCell?.let { "%.2f far %s waiting %d".format(it.t, it.far, it.waiting) } ?: "-"
+    /** The sun's light as Filament has it (a preview's debug). */
+    fun sunInfo(): String { val lm = engine.lightManager; val li = lm.getInstance(sun); return if (li == 0) "sun: no light (entity $sun)" else "sun: entity $sun intensity %.2f shadows %s".format(lm.getIntensity(li), lm.isShadowCaster(li)) }
+    /** What streaming still waits for (a preview's report when a jump does not settle). */
+    val streamWhy: String get() = "pending %d (slots unknown %d, wanted not in %d, far ready %s, extras %s), yards baking %d, behind %d".format(pending,
+        slots.count { !it.missing && !it.known }, slots.count { !it.missing && it.want && it.built == null }, far.allReady,
+        extras.filter { it.pending }.joinToString { it.javaClass.simpleName }, yardIn.size, yardsBehind)
+    /** Everything streaming wants resident is (a preview's jump waits for it, as a loading screen would). */
+    val streamSettled: Boolean get() = pending == 0 && (!stream || (yardIn.isEmpty() && yardsBehind == 0 &&
+        chunks.values.none { it.hasNear && it.near == null && !focusX.isNaN() && hypot(it.cx - focusX, it.cz - focusZ) - it.r < TownFrame.LOD_NEAR + 600f })) &&
+        (!TreeImpostors.on || (impAtlas != null || chunks.values.none { it.treeList.isNotEmpty() }) && chunks.values.none { it.impJob != null })
+
+    /** Where the player is, before the first [buildNearest] (the yards coming in with the ground are kept only near it). */
+    fun streamFocus(x: Float, z: Float) { focusX = x; focusZ = z }
+
+    /** The owner the yard kit bakes lot [p] as (its building's sprite, else the lane's id). */
+    private fun ownerOf(p: YardPatch): String = p.sprite?.takeIf { it.isNotEmpty() && yards.of(it) != null } ?: p.id
+    private fun itemsOf(owner: String): List<com.lifemax.rpg.feature.habits.domain.TownYardItem>? =
+        yardNow[owner] ?: yards.of(owner)?.items ?: yards.lanes.firstOrNull { it.id == owner }?.items
+
+    /** How far past the eye the buildings are needed in full now: the far boxes' line and its slack. */
+    private fun buildingNeed(pose: TownPose?): Float = when {
+        pose == null -> TownRun.READY_RADIUS + 600f
+        pose.range == Float.MAX_VALUE -> Float.MAX_VALUE
+        else -> pose.hazeFrom + FAR_PAST_HAZE + TownFar.SLACK
+    }
+    /** How far the yards' near versions are needed now: their switch to the far version and its slack. */
+    private fun yardNeed(pose: TownPose?): Float = when {
+        pose == null -> TownFrame.OPEN_YARDS_FAR + 600f
+        pose.lodFar < Float.MAX_VALUE -> pose.lodFar + TownFrame.LOD_SLACK
+        pose.range < Float.MAX_VALUE -> pose.range
+        else -> Float.MAX_VALUE
+    }
+
+    /** Lets go of [s]'s full version (its far box stays): its entities, material instances, buffers and the textures only it held. */
+    private fun unbuild(s: Slot) {
+        val b = s.built ?: return
+        val em = EntityManager.get()
+        for (e in listOf(b.entity, b.proxy)) if (e != 0) { scene.remove(e); engine.destroyEntity(e); em.destroy(e) }
+        for (mi in b.mis) engine.destroyMaterialInstance(mi)
+        for (mi in b.proxyMis) engine.destroyMaterialInstance(mi)
+        b.geo.free(engine)
+        textures.release(s.held)
+        s.held.clear()
+        s.built = null; s.shown = false; s.streamedOut++
+        buildingBytes -= slotBytes.remove(s) ?: 0L
+        streamer.buildingsOut++
+    }
+
+    /** Lets go of lot [lot]'s near version and its tall things' (its far version stays). */
+    private fun unbuildLot(lot: String) {
+        val gone = patches.keys.filter { k -> k == lot || k.startsWith("$lot#t") }
+        for (k in gone) {
+            patches.remove(k)?.layer?.destroy()
+            patchTicks.remove(k)?.let { t -> synchronized(ticks) { ticks.removeAll(t.toSet()) } }
+        }
+        yardOut += lot
+        streamer.yardsOut++
+    }
+
+    /**
+     * One frame's streaming (in [buildNearest], before the buildings are built): which buildings and lots should be
+     * resident, from the player at ([x], [z]), the last frame's eye and both moved ahead by the player's speed
+     * ([TownStream]); what is no longer wanted let go, a few milliseconds of it a frame; the lots wanted back baked again
+     * on the workers and swapped in within [TownStream.YARD_UPLOAD_MS]; each cell's buildings not yet in counted, so the
+     * cell keeps its far boxes until they are ([TownFar.Cell.waiting]).
+     */
+    private fun streamStep(x: Float, z: Float, @Suppress("UNUSED_PARAMETER") budgetMs: Float) {
+        focusX = x; focusZ = z
+        if (!stream) return
+        val t0 = System.nanoTime()
+        val pose = lastPose
+        streamer.focus(x, z, if (lastFrameSeconds.isNaN()) 0.0 else lastFrameSeconds, pose)
+        val need = buildingNeed(pose)
+        val m = streamer.margin
+        // the pools: past its budget a tier's margin shrinks (what is only ahead or beside goes first), back once under
+        bScale = if (buildingBytes > TownBudget.streamBuildingsMb * 1048576.0) max(0f, bScale - .05f) else min(1f, bScale + .01f)
+        val bNeed = if (need == Float.MAX_VALUE) need else need - m * (1f - bScale)
+        if (farLod) for (c in far.all) {
+            // (the cell's square, and its far boxes' own rectangle once they are in: a big building reaches past its square,
+            // and the cell switches by that rectangle, so its buildings must be wanted by it too)
+            val h = TownFar.CELL / 2f + 150f
+            c.streamD = streamer.rect(min(c.cx - h, c.x0), min(c.cz - h, c.z0), max(c.cx + h, c.x1), max(c.cz + h, c.z1))
+            c.waiting = 0
+        }
+        for (s in slots) {
+            if (s.missing) continue
+            val c = s.farCell
+            val d = if (farLod && c != null) c.streamD else streamer.circle(s.cx, s.cz, s.r)
+            s.want = streamer.wants(d, bNeed, s.want)
+            if (s.want && s.built == null && s.known && c != null) c.waiting++
+            // (something wanted again: the build loop looks once more)
+            if (s.want && s.built == null) todo = Int.MAX_VALUE
+        }
+        var did = false
+        for (s in slots) {
+            if (s.built == null || s.want) continue
+            if (did && (System.nanoTime() - t0) / 1e6f > TownStream.EVICT_MS) break
+            // (not while its cell is still crossing over to its boxes and it shows: the crossing ends first)
+            val c = s.farCell
+            if (c != null && c.layer != null && c.t < 1f && s.shown) continue
+            if ('b' in TownStream.OFF) continue
+            unbuild(s); did = true
+        }
+        // the yards' near versions
+        if (groundBuilt && yardBuilder is YardKitBuilder) {
+            if (lotInfo.isEmpty()) for (pt in patches.values) if (!pt.p.far && pt.p.follows == null) lotInfo[pt.p.id] = pt.p
+            val yn = yardNeed(pose)
+            yScale = if (lotBytesNow() > TownBudget.streamYardsMb * 1048576.0) max(0f, yScale - .05f) else min(1f, yScale + .01f)
+            val yNeed = if (yn == Float.MAX_VALUE) yn else yn - m * (1f - yScale)
+            val wantBack = ArrayList<Pair<String, Float>>()
+            for ((id, p) in lotInfo) {
+                val d = streamer.circle(p.x, p.z, 0f)
+                val out = id in yardOut
+                val want = streamer.wants(d, yNeed, !out)
+                if (!want && !out && id !in yardIn && 'y' !in TownStream.OFF) {
+                    if (!did || (System.nanoTime() - t0) / 1e6f < TownStream.EVICT_MS) { unbuildLot(id); did = true }
+                } else if (want && out && id !in yardIn) wantBack += id to d
+            }
+            yardsBehind = wantBack.size + yardIn.size
+            // (nearest first, a few at a time on the workers)
+            if (wantBack.isNotEmpty() && yardIn.size < TownStream.YARDS_IN_FLIGHT) {
+                wantBack.sortBy { it.second }
+                val kit = yardBuilder as YardKitBuilder
+                for ((id, d) in wantBack) {
+                    if (yardIn.size >= TownStream.YARDS_IN_FLIGHT) break
+                    val p = lotInfo[id] ?: continue
+                    val owner = ownerOf(p)
+                    val items = itemsOf(owner) ?: continue
+                    yardIn[id] = pool.submit(d, "yard-in", id, java.util.concurrent.Callable {
+                        val out = ArrayList<Job>()
+                        val sink = object : YardSink {
+                            override fun mesh(name: String, mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean, patch: YardPatch?, water: Boolean): MaterialInstance? {
+                                PropLayer.Packing.pack(mesh, at)?.let { out += Job(it, casts, tiled, patch = patch, yard = true, water = if (water) intArrayOf(mesh.texW, mesh.texH) else null) }
+                                return null
+                            }
+                            override fun props(list: List<WorldProp>) {}
+                        }
+                        kit.rebuild(owner, yards, items, sink, nearOnly = true) to out
+                    })
+                }
+            }
+            // those baked: swapped in, within the frame's share
+            if (yardIn.isNotEmpty()) {
+                val u0 = System.nanoTime()
+                val it = yardIn.entries.iterator()
+                var n = 0
+                while (it.hasNext()) {
+                    val (id, f) = it.next()
+                    if (!f.isDone) continue
+                    if (n > 0 && (System.nanoTime() - u0) / 1e6f > TownStream.YARD_UPLOAD_MS) break
+                    it.remove()
+                    val jobs = runCatching { f.get() }.getOrNull()?.second ?: continue
+                    // (a lot the cars rebaked whole meanwhile is back already)
+                    if (id !in yardOut) continue
+                    yardOut.remove(id)
+                    for (k in patches.keys.filter { k -> k == id || k.startsWith("$id#t") }) patches.remove(k)?.layer?.destroy()
+                    lotBytes[id] = 0L
+                    for (j in jobs) upload(j)
+                    streamer.yardsIn++
+                    n++
+                }
+                if (n > 0) { engine.flush(); did = true; streamer.worstYardUpMs = max(streamer.worstYardUpMs, (System.nanoTime() - u0) / 1e6f) }
+            }
+        }
+        val ms = (System.nanoTime() - t0) / 1e6f
+        if (did) { streamer.busyFrames++; streamer.worstMs = max(streamer.worstMs, ms) }
+    }
 
     /**
      * Starts making the ground, river, bridges, greenery, furniture, street props and yards on worker threads (meshes
@@ -1007,18 +1238,31 @@ class FilamentTown(
             j.extent?.let { c.take(it) }
             when (j.part) {
                 0 -> { c.base.upload(j.packed, j.casts, j.tiled); j.hide?.let { hideables += Hideable(c.base, c.base.batchCount - 1, j.casts, it) } }
-                else -> c.cards.upload(j.packed, j.casts, j.tiled)
+                else -> { c.cards.upload(j.packed, j.casts, j.tiled); if (j.trees != null) c.treeCards += c.cards.batchCount - 1 }
             }
             if (j.near != null && j.nearAt != null) c.addNear(j.near, j.nearAt, j.casts)
             j.trees?.let { c.addTrees(it) }
             return
+        }
+        val jp = j.patch
+        // (streaming: a lot's near version comes in with the ground only near the player; past that only its far version
+        // does, and the lot is marked let go, to come back as the player nears it)
+        if (jp != null && !jp.far) {
+            val lot = jp.follows ?: jp.id
+            if (jp.follows == null) lotInfo[jp.id] = jp
+            if (stream && !focusX.isNaN() && (lot in yardOut ||
+                    lastPose == null && hypot(jp.x - focusX, jp.z - focusZ) > yardNeed(null) + TownStream.MARGIN + TownStream.HYSTERESIS)) {
+                yardOut += lot
+                return
+            }
+            lotBytes[lot] = (lotBytes[lot] ?: 0L) + j.packed.bytes
         }
         val layer = when {
             j.patch != null -> patches.getOrPut(j.patch.id) { Patch(j.patch) }.layer
             j.yard -> yardLayer
             else -> ground
         }
-        val mi = layer.upload(j.packed, j.casts, j.tiled)
+        val mi = if (stream && jp != null && !jp.far) BufferArena.streamed { layer.upload(j.packed, j.casts, j.tiled) } else layer.upload(j.packed, j.casts, j.tiled)
         j.hide?.let { hideables += Hideable(layer, layer.batchCount - 1, j.casts, it) }
         j.water?.let { (w, h) ->
             val tick: (Double) -> Unit = { s -> YardLayer.shimmer(mi, w, h, s) }
@@ -1067,6 +1311,9 @@ class FilamentTown(
     fun buildNearest(x: Float, z: Float, budgetMs: Float): Int {
         if (!farCounted) { farCounted = true; if (farLod) for (s in slots) if (!s.missing && s.built == null) s.farCell = far.expect(s.cx, s.cz) }
         if (far.upload()) engine.flush()
+        // (streaming: what should be resident now, what may go, the yards' near versions in and out: TownStream)
+        streamStep(x, z, budgetMs)
+        impostorStep()
         // (the cinema, the stores and the landmark models within the first view's reach are its work, by their distance
         // like the buildings; those further off wait while [holdLater] holds, then go after every building the first view
         // waits for, nearest first: TownWorkers.LATER plus their distance)
@@ -1085,7 +1332,7 @@ class FilamentTown(
         var n = 0
         if (todo > 0) {
             order.clear()
-            for (s in slots) if (s.built == null && !s.missing) order += s
+            for (s in slots) if (s.built == null && !s.missing && (s.want || !s.known)) order += s
             todo = order.size
             order.sortBy { hypot(it.cx - x, it.cz - z) }
             // made ready on the workers, nearest first, ahead of being finished here: at most [readyAhead] at a time (each
@@ -1097,11 +1344,12 @@ class FilamentTown(
                 if (holdLater && hypot(s.cx - x, s.cz - z) >= TownRun.READY_RADIUS) break
                 val yarded = s.b.kind != PlacementKind.LANDMARK && yards.of(s.b.sprite) != null
                 val sprite = s.b.sprite; val setback = s.b.setback
+                val needPics = !s.known
                 readyOf[s] = pool.submit(hypot(s.cx - x, s.cz - z), "building", sprite, java.util.concurrent.Callable {
                     val r0 = System.nanoTime()
                     val sb = building(sprite)
                     val r = sb?.let { meshes.prepare(it, setback, yarded, sprite.hashCode()) }
-                    if (sb != null && r != null) TownFar.pics(sb)?.let { farPics[s] = it }
+                    if (needPics && sb != null && r != null) TownFar.pics(sb)?.let { farPics[s] = it }
                     val ms = (System.nanoTime() - r0) / 1e6f
                     synchronized(this) { prepareMs += ms; if (ms > slowestPrepare.second) slowestPrepare = sprite to ms }
                     r
@@ -1193,7 +1441,7 @@ class FilamentTown(
     }
 
     /** Nothing is left to build: every building, and every chunk's 3D greenery. */
-    val allBuilt: Boolean get() = groundBuilt && pending == 0 && chunks.values.none { it.near == null && it.hasNear }
+    val allBuilt: Boolean get() = groundBuilt && pending == 0 && (stream || chunks.values.none { it.near == null && it.hasNear })
 
     /** Reads and packs [images] on a worker ahead of their first use here ([StreetTextures.warm]). */
     fun warm(images: List<androidx.compose.ui.graphics.ImageBitmap>) {
@@ -1225,11 +1473,22 @@ class FilamentTown(
     }
 
     private fun buildOne(s: Slot, r: BuildingMeshes.Ready?) {
-        if (r == null) { s.missing = true; s.farCell?.let { far.skip(it) }; farPics.remove(s); return }
+        if (r == null) { s.missing = true; if (!s.known) s.farCell?.let { far.skip(it) }; s.known = true; farPics.remove(s); return }
+        // (streaming: a building first made ready while it is wanted only far off gives its far box and bounds, then is let
+        // go without anything made on the GPU: only what is near is ever resident in full)
+        if (!s.want && !s.known) {
+            val bb = meshes.boundsOf(r)
+            meshes.discard(r)
+            if (bb == null) { s.missing = true; s.farCell?.let { far.skip(it) }; s.known = true; farPics.remove(s); return }
+            placeBounds(s, bb)
+            addFar(s, bb)
+            return
+        }
         // (the yard kit draws a lot's ground and fences: the house's and the model's own were left off there when made
         // ready, not the landmarks', whose grounds the yards do not cover yet)
-        val built = meshes.finish(r)
-        if (built == null) { s.missing = true; s.farCell?.let { far.skip(it) }; farPics.remove(s); return }
+        val built = if (stream) BufferArena.streamed { textures.owned(s.held) { meshes.finish(r) } } else meshes.finish(r)
+        if (built == null) { s.missing = true; if (!s.known) s.farCell?.let { far.skip(it) }; s.known = true; textures.release(s.held); s.held.clear(); farPics.remove(s); return }
+        if (s.known) { s.streamedIn++; streamer.buildingsIn++; s.farCell?.let { if (it.waiting > 0) it.waiting-- } }
         val tm = engine.transformManager
         s.place.matrix(xf)
         for (e in listOf(built.entity, built.proxy)) {
@@ -1239,12 +1498,24 @@ class FilamentTown(
             scene.addEntity(e)
         }
         s.built = built
-        // its sphere from its real bounds
+        if (stream) { val by = textures.sizeOf(s.held) + built.geo.vLen * TownVertex.STRIDE.toLong() + built.geo.iLen * 2L; slotBytes[s] = by; buildingBytes += by }
         val bb = built.bounds
+        placeBounds(s, bb)
+        if (!s.known) addFar(s, bb)
+    }
+
+    /** [s]'s sphere from its real bounds [bb] (its own frame), kept for the camera's cut while it is let go. */
+    private fun placeBounds(s: Slot, bb: FloatArray) {
+        s.bounds = bb
         val lx = (bb[0] + bb[3]) / 2f; val lz = (bb[2] + bb[5]) / 2f
         val c = s.place.world(lx, lz)
         s.cx = c.x; s.cz = c.z; s.cy = (bb[1] + bb[4]) / 2f
         s.r = sqrt((bb[3] - bb[0]) * (bb[3] - bb[0]) + (bb[4] - bb[1]) * (bb[4] - bb[1]) + (bb[5] - bb[2]) * (bb[5] - bb[2])) / 2f
+    }
+
+    /** [s]'s far box into its cell, once ([Slot.known]). */
+    private fun addFar(s: Slot, bb: FloatArray) {
+        s.known = true
         // its far box: the model's own width, from its front wall back, as tall as it (a pitched house to below its ridge)
         s.farCell?.let { cell ->
             val pics = farPics.remove(s)
@@ -1370,11 +1641,11 @@ class FilamentTown(
             val p = pt.p
             // (a lot's tall thing goes with its lot: drawn while the lot is near, left to the lot's far version past it)
             if (p.follows != null) { if (p.follows in farLots) { pt.layer.update(look, dark, false, 0f, false); continue } }
-            else if (p.far || pose.lodFar < Float.MAX_VALUE) {
+            else if (p.far || pose.lodFar < Float.MAX_VALUE || pt.nearKey in yardOut) {
                 // (a lot switches to its far version past the line and back only well inside it: no flicker at the line)
                 val d = pose.distance(p.x, 15f, p.z)
                 val wasFar = pt.nearKey in farLots
-                val far = if (wasFar) d > pose.lodFar - TownFrame.LOD_SLACK else d > pose.lodFar + TownFrame.LOD_SLACK
+                val far = pt.nearKey in yardOut || if (wasFar) d > pose.lodFar - TownFrame.LOD_SLACK else d > pose.lodFar + TownFrame.LOD_SLACK
                 if (far != wasFar) { if (far) farLots.add(pt.nearKey) else farLots.remove(pt.nearKey) }
                 val off = if (p.far) !far else far && patches.containsKey(pt.farKey)
                 if (off) { pt.layer.update(look, dark, false, 0f, false); continue }
@@ -1410,6 +1681,8 @@ class FilamentTown(
                 (if (c.is3d) dNear < TownFrame.LOD_NEAR + TownFrame.LOD_SLACK else dNear < TownFrame.LOD_NEAR - TownFrame.LOD_SLACK)
             // (a still picture, or a frame after a long pause: at once)
             c.t3 = if (dt <= 0f || dt >= .25f) (if (c.is3d) 1f else 0f) else if (c.is3d) min(1f, c.t3 + dt / GREEN_SWITCH_SECONDS) else max(0f, c.t3 - dt / GREEN_SWITCH_SECONDS)
+            // (streaming: a chunk far past its 3D line lets its 3D greenery go; it is made again as it comes near)
+            if (stream && 'c' !in TownStream.OFF && c.near != null && !c.is3d && c.t3 <= 0f && !focusX.isNaN() && hypot(c.cx - focusX, c.cz - focusZ) - c.r > TownFrame.LOD_NEAR + 600f + TownStream.HYSTERESIS) { c.dropNear(); chunksTodo = Int.MAX_VALUE; streamer.chunksOut++ }
             val near3d = on && c.near != null && c.t3 > 0f
             val fade3 = min(fade, c.t3)
             c.base.update(look, dark, on, fade, shadows)
@@ -1421,6 +1694,35 @@ class FilamentTown(
             // (mid-crossover the cards keep exactly the pixels the 3D trees drop)
             c.cards.inverseFade = crossing
             c.cards.update(look, dark, cardsOn && c.t3 < 1f, if (crossing) 1f - c.t3 else cardFade, shadows && c.t3 < .5f)
+            // the trees far off as impostors of their own 3D selves (TreeImpostors), in the cards' place, packed again as
+            // the camera goes round the chunk; the cards they stand in for hidden once they are up
+            val ia = impAtlas
+            if (ia != null && c.treeList.isNotEmpty()) {
+                val want = cardsOn && c.t3 < 1f
+                val job = c.impJob
+                if (job != null && job.isDone) {
+                    c.impJob = null
+                    val pk = runCatching { job.get() }.getOrNull()
+                    c.imp?.destroy(); c.imp = null
+                    if (pk != null) {
+                        val l = PropLayer(engine, scene, lit, proxyMat, sharedTextures = textures, cull = true)
+                        if (stream) BufferArena.streamed { GpuAccount.scoped("trees") { l.upload(pk, casts = true) } } else GpuAccount.scoped("trees") { l.upload(pk, casts = true) }
+                        c.imp = l
+                        if (!c.cardsHidden) { for (i in c.treeCards) c.cards.setBatchVisible(i, false); c.cardsHidden = true }
+                    }
+                }
+                if (want && c.impJob == null && TreeImpostors.needsRebuild(c.cx, c.cz, c.impEx, c.impEz, pose.ex, pose.ez)) {
+                    c.impEx = pose.ex; c.impEz = pose.ez
+                    val ex = pose.ex; val ez = pose.ez; val list = c.treeList
+                    c.impJob = pool.submit(java.util.concurrent.Callable { TreeImpostors.mesh(ia, list, ex, ez)?.let { PropLayer.Packing.pack(it, IMP_AT, impShare) } })
+                }
+                c.imp?.let { l ->
+                    l.inverseFade = crossing
+                    l.update(look, dark, want, if (crossing) 1f - c.t3 else cardFade, shadows && c.t3 < .5f)
+                    if (want) { renderables += l.draws; draws += l.draws; tris += l.triangles }
+                    if (shadows && c.t3 < .5f) casters += l.casters
+                }
+            }
             c.near?.update(look, dark, near3d, fade3, shadows && near3d && c.t3 >= .5f)
             val tc = c.trees
             tc?.update(pose, look, dark, near3d, fade3, shadows && near3d && c.t3 >= .5f)
@@ -1462,6 +1764,7 @@ class FilamentTown(
         railDraw?.let { r -> r.frame(look, dark, hour, seconds); renderables += r.draws; draws += r.draws; tris += r.triangles }
         rideLayer?.let { r -> r.frame(look, dark, rideS); tris += r.triangles }
         val lampsLit = lamps(pose, dark)
+        farLightsFrame(pose, dark)
         // (copied out under the lock into a list kept for it: the yards' water may add one from a worker meanwhile)
         synchronized(ticks) { tickCopy.clear(); tickCopy.addAll(ticks) }
         for (i in tickCopy.indices) tickCopy[i](seconds)
@@ -1517,6 +1820,53 @@ class FilamentTown(
     private val tickCopy = ArrayList<(Double) -> Unit>()
     /** Adds the time since [t0] to [part] of [FrameWork]; the time now. */
     private fun lap(part: Int, t0: Long): Long { val n = System.nanoTime(); FrameWork.add(part, n - t0); return n }
+
+    // ------------------------------------------------------------------ the trees far off (docs/STREAMING.md)
+
+    /** Every tree look's views ([TreeImpostors]), baked on a worker once the ground is in. */
+    @Volatile private var impAtlas: TreeImpostors.Atlas? = null
+    private var impAtlasJob: java.util.concurrent.Future<*>? = null
+    /** The atlas's packed picture, shared by every chunk's impostors (packed once). */
+    private val impShare: MutableMap<IntArray, StreetTextures.Prepared> = java.util.Collections.synchronizedMap(java.util.IdentityHashMap())
+
+    private fun impostorStep() {
+        if (!TreeImpostors.on || !groundBuilt || impAtlasJob != null) return
+        val specs = chunks.values.flatMap { c -> c.treeList.map { it.first } }
+        if (specs.isEmpty()) return
+        impAtlasJob = pool.submit(TownWorkers.LATER, "impostors", null, java.util.concurrent.Callable { impAtlas = TreeImpostors.bake(specs) })
+    }
+
+    // ------------------------------------------------------------------ the lights far off (docs/STREAMING.md)
+
+    /** The dots of light far off at night ([FarLights]): made once the far boxes and the lanterns are all in. */
+    private var farLights: FarLights? = null
+    private var farLightsDirty = true
+    /** How many lights far off are drawn (reports). */
+    val farLightCount: Int get() = farLights?.count ?: 0
+
+    private fun farLightsFrame(pose: TownPose, dark: Float) {
+        if (!farLightsOn || !groundBuilt || (farLod && !far.allReady)) return
+        if (farLightsDirty) {
+            farLightsDirty = false
+            val fl = farLights ?: runCatching { FarLights(engine, scene, extraMaterial("far_lights")) }.getOrNull()?.also { farLights = it } ?: return
+            val nw = if (farLod) far.lightCount else 0
+            val nl = lanterns.size / 3
+            val xyz = FloatArray((nw + nl) * 3); val rgb = IntArray(nw + nl); val lamp = BooleanArray(nw + nl)
+            if (nw > 0) System.arraycopy(far.lights, 0, xyz, 0, nw * 3)
+            for (i in 0 until nw) rgb[i] = WINDOW_LIGHT
+            var n = nw
+            for (i in 0 until nl) {
+                if (lanterns[i * 3 + 1] < -1e4f) continue
+                xyz[n * 3] = lanterns[i * 3]; xyz[n * 3 + 1] = lanterns[i * 3 + 1]; xyz[n * 3 + 2] = lanterns[i * 3 + 2]
+                rgb[n] = LAMP_LIGHT; lamp[n] = true; n++
+            }
+            GpuAccount.scoped("far lights") { fl.set(xyz.copyOf(n * 3), rgb.copyOf(n), lamp.copyOf(n)) }
+        }
+        val fl = farLights ?: return
+        val on = smooth((dark - .35f) / .5f)
+        val detail = if (pose.range == Float.MAX_VALUE) Float.MAX_VALUE / 4f else pose.hazeFrom + FAR_PAST_HAZE
+        fl.frame(pose, look, on, detail - 200f, FAR_LAMPS_FROM, debugHide and HIDE_FAR == 0)
+    }
 
     private fun lamps(pose: TownPose, dark: Float): Int {
         val on = smooth((dark - .35f) / .35f)
@@ -1579,7 +1929,7 @@ class FilamentTown(
         val lo = scratchLo; val hi = scratchHi; val o = scratchO; val d = scratchD
         for (s in slots) {
             s.occT = Float.MAX_VALUE
-            val bb = s.built?.bounds ?: continue
+            val bb = s.bounds ?: continue
             // (quick: the slot's sphere against the segment, widened by the cone and the eye's clearance)
             val u = (((s.cx - tx) * sx + (s.cy - ty) * sy + (s.cz - tz) * sz) / len2).coerceIn(0f, 1f)
             val qx = tx + sx * u - s.cx; val qy = ty + sy * u - s.cy; val qz = tz + sz * u - s.cz
@@ -1769,7 +2119,7 @@ class FilamentTown(
     fun near(ex: Float, ey: Float, ez: Float, r: Float = 80f): String {
         val out = ArrayList<String>()
         for (s in slots) {
-            val bb = s.built?.bounds ?: continue
+            val bb = s.bounds ?: continue
             val pl = s.place
             val elx = (ex - pl.ox) * pl.nz - (ez - pl.oz) * pl.nx
             val elz = (ex - pl.ox) * pl.nx + (ez - pl.oz) * pl.nz
@@ -2007,6 +2357,7 @@ class FilamentTown(
         depotDraw?.destroy()
         for (x in extras) x.destroy()
         railDraw?.destroy()
+        farLights?.destroy(); farLights = null
         for (s in slots) {
             val b = s.built ?: continue
             for (e in listOf(b.entity, b.proxy)) if (e != 0) { scene.remove(e); engine.destroyEntity(e); em.destroy(e) }
@@ -2014,7 +2365,10 @@ class FilamentTown(
             for (mi in b.proxyMis) engine.destroyMaterialInstance(mi)
             b.geo.free(engine)
             s.built = null
+            s.held.clear()
         }
+        for (f in yardIn.values) f.cancel(true)
+        yardIn.clear()
         far.destroy()
         pool.shutdownNow()
         ground.destroy(); yardLayer.destroy(); ticks.clear()
@@ -2061,6 +2415,21 @@ class FilamentTown(
         const val GREEN_PAST_RANGE = 2000f
         /** How long a chunk's greenery takes to cross over between its cards and its 3D trees (s). */
         const val GREEN_SWITCH_SECONDS = .35f
+        /**
+         * Streaming (docs/STREAMING.md, [TownStream]): only what is near the camera and the player is resident in full,
+         * everything else as its far form. Off (a preview's -Dstream=0, the whole-capital budget test): the town is held
+         * whole, as before.
+         */
+        @JvmStatic var stream = true
+        /** A tree impostor's place (the quads are packed in the world already). */
+        private val IMP_AT = listOf(floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f))
+        /** The lights far off at night ([FarLights]); a preview turns them off to compare (-DfarLights=0). */
+        @JvmStatic var farLightsOn = true
+        /** The lit windows' and the street lamps' colour far off (sRGB). */
+        const val WINDOW_LIGHT = 0xFFC36A
+        const val LAMP_LIGHT = 0xFFE0A8
+        /** The street lamps show as dots from this far from the eye (street units): the nearest have real lights, the lanterns glow near. */
+        const val FAR_LAMPS_FROM = 700f
         /** Whether towns made from now on draw their far boxes ([TownFar]); a preview turns it off to compare (-DtownFar=0). */
         @JvmStatic var farLod = true
         const val OCCLUDE_SECONDS = .2f

@@ -102,6 +102,12 @@ fun renderFilamentOpen(out: String) {
     // the sky: the town's own (SkySurface; -Dsky3d=0: none, see-through over -Dsky=stage's 2D Backdrop as before), its
     // weather (-DskyWeather=overcast, rain, mist, cloudy) and date (-DskyDay=yyyy-MM-dd: the moon's phase)
     FilamentTown.sky3d = System.getProperty("sky3d") != "0"
+    // streaming (docs/STREAMING.md): only what is near the player resident in full; -Dstream=0 holds the whole town as before
+    FilamentTown.stream = System.getProperty("stream") != "0"
+    // the lights far off at night (docs/STREAMING.md); -DfarLights=0 leaves them out to compare
+    FilamentTown.farLightsOn = System.getProperty("farLights") != "0"
+    com.lifemax.rpg.feature.habits.presentation.scene3d.TownFar.slod = System.getProperty("slod") != "0"
+    com.lifemax.rpg.feature.habits.presentation.scene3d.TreeImpostors.on = System.getProperty("impostors") != "0"
     val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, cinema = cinema,
         stores = storeSites, collision = collision, rail = railNet, landmarks = landmarkAssets)
     ft.weather = when (System.getProperty("skyWeather")) {
@@ -223,6 +229,16 @@ fun renderFilamentOpen(out: String) {
         GameState.facing = 0
         OrbitCamera.set(yaw, pitch, dist)
         OrbitCamera.follow(walk.wx, walk.wz)
+        // (a jump across town: what streaming wants here comes in first, as behind a loading screen)
+        if (FilamentTown.stream) {
+            ft.frame(run.orbit(walk, w.toFloat(), h.toFloat(), clock), hour, clock.toDouble())
+            var tries = 0
+            while (!ft.streamSettled) {
+                if (ft.buildNearest(walk.wx, walk.wz, 8f) == 0) Thread.sleep(1)
+                ft.frame(run.orbit(walk, w.toFloat(), h.toFloat(), clock), hour, clock.toDouble())
+                if (++tries == 20000) { report.appendLine("  (streaming did not settle: ${ft.streamWhy})"); println("  streaming did not settle: ${ft.streamWhy}"); break }
+            }
+        }
         val t0 = System.nanoTime()
         // the same camera three ways: free as before (no draw distance, every yard near), the draw distance alone, as drawn
         val pose0 = run.orbit(walk, w.toFloat(), h.toFloat(), clock)
@@ -244,6 +260,12 @@ fun renderFilamentOpen(out: String) {
         val stage = stageSky(hour, w, h)
         shooter.save(File(dir, "$name.png"), w, h, hour, marks, skyRow = skyRow(hour, h), orb = if (stage != null) null else orb, skyImg = stage)
         if (System.getProperty("gpucost")?.let { gc -> gc == "all" || gc.split(",").any { name.startsWith(it) } } == true) report.appendLine(gpuCost(name, walk, run, ft, shooter, sheets, w, h, hour, clock))
+        if (System.getProperty("streamDebug") != null) report.appendLine("    " + ft.sunInfo())
+        if (System.getProperty("streamDebug") != null) for (sl in ft.slots) if (sl.isBuilt && hypot(sl.cx - walk.wx, sl.cz - walk.wz) > 2000f)
+            report.appendLine("    slot %s at (%.0f, %.0f) cy %.0f r %.0f d %.0f built %s want %s known %s missing %s shown %s cell t %s".format(sl.b.sprite, sl.cx, sl.cz, sl.cy, sl.r,
+                hypot(sl.cx - walk.wx, sl.cz - walk.wz), sl.isBuilt, sl.want, sl.known, sl.missing, sl.shown, ft.cellT(sl)))
+        if (FilamentTown.stream) report.appendLine("%-26s %s; GPU now %.1f MB".format("", ft.streamReport,
+            (com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.categories(ft.gpuEstimate(2340, 1080))["total"] as? Map<*, *>)?.get("mb") as? Number ?: 0.0))
         report.appendLine("%-26s %s; player (%.0f, %.0f) on %s (%s); %s".format(name, where, walk.wx, walk.wz, walk.row.id, TownPlay.streetName(), OrbitCamera.describe()))
         report.appendLine("%-26s free as before: %s | draw distance: %s | as drawn (+ far yards past %.0f): %s; people %d; %.0f ms; orb %s".format(
             "", free, ranged, pose.lodFar, drawn, run.peopleDrawn, (System.nanoTime() - t0) / 1e6, orb?.let { "(%.0f, %.0f)".format(it[0], it[1]) } ?: "behind"))
@@ -404,8 +426,8 @@ fun renderFilamentOpen(out: String) {
     // on the skyline); -Dshots=downtown renders only these
     // (-Dspot=x,z: the building nearest that point instead, so a town's years can be shot from the same place)
     val spot = System.getProperty("spot")?.split(",")?.mapNotNull { it.trim().toFloatOrNull() }?.takeIf { it.size == 2 }
-    (if (spot != null) ft.slots.filter { it.isBuilt && town.road(it.row.road).name == "Main Street" }.minByOrNull { hypot(it.cx - spot[0], it.cz - spot[1]) }
-     else ft.slots.filter { it.b.kind == com.lifemax.rpg.feature.habits.domain.PlacementKind.EXTRA && it.isBuilt }.maxByOrNull { it.cy })?.let { s ->
+    (if (spot != null) ft.slots.filter { (it.isBuilt || it.known) && town.road(it.row.road).name == "Main Street" }.minByOrNull { hypot(it.cx - spot[0], it.cz - spot[1]) }
+     else ft.slots.filter { it.b.kind == com.lifemax.rpg.feature.habits.domain.PlacementKind.EXTRA && (it.isBuilt || it.known) }.maxByOrNull { it.cy })?.let { s ->
         val r = s.row
         val x = s.b.mid.coerceIn(40f, r.length - 40f)
         val p = r.pointAt(x, 7f); val a = r.alongAt(x); val n = r.normalAt(x)

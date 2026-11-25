@@ -121,6 +121,19 @@ internal class BuildingMeshes(
         return Ready(null, pack(faces, win)).also { it.warmed = got }
     }
 
+    /** A [prepare]d building's bounds in its own frame (min x, y, z, max x, y, z), without making it Filament's. */
+    fun boundsOf(r: Ready): FloatArray? {
+        r.model?.let { return it.bounds.copyOf() }
+        val f = r.faces ?: return null
+        return floatArrayOf(f.bmin[0], f.bmin[1], f.bmin[2], f.bmax[0], f.bmax[1], f.bmax[2])
+    }
+
+    /** Lets go of a [prepare]d building never [finish]ed (streaming: only its bounds and far box were wanted). */
+    fun discard(r: Ready) {
+        textures.drop(r.warmed)
+        r.model?.let { textures.drop(it.warmed) }
+    }
+
     /** Makes a [prepare]d building Filament's (the engine's thread). */
     fun finish(r: Ready): BuiltBuilding? {
         try {

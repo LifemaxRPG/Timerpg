@@ -41,7 +41,10 @@ internal class TreeCells(
         fun packLevel(detail: Boolean): PropLayer.Packed? =
             TreeKit.merge(trees.map { (s, a) -> TreeKit.mesh(s, detail) to a })?.let { PropLayer.Packing.pack(it, IDENTITY) }
         fun layer(p: PropLayer.Packed): PropLayer =
-            PropLayer(engine, scene, lit, proxy, sharedTextures = textures, cull = true).also { it.upload(p, casts = true) }
+            PropLayer(engine, scene, lit, proxy, sharedTextures = textures, cull = true).also { l ->
+                // (streamed in and out with the chunk: in pages of their own, BufferArena.lane)
+                if (FilamentTown.stream) BufferArena.streamed { l.upload(p, casts = true) } else l.upload(p, casts = true)
+            }
     }
 
     private val cells = LinkedHashMap<Long, Cell>()
@@ -149,6 +152,15 @@ internal class TreeCells(
             c.detailJob = null
             c.detail = p?.let { c.layer(it) }
         }
+    }
+
+    /**
+     * Lets go of every cell's levels on the GPU (streaming: the chunk is far again and shows its cards); the trees stay
+     * listed, so [pack] and [build] make them again as the chunk comes near.
+     */
+    fun drop() {
+        for (c in cells.values) { c.simple?.destroy(); c.simple = null; c.simplePacked = null; c.detail?.destroy(); c.detail = null; c.detailJob?.cancel(false); c.detailJob = null; c.detailed = false }
+        simpleBuilt = false
     }
 
     fun destroy() {

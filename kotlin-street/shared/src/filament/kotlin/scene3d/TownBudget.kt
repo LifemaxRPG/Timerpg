@@ -44,6 +44,22 @@ object TownBudget {
         Part("total", 1080.0) { c -> mb(c, "total") },
     )
 
+    // ------------------------------------------------------------------ streaming (docs/STREAMING.md)
+
+    /**
+     * The streamed tiers' pools (MB, FilamentTown's own estimate: each resident building's textures counted whole and its
+     * buffers; each near lot's buffers): past its pool a tier's streaming margin shrinks until it is back under.
+     */
+    @JvmStatic var streamBuildingsMb = 260.0
+    @JvmStatic var streamYardsMb = 220.0
+
+    /**
+     * The radius budget: Filament's whole count (as [parts]' "total") at any frame of the fixed walk and drive through the
+     * capital ([GpuRouteTest]) with streaming on. It must not grow as the capital grows: adding districts adds far boxes
+     * and far yards only.
+     */
+    const val ROUTE_MB = 800.0
+
     /** One part's figure against its budget. */
     class Row(val part: String, val mb: Double?, val budget: Double) {
         val over: Boolean get() = mb != null && mb > budget

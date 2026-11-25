@@ -20,6 +20,11 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     /** Pictures read and packed ahead on a worker ([warm]), waiting for [of] on the engine's thread. */
     private val warmed: MutableMap<ImageBitmap, Prepared> = java.util.Collections.synchronizedMap(java.util.WeakHashMap())
     private val made = ArrayList<Texture>()
+    // (streaming's counts: see [owned], declared here so the plain white and black made below are pinned)
+    private val refs = java.util.IdentityHashMap<Texture, IntArray>()
+    private val pinned: MutableSet<Texture> = java.util.Collections.newSetFromMap(java.util.IdentityHashMap())
+    private val bytesOf = java.util.IdentityHashMap<Texture, Long>()
+    private var scope: MutableList<Texture>? = null
     /** Textures made by size ("w x h" to how many): what the GPU memory goes to (the preview's report, the breadcrumbs). */
     val bySize = java.util.concurrent.ConcurrentHashMap<String, Int>()
     /** What this set's owner has put on the GPU: these textures (with their mipmaps), and the buffers its users count in. */
@@ -33,12 +38,68 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     val black: Texture = solid(0x00000000)
 
     /** The texture of [img] as drawn. */
-    fun of(img: ImageBitmap): Texture = byImage[img] ?: run {
+    fun of(img: ImageBitmap): Texture = byImage[img]?.let { hand(it) } ?: run {
         // (a picture drawn for the first time, a person's sheet: made here; read and packed here too if it was not warmed)
         com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.count(com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.UP_SHEETS)
         val w = warmed.remove(img)
         if (w == null) coldSheets++
         make(w ?: prepare(argb(img), img.width, img.height, mips = true)).also { byImage[img] = it }
+    }
+
+    // ------------------------------------------------------------------ what is streamed in and out (docs/STREAMING.md)
+
+    /**
+     * Each texture handed out inside an [owned] scope, and how many scopes hold it; a texture handed out outside any scope
+     * is [pinned] (kept for the town's life, as every texture was before streaming). Engine thread only.
+     */
+    /** Textures freed by [release] (for the reports). */
+    var freedCount = 0; private set
+    var freedBytes = 0L; private set
+
+    private fun hand(t: Texture): Texture {
+        val s = scope
+        if (s == null) pinned.add(t) else { s.add(t); refs.getOrPut(t) { IntArray(1) }[0]++ }
+        return t
+    }
+
+    /**
+     * Runs [f] with every texture it is handed ([of], [make]) counted as [into]'s: [release] of that list later frees each
+     * one no other scope holds and nothing outside a scope ever took (a streamed building's pictures, its night masks).
+     */
+    fun <T> owned(into: MutableList<Texture>, f: () -> T): T {
+        val was = scope
+        scope = into
+        try { return f() } finally { scope = was }
+    }
+
+    /** The bytes of [list]'s textures (each counted once; shared ones counted whole: an upper bound). */
+    fun sizeOf(list: List<Texture>): Long {
+        val seen = java.util.Collections.newSetFromMap(java.util.IdentityHashMap<Texture, Boolean>())
+        var b = 0L
+        for (t in list) if (seen.add(t)) b += bytesOf[t] ?: 0L
+        return b
+    }
+
+    /** Lets go of what an [owned] scope took (after the material instances that wore them are destroyed). */
+    fun release(list: List<Texture>) {
+        for (t in list) {
+            val r = refs[t] ?: continue
+            if (--r[0] > 0) continue
+            refs.remove(t)
+            if (t === white || t === black || t in pinned) continue
+            free(t)
+        }
+    }
+
+    private fun free(t: Texture) {
+        engine.destroyTexture(t); GpuAccount.remove(t); fmts.remove(t)
+        made.remove(t)
+        synchronized(byImage) { byImage.values.removeIf { it === t } }
+        val gone = byContent.entries.filter { it.value === t }
+        for (e in gone) { byContent.remove(e.key); madeKeys.remove(e.key) }
+        val b = bytesOf.remove(t) ?: 0L
+        gpu.textures.addAndGet(-b)
+        freedCount++; freedBytes += b
     }
     /** Pictures [of] had to read and pack on the engine's thread (not warmed on a worker first). */
     var coldSheets = 0; private set
@@ -93,15 +154,15 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     /** A picture [prepare]d on any thread (packed, its content's key worked out), made a texture here (or shared). */
     fun make(p: Prepared): Texture {
         // (a mask with nothing in it reads as the plain black one: no light, no glass, no own colours)
-        if (p.empty) { shared++; return black }
-        val key = p.key ?: run { lastExact = p.exact; return build(p.buf, p.w, p.h, p.linear, false, p.fmt) }
-        byContent[key]?.let { shared++; return it }
+        if (p.empty) { shared++; return hand(black) }
+        val key = p.key ?: run { lastExact = p.exact; return hand(build(p.buf, p.w, p.h, p.linear, false, p.fmt)) }
+        byContent[key]?.let { shared++; return hand(it) }
         // (one [prepare] left unencoded, its picture made already, but by another set of textures: encoded now)
         if (p.src != null) { madeAgain.incrementAndGet(); madeAgainTexels.addAndGet(p.w.toLong() * p.h) }
         val q = if (p.src != null) prepare(p.src, p.w, p.h, p.linear, mips = true, again = true) else p
         lastExact = q.exact
         lastContent = key.b xor (key.a.toLong() shl 32)
-        return build(q.buf, q.w, q.h, q.linear, key.mips, q.fmt).also { byContent[key] = it; madeKeys += key; lastContent = 0L }
+        return hand(build(q.buf, q.w, q.h, q.linear, key.mips, q.fmt).also { byContent[key] = it; madeKeys += key; lastContent = 0L })
     }
     private var lastExact = -1.0
     /** The content hash of the picture being made (0: not a picture shared by content): the account's, to find duplicates. */
@@ -158,6 +219,7 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
         var bytes = 0L
         for (l in 0 until levels) bytes += maxOf(1, w shr l).toLong() * maxOf(1, h shr l) * fmt.bytes
         gpu.textures.addAndGet(bytes)
+        bytesOf[t] = bytes
         GpuAccount.add(t, w, h, if (fmt == Fmt.RGBA8 && srgb && !linear) "SRGB8_A8" else fmt.name, levels, bytes, content = lastContent)
         GpuAccount.study(buf, w, h, if (fmt == Fmt.RGBA8 && srgb && !linear) "SRGB8_A8" else fmt.name)
         com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.bytes += w.toLong() * h * fmt.bytes
@@ -180,6 +242,7 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
         }
         made += t
         gpu.textures.addAndGet(off.toLong())
+        bytesOf[t] = off.toLong()
         GpuAccount.add(t, w, h, if (s) "SRGB_ASTC_4x4" else "ASTC_4x4", levels, off.toLong(), lastExact, lastContent)
         com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.bytes += off
         return t
@@ -208,7 +271,7 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     fun destroy(all: Boolean = false) {
         for (t in made) if (all || (t !== white && t !== black)) { engine.destroyTexture(t); GpuAccount.remove(t); fmts.remove(t) }
         madeKeys.removeAll(byContent.keys)
-        made.clear(); byImage.clear(); warmed.clear(); byContent.clear()
+        made.clear(); byImage.clear(); warmed.clear(); byContent.clear(); refs.clear(); pinned.clear(); bytesOf.clear()
         gpu.textures.set(0L)
         if (!all) { made += white; made += black; gpu.textures.set(8L) }
     }

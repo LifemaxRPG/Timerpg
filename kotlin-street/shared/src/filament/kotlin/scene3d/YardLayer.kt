@@ -124,7 +124,9 @@ object YardKitBuilder : YardBuilder {
      * here and handed to [sink] as [build] does it: the lot's patch, its tall things' own patches, its far version. The
      * town swaps them in for the lot's old patches ([FilamentTown.replaceYard]).
      */
-    fun rebuild(owner: String, yards: com.lifemax.rpg.feature.habits.domain.TownYards, items: List<com.lifemax.rpg.feature.habits.domain.TownYardItem>, sink: YardSink): String? {
+    fun rebuild(owner: String, yards: com.lifemax.rpg.feature.habits.domain.TownYards, items: List<com.lifemax.rpg.feature.habits.domain.TownYardItem>, sink: YardSink,
+        /** Only its near version and its tall things' (streaming it back in: its far version stayed resident). */
+        nearOnly: Boolean = false): String? {
         val y = yards.of(owner)
         val l = if (y == null) yards.lanes.firstOrNull { it.id == owner } else null
         val id = y?.lot ?: l?.id ?: return null
@@ -133,7 +135,7 @@ object YardKitBuilder : YardBuilder {
             YardItem(i.kind, i.rect[0], i.rect[1], i.rect[2], i.rect[3], i.faceX, i.faceZ, i.variant, i.layer, i.on, i.zone)
         val work = ArrayList<Job>()
         val tall = items.indices.filter { FilamentTown.tallHeight(items[it].kind, items[it].zone) > 0f }.toSet()
-        work += Job(items.filterIndexed { k, _ -> k !in tall }.map(::item), items.map(::item), patch, tall.map { item(items[it]) })
+        work += Job(items.filterIndexed { k, _ -> k !in tall }.map(::item), if (nearOnly) null else items.map(::item), patch, tall.map { item(items[it]) })
         for (k in tall) {
             val r = items[k].rect
             work += Job(listOf(item(items[k])), null, YardPatch(YardPatch.tallId(id, k), (r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f,

@@ -1,0 +1,63 @@
+// The town's lights far off at night (docs/STREAMING.md, "Distant lights"; GTA V's night city): every lit window of
+// the far boxes, every street lamp past the few real lights, drawn as a pixel dot with a small stepped halo, the same
+// size on screen whatever the distance, all of them in one draw. Each light is a quad of four vertices at the light's
+// place; uv0 is the corner's offset in screen pixels, the colour's alpha says which kind it is (1: a window, 0.5: a lamp).
+// Added over the scene (no depth write: the far boxes and the land in front still hide what is behind them); not
+// fogged by Filament (the haze would wash a light out like a wall), it fades by its own thinner haze.
+material {
+    name : FarLights,
+    shadingModel : unlit,
+    blending : add,
+    vertexDomain : device,
+    culling : none,
+    depthWrite : false,
+    depthCulling : true,
+    variantFilter : [ fog, skinning, shadowReceiver, vsm, ssr, stereo ],
+    parameters : [
+        { type : mat4, name : look, precision : high },
+        // the screen's pixel in clip space (2 / width, 2 / height) and the dot's scale (1 at 1080 tall)
+        { type : float4, name : px },
+        // the light's colour by night (rgb, linear) and how far on (a: 0 by day, 1 at night)
+        { type : float4, name : tint },
+        // where windows' dots start (x: from the eye, street units) and are whole (y), the same for lamps (z, w)
+        { type : float4, name : near },
+        // the dots' own haze: density per street unit (x), the least left (y)
+        { type : float4, name : haze },
+        // the eye in the user's world (xyz)
+        { type : float4, name : eye, precision : high }
+    ],
+    variables : [ farData ],
+    requires : [ uv0, color ]
+}
+
+vertex {
+    void materialVertex(inout MaterialVertexInputs material) {
+        vec2 o = mesh_uv0.xy * materialParams.px.xy * materialParams.px.z;
+        mat4 shift = mat4(1.0);
+        shift[3][0] = o.x;
+        shift[3][1] = o.y;
+        material.clipSpaceTransform = shift * materialParams.look * getUserWorldFromWorldMatrix() * getWorldFromModelMatrix();
+        vec4 w = getWorldFromModelMatrix() * getPosition();
+        vec3 u = (getUserWorldFromWorldMatrix() * w).xyz;
+        material.farData = vec4(length(u - materialParams.eye.xyz), mesh_uv0.xy, 0.0);
+        material.worldPosition = w;
+    }
+}
+
+fragment {
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        vec4 c = getColor();
+        float d = variable_farData.x;
+        vec2 p = abs(variable_farData.yz);
+        // whole screen pixels: a 2 x 2 core, a halo of two steps round it
+        float m = max(floor(p.x), floor(p.y));
+        float shape = m < 1.0 ? 1.0 : (m < 2.0 ? 0.26 : (m < 3.0 ? 0.07 : 0.0));
+        bool lamp = c.a < 0.75;
+        vec2 nr = lamp ? materialParams.near.zw : materialParams.near.xy;
+        float t = clamp((d - nr.x) / max(1.0, nr.y - nr.x), 0.0, 1.0);
+        float k = max(materialParams.haze.y, exp(-d * materialParams.haze.x));
+        float a = shape * t * t * (3.0 - 2.0 * t) * k * materialParams.tint.a;
+        material.baseColor = vec4(c.rgb * materialParams.tint.rgb * a, 0.0);
+    }
+}

@@ -18,11 +18,14 @@ class GpuBudgetTest {
     @Test fun theCapitalStaysWithinItsGpuBudget() {
         // (only the build and its account: no views rendered)
         System.setProperty("gpuOnly", "1")
+        // (the whole capital held at once, streaming off: the budget of what the town is made of; GpuRouteTest guards
+        // what is resident with streaming on)
+        System.setProperty("stream", "0")
         GpuAccount.reset()
         var rows: List<TownBudget.Row>? = null
         openBuilt = { ft -> rows = TownBudget.check(GpuAccount.categories(ft.gpuEstimate(2340, 1080))) }
         val out = File("build/gpu-budget").also { it.mkdirs() }
-        try { renderFilamentOpen(out.path) } finally { openBuilt = null; System.clearProperty("gpuOnly") }
+        try { renderFilamentOpen(out.path) } finally { openBuilt = null; System.clearProperty("gpuOnly"); System.clearProperty("stream") }
         val r = rows ?: error("the town was not built")
         println("GPU budget, the capital (desktop, Filament's own count):\n" + TownBudget.table(r))
         for (row in r) assertTrue("${row.part} was not counted", row.mb != null)

@@ -53,6 +53,7 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
     }
 
     private fun buildTimed(x: Float, z: Float, budgetMs: Float, s: Long): Boolean {
+        if (!groundDone) town.streamFocus(x, z)
         if (!groundDone) { groundDone = town.uploadGround(budgetMs); if (groundDone) TownMemory.mark("ground in") }
         val left = budgetMs - (System.nanoTime() - s) / 1e6f
         if (groundDone || left > 1f) town.buildNearest(x, z, left.coerceAtLeast(1f))

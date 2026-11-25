@@ -54,7 +54,7 @@ object BufferArena {
     @Volatile var enabled = true
 
     /** One buffer object, its free ranges (start -> length, in vertices or indices) kept merged. */
-    internal class Page(val vb: VertexBuffer?, val ib: IndexBuffer?, val capacity: Int) {
+    internal class Page(val vb: VertexBuffer?, val ib: IndexBuffer?, val capacity: Int, val lane: Int = 0) {
         val free = java.util.TreeMap<Int, Int>().also { it[0] = capacity }
         var used = 0
         var destroyed = false
@@ -77,7 +77,19 @@ object BufferArena {
         }
     }
 
-    private class Pool { val vPages = ArrayList<Page>(); val iPages = ArrayList<Page>() }
+    private class Lane { val vPages = ArrayList<Page>(); val iPages = ArrayList<Page>() }
+    private class Pool { val lanes = Array(LANES) { Lane() }; val vPages: List<Page> get() = lanes.flatMap { it.vPages }; val iPages: List<Page> get() = lanes.flatMap { it.iPages } }
+
+    /** How many sets of pages an engine keeps: [lane] 0 for what stays for the town's life, 1 for what is streamed in and out. */
+    const val LANES = 2
+    /**
+     * The pages a batch uploaded now goes in (the engine's thread): what the town streams ([TownStream]) has pages of its own,
+     * so a block let go empties whole pages instead of leaving holes in pages shared with the ground that stays.
+     */
+    @JvmStatic var lane = 0
+
+    /** Runs [f] with its uploads in the streamed pages. */
+    inline fun <T> streamed(f: () -> T): T { val was = lane; lane = 1; try { return f() } finally { lane = was } }
     private val pools = java.util.IdentityHashMap<Engine, Pool>()
 
     /**
@@ -91,10 +103,11 @@ object BufferArena {
             return GeomSlice(v, i, 0, ni, null, 0, 0, null, 0, 0)
         }
         val pool = synchronized(pools) { pools.getOrPut(engine) { Pool() } }
-        val (vp, vo) = place(engine, pool.vPages, nv, PAGE_VERTICES, true)
+        val ln = pool.lanes[lane.coerceIn(0, LANES - 1)]
+        val (vp, vo) = place(engine, ln.vPages, nv, PAGE_VERTICES, true, lane)
         // (an index range starts on an even index: Filament updates buffers at offsets of whole 4 bytes)
         val il = (ni + 1) and 1.inv()
-        val (ip, io) = place(engine, pool.iPages, il, PAGE_INDICES, false)
+        val (ip, io) = place(engine, ln.iPages, il, PAGE_INDICES, false, lane)
         // the vertices at their place in the page
         val vsrc = vb.duplicate().order(vb.order()); vsrc.position(0); vsrc.limit(nv * TownVertex.STRIDE)
         vp.vb!!.setBufferAt(engine, 0, vsrc, vo * TownVertex.STRIDE, nv * TownVertex.STRIDE)
@@ -110,18 +123,18 @@ object BufferArena {
         return s
     }
 
-    private fun place(engine: Engine, pages: ArrayList<Page>, n: Int, cap: Int, vertex: Boolean): Pair<Page, Int> {
+    private fun place(engine: Engine, pages: ArrayList<Page>, n: Int, cap: Int, vertex: Boolean, lane: Int): Pair<Page, Int> {
         for (p in pages) { if (p.capacity - p.used < n) continue; val at = p.take(n); if (at >= 0) return p to at }
-        val p = if (vertex) Page(TownVertex.buffer(engine, cap, account = false), null, cap)
-        else Page(null, IndexBuffer.Builder().indexCount(cap).bufferType(IndexBuffer.Builder.IndexType.USHORT).build(engine), cap)
+        val p = if (vertex) Page(TownVertex.buffer(engine, cap, account = false), null, cap, lane)
+        else Page(null, IndexBuffer.Builder().indexCount(cap).bufferType(IndexBuffer.Builder.IndexType.USHORT).build(engine), cap, lane)
         pages += p
         return p to p.take(n)
     }
 
     internal fun giveBack(engine: Engine, s: GeomSlice) {
         val pool = synchronized(pools) { pools[engine] } ?: return
-        s.vPage?.let { if (!it.destroyed) { it.give(s.vOff, s.vLen); drop(engine, pool.vPages, it) } }
-        s.iPage?.let { if (!it.destroyed) { it.give(s.iOff, s.iLen); drop(engine, pool.iPages, it) } }
+        s.vPage?.let { if (!it.destroyed) { it.give(s.vOff, s.vLen); drop(engine, pool.lanes[it.lane].vPages, it) } }
+        s.iPage?.let { if (!it.destroyed) { it.give(s.iOff, s.iLen); drop(engine, pool.lanes[it.lane].iPages, it) } }
     }
 
     /** Destroys [p] once it is empty, unless it is the only empty page left (kept for what comes next). */
