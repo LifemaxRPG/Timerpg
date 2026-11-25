@@ -556,31 +556,62 @@ class VehicleWorld(
 
     // the ground outside the town: heightfield chunks round the car
     private val chunks = HashMap<Long, Int>()
-    private val heights = FloatArray(CHUNK_N * CHUNK_N)
+    /**
+     * Chunks' heights being made ahead on [groundPool] (docs/WORLD_STREAM.md: at 120 km/h a car crosses a chunk every two
+     * seconds, and making the three ahead of it on the game's thread cost a 10 ms hitch on the desktop); null: the terrain
+     * could not give that chunk yet.
+     */
+    private val chunkJobs = HashMap<Long, java.util.concurrent.Future<FloatArray?>>()
+    /** Chunks made on the game's thread because they were wanted at once (none at a steady drive), and ahead. */
+    var chunksNow = 0; private set
+    var chunksAhead = 0; private set
+
+    private fun chunkHeights(g: (Float, Float) -> Float?, i: Int, j: Int): FloatArray? {
+        val x0 = i * CHUNK_M; val z0 = j * CHUNK_M
+        val cell = CHUNK_M / (CHUNK_N - 1)
+        val hs = FloatArray(CHUNK_N * CHUNK_N)
+        var any = false
+        for (b in 0 until CHUNK_N) for (a in 0 until CHUNK_N) {
+            val h = g(x0 + a * cell, z0 + b * cell)
+            if (h != null) any = true
+            hs[b * CHUNK_N + a] = h ?: 0f
+        }
+        return if (any) hs else null
+    }
 
     private fun streamGround(c: Car) {
         val g = ground ?: return
         val xm = c.x / U; val zm = c.z / U
         val ci = kotlin.math.floor(xm / CHUNK_M).toInt(); val cj = kotlin.math.floor(zm / CHUNK_M).toInt()
+        // the 3 x 3 round the car, wanted now; the 3 x 3 round where it will be in [GROUND_LEAD_S], made ahead on a worker
+        val vx = c.now[VehicleState.VX]; val vz = c.now[VehicleState.VZ]
         val want = HashSet<Long>()
-        for (dj in -1..1) for (di in -1..1) {
-            val i = ci + di; val j = cj + dj
+        val cell = CHUNK_M / (CHUNK_N - 1)
+        // (pass 0: now; passes 1 and 2: half the lead and the whole lead ahead)
+        for (pass in 0..2) for (dj in -1..1) for (di in -1..1) {
+            val ahead = GROUND_LEAD_S * pass / 2f
+            val i = kotlin.math.floor((xm + vx * ahead) / CHUNK_M).toInt() + di; val j = kotlin.math.floor((zm + vz * ahead) / CHUNK_M).toInt() + dj
             val key = (i.toLong() shl 32) or (j.toLong() and 0xffffffffL)
-            want += key
-            if (key in chunks) continue
-            val x0 = i * CHUNK_M; val z0 = j * CHUNK_M
-            val cell = CHUNK_M / (CHUNK_N - 1)
-            var any = false
-            for (b in 0 until CHUNK_N) for (a in 0 until CHUNK_N) {
-                val h = g(x0 + a * cell, z0 + b * cell)
-                if (h != null) any = true
-                heights[b * CHUNK_N + a] = h ?: 0f
+            if (!want.add(key) || key in chunks) continue
+            val job = chunkJobs[key]
+            val hs: FloatArray? = when {
+                job != null && job.isDone -> { chunkJobs.remove(key); runCatching { job.get() }.getOrNull() }
+                pass == 0 -> { job?.cancel(false); chunkJobs.remove(key); chunksNow++; chunkHeights(g, i, j) }
+                else -> { if (job == null) { chunkJobs[key] = groundPool.submit(java.util.concurrent.Callable { chunkHeights(g, i, j) }); chunksAhead++ }; continue }
             }
             // (a chunk the terrain cannot give yet is tried again at the next restream)
-            if (any) chunks[key] = physics.addHeightfield(x0, z0, CHUNK_N, cell, heights)
+            if (hs != null) chunks[key] = physics.addHeightfield(i * CHUNK_M, j * CHUNK_M, CHUNK_N, cell, hs)
+        }
+        // (let go only past a chunk's slack round the car and its lead: no churn as the lead's chunk wavers)
+        val li = kotlin.math.floor((xm + vx * GROUND_LEAD_S) / CHUNK_M).toInt(); val lj = kotlin.math.floor((zm + vz * GROUND_LEAD_S) / CHUNK_M).toInt()
+        fun keep(k: Long): Boolean {
+            val i = (k shr 32).toInt(); val j = k.toInt()
+            return k in want || maxOf(kotlin.math.abs(i - ci), kotlin.math.abs(j - cj)) <= 2 || maxOf(kotlin.math.abs(i - li), kotlin.math.abs(j - lj)) <= 2
         }
         val it = chunks.entries.iterator()
-        while (it.hasNext()) { val e = it.next(); if (e.key !in want) { physics.remove(e.value); it.remove() } }
+        while (it.hasNext()) { val e = it.next(); if (!keep(e.key)) { physics.remove(e.value); it.remove() } }
+        val jt = chunkJobs.entries.iterator()
+        while (jt.hasNext()) { val e = jt.next(); if (!keep(e.key)) { e.value.cancel(false); jt.remove() } }
     }
 
     // ------------------------------------------------------------------ the safety net
@@ -598,6 +629,8 @@ class VehicleWorld(
         streamedBy.clear()
         for (h in chunks.values) physics.remove(h)
         chunks.clear()
+        for (j in chunkJobs.values) j.cancel(false)
+        chunkJobs.clear()
         streamX = Float.NaN
     }
 
@@ -709,6 +742,12 @@ class VehicleWorld(
         /** The terrain's heightfield chunks round the car: this wide (m), this many samples a side. */
         const val CHUNK_M = 64f
         const val CHUNK_N = 33
+        /** The chunks round where the car will be this far ahead (s) are made on a worker before they are wanted. */
+        const val GROUND_LEAD_S = 3.5f
+        /** The worker making the ground's chunks ahead (one, low priority: a trickle of a few ms every second or two). */
+        private val groundPool: java.util.concurrent.ExecutorService by lazy {
+            java.util.concurrent.Executors.newSingleThreadExecutor { r -> Thread(r, "vehicle-ground").also { it.isDaemon = true; it.priority = Thread.NORM_PRIORITY - 1 } }
+        }
         /** The safety net: a car this far (m) below the ground, or faster than [MAX_SPEED] (m/s), or not a number, is put back. */
         const val FALL_M = 6f
         const val MAX_SPEED = 85f
