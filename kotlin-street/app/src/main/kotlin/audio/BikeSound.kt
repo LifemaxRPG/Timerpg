@@ -6,9 +6,9 @@ import kotlin.math.sin
 
 /**
  * The bicycle's sound, made live (nothing recorded, so it follows the speed and the ground at once): the tyres rolling
- * (a soft hiss on the road whose brightness and loudness rise with the speed, a low rumble with crackles on gravel, a
- * duller swish on grass, a hollow knock on boards), a faint thump once a wheel turn, and, coasting, the freewheel's ticks
- * (its pawls clicking past the ratchet, faster the faster the wheel turns: a tick-tick slowing to a stop). [bell] makes the
+ * (kept silent but for gravel's crunch: the owner heard any tyre hiss as wind), the chain's soft purr over the teeth
+ * while pedalling, and, coasting, the freewheel's ticks (its pawls clicking past the ratchet, faster the faster the wheel
+ * turns: a tick-tick slowing to a stop). [bell] makes the
  * bell's ring (two inharmonic partials, a sharp strike, a long fade). Stereo float at [Pcm.RATE], mixed by [SoundScape].
  */
 class BikeSound {
@@ -29,6 +29,10 @@ class BikeSound {
     private var click = 0f
     private var clickTone = 0f
     private var crackle = 0f
+    // the chain: its links over the teeth while pedalling (a soft purr), a band of the noise each link
+    private var chainPhase = 0f
+    private var link = 0f
+    private val chainBp = Biquad().bandpass(2600f, 2.5f)
 
     /** Adds [frames] frames of the bike into [buf] (stereo, interleaved), at [master]. */
     fun render(buf: FloatArray, frames: Int, master: Float) {
@@ -60,7 +64,8 @@ class BikeSound {
             s *= 1f + .25f * exp(-wheelPhase * 30f)
             // crackles: grit under the tyre
             if (crackRate > 0f && noise() * .5f + .5f < crackRate * (v / 300f) * dt) crackle = .6f + .4f * (noise() * .5f + .5f)
-            if (crackle > 1e-3f) { s += crackle * noise() * 0f; crackle *= .992f }
+            // (only gravel's grit is kept: a crunch of stones, not the hiss the owner heard as wind)
+            if (crackle > 1e-3f) { if (surface == 3) s += crackle * noise() * .05f; crackle *= .992f }
             s *= gain
             // the freewheel's ticks: a short bright click each pawl
             if (tickHz > 0f) {
@@ -72,6 +77,12 @@ class BikeSound {
                 s += sin(2f * PI.toFloat() * clickTone) * click * .045f * (.4f + .6f * (v / 300f).coerceAtMost(1f))
                 click *= .955f
             }
+            // the chain while pedalling: some 17 links a wheel turn, faint
+            if (pedalling && v > 2f) {
+                chainPhase += wheelHz * 17f * dt
+                if (chainPhase >= 1f) { chainPhase -= 1f; link = .6f + .4f * (noise() * .5f + .5f) }
+            }
+            if (link > 1e-3f) { s += chainBp.run(noise() * link) * .05f * (.5f + .5f * (v / 300f).coerceAtMost(1f)); link *= .93f }
             val o = s * master
             buf[2 * k] += o; buf[2 * k + 1] += o
         }
