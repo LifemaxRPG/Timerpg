@@ -16,7 +16,7 @@ import kotlin.math.sin
  * Far trees as multi-angle impostors (docs/STREAMING.md, "Tree impostors"; Fortnite's octahedral impostors, kept to the
  * horizontal ring a street-level camera sees and snapped to the nearest view, no blend: the stepped, sprite-like look).
  *
- * Each tree look ([TreeKit.Spec.key]) is drawn once from [VIEWS] directions round it by a small software rasterizer: its
+ * Each tree look ([look]: its shape, its height scaled) is drawn once from [VIEWS] directions round it by a small software rasterizer: its
  * simple 3D mesh ([TreeKit.mesh]) projected flat, a pixel a texel of the kit's own atlas ([TEXEL]: the near tree's own
  * pixel size, nearest, alpha cut), its faces shaded a little by their normals so the crown keeps its light and shade.
  * The views go into one atlas for the town. Far off, each tree is one upright quad facing the camera, wearing the view
@@ -28,47 +28,75 @@ internal object TreeImpostors {
     /** Views round a tree. */
     const val VIEWS = 8
 
-    /** The atlas of every look's views: [px] ARGB rows top first, each look's row of views at [at] (x, y of view 0, w, h; views side by side). */
-    class Atlas(val w: Int, val h: Int, val px: IntArray, val at: Map<Int, IntArray>, val half: Map<Int, Float>, val tall: Map<Int, Float>)
+    /**
+     * The atlas of every look's views: [px] ARGB rows top first, each look's ([look]) row of views at [at] (x, y of view 0,
+     * w, h; views side by side), baked at [ref] height with [texel] street units a pixel; [half] and [tall] its quad's size
+     * at that height (a tree of another height wears it scaled).
+     */
+    class Atlas(val w: Int, val h: Int, val px: IntArray, val at: Map<Int, IntArray>, val half: Map<Int, Float>, val tall: Map<Int, Float>,
+                val ref: Map<Int, Float> = emptyMap(), val texel: Float = TEXEL, val trees: Int = 0)
 
-    /** Bakes [specs]' views (any thread). */
-    fun bake(specs: Collection<TreeKit.Spec>): Atlas {
-        val byKey = LinkedHashMap<Int, TreeKit.Spec>()
-        for (s in specs) byKey.putIfAbsent(s.key, s)
-        class View(val key: Int, val w: Int, val h: Int, val img: Array<IntArray>, val half: Float, val tall: Float)
-        val views = byKey.values.map { s ->
-            val m = TreeKit.mesh(s, detail = false)
-            val b = m.bounds
-            val half = max(max(abs(b[0]), abs(b[3])), max(abs(b[2]), abs(b[5]))) + TEXEL
-            val tall = b[4] + TEXEL
-            val w = ceil(2f * half / TEXEL).toInt().coerceIn(2, 256); val h = ceil(tall / TEXEL).toInt().coerceIn(2, 256)
-            View(s.key, w, h, Array(VIEWS) { k -> render(m, k, w, h, half) }, half, tall)
-        }.sortedByDescending { it.h }
-        // shelves: each look's row of views, as many to a shelf as fit in a width of [ATLAS_W]
-        val at = HashMap<Int, IntArray>()
-        var x = 0; var y = 0; var shelf = 0; var width = 0
-        for (v in views) {
-            val rw = v.w * VIEWS
-            if (x > 0 && x + rw > ATLAS_W) { y += shelf; x = 0; shelf = 0 }
-            at[v.key] = intArrayOf(x, y, v.w, v.h)
-            x += rw; shelf = max(shelf, v.h); width = max(width, x)
+    /**
+     * A tree's impostor look: its species and variant (its shape), not its height. Each look is baked once at its trees'
+     * middle height and worn scaled to each tree's own: the capital has 55k far trees in 166 shapes but 2,472 shape and
+     * height pairs, whose views at the near trees' own pixel size (the first version) would have been a 1.9 GB atlas
+     * (it never finished baking at a phone's heap, and held ~150 MB of the build's heap at its peak while it tried).
+     */
+    fun look(s: TreeKit.Spec): Int = s.species * 64 + (s.variant and 63)
+
+    /** Bakes [specs]' views (any thread), in an atlas of at most [ATLAS_W] x [maxRows] pixels. */
+    fun bake(specs: Collection<TreeKit.Spec>, maxRows: Int = ATLAS_ROWS): Atlas {
+        // each look at its trees' middle height
+        val byLook = LinkedHashMap<Int, ArrayList<TreeKit.Spec>>()
+        for (s in specs) byLook.getOrPut(look(s)) { ArrayList() } += s
+        val reps = byLook.mapValues { (_, l) -> l.sortedBy { it.height }[l.size / 2] }
+        class View(val look: Int, val spec: TreeKit.Spec, val b: FloatArray) { var w = 0; var h = 0; var half = 0f; var tall = 0f }
+        val views = reps.map { (k, s) -> View(k, s, TreeKit.mesh(s, detail = false).bounds) }
+        // the pixel size: the near trees' own ([TEXEL]) if every look fits, else as little coarser as makes them fit (in
+        // steps of an eighth; far trees only, past the 3D line, where a texel is about a screen pixel already)
+        fun layout(texel: Float): Pair<Int, Map<Int, IntArray>> {
+            for (v in views) {
+                v.half = max(max(abs(v.b[0]), abs(v.b[3])), max(abs(v.b[2]), abs(v.b[5]))) + texel
+                v.tall = v.b[4] + texel
+                v.w = ceil(2f * v.half / texel).toInt().coerceIn(2, 256); v.h = ceil(v.tall / texel).toInt().coerceIn(2, 256)
+            }
+            // shelves: each look's row of views, as many to a shelf as fit in a width of [ATLAS_W]
+            val at = HashMap<Int, IntArray>()
+            var x = 0; var y = 0; var shelf = 0
+            for (v in views.sortedByDescending { it.h }) {
+                val rw = v.w * VIEWS
+                if (x > 0 && x + rw > ATLAS_W) { y += shelf; x = 0; shelf = 0 }
+                at[v.look] = intArrayOf(x, y, v.w, v.h)
+                x += rw; shelf = max(shelf, v.h)
+            }
+            return (y + shelf) to at
         }
-        val aw = max(4, width); val ah = max(4, y + shelf)
+        var texel = TEXEL
+        var (rows, at) = layout(texel)
+        while (rows > maxRows) { texel *= 1.125f; layout(texel).let { rows = it.first; at = it.second } }
+        val aw = max(4, at.values.maxOfOrNull { it[0] + it[2] * VIEWS } ?: 0); val ah = max(4, rows)
         val px = IntArray(aw * ah)
+        val depth = FloatArray(256 * 256)
         for (v in views) {
-            val r = at[v.key]!!
-            for (k in 0 until VIEWS) for (row in 0 until v.h) System.arraycopy(v.img[k], row * v.w, px, (r[1] + row) * aw + r[0] + k * v.w, v.w)
+            val r = at[v.look]!!
+            val m = TreeKit.mesh(v.spec, detail = false)
+            for (k in 0 until VIEWS) render(m, k, v.w, v.h, v.half, texel, px, r[1] * aw + r[0] + k * v.w, aw, depth)
         }
-        return Atlas(aw, ah, px, at, views.associate { it.key to it.half }, views.associate { it.key to it.tall })
+        lastBake = "%d trees in %d looks, atlas %d x %d (%.1f MB), pixels %.2f x the near trees'".format(java.util.Locale.US,
+            specs.size, views.size, aw, ah, aw.toLong() * ah * 4 / 1048576.0, texel / TEXEL)
+        return Atlas(aw, ah, px, at, views.associate { it.look to it.half }, views.associate { it.look to it.tall },
+            views.associate { it.look to it.spec.height }, texel, specs.size)
     }
 
-    /** [m] seen from view [k] (from local direction (sin, cos) of k / [VIEWS] of a turn, looking at its foot), [w] x [h] pixels. */
-    private fun render(m: PropMesh, k: Int, w: Int, h: Int, half: Float): IntArray {
+    /**
+     * [m] seen from view [k] (from local direction (sin, cos) of k / [VIEWS] of a turn, looking at its foot), [w] x [h]
+     * pixels of [texel] units, drawn into [out] from [at] with rows [stride] apart; [depth] is scratch of at least [w] x [h].
+     */
+    private fun render(m: PropMesh, k: Int, w: Int, h: Int, half: Float, texel: Float, out: IntArray, at: Int, stride: Int, depth: FloatArray) {
         val th = 2.0 * PI * k / VIEWS
         val dx = sin(th).toFloat(); val dz = cos(th).toFloat()
         // the viewer's right: (dz, -dx); towards the viewer: (dx, dz)
-        val out = IntArray(w * h)
-        val depth = FloatArray(w * h) { -Float.MAX_VALUE }
+        java.util.Arrays.fill(depth, 0, w * h, -Float.MAX_VALUE)
         val sx = FloatArray(3); val sy = FloatArray(3); val sd = FloatArray(3)
         val tex = m.tex; val tw = m.texW; val thh = m.texH
         var t = 0
@@ -76,8 +104,8 @@ internal object TreeImpostors {
             for (c in 0 until 3) {
                 val i = m.idx[t + c]
                 val x = m.pos[i * 3]; val y = m.pos[i * 3 + 1]; val z = m.pos[i * 3 + 2]
-                sx[c] = (x * dz - z * dx + half) / TEXEL
-                sy[c] = h - y / TEXEL
+                sx[c] = (x * dz - z * dx + half) / texel
+                sy[c] = h - y / texel
                 sd[c] = x * dx + z * dz
             }
             val i0 = m.idx[t]; val i1 = m.idx[t + 1]; val i2 = m.idx[t + 2]
@@ -105,12 +133,11 @@ internal object TreeImpostors {
                     if ((c ushr 24) < 128) continue
                     depth[o] = d
                     val r = (((c shr 16) and 255) * shade).roundToInt(); val g = (((c shr 8) and 255) * shade).roundToInt(); val b = ((c and 255) * shade).roundToInt()
-                    out[o] = (0xFF shl 24) or (r shl 16) or (g shl 8) or b
+                    out[at + py * stride + pxi] = (0xFF shl 24) or (r shl 16) or (g shl 8) or b
                 }
             }
             t += 3
         }
-        return out
     }
 
     /**
@@ -118,14 +145,17 @@ internal object TreeImpostors {
      * its view nearest the eye's direction from it; null if none has a view in [atlas].
      */
     fun mesh(atlas: Atlas, trees: List<Pair<TreeKit.Spec, FloatArray>>, ex: Float, ez: Float): PropMesh? {
-        val list = trees.filter { atlas.at.containsKey(it.first.key) }
+        val list = trees.filter { atlas.at.containsKey(look(it.first)) }
         if (list.isEmpty()) return null
         val n = list.size
         val pos = FloatArray(n * 12); val uv = FloatArray(n * 8); val nrm = FloatArray(n * 12); val tan = FloatArray(n * 12); val idx = IntArray(n * 6)
         val bb = floatArrayOf(Float.MAX_VALUE, 0f, Float.MAX_VALUE, -Float.MAX_VALUE, 0f, -Float.MAX_VALUE)
         for ((i, p) in list.withIndex()) {
             val (s, a) = p
-            val r = atlas.at[s.key]!!; val half = atlas.half[s.key]!!; val tall = atlas.tall[s.key]!!
+            // (the look baked at its middle height, scaled to this tree's own)
+            val lk = look(s)
+            val sc = atlas.ref[lk]?.takeIf { it > 0f }?.let { s.height / it } ?: 1f
+            val r = atlas.at[lk]!!; val half = atlas.half[lk]!! * sc; val tall = atlas.tall[lk]!! * sc
             // the eye's direction in the tree's own frame (along, out are orthonormal: the inverse is the transpose)
             val vx = ex - a[0]; val vz = ez - a[1]
             val lx = a[2] * vx + a[3] * vz; val lz = a[4] * vx + a[5] * vz
@@ -170,6 +200,13 @@ internal object TreeImpostors {
 
     /** The atlas's width at most (pixels). */
     const val ATLAS_W = 2048
+    /**
+     * Its height at most (pixels): 2048 x 4096 RGBA is 32 MB of Java heap for the bake (the GPU's copy ASTC 4x4, 8 MB and its
+     * mips). The capital's 166 looks fit at 1.27 x the near trees' pixel size.
+     */
+    const val ATLAS_ROWS = 4096
+    /** The last bake in a line (reports). */
+    @Volatile var lastBake = ""
     /** On or off (a preview's -Dimpostors=0: the pack's crossed cards far off, as before). */
     @JvmStatic var on = true
 }

@@ -182,18 +182,21 @@ tasks.register<JavaExec>("preview") {
 
 // The town's memory check (gradle :desktop:townMemoryCheck): the app's cold start of the whole town (TownRun from the
 // spawn: the ground, greenery, props, yards and all 98 buildings, then walking) at a phone's Java heap. The heap is 320 MB
-// and the direct buffers (on the phone they are on the Java heap too) may take 160 MB more; with a full collection every
-// 100 ms the preview measures what is truly held, and fails if the live heap and the direct buffers held at once pass
-// -DheapBudget (MB, default 256: the phone's 320 MB less room for the rest of the app), or if anything runs out of memory.
+// and the direct buffers (on the phone they are on the Java heap too) may take 160 MB more (480 together: under the S25's
+// 512 MB largeHeap limit); with a full collection every 100 ms the preview measures what is truly held, and fails if the
+// live heap and the direct buffers held at once pass -DheapBudget (MB, default 320: the S25's 512 MB less 192 MB for the
+// rest of the app and the collector's room), or if anything runs out of memory. (It was 256, set when the app ran on a
+// 256-320 MB heap before largeHeap and before the world's far view and the tree impostors; see docs/HEAT.md, "Build heap".)
 if (withFilament) tasks.register<JavaExec>("townMemoryCheck") {
     group = "verification"
     description = "Builds the whole town from a cold start at a phone-sized heap and fails over the memory budget"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("PreviewKt")
-    jvmArgs("-Djava.awt.headless=true", "-Xmx320m", "-XX:MaxDirectMemorySize=160m", "-XX:+ExitOnOutOfMemoryError",
+    // (-DmemXmx=MB: a bigger heap, to measure a peak over the phone's without running out)
+    jvmArgs("-Djava.awt.headless=true", "-Xmx" + (System.getProperty("memXmx") ?: "320") + "m", "-XX:MaxDirectMemorySize=160m", "-XX:+ExitOnOutOfMemoryError",
         // (as many workers as the S25's cores give it)
         "-XX:ActiveProcessorCount=8",
-        "-Dmode=filament-town", "-Dshots=cold", "-DcoldOnly=1", "-Dmemlive=1", "-DheapBudget=" + (System.getProperty("heapBudget") ?: "256"))
+        "-Dmode=filament-town", "-Dshots=cold", "-DcoldOnly=1", "-Dmemlive=1", "-DheapBudget=" + (System.getProperty("heapBudget") ?: "320"))
     // (-DtownYards=placeholder: the yards as flat colours, to weigh what the yard kit holds)
     System.getProperty("townYards")?.let { jvmArgs("-DtownYards=$it") }
     // (-Dtown=<folder>: another town's export, for comparing what it holds; by default the town the app ships)

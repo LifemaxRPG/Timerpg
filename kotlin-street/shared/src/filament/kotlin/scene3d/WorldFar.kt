@@ -46,7 +46,13 @@ internal class WorldFar(
     private val u = origin.unitsPerMetre.toFloat()
 
     /** A mesh of the far view; [block]: the near terrain's root block ([blockKey]) it lies in, hidden where that is drawn near. */
-    private class Part(val name: String, val anchor: WorldPos, val packed: PropLayer.Packed, val block: Long? = null) { var layer: PropLayer? = null; var gen = -1 }
+    private class Part(val name: String, val anchor: WorldPos, packed: PropLayer.Packed, val block: Long? = null) {
+        var layer: PropLayer? = null; var gen = -1
+        /** Its packed buffers and picture until uploaded, then let go (they were kept for the town's life: ~15 MB). */
+        var packed: PropLayer.Packed? = packed
+        val bytes = packed.bytes.toLong()
+        val texBytes = packed.tex.buf.capacity().toLong()
+    }
     private var job: java.util.concurrent.Future<List<Part>>? = null
     private var parts: List<Part>? = null
     private var buildMs = 0f
@@ -60,17 +66,18 @@ internal class WorldFar(
         if (j != null && j.isDone) {
             parts = try { j.get() } catch (e: java.util.concurrent.ExecutionException) { throw BuildFailure("building the world's far view", e.cause ?: e) }
             job = null
-            WorldMemory.plan = parts!!.sumOf { it.packed.heldBytes }
+            WorldMemory.plan = parts!!.sumOf { it.packed?.heldBytes ?: 0L }
         }
         // one upload a call (a big mesh is a frame's work on the phone)
         val p = parts?.firstOrNull { it.layer == null } ?: return
         val l = PropLayer(kit.engine, kit.scene, kit.lit, null, sharedTextures = kit.textures, cull = false)
         l.seeThrough = false
-        l.upload(p.packed, casts = false)
+        l.upload(p.packed!!, casts = false)
         p.layer = l
+        p.packed = null
         val all = parts!!
-        WorldMemory.gpuBuffers = all.sumOf { it.packed.bytes.toLong() * if (it.layer != null) 1 else 0 }
-        WorldMemory.gpuTextures = all.filter { it.layer != null }.sumOf { (it.packed.tex.buf.capacity()).toLong() }
+        WorldMemory.gpuBuffers = all.sumOf { it.bytes * if (it.layer != null) 1 else 0 }
+        WorldMemory.gpuTextures = all.filter { it.layer != null }.sumOf { it.texBytes }
         WorldMemory.triangles = all.sumOf { it.layer?.triangles ?: 0 }
         WorldMemory.draws = all.sumOf { it.layer?.draws ?: 0 }
         if (all.all { it.layer != null }) WorldMemory.plan = 0

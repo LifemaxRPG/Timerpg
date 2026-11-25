@@ -1835,7 +1835,20 @@ class FilamentTown(
         if (!TreeImpostors.on || !groundBuilt || impAtlasJob != null) return
         val specs = chunks.values.flatMap { c -> c.treeList.map { it.first } }
         if (specs.isEmpty()) return
-        impAtlasJob = pool.submit(TownWorkers.LATER, "impostors", null, java.util.concurrent.Callable { impAtlas = TreeImpostors.bake(specs) })
+        // (when the workers have nothing else to do: the bake holds ~30 MB of pixels and their encoding while it runs, kept
+        // off the build's busiest moments; the far trees wear their cards until then)
+        impAtlasJob = pool.submit(TownWorkers.IDLE, "impostors", null, java.util.concurrent.Callable {
+            val a = TreeImpostors.bake(specs)
+            // packed for the GPU once, here, before any chunk's quads are packed (every one of them then finds it in
+            // [impShare]: not several workers encoding the same 2048 x ~4000 picture at once); then its pixels go, a
+            // one-int token taking their place as the packed picture's key (~30 MB of Java heap not kept for the town's life)
+            val (packed, _) = StreetTextures.prepareShared(a.px, a.w, a.h, linear = false, impShare)
+            impAtlas = if (packed.key?.mips == true) {
+                val token = IntArray(1)
+                impShare[token] = packed; impShare.remove(a.px)
+                TreeImpostors.Atlas(a.w, a.h, token, a.at, a.half, a.tall, a.ref, a.texel, a.trees)
+            } else a
+        })
     }
 
     // ------------------------------------------------------------------ the lights far off (docs/STREAMING.md)
