@@ -338,7 +338,7 @@ internal class TownBike(
             .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, vb, ib).material(0, mi).build(engine, e)
         engine.transformManager.create(e)
         scene.addEntity(e)
-        val pmi = proxyMat.createInstance().also { mm -> mm.setParameter("albedo", tex, crisp); mm.setParameter("uvRect", 0f, 0f, 1f, 1f); packed.quant?.decode(mm) }
+        val pmi = proxyMat.createInstance().also { mm -> mm.setParameter("albedo", tex, crisp); mm.setParameter("uvRect", 0f, 0f, 1f, 1f); packed.quant?.decode(mm); Cutouts.castOnly(mm) }
         val p = EntityManager.get().create()
         RenderableManager.Builder(1).boundingBox(box).culling(false).castShadows(true).receiveShadows(false)
             .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, vb, ib).material(0, pmi).build(engine, p)

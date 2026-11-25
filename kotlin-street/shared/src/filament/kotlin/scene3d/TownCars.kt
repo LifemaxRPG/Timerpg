@@ -96,7 +96,7 @@ internal class TownCars(
         for ((i, p) in m.parts.withIndex()) {
             d.partStart[i] = d.near.batchCount
             for (pk in b.nearPacked[i]) {
-                val mi = d.near.upload(pk.packed, pk.casts, pk.tiled)
+                val mi = d.near.upload(pk.packed, pk.casts, pk.tiled, own = true)
                 if (p.lamp != null) { d.lampMi += mi; d.lampRole += p.lamp; d.lampSide += if (p.name.endsWith("_l")) -1 else 1 }
             }
             d.partCount[i] = d.near.batchCount - d.partStart[i]

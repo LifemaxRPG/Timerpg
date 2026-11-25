@@ -902,7 +902,7 @@ class FilamentStreet(
         var proxy = 0
         var pmis: Array<MaterialInstance> = emptyArray()
         if (casts && !albedo) {
-            pmis = Array(faces.size) { j -> proxyMat.createInstance().also { mi -> mi.setParameter("albedo", faces[j].tex, crisp); mi.setParameter("uvRect", 0f, 0f, 1f, 1f) } }
+            pmis = Array(faces.size) { j -> proxyMat.createInstance().also { mi -> mi.setParameter("albedo", faces[j].tex, crisp); mi.setParameter("uvRect", 0f, 0f, 1f, 1f); Cutouts.castOnly(mi) } }
             proxy = EntityManager.get().create()
             val pb = RenderableManager.Builder(faces.size).boundingBox(bbox).castShadows(true).receiveShadows(false)
             for (j in faces.indices) pb.geometry(j, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices, ranges[j][0], ranges[j][1]).material(j, pmis[j])
@@ -957,7 +957,7 @@ class FilamentStreet(
         var proxy = 0
         var pmi: MaterialInstance? = null
         if (!albedo) {
-            pmi = proxyMat.createInstance().also { m -> m.setParameter("albedo", tex, nearest); m.setParameter("uvRect", 0f, 0f, 1f, 1f) }
+            pmi = proxyMat.createInstance().also { m -> m.setParameter("albedo", tex, nearest); m.setParameter("uvRect", 0f, 0f, 1f, 1f); Cutouts.castOnly(m) }
             proxy = EntityManager.get().create()
             RenderableManager.Builder(1).boundingBox(Box(.5f, .5f, 0f, .5f, .5f, .1f)).castShadows(true).receiveShadows(false)
                 .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, vb, ib).material(0, pmi).build(engine, proxy)

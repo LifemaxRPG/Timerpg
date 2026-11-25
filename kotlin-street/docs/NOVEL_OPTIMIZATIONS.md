@@ -397,3 +397,142 @@ moment before the copy, so the kernel does not have to find the room under press
    SurfaceView.
 4. Idea 4: live material instances against `gfxDev` in the `accounts` line.
 5. Idea 9: battery current with the model loaded and idle against unloaded.
+
+---
+
+## As built (2026-11-25, the GPU job)
+
+Desktop = the build server (4 x86 cores, Mesa llvmpipe, software GL), shared with other jobs while this ran (build
+times on it are not comparable between runs). Renders: `-Dmode=filament-open -Dw=1600` over seven views (downtown at
+13 h, dusk and night, the square from above, a Heights backyard at 13 h and at night, Main Street behind the player).
+Two runs of the start commit differ by 21 px (max 1 level) in one view and 3 px in another: that is the floor.
+**Nothing below was measured on the S25.**
+
+### Idea 1, opaque twins: built (`Cutouts.kt`, `street_lit_opaque`, `shadow_proxy_opaque`)
+
+- `tools/build-materials.sh` compiles the two twins from the same sources with `blending : opaque`; the cut-out alpha,
+  the screen doors (fade, see-through, cutaway) and the one-sided cut sit under `#if defined(BLEND_MODE_MASKED)` and
+  compile away there (`street_lit.filamat` itself came out byte-identical). An opaque shadow twin's shadow pass is
+  depth only (Filament skips the material's fragment code for opaque depth variants).
+- **What counts as opaque**: a picture whose every texel has alpha >= 204 (0.8). Then every mip level is too, at any
+  distance or angle, and Filament's alpha-to-coverage (on for every masked material, MaterialDefinition.cpp:542) would
+  have kept every sample. The ground's tiles, the plain-coloured model parts and the solid textures pass.
+- **Measured on the capital (preview counters)**: 608,318 of 7,490,029 batched triangles (8.1%) are opaque, in 12,982
+  opaque primitives (14,471 masked). The atlases do not pass: the yards' shared sheet is 63% empty texels, the
+  buildings' 512 x 512 atlases 65%, so their small mip levels average holes into every part. A per-triangle test
+  (`-DopaqueTriangles=1`: each triangle's texels at every mip level it can read, 5 texels round it for MSAA's
+  off-triangle shading) found only +0.2% more triangles (0 of 3.5 M on the yards' sheet, 309 of 559 k on the building
+  atlases) for ~10 s of the build workers' time, so it is off; the default whole-picture test costs ~0.6 s of worker
+  time for the town (row scans that stop at the first hole). Triangles are not pixels: the ground (every street,
+  pavement and lawn tile) is a large share of each view's pixels and is all opaque now; how much GPU that saves is for
+  the S25 to say (AGI: LRZ and GPU busy on the same view, `Cutouts.on` true and false).
+- **Swaps**: a model or batch wears masked twins (made when first needed: 260 over the seven views) while it fades,
+  while the see-through can reach it (`SeeThrough.reaches`, a conservative box round the cone and the faded crowns),
+  or while its layer is cut away. Batches whose instance a caller animates (a pool's water, cinema, cars, landmark
+  animation) stay masked.
+- **Pixels**: against the start, identical but for: 22 px in one view (as two start runs differ), 4 px (max 11
+  levels) and 1 px (max 22) at triangle edges (the opaque triangles are their own primitive now, so which of two
+  equal-depth samples at a shared edge wins can change), and in one run a far house's lit windows (the night light is
+  updated a few ms a frame, so on a loaded machine its timing moves; the same view was 90 px, max 4, the run before).
+- `-Dopaque=0` / `Cutouts.on = false` draws everything masked as before.
+
+### Per-frame parameters only on change (part of OSS_TAILORING F4; the S25's "green" 3.7 ms)
+
+PropLayer and the buildings' loop used to send `look`, the see-through (3-5 parameters), `glow`, `glass`, `cell`,
+`fade` and two layer masks to every drawn batch every frame (string JNI calls, and each makes Filament re-upload the
+instance's uniforms). Now a layer remembers what each batch's instances hold (a look generation, a see-through
+generation bumped only when its values change, the glow, the masks), and the buildings a generation of the shared
+values plus their own fade: a frame with a still camera sends next to nothing, a moving one only `look`. Same pixels
+(the renders above). The rest of F4 (`look` into Filament's camera, globals into `setMaterialGlobal`) is not done.
+The S25's "green" and "render" CPU parts before and after are the measure.
+
+### Idea 3, SurfaceView: built, compile-checked only
+
+The town (which draws its own sky) is drawn into a SurfaceView in the default Z order (behind the window: it punches
+its hole, the HUD composes over it); the crossroads street keeps its TextureView. `UiHelper` handles the surface's life
+as before; `Surface.setFrameRate` now reaches a real layer. Screenshots copy the window over a `PixelCopy` of the
+SurfaceView. `FilamentSurface.useSurfaceView = false` to compare. **Needs the S25**: the picture with the HUD, a
+screenshot report, pause/resume, a room and back, battery current over the same 5-minute walk against the TextureView,
+and the frame pacing (HEAT.md 1).
+
+### Idea 4, sharing material instances: measured, not built
+
+The capital's scene holds **38,476 primitives over 23,142 renderables** (end of the preview; each primitive wears its
+own instance, shadow twins included). Filament 1.81's material-instance uniform batching is on (Engine.cpp:534; the GL
+backend turns it off only for a PowerVR GE9215 and WebGL), so the instances' uniforms are slots of one shared buffer,
+~448 bytes each for street_lit (its parameters in std140 at a 64-byte alignment): **~10-17 MB in all** (estimate), not
+the hundreds of MB G9 guessed. Sharing by texture would save at most that and would mean moving the vertex decode into
+the transforms; not worth it now. Gfx dev's 463 MB is elsewhere (`dumpsys meminfo -d` on the S25 is still the way to
+find it). The instances' per-frame cost (their uniforms re-uploaded every frame) is what "only on change" removes.
+
+### Idea 5, 16-byte vertices: measured, not built
+
+Filament's vertex shader makes the normal from the tangent quaternion without normalising it (`toTangentFrame`:
+n = (0,0,1) + 2 q.x (...) + 2 q.y (...)), so a quaternion read back from 8 bits must be exactly unit to give the same
+light. Only components 0 and +-1 are exact in snorm8; 1/2 and √½, which every wall, roof and ground frame turned a
+quarter needs, are not (64/127 = 0.504, 90/127 = 0.709). The exact frames are the faces facing +-z in the world:
+**1,462,589 of 16,357,572 quantised vertices (8.9%)**, and the town's streets do not run along the axes. A 16-byte
+layout for 9% of the vertices would save ~6 MB for the whole town and add a third page kind: not built.
+
+### OSS_TAILORING items added to this job
+
+- **(a) Shadow twins out of the colour pass**: every shadow-proxy instance gets culling FRONT_AND_BACK in the colour
+  pass and NONE in the shadow passes (`Cutouts.castOnly`), so Filament drops their colour-pass commands
+  (RenderPass.cpp: "cancel command if both front and back faces are culled"). They wrote nothing there, so the same
+  pixels; renders identical. `-DcastOnly=0` to compare.
+- **F8, 2 bands of spherical harmonics** in the town's materials (`sphericalHarmonicsBandCount(2)`; the light gives
+  2 bands): **not identical, not kept**. Day views were identical, but the night views moved by up to 21 levels over
+  20-28% of their pixels (the night's ambient), so the materials keep Filament's 3 bands.
+- **F5, the froxels' depth range** (`setDynamicLightingOptions(30, 3000)`): **not identical, left off**
+  (`-DlightRange=1` / `FilamentTown.lightRange`). With it the dusk and night renders change a lot (12-42% of pixels):
+  the street lamps' pools of light appear on the pavements, which the default range (5-100 units) does not show. It
+  looks as if the default puts so many lamps in its last slice that some are dropped: a likely fix, but a look change
+  for the owner to judge (contact sheet).
+- Not done here: F3 (into a 4x MSAA sRGB swap chain: wants the SurfaceView on the phone first and its 24-bit depth
+  judged there), F6a (long-hidden renderables out of the scene), the rest of F4, and per-cascade shadow culling (needs a
+  Filament source build, F0).
+
+### The far trees' impostors at 1.6x the near trees' texel: checked, not visible, no change
+
+HEAT.md 5 capped the impostor atlas at 2048 x 4096, so the capital's far trees are baked at 1.60x the near trees'
+texel. Renders at full size (2340 x 1080) of the views that look across the 3D-to-impostor line (the `fb_trees` set:
+a lawn and a park edge with tree lines from ~1,100 units out, and the downtown skyline and wide views), three ways:
+as built (1.6x), the atlas allowed 12,000 rows (`-DimpRows=12000`, a ~1.0x bake; 3x the bake's heap) and impostors
+off (the pack's crossed cards). 1.6x against 1.0x: 1.0-1.2% of the pixels differ, nearly all by under 9 levels, inside
+the far crowns; in 2x crops side by side the crowns' outlines are the same shapes and the haze over them hides the
+texel size. Impostors against cards is the big change (the cards' flat leaf pictures against the trees' own lit
+shapes), as STREAMING.md 5 already showed. The skyline views do not change at all (no trees at the line in them).
+Judgement: the coarser texel is not visible at the line; nothing to fix, no memory spent. Not checked: a dusk view
+with trees at the line (no such preview view; the haze is thicker then, so it would hide more), and the S25's 3120 x
+1440 screen. Crops: the job's scratchpad `gpu/impostors.png`. `-DimpRows=N` stays as the switch to look again.
+
+### The S25 log of 0.1.909 (60 fps, 4x MSAA, the governor): what the code says
+
+- **MSAA**: Settings "Anti-aliasing" switches it live (TownQuality.msaa, 1 or 4), so the A/B is there: GPU p50 at
+  the same spot with it on and off. On the phone the colour pass stores an RGB16F buffer resolved from 4 samples, and
+  the grading pass reads it again (OSS_TAILORING F3), so 4x likely costs more than HEAT.md's 0.5-1.5 ms estimate.
+  The default is the owner's call; not changed here.
+- **The automatic resolution** steps down only after the GPU's smoothed time has stayed over 1.05 x the budget
+  (17.5 ms at 60) for 1.5 s without a break (ResolutionSteps: one frame under resets the count). A GPU p50 of 17.0 to
+  19.8 ms sits right on that line, so it may never step; and if the GPU time is not mostly pixels (shadow cascades,
+  binning, vertex work at 1,000+ draws), a smaller scale helps less than its square. The `res` field of the pow line
+  says which it was. The thermal governor's levels (headroom 0.75: resolution at most 0.86; 0.85: at most 0.72 and 3
+  cascades) are applied through `Heat.resolutionChanged` and should show as "heat: level N" breadcrumbs: with the
+  headroom at 0.85-0.93 those should be there; if not, the smoothed headroom stayed under the lines.
+
+### Tests and checks (desktop, this job's end)
+
+GpuBudgetTest, GpuRouteTest (peak 487.0 MB of the 495 budget; its CPU times are not comparable to HEAT.md's, the
+server was shared with other jobs' builds the whole time), MeridianStepsTest, NightMaskPagesTest, VertexQuantTest,
+HeatPlanTest, ResolutionStepsTest and OpenWalkTest pass; townMemoryCheck holds 254 MB at the peak (budget 320); the
+app compiles. No memory budget moved (TownBudget unchanged): these items save GPU and CPU time, not memory. Contact
+sheet (desktop renders, not S25 captures): the job's scratchpad `gpu/contact.png` (start against now, and the light
+range's night) and `gpu/impostors.png` (the far trees, 2x crops).
+
+### What needs the S25
+
+1. Idea 1: GPU ms and AGI's LRZ counters on the same downtown view with `Cutouts.on` true and false (a debug build).
+2. The per-frame parameters: the frame line's "green" and "render" CPU parts standing still and walking, against 0.1.909.
+3. The SurfaceView: everything in its section above (pixels with the HUD, screenshots, lifecycle, power, pacing).
+4. The shadow twins out of the colour pass: GPU ms in daylight (the casters near the view were shaded twice).
+5. F5's light range: the owner's eye on the lamps at night (`FilamentTown.lightRange`), then its GPU ms at night.

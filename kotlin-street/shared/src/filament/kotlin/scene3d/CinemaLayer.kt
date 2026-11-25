@@ -29,7 +29,7 @@ internal class CinemaLayer(private val props: PropLayer) {
     /** Uploads parts [pack] made ready (the engine's thread): as [add], without the model. */
     fun upload(parts: List<Packed>) {
         for (p in parts) {
-            val mi = props.upload(p.packed, p.casts, p.tiled)
+            val mi = props.upload(p.packed, p.casts, p.tiled, own = true)
             if (p.role != CinemaPart.Role.BODY) lits += Lit(mi, p.role)
         }
     }
