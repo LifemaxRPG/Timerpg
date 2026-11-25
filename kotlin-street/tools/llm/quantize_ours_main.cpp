@@ -1,5 +1,5 @@
 // Command line for quantize_ours.h (the same code the app will run on the phone), with its time and peak memory:
-//   quantize_ours SRC-BF16.gguf IMATRIX.gguf DST.gguf [Q4_0|Q4_K_M] [--threads N] [--max-buf-mib N]
+//   quantize_ours SRC-BF16.gguf IMATRIX.gguf DST.gguf [Q4_0|Q4_K_M] [--threads N] [--max-buf-mib N] [--plain] [--ssm-out-q8]
 #include "quantize_ours.h"
 
 #include "llama.h"
@@ -14,7 +14,7 @@
 
 int main(int argc, char ** argv) {
     if (argc < 4) {
-        std::fprintf(stderr, "usage: %s SRC.gguf IMATRIX.gguf DST.gguf [Q4_0|Q4_K_M] [--threads N] [--max-buf-mib N]\n", argv[0]);
+        std::fprintf(stderr, "usage: %s SRC.gguf IMATRIX.gguf DST.gguf [Q4_0|Q4_K_M] [--threads N] [--max-buf-mib N] [--plain] [--ssm-out-q8]\n", argv[0]);
         return 2;
     }
     timerpg::QuantizeOptions opt;
@@ -22,6 +22,8 @@ int main(int argc, char ** argv) {
         const std::string a = argv[i];
         if (a == "--threads" && i + 1 < argc) opt.threads = std::atoi(argv[++i]);
         else if (a == "--max-buf-mib" && i + 1 < argc) opt.max_buf_mib = std::strtoull(argv[++i], nullptr, 10);
+        else if (a == "--plain") opt.keep_ssm = false;
+        else if (a == "--ssm-out-q8") opt.ssm_out_q8 = true;
         else opt.ftype = a;
     }
     llama_backend_init();

@@ -14,6 +14,8 @@ struct QuantizeOptions {
     std::string ftype = "Q4_0";   // "Q4_0" or "Q4_K_M"
     int threads = 0;              // 0 = every core
     uint64_t max_buf_mib = 512;   // rows kept in memory at once (llama.cpp's default is 8 GiB; this bounds the peak)
+    bool keep_ssm = true;         // ssm_alpha/ssm_beta at Q8_0 and ssm_out at Q5_K, as the shipped Hugging Face Q4_0
+    bool ssm_out_q8 = false;      // ssm_out at Q8_0 instead of Q5_K (if the NPU backend prefers no K-quants)
 };
 
 /** SRC (BF16/F16 GGUF) + IMATRIX (llama-imatrix's GGUF output) -> DST (via DST.part, renamed when complete).

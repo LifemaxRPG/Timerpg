@@ -84,7 +84,7 @@ bool quantize_ours(const std::string & src, const std::string & imatrix, const s
     if (!dataset.empty()) kv_str("quantize.imatrix.dataset", dataset);
     kv_int("quantize.imatrix.entries_count", (int64_t) data.size());
     kv_int("quantize.imatrix.chunks_count", chunks);
-    kv_str("timerpg.quant", "quantize_ours v1 " + opt.ftype + " imatrix token_embd/output q8_0");
+    kv_str("timerpg.quant", "quantize_ours v1 " + opt.ftype + " imatrix token_embd/output q8_0" + (opt.keep_ssm ? (opt.ssm_out_q8 ? " ssm q8_0" : " ssm q8_0/q5_k") : ""));
     kv.emplace_back(); kv.back().key[0] = 0;
 
     llama_model_quantize_params qp = llama_model_quantize_default_params();
@@ -92,6 +92,16 @@ bool quantize_ours(const std::string & src, const std::string & imatrix, const s
     qp.ftype = ftype;
     qp.token_embedding_type = GGML_TYPE_Q8_0;  // the (tied) head of the 4B: its first K rows go to the NPU once trimmed
     qp.output_tensor_type = GGML_TYPE_Q8_0;    // the 9B's separate head
+    // the delta-net layers' small tensors at higher types, as the shipped Hugging Face Q4_0 has them (unsloth: ssm_alpha
+    // and ssm_beta Q8_0, ssm_out Q5_K); llama.cpp's own Q4_0 recipe puts them at Q4_0, which measured worse on our text
+    std::vector<llama_model_tensor_override> tt;
+    if (opt.keep_ssm) {
+        tt.push_back({"ssm_alpha\\.weight", GGML_TYPE_Q8_0});
+        tt.push_back({"ssm_beta\\.weight", GGML_TYPE_Q8_0});
+        tt.push_back({"ssm_out\\.weight", opt.ssm_out_q8 ? GGML_TYPE_Q8_0 : GGML_TYPE_Q5_K});
+        tt.push_back({nullptr, GGML_TYPE_COUNT});
+        qp.tt_overrides = tt.data();
+    }
     qp.imatrix = im.data();
     qp.kv_overrides = kv.data();
     qp.max_buf_size = (size_t) opt.max_buf_mib << 20;
