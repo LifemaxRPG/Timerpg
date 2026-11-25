@@ -404,7 +404,21 @@ int addVehicle(World *w, const float *d, const float *boxes, int boxCount, float
         wh->mMaxHandBrakeTorque = front ? 0.f : d[VD_HANDBRAKE_TORQUE];
         // the tyres' grip curves scaled (Jolt's defaults are a modern radial tyre)
         for (auto &p : wh->mLongitudinalFriction.mPoints) p.mY *= d[VD_FRICTION_LONG];
-        for (auto &p : wh->mLateralFriction.mPoints) p.mY *= d[VD_FRICTION_LAT];
+        // (per axle: the rear's lateral grip its own where given, a race build's balance)
+        const float lat = front || d[VD_FRICTION_LAT_REAR] <= 0.f ? d[VD_FRICTION_LAT] : d[VD_FRICTION_LAT_REAR];
+        for (auto &p : wh->mLateralFriction.mPoints) p.mY *= lat;
+        // the front tyres past their peak: Jolt's curve falls from 1.2 at 3 degrees to 1.0 at 20, so a thumb winding on
+        // more lock than the peak needs washes the front out (understeer at the limit); a race front's flatter tail
+        // (VD_FRONT_LAT_TAIL of the peak, held to 12 degrees, then easing to Jolt's 20-degree share) keeps it biting
+        const float tail = d[VD_FRONT_LAT_TAIL];
+        if (front && tail > 0.f) {
+            const float peak = 1.2f * lat;
+            wh->mLateralFriction.Clear();
+            wh->mLateralFriction.AddPoint(0.f, 0.f);
+            wh->mLateralFriction.AddPoint(3.f, peak);
+            wh->mLateralFriction.AddPoint(12.f, peak * tail);
+            wh->mLateralFriction.AddPoint(20.f, peak * std::min(tail, std::max(1.f / 1.2f, tail - .05f)));
+        }
         vs.mWheels.push_back(wh);
     }
     vs.mAntiRollBars.resize(2);

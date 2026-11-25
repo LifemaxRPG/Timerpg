@@ -1508,7 +1508,7 @@
   ],
   "based_on": "torrel-1988",
   "race": {
-   "note": "the race build's setup, read by the game's physics (VehicleSpec.Race); the road car's in brackets",
+   "note": "the race build's setup, read by the game's physics (VehicleSpec.Race); the road car's in brackets. lateral_grip [front, rear] and front_grip_tail: the cornering balance (docs/CARS.md, 2026-11-25); Jolt takes the square root of grip x ground",
    "engine_torque_nm": 330,
    "engine_rpm": [
     900,
@@ -1538,7 +1538,7 @@
    "com_y_m": 0.36,
    "downforce_n_at_100_kmh": 650,
    "downforce_n_at_200_kmh": 2600,
-   "downforce_front": 0.38,
+   "downforce_front": 0.4,
    "ride_height_m": 0.104,
    "splitter_height_m": 0.09,
    "road_car": {
@@ -1567,7 +1567,12 @@
     "com_y_m": 0.42,
     "ride_height_m": 0.154,
     "downforce_n_at_200_kmh": 0
-   }
+   },
+   "lateral_grip": [
+    1.52,
+    1.48
+   ],
+   "front_grip_tail": 1.0
   },
   "rs_parts": [
    "rs_wing",

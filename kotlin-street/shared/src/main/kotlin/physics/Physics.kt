@@ -92,7 +92,10 @@ object VehicleDesc {
     /** Aerodynamic downforce: N per (m/s)^2 of forward speed (0: none), and the share of it on the front axle. */
     const val DOWNFORCE = 33
     const val DOWNFORCE_FRONT = 34
-    const val COUNT = 35
+    /** The rear tyres' lateral grip multiplier (0: as FRICTION_LAT), and the front tyres' lateral grip past their peak slip as a share of the peak (0: Jolt's). */
+    const val FRICTION_LAT_REAR = 35
+    const val FRONT_LAT_TAIL = 36
+    const val COUNT = 37
 }
 
 /** Indices into [Physics.state]'s output (physics_core.h VehicleStateIndex). */
