@@ -70,6 +70,9 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     /** With [stateDir]: the shortest state (the shared rules) also stays in RAM. Off by default: on a computer a
      *  restore from the mapped file in the page cache cost about what one from RAM did (docs/CONVERSATION.md). */
     @Volatile var hotState = false
+    /** With [stateDir]: which states a reply writes from the next load (1 the shared rules, 2 the person, 4 the whole
+     *  fact sheet; [bake] writes all three). */
+    @Volatile var statePoints = 7
     /** The loaded model's cache is in 8 bits. */
     val kvQ8Used: Boolean get() = handle != 0L && runCatching { nativeKvQ8(handle) }.getOrDefault(false)
     /**
@@ -199,7 +202,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
             }
             runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0) or (if (kvQ8) 32 else 0) or (mtp.coerceIn(0, 15) shl 8) or (batchCode(batch) shl 12) or (if (headMapped) 1 shl 15 else 0) or (ngram.coerceIn(0, 15) shl 16)) }
             poolSent = null
-            runCatching { nativeSetSnapshots(handle, (stateDir?.path ?: "").toByteArray(Charsets.UTF_8), stateBudgetBytes, hotState) }
+            runCatching { nativeSetSnapshots(handle, (stateDir?.path ?: "").toByteArray(Charsets.UTF_8), stateBudgetBytes, hotState, statePoints) }
             loaded = false  // the native load frees the old model first
             val ok = try {
                 nativeLoad(handle, path.toByteArray(Charsets.UTF_8), t, ctx)
@@ -407,7 +410,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     private external fun nativeLoadInfo(): String?
     private external fun nativeLoadMem(): DoubleArray?
     private external fun nativeKvQ8(handle: Long): Boolean
-    private external fun nativeSetSnapshots(handle: Long, dir: ByteArray, budgetBytes: Long, hot: Boolean)
+    private external fun nativeSetSnapshots(handle: Long, dir: ByteArray, budgetBytes: Long, hot: Boolean, points: Int)
     private external fun nativeBake(handle: Long, prompt: ByteArray): Int
     private external fun nativeSetPool(handle: Long, lines: ByteArray)
     private external fun nativeSnapStats(handle: Long): LongArray?

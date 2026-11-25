@@ -201,9 +201,10 @@ public:
      * back (mapped, so the pages stay the system's to drop) on a restore, and kept across loads and sessions (keyed by
      * the model, its cache type and device, and the exact tokens). The directory's files are kept under [budget_bytes]
      * (the least recently used go first). [keep_hot]: the shortest state (the shared rules) also stays in RAM.
-     * An empty [dir]: states in RAM as before (up to 8). Takes effect at once and on every later load.
+     * An empty [dir]: states in RAM as before (up to 8). Takes effect at once and on every later load. [points]: which
+     * of them generate() writes (1 the rules, 2 the persona, 4 the fact sheet; bake() writes all three).
      */
-    void set_snapshot_dir(const std::string & dir, int64_t budget_bytes, bool keep_hot);
+    void set_snapshot_dir(const std::string & dir, int64_t budget_bytes, bool keep_hot, int points = 7);
     /**
      * Pre-bakes [prompt]'s states: processes its system message up to the last saved point (rules, persona, fact
      * sheet), writing the states it does not have yet, and leaves the cache there. Returns the tokens the deepest state
@@ -237,7 +238,7 @@ private:
     std::vector<size_t> line_ends(const std::vector<int32_t> & toks) const;
     /** Where states are saved: every line end in RAM; with a directory, the end of the rules, of the persona and of
      *  the whole fact sheet (see set_snapshot_dir). */
-    std::vector<size_t> snapshot_points(const std::vector<int32_t> & toks) const;
+    std::vector<size_t> snapshot_points(const std::vector<int32_t> & toks, int mask = -1) const;
     /** Reads the headers of this model's state files in the directory (again, when it changed). */
     void scan_snapshots(bool force);
     /** Removes the least recently used files until the directory is under its budget. */
@@ -258,6 +259,7 @@ private:
     std::string snap_dir_;
     int64_t snap_budget_ = 0;
     bool snap_hot_ = false;
+    int snap_points_ = 7;            // which points generate() saves: 1 the rules, 2 the persona, 4 the fact sheet
     uint64_t snap_key_ = 0;
     int64_t snap_dir_mtime_ = -1;
     SnapStats snap_stats_;

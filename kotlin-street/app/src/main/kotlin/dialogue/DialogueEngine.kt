@@ -1556,6 +1556,10 @@ class DialogueEngine private constructor(private val app: Context) {
         // process and the writer's, kept across sessions; their budget leaves the phone's storage at least half free
         native?.stateDir = stateDir
         native?.stateBudgetBytes = stateBudget()
+        // writing the bank, only the shared rules' state: thousands of prompts a night would otherwise write a state of
+        // ~100 MB each for each person and fact sheet (wear on the flash), most of them never read again; in play every
+        // point, so a conversation's next questions restore its whole fact sheet
+        native?.statePoints = if (night) 1 else 7
         val deviceCopy = native != null && !cpuFallback && native.device != com.timerpg.street.llm.NativeLlm.CPU
         // right before a device copy: the Java heap and the native allocator give back what they can (C2, M6: memory freed
         // just before the load shows up as free in full; an hour earlier Android would have refilled it with cache)

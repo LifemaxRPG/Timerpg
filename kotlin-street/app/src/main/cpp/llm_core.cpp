@@ -459,7 +459,7 @@ uint64_t Engine::model_key() const {
     return fnv1a(k.data(), k.size());
 }
 
-void Engine::set_snapshot_dir(const std::string & dir, int64_t budget_bytes, bool keep_hot) {
+void Engine::set_snapshot_dir(const std::string & dir, int64_t budget_bytes, bool keep_hot, int points) {
     std::string d = dir;
     while (d.size() > 1 && d.back() == '/') d.pop_back();
     if (!d.empty()) mkdir(d.c_str(), 0700);
@@ -471,6 +471,7 @@ void Engine::set_snapshot_dir(const std::string & dir, int64_t budget_bytes, boo
     snap_dir_ = d;
     snap_budget_ = budget_bytes;
     snap_hot_ = keep_hot;
+    snap_points_ = points & 7;
     if (!snap_hot_) for (auto & s : snapshots_) if (!s.path.empty()) std::vector<uint8_t>().swap(s.state);
     if (ctx_ && recurrent_) { scan_snapshots(true); enforce_budget(); }
     stat_snapshots();
@@ -567,7 +568,7 @@ void Engine::keep_hot(Snapshot & s, const uint8_t * data) {
     if (s.state.empty() && data) s.state.assign(data, data + s.bytes);
 }
 
-std::vector<size_t> Engine::snapshot_points(const std::vector<int32_t> & toks) const {
+std::vector<size_t> Engine::snapshot_points(const std::vector<int32_t> & toks, int mask) const {
     if (snap_dir_.empty()) return line_ends(toks);
     // the system message's lines (src/llm/factsheet.ts: "<|im_start|>system", the rules, "FACTS", "You are ...", the
     // manner, "The player is ...", the topic's facts, the example): saved after "FACTS" (the rules, shared by everyone),
@@ -591,7 +592,9 @@ std::vector<size_t> Engine::snapshot_points(const std::vector<int32_t> & toks) c
     }
     if (!rules && lines.size() > 1) rules = lines[1].first;  // (another prompt format: after its first line of text)
     std::vector<size_t> out;
-    for (size_t p : {rules, persona, lines.back().first}) if (p > 0 && (out.empty() || p > out.back())) out.push_back(p);
+    if (mask < 0) mask = snap_points_;
+    const size_t pts[3] = {rules, persona, lines.back().first};
+    for (int k = 0; k < 3; ++k) if ((mask >> k & 1) && pts[k] > 0 && (out.empty() || pts[k] > out.back())) out.push_back(pts[k]);
     return out;
 }
 
@@ -748,7 +751,7 @@ int Engine::bake(const std::string & prompt) {
         std::vector<int32_t> toks;
         if (!tokenize(prompt, toks) || toks.empty()) { error_ = "could not tokenize the prompt"; return -1; }
         if (toks.size() >= llama_n_ctx(ctx_)) { error_ = "prompt too long"; return -1; }
-        const std::vector<size_t> pts = snapshot_points(toks);
+        const std::vector<size_t> pts = snapshot_points(toks, 7);  // (every point, whatever generate() saves)
         if (pts.empty()) return 0;
         const size_t deep = pts.back();
         scan_snapshots(false);

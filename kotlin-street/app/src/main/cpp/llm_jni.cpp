@@ -194,9 +194,10 @@ extern "C" JNIEXPORT void JNICALL FN(nativeSetPool)(JNIEnv * env, jobject, jlong
 }
 
 /** Saved states on flash (llm::Engine::set_snapshot_dir): [dir] empty keeps them in RAM. */
-extern "C" JNIEXPORT void JNICALL FN(nativeSetSnapshots)(JNIEnv * env, jobject, jlong h, jbyteArray dir, jlong budget_bytes, jboolean hot) {
+extern "C" JNIEXPORT void JNICALL FN(nativeSetSnapshots)(JNIEnv * env, jobject, jlong h, jbyteArray dir, jlong budget_bytes, jboolean hot,
+                                                        jint points) {
     if (!h) return;
-    try { engine(h)->set_snapshot_dir(from_bytes(env, dir), budget_bytes, hot == JNI_TRUE); } catch (...) {}
+    try { engine(h)->set_snapshot_dir(from_bytes(env, dir), budget_bytes, hot == JNI_TRUE, points); } catch (...) {}
 }
 
 /** Pre-bakes a prompt's saved states (llm::Engine::bake): the tokens covered, 0 nothing to bake, -1 failed. */

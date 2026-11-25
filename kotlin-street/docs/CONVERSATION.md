@@ -225,8 +225,11 @@ cannot take back (one per line end of the facts), and nothing counted them.
 - **Pre-baked**: `Engine::bake(prompt)` (`NativeLlm.bake`) processes a prompt's system message to its last point and
   writes the states it lacks. In play the light model idles between replies (pre-generation is the main model's), so
   standing still the worker bakes the fact sheets of the 12 nearest people with lines still unwritten, each once a
-  session (`DialogueEngine.bakeJobLocked`); talking to them then restores their whole fact sheet. Overnight, every prompt
-  the writer answers leaves its states on flash for the main model in the same way.
+  session (`DialogueEngine.bakeJobLocked`); talking to them then restores their whole fact sheet. Overnight the writer
+  saves only the rules' state (`NativeLlm.statePoints` 1): thousands of prompts a night would otherwise write a state
+  of ~100 MB for each person and fact sheet (tens to hundreds of GB of flash wear a night), most never read again; the
+  main model rarely answers in play anyway. Baking the light model's states overnight (it is not loaded there) would
+  need the writer to load it after the bank is written: not done; the in-play baking covers the people nearby.
 - **Proof** (`llm_host_test --snapshot-test DIR`, Qwen3.5-0.8B Q4_0, greedy, this 4-core server): a new session restores
   every one of the 5 test prompts from files written by the first session (109-133 of 130-179 prompt tokens restored)
   and its replies are **token-identical** to the fresh prefill's (5 of 5); pre-baked states likewise (5 of 5); with a
