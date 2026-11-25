@@ -52,6 +52,8 @@ export interface TimelineIntervention {
   crimeKind?: CrimeKind;
   /** Optional linked crime id in `timeline.crimes`. */
   crimeId?: string;
+  /** For `arson`, whether the fire was set at night (defaults to true in `src/sim`, risking casualties). */
+  atNight?: boolean;
   /** Optional physical lot slot id for `arson`, `demolish`, or `prevent_building`. */
   slot?: string;
   /** Human-readable building label for `prevent_building` / `demolish` (e.g. `"Professor's lab"`). */

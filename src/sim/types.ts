@@ -71,6 +71,8 @@ export type Intervention =
   | { kind: 'kill'; year: number; targetId: Id }
   | { kind: 'invest'; year: number; businessId: Id; amount: number }
   | { kind: 'sabotage'; year: number; businessId: Id }
+  /** Burns the store down in that year, leaves the lot empty, and risks nighttime casualties. */
+  | { kind: 'arson'; year: number; businessId: Id; atNight?: boolean }
   | { kind: 'introduce'; year: number; a: Id; b: Id }
   /** amount in -1..1: negative spreads a damaging rumor, positive runs a flattering campaign */
   | { kind: 'rumor'; year: number; targetId: Id; amount: number }
