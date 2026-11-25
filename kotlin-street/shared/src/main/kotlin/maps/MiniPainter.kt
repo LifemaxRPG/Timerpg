@@ -120,6 +120,8 @@ class MiniPainter {
      */
     fun draw(ds: DrawScope, layerFor: (Float) -> MapLayer?, p: MapPlayer, zoom: Int, headingUp: Boolean, autoZoom: Boolean, showPlayer: Boolean,
              waypoint: FloatArray?, route: MapRoute?, distanceM: Float, extra: List<MapPoi>, nanos: Long, tm: TextMeasurer?) = with(ds) {
+        val t0 = System.nanoTime()
+        nDrawn = 0
         val s = size.minDimension
         val ap = artPx(density)
         build(s, ap)
@@ -159,10 +161,26 @@ class MiniPainter {
                     val half = r / sc + 2f
                     val sx0 = floor(pcx - half).toInt().coerceIn(0, layer.w); val sx1 = ceil(pcx + half).toInt().coerceIn(0, layer.w)
                     val sz0 = floor(pcz - half).toInt().coerceIn(0, layer.h); val sz1 = ceil(pcz + half).toInt().coerceIn(0, layer.h)
-                    if (sx1 > sx0 && sz1 > sz0) {
+                    val tiles = layer.tiles
+                    if (sx1 > sx0 && sz1 > sz0 && tiles != null) {
+                        // (the squares round the player only: each a small picture, so the GPU never takes in a whole step
+                        // at once; their screen edges from the same rounding, so neighbours meet without a gap)
+                        val T = MapTiles.SIZE
+                        for (tr in sz0 / T..(sz1 - 1) / T) for (tc in sx0 / T..(sx1 - 1) / T) {
+                            val ax = maxOf(sx0, tc * T); val bx = minOf(sx1, tc * T + T)
+                            val az = maxOf(sz0, tr * T); val bz = minOf(sz1, tr * T + T)
+                            val dl = (c + (ax - pcx) * sc).roundToInt(); val dr = (c + (bx - pcx) * sc).roundToInt()
+                            val dtp = (c + (az - pcz) * sc).roundToInt(); val db = (c + (bz - pcz) * sc).roundToInt()
+                            val img = tiles.at(tc, tr)
+                            drawImage(img, IntOffset(ax - tc * T, az - tr * T), IntSize(bx - ax, bz - az), IntOffset(dl, dtp),
+                                IntSize((dr - dl).coerceAtLeast(1), (db - dtp).coerceAtLeast(1)), filterQuality = FilterQuality.None)
+                            noteDrawn(img)
+                        }
+                    } else if (sx1 > sx0 && sz1 > sz0) {
                         val dl = (c + (sx0 - pcx) * sc).roundToInt(); val dt2 = (c + (sz0 - pcz) * sc).roundToInt()
                         drawImage(layer.image, IntOffset(sx0, sz0), IntSize(sx1 - sx0, sz1 - sz0), IntOffset(dl, dt2),
                             IntSize(((sx1 - sx0) * sc).roundToInt().coerceAtLeast(1), ((sz1 - sz0) * sc).roundToInt().coerceAtLeast(1)), filterQuality = FilterQuality.None)
+                        noteDrawn(layer.image)
                     }
                 }
                 // the route along the roads (GPS): a dark edge, the line, chevrons flowing toward the waypoint
@@ -224,6 +242,9 @@ class MiniPainter {
             drawRect(PIN, Offset(x - 2f * ap, y), androidx.compose.ui.geometry.Size(tw + 4f * ap, th))
             drawText(t, topLeft = Offset(x, y))
         }
+        val ns = System.nanoTime() - t0
+        draws++
+        if (ns > worstDrawNs) worstDrawNs = ns
     }
 
     /** The compass alone (no map), [size] across: a dark dial, the needle to the north, the bezel and its letters; turned with the camera's [yaw]. */
@@ -344,7 +365,39 @@ class MiniPainter {
     private fun text(tm: TextMeasurer, key: String, s: String, style: TextStyle): TextLayoutResult =
         texts[key] ?: tm.measure(s, style).also { if (texts.size < 512) texts[key] = it }
 
+    // ---- what a frame drew of the map's pictures, and what it cost (the stutter's breadcrumbs: [window])
+    private val drawn = arrayOfNulls<ImageBitmap>(MAX_DRAWN)
+    private var nDrawn = 0
+    private val seenPictures = java.util.Collections.newSetFromMap(java.util.WeakHashMap<ImageBitmap, Boolean>())
+    private fun noteDrawn(img: ImageBitmap) {
+        if (nDrawn < MAX_DRAWN) drawn[nDrawn++] = img
+        // (a picture drawn for the first time: the GPU takes it in whole now)
+        if (seenPictures.add(img)) { firstDrawn++; firstDrawnBytes += img.width.toLong() * img.height * 4; firstDrawnBiggest = maxOf(firstDrawnBiggest, img.width.toLong() * img.height * 4) }
+    }
+    /** The pictures the last frame drew and their bytes (the tests). */
+    fun drawnNow(): List<Pair<ImageBitmap, Long>> = (0 until nDrawn).map { drawn[it]!! to drawn[it]!!.width.toLong() * drawn[it]!!.height * 4 }
+
     companion object {
+        private const val MAX_DRAWN = 32
+        // (counted over the frames since the last [window], any minimap: main thread only)
+        private var worstDrawNs = 0L
+        private var draws = 0
+        private var firstDrawn = 0
+        private var firstDrawnBytes = 0L
+        private var firstDrawnBiggest = 0L
+
+        /**
+         * The minimap since the last call, for the frame-spike breadcrumbs: its worst draw (the main thread's share) and the
+         * pictures it drew for the first time (each one the GPU uploads whole on the render thread); null when it drew nothing.
+         */
+        fun window(): String? {
+            if (draws == 0) return null
+            val s = "minimap: %d draws, worst %.1f ms; %d pictures first drawn (%.1f MB, the biggest %.1f MB)".format(java.util.Locale.US,
+                draws, worstDrawNs / 1e6, firstDrawn, firstDrawnBytes / 1048576.0, firstDrawnBiggest / 1048576.0)
+            worstDrawNs = 0L; draws = 0; firstDrawn = 0; firstDrawnBytes = 0L; firstDrawnBiggest = 0L
+            return s
+        }
+
         const val EDGE_NONE = -1f
         private const val MAX_BOXES = 48
         /** The map's radius in a minimap [s] pixels across (the rest is the bezel). */

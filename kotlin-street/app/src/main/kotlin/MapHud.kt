@@ -46,6 +46,7 @@ object MapSession {
         val m = d.map ?: return
         MapData.post = { f -> main.post(f) }
         MapData.onError = { com.timerpg.street.shot.Crumbs.add(it) }
+        MapData.onBuilt = { com.timerpg.street.shot.Crumbs.add(it) }
         seed = d.seed
         station = d.rail?.rail?.depot?.rect?.let { r -> com.lifemax.rpg.feature.habits.maps.MapPoi((r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f, com.lifemax.rpg.feature.habits.maps.PoiKind.STATION, "Station") }
         data = MapData(m, d.world, d.town.year).also { md ->

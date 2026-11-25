@@ -407,8 +407,10 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
 
 @Composable
 private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.NpcVoiceService, sound: com.timerpg.street.audio.SoundScape? = null) {
-    // (the frame-spike profiler counts the HUD's recompositions: this screen's own and its texts')
-    androidx.compose.runtime.SideEffect { FrameSpikes.recomposed++ }
+    // (the frame-spike profiler counts the HUD's recompositions: this screen's own and its texts'; and times this screen's:
+    // its whole composition, from here to the apply its effects run in)
+    val composeAt = System.nanoTime()
+    androidx.compose.runtime.SideEffect { FrameSpikes.recomposed++; FrameSpikes.hudComposed(System.nanoTime() - composeAt) }
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val data = remember { loadStreet(ctx) }
     // the main street and the cross street: one place, the stage draws whichever the player is on and walks them round
@@ -981,9 +983,22 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 val k = com.lifemax.rpg.feature.habits.presentation.scene.TalkRange.nearest(GameState.x, GameState.lane, doors.map { it.first }, GameState.centers)
                 doors.getOrNull(k)?.let { (i, npc) -> npc to i }
             }
+            // who hears it and why, for the screenshot and the breadcrumbs (0.1.909: "NPCs couldn't hear me" left no trace
+            // of whether the words came, nor of who was near): the chosen one, or the nearest person to talk to and how far
+            val why = when {
+                target != null -> "${target.first.name} (${if (inside != null) "the person here" else if (townMode) "at their door" else "at the door in front"})"
+                inside != null -> "nobody (inside: ${if (atHere.isEmpty()) "no one here" else "not standing by the person here"})"
+                townMode -> townPlay.nearestKeeper(Float.MAX_VALUE).let { k ->
+                    if (k == null) "nobody (no one at their door in the town now: ${townPlay.keepers.size} keepers)"
+                    else "nobody (the nearest at their door is %.0f units off; earshot %.0f)".format(java.util.Locale.US, townPlay.fromPlayer(k), com.lifemax.rpg.feature.habits.presentation.scene.TalkRange.distance)
+                }
+                else -> "nobody (no one at a door within earshot on this street)"
+            }
+            ears.noteListener(said.split(' ').size, why)
             // (heard, but nobody to answer: a breadcrumb, so "it heard nothing" can be told from "nobody was near")
-            if (target == null) { noOneNear = System.nanoTime(); com.timerpg.street.shot.Crumbs.add("mic: heard ${said.split(' ').size} words, no one near to hear them") }
+            if (target == null) { noOneNear = System.nanoTime(); com.timerpg.street.shot.Crumbs.add("mic: heard ${said.split(' ').size} words, $why") }
             else {
+                com.timerpg.street.shot.Crumbs.add("mic: heard ${said.split(' ').size} words, to $why")
                 val (npc, door) = target
                 val t = talk?.takeIf { it.npc.id == npc.id } ?: Talk(npc, byVoice = true, door = door, doorSprite = if (townMode) npc.building else null).also { talk?.close(voices); talk = it }
                 t.heardNote = ears.lastHeard
@@ -1082,7 +1097,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             "conversation" to talk?.let { linkedMapOf("npc" to it.npc.name, "byVoice" to it.byVoice, "topic" to it.topic?.label, "said" to it.said) },
             "voices" to linkedMapOf("enabled" to voices.enabled, "speaking" to voices.speaking, "only" to voices.only, "timing" to voices.lastTiming),
             "mic" to linkedMapOf("always" to micAlways, "granted" to micGranted, "listening" to canListen, "state" to ears.state.name,
-                "hearer" to ears.hearer.name.lowercase(), "hearing" to ears.hearing, "writing" to ears.writing, "problem" to ears.problem, "loop" to ears.loopStatus()),
+                "hearer" to ears.hearer.name.lowercase(), "hearing" to ears.hearing, "writing" to ears.writing, "problem" to ears.problem, "loop" to ears.loopStatus(),
+                "lastListener" to ears.lastListener, "attempts" to ears.attemptLines()),
             "panels" to linkedMapOf("aiPanel" to aiPanel, "crashShown" to (lastCrash != null), "tuningNpu" to tuning),
         )
     }
