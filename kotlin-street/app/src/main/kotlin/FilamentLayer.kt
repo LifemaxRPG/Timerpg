@@ -2,7 +2,9 @@ package com.timerpg.street
 
 import android.content.Context
 import android.view.Surface
+import android.view.SurfaceView
 import android.view.TextureView
+import android.view.View
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -357,21 +359,45 @@ object FilamentStats {
     }
 }
 
-/** Filament's layer over the stage (which then draws only its sky), under the HUD: a TextureView, so Compose draws on both sides. */
+/**
+ * Filament's layer over the stage, under the HUD.
+ *
+ * The town, which draws its own sky (an opaque picture: nothing of the stage shows through), is drawn into a
+ * **SurfaceView** (docs/NOVEL_OPTIMIZATIONS.md idea 3): its buffer is a layer of its own that the display hardware
+ * composes, instead of a texture the app's window samples with the GPU every frame (a full-screen read and write, ~1.2 GB/s
+ * at 60 Hz, and a frame of latency). It stays in the default Z order, behind the window: the SurfaceView punches a hole in
+ * the window where it stands (the stage's draw under it is cleared there), and the HUD drawn after it composes over it.
+ * The crossroads street, drawn see-through over the stage's 2D sky, stays on a TextureView so Compose draws on both sides.
+ * [FilamentSurface.useSurfaceView] false: the town on a TextureView as before (to compare).
+ */
 @Composable
 fun FilamentLayer(modifier: Modifier = Modifier, town: Boolean = false) {
     AndroidView(
-        factory = { ctx -> TextureView(ctx).also { tv -> tv.tag = FilamentHost(ctx, tv, town) } },
+        factory = { ctx ->
+            val surface = town && FilamentSurface.useSurfaceView && townOwnSky(ctx)
+            val v: View = if (surface) SurfaceView(ctx) else TextureView(ctx)
+            v.also { it.tag = FilamentHost(ctx, it, town) }
+        },
         modifier = modifier,
-        onRelease = { tv -> (tv.tag as? FilamentHost)?.destroy() },
+        onRelease = { v -> (v.tag as? FilamentHost)?.destroy() },
     )
 }
 
+/** The town draws its own sky (FilamentTown's SkySurface, when its material ships): its surface is opaque. */
+private fun townOwnSky(ctx: Context): Boolean = com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown.sky3d &&
+    runCatching { ctx.assets.open("filament/sky.filamat").close(); true }.getOrDefault(false)
+
+/** The town's SurfaceView while one is up (the screenshot copies it, [com.timerpg.street.shot.ShotUploader.capture]). */
+object FilamentSurface {
+    /** The town on a SurfaceView (true) or a TextureView as before (false: to compare power and pixels). */
+    @Volatile @JvmField var useSurfaceView = true
+    @Volatile var view: SurfaceView? = null; internal set
+}
+
 /** Runs Filament on [view]: one frame each time the stage draws one (in its draw, so street and sky are the same frame). */
-private class FilamentHost(private val ctx: Context, view: TextureView, private val townMode: Boolean) {
+private class FilamentHost(private val ctx: Context, private val view: View, private val townMode: Boolean) {
     /** The town draws its own sky (FilamentTown's SkySurface, when its material ships): the surface is opaque. */
-    private val ownSky: Boolean = townMode && com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown.sky3d &&
-        runCatching { ctx.assets.open("filament/sky.filamat").close(); true }.getOrDefault(false)
+    private val ownSky: Boolean = townMode && townOwnSky(ctx)
     private var engine: Engine? = null
     private var renderer: Renderer? = null
     private var street: FilamentStreet? = null
@@ -482,7 +508,10 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
                 }
                 override fun onResized(width: Int, height: Int) { w = width; h = height; dirty = true }
             }
-            ui.attachTo(view)
+            when (view) {
+                is SurfaceView -> { ui.attachTo(view); FilamentSurface.view = view }
+                is TextureView -> ui.attachTo(view)
+            }
             Stage3D.onFrame = onFrame
             // (the vsync each frame is drawn for, and the heat governor and performance hints: docs/HEAT.md)
             android.view.Choreographer.getInstance().postFrameCallback(vsync)
@@ -700,6 +729,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
         // (the stage that filled it may be gone: a room; the next one fills it afresh)
         Stage3D.frame.clear()
         runCatching { ui.detach() }
+        if (FilamentSurface.view === view) FilamentSurface.view = null
         val e = engine ?: return
         street?.destroy(); street = null
         com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.projector = null
