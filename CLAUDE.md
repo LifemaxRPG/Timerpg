@@ -77,6 +77,9 @@ one major feature rather than the whole premise:
   The starting town is the **capital city** (name to come from the owner). It is also the test city: every new
   building and landmark goes into it as it is made, so it keeps growing. Its plan must stay adaptable (room
   reserved for more districts and landmarks, nothing that breaks when a new model is added).
+  The second hand-made city is **Dove Beach** (the owner's name, 2026-11-25; kotlin-street/docs/CITY2.md): a harbour
+  city on another continent whose roads are secretly designed to be fun to drive, and whose road outline seen from
+  above is a dove diving toward the viewer. Keep that outline; never say in the game that it's a driving city.
 - **The planet** (the owner's decisions, 2026-11-23; design in kotlin-street/docs/WORLD_GEN.md): a cylinder about
   2,000 x 1,000 km that wraps east-west, ice caps as natural borders; **30% land split into 8-10 small continents and
   big islands** (short drives, lots of sailing between them); terrain is **smooth rolling ground with hard low-poly
