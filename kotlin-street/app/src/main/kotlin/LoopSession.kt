@@ -41,6 +41,8 @@ object LoopSession {
     /** The last action's line for the HUD, and when it came (it fades). */
     var line by mutableStateOf<String?>(null); private set
     var lineAt by mutableLongStateOf(0L); private set
+    /** The line is a hot sale's (`sell` answered `hot`): shown in the hot colour. */
+    var lineHot by mutableStateOf(false); private set
     /** An arrest (or a stop) to show as a card: its line; the player is taken to the station when it is closed. */
     var scene by mutableStateOf<LoopOutcome?>(null); private set
     /** The sim moved the clock (a shift, a wait, a night in the cell): the game's clock goes to this hour. */
@@ -185,7 +187,7 @@ object LoopSession {
             main.post {
                 busy = false
                 r.onSuccess { then(it) }.onFailure { e ->
-                    line = "($what failed: ${e.message?.take(120)})"; lineAt = System.currentTimeMillis()
+                    line = "($what failed: ${e.message?.take(120)})"; lineAt = System.currentTimeMillis(); lineHot = false
                     com.timerpg.street.shot.Crumbs.add("loop: $what failed: ${e.javaClass.simpleName}: ${e.message?.take(300)}")
                 }
                 publish(g)
@@ -198,7 +200,7 @@ object LoopSession {
 
     private fun shown(o: LoopOutcome?, ctx: Context) {
         if (o == null) return
-        line = o.line + (o.wary?.let { "  $it" } ?: ""); lineAt = System.currentTimeMillis()
+        line = o.line + (o.wary?.let { "  $it" } ?: ""); lineAt = System.currentTimeMillis(); lineHot = o.hot
         if (o.hoursPassed > 0.0) hourSet = o.hour.toFloat()
         lastHour = o.hour.toFloat()
         // (a ride's end: the player stands at the stop, facing along the line, under a fade)
@@ -208,11 +210,12 @@ object LoopSession {
             TownPlay.placeAt(s.x, s.z, dx / l, dz / l)
             fadeAt = System.currentTimeMillis()
         }
-        if (o.moveTo != null) scene = o
+        // (an arrest, or a street stop played out on the card before the player walks on or is taken in)
+        if (o.moveTo != null || o.stop != null) scene = o
         save(ctx)
     }
 
-    /** The arrest card closed: the player stands at the police station's door, the clock where the sim left it. */
+    /** The arrest card closed: the player stands at the police station's door, the clock where the sim left it (a stop that let them go: where they stood). */
     fun sceneDone() {
         val o = scene ?: return
         scene = null

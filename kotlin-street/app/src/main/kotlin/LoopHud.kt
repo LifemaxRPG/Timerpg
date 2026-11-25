@@ -396,17 +396,34 @@ fun LoopBreakdownCard(ctx: android.content.Context, modifier: Modifier = Modifie
     }
 }
 
-/** The arrest card: what happened; closing it takes the player to the station. */
+/**
+ * The police card: an arrest (what happened; closing it takes the player to the station), or a street stop played out
+ * line by line first (the officer's words and the player's doings, one every [STOP_LINE_MS] or at a tap on "Next"),
+ * then how it ended: let go where they stand, or the arrest.
+ */
 @Composable
 fun LoopArrestCard(modifier: Modifier = Modifier) {
     val s = LoopSession.scene ?: return
+    val stop = s.stop
+    var shown by remember(s) { mutableStateOf(if (stop == null) 0 else 1) }
+    val all = stop?.lines.orEmpty()
+    if (stop != null && shown < all.size) androidx.compose.runtime.LaunchedEffect(s, shown) { kotlinx.coroutines.delay(STOP_LINE_MS); shown++ }
     Column(modifier.widthIn(max = 480.dp).background(PANEL_BG, RoundedCornerShape(14.dp)).loopOpaque().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        T("Police", 16.sp, HOT)
-        T(s.line, 14.sp)
-        s.moveTo?.let { T("You are taken to ${it.name}.", 12.sp, DIM_TEXT) }
-        LoopButton("OK") { LoopSession.sceneDone() }
+        T(if (stop != null) "Police stop" else "Police", 16.sp, HOT)
+        for ((who, what) in all.take(shown)) {
+            if (who == com.lifemax.rpg.feature.habits.loop.LoopGame.YOU) T(what, 13.sp, DIM_TEXT) else T("$who: \u201c$what\u201d", 14.sp)
+        }
+        if (shown < all.size) LoopButton("Next") { shown++ }
+        else {
+            T(s.line, if (stop != null) 13.sp else 14.sp, if (stop?.released == true) Color.White else HOT)
+            s.moveTo?.let { T("You are taken to ${it.name}.", 12.sp, DIM_TEXT) }
+            LoopButton("OK") { LoopSession.sceneDone() }
+        }
     }
 }
+
+/** How long each line of a street stop stays before the next comes (ms). */
+private const val STOP_LINE_MS = 1700L
 
 /** The loop's state for the owner: cash, inventory, the last act's witnesses, heat, cases, the last advance, timings. */
 @Composable

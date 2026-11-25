@@ -214,15 +214,15 @@
       const age = Math.max(0, ageIn(person, event.when.year));
       const acuity = ageVisionFactor(age);
       const attention = clamp01(b.attention ?? 0.45 + 0.35 * person.traits.diligence);
-      const dist = isVictim ? 0 : distance2D(b.position, event.position);
+      const dist2 = isVictim ? 0 : distance2D(b.position, event.position);
       let confidence;
       if (isVictim) {
         const lightClarity = 0.28 + 0.72 * Math.sqrt(light);
         confidence = clamp01(Math.max(0.22, lightClarity * (0.45 + 0.55 * acuity) * (0.7 + 0.3 * attention)));
       } else {
-        if (dist > effectiveRange) continue;
+        if (dist2 > effectiveRange) continue;
         if (options.canSee && !options.canSee(b.position, event.position, id)) continue;
-        const distFactor = Math.pow(Math.max(0, 1 - dist / effectiveRange), 1.25);
+        const distFactor = Math.pow(Math.max(0, 1 - dist2 / effectiveRange), 1.25);
         const lightFactor = 0.14 + 0.86 * Math.sqrt(light);
         const detectProb = clamp01(
           distFactor * lightFactor * (0.32 + 0.68 * attention) * (0.45 + 0.55 * acuity) * (0.45 + 0.55 * conspicuousness)
@@ -765,11 +765,11 @@
     return roll < clamp01(baseRefusal);
   }
   function reportLatencyForEra(year, severity, stationDistanceKm, seed, crimeId, reporterId) {
-    const dist = Math.max(0.2, stationDistanceKm);
+    const dist2 = Math.max(0.2, stationDistanceKm);
     const urgency = 0.45 + 0.55 * clamp01(severity);
     const r = rngFor(seed, "report_latency", year, crimeId, reporterId);
     if (year < 1900) {
-      const walkHours = dist / 3.8 * (1.4 - 0.5 * urgency);
+      const walkHours = dist2 / 3.8 * (1.4 - 0.5 * urgency);
       const prepHours = (10 + r() * 34) * (1.25 - 0.45 * urgency);
       const delayHours2 = Math.round(Math.min(72, Math.max(12, walkHours + prepHours)) * 10) / 10;
       const delayDays = Math.max(1, Math.round(delayHours2 / 24));
@@ -781,7 +781,7 @@
         const delayHours3 = Math.round((1 + r() * 5 * (1.2 - 0.4 * urgency)) * 100) / 100;
         return { delayHours: delayHours3, delayDays: 0 };
       }
-      const walkHours = Math.min(30, Math.max(6, dist / 4.5 * 1.5 + 6 + r() * 14));
+      const walkHours = Math.min(30, Math.max(6, dist2 / 4.5 * 1.5 + 6 + r() * 14));
       const delayHours2 = Math.round(walkHours * 10) / 10;
       return { delayHours: delayHours2, delayDays: delayHours2 >= 14 ? 1 : 0 };
     }
@@ -1191,8 +1191,8 @@
     if (npc && !isAlive(npc)) return 0;
     const acuity = npc ? ageVisionFactor(Math.max(0, ageIn(npc, year))) : 1;
     const light = clamp01(options.light ?? 1);
-    const dist = Math.max(0, options.distance ?? 8);
-    const distScale = clamp01(1 - dist / 45);
+    const dist2 = Math.max(0, options.distance ?? 8);
+    const distScale = clamp01(1 - dist2 / 45);
     const envScale = (0.35 + 0.65 * Math.sqrt(light)) * (0.4 + 0.6 * distScale) * (0.5 + 0.5 * acuity);
     let bestChance = 0;
     const crimeIds = Object.keys(state.ledger);
@@ -1498,13 +1498,13 @@
         const radius = cam.radius ?? 28;
         const dx = cam.position.x - event.position.x;
         const dy = cam.position.y - event.position.y;
-        const dist = Math.hypot(dx, dy);
-        if (dist > radius) continue;
+        const dist2 = Math.hypot(dx, dy);
+        if (dist2 > radius) continue;
         if (options.canSee && !options.canSee(cam.position, event.position, cam.id)) continue;
         const isColor = cam.color ?? (camTier === "color" || camTier === "hd");
         const isHd = camTier === "hd";
         const eraBase = isHd ? 0.9 : isColor ? 0.72 : 0.46;
-        const distFactor = clamp01(1 - dist / radius * 0.45);
+        const distFactor = clamp01(1 - dist2 / radius * 0.45);
         const lightFactor = 0.35 + 0.65 * Math.sqrt(light);
         const q = clamp01(eraBase * distFactor * lightFactor);
         const captured = {
@@ -2430,10 +2430,393 @@
   function toPlanId(idMap, simId, prefix = "id") {
     return idMap.simToPlan[simId] ?? registerPlanId(idMap, simId, prefix);
   }
+  function fromPlanId(idMap, planId) {
+    return idMap.planToSim[planId] ?? planId;
+  }
   function cloneIdMap(idMap) {
     return {
       simToPlan: { ...idMap.simToPlan },
       planToSim: { ...idMap.planToSim }
+    };
+  }
+
+  // src/economy/eras.ts
+  var FIRST_YEAR = 1880;
+  var LAST_YEAR = 2030;
+  function interpolate(anchors, year) {
+    let [leftYear, leftValue] = anchors[0];
+    if (year <= leftYear) return leftValue;
+    for (const [rightYear, rightValue] of anchors.slice(1)) {
+      if (year <= rightYear) {
+        return leftValue + (rightValue - leftValue) * (year - leftYear) / (rightYear - leftYear);
+      }
+      leftYear = rightYear;
+      leftValue = rightValue;
+    }
+    return leftValue;
+  }
+  var PRICE_ANCHORS = [
+    [1880, 0.047],
+    [1897, 0.041],
+    [1914, 0.048],
+    [1917, 0.057],
+    [1920, 0.087],
+    [1925, 0.065],
+    [1929, 0.066],
+    [1933, 0.05],
+    [1939, 0.053],
+    [1942, 0.062],
+    [1946, 0.07],
+    [1948, 0.081],
+    [1950, 0.082],
+    [1952, 0.085],
+    [1960, 0.096],
+    [1968, 0.113],
+    [1973, 0.143],
+    [1978, 0.207],
+    [1982, 0.305],
+    [1990, 0.385],
+    [2e3, 0.498],
+    [2010, 0.63],
+    [2020, 0.775],
+    [2022, 0.9],
+    [2025, 1],
+    [2030, 1.13]
+  ];
+  function validYear(year) {
+    return Number.isInteger(year) && year >= FIRST_YEAR && year <= LAST_YEAR;
+  }
+  function priceIndex(year) {
+    return validYear(year) ? interpolate(PRICE_ANCHORS, year) : null;
+  }
+  var WAGE_YEARS = [1880, 1925, 1929, 1933, 1946, 1952, 1968, 1978, 1990, 2010, 2025, 2030];
+  var JOBS = {
+    odd_jobs: [2, [8, 30, 33, 24, 50, 75, 145, 275, 475, 850, 1500, 1690]],
+    shop_clerk: [6, [11, 39, 42, 32, 66, 90, 180, 315, 560, 1010, 1750, 1975]],
+    labourer: [8, [14, 48, 52, 36, 86, 120, 250, 510, 890, 1490, 2320, 2610]],
+    mechanic: [8, [22, 65, 74, 50, 114, 155, 310, 660, 1240, 2010, 3050, 3440]],
+    clerk: [8, [16, 52, 56, 40, 88, 125, 230, 475, 875, 1510, 2380, 2680]],
+    nurse: [8, [17, 44, 48, 36, 97, 140, 295, 730, 1520, 2760, 4050, 4575]],
+    teacher: [8, [21, 57, 62, 44, 103, 155, 355, 775, 1510, 2520, 3670, 4140]],
+    police_officer: [8, [20, 59, 65, 47, 108, 155, 350, 800, 1570, 2630, 3870, 4360]]
+  };
+  function wage(job, year) {
+    const key = job.trim().toLowerCase().replace(/[ -]+/g, "_");
+    const canonical = key === "laborer" ? "labourer" : key;
+    if (!validYear(year) || !Object.prototype.hasOwnProperty.call(JOBS, canonical)) return null;
+    const [shiftHours, rates2] = JOBS[canonical];
+    const hourlyCents = Math.round(interpolate(WAGE_YEARS.map((at, i) => [at, rates2[i]]), year));
+    return { hourlyCents, shiftHours, shiftCents: hourlyCents * shiftHours };
+  }
+  function formatMoney(cents, year) {
+    if (!Number.isSafeInteger(cents) || !validYear(year)) return null;
+    const sign = cents < 0 ? "-" : "";
+    const amount = Math.abs(cents);
+    if (amount > 0 && amount < 100 && year < 1980) return `${sign}${amount}¢`;
+    return `${sign}$${Math.floor(amount / 100)}.${String(amount % 100).padStart(2, "0")}`;
+  }
+
+  // src/police/force.ts
+  var POLICE_ERA = {
+    patrolCarYear: 1928,
+    radioYear: 1930,
+    handheldRadioYear: 1965,
+    papersCheckStartYear: 1915,
+    detectiveMinPopulation: 350,
+    earlyOfficersPerThousand: 1.15,
+    midOfficersPerThousand: 1.7,
+    modernOfficersPerThousand: 2.3
+  };
+  function forceSizeForTown(population, year, era = POLICE_ERA) {
+    const pop = Math.max(1, Math.floor(population));
+    const rate = year < 1930 ? era.earlyOfficersPerThousand : year < 1960 ? era.midOfficersPerThousand : era.modernOfficersPerThousand;
+    return Math.max(1, Math.round(pop / 1e3 * rate));
+  }
+  function hasPatrolCarsInEra(year, era = POLICE_ERA) {
+    return year >= era.patrolCarYear;
+  }
+  function officerHasRadioInEra(transport, year, era = POLICE_ERA) {
+    if (transport === "car") return year >= era.radioYear;
+    return year >= era.handheldRadioYear;
+  }
+  var adjacencyCache = /* @__PURE__ */ new WeakMap();
+  function getAdjacency(graph) {
+    const cached = adjacencyCache.get(graph);
+    if (cached) return cached;
+    const adj = /* @__PURE__ */ new Map();
+    const nodeIds = Object.keys(graph.nodes).sort();
+    for (let i = 0; i < nodeIds.length; i++) {
+      adj.set(nodeIds[i], []);
+    }
+    for (let i = 0; i < graph.edges.length; i++) {
+      const e = graph.edges[i];
+      if (!graph.nodes[e.from] || !graph.nodes[e.to]) continue;
+      adj.get(e.from).push(e.to);
+      adj.get(e.to).push(e.from);
+    }
+    for (const list of adj.values()) {
+      list.sort();
+    }
+    adjacencyCache.set(graph, adj);
+    return adj;
+  }
+  function shortestNodePath(graph, fromId, toId, restrictJurisdictionId) {
+    if (!graph.nodes[fromId] || !graph.nodes[toId]) return [];
+    if (fromId === toId) return [fromId];
+    const adj = getAdjacency(graph);
+    const visited = /* @__PURE__ */ new Set([fromId]);
+    const parent = /* @__PURE__ */ new Map();
+    const queue = [fromId];
+    let head = 0;
+    while (head < queue.length) {
+      const cur = queue[head++];
+      const neighbors = adj.get(cur) ?? [];
+      for (let i = 0; i < neighbors.length; i++) {
+        const nb = neighbors[i];
+        if (visited.has(nb)) continue;
+        if (restrictJurisdictionId && nb !== toId && graph.nodes[nb]?.jurisdictionId !== restrictJurisdictionId) {
+          continue;
+        }
+        visited.add(nb);
+        parent.set(nb, cur);
+        if (nb === toId) {
+          const path = [];
+          let p = toId;
+          while (p !== void 0) {
+            path.push(p);
+            p = parent.get(p);
+          }
+          path.reverse();
+          return path;
+        }
+        queue.push(nb);
+      }
+    }
+    return [fromId, toId];
+  }
+  function bfsHopDistances(adj, graph, jurisdictionId, startId) {
+    const dist2 = /* @__PURE__ */ new Map();
+    if (!graph.nodes[startId]) return dist2;
+    dist2.set(startId, 0);
+    const queue = [startId];
+    let head = 0;
+    while (head < queue.length) {
+      const cur = queue[head++];
+      const d = dist2.get(cur);
+      const nbs = adj.get(cur) ?? [];
+      for (let i = 0; i < nbs.length; i++) {
+        const nb = nbs[i];
+        if (dist2.has(nb)) continue;
+        const node = graph.nodes[nb];
+        if (!node || node.jurisdictionId !== jurisdictionId || node.kind === "border") continue;
+        dist2.set(nb, d + 1);
+        queue.push(nb);
+      }
+    }
+    return dist2;
+  }
+  function buildBeats(graph, jurisdictionId, stationNodeId, officerCount, seed) {
+    const jurNodes = Object.values(graph.nodes).filter((n) => n.jurisdictionId === jurisdictionId && n.kind !== "border").sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+    if (jurNodes.length === 0) {
+      return Array.from({ length: Math.max(1, officerCount) }, () => [stationNodeId]);
+    }
+    const adj = getAdjacency(graph);
+    const count = Math.max(1, officerCount);
+    const jurIds = jurNodes.map((n) => n.id);
+    const patrolCandidates = jurIds.filter((id) => id !== stationNodeId);
+    const pool = patrolCandidates.length > 0 ? patrolCandidates : jurIds;
+    const poolSet = new Set(pool);
+    const startId = graph.nodes[stationNodeId] ? stationNodeId : pool[0];
+    const distFromStation = bfsHopDistances(adj, graph, jurisdictionId, startId);
+    const anchors = [];
+    const anchorSet = /* @__PURE__ */ new Set();
+    const minDistToAnchors = /* @__PURE__ */ new Map();
+    for (let oi = 0; oi < count; oi++) {
+      let chosen;
+      if (oi === 0) {
+        let bestDist = Infinity;
+        let bestTie = Infinity;
+        for (let i = 0; i < pool.length; i++) {
+          const id = pool[i];
+          const d = distFromStation.get(id) ?? 1e6;
+          const tie = rand(seed, "beat_anchor", jurisdictionId, oi, id);
+          if (d < bestDist || d === bestDist && tie < bestTie) {
+            bestDist = d;
+            bestTie = tie;
+            chosen = id;
+          }
+        }
+      } else {
+        const unused = pool.filter((id) => !anchorSet.has(id));
+        const candidates = unused.length > 0 ? unused : pool;
+        let bestDist = -1;
+        let bestTie = Infinity;
+        for (let i = 0; i < candidates.length; i++) {
+          const id = candidates[i];
+          const d = minDistToAnchors.get(id) ?? 1e6;
+          const tie = rand(seed, "beat_anchor", jurisdictionId, oi, id);
+          if (d > bestDist || d === bestDist && tie < bestTie) {
+            bestDist = d;
+            bestTie = tie;
+            chosen = id;
+          }
+        }
+      }
+      const anchor = chosen ?? pool[oi % pool.length];
+      anchors.push(anchor);
+      anchorSet.add(anchor);
+      const dAnchor = bfsHopDistances(adj, graph, jurisdictionId, anchor);
+      for (let i = 0; i < pool.length; i++) {
+        const id = pool[i];
+        const d = dAnchor.get(id);
+        if (d !== void 0) {
+          const prev = minDistToAnchors.get(id);
+          if (prev === void 0 || d < prev) minDistToAnchors.set(id, d);
+        }
+      }
+    }
+    const beats = [];
+    const claimed = /* @__PURE__ */ new Set();
+    const targetLen = Math.min(
+      pool.length,
+      Math.max(3, Math.min(6, Math.ceil(pool.length / Math.max(1, count * 0.5))))
+    );
+    for (let oi = 0; oi < count; oi++) {
+      const anchor = anchors[oi];
+      const distFromAnchor = bfsHopDistances(adj, graph, jurisdictionId, anchor);
+      const beat = [anchor];
+      const used = /* @__PURE__ */ new Set([anchor]);
+      claimed.add(anchor);
+      let cur = anchor;
+      for (let step2 = 1; step2 < targetLen; step2++) {
+        const directNbs = (adj.get(cur) ?? []).filter(
+          (nb) => poolSet.has(nb) && !used.has(nb)
+        );
+        let next;
+        if (directNbs.length > 0) {
+          let bestScore = Infinity;
+          let bestTie = Infinity;
+          for (let i = 0; i < directNbs.length; i++) {
+            const nb = directNbs[i];
+            const dAnchor = distFromAnchor.get(nb) ?? 100;
+            const claimPenalty = claimed.has(nb) ? 10 : 0;
+            const score = claimPenalty + dAnchor;
+            const tie = rand(seed, "beat_step", jurisdictionId, oi, step2, nb);
+            if (score < bestScore || score === bestScore && tie < bestTie) {
+              bestScore = score;
+              bestTie = tie;
+              next = nb;
+            }
+          }
+        } else {
+          const distFromCur = bfsHopDistances(adj, graph, jurisdictionId, cur);
+          let bestHops = Infinity;
+          let bestAnchorHops = Infinity;
+          let bestClaimed = 2;
+          let bestTie = Infinity;
+          for (const [cand, hops] of distFromCur.entries()) {
+            if (!poolSet.has(cand) || used.has(cand)) continue;
+            const anchorHops = distFromAnchor.get(cand) ?? 100;
+            const isClaimed = claimed.has(cand) ? 1 : 0;
+            const tie = rand(seed, "beat_hop", jurisdictionId, oi, step2, cand);
+            if (hops < bestHops || hops === bestHops && anchorHops < bestAnchorHops || hops === bestHops && anchorHops === bestAnchorHops && isClaimed < bestClaimed || hops === bestHops && anchorHops === bestAnchorHops && isClaimed === bestClaimed && tie < bestTie) {
+              bestHops = hops;
+              bestAnchorHops = anchorHops;
+              bestClaimed = isClaimed;
+              bestTie = tie;
+              next = cand;
+            }
+          }
+        }
+        if (!next) break;
+        beat.push(next);
+        used.add(next);
+        claimed.add(next);
+        cur = next;
+      }
+      beats.push(beat);
+    }
+    return beats;
+  }
+  function isOnShift(shift2, hour) {
+    const h = (hour % 24 + 24) % 24;
+    switch (shift2) {
+      case "day":
+        return h >= 6 && h < 14;
+      case "swing":
+        return h >= 14 && h < 22;
+      case "night":
+        return h >= 22 || h < 6;
+    }
+  }
+  function heatEffortMultiplier(heat) {
+    const h = Math.max(0, Math.min(100, heat));
+    return 1 + h / 100 * 1.2;
+  }
+  function toPlanId2(raw, prefix = "id") {
+    const clean = raw.toLowerCase().replace(/[^a-z0-9_]+/g, "_").replace(/^_+/, "").replace(/_+$/, "");
+    if (clean.length === 0) return prefix;
+    return /^[a-z]/.test(clean) ? clean : `${prefix}_${clean}`;
+  }
+  function createPoliceForce(options) {
+    const era = options.era ?? POLICE_ERA;
+    const officers = {};
+    const shifts = ["day", "swing", "night"];
+    const sortedTowns = [...options.towns].sort(
+      (a, b) => a.jurisdictionId < b.jurisdictionId ? -1 : a.jurisdictionId > b.jurisdictionId ? 1 : 0
+    );
+    for (let ti = 0; ti < sortedTowns.length; ti++) {
+      const town = sortedTowns[ti];
+      const count = town.officerCountOverride !== void 0 ? Math.max(1, town.officerCountOverride) : forceSizeForTown(town.population, options.year, era);
+      const beats = buildBeats(
+        options.graph,
+        town.jurisdictionId,
+        town.stationNodeId,
+        count,
+        options.seed
+      );
+      const jurSlug = toPlanId2(town.jurisdictionId, "jur");
+      const carsAllowed = hasPatrolCarsInEra(options.year, era);
+      const carShare = !carsAllowed ? 0 : options.year < 1960 ? 0.45 : 0.65;
+      const hasDetective = count >= 2 && town.population >= era.detectiveMinPopulation;
+      for (let i = 0; i < count; i++) {
+        const officerId = `officer_${jurSlug}_${i}`;
+        const role = count === 1 ? "constable" : hasDetective && i === count - 1 ? "detective" : "patrol";
+        const shift2 = role === "detective" ? "day" : count === 1 ? "day" : count === 2 ? i === 0 ? "day" : "swing" : shifts[i % 3];
+        const useCar = carsAllowed && role !== "constable" && (role === "detective" ? options.year >= 1935 : (i + 0.5) / count <= carShare);
+        const transport = useCar ? "car" : "foot";
+        const vehicleId = useCar ? `patrol_car_${jurSlug}_${i}` : void 0;
+        const hasRadio = officerHasRadioInEra(transport, options.year, era);
+        const personId = options.personIdFor ? options.personIdFor(town.jurisdictionId, i, officerId) : officerId;
+        officers[officerId] = {
+          id: officerId,
+          personId,
+          jurisdictionId: town.jurisdictionId,
+          role,
+          shift: shift2,
+          transport,
+          ...vehicleId ? { vehicleId } : {},
+          cuffsItemId: `cuffs_${officerId}`,
+          hasRadio,
+          stationNodeId: town.stationNodeId,
+          beatNodeIds: beats[i] ?? [town.stationNodeId],
+          assignment: "patrol",
+          lastSpotCheckSec: -999,
+          clearedUntilSec: {}
+        };
+      }
+    }
+    return {
+      seed: options.seed,
+      year: options.year,
+      officers,
+      respondedCases: {},
+      backupAlerts: [],
+      interviews: [],
+      stops: [],
+      arrests: [],
+      escapes: [],
+      nextSeq: 1
     };
   }
 
@@ -3078,318 +3461,2472 @@
   }
 
   // src/plan/executor.ts
+  var BASE_WALK_SPEED_MPS = 3.2;
+  var BASE_DRIVE_SPEED_MPS = 9;
   var INTERACT_RANGE_SQ = 2.5 * 2.5;
   var TALK_RANGE_SQ = 4 * 4;
   var FOLLOW_NORMAL_RANGE_SQ = 2.2 * 2.2;
   var FOLLOW_QUIET_RANGE_SQ = 4.5 * 4.5;
   var FLEE_SAFE_DIST_SQ = 18 * 18;
-
-  // src/loop/policeAdapter.ts
-  var LOOP_POLICE_ERA = {
-    patrolCarYear: 1928,
-    radioYear: 1930,
-    handheldRadioYear: 1965,
-    detectiveMinPopulation: 350
-  };
-  function loopForceSize(population, year) {
-    const rate = year < 1930 ? 1.15 : year < 1960 ? 1.7 : 2.3;
-    return Math.max(1, Math.min(30, Math.round(Math.max(50, population) / 1e3 * rate)));
+  function isContinuousVerb(verb) {
+    return verb === "wait" || verb === "watch" || verb === "follow" || verb === "distract" || verb === "hide" || verb === "talk";
   }
-  function isShiftActive(shift2, hour) {
-    const h = (hour % 24 + 24) % 24;
-    if (shift2 === "day") return h >= 6 && h < 14;
-    if (shift2 === "swing") return h >= 14 && h < 22;
-    return h >= 22 || h < 6;
-  }
-  function buildAdjacency(graph) {
-    const adj = /* @__PURE__ */ new Map();
-    for (let i = 0; i < graph.nodes.length; i++) {
-      adj.set(graph.nodes[i].id, []);
+  function speedMultiplier(manner) {
+    if (!manner) return 1;
+    switch (manner.kind) {
+      case "quickly":
+        return 1.5;
+      case "quietly":
+        return 0.72;
+      case "carefully":
+        return 0.75;
+      default:
+        return 1;
     }
-    for (let i = 0; i < graph.edges.length; i++) {
-      const e = graph.edges[i];
-      if (adj.has(e.from) && adj.has(e.to)) {
-        adj.get(e.from).push(e.to);
-        adj.get(e.to).push(e.from);
+  }
+  function distSq(a, b) {
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    return dx * dx + dy * dy;
+  }
+  function createPlanState(bound, startTimeSec = 0) {
+    const count = bound.plan.steps.length;
+    const stepStatuses = new Array(count);
+    const stepStartedAtSec = new Array(count);
+    for (let i = 0; i < count; i++) {
+      stepStatuses[i] = "pending";
+      stepStartedAtSec[i] = -1;
+    }
+    return {
+      plan: bound.plan,
+      actorId: bound.actorId,
+      status: count === 0 ? "completed" : "running",
+      stageIndex: 0,
+      stageActive: false,
+      stageHasDriver: false,
+      stepStatuses,
+      startedAtSec: startTimeSec,
+      stageStartedAtSec: startTimeSec,
+      stepStartedAtSec,
+      observedPlaces: [],
+      ticks: 0
+    };
+  }
+  function resolveTarget(ref, world, actorId) {
+    if (ref.kind === "nearest") {
+      return world.findNearest(actorId, ref.entityKind);
+    }
+    return ref;
+  }
+  function evaluateCondition(cond, state, world, actorId, stepIndex) {
+    const atom = cond.atom;
+    let value = false;
+    switch (atom.kind) {
+      case "sees": {
+        const resolved = resolveTarget(atom.target, world, actorId);
+        value = resolved !== void 0 && world.canSee(actorId, resolved);
+        break;
       }
-    }
-    for (const list of adj.values()) list.sort();
-    return adj;
-  }
-  function shortestPath(graph, fromId, toId) {
-    if (fromId === toId) return [fromId];
-    const adj = buildAdjacency(graph);
-    if (!adj.has(fromId) || !adj.has(toId)) return [toId];
-    const visited = /* @__PURE__ */ new Set([fromId]);
-    const parent = /* @__PURE__ */ new Map();
-    const q = [fromId];
-    let head = 0;
-    while (head < q.length) {
-      const cur = q[head++];
-      const nbs = adj.get(cur) ?? [];
-      for (let i = 0; i < nbs.length; i++) {
-        const nb = nbs[i];
-        if (visited.has(nb)) continue;
-        visited.add(nb);
-        parent.set(nb, cur);
-        if (nb === toId) {
-          const path = [];
-          let p = toId;
-          while (p !== void 0) {
-            path.push(p);
-            p = parent.get(p);
+      case "at": {
+        const resolvedPlace = resolveTarget(atom.place, world, actorId);
+        if (resolvedPlace !== void 0) {
+          const expectedPlaceId = resolvedPlace.kind === "here" ? world.getActorPlace(actorId) : resolvedPlace.kind === "place" ? resolvedPlace.id : world.getEntityPlace(resolvedPlace);
+          if (expectedPlaceId !== void 0) {
+            const curStep = state.plan.steps[stepIndex];
+            if (!atom.subject && curStep?.verb === "drive" && curStep.target?.kind === "vehicle") {
+              value = world.getEntityPlace(curStep.target) === expectedPlaceId;
+            } else if (!atom.subject) {
+              value = world.getActorPlace(actorId) === expectedPlaceId;
+            } else {
+              const subj = resolveTarget(atom.subject, world, actorId);
+              if (subj !== void 0) {
+                const subjPlace = subj.kind === "player" ? world.getActorPlace("player") : world.getEntityPlace(subj);
+                value = subjPlace === expectedPlaceId;
+              }
+            }
           }
-          path.reverse();
-          return path;
         }
-        q.push(nb);
+        break;
+      }
+      case "time": {
+        const t = world.timeSec;
+        const daySec = t >= 0 && t < 86400 ? t : (t % 86400 + 86400) % 86400;
+        value = daySec >= atom.secondsOfDay;
+        break;
+      }
+      case "heard": {
+        const since = state.stepStartedAtSec[stepIndex] ?? state.stageStartedAtSec;
+        value = world.hasHeardSignal(actorId, atom.signal, since < 0 ? state.startedAtSec : since);
+        break;
+      }
+      case "has": {
+        value = world.hasItem(actorId, atom.item.id);
+        break;
+      }
+      case "alone": {
+        value = world.isAlone(actorId);
+        break;
+      }
+      case "done": {
+        const idx = atom.stepNumber - 1;
+        const st = state.stepStatuses[idx];
+        value = st === "done" || st === "skipped";
+        break;
       }
     }
-    return [fromId, toId];
+    return cond.negated ? !value : value;
   }
-  function validateLoopPlan(officer, source, allPlacePlanIds, personPlanIds = []) {
-    const parsed = parsePlan(source);
-    if (!parsed.ok) {
-      throw new Error(`Invalid G007 plan for ${officer.id}: ${parsed.error} in "${source}"`);
+  function checkTraitGate(step2, stepIndex, traits) {
+    switch (step2.verb) {
+      case "attack":
+        if (traits.gentle >= 0.7) {
+          return {
+            code: "trait_refused",
+            stepIndex,
+            verb: step2.verb,
+            target: step2.target ? formatTargetRef(step2.target) : void 0,
+            trait: "gentle",
+            message: `refused: actor is too gentle to attack (gentle=${traits.gentle.toFixed(2)})`
+          };
+        }
+        return void 0;
+      case "restrain":
+        if (traits.gentle >= 0.85) {
+          return {
+            code: "trait_refused",
+            stepIndex,
+            verb: step2.verb,
+            target: step2.target ? formatTargetRef(step2.target) : void 0,
+            trait: "gentle",
+            message: `refused: actor is too gentle to restrain anyone (gentle=${traits.gentle.toFixed(2)})`
+          };
+        }
+        return void 0;
+      case "steal":
+        if (traits.lawful >= 0.75) {
+          return {
+            code: "trait_refused",
+            stepIndex,
+            verb: step2.verb,
+            target: step2.target ? formatTargetRef(step2.target) : void 0,
+            trait: "lawful",
+            message: `refused: actor is too lawful to steal (lawful=${traits.lawful.toFixed(2)})`
+          };
+        }
+        if (traits.honest >= 0.85) {
+          return {
+            code: "trait_refused",
+            stepIndex,
+            verb: step2.verb,
+            target: step2.target ? formatTargetRef(step2.target) : void 0,
+            trait: "honest",
+            message: `refused: actor is too honest to steal (honest=${traits.honest.toFixed(2)})`
+          };
+        }
+        return void 0;
+      case "lie":
+        if (traits.honest >= 0.8) {
+          return {
+            code: "trait_refused",
+            stepIndex,
+            verb: step2.verb,
+            target: step2.target ? formatTargetRef(step2.target) : void 0,
+            trait: "honest",
+            message: `refused: actor is too honest to lie (honest=${traits.honest.toFixed(2)})`
+          };
+        }
+        return void 0;
+      default:
+        return void 0;
+    }
+  }
+  function makeFailure(step2, stepIndex, code, message) {
+    return {
+      code,
+      stepIndex,
+      verb: step2.verb,
+      target: step2.target ? formatTargetRef(step2.target) : void 0,
+      message
+    };
+  }
+  function recordObservationRef(state, ref, placeId) {
+    if (!placeId) return;
+    const list = state.observedPlaces;
+    if (list.length > 0 && list[list.length - 1] === placeId) return;
+    if (!state.observedSubject) {
+      state.observedSubject = formatTargetRef(ref);
+    }
+    list.push(placeId);
+  }
+  function buildReportPayload(state) {
+    if (state.observedPlaces.length === 0) return void 0;
+    const subj = state.observedSubject ?? "target";
+    return `${subj} went: ${state.observedPlaces.join(" -> ")}`;
+  }
+  var TICK_RUNNING = { kind: "running" };
+  var TICK_DONE = { kind: "done" };
+  function executeSingleStep(step2, stepIndex, state, world, actorId, dt, sustainContinuous) {
+    const speed = BASE_WALK_SPEED_MPS * speedMultiplier(step2.manner);
+    if (step2.manner) {
+      if (step2.manner.kind === "quietly") {
+        world.setActorHidden(actorId, true);
+      } else if (step2.manner.kind === "as") {
+        world.setActorRole(actorId, step2.manner.role);
+      }
+    }
+    const resolvedTarget = step2.target ? resolveTarget(step2.target, world, actorId) : void 0;
+    if (step2.target && !resolvedTarget) {
+      return {
+        kind: "failed",
+        failure: makeFailure(
+          step2,
+          stepIndex,
+          "target_missing",
+          `missing: ${formatTargetRef(step2.target)} not found`
+        )
+      };
+    }
+    switch (step2.verb) {
+      case "wait": {
+        return step2.until || sustainContinuous ? TICK_RUNNING : TICK_DONE;
+      }
+      case "hide": {
+        if (resolvedTarget && resolvedTarget.kind !== "here") {
+          const pos = world.getEntityPosition(resolvedTarget);
+          if (!pos) {
+            return {
+              kind: "failed",
+              failure: makeFailure(step2, stepIndex, "target_missing", "missing: cover not found")
+            };
+          }
+          const destPlace = resolvedTarget.kind === "place" ? resolvedTarget.id : void 0;
+          const mv = world.moveActorToward(actorId, pos, speed, dt, destPlace);
+          if (!mv.ok) {
+            return { kind: "failed", failure: makeFailure(step2, stepIndex, mv.code, mv.message) };
+          }
+          if (!mv.arrived) return TICK_RUNNING;
+        }
+        world.setActorHidden(actorId, true);
+        return step2.until || sustainContinuous ? TICK_RUNNING : TICK_DONE;
+      }
+      case "go": {
+        if (!resolvedTarget || resolvedTarget.kind === "here") return TICK_DONE;
+        const pos = world.getEntityPosition(resolvedTarget);
+        if (!pos) {
+          return {
+            kind: "failed",
+            failure: makeFailure(
+              step2,
+              stepIndex,
+              "target_missing",
+              `missing: ${formatTargetRef(resolvedTarget)} has no location`
+            )
+          };
+        }
+        const destPlace = resolvedTarget.kind === "place" ? resolvedTarget.id : world.getEntityPlace(resolvedTarget);
+        const mv = world.moveActorToward(actorId, pos, speed, dt, destPlace);
+        if (!mv.ok) {
+          return { kind: "failed", failure: makeFailure(step2, stepIndex, mv.code, mv.message) };
+        }
+        if (!mv.arrived) return TICK_RUNNING;
+        return step2.until ? TICK_RUNNING : TICK_DONE;
+      }
+      case "follow": {
+        if (!resolvedTarget || resolvedTarget.kind !== "person" && resolvedTarget.kind !== "player" && resolvedTarget.kind !== "vehicle") {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "invalid_target", "follow requires a person, player, or vehicle target")
+          };
+        }
+        const targetPos = world.getEntityPosition(resolvedTarget);
+        if (!targetPos) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "target_lost", `lost: ${formatTargetRef(resolvedTarget)}`)
+          };
+        }
+        const targetPlace = world.getEntityPlace(resolvedTarget);
+        recordObservationRef(state, resolvedTarget, targetPlace);
+        const actorPos = world.getActorPosition(actorId);
+        const keepRangeSq = step2.manner?.kind === "quietly" ? FOLLOW_QUIET_RANGE_SQ : FOLLOW_NORMAL_RANGE_SQ;
+        if (distSq(actorPos, targetPos) > keepRangeSq) {
+          const mv = world.moveActorToward(actorId, targetPos, speed, dt, targetPlace);
+          if (!mv.ok) {
+            return { kind: "failed", failure: makeFailure(step2, stepIndex, mv.code, mv.message) };
+          }
+        }
+        return step2.until || sustainContinuous ? TICK_RUNNING : TICK_DONE;
+      }
+      case "watch": {
+        if (resolvedTarget && resolvedTarget.kind !== "here" && world.canSee(actorId, resolvedTarget)) {
+          recordObservationRef(state, resolvedTarget, world.getEntityPlace(resolvedTarget));
+        }
+        return step2.until || sustainContinuous ? TICK_RUNNING : TICK_DONE;
+      }
+      case "talk":
+      case "ask":
+      case "tell":
+      case "lie":
+      case "warn":
+      case "distract": {
+        if (!resolvedTarget || resolvedTarget.kind !== "person" && resolvedTarget.kind !== "player") {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "invalid_target", `${step2.verb} requires a person or player target`)
+          };
+        }
+        const targetId = resolvedTarget.kind === "player" ? "player" : resolvedTarget.id;
+        const targetPos = world.getEntityPosition(resolvedTarget);
+        if (!targetPos) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "target_missing", `missing: ${formatTargetRef(resolvedTarget)}`)
+          };
+        }
+        const actorPos = world.getActorPosition(actorId);
+        if (distSq(actorPos, targetPos) > TALK_RANGE_SQ) {
+          const mv = world.moveActorToward(actorId, targetPos, speed, dt, world.getEntityPlace(resolvedTarget));
+          if (!mv.ok) {
+            return { kind: "failed", failure: makeFailure(step2, stepIndex, mv.code, mv.message) };
+          }
+          if (!mv.arrived && distSq(world.getActorPosition(actorId), targetPos) > TALK_RANGE_SQ) {
+            return TICK_RUNNING;
+          }
+        }
+        if (!world.canSee(actorId, resolvedTarget)) {
+          return {
+            kind: "failed",
+            failure: makeFailure(
+              step2,
+              stepIndex,
+              "target_not_visible",
+              `cannot see ${formatTargetRef(resolvedTarget)}`
+            )
+          };
+        }
+        const payload = step2.verb === "tell" ? buildReportPayload(state) : void 0;
+        const out = world.engagePerson(actorId, targetId, step2.verb, step2.manner, payload);
+        if (!out.ok) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, out.code ?? "unreachable", out.message ?? `${step2.verb} failed`)
+          };
+        }
+        const sustain = sustainContinuous && (step2.verb === "talk" || step2.verb === "distract");
+        return step2.until || sustain ? TICK_RUNNING : TICK_DONE;
+      }
+      case "signal": {
+        const sigName = resolvedTarget && resolvedTarget.kind === "place" ? resolvedTarget.id : resolvedTarget && resolvedTarget.kind === "person" ? resolvedTarget.id : "signal";
+        world.emitSignal(actorId, sigName);
+        return TICK_DONE;
+      }
+      case "take":
+      case "carry": {
+        if (!resolvedTarget || resolvedTarget.kind !== "item") {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "invalid_target", `${step2.verb} requires an item:<id> target`)
+          };
+        }
+        if (world.hasItem(actorId, resolvedTarget.id)) return TICK_DONE;
+        const pos = world.getEntityPosition(resolvedTarget);
+        if (!pos) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "target_missing", `missing: item:${resolvedTarget.id}`)
+          };
+        }
+        if (distSq(world.getActorPosition(actorId), pos) > INTERACT_RANGE_SQ) {
+          const mv = world.moveActorToward(actorId, pos, speed, dt, world.getEntityPlace(resolvedTarget));
+          if (!mv.ok) {
+            return { kind: "failed", failure: makeFailure(step2, stepIndex, mv.code, mv.message) };
+          }
+          if (!mv.arrived && distSq(world.getActorPosition(actorId), pos) > INTERACT_RANGE_SQ) {
+            return TICK_RUNNING;
+          }
+        }
+        const owner = world.getItemOwner(resolvedTarget.id);
+        if (owner !== void 0 && owner !== actorId) {
+          return {
+            kind: "failed",
+            failure: makeFailure(
+              step2,
+              stepIndex,
+              "blocked_path",
+              `cannot take item:${resolvedTarget.id}: owned by ${owner} (use buy or steal)`
+            )
+          };
+        }
+        const out = world.transferItem(resolvedTarget.id, void 0, actorId);
+        if (!out.ok) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, out.code ?? "missing_item", out.message ?? "take failed")
+          };
+        }
+        return TICK_DONE;
+      }
+      case "give": {
+        const itemId = step2.withItem?.id ?? (resolvedTarget?.kind === "item" ? resolvedTarget.id : void 0);
+        if (!itemId) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "missing_item", "give requires an item (target or with item:<id>)")
+          };
+        }
+        if (!world.hasItem(actorId, itemId)) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "missing_item", `missing: actor does not hold item:${itemId}`)
+          };
+        }
+        const recipientRef = resolvedTarget && (resolvedTarget.kind === "person" || resolvedTarget.kind === "player") ? resolvedTarget : { kind: "player" };
+        const recipientId = recipientRef.kind === "player" ? "player" : recipientRef.id;
+        const pos = world.getEntityPosition(recipientRef);
+        if (!pos) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "target_missing", `missing: ${formatTargetRef(recipientRef)}`)
+          };
+        }
+        if (distSq(world.getActorPosition(actorId), pos) > INTERACT_RANGE_SQ) {
+          const mv = world.moveActorToward(actorId, pos, speed, dt, world.getEntityPlace(recipientRef));
+          if (!mv.ok) {
+            return { kind: "failed", failure: makeFailure(step2, stepIndex, mv.code, mv.message) };
+          }
+          if (!mv.arrived && distSq(world.getActorPosition(actorId), pos) > INTERACT_RANGE_SQ) {
+            return TICK_RUNNING;
+          }
+        }
+        const out = world.transferItem(itemId, actorId, recipientId);
+        if (!out.ok) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, out.code ?? "missing_item", out.message ?? "give failed")
+          };
+        }
+        return TICK_DONE;
+      }
+      case "put": {
+        const itemId = step2.withItem?.id ?? (resolvedTarget?.kind === "item" ? resolvedTarget.id : void 0);
+        if (!itemId) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "missing_item", "put requires an item")
+          };
+        }
+        if (!world.hasItem(actorId, itemId)) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "missing_item", `missing: actor does not hold item:${itemId}`)
+          };
+        }
+        let placeId = world.getActorPlace(actorId);
+        if (resolvedTarget && resolvedTarget.kind === "place") {
+          const pos = world.getEntityPosition(resolvedTarget);
+          if (pos && distSq(world.getActorPosition(actorId), pos) > INTERACT_RANGE_SQ) {
+            const mv = world.moveActorToward(actorId, pos, speed, dt, resolvedTarget.id);
+            if (!mv.ok) {
+              return { kind: "failed", failure: makeFailure(step2, stepIndex, mv.code, mv.message) };
+            }
+            if (!mv.arrived) return TICK_RUNNING;
+          }
+          placeId = resolvedTarget.id;
+        }
+        const out = world.transferItem(itemId, actorId, void 0, placeId);
+        if (!out.ok) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, out.code ?? "missing_item", out.message ?? "put failed")
+          };
+        }
+        return TICK_DONE;
+      }
+      case "use": {
+        const itemId = step2.withItem?.id ?? (resolvedTarget?.kind === "item" ? resolvedTarget.id : void 0);
+        if (!itemId) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "missing_item", "use requires an item")
+          };
+        }
+        if (!world.hasItem(actorId, itemId)) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "missing_item", `missing: actor does not hold item:${itemId}`)
+          };
+        }
+        const out = world.useItem(actorId, itemId, resolvedTarget);
+        if (!out.ok) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, out.code ?? "invalid_target", out.message ?? "use failed")
+          };
+        }
+        return step2.until ? TICK_RUNNING : TICK_DONE;
+      }
+      case "open":
+      case "close":
+      case "lock":
+      case "unlock": {
+        if (!resolvedTarget || resolvedTarget.kind !== "place") {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "invalid_target", `${step2.verb} requires a place:<id> door/gate`)
+          };
+        }
+        const placeId = resolvedTarget.id;
+        const pos = world.getEntityPosition(resolvedTarget);
+        if (!pos) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "target_missing", `missing: place:${placeId}`)
+          };
+        }
+        if (distSq(world.getActorPosition(actorId), pos) > INTERACT_RANGE_SQ) {
+          const mv = world.moveActorToward(actorId, pos, speed, dt, placeId);
+          if (!mv.ok) {
+            return { kind: "failed", failure: makeFailure(step2, stepIndex, mv.code, mv.message) };
+          }
+          if (!mv.arrived && distSq(world.getActorPosition(actorId), pos) > INTERACT_RANGE_SQ) {
+            return TICK_RUNNING;
+          }
+        }
+        if (step2.verb === "open") {
+          if (world.isLocked(placeId)) {
+            return {
+              kind: "failed",
+              failure: makeFailure(step2, stepIndex, "blocked_locked", `blocked: place:${placeId} locked`)
+            };
+          }
+          const out2 = world.setDoorOpen(placeId, true);
+          if (!out2.ok) {
+            return {
+              kind: "failed",
+              failure: makeFailure(step2, stepIndex, out2.code ?? "blocked_locked", out2.message ?? `blocked: place:${placeId}`)
+            };
+          }
+          return TICK_DONE;
+        }
+        if (step2.verb === "close") {
+          const out2 = world.setDoorOpen(placeId, false);
+          if (!out2.ok) {
+            return {
+              kind: "failed",
+              failure: makeFailure(step2, stepIndex, out2.code ?? "blocked_path", out2.message ?? "close failed")
+            };
+          }
+          return TICK_DONE;
+        }
+        const requiredKey = world.requiredKeyFor(placeId);
+        const providedKey = step2.withItem?.id ?? (requiredKey && world.hasItem(actorId, requiredKey) ? requiredKey : void 0);
+        if (requiredKey) {
+          if (!providedKey || !world.hasItem(actorId, providedKey)) {
+            return {
+              kind: "failed",
+              failure: makeFailure(
+                step2,
+                stepIndex,
+                "missing_key",
+                `missing_key: place:${placeId} requires item:${requiredKey}`
+              )
+            };
+          }
+          if (providedKey !== requiredKey && providedKey !== "lockpick") {
+            return {
+              kind: "failed",
+              failure: makeFailure(
+                step2,
+                stepIndex,
+                "wrong_key",
+                `wrong_key: item:${providedKey} does not fit place:${placeId}`
+              )
+            };
+          }
+        }
+        const out = world.setDoorLocked(placeId, step2.verb === "lock", providedKey);
+        if (!out.ok) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, out.code ?? "wrong_key", out.message ?? `${step2.verb} failed`)
+          };
+        }
+        return TICK_DONE;
+      }
+      case "drive": {
+        if (!resolvedTarget || resolvedTarget.kind !== "vehicle") {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "invalid_target", "drive requires a vehicle:<id> target")
+          };
+        }
+        const vehPos = world.getEntityPosition(resolvedTarget);
+        if (!vehPos) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "target_missing", `missing: vehicle:${resolvedTarget.id}`)
+          };
+        }
+        if (distSq(world.getActorPosition(actorId), vehPos) > INTERACT_RANGE_SQ) {
+          const mv2 = world.moveActorToward(actorId, vehPos, speed, dt, world.getEntityPlace(resolvedTarget));
+          if (!mv2.ok) {
+            return { kind: "failed", failure: makeFailure(step2, stepIndex, mv2.code, mv2.message) };
+          }
+          if (!mv2.arrived && distSq(world.getActorPosition(actorId), vehPos) > INTERACT_RANGE_SQ) {
+            return TICK_RUNNING;
+          }
+        }
+        let destRef = { kind: "player" };
+        if (step2.until && !step2.until.negated && step2.until.atom.kind === "at") {
+          const resolvedDest = resolveTarget(step2.until.atom.place, world, actorId);
+          if (resolvedDest) destRef = resolvedDest;
+        }
+        const destPos = world.getEntityPosition(destRef);
+        if (!destPos) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "target_missing", "drive destination missing")
+          };
+        }
+        const destPlace = destRef.kind === "place" ? destRef.id : world.getEntityPlace(destRef);
+        const driveSpeed = BASE_DRIVE_SPEED_MPS * speedMultiplier(step2.manner);
+        const mv = world.moveVehicleToward(resolvedTarget.id, actorId, destPos, driveSpeed, dt, destPlace);
+        if (!mv.ok) {
+          return { kind: "failed", failure: makeFailure(step2, stepIndex, mv.code, mv.message) };
+        }
+        if (!mv.arrived) return TICK_RUNNING;
+        return TICK_DONE;
+      }
+      case "buy":
+      case "sell": {
+        const itemId = step2.withItem?.id ?? (resolvedTarget?.kind === "item" ? resolvedTarget.id : void 0);
+        if (!itemId) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "missing_item", `${step2.verb} requires an item:<id>`)
+          };
+        }
+        if (step2.verb === "sell" && !world.hasItem(actorId, itemId)) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "missing_item", `missing: actor does not hold item:${itemId}`)
+          };
+        }
+        if (step2.verb === "buy") {
+          const price = world.getItemPrice(itemId);
+          if (price !== void 0 && world.getActorMoney(actorId) < price) {
+            return {
+              kind: "failed",
+              failure: makeFailure(
+                step2,
+                stepIndex,
+                "insufficient_funds",
+                `insufficient_funds: item:${itemId} costs ${price}, actor has ${world.getActorMoney(actorId)}`
+              )
+            };
+          }
+        }
+        const out = world.tradeItem(actorId, itemId, step2.verb, resolvedTarget);
+        if (!out.ok) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, out.code ?? "insufficient_funds", out.message ?? `${step2.verb} failed`)
+          };
+        }
+        return TICK_DONE;
+      }
+      case "steal": {
+        if (!resolvedTarget || resolvedTarget.kind !== "item") {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "invalid_target", "steal requires an item:<id> target")
+          };
+        }
+        const pos = world.getEntityPosition(resolvedTarget);
+        if (!pos) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "target_missing", `missing: item:${resolvedTarget.id}`)
+          };
+        }
+        if (distSq(world.getActorPosition(actorId), pos) > INTERACT_RANGE_SQ) {
+          const mv = world.moveActorToward(actorId, pos, speed, dt, world.getEntityPlace(resolvedTarget));
+          if (!mv.ok) {
+            return { kind: "failed", failure: makeFailure(step2, stepIndex, mv.code, mv.message) };
+          }
+          if (!mv.arrived) return TICK_RUNNING;
+        }
+        const out = world.stealItem(actorId, resolvedTarget.id, step2.manner);
+        if (!out.ok) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, out.code ?? "caught", out.message ?? "steal failed")
+          };
+        }
+        return TICK_DONE;
+      }
+      case "attack":
+      case "restrain": {
+        if (!resolvedTarget || resolvedTarget.kind !== "person" && resolvedTarget.kind !== "player") {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "invalid_target", `${step2.verb} requires a person target`)
+          };
+        }
+        const targetId = resolvedTarget.kind === "player" ? "player" : resolvedTarget.id;
+        const pos = world.getEntityPosition(resolvedTarget);
+        if (!pos) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, "target_missing", `missing: ${formatTargetRef(resolvedTarget)}`)
+          };
+        }
+        if (distSq(world.getActorPosition(actorId), pos) > INTERACT_RANGE_SQ) {
+          const mv = world.moveActorToward(actorId, pos, speed, dt, world.getEntityPlace(resolvedTarget));
+          if (!mv.ok) {
+            return { kind: "failed", failure: makeFailure(step2, stepIndex, mv.code, mv.message) };
+          }
+          if (!mv.arrived) return TICK_RUNNING;
+        }
+        const out = world.combatAction(actorId, targetId, step2.verb, step2.withItem?.id);
+        if (!out.ok) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, out.code ?? "unreachable", out.message ?? `${step2.verb} failed`)
+          };
+        }
+        return step2.until ? TICK_RUNNING : TICK_DONE;
+      }
+      case "flee": {
+        const actorPos = world.getActorPosition(actorId);
+        const threatRef = resolvedTarget ?? world.findNearest(actorId, "guard");
+        if (!threatRef) return TICK_DONE;
+        const threatPos = world.getEntityPosition(threatRef);
+        if (!threatPos) return TICK_DONE;
+        if (distSq(actorPos, threatPos) >= FLEE_SAFE_DIST_SQ) {
+          return step2.until ? TICK_RUNNING : TICK_DONE;
+        }
+        const dx = actorPos.x - threatPos.x;
+        const dy = actorPos.y - threatPos.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const awayDest = { x: actorPos.x + dx / len * 10, y: actorPos.y + dy / len * 10 };
+        const mv = world.moveActorToward(actorId, awayDest, BASE_WALK_SPEED_MPS * 1.5, dt);
+        if (!mv.ok) {
+          return { kind: "failed", failure: makeFailure(step2, stepIndex, mv.code, mv.message) };
+        }
+        return TICK_RUNNING;
+      }
+      case "call": {
+        const out = world.callTarget(actorId, resolvedTarget, buildReportPayload(state));
+        if (!out.ok) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, out.code ?? "unreachable", out.message ?? "call failed")
+          };
+        }
+        return TICK_DONE;
+      }
+      case "write": {
+        const out = world.writeNote(actorId, resolvedTarget, buildReportPayload(state));
+        if (!out.ok) {
+          return {
+            kind: "failed",
+            failure: makeFailure(step2, stepIndex, out.code ?? "unreachable", out.message ?? "write failed")
+          };
+        }
+        return TICK_DONE;
+      }
+    }
+  }
+  function writeResult(out, status, stageIndex, failure) {
+    if (out) {
+      out.status = status;
+      out.stageIndex = stageIndex;
+      out.failure = failure;
+      return out;
+    }
+    return failure !== void 0 ? { status, stageIndex, failure } : { status, stageIndex };
+  }
+  function step(planState, world, actor, dt, out) {
+    if (planState.status !== "running") {
+      return writeResult(out, planState.status, planState.stageIndex, planState.failure);
+    }
+    planState.ticks++;
+    const stages = planState.plan.stages;
+    if (planState.stageIndex >= stages.length) {
+      planState.status = "completed";
+      return writeResult(out, "completed", planState.stageIndex);
+    }
+    const stage = stages[planState.stageIndex];
+    const steps = planState.plan.steps;
+    const statuses = planState.stepStatuses;
+    const startedAt = planState.stepStartedAtSec;
+    if (!planState.stageActive) {
+      let hasDriver = false;
+      const traits = world.getActorTraits(actor);
+      for (let i = stage.start; i < stage.end; i++) {
+        const s = steps[i];
+        if (statuses[i] === "pending") {
+          startedAt[i] = world.timeSec;
+          if (s.ifCond && !evaluateCondition(s.ifCond, planState, world, actor, i)) {
+            statuses[i] = "skipped";
+            continue;
+          }
+          const refusal = checkTraitGate(s, i, traits);
+          if (refusal) {
+            statuses[i] = "refused";
+            planState.status = "refused";
+            planState.failure = refusal;
+            return writeResult(out, "refused", planState.stageIndex, refusal);
+          }
+          statuses[i] = "running";
+        }
+        if (statuses[i] === "running" && (s.until !== void 0 || !isContinuousVerb(s.verb))) {
+          hasDriver = true;
+        }
+      }
+      planState.stageActive = true;
+      planState.stageHasDriver = hasDriver;
+    }
+    const hasDriverStep = planState.stageHasDriver;
+    let anyDriverRunning = false;
+    let anyStepRunning = false;
+    for (let i = stage.start; i < stage.end; i++) {
+      if (statuses[i] !== "running") continue;
+      const s = steps[i];
+      if (s.until !== void 0 && evaluateCondition(s.until, planState, world, actor, i)) {
+        if ((s.verb === "follow" || s.verb === "watch") && s.target) {
+          const resolved = resolveTarget(s.target, world, actor);
+          if (resolved && resolved.kind !== "here") {
+            recordObservationRef(planState, resolved, world.getEntityPlace(resolved));
+          }
+        }
+        statuses[i] = "done";
+        continue;
+      }
+      const sustainContinuous = hasDriverStep && s.until === void 0 && isContinuousVerb(s.verb);
+      const tick2 = executeSingleStep(s, i, planState, world, actor, dt, sustainContinuous);
+      if (tick2.kind === "failed") {
+        statuses[i] = "failed";
+        planState.status = "failed";
+        planState.failure = tick2.failure;
+        return writeResult(out, "failed", planState.stageIndex, tick2.failure);
+      }
+      if (tick2.kind === "done") {
+        statuses[i] = "done";
+      } else if (s.until !== void 0 && s.verb !== "wait" && s.verb !== "watch" && evaluateCondition(s.until, planState, world, actor, i)) {
+        statuses[i] = "done";
+      } else {
+        anyStepRunning = true;
+        if (s.until !== void 0 || !isContinuousVerb(s.verb)) {
+          anyDriverRunning = true;
+        }
+      }
+    }
+    if (!anyStepRunning || hasDriverStep && !anyDriverRunning) {
+      for (let i = stage.start; i < stage.end; i++) {
+        if (statuses[i] === "running") statuses[i] = "done";
+      }
+      planState.stageIndex++;
+      planState.stageActive = false;
+      planState.stageHasDriver = false;
+      planState.stageStartedAtSec = world.timeSec;
+      if (planState.stageIndex >= stages.length) {
+        planState.status = "completed";
+      }
+    }
+    return writeResult(out, planState.status, planState.stageIndex, planState.failure);
+  }
+
+  // src/police/plans.ts
+  var VALID_PLAN_ID2 = /^[a-z][a-z0-9_]*$/;
+  function isPlanSafeId(id) {
+    return VALID_PLAN_ID2.test(id);
+  }
+  function formatPlanClock(secondsOfDay) {
+    const wrapped = (Math.floor(secondsOfDay) % 86400 + 86400) % 86400;
+    const hh = Math.floor(wrapped / 3600);
+    const mm = Math.floor(wrapped % 3600 / 60);
+    return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+  }
+  function moveStep(officer, nodeId, manner) {
+    const m = manner ? ` ${manner}` : "";
+    if (officer.transport === "car" && officer.vehicleId) {
+      return `drive vehicle:${officer.vehicleId}${m} until at(place:${nodeId})`;
+    }
+    return `go place:${nodeId}${m}`;
+  }
+  function dedupeConsecutive(ids) {
+    const out = [];
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      if (out.length === 0 || out[out.length - 1] !== id) out.push(id);
+    }
+    return out;
+  }
+  function buildPatrolPlanSource(officer, graph, currentNodeId, options = {}) {
+    const waypoints = officer.beatNodeIds.length > 0 ? officer.beatNodeIds.slice() : [officer.stationNodeId];
+    if (options.hotNodeId && graph.nodes[options.hotNodeId] && !waypoints.includes(options.hotNodeId)) {
+      waypoints.splice(Math.min(1, waypoints.length), 0, options.hotNodeId);
+    }
+    const expanded = [];
+    let cursor = currentNodeId;
+    for (let i = 0; i < waypoints.length; i++) {
+      const wp = waypoints[i];
+      const path = shortestNodePath(graph, cursor, wp, officer.jurisdictionId);
+      for (let k = 0; k < path.length; k++) {
+        const node = path[k];
+        if (node !== cursor || expanded.length > 0) expanded.push(node);
+      }
+      cursor = wp;
+    }
+    const route = dedupeConsecutive(expanded.length > 0 ? expanded : waypoints);
+    const manner = options.highHeat ? "carefully" : void 0;
+    return route.map((n) => moveStep(officer, n, manner)).join(" then ");
+  }
+  function buildRespondCrimePlanSource(officer, graph, currentNodeId, sceneNodeId, witnessIds) {
+    const path = shortestNodePath(graph, currentNodeId, sceneNodeId, officer.jurisdictionId);
+    const moveNodes = dedupeConsecutive(path.length > 1 ? path.slice(1) : [sceneNodeId]);
+    const steps = moveNodes.map((n) => moveStep(officer, n, "quickly"));
+    if (officer.role === "detective") {
+      steps.push(`watch place:${sceneNodeId}`);
+    }
+    for (let i = 0; i < witnessIds.length; i++) {
+      const wid = witnessIds[i];
+      if (isPlanSafeId(wid)) {
+        steps.push(`ask person:${wid} politely`);
+      }
+    }
+    return steps.join(" then ");
+  }
+  function buildSearchPlanSource(officer, graph, currentNodeId, searchNodeIds) {
+    const targets = searchNodeIds.filter((id) => graph.nodes[id] !== void 0);
+    const list = targets.length > 0 ? targets : officer.beatNodeIds;
+    const steps = [];
+    let cursor = currentNodeId;
+    for (let i = 0; i < list.length; i++) {
+      const target = list[i];
+      const path = shortestNodePath(graph, cursor, target, officer.jurisdictionId);
+      const moveNodes = dedupeConsecutive(path.length > 1 ? path.slice(1) : [target]);
+      for (let k = 0; k < moveNodes.length; k++) {
+        steps.push(moveStep(officer, moveNodes[k], "quickly"));
+      }
+      steps.push(`watch place:${target}`);
+      cursor = target;
+    }
+    return steps.join(" then ");
+  }
+  function buildStakeoutPlanSource(officer, graph, currentNodeId, hauntNodeId, untilTimeSec) {
+    const path = shortestNodePath(graph, currentNodeId, hauntNodeId, officer.jurisdictionId);
+    const moveNodes = dedupeConsecutive(path.length > 1 ? path.slice(1) : [hauntNodeId]);
+    const steps = moveNodes.map((n) => moveStep(officer, n, "quietly"));
+    const hhmm = formatPlanClock(untilTimeSec);
+    steps.push(`hide while watch place:${hauntNodeId} until time(${hhmm})`);
+    return steps.join(" then ");
+  }
+  function buildQuestionPlanSource(personId, options) {
+    const manner = options.highSeverity ? "rudely" : "politely";
+    if (options.askPapers) {
+      return `go person:${personId} quickly then warn person:${personId} ${manner} then ask person:${personId} ${manner}`;
+    }
+    return `go person:${personId} then ask person:${personId} ${manner}`;
+  }
+  function buildBackupCallPlanSource(officer, graph, currentNodeId, sceneNodeId, suspectId) {
+    if (officer.hasRadio) {
+      return `signal place:${sceneNodeId} then follow person:${suspectId} quickly`;
+    }
+    const path = shortestNodePath(graph, currentNodeId, officer.stationNodeId, officer.jurisdictionId);
+    const moveNodes = dedupeConsecutive(path.length > 1 ? path.slice(1) : [officer.stationNodeId]);
+    const steps = [
+      `signal place:${sceneNodeId}`,
+      ...moveNodes.map((n) => moveStep(officer, n, "quickly")),
+      `call place:${officer.stationNodeId}`
+    ];
+    return steps.join(" then ");
+  }
+  function buildChasePlanSource(officer, suspectId, suspectNodeId) {
+    if (officer.transport === "car" && officer.vehicleId && isPlanSafeId(suspectNodeId)) {
+      return `drive vehicle:${officer.vehicleId} quickly until at(place:${suspectNodeId}) then warn person:${suspectId} rudely then restrain person:${suspectId} with item:${officer.cuffsItemId} quickly`;
+    }
+    return `go person:${suspectId} quickly then warn person:${suspectId} rudely then restrain person:${suspectId} with item:${officer.cuffsItemId} quickly`;
+  }
+  function buildArrestPlanSource(officer, suspectId) {
+    return `warn person:${suspectId} rudely then restrain person:${suspectId} with item:${officer.cuffsItemId} quickly`;
+  }
+  function buildTransportPlanSource(officer, graph, currentNodeId) {
+    const path = shortestNodePath(graph, currentNodeId, officer.stationNodeId, officer.jurisdictionId);
+    const moveNodes = dedupeConsecutive(path.length > 1 ? path.slice(1) : [officer.stationNodeId]);
+    return moveNodes.map((n) => moveStep(officer, n, "carefully")).join(" then ");
+  }
+  function buildBackupResponsePlanSource(officer, graph, currentNodeId, alertNodeId, suspectId) {
+    const path = shortestNodePath(graph, currentNodeId, alertNodeId, officer.jurisdictionId);
+    const moveNodes = dedupeConsecutive(path.length > 1 ? path.slice(1) : [alertNodeId]);
+    const steps = moveNodes.map((n) => moveStep(officer, n, "quickly"));
+    if (suspectId && isPlanSafeId(suspectId)) {
+      steps.push(`watch person:${suspectId}`);
+    } else {
+      steps.push(`watch place:${alertNodeId}`);
+    }
+    return steps.join(" then ");
+  }
+  var parsedPlanCache = /* @__PURE__ */ new Map();
+  function compileOfficerPlan(officer, source, graph, timeSec, extraPeople = []) {
+    let plan = parsedPlanCache.get(source);
+    if (!plan) {
+      const parsed = parsePlan(source);
+      if (!parsed.ok) {
+        throw new Error(`Invalid police plan for ${officer.id}: ${parsed.error} in "${source}"`);
+      }
+      plan = parsed.plan;
+      if (parsedPlanCache.size >= 512) parsedPlanCache.clear();
+      parsedPlanCache.set(source, plan);
+    }
+    const knownPeopleSet = /* @__PURE__ */ new Set([officer.id]);
+    for (let i = 0; i < extraPeople.length; i++) {
+      const pid = extraPeople[i];
+      if (isPlanSafeId(pid)) knownPeopleSet.add(pid);
+    }
+    if (officer.targetPersonId && isPlanSafeId(officer.targetPersonId)) {
+      knownPeopleSet.add(officer.targetPersonId);
     }
     const facts = {
-      actorId: officer.planId,
-      knownPeople: [officer.planId, ...personPlanIds],
-      knownPlaces: allPlacePlanIds,
-      knownItems: [`cuffs_${officer.planId}`],
-      heldItems: [`cuffs_${officer.planId}`],
-      knownVehicles: officer.vehiclePlanId ? [officer.vehiclePlanId] : []
+      actorId: officer.id,
+      knownPeople: Array.from(knownPeopleSet),
+      knownPlaces: Object.keys(graph.nodes),
+      knownItems: [officer.cuffsItemId],
+      heldItems: [officer.cuffsItemId],
+      knownVehicles: officer.vehicleId ? [officer.vehicleId] : []
     };
-    const bound = bind(parsed.plan, facts);
+    const bound = bind(plan, facts);
     if (!bound.ok) {
-      const msg = bound.errors.map((e) => `${e.code}: ${e.reason}`).join("; ");
-      throw new Error(`Loop plan failed bind for ${officer.id}: ${msg} in "${source}"`);
+      const summary = bound.errors.map((e) => `${e.code}: ${e.reason}`).join("; ");
+      throw new Error(`Police plan failed bind for ${officer.id}: ${summary} in "${source}"`);
     }
-    return source;
+    return {
+      planSource: source,
+      planState: createPlanState(bound.bound, timeSec)
+    };
   }
-  function buildInitialOfficers(params) {
-    const { seed, year, places, streetGraph, peopleCount, idMap } = params;
-    const officers = {};
+
+  // src/police/spotting.ts
+  var SpatialPersonIndex = class {
+    cellSize;
+    invCellSize;
+    buckets = /* @__PURE__ */ new Map();
+    constructor(people, cellSize = 32, bounds) {
+      this.cellSize = cellSize;
+      this.invCellSize = 1 / cellSize;
+      for (let i = 0; i < people.length; i++) {
+        const p = people[i];
+        const px = p.position.x;
+        const py = p.position.y;
+        if (bounds && (px < bounds.minX || px > bounds.maxX || py < bounds.minY || py > bounds.maxY)) {
+          continue;
+        }
+        const cx = Math.floor(px * this.invCellSize);
+        const cy = Math.floor(py * this.invCellSize);
+        const key = (cx + 32768) * 65536 + (cy + 32768);
+        let list = this.buckets.get(key);
+        if (!list) {
+          list = [];
+          this.buckets.set(key, list);
+        }
+        list.push(p);
+      }
+    }
+    query(pos, radiusM) {
+      const out = [];
+      const r2 = radiusM * radiusM;
+      const minX = Math.floor((pos.x - radiusM) * this.invCellSize);
+      const maxX = Math.floor((pos.x + radiusM) * this.invCellSize);
+      const minY = Math.floor((pos.y - radiusM) * this.invCellSize);
+      const maxY = Math.floor((pos.y + radiusM) * this.invCellSize);
+      for (let cx = minX; cx <= maxX; cx++) {
+        const rowBase = (cx + 32768) * 65536;
+        for (let cy = minY; cy <= maxY; cy++) {
+          const list = this.buckets.get(rowBase + (cy + 32768));
+          if (!list) continue;
+          for (let i = 0; i < list.length; i++) {
+            const p = list[i];
+            const dx = p.position.x - pos.x;
+            const dy = p.position.y - pos.y;
+            if (dx * dx + dy * dy <= r2) out.push(p);
+          }
+        }
+      }
+      return out;
+    }
+  };
+  function effectiveLightAtNode(graph, nodeId, hour, ambientOverride) {
+    const nodePos = graph.nodes[nodeId]?.position ?? { x: 0, y: 0 };
+    const skyLight = ambientOverride !== void 0 ? ambientOverride : ambientLightAt(hour, nodePos);
+    const localLamp = graph.nodes[nodeId]?.streetLight ?? 0.25;
+    return Math.max(0.08, Math.min(1, Math.max(skyLight, skyLight + localLamp * (1 - skyLight) * 0.55)));
+  }
+  function officerSightRadius(light, transport) {
+    const base = transport === "car" ? 30 : 26;
+    return base * (0.45 + 0.55 * Math.sqrt(Math.max(0.05, Math.min(1, light))));
+  }
+  function selectBestMatchingCase(activeCases, person) {
+    let best;
+    let bestScore = -1;
+    let bestAppearance = 0;
+    for (let i = 0; i < activeCases.length; i++) {
+      const ac = activeCases[i];
+      const c = ac.policeCase;
+      const idHit = c.merged.namedSuspectId === person.personId;
+      const app = appearanceMatchScore(c.merged.description, person.appearance);
+      if (!idHit && app < 0.42) continue;
+      const combined = idHit ? 0.65 + 0.35 * app : app;
+      const weighted = combined * c.merged.overallConfidence * (0.5 + 0.5 * Math.min(1, ac.heat / 40));
+      if (weighted > bestScore) {
+        bestScore = weighted;
+        best = ac;
+        bestAppearance = app;
+      }
+    }
+    if (!best || bestScore <= 0.04) return void 0;
+    return { matchedCase: best, appearanceScore: bestAppearance };
+  }
+  function decideSpotAction(params) {
+    const { officer, person, policeCase, recognition, heat, year } = params;
+    const era = params.era ?? POLICE_ERA;
+    if (person.fleeing) {
+      if (officer.hasRadio && policeCase.severity >= 0.65 && !officer.backupRequested) {
+        return "call_backup";
+      }
+      return "pursue";
+    }
+    if (policeCase.severity >= 0.7 && recognition >= 0.42) {
+      if (officer.hasRadio && !officer.backupRequested) {
+        return "call_backup";
+      }
+      return "pursue";
+    }
+    if (year >= era.papersCheckStartYear && (heat >= 35 || policeCase.severity >= 0.45)) {
+      return "ask_papers";
+    }
+    return "question";
+  }
+  function evaluateSpotting(params) {
+    const {
+      seed,
+      officer,
+      officerPos,
+      seen,
+      activeCases,
+      jurisdictionHeat,
+      crimeState,
+      world,
+      graph,
+      day,
+      year,
+      hour,
+      timeSec,
+      ambientLight,
+      era
+    } = params;
+    if (seen.inCustody || seen.personId === officer.personId || seen.personId === officer.id) {
+      return null;
+    }
+    if (activeCases.length === 0) return null;
+    const clearedUntil = officer.clearedUntilSec[seen.personId];
+    if (clearedUntil !== void 0 && timeSec < clearedUntil) return null;
+    const dx = seen.position.x - officerPos.x;
+    const dy = seen.position.y - officerPos.y;
+    const distance = Math.hypot(dx, dy);
+    const light = effectiveLightAtNode(graph, seen.nodeId, hour, ambientLight);
+    const maxRange = officerSightRadius(light, officer.transport);
+    if (distance > maxRange) return null;
+    const match = selectBestMatchingCase(activeCases, seen);
+    if (!match) return null;
+    const chance = recognitionChance(
+      crimeState,
+      world,
+      officer.personId,
+      { id: seen.personId, appearance: seen.appearance },
+      day,
+      {
+        jurisdictionId: officer.jurisdictionId,
+        isPolice: true,
+        light,
+        distance,
+        year
+      }
+    );
+    const threshold = Math.max(0.14, 0.22 - Math.min(100, jurisdictionHeat) / 100 * 0.08);
+    const isLookalike = seen.personId !== match.matchedCase.policeCase.actualCulpritId;
+    const tickBucket = Math.floor(timeSec);
+    const rolled = rand(seed, "spot", officer.id, seen.personId, day, tickBucket);
+    let action = "ignore";
+    if (chance >= threshold && rolled < chance) {
+      action = decideSpotAction({
+        officer,
+        person: seen,
+        policeCase: match.matchedCase.policeCase,
+        recognition: chance,
+        heat: jurisdictionHeat,
+        year,
+        era
+      });
+    }
+    return {
+      timeSec,
+      day,
+      officerId: officer.id,
+      jurisdictionId: officer.jurisdictionId,
+      seenPersonId: seen.personId,
+      matchedCaseId: match.matchedCase.policeCase.crimeId,
+      recognitionChance: Math.round(chance * 1e4) / 1e4,
+      rolled: Math.round(rolled * 1e4) / 1e4,
+      threshold: Math.round(threshold * 1e4) / 1e4,
+      action,
+      isLookalike,
+      distance: Math.round(distance * 100) / 100,
+      light: Math.round(light * 1e3) / 1e3
+    };
+  }
+  function getActiveWantedCases(cases, day) {
+    const out = [];
+    for (let i = 0; i < cases.length; i++) {
+      const c = cases[i];
+      const h = caseHeatOnDay(c, day);
+      if (h >= 3 || c.severity >= 0.9) {
+        out.push({ policeCase: c, heat: h });
+      }
+    }
+    return out;
+  }
+
+  // src/police/engine.ts
+  function dist(a, b) {
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+  function findNearestNodeId(graph, pos, fallback) {
+    let bestId = fallback;
+    let bestD2 = Infinity;
+    const ids = Object.keys(graph.nodes);
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      const n = graph.nodes[id];
+      const dx = n.position.x - pos.x;
+      const dy = n.position.y - pos.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < bestD2) {
+        bestD2 = d2;
+        bestId = id;
+      }
+    }
+    return bestId;
+  }
+  function getOfficerNodeId(officer, ctx) {
+    const place = ctx.planWorld.getActorPlace(officer.id);
+    if (place && ctx.graph.nodes[place]) return place;
+    const pos = ctx.planWorld.getActorPosition(officer.id);
+    return findNearestNodeId(ctx.graph, pos, officer.stationNodeId);
+  }
+  function clonePlanState(ps) {
+    return {
+      ...ps,
+      stepStatuses: ps.stepStatuses.slice(),
+      stepStartedAtSec: ps.stepStartedAtSec.slice(),
+      observedPlaces: ps.observedPlaces.slice(),
+      ...ps.failure ? { failure: { ...ps.failure } } : {}
+    };
+  }
+  function assignPlan(officer, source, ctx, extraPeople = []) {
+    const compiled = compileOfficerPlan(officer, source, ctx.graph, ctx.planWorld.timeSec, extraPeople);
+    return {
+      ...officer,
+      planSource: compiled.planSource,
+      planState: compiled.planState
+    };
+  }
+  function startPatrol(officer, ctx, jurHeat, hotNodeId) {
+    const curNode = getOfficerNodeId(officer, ctx);
+    const base = {
+      ...officer,
+      assignment: "patrol",
+      targetCrimeId: void 0,
+      targetPersonId: void 0,
+      targetNodeId: void 0,
+      pendingWitnessIds: void 0,
+      interviewedWitnessIds: void 0,
+      targetIsLookalike: void 0,
+      backupRequested: void 0
+    };
+    const src = buildPatrolPlanSource(base, ctx.graph, curNode, {
+      hotNodeId: jurHeat >= 35 ? hotNodeId : void 0,
+      highHeat: jurHeat >= 50
+    });
+    return assignPlan(base, src, ctx);
+  }
+  function isInterruptibleForCrime(o) {
+    return o.assignment === "patrol" || o.assignment === "search_suspect";
+  }
+  function isAvailableForBackup(o) {
+    return o.assignment === "patrol" || o.assignment === "search_suspect" || o.assignment === "stakeout";
+  }
+  function canSpotInAssignment(a) {
+    return a === "patrol" || a === "search_suspect" || a === "stakeout" || a === "backup";
+  }
+  function stepPoliceTick(state, ctx) {
+    const timeSec = ctx.planWorld.timeSec;
+    const era = ctx.policeEra ?? POLICE_ERA;
+    const spotIntervalSec = ctx.spotIntervalSec ?? 2;
+    let crimeState = ctx.crimeState;
+    let nextSeq = state.nextSeq;
+    const nextId = (prefix) => `${prefix}_${nextSeq++}`;
+    const nextOfficers = {};
+    const officerIds = Object.keys(state.officers).sort();
+    for (let i = 0; i < officerIds.length; i++) {
+      const id = officerIds[i];
+      const o = state.officers[id];
+      nextOfficers[id] = {
+        ...o,
+        ...o.planState ? { planState: clonePlanState(o.planState) } : {}
+      };
+    }
+    const nextRespondedCases = { ...state.respondedCases };
+    let nextBackupAlerts = state.backupAlerts.filter((a) => a.expiresAtSec > timeSec);
+    const tickSpots = [];
+    const tickStops = [];
+    const tickInterviews = [];
+    const tickArrests = [];
+    const tickEscapes = [];
+    let personMap;
+    const lookupPerson = (pid) => {
+      if (ctx.getPerson) return ctx.getPerson(pid);
+      if (!ctx.people || ctx.people.length === 0) return void 0;
+      if (!personMap) {
+        personMap = /* @__PURE__ */ new Map();
+        for (let i = 0; i < ctx.people.length; i++) {
+          const p = ctx.people[i];
+          personMap.set(p.personId, p);
+        }
+      }
+      return personMap.get(pid);
+    };
+    let spatialIndex;
+    let spatialIndexBuilt = false;
+    const getSpatialIndex = () => {
+      if (spatialIndexBuilt) return spatialIndex;
+      spatialIndexBuilt = true;
+      if (!ctx.people || ctx.people.length === 0 || ctx.peopleNearby) return void 0;
+      let minX = Infinity;
+      let maxX = -Infinity;
+      let minY = Infinity;
+      let maxY = -Infinity;
+      for (let i = 0; i < officerIds.length; i++) {
+        const o = nextOfficers[officerIds[i]];
+        if (o.assignment === "off_duty") continue;
+        const pos = ctx.planWorld.getActorPosition(o.id);
+        if (pos.x < minX) minX = pos.x;
+        if (pos.x > maxX) maxX = pos.x;
+        if (pos.y < minY) minY = pos.y;
+        if (pos.y > maxY) maxY = pos.y;
+      }
+      const pad = 36;
+      spatialIndex = new SpatialPersonIndex(
+        ctx.people,
+        32,
+        minX <= maxX ? { minX: minX - pad, maxX: maxX + pad, minY: minY - pad, maxY: maxY + pad } : void 0
+      );
+      return spatialIndex;
+    };
     const jurIds = /* @__PURE__ */ new Set();
-    const stationByJur = /* @__PURE__ */ new Map();
-    const nodesByJur = /* @__PURE__ */ new Map();
+    for (let i = 0; i < officerIds.length; i++) {
+      jurIds.add(nextOfficers[officerIds[i]].jurisdictionId);
+    }
+    const knowledgeByJur = /* @__PURE__ */ new Map();
+    const activeCasesByJur = /* @__PURE__ */ new Map();
+    const hotNodeByJur = /* @__PURE__ */ new Map();
+    const alreadyArrestedCrimes = /* @__PURE__ */ new Set();
+    for (let i = 0; i < state.arrests.length; i++) {
+      alreadyArrestedCrimes.add(`${state.arrests[i].jurisdictionId}:${state.arrests[i].crimeId}`);
+    }
+    for (const jurId of jurIds) {
+      const snap = policeKnowledge(crimeState, jurId, ctx.day);
+      knowledgeByJur.set(jurId, snap);
+      const active = getActiveWantedCases(snap.cases, ctx.day).filter(
+        (ac) => !alreadyArrestedCrimes.has(`${jurId}:${ac.policeCase.crimeId}`)
+      );
+      activeCasesByJur.set(jurId, active);
+      if (active.length > 0) {
+        let hottest = active[0];
+        for (let i = 1; i < active.length; i++) {
+          if (active[i].heat > hottest.heat) hottest = active[i];
+        }
+        const placeId = hottest.policeCase.placeId;
+        hotNodeByJur.set(jurId, ctx.graph.nodes[placeId] ? placeId : void 0);
+      }
+    }
+    for (let i = 0; i < officerIds.length; i++) {
+      const id = officerIds[i];
+      const o = nextOfficers[id];
+      const jurHeat = knowledgeByJur.get(o.jurisdictionId)?.heat ?? 0;
+      const busyCritical = o.assignment === "chase" || o.assignment === "arrest" || o.assignment === "transport" || o.assignment === "question" || o.assignment === "call_backup";
+      const onDuty = ctx.ignoreShifts || busyCritical || jurHeat >= 75 || isOnShift(o.shift, ctx.hour);
+      if (!onDuty && o.assignment !== "off_duty") {
+        nextOfficers[id] = {
+          ...o,
+          assignment: "off_duty",
+          planState: void 0,
+          planSource: void 0
+        };
+      } else if (onDuty && o.assignment === "off_duty") {
+        nextOfficers[id] = startPatrol(o, ctx, jurHeat, hotNodeByJur.get(o.jurisdictionId));
+      }
+    }
+    for (const jurId of jurIds) {
+      const activeCases = activeCasesByJur.get(jurId) ?? [];
+      for (let ci = 0; ci < activeCases.length; ci++) {
+        const policeCase = activeCases[ci].policeCase;
+        const key = `${jurId}:${policeCase.crimeId}`;
+        if (nextRespondedCases[key]) continue;
+        const sceneNodeId = ctx.graph.nodes[policeCase.placeId] ? policeCase.placeId : findNearestNodeId(
+          ctx.graph,
+          crimeState.crimes[policeCase.crimeId]?.position ?? { x: 0, y: 0 },
+          Object.keys(ctx.graph.nodes)[0]
+        );
+        const scenePos = ctx.graph.nodes[sceneNodeId]?.position ?? { x: 0, y: 0 };
+        const knowers = knowersOf(crimeState, policeCase.crimeId);
+        const witnessIds = [];
+        for (let k = 0; k < knowers.length; k++) {
+          const kn = knowers[k];
+          if (kn.source !== "first_hand") continue;
+          if (!isPlanSafeId(kn.knowerId)) continue;
+          if (ctx.planWorld.getEntityPosition({ kind: "person", id: kn.knowerId })) {
+            witnessIds.push(kn.knowerId);
+          }
+          if (witnessIds.length >= 4) break;
+        }
+        let bestOfficer;
+        let bestScore = Infinity;
+        for (let oi = 0; oi < officerIds.length; oi++) {
+          const cand = nextOfficers[officerIds[oi]];
+          if (cand.jurisdictionId !== jurId || !isInterruptibleForCrime(cand)) continue;
+          const d = dist(ctx.planWorld.getActorPosition(cand.id), scenePos);
+          const detBonus = policeCase.severity >= 0.7 && cand.role === "detective" ? -500 : 0;
+          const score = d + detBonus;
+          if (score < bestScore) {
+            bestScore = score;
+            bestOfficer = cand;
+          }
+        }
+        if (bestOfficer) {
+          const curNode = getOfficerNodeId(bestOfficer, ctx);
+          const src = buildRespondCrimePlanSource(bestOfficer, ctx.graph, curNode, sceneNodeId, witnessIds);
+          const assigned = {
+            ...bestOfficer,
+            assignment: "respond_crime",
+            targetCrimeId: policeCase.crimeId,
+            targetNodeId: sceneNodeId,
+            pendingWitnessIds: witnessIds,
+            interviewedWitnessIds: []
+          };
+          nextOfficers[bestOfficer.id] = assignPlan(assigned, src, ctx, witnessIds);
+          nextRespondedCases[key] = bestOfficer.id;
+        }
+      }
+    }
+    for (const jurId of jurIds) {
+      const snap = knowledgeByJur.get(jurId);
+      const activeCases = activeCasesByJur.get(jurId) ?? [];
+      if (activeCases.length === 0 || snap.heat < 25) continue;
+      const topCase = activeCases[0].policeCase;
+      const suspectId = topCase.merged.namedSuspectId;
+      const haunts = suspectId && ctx.knownHauntsOf ? ctx.knownHauntsOf(suspectId) : [];
+      const lastSeen = ctx.lastSeenNodeOf?.(topCase.crimeId, suspectId);
+      const searchNodes = [];
+      if (lastSeen && ctx.graph.nodes[lastSeen]) searchNodes.push(lastSeen);
+      for (let h = 0; h < haunts.length; h++) {
+        if (ctx.graph.nodes[haunts[h]] && !searchNodes.includes(haunts[h])) {
+          searchNodes.push(haunts[h]);
+        }
+      }
+      if (searchNodes.length === 0) continue;
+      let activeSearchers = 0;
+      let activeStakeouts = 0;
+      for (let oi = 0; oi < officerIds.length; oi++) {
+        const o = nextOfficers[officerIds[oi]];
+        if (o.jurisdictionId !== jurId || o.targetCrimeId !== topCase.crimeId) continue;
+        if (o.assignment === "search_suspect") activeSearchers++;
+        if (o.assignment === "stakeout") activeStakeouts++;
+      }
+      const desiredSearchers = Math.min(2, Math.floor(heatEffortMultiplier(snap.heat)));
+      for (let oi = 0; oi < officerIds.length; oi++) {
+        const o = nextOfficers[officerIds[oi]];
+        if (o.jurisdictionId !== jurId || o.assignment !== "patrol") continue;
+        if (activeStakeouts === 0 && haunts.length > 0 && (o.role === "detective" || snap.heat >= 55)) {
+          const haunt = haunts[0];
+          if (ctx.graph.nodes[haunt]) {
+            const curNode = getOfficerNodeId(o, ctx);
+            const src = buildStakeoutPlanSource(o, ctx.graph, curNode, haunt, timeSec + 1800);
+            nextOfficers[o.id] = assignPlan(
+              {
+                ...o,
+                assignment: "stakeout",
+                targetCrimeId: topCase.crimeId,
+                targetPersonId: suspectId,
+                targetNodeId: haunt
+              },
+              src,
+              ctx
+            );
+            activeStakeouts++;
+            continue;
+          }
+        }
+        if (activeSearchers < desiredSearchers) {
+          const curNode = getOfficerNodeId(o, ctx);
+          const src = buildSearchPlanSource(o, ctx.graph, curNode, searchNodes);
+          nextOfficers[o.id] = assignPlan(
+            {
+              ...o,
+              assignment: "search_suspect",
+              targetCrimeId: topCase.crimeId,
+              targetPersonId: suspectId,
+              targetNodeId: searchNodes[0]
+            },
+            src,
+            ctx
+          );
+          activeSearchers++;
+        }
+      }
+    }
+    for (let ai = 0; ai < nextBackupAlerts.length; ai++) {
+      const alert = nextBackupAlerts[ai];
+      if (timeSec < alert.activeAtSec) continue;
+      let assignedCount = 0;
+      for (let oi = 0; oi < officerIds.length; oi++) {
+        const o = nextOfficers[officerIds[oi]];
+        if (o.jurisdictionId === alert.jurisdictionId && o.assignment === "backup" && o.targetCrimeId === alert.crimeId) {
+          assignedCount++;
+        }
+      }
+      if (assignedCount >= 2) continue;
+      for (let oi = 0; oi < officerIds.length && assignedCount < 2; oi++) {
+        const o = nextOfficers[officerIds[oi]];
+        if (o.jurisdictionId !== alert.jurisdictionId) continue;
+        if (o.id === alert.requestedByOfficerId || !isAvailableForBackup(o)) continue;
+        const pos = ctx.planWorld.getActorPosition(o.id);
+        const nearStation = dist(pos, ctx.graph.nodes[o.stationNodeId]?.position ?? pos) <= 45;
+        const nearAlert = dist(pos, alert.position) <= 45;
+        if (!o.hasRadio && !nearStation && !nearAlert) continue;
+        const curNode = getOfficerNodeId(o, ctx);
+        const src = buildBackupResponsePlanSource(o, ctx.graph, curNode, alert.nodeId, alert.suspectId);
+        nextOfficers[o.id] = assignPlan(
+          {
+            ...o,
+            assignment: "backup",
+            targetCrimeId: alert.crimeId,
+            targetPersonId: alert.suspectId,
+            targetNodeId: alert.nodeId
+          },
+          src,
+          ctx,
+          [alert.suspectId]
+        );
+        assignedCount++;
+      }
+    }
+    const executeArrest = (officer, suspectId, crimeId, method) => {
+      const policeCase = crimeState.jurisdictions[officer.jurisdictionId]?.cases[crimeId];
+      const inv = ctx.getPersonInventory ? [...ctx.getPersonInventory(suspectId)] : [];
+      const contraband = [];
+      for (let k = 0; k < inv.length; k++) {
+        const item = inv[k];
+        const isBad = ctx.isContraband ? ctx.isContraband(item, crimeId, policeCase) : /stolen|loot|weapon|gun|knife|crowbar|lockpick/.test(item.toLowerCase());
+        if (isBad) contraband.push(item);
+      }
+      const assisting = [];
+      for (let oi = 0; oi < officerIds.length; oi++) {
+        const other = nextOfficers[officerIds[oi]];
+        if (other.id !== officer.id && other.jurisdictionId === officer.jurisdictionId && (other.assignment === "backup" || other.assignment === "chase") && other.targetCrimeId === crimeId) {
+          assisting.push(other.id);
+        }
+      }
+      const pos = ctx.planWorld.getEntityPosition({ kind: "person", id: suspectId }) ?? ctx.planWorld.getActorPosition(officer.id);
+      const arrest2 = {
+        id: nextId("arrest"),
+        crimeId,
+        suspectId,
+        arrestingOfficerId: officer.id,
+        assistingOfficerIds: assisting,
+        jurisdictionId: officer.jurisdictionId,
+        stationNodeId: officer.stationNodeId,
+        arrestDay: ctx.day,
+        arrestYear: ctx.year,
+        arrestTimeSec: timeSec,
+        arrestPosition: { x: pos.x, y: pos.y },
+        method,
+        searchedInventory: inv,
+        seizedContraband: contraband,
+        cuffed: true,
+        transportedToStation: false,
+        ...policeCase ? { caseStrengthAtArrest: caseStrength(policeCase, ctx.day).combinedScore } : {}
+      };
+      tickArrests.push(arrest2);
+      alreadyArrestedCrimes.add(`${officer.jurisdictionId}:${crimeId}`);
+      ctx.onSuspectCustody?.(suspectId, officer.id, "cuffed");
+      const curNode = getOfficerNodeId(officer, ctx);
+      const transSrc = buildTransportPlanSource(officer, ctx.graph, curNode);
+      const transporting = {
+        ...officer,
+        assignment: "transport",
+        targetCrimeId: crimeId,
+        targetPersonId: suspectId,
+        targetNodeId: officer.stationNodeId
+      };
+      ctx.onSuspectCustody?.(suspectId, officer.id, "transporting");
+      return assignPlan(transporting, transSrc, ctx, [suspectId]);
+    };
+    for (let oi = 0; oi < officerIds.length; oi++) {
+      const id = officerIds[oi];
+      let officer = nextOfficers[id];
+      if (officer.assignment === "off_duty") continue;
+      const jurHeat = knowledgeByJur.get(officer.jurisdictionId)?.heat ?? 0;
+      const hotNodeId = hotNodeByJur.get(officer.jurisdictionId);
+      if (!officer.planState) {
+        officer = startPatrol(officer, ctx, jurHeat, hotNodeId);
+      }
+      if ((officer.assignment === "chase" || officer.assignment === "call_backup") && officer.targetPersonId && officer.targetCrimeId) {
+        const targetObs = lookupPerson(officer.targetPersonId);
+        if (targetObs && targetObs.jurisdictionId !== officer.jurisdictionId) {
+          const escalatedJur = ctx.escalateJurisdictionOf?.(
+            officer.jurisdictionId,
+            officer.targetCrimeId
+          );
+          tickEscapes.push({
+            id: nextId("escape"),
+            crimeId: officer.targetCrimeId,
+            suspectId: officer.targetPersonId,
+            pursuingOfficerId: officer.id,
+            fromJurisdictionId: officer.jurisdictionId,
+            toJurisdictionId: targetObs.jurisdictionId,
+            day: ctx.day,
+            timeSec,
+            ...escalatedJur ? { escalatedToJurisdictionId: escalatedJur } : {}
+          });
+          officer = startPatrol(officer, ctx, jurHeat, hotNodeId);
+          nextOfficers[id] = officer;
+          continue;
+        }
+        if (officer.transport === "car" && targetObs && targetObs.nodeId !== officer.targetNodeId && ctx.graph.nodes[targetObs.nodeId]) {
+          const chaseSrc = buildChasePlanSource(officer, officer.targetPersonId, targetObs.nodeId);
+          officer = assignPlan(
+            { ...officer, targetNodeId: targetObs.nodeId },
+            chaseSrc,
+            ctx,
+            [officer.targetPersonId]
+          );
+        }
+      }
+      const prevStatuses = officer.planState.stepStatuses.slice();
+      const planRes = step(officer.planState, ctx.planWorld, officer.id, ctx.dt);
+      if (officer.assignment === "respond_crime" && officer.targetCrimeId) {
+        const respondCrimeId = officer.targetCrimeId;
+        const steps = officer.planState.plan.steps;
+        for (let si = 0; si < steps.length; si++) {
+          const st = steps[si];
+          if (st.verb === "ask" && st.target?.kind === "person" && prevStatuses[si] !== "done" && officer.planState.stepStatuses[si] === "done") {
+            const witnessId = st.target.id;
+            const prevAccount = crimeState.ledger[respondCrimeId]?.[witnessId];
+            if (prevAccount) {
+              crimeState = refreshWitnessMemory(
+                crimeState,
+                respondCrimeId,
+                witnessId,
+                ctx.day,
+                "police_interview"
+              );
+            }
+            const interviewed = officer.interviewedWitnessIds ? [...officer.interviewedWitnessIds, witnessId] : [witnessId];
+            officer = { ...officer, interviewedWitnessIds: interviewed };
+            tickInterviews.push({
+              id: nextId("interview"),
+              crimeId: respondCrimeId,
+              officerId: officer.id,
+              witnessId,
+              day: ctx.day,
+              timeSec,
+              memoryRefreshed: prevAccount !== void 0
+            });
+          }
+        }
+      }
+      if (officer.assignment === "call_backup" && officer.targetCrimeId && officer.targetPersonId) {
+        const steps = officer.planState.plan.steps;
+        const radioFired = officer.hasRadio && steps.some(
+          (st, si) => st.verb === "signal" && prevStatuses[si] !== "done" && officer.planState.stepStatuses[si] === "done"
+        );
+        const stationCallFired = !officer.hasRadio && (planRes.status === "completed" || steps.some(
+          (st, si) => st.verb === "call" && prevStatuses[si] !== "done" && officer.planState.stepStatuses[si] === "done"
+        ));
+        if (radioFired || stationCallFired) {
+          const obs = lookupPerson(officer.targetPersonId);
+          const alertNode = obs?.nodeId ?? officer.targetNodeId ?? getOfficerNodeId(officer, ctx);
+          const alertPos = obs?.position ?? ctx.planWorld.getActorPosition(officer.id);
+          nextBackupAlerts.push({
+            id: nextId("backup"),
+            crimeId: officer.targetCrimeId,
+            suspectId: officer.targetPersonId,
+            jurisdictionId: officer.jurisdictionId,
+            nodeId: alertNode,
+            position: { x: alertPos.x, y: alertPos.y },
+            requestedByOfficerId: officer.id,
+            requestedAtSec: timeSec,
+            // Radio backup alerts immediately; pre-1930 station dispatch takes extra time
+            activeAtSec: officer.hasRadio ? timeSec : timeSec + 45,
+            expiresAtSec: timeSec + 300
+          });
+          const chaseSrc = buildChasePlanSource(officer, officer.targetPersonId, alertNode);
+          officer = assignPlan(
+            {
+              ...officer,
+              assignment: "chase",
+              targetNodeId: alertNode,
+              backupRequested: true
+            },
+            chaseSrc,
+            ctx,
+            [officer.targetPersonId]
+          );
+          nextOfficers[id] = officer;
+          continue;
+        }
+      }
+      if (planRes.status === "completed" || planRes.status === "failed" || planRes.status === "refused") {
+        if (officer.assignment === "question" && officer.targetPersonId && officer.targetCrimeId) {
+          const targetId = officer.targetPersonId;
+          const crimeId = officer.targetCrimeId;
+          const policeCase = crimeState.jurisdictions[officer.jurisdictionId]?.cases[crimeId];
+          const isLookalike = officer.targetIsLookalike ?? (policeCase ? targetId !== policeCase.actualCulpritId : false);
+          const inv = ctx.getPersonInventory ? [...ctx.getPersonInventory(targetId)] : [];
+          const contraband = inv.filter(
+            (item) => ctx.isContraband ? ctx.isContraband(item, crimeId, policeCase) : /stolen|loot|weapon|gun|knife|crowbar|lockpick/.test(item.toLowerCase())
+          );
+          const papersRequested = ctx.year >= era.papersCheckStartYear;
+          if (isLookalike && contraband.length === 0) {
+            tickStops.push({
+              id: nextId("stop"),
+              day: ctx.day,
+              timeSec,
+              officerId: officer.id,
+              jurisdictionId: officer.jurisdictionId,
+              personId: targetId,
+              caseId: crimeId,
+              reason: "lookalike_cleared",
+              isLookalike: true,
+              papersRequested,
+              contrabandFound: []
+            });
+            officer = { ...officer, clearedUntilSec: { ...officer.clearedUntilSec, [targetId]: timeSec + 600 } };
+            officer = startPatrol(officer, ctx, jurHeat, hotNodeId);
+          } else {
+            const obs = lookupPerson(targetId);
+            const flees = obs?.fleeing ?? ctx.willSuspectFlee?.(targetId, crimeId, officer.id) ?? rand(state.seed, "flee", crimeId, targetId, ctx.day) < 0.35;
+            if (flees) {
+              tickStops.push({
+                id: nextId("stop"),
+                day: ctx.day,
+                timeSec,
+                officerId: officer.id,
+                jurisdictionId: officer.jurisdictionId,
+                personId: targetId,
+                caseId: crimeId,
+                reason: "fled",
+                isLookalike: false,
+                papersRequested,
+                contrabandFound: contraband
+              });
+              const targetNode = obs?.nodeId ?? getOfficerNodeId(officer, ctx);
+              const chaseSrc = buildChasePlanSource(officer, targetId, targetNode);
+              officer = assignPlan(
+                {
+                  ...officer,
+                  assignment: "chase",
+                  targetNodeId: targetNode
+                },
+                chaseSrc,
+                ctx,
+                [targetId]
+              );
+            } else {
+              tickStops.push({
+                id: nextId("stop"),
+                day: ctx.day,
+                timeSec,
+                officerId: officer.id,
+                jurisdictionId: officer.jurisdictionId,
+                personId: targetId,
+                caseId: crimeId,
+                reason: "arrested",
+                isLookalike: false,
+                papersRequested,
+                contrabandFound: contraband
+              });
+              const arrestSrc = buildArrestPlanSource(officer, targetId);
+              officer = assignPlan(
+                { ...officer, assignment: "arrest" },
+                arrestSrc,
+                ctx,
+                [targetId]
+              );
+            }
+          }
+        } else if ((officer.assignment === "chase" || officer.assignment === "arrest") && officer.targetPersonId && officer.targetCrimeId) {
+          if (planRes.status === "completed") {
+            const method = officer.assignment === "arrest" ? "surrender" : officer.transport === "car" ? "vehicle_pursuit" : "foot_pursuit";
+            officer = executeArrest(officer, officer.targetPersonId, officer.targetCrimeId, method);
+          } else {
+            officer = startPatrol(officer, ctx, jurHeat, hotNodeId);
+          }
+        } else if (officer.assignment === "transport" && officer.targetPersonId && officer.targetCrimeId) {
+          const targetSuspect = officer.targetPersonId;
+          const targetCrime = officer.targetCrimeId;
+          for (let ai = state.arrests.length - 1; ai >= 0; ai--) {
+            const rec = state.arrests[ai];
+            if (rec.suspectId === targetSuspect && rec.crimeId === targetCrime && !rec.transportedToStation) {
+              tickArrests.push({ ...rec, transportedToStation: true });
+              break;
+            }
+          }
+          ctx.onSuspectCustody?.(targetSuspect, officer.id, "booked");
+          officer = startPatrol(officer, ctx, jurHeat, hotNodeId);
+        } else {
+          officer = startPatrol(officer, ctx, jurHeat, hotNodeId);
+        }
+      } else if (officer.assignment === "transport" && officer.targetPersonId) {
+        ctx.onSuspectCustody?.(officer.targetPersonId, officer.id, "transporting");
+      }
+      if (canSpotInAssignment(officer.assignment) && timeSec - officer.lastSpotCheckSec >= spotIntervalSec) {
+        officer = { ...officer, lastSpotCheckSec: timeSec };
+        const activeCases = activeCasesByJur.get(officer.jurisdictionId) ?? [];
+        if (activeCases.length > 0) {
+          const officerPos = ctx.planWorld.getActorPosition(officer.id);
+          const curNode = getOfficerNodeId(officer, ctx);
+          const light = effectiveLightAtNode(ctx.graph, curNode, ctx.hour, ctx.ambientLight);
+          const radius = officerSightRadius(light, officer.transport);
+          const nearby = ctx.peopleNearby ? ctx.peopleNearby(officerPos, radius, officer.id) : getSpatialIndex() ? getSpatialIndex().query(officerPos, radius) : [];
+          for (let ni = 0; ni < nearby.length; ni++) {
+            const seen = nearby[ni];
+            if (seen.jurisdictionId !== officer.jurisdictionId) continue;
+            if (!ctx.planWorld.canSee(officer.id, { kind: "person", id: seen.personId })) continue;
+            const spot = evaluateSpotting({
+              seed: state.seed,
+              officer,
+              officerPos,
+              seen,
+              activeCases,
+              jurisdictionHeat: jurHeat,
+              crimeState,
+              world: ctx.world,
+              graph: ctx.graph,
+              day: ctx.day,
+              year: ctx.year,
+              hour: ctx.hour,
+              timeSec,
+              ambientLight: ctx.ambientLight,
+              era
+            });
+            if (!spot) continue;
+            tickSpots.push(spot);
+            if (spot.action === "ignore") continue;
+            if (!isPlanSafeId(seen.personId)) continue;
+            const matchedCase = crimeState.jurisdictions[officer.jurisdictionId]?.cases[spot.matchedCaseId];
+            if (spot.action === "call_backup") {
+              const callSrc = buildBackupCallPlanSource(
+                officer,
+                ctx.graph,
+                curNode,
+                seen.nodeId,
+                seen.personId
+              );
+              officer = assignPlan(
+                {
+                  ...officer,
+                  assignment: "call_backup",
+                  targetCrimeId: spot.matchedCaseId,
+                  targetPersonId: seen.personId,
+                  targetNodeId: seen.nodeId,
+                  targetIsLookalike: spot.isLookalike,
+                  backupRequested: true
+                },
+                callSrc,
+                ctx,
+                [seen.personId]
+              );
+            } else if (spot.action === "pursue") {
+              const chaseSrc = buildChasePlanSource(officer, seen.personId, seen.nodeId);
+              officer = assignPlan(
+                {
+                  ...officer,
+                  assignment: "chase",
+                  targetCrimeId: spot.matchedCaseId,
+                  targetPersonId: seen.personId,
+                  targetNodeId: seen.nodeId,
+                  targetIsLookalike: spot.isLookalike
+                },
+                chaseSrc,
+                ctx,
+                [seen.personId]
+              );
+            } else {
+              const qSrc = buildQuestionPlanSource(seen.personId, {
+                askPapers: spot.action === "ask_papers",
+                highSeverity: (matchedCase?.severity ?? 0) >= 0.65
+              });
+              officer = assignPlan(
+                {
+                  ...officer,
+                  assignment: "question",
+                  targetCrimeId: spot.matchedCaseId,
+                  targetPersonId: seen.personId,
+                  targetNodeId: seen.nodeId,
+                  targetIsLookalike: spot.isLookalike
+                },
+                qSrc,
+                ctx,
+                [seen.personId]
+              );
+            }
+            break;
+          }
+        }
+      }
+      nextOfficers[id] = officer;
+    }
+    let mergedArrests = state.arrests;
+    if (tickArrests.length > 0) {
+      const byId = /* @__PURE__ */ new Map();
+      for (let i = 0; i < state.arrests.length; i++) byId.set(state.arrests[i].id, state.arrests[i]);
+      for (let i = 0; i < tickArrests.length; i++) byId.set(tickArrests[i].id, tickArrests[i]);
+      mergedArrests = Array.from(byId.values());
+    }
+    const nextState = {
+      seed: state.seed,
+      year: ctx.year,
+      officers: nextOfficers,
+      respondedCases: nextRespondedCases,
+      backupAlerts: nextBackupAlerts,
+      interviews: tickInterviews.length > 0 ? [...state.interviews, ...tickInterviews] : state.interviews,
+      stops: tickStops.length > 0 ? [...state.stops, ...tickStops] : state.stops,
+      arrests: mergedArrests,
+      escapes: tickEscapes.length > 0 ? [...state.escapes, ...tickEscapes] : state.escapes,
+      nextSeq
+    };
+    const events = {
+      spots: tickSpots,
+      stops: tickStops,
+      interviews: tickInterviews,
+      arrests: tickArrests,
+      escapes: tickEscapes
+    };
+    return { state: nextState, crimeState, events };
+  }
+
+  // src/loop/policeBridge.ts
+  var STOP_POLICY = {
+    watchRecognition: 0.14,
+    questionRecognition: 0.26,
+    namedQuestionRecognition: 0.2,
+    directArrestRecognition: 0.72,
+    directArrestStrength: 0.48,
+    namedDirectArrestRecognition: 0.52,
+    namedDirectArrestStrength: 0.55,
+    stopArrestStrength: 0.45,
+    fleeingBonus: 0.22,
+    papersCheckHeat: 25,
+    papersCheckSeverity: 0.35
+  };
+  function resolveStopPolicy(overrides) {
+    if (!overrides) return { ...STOP_POLICY };
+    return {
+      watchRecognition: overrides.watchRecognition ?? STOP_POLICY.watchRecognition,
+      questionRecognition: overrides.questionRecognition ?? STOP_POLICY.questionRecognition,
+      namedQuestionRecognition: overrides.namedQuestionRecognition ?? STOP_POLICY.namedQuestionRecognition,
+      directArrestRecognition: overrides.directArrestRecognition ?? STOP_POLICY.directArrestRecognition,
+      directArrestStrength: overrides.directArrestStrength ?? STOP_POLICY.directArrestStrength,
+      namedDirectArrestRecognition: overrides.namedDirectArrestRecognition ?? STOP_POLICY.namedDirectArrestRecognition,
+      namedDirectArrestStrength: overrides.namedDirectArrestStrength ?? STOP_POLICY.namedDirectArrestStrength,
+      stopArrestStrength: overrides.stopArrestStrength ?? STOP_POLICY.stopArrestStrength,
+      fleeingBonus: overrides.fleeingBonus ?? STOP_POLICY.fleeingBonus,
+      papersCheckHeat: overrides.papersCheckHeat ?? STOP_POLICY.papersCheckHeat,
+      papersCheckSeverity: overrides.papersCheckSeverity ?? STOP_POLICY.papersCheckSeverity
+    };
+  }
+  function toPoliceStreetGraph(streetGraph, idMap) {
+    const nodes = {};
     for (let i = 0; i < streetGraph.nodes.length; i++) {
       const n = streetGraph.nodes[i];
-      jurIds.add(n.jurisdictionId);
-      let list = nodesByJur.get(n.jurisdictionId);
-      if (!list) {
-        list = [];
-        nodesByJur.set(n.jurisdictionId, list);
-      }
-      list.push(n.id);
-      if (n.kind === "station" && !stationByJur.has(n.jurisdictionId)) {
-        stationByJur.set(n.jurisdictionId, n.id);
+      const planNodeId = toPlanId(idMap, n.id, "node");
+      nodes[planNodeId] = {
+        id: planNodeId,
+        position: { x: n.position.x, y: n.position.y },
+        kind: n.kind,
+        jurisdictionId: n.jurisdictionId,
+        ...n.name !== void 0 ? { name: n.name } : {},
+        ...n.streetLight !== void 0 ? { streetLight: n.streetLight } : {}
+      };
+    }
+    const edges = [];
+    for (let i = 0; i < streetGraph.edges.length; i++) {
+      const e = streetGraph.edges[i];
+      const from = toPlanId(idMap, e.from, "node");
+      const to = toPlanId(idMap, e.to, "node");
+      if (!nodes[from] || !nodes[to]) continue;
+      const a = nodes[from].position;
+      const b = nodes[to].position;
+      const distance = e.distance ?? Math.hypot(b.x - a.x, b.y - a.y);
+      edges.push({ from, to, distance });
+    }
+    return { nodes, edges };
+  }
+  function extractRoutePlaceIds(planSource, officer, idMap) {
+    const out = [];
+    if (planSource) {
+      const regex = /place:([a-z][a-z0-9_]*)/g;
+      let m;
+      while ((m = regex.exec(planSource)) !== null) {
+        const simId = fromPlanId(idMap, m[1]);
+        if (out.length === 0 || out[out.length - 1] !== simId) {
+          out.push(simId);
+        }
       }
     }
-    for (const p of Object.values(places)) {
-      jurIds.add(p.jurisdictionId);
-      if (p.kind === "police_station" && !stationByJur.has(p.jurisdictionId)) {
-        stationByJur.set(p.jurisdictionId, p.nodeId);
+    if (out.length > 0) return out;
+    if (officer.targetNodeId) return [fromPlanId(idMap, officer.targetNodeId)];
+    return officer.beatNodeIds.map((nid) => fromPlanId(idMap, nid));
+  }
+  function buildDirectiveReason(officer, places, idMap, targetPlaceId) {
+    const placeName = targetPlaceId ? places[targetPlaceId]?.name ?? targetPlaceId : officer.targetNodeId ? fromPlanId(idMap, officer.targetNodeId) : "beat";
+    switch (officer.assignment) {
+      case "off_duty":
+        return `Off shift (${officer.shift} shift).`;
+      case "respond_crime":
+        return `Responding to reported crime at ${placeName}.`;
+      case "search_suspect":
+        return `Searching near ${placeName} for wanted suspect.`;
+      case "stakeout":
+        return `Watching ${placeName} for suspect return.`;
+      case "question":
+        return "Stopping and questioning matching person.";
+      case "chase":
+        return "Pursuing fleeing suspect.";
+      case "arrest":
+        return "Executing arrest of identified suspect.";
+      case "transport":
+        return "Transporting arrested suspect to the station.";
+      case "call_backup":
+        return "Calling backup for suspect encounter.";
+      case "backup":
+        return "Responding to officer backup call.";
+      case "patrol":
+      default:
+        return `Routine ${officer.transport} patrol on assigned beat.`;
+    }
+  }
+  function projectLoopOfficers(policeState, crimeState, places, idMap) {
+    const out = {};
+    const ids = Object.keys(policeState.officers).sort();
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      const o = policeState.officers[id];
+      const crimePlaceId = o.targetCrimeId ? crimeState.crimes[o.targetCrimeId]?.placeId : void 0;
+      const targetPlaceId = crimePlaceId ?? (o.targetNodeId ? fromPlanId(idMap, o.targetNodeId) : void 0);
+      const routePlaceIds = extractRoutePlaceIds(o.planSource, o, idMap);
+      out[id] = {
+        id: o.id,
+        planId: o.id,
+        jurisdictionId: o.jurisdictionId,
+        role: o.role,
+        shift: o.shift,
+        transport: o.transport,
+        ...o.vehicleId !== void 0 ? { vehiclePlanId: o.vehicleId } : {},
+        hasRadio: o.hasRadio,
+        stationNodeId: fromPlanId(idMap, o.stationNodeId),
+        beatNodeIds: o.beatNodeIds.map((nid) => fromPlanId(idMap, nid)),
+        assignment: o.assignment,
+        ...o.targetCrimeId !== void 0 ? { targetCrimeId: o.targetCrimeId } : {},
+        ...targetPlaceId !== void 0 ? { targetPlaceId } : {},
+        routePlaceIds
+      };
+    }
+    return out;
+  }
+  function directivesFromPoliceState(policeState, crimeState, graph, places, idMap, timeSec, filterJurisdictionId) {
+    const directives = [];
+    const ids = Object.keys(policeState.officers).sort();
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      const o = policeState.officers[id];
+      if (filterJurisdictionId && o.jurisdictionId !== filterJurisdictionId) continue;
+      let planSource = o.planSource;
+      if (!planSource) {
+        if (o.assignment === "off_duty") {
+          const restSrc = `watch place:${o.stationNodeId} quietly`;
+          planSource = compileOfficerPlan(o, restSrc, graph, timeSec).planSource;
+        } else {
+          const curNode = o.beatNodeIds[0] ?? o.stationNodeId;
+          const patrolSrc = buildPatrolPlanSource(o, graph, curNode);
+          planSource = compileOfficerPlan(o, patrolSrc, graph, timeSec).planSource;
+        }
+      }
+      const crimePlaceId = o.targetCrimeId ? crimeState.crimes[o.targetCrimeId]?.placeId : void 0;
+      const targetPlaceId = crimePlaceId ?? (o.targetNodeId ? fromPlanId(idMap, o.targetNodeId) : void 0);
+      const routePlaceIds = extractRoutePlaceIds(planSource, o, idMap);
+      const targetPersonId = o.targetPersonId ? fromPlanId(idMap, o.targetPersonId) : void 0;
+      directives.push({
+        officerId: o.id,
+        planId: o.id,
+        jurisdictionId: o.jurisdictionId,
+        role: o.role,
+        assignment: o.assignment,
+        planSource,
+        routePlaceIds,
+        ...targetPlaceId !== void 0 ? { targetPlaceId } : {},
+        ...targetPersonId !== void 0 ? { targetPersonId } : {},
+        ...o.targetCrimeId !== void 0 ? { crimeId: o.targetCrimeId } : {},
+        reason: buildDirectiveReason(o, places, idMap, targetPlaceId)
+      });
+    }
+    return directives;
+  }
+  function createLoopPolice(params) {
+    const { seed, year, startDay, startHour, places, streetGraph, peopleCount, crimeState, idMap } = params;
+    const graph = toPoliceStreetGraph(streetGraph, idMap);
+    const jurIds = /* @__PURE__ */ new Set();
+    const stationByJur = /* @__PURE__ */ new Map();
+    const nodeCountByJur = /* @__PURE__ */ new Map();
+    for (const node of Object.values(graph.nodes)) {
+      jurIds.add(node.jurisdictionId);
+      if (node.kind !== "border") {
+        nodeCountByJur.set(node.jurisdictionId, (nodeCountByJur.get(node.jurisdictionId) ?? 0) + 1);
+      }
+      if (node.kind === "station" && !stationByJur.has(node.jurisdictionId)) {
+        stationByJur.set(node.jurisdictionId, node.id);
+      }
+    }
+    for (const place of Object.values(places)) {
+      jurIds.add(place.jurisdictionId);
+      if (place.kind === "police_station" && !stationByJur.has(place.jurisdictionId)) {
+        const planStation = toPlanId(idMap, place.nodeId, "node");
+        if (graph.nodes[planStation]) {
+          stationByJur.set(place.jurisdictionId, planStation);
+        }
       }
     }
     const sortedJurs = Array.from(jurIds).sort();
     const popPerJur = Math.max(50, Math.round(peopleCount / Math.max(1, sortedJurs.length)));
-    const shifts = ["day", "swing", "night"];
-    for (let ji = 0; ji < sortedJurs.length; ji++) {
-      const jurId = sortedJurs[ji];
-      const jurNodes = (nodesByJur.get(jurId) ?? []).sort();
-      const stationNodeId = stationByJur.get(jurId) ?? jurNodes[0] ?? "station";
-      const patrolPool = jurNodes.filter((n) => n !== stationNodeId);
-      const pool = patrolPool.length > 0 ? patrolPool : [stationNodeId];
-      const count = Math.max(
-        jurNodes.length >= 4 ? 2 : 1,
-        loopForceSize(popPerJur, year)
-      );
-      const carsAllowed = year >= LOOP_POLICE_ERA.patrolCarYear;
-      const carShare = !carsAllowed ? 0 : year < 1960 ? 0.45 : 0.65;
-      const hasDetective = count >= 2 && popPerJur >= LOOP_POLICE_ERA.detectiveMinPopulation;
-      for (let i = 0; i < count; i++) {
-        const officerId = `officer:${jurId}:${i}`;
-        const planId = registerPlanId(idMap, officerId, "officer");
-        const role = count === 1 ? "constable" : hasDetective && i === count - 1 ? "detective" : "patrol";
-        const shift2 = role === "detective" ? "day" : count <= 2 ? i === 0 ? "day" : "swing" : shifts[i % 3];
-        const useCar = carsAllowed && role !== "constable" && (i + 0.5) / count <= carShare;
-        const transport = useCar ? "car" : "foot";
-        const vehiclePlanId = useCar ? registerPlanId(idMap, `patrol_car:${jurId}:${i}`, "car") : void 0;
-        const hasRadio = transport === "car" ? year >= LOOP_POLICE_ERA.radioYear : year >= LOOP_POLICE_ERA.handheldRadioYear;
-        const beatLen = Math.min(pool.length, Math.max(2, Math.min(5, pool.length)));
-        const startIdx = i * Math.max(1, Math.floor(pool.length / count)) % pool.length;
-        const beat = [];
-        for (let b = 0; b < beatLen; b++) {
-          const pick = pool[(startIdx + b) % pool.length];
-          if (!beat.includes(pick)) beat.push(pick);
-        }
-        if (beat.length === 0) beat.push(stationNodeId);
-        officers[officerId] = {
-          id: officerId,
-          planId,
-          jurisdictionId: jurId,
-          role,
-          shift: shift2,
-          transport,
-          ...vehiclePlanId ? { vehiclePlanId } : {},
-          hasRadio,
-          stationNodeId,
-          beatNodeIds: beat,
-          assignment: "patrol",
-          routePlaceIds: beat
+    const towns = [];
+    for (let i = 0; i < sortedJurs.length; i++) {
+      const jurId = sortedJurs[i];
+      const fallbackNode = Object.values(graph.nodes).find((n) => n.jurisdictionId === jurId && n.kind !== "border")?.id ?? Object.keys(graph.nodes).sort()[0] ?? toPlanId(idMap, `${jurId}:station`, "station");
+      if (!graph.nodes[fallbackNode]) {
+        graph.nodes[fallbackNode] = {
+          id: fallbackNode,
+          position: { x: 0, y: 0 },
+          kind: "station",
+          jurisdictionId: jurId
         };
       }
-    }
-    return officers;
-  }
-  function moveClause(officer, nodePlanId, manner) {
-    const m = manner ? ` ${manner}` : "";
-    if (officer.transport === "car" && officer.vehiclePlanId) {
-      return `drive vehicle:${officer.vehiclePlanId}${m} until at(place:${nodePlanId})`;
-    }
-    return `go place:${nodePlanId}${m}`;
-  }
-  function planPoliceForTick(params) {
-    const { seed, day, hour, crimeState, places, streetGraph, idMap } = params;
-    const nextOfficers = {};
-    const nextResponded = { ...params.respondedCases };
-    const directives = [];
-    const interviewedWitnesses = [];
-    const allPlacePlanIds = Array.from(
-      /* @__PURE__ */ new Set([
-        ...streetGraph.nodes.map((n) => toPlanId(idMap, n.id, "node")),
-        ...Object.keys(places).map((pid) => toPlanId(idMap, pid, "place"))
-      ])
-    );
-    const officerIds = Object.keys(params.officers).sort();
-    const byJur = /* @__PURE__ */ new Map();
-    for (let i = 0; i < officerIds.length; i++) {
-      const o = { ...params.officers[officerIds[i]] };
-      nextOfficers[o.id] = o;
-      let list = byJur.get(o.jurisdictionId);
-      if (!list) {
-        list = [];
-        byJur.set(o.jurisdictionId, list);
-      }
-      list.push(o);
-    }
-    for (const [jurId, jurOfficers] of byJur.entries()) {
-      const snap = policeKnowledge(crimeState, jurId, day);
-      const activeCases = snap.cases.slice().sort((a, b) => b.severity - a.severity);
-      const hotCase = activeCases[0];
-      const hotPlace = hotCase ? places[hotCase.placeId] : void 0;
-      const hotNodeId = hotPlace?.nodeId ?? hotCase?.placeId;
-      const unresponded = activeCases.filter(
-        (c) => !nextResponded[`${jurId}:${c.crimeId}`]
+      const stationNodeId = stationByJur.get(jurId) ?? fallbackNode;
+      const nodeCount = nodeCountByJur.get(jurId) ?? 1;
+      const officerCountOverride = Math.max(
+        nodeCount >= 4 ? 2 : 1,
+        forceSizeForTown(popPerJur, year, POLICE_ERA)
       );
-      for (let i = 0; i < jurOfficers.length; i++) {
-        const o = jurOfficers[i];
-        const onDuty = snap.heat >= 60 || isShiftActive(o.shift, hour) || jurOfficers.length <= 2;
-        if (!onDuty) {
-          o.assignment = "off_duty";
-          o.planSource = void 0;
-          o.routePlaceIds = [];
-          continue;
-        }
-        if (unresponded.length > 0) {
-          const c = unresponded.shift();
-          const scenePlace = places[c.placeId];
-          const sceneNode = scenePlace?.nodeId ?? o.beatNodeIds[0] ?? o.stationNodeId;
-          const route2 = shortestPath(streetGraph, o.stationNodeId, sceneNode);
-          const steps2 = route2.map((nid) => moveClause(o, toPlanId(idMap, nid, "node"), "quickly"));
-          const ledgerByPerson = crimeState.ledger[c.crimeId] ?? {};
-          const witnessSimIds = Object.keys(ledgerByPerson).filter((pid) => ledgerByPerson[pid]?.source === "first_hand").sort().slice(0, 3);
-          const witnessPlanIds = witnessSimIds.map((wid) => toPlanId(idMap, wid, "p"));
-          for (let w = 0; w < witnessPlanIds.length; w++) {
-            steps2.push(`ask person:${witnessPlanIds[w]} politely`);
-            interviewedWitnesses.push({ crimeId: c.crimeId, witnessId: witnessSimIds[w], officerId: o.id });
-          }
-          const planSource2 = validateLoopPlan(o, steps2.join(" then "), allPlacePlanIds, witnessPlanIds);
-          o.assignment = "respond_crime";
-          o.targetCrimeId = c.crimeId;
-          o.targetPlaceId = c.placeId;
-          o.targetPersonId = witnessSimIds[0];
-          o.planSource = planSource2;
-          o.routePlaceIds = route2;
-          nextResponded[`${jurId}:${c.crimeId}`] = o.id;
-          directives.push({
-            officerId: o.id,
-            planId: o.planId,
-            jurisdictionId: jurId,
-            role: o.role,
-            assignment: "respond_crime",
-            planSource: planSource2,
-            routePlaceIds: route2,
-            targetPlaceId: c.placeId,
-            targetPersonId: witnessSimIds[0],
-            crimeId: c.crimeId,
-            reason: `Investigate reported ${c.kind} at ${scenePlace?.name ?? c.placeId} and question witnesses`
-          });
-          continue;
-        }
-        if (hotCase && hotNodeId && snap.heat >= 45 && i === jurOfficers.length - 1 && jurOfficers.length >= 2) {
-          const route2 = shortestPath(streetGraph, o.stationNodeId, hotNodeId);
-          const targetNodePlan = toPlanId(idMap, hotNodeId, "node");
-          const endHour = (Math.floor(hour) + 2) % 24;
-          const hhmm = `${String(endHour).padStart(2, "0")}:00`;
-          const steps2 = [
-            ...route2.map((nid) => moveClause(o, toPlanId(idMap, nid, "node"), "quietly")),
-            `hide while watch place:${targetNodePlan} until time(${hhmm})`
-          ];
-          const planSource2 = validateLoopPlan(o, steps2.join(" then "), allPlacePlanIds);
-          o.assignment = "stakeout";
-          o.targetCrimeId = hotCase.crimeId;
-          o.targetPlaceId = hotCase.placeId;
-          o.planSource = planSource2;
-          o.routePlaceIds = route2;
-          directives.push({
-            officerId: o.id,
-            planId: o.planId,
-            jurisdictionId: jurId,
-            role: o.role,
-            assignment: "stakeout",
-            planSource: planSource2,
-            routePlaceIds: route2,
-            targetPlaceId: hotCase.placeId,
-            crimeId: hotCase.crimeId,
-            reason: `Stake out ${hotPlace?.name ?? hotCase.placeId} while heat is ${snap.heat.toFixed(0)}`
-          });
-          continue;
-        }
-        const route = o.beatNodeIds.slice();
-        if (hotNodeId && !route.includes(hotNodeId)) {
-          route.splice(Math.min(1, route.length), 0, hotNodeId);
-        }
-        const shiftOffset = Math.floor(rand(seed, "patrol-rot", o.id, day) * route.length);
-        const rotated = route.length > 1 ? [...route.slice(shiftOffset), ...route.slice(0, shiftOffset)] : route;
-        const manner = snap.heat >= 25 ? "carefully" : void 0;
-        const steps = rotated.map((nid) => moveClause(o, toPlanId(idMap, nid, "node"), manner));
-        const planSource = validateLoopPlan(o, steps.join(" then "), allPlacePlanIds);
-        o.assignment = "patrol";
-        o.targetCrimeId = hotCase?.crimeId;
-        o.targetPlaceId = hotCase?.placeId;
-        o.planSource = planSource;
-        o.routePlaceIds = rotated;
-        directives.push({
-          officerId: o.id,
-          planId: o.planId,
-          jurisdictionId: jurId,
-          role: o.role,
-          assignment: "patrol",
-          planSource,
-          routePlaceIds: rotated,
-          ...hotCase ? { targetPlaceId: hotCase.placeId, crimeId: hotCase.crimeId } : {},
-          reason: hotCase ? `Patrol beat including ${hotPlace?.name ?? hotCase.placeId} (active ${hotCase.kind} report)` : "Routine street patrol"
-        });
-      }
+      towns.push({
+        jurisdictionId: jurId,
+        population: popPerJur,
+        stationNodeId,
+        officerCountOverride
+      });
+    }
+    const baseState = createPoliceForce({
+      seed,
+      year,
+      towns,
+      graph,
+      era: POLICE_ERA
+    });
+    const timeSec = startDay * 86400 + startHour * 3600;
+    const compiledOfficers = {};
+    for (const officer of Object.values(baseState.officers)) {
+      registerPlanId(idMap, officer.id, "officer");
+      const curNode = officer.beatNodeIds[0] ?? officer.stationNodeId;
+      const patrolSrc = buildPatrolPlanSource(officer, graph, curNode);
+      const compiled = compileOfficerPlan(officer, patrolSrc, graph, timeSec);
+      compiledOfficers[officer.id] = {
+        ...officer,
+        planSource: compiled.planSource,
+        planState: compiled.planState
+      };
+    }
+    const policeState = {
+      ...baseState,
+      officers: compiledOfficers
+    };
+    return {
+      policeState,
+      officers: projectLoopOfficers(policeState, crimeState, places, idMap)
+    };
+  }
+  var DEFAULT_TRAITS2 = { gentle: 0.35, honest: 0.85, lawful: 0.9, brave: 0.75, ambition: 0.5, charm: 0.5, diligence: 0.7 };
+  var OK_OUTCOME = { ok: true };
+  function createLoopPlanWorld(graph, policeState, timeSec) {
+    const actorNode = /* @__PURE__ */ new Map();
+    const actorPos = /* @__PURE__ */ new Map();
+    for (const officer of Object.values(policeState.officers)) {
+      const nodeId = (officer.targetNodeId && graph.nodes[officer.targetNodeId] ? officer.targetNodeId : void 0) ?? (officer.beatNodeIds[0] && graph.nodes[officer.beatNodeIds[0]] ? officer.beatNodeIds[0] : officer.stationNodeId);
+      const pos = graph.nodes[nodeId]?.position ?? { x: 0, y: 0 };
+      actorNode.set(officer.id, nodeId);
+      actorPos.set(officer.id, { x: pos.x, y: pos.y });
     }
     return {
-      officers: nextOfficers,
-      respondedCases: nextResponded,
-      directives,
-      interviewedWitnesses
+      timeSec,
+      getActorPosition(actorId) {
+        return actorPos.get(actorId) ?? { x: 0, y: 0 };
+      },
+      getActorPlace(actorId) {
+        return actorNode.get(actorId) ?? "";
+      },
+      getEntityPosition(ref) {
+        if (ref.kind === "place") return graph.nodes[ref.id]?.position;
+        if (ref.kind === "person") return actorPos.get(ref.id);
+        if (ref.kind === "vehicle") {
+          for (const o of Object.values(policeState.officers)) {
+            if (o.vehicleId === ref.id) return actorPos.get(o.id);
+          }
+        }
+        return void 0;
+      },
+      getEntityPlace(ref) {
+        if (ref.kind === "place") return graph.nodes[ref.id] ? ref.id : void 0;
+        if (ref.kind === "person") return actorNode.get(ref.id);
+        return void 0;
+      },
+      canSee(observerId, target) {
+        const a = actorPos.get(observerId);
+        const b = this.getEntityPosition(target);
+        if (!a || !b) return false;
+        return Math.hypot(b.x - a.x, b.y - a.y) <= 32;
+      },
+      isAlone() {
+        return false;
+      },
+      isLocked() {
+        return false;
+      },
+      isOpen() {
+        return true;
+      },
+      requiredKeyFor() {
+        return void 0;
+      },
+      hasItem(actorId, itemId) {
+        const o = policeState.officers[actorId];
+        return Boolean(o && o.cuffsItemId === itemId);
+      },
+      getItemOwner() {
+        return void 0;
+      },
+      getItemPrice() {
+        return void 0;
+      },
+      getActorMoney() {
+        return 0;
+      },
+      hasHeardSignal() {
+        return false;
+      },
+      findNearest() {
+        return void 0;
+      },
+      getActorTraits() {
+        return DEFAULT_TRAITS2;
+      },
+      moveActorToward(actorId, dest, speedMps, dt, destPlaceId) {
+        const cur = actorPos.get(actorId) ?? { x: 0, y: 0 };
+        const dx = dest.x - cur.x;
+        const dy = dest.y - cur.y;
+        const d = Math.hypot(dx, dy);
+        const step2 = Math.max(0, speedMps * dt);
+        if (d <= step2 + 0.5) {
+          actorPos.set(actorId, { x: dest.x, y: dest.y });
+          if (destPlaceId && graph.nodes[destPlaceId]) actorNode.set(actorId, destPlaceId);
+          return { ok: true, arrived: true };
+        }
+        const ratio = step2 / d;
+        actorPos.set(actorId, { x: cur.x + dx * ratio, y: cur.y + dy * ratio });
+        return { ok: true, arrived: false };
+      },
+      moveVehicleToward(_vehicleId, driverId, dest, speedMps, dt, destPlaceId) {
+        return this.moveActorToward(driverId, dest, speedMps, dt, destPlaceId);
+      },
+      setActorHidden() {
+      },
+      setActorRole() {
+      },
+      engagePerson(_a, _t, _k, _m) {
+        return OK_OUTCOME;
+      },
+      emitSignal() {
+      },
+      transferItem() {
+        return OK_OUTCOME;
+      },
+      setDoorOpen() {
+        return OK_OUTCOME;
+      },
+      setDoorLocked() {
+        return OK_OUTCOME;
+      },
+      useItem() {
+        return OK_OUTCOME;
+      },
+      tradeItem() {
+        return OK_OUTCOME;
+      },
+      stealItem() {
+        return OK_OUTCOME;
+      },
+      combatAction() {
+        return OK_OUTCOME;
+      },
+      callTarget() {
+        return OK_OUTCOME;
+      },
+      writeNote() {
+        return OK_OUTCOME;
+      }
     };
+  }
+  function stepLoopPolice(params) {
+    const {
+      policeState,
+      activeCrimeState,
+      fullCrimeState,
+      world,
+      places,
+      streetGraph,
+      day,
+      hour,
+      year,
+      idMap,
+      filterJurisdictionId
+    } = params;
+    const graph = toPoliceStreetGraph(streetGraph, idMap);
+    const timeSec = day * 86400 + hour * 3600;
+    const activeCrimeIds = /* @__PURE__ */ new Set();
+    for (const jur of Object.values(activeCrimeState.jurisdictions)) {
+      for (const cid of Object.keys(jur.cases)) {
+        activeCrimeIds.add(cid);
+      }
+    }
+    let officersChanged = false;
+    const preOfficers = {};
+    for (const [id, o] of Object.entries(policeState.officers)) {
+      if (o.targetCrimeId && !activeCrimeIds.has(o.targetCrimeId)) {
+        officersChanged = true;
+        preOfficers[id] = {
+          ...o,
+          assignment: "patrol",
+          targetCrimeId: void 0,
+          targetPersonId: void 0,
+          targetNodeId: void 0,
+          planSource: void 0,
+          planState: void 0
+        };
+      } else {
+        preOfficers[id] = o;
+      }
+    }
+    const preparedState = officersChanged ? { ...policeState, officers: preOfficers } : policeState;
+    const planWorld = createLoopPlanWorld(graph, preparedState, timeSec);
+    const tickRes = stepPoliceTick(preparedState, {
+      dt: 1,
+      day,
+      year,
+      hour,
+      world,
+      crimeState: activeCrimeState,
+      graph,
+      planWorld,
+      policeEra: POLICE_ERA,
+      lastSeenNodeOf: (crimeId) => {
+        const crime = activeCrimeState.crimes[crimeId];
+        if (!crime) return void 0;
+        const place = places[crime.placeId];
+        if (!place) return void 0;
+        const planNode = toPlanId(idMap, place.nodeId, "node");
+        return graph.nodes[planNode] ? planNode : void 0;
+      },
+      knownHauntsOf: (personId) => {
+        const out = [];
+        for (const c of Object.values(activeCrimeState.crimes)) {
+          if (c.culpritId !== personId) continue;
+          const p = places[c.placeId];
+          if (!p) continue;
+          const pn = toPlanId(idMap, p.nodeId, "node");
+          if (graph.nodes[pn] && !out.includes(pn)) out.push(pn);
+        }
+        return out;
+      }
+    });
+    let nextFullCrimeState = fullCrimeState;
+    for (const iv of tickRes.events.interviews) {
+      nextFullCrimeState = refreshWitnessMemory(
+        nextFullCrimeState,
+        iv.crimeId,
+        iv.witnessId,
+        day,
+        "police_interview"
+      );
+    }
+    for (const [key] of Object.entries(tickRes.state.respondedCases)) {
+      if (preparedState.respondedCases[key]) continue;
+      const colon = key.indexOf(":");
+      const crimeId = colon >= 0 ? key.slice(colon + 1) : key;
+      const knowers = knowersOf(nextFullCrimeState, crimeId);
+      for (let k = 0; k < knowers.length; k++) {
+        const kn = knowers[k];
+        if (kn.source === "first_hand") {
+          nextFullCrimeState = refreshWitnessMemory(
+            nextFullCrimeState,
+            crimeId,
+            kn.knowerId,
+            day,
+            "police_interview"
+          );
+        }
+      }
+    }
+    const directives = directivesFromPoliceState(
+      tickRes.state,
+      activeCrimeState,
+      graph,
+      places,
+      idMap,
+      timeSec,
+      filterJurisdictionId
+    );
+    const officers = projectLoopOfficers(tickRes.state, activeCrimeState, places, idMap);
+    return {
+      policeState: tickRes.state,
+      crimeState: nextFullCrimeState,
+      officers,
+      directives
+    };
+  }
+  function compileSpotPlan(params) {
+    const { officer, action, targetPlanId, streetGraph, idMap, timeSec, askPapers, highSeverity } = params;
+    const graph = toPoliceStreetGraph(streetGraph, idMap);
+    const rawSource = action === "arrest" ? `go person:${targetPlanId} quickly then ${buildArrestPlanSource(officer, targetPlanId)}` : action === "approach_and_question" ? buildQuestionPlanSource(targetPlanId, { askPapers, highSeverity }) : `watch person:${targetPlanId} carefully`;
+    return compileOfficerPlan(officer, rawSource, graph, timeSec, [targetPlanId]).planSource;
   }
 
   // src/loop/facade.ts
@@ -3412,6 +5949,21 @@
     const offset = day - startDay;
     const idx = ((startDayOfWeek + offset) % 7 + 7) % 7;
     return DAY_NAMES[idx];
+  }
+  function clampEconomyYear(year) {
+    return Math.max(FIRST_YEAR, Math.min(LAST_YEAR, Math.round(year)));
+  }
+  function eraPriceIndex(year) {
+    return priceIndex(clampEconomyYear(year)) ?? 1;
+  }
+  function eraFormatMoney(cents, year) {
+    const rounded = Math.round(cents);
+    return formatMoney(rounded, clampEconomyYear(year)) ?? `$${(rounded / 100).toFixed(2)}`;
+  }
+  function defaultShiftPayCents(hours, year) {
+    const w = wage("shop_clerk", clampEconomyYear(year));
+    const hourlyCents = w ? w.hourlyCents : Math.max(10, Math.round(1750 * eraPriceIndex(year)));
+    return Math.max(1, Math.round(hours * hourlyCents));
   }
   function splitName(p) {
     if (p.first && p.surname) {
@@ -3489,8 +6041,8 @@
     if (b.activity === "sleeping") return false;
     const dx = targetPos.x - b.position.x;
     const dy = targetPos.y - b.position.y;
-    const dist = Math.hypot(dx, dy);
-    if (dist > 0.35) {
+    const dist2 = Math.hypot(dx, dy);
+    if (dist2 > 0.35) {
       let fx;
       let fy;
       if (b.facing !== void 0) {
@@ -3504,11 +6056,11 @@
         fy = Math.sin(b.facingRad);
       }
       if (fx !== void 0 && fy !== void 0) {
-        const dot = dx / dist * fx + dy / dist * fy;
+        const dot = dx / dist2 * fx + dy / dist2 * fy;
         if (dot < -0.15) return false;
       }
     }
-    if (b.activity === "distracted" && dist > 6) return false;
+    if (b.activity === "distracted" && dist2 > 6) return false;
     return true;
   }
   function attentionForBystander(b, person, sceneLight) {
@@ -3632,6 +6184,7 @@
         kind: p.kind,
         position: { x: p.position.x, y: p.position.y },
         ...p.ownerId !== void 0 ? { ownerId: p.ownerId } : {},
+        staff: p.staff ? Array.from(new Set(p.staff)) : [],
         jurisdictionId: p.jurisdictionId,
         townId: p.townId ?? p.jurisdictionId,
         ...p.openHours !== void 0 ? { openHours: [p.openHours[0], p.openHours[1]] } : {},
@@ -3675,6 +6228,15 @@
         townId,
         siblingIds: raw.siblingIds ? raw.siblingIds.slice() : []
       };
+    }
+    for (const place of Object.values(places)) {
+      for (let si = 0; si < place.staff.length; si++) {
+        const sid = place.staff[si];
+        const meta = peopleMeta[sid];
+        if (meta && meta.workplacePlaceId === void 0) {
+          meta.workplacePlaceId = place.id;
+        }
+      }
     }
     for (let i = 0; i < init.people.length; i++) {
       const raw = init.people[i];
@@ -3754,12 +6316,16 @@
       bonds
     };
     const crimeState = createCrimeState(init.seed, startDay);
-    const officers = buildInitialOfficers({
+    const stopPolicy = resolveStopPolicy(init.stopPolicy);
+    const { policeState, officers } = createLoopPolice({
       seed: init.seed,
       year: init.year,
+      startDay,
+      startHour,
       places,
       streetGraph,
       peopleCount: Object.keys(peopleMeta).length,
+      crimeState,
       idMap
     });
     const lastStances = {};
@@ -3776,9 +6342,12 @@
       startDayOfWeek,
       playerId,
       playerName,
+      ...init.playerDescription !== void 0 ? { playerDescription: init.playerDescription } : {},
       playerAppearance,
+      stopPolicy,
       world,
       crimeState,
+      policeState,
       idMap,
       places,
       peopleMeta,
@@ -3789,7 +6358,7 @@
       })),
       escalateJurisdiction: { ...init.escalateJurisdiction ?? {} },
       officers,
-      respondedCases: {},
+      respondedCases: { ...policeState.respondedCases },
       crimeMeta: {},
       stolenItems: {},
       pawnRecords: [],
@@ -3839,9 +6408,16 @@
     }
     if (event.kind === "work_shift") {
       const hours = Math.max(1, event.hours ?? 4);
-      const payEarned = event.pay ?? Math.round(hours * 12);
+      const payEarned = event.pay !== void 0 ? Math.max(0, Math.round(event.pay)) : defaultShiftPayCents(hours, sim.year);
       const employerId = event.employerId ?? place?.ownerId;
       const coworkerSet = new Set(event.coworkerIds ?? []);
+      if (place?.staff) {
+        for (const sid of place.staff) {
+          if (sid !== employerId && sid !== sim.playerId && sim.peopleMeta[sid]) {
+            coworkerSet.add(sid);
+          }
+        }
+      }
       if (event.bystanders) {
         for (const b of event.bystanders) {
           if (b.id !== employerId && b.id !== sim.playerId && sim.peopleMeta[b.id]?.workplacePlaceId === event.placeId) {
@@ -3856,7 +6432,7 @@
       }
       const coworkerIds = Array.from(coworkerSet).sort();
       const taskPhrase = event.taskLabel ? ` (${event.taskLabel})` : "";
-      const factLine = `${sim.playerName} worked an honest ${hours}-hour shift${taskPhrase} at ${placeName} on ${dayName}.`;
+      const factLine = `You (${sim.playerName}) worked an honest ${hours}-hour shift${taskPhrase} at ${placeName} on ${dayName}.`;
       const acquaint = (pid, trustBump) => {
         if (!sim.peopleMeta[pid]) return;
         const fam = touchFamiliarity(pid);
@@ -3878,21 +6454,29 @@
         hours,
         payEarned
       };
-      const nextSim2 = {
+      const interimSim = {
         ...sim,
         playerAppearance,
         workShifts: [...sim.workShifts, shiftRecord],
         familiarity: nextFamiliarity,
         nextSeq
       };
+      const adv = advance(interimSim, hours, event.weather ? { weather: event.weather } : void 0);
       return {
-        sim: nextSim2,
+        sim: adv.sim,
         kind: "work_shift",
         legit: true,
         payEarned,
         witnessedBy: [],
         tracesLeft: [],
-        summary: `Worked a ${hours}-hour shift at ${placeName} for $${payEarned}.`
+        day: adv.toDay,
+        hour: adv.toHour,
+        daysElapsed: adv.daysElapsed,
+        policePlans: adv.policePlans,
+        attitudeChanges: adv.attitudeChanges,
+        newPoliceCases: adv.newPoliceCases,
+        pawnLeadsMatched: adv.pawnLeadsMatched,
+        summary: `Worked a ${hours}-hour shift at ${placeName} for ${eraFormatMoney(payEarned, sim.year)}.`
       };
     }
     if (event.kind === "sell") {
@@ -3911,11 +6495,13 @@
       }
       const serialNumber = event.item.serialNumber ?? matchedStolen?.serialNumber;
       const stolenFromCrimeId = event.item.stolenFromCrimeId ?? matchedStolen?.crimeId;
+      const isHot = Boolean(matchedStolen || event.item.stolenFromCrimeId);
+      const saleValueCents = event.item.value !== void 0 ? Math.max(0, Math.round(event.item.value)) : Math.max(1, Math.round(1e3 * eraPriceIndex(sim.year)));
       let nextCrimeState2 = sim.crimeState;
       const nextStolenItems2 = { ...sim.stolenItems };
       const nextPawnRecords = sim.pawnRecords.slice();
       let pawnTraceFlagged = false;
-      if (isPawnShop || matchedStolen) {
+      if (isPawnShop || isHot) {
         const pawnId = `pawn:${sim.currentDay}:${nextSeq++}`;
         const record = {
           id: pawnId,
@@ -3923,7 +6509,7 @@
           ...clerkId !== void 0 ? { clerkId } : {},
           itemId: event.item.id,
           label: event.item.label,
-          value: event.item.value ?? 10,
+          value: saleValueCents,
           day: sim.currentDay,
           ...serialNumber !== void 0 ? { serialNumber } : {},
           ...stolenFromCrimeId !== void 0 ? { stolenFromCrimeId } : {},
@@ -3931,13 +6517,15 @@
           reportedToPolice: false
         };
         nextPawnRecords.push(record);
-        if (matchedStolen) {
+        if (isHot) {
           pawnTraceFlagged = true;
-          nextStolenItems2[matchedStolen.itemId] = {
-            ...matchedStolen,
-            pawnedAtPlaceId: event.placeId,
-            pawnedDay: sim.currentDay
-          };
+          if (matchedStolen) {
+            nextStolenItems2[matchedStolen.itemId] = {
+              ...matchedStolen,
+              pawnedAtPlaceId: event.placeId,
+              pawnedDay: sim.currentDay
+            };
+          }
         }
         const fileRecord = {
           id: `file:pawn:${pawnId}`,
@@ -3971,11 +6559,12 @@
       return {
         sim: nextSim2,
         kind: "sell",
-        legit: true,
+        legit: !isHot,
+        hot: isHot,
         pawnTraceFlagged,
         witnessedBy: [],
         tracesLeft: [],
-        summary: `Sold ${event.item.label} at ${placeName}.`
+        summary: isHot ? `Sold stolen ${event.item.label} at ${placeName} (flagged hot).` : `Sold ${event.item.label} at ${placeName}.`
       };
     }
     if (event.kind === "enter") {
@@ -4006,14 +6595,17 @@
     if (event.kind === "take") {
       const subkind = event.subkind ?? (place?.kind === "general_store" || place?.kind === "market" || place?.kind === "pawn_shop" ? "shoplift" : place?.kind === "yard" ? "yard" : place?.kind === "home" ? "house" : "shoplift");
       crimeKind = subkind === "shoplift" ? "shoplifting" : subkind === "house" ? "burglary" : "theft";
-      const valBoost = event.item.value ? Math.min(0.14, event.item.value / 400) : 0;
+      const idx = Math.max(0.02, eraPriceIndex(sim.year));
+      const resolvedItemCents = event.item.value !== void 0 ? Math.max(0, Math.round(event.item.value)) : Math.max(1, Math.round(500 * idx));
+      const normalized2025Cents = resolvedItemCents / idx;
+      const valBoost = resolvedItemCents > 0 ? Math.min(0.14, normalized2025Cents / 4e4) : 0;
       severity = clamp01(
         (subkind === "shoplift" ? 0.28 : subkind === "yard" ? 0.36 : subkind === "pickpocket" ? 0.42 : 0.6) + valBoost
       );
       ownerId = event.ownerId ?? place?.ownerId;
       itemId = event.item.id;
       itemLabel = event.item.label;
-      itemValue = event.item.value ?? 5;
+      itemValue = resolvedItemCents;
       explicitSerial = event.item.serialNumber;
       gloved = Boolean(event.gloved);
       exposure = subkind === "yard" || subkind === "pickpocket" ? "outdoor" : "indoor";
@@ -4023,7 +6615,7 @@
       ownerId = event.ownerId ?? place?.ownerId;
       itemId = event.vehicle.id;
       itemLabel = `${event.vehicle.color} ${event.vehicle.kind}`;
-      itemValue = event.vehicle.value ?? 800;
+      itemValue = event.vehicle.value !== void 0 ? Math.max(0, Math.round(event.vehicle.value)) : Math.max(100, Math.round(8e4 * eraPriceIndex(sim.year)));
       vehiclePlate = event.vehicle.plateNumber;
       gloved = Boolean(event.gloved);
       exposure = "outdoor";
@@ -4042,11 +6634,32 @@
       exposure = place?.kind === "yard" ? "outdoor" : "indoor";
     }
     const crimeId = `crime:${sim.currentDay}:${nextSeq++}`;
-    const sceneBystanders = event.bystanders ?? [];
+    const sceneBystanders = (event.bystanders ?? []).slice();
     const sceneById = /* @__PURE__ */ new Map();
     for (let i = 0; i < sceneBystanders.length; i++) {
       const sb = sceneBystanders[i];
       sceneById.set(sb.id, sb);
+    }
+    const isShopOpenNow = placeIsOpen(
+      place,
+      sim.currentHour,
+      event.kind === "enter" ? event.isOpen : void 0
+    );
+    if (place && isShopOpenNow && place.staff.length > 0) {
+      for (let si = 0; si < place.staff.length; si++) {
+        const staffId = place.staff[si];
+        if (staffId === sim.playerId || sceneById.has(staffId) || !sim.world.people[staffId]) {
+          continue;
+        }
+        const staffBystander = {
+          id: staffId,
+          position: { x: place.position.x, y: place.position.y },
+          activity: "working",
+          hasLineOfSight: true
+        };
+        sceneBystanders.push(staffBystander);
+        sceneById.set(staffId, staffBystander);
+      }
     }
     const ownerScene = ownerId ? sceneById.get(ownerId) : void 0;
     const victimCanSee = ownerScene !== void 0 && canSeeBystander(ownerScene, pos);
@@ -4402,26 +7015,24 @@
       idMap: cloneIdMap(sim.idMap)
     };
     const activeState = activeCrimeStateForPolice(interimSim);
-    const policeTick = planPoliceForTick({
-      seed: sim.seed,
-      day: toDay,
-      hour: toHour,
-      officers: sim.officers,
-      respondedCases: sim.respondedCases,
-      crimeState: activeState,
+    const policeTick = stepLoopPolice({
+      policeState: sim.policeState,
+      activeCrimeState: activeState,
+      fullCrimeState: crimeState,
+      world: sim.world,
       places: sim.places,
       streetGraph: sim.streetGraph,
+      day: toDay,
+      hour: toHour,
+      year: sim.year,
       idMap: interimSim.idMap
     });
-    for (let i = 0; i < policeTick.interviewedWitnesses.length; i++) {
-      const iv = policeTick.interviewedWitnesses[i];
-      crimeState = refreshWitnessMemory(crimeState, iv.crimeId, iv.witnessId, toDay, "police_interview");
-    }
     const nextSim = {
       ...interimSim,
-      crimeState,
+      crimeState: policeTick.crimeState,
+      policeState: policeTick.policeState,
       officers: policeTick.officers,
-      respondedCases: policeTick.respondedCases,
+      respondedCases: { ...policeTick.policeState.respondedCases },
       lastStances: { ...sim.lastStances }
     };
     const afterCases = openPoliceCaseIds(nextSim);
@@ -4477,7 +7088,7 @@
     const playerNameKnown = knowsPlayerName ? fam?.playerName ?? sim.playerName : void 0;
     const facts = [];
     if (knowsPlayerName && playerNameKnown) {
-      facts.push(`You know this person by name as ${playerNameKnown}.`);
+      facts.push(`I know you by name as ${playerNameKnown}.`);
     }
     if (fam?.positiveFacts) {
       for (let i = 0; i < fam.positiveFacts.length; i++) {
@@ -4508,11 +7119,19 @@
       const tellerName = acc.heardFrom ? sim.peopleMeta[acc.heardFrom]?.name : void 0;
       const isOwnerOrVictim = acc.isVictim || cMeta.ownerId === personId;
       if (acc.source === "first_hand") {
-        facts.push(`You saw this person ${phrase} on ${cMeta.dayName}.`);
+        facts.push(`I saw you ${phrase} on ${cMeta.dayName}.`);
         sawPlayerDirectly = true;
       } else if (isOwnerOrVictim) {
         facts.push(
-          tellerName ? `${tellerName} told you this person managed to ${phrase} on ${cMeta.dayName}.` : `You heard this person managed to ${phrase} on ${cMeta.dayName}.`
+          tellerName ? `${tellerName} told me you managed to ${phrase} on ${cMeta.dayName}.` : `I heard you managed to ${phrase} on ${cMeta.dayName}.`
+        );
+      } else if (knowsPlayerName) {
+        facts.push(
+          tellerName ? `${tellerName} mentioned you tried to ${phrase} on ${cMeta.dayName}.` : `Word around town is you tried to ${phrase} on ${cMeta.dayName}.`
+        );
+      } else if (sim.playerDescription) {
+        facts.push(
+          tellerName ? `${tellerName} mentioned someone matching ${sim.playerDescription} tried to ${phrase} on ${cMeta.dayName}.` : `Word around town is someone matching ${sim.playerDescription} tried to ${phrase} on ${cMeta.dayName}.`
         );
       } else {
         facts.push(
@@ -4544,7 +7163,8 @@
       }
     }
     if (wantedHere && knownCrimes.length > 0) {
-      facts.push("Local police are actively looking for this person.");
+      const descSuffix = sim.playerDescription && !knowsPlayerName ? ` (${sim.playerDescription})` : "";
+      facts.push(`Local police are actively looking for you${descSuffix}.`);
     }
     const baseTrust = (fam?.trustDelta ?? 0) - criminalPenalty;
     const trust = Math.round(Math.max(-1, Math.min(1, baseTrust)) * 1e3) / 1e3;
@@ -4591,42 +7211,41 @@
       };
     });
     const idMapCopy = cloneIdMap(sim.idMap);
-    const jurOfficers = {};
-    for (const o of Object.values(sim.officers)) {
-      if (o.jurisdictionId === jurisdictionId) jurOfficers[o.id] = o;
-    }
-    const tick2 = planPoliceForTick({
-      seed: sim.seed,
-      day: sim.currentDay,
-      hour: sim.currentHour,
-      officers: jurOfficers,
-      respondedCases: sim.respondedCases,
-      crimeState: activeState,
+    const tick2 = stepLoopPolice({
+      policeState: sim.policeState,
+      activeCrimeState: activeState,
+      fullCrimeState: sim.crimeState,
+      world: sim.world,
       places: sim.places,
       streetGraph: sim.streetGraph,
-      idMap: idMapCopy
+      day: sim.currentDay,
+      hour: sim.currentHour,
+      year: sim.year,
+      idMap: idMapCopy,
+      filterJurisdictionId: jurisdictionId
     });
-    const directives = tick2.directives;
     return {
       jurisdictionId,
       day: sim.currentDay,
       year: sim.year,
       heat: Math.round(snap.heat * 1e3) / 1e3,
       wantedIds: snap.wantedIds.slice(),
-      officers: directives,
+      officers: tick2.directives,
       cases
     };
   }
   function spotted(sim, officerId, sighting) {
+    const realOfficer = sim.policeState.officers[officerId];
     const officer = sim.officers[officerId];
-    const jurisdictionId = officer?.jurisdictionId ?? (sighting.placeId ? sim.places[sighting.placeId]?.jurisdictionId : void 0) ?? Object.values(sim.places)[0]?.jurisdictionId ?? "capital";
+    const jurisdictionId = realOfficer?.jurisdictionId ?? officer?.jurisdictionId ?? (sighting.placeId ? sim.places[sighting.placeId]?.jurisdictionId : void 0) ?? Object.values(sim.places)[0]?.jurisdictionId ?? "capital";
     const targetId = sighting.targetId ?? sim.playerId;
     const appearance = sighting.appearance ?? sim.playerAppearance;
+    const policy = sim.stopPolicy;
     const activeState = activeCrimeStateForPolice(sim);
     const chance = recognitionChance(
       activeState,
       sim.world,
-      officerId,
+      realOfficer?.personId ?? officerId,
       { id: targetId, appearance },
       sim.currentDay,
       {
@@ -4638,37 +7257,73 @@
       }
     );
     const snap = policeKnowledge(activeState, jurisdictionId, sim.currentDay);
+    const activeWanted = getActiveWantedCases(snap.cases, sim.currentDay);
+    const targetPlace = sighting.placeId ? sim.places[sighting.placeId] : void 0;
+    const observedTarget = {
+      personId: targetId,
+      position: targetPlace ? targetPlace.position : { x: 0, y: 0 },
+      nodeId: targetPlace?.nodeId ?? "street",
+      jurisdictionId,
+      appearance,
+      fleeing: Boolean(sighting.fleeing)
+    };
+    const bestMatch = selectBestMatchingCase(activeWanted, observedTarget);
     const openCases = snap.cases.slice().sort((a, b) => b.severity - a.severity);
-    const topCase = openCases.find((c) => c.merged.namedSuspectId === targetId) ?? openCases[0];
+    const topCase = bestMatch?.matchedCase.policeCase ?? openCases.find((c) => c.merged.namedSuspectId === targetId) ?? openCases[0];
     const topStrength = topCase ? caseStrength(topCase, sim.currentDay).combinedScore : 0;
     const named = topCase?.merged.namedSuspectId === targetId;
     let action = "ignore";
     let reason = "No active interest in this person.";
+    let stopOutcome;
+    let askPapers = false;
     if (topCase) {
-      const effective = clamp01(chance + (sighting.fleeing ? 0.22 : 0));
-      if (effective >= 0.72 && (named || topCase.severity >= 0.45 || topStrength >= 0.45) || named && effective >= 0.52 && topStrength >= 0.55) {
+      const effective = clamp01(chance + (sighting.fleeing ? policy.fleeingBonus : 0));
+      const g009Action = realOfficer ? decideSpotAction({
+        officer: realOfficer,
+        person: observedTarget,
+        policeCase: topCase,
+        recognition: effective,
+        heat: snap.heat,
+        year: sim.year,
+        era: POLICE_ERA
+      }) : "question";
+      if (effective >= policy.directArrestRecognition && (named || topStrength >= policy.directArrestStrength || topCase.severity >= 0.65) || named && effective >= policy.namedDirectArrestRecognition && topStrength >= policy.namedDirectArrestStrength || Boolean(sighting.fleeing) && effective >= policy.questionRecognition && (named || topStrength >= policy.stopArrestStrength)) {
         action = "arrest";
         reason = named ? `Officer positively identified named suspect for ${topCase.kind}.` : `Officer matched suspect closely for ${topCase.kind}.`;
-      } else if (effective >= 0.36 || named && effective >= 0.24) {
+      } else if (effective >= policy.questionRecognition || named && effective >= policy.namedQuestionRecognition) {
         action = "approach_and_question";
-        reason = `Officer recognized description matching open ${topCase.kind} case.`;
-      } else if (effective >= 0.16) {
+        askPapers = sim.year >= POLICE_ERA.papersCheckStartYear && (g009Action === "ask_papers" || snap.heat >= policy.papersCheckHeat || topCase.severity >= policy.papersCheckSeverity);
+        const roundedStrength = Math.round(topStrength * 1e3) / 1e3;
+        const shouldArrest = topStrength >= policy.stopArrestStrength || Boolean(sighting.fleeing);
+        stopOutcome = {
+          checkedPapers: askPapers,
+          questioned: true,
+          outcome: shouldArrest ? "arrested" : "released",
+          caseStrength: roundedStrength,
+          thresholdUsed: policy.stopArrestStrength,
+          reason: shouldArrest ? askPapers ? `Checked papers and asked questions; case strength (${roundedStrength}) meets arrest threshold (${policy.stopArrestStrength}).` : `Asked questions; case strength (${roundedStrength}) meets arrest threshold (${policy.stopArrestStrength}).` : askPapers ? `Checked papers and asked questions, but case strength (${roundedStrength}) is below arrest threshold (${policy.stopArrestStrength}); released.` : `Asked questions, but case strength (${roundedStrength}) is below arrest threshold (${policy.stopArrestStrength}); released.`
+        };
+        reason = stopOutcome.reason;
+      } else if (effective >= policy.watchRecognition) {
         action = "watch";
         reason = `Officer noticed someone loosely fitting the ${topCase.kind} description.`;
       }
     }
     let planSource;
-    if (officer && action !== "ignore") {
+    if (realOfficer && action !== "ignore") {
       const idMap = cloneIdMap(sim.idMap);
       const targetPlanId = toPlanId(idMap, targetId, "person");
-      const allPlacePlanIds = Array.from(
-        /* @__PURE__ */ new Set([
-          ...sim.streetGraph.nodes.map((n) => toPlanId(idMap, n.id, "node")),
-          ...Object.keys(sim.places).map((pid) => toPlanId(idMap, pid, "place"))
-        ])
-      );
-      const rawPlan = action === "arrest" ? `go person:${targetPlanId} quickly then restrain person:${targetPlanId} with item:cuffs_${officer.planId}` : action === "approach_and_question" ? `go person:${targetPlanId} then ask person:${targetPlanId} politely` : `watch person:${targetPlanId} carefully`;
-      planSource = validateLoopPlan(officer, rawPlan, allPlacePlanIds, [targetPlanId]);
+      const timeSec = sim.currentDay * 86400 + sim.currentHour * 3600;
+      planSource = compileSpotPlan({
+        officer: realOfficer,
+        action,
+        targetPlanId,
+        streetGraph: sim.streetGraph,
+        idMap,
+        timeSec,
+        askPapers,
+        highSeverity: (topCase?.severity ?? 0) >= 0.65
+      });
     }
     return {
       officerId,
@@ -4678,6 +7333,7 @@
       recognitionChance: Math.round(chance * 1e3) / 1e3,
       ...topCase && action !== "ignore" ? { matchedCaseId: topCase.crimeId } : {},
       reason,
+      ...stopOutcome !== void 0 ? { stopOutcome } : {},
       ...planSource !== void 0 ? { planSource } : {}
     };
   }
@@ -4694,6 +7350,45 @@
       }
     }
     targetCases.sort((a, b) => b.severity - a.severity || (a.crimeId < b.crimeId ? -1 : 1));
+    const charges = targetCases.map((c) => {
+      const str = caseStrength(c, sim.currentDay);
+      const meta = sim.crimeMeta[c.crimeId];
+      return {
+        crimeId: c.crimeId,
+        kind: c.kind,
+        severity: c.severity,
+        caseStrength: Math.round(str.combinedScore * 1e3) / 1e3,
+        placeName: meta?.placeName ?? sim.places[c.placeId]?.name ?? c.placeId
+      };
+    });
+    const maxCaseStrength = charges.reduce((m, c) => Math.max(m, c.caseStrength), 0);
+    const totalCaseStrength = charges.length > 0 ? Math.round(
+      charges.reduce((s, c) => s + c.caseStrength, 0) / charges.length * 1e3
+    ) / 1e3 : 0;
+    const isFromStop = Boolean(input.fromStop || input.why === "approach_and_question");
+    if (isFromStop && !input.forceArrest && (charges.length === 0 || maxCaseStrength < sim.stopPolicy.stopArrestStrength)) {
+      return {
+        sim,
+        jurisdictionId: jurId,
+        penalty: "warning",
+        fineAmount: 0,
+        jailHours: 0,
+        jailNights: 0,
+        day: sim.currentDay,
+        hour: sim.currentHour,
+        daysElapsed: 0,
+        releasedAfterStop: true,
+        charges: [],
+        priorOffenses: sim.priorOffenses.length,
+        totalCaseStrength,
+        confiscatedItems: [],
+        coldCasesTriggered: [],
+        policePlans: [],
+        attitudeChanges: [],
+        newPoliceCases: [],
+        summary: "Stopped and questioned, then released — the case is too thin to arrest."
+      };
+    }
     const beforeColdMatches = /* @__PURE__ */ new Set();
     for (const j of Object.values(sim.crimeState.jurisdictions)) {
       for (const c of Object.values(j.cases)) {
@@ -4730,22 +7425,11 @@
       }
     }
     coldCasesTriggered.sort();
-    const charges = targetCases.map((c) => {
-      const str = caseStrength(c, sim.currentDay);
-      const meta = sim.crimeMeta[c.crimeId];
-      return {
-        crimeId: c.crimeId,
-        kind: c.kind,
-        severity: c.severity,
-        caseStrength: Math.round(str.combinedScore * 1e3) / 1e3,
-        placeName: meta?.placeName ?? sim.places[c.placeId]?.name ?? c.placeId
-      };
-    });
     const priorCount = sim.priorOffenses.length;
     const maxSeverity = charges.reduce((m, c) => Math.max(m, c.severity), 0);
-    const totalCaseStrength = charges.length > 0 ? Math.round(
-      charges.reduce((s, c) => s + c.caseStrength, 0) / charges.length * 1e3
-    ) / 1e3 : 0;
+    const idx = eraPriceIndex(sim.year);
+    const surrenderMult = input.surrendered ? 0.8 : 1;
+    const minCashForFineCents = Math.max(10, Math.round(1500 * idx));
     let penalty = "warning";
     let fineAmount = 0;
     let jailHours = 0;
@@ -4755,14 +7439,23 @@
       penalty = "jail";
       const nights = Math.min(7, 2 + priorCount + Math.floor(maxSeverity * 3));
       jailHours = nights * 24;
-      fineAmount = Math.round((40 + maxSeverity * 160 + priorCount * 25) * (input.surrendered ? 0.8 : 1));
-    } else if (maxSeverity >= 0.36 || priorCount >= 1 || input.playerCash !== void 0 && input.playerCash < 15) {
+      fineAmount = Math.max(
+        25,
+        Math.round((4e3 + maxSeverity * 16e3 + priorCount * 2500) * surrenderMult * idx)
+      );
+    } else if (maxSeverity >= 0.36 || priorCount >= 1 || input.playerCash !== void 0 && input.playerCash < minCashForFineCents) {
       penalty = "cell_night";
       jailHours = 12 + priorCount * 12;
-      fineAmount = Math.round((15 + maxSeverity * 60) * (input.surrendered ? 0.8 : 1));
+      fineAmount = Math.max(
+        10,
+        Math.round((1500 + maxSeverity * 6e3) * surrenderMult * idx)
+      );
     } else {
       penalty = "fine";
-      fineAmount = Math.max(10, Math.round((15 + maxSeverity * 50) * (input.surrendered ? 0.8 : 1)));
+      fineAmount = Math.max(
+        10,
+        Math.round((1500 + maxSeverity * 5e3) * surrenderMult * idx)
+      );
       jailHours = 0;
     }
     const jailNights = jailHours > 0 ? Math.max(1, Math.round(jailHours / 12)) : 0;
@@ -4781,7 +7474,11 @@
     const nextCrimeMeta = { ...sim.crimeMeta };
     const nextFamiliarity = { ...sim.familiarity };
     const nextPriorOffenses = sim.priorOffenses.slice();
+    const nextPoliceArrests = sim.policeState.arrests.slice();
+    let policeSeq = sim.policeState.nextSeq;
     let nextSeq = sim.nextSeq + 1;
+    const arrestingOfficerId = input.officerId ?? Object.values(sim.policeState.officers).find((o) => o.jurisdictionId === jurId)?.id ?? "officer_unknown";
+    const timeSec = sim.currentDay * 86400 + sim.currentHour * 3600;
     for (let i = 0; i < charges.length; i++) {
       const ch = charges[i];
       const meta = nextCrimeMeta[ch.crimeId];
@@ -4806,35 +7503,77 @@
         fineAmount: i === 0 ? fineAmount : 0,
         jailHours: i === 0 ? jailHours : 0
       });
+      const arrestingOfficer = sim.policeState.officers[arrestingOfficerId];
+      const stationNodeId = arrestingOfficer?.stationNodeId ?? "station";
+      const stationPlace = Object.values(sim.places).find(
+        (p) => p.jurisdictionId === jurId && p.kind === "police_station"
+      );
+      nextPoliceArrests.push({
+        id: `arrest_${policeSeq++}`,
+        crimeId: ch.crimeId,
+        suspectId: sim.playerId,
+        arrestingOfficerId,
+        assistingOfficerIds: [],
+        jurisdictionId: jurId,
+        stationNodeId,
+        arrestDay: sim.currentDay,
+        arrestYear: sim.year,
+        arrestTimeSec: timeSec,
+        arrestPosition: stationPlace ? { x: stationPlace.position.x, y: stationPlace.position.y } : { x: 0, y: 0 },
+        method: input.surrendered ? "surrender" : "foot_pursuit",
+        searchedInventory: (input.carriedItemIds ?? []).slice(),
+        seizedContraband: confiscatedItems.slice(),
+        cuffed: true,
+        transportedToStation: true
+      });
     }
-    const totalHours = sim.currentHour + jailHours;
-    const extraDays = Math.floor(totalHours / 24);
-    const nextDay = sim.currentDay + extraDays;
-    const nextHour = Math.round((totalHours - extraDays * 24) * 1e3) / 1e3;
-    const nextSim = {
+    const bookedSim = {
       ...sim,
-      currentDay: nextDay,
-      currentHour: nextHour,
       crimeState: nextCrimeState,
+      policeState: {
+        ...sim.policeState,
+        arrests: nextPoliceArrests,
+        nextSeq: policeSeq
+      },
       crimeMeta: nextCrimeMeta,
       stolenItems: nextStolenItems,
       familiarity: nextFamiliarity,
       priorOffenses: nextPriorOffenses,
       nextSeq
     };
-    const summary = penalty === "warning" ? "Released with a stern warning." : penalty === "fine" ? `Fined $${fineAmount} for ${charges.length} charge(s).` : penalty === "cell_night" ? `Held in a cell for ${jailHours}h and fined $${fineAmount}.` : `Jailed for ${jailHours}h (${jailNights} night(s)) and fined $${fineAmount}.`;
+    let finalSim = bookedSim;
+    let daysElapsed = 0;
+    let policePlans = [];
+    let attitudeChanges = [];
+    let newPoliceCases = [];
+    if (jailHours > 0) {
+      const adv = advance(bookedSim, jailHours);
+      finalSim = adv.sim;
+      daysElapsed = adv.daysElapsed;
+      policePlans = adv.policePlans;
+      attitudeChanges = adv.attitudeChanges;
+      newPoliceCases = adv.newPoliceCases;
+    }
+    const fineText = eraFormatMoney(fineAmount, sim.year);
+    const summary = penalty === "warning" ? "Released with a stern warning." : penalty === "fine" ? `Fined ${fineText} for ${charges.length} charge(s).` : penalty === "cell_night" ? `Held in a cell for ${jailHours}h and fined ${fineText}.` : `Jailed for ${jailHours}h (${jailNights} night(s)) and fined ${fineText}.`;
     return {
-      sim: nextSim,
+      sim: finalSim,
       jurisdictionId: jurId,
       penalty,
       fineAmount,
       jailHours,
       jailNights,
+      day: finalSim.currentDay,
+      hour: finalSim.currentHour,
+      daysElapsed,
       charges,
       priorOffenses: nextPriorOffenses.length,
       totalCaseStrength,
       confiscatedItems,
       coldCasesTriggered,
+      policePlans,
+      attitudeChanges,
+      newPoliceCases,
       summary
     };
   }
@@ -4849,83 +7588,28 @@
     if (!parsed.world || !parsed.crimeState || !parsed.idMap || !parsed.places || !parsed.peopleMeta) {
       throw new Error("Invalid LoopSim save payload: missing required state fields");
     }
-    return parsed;
-  }
-
-  // src/economy/eras.ts
-  var FIRST_YEAR = 1880;
-  var LAST_YEAR = 2030;
-  function interpolate(anchors, year) {
-    let [leftYear, leftValue] = anchors[0];
-    if (year <= leftYear) return leftValue;
-    for (const [rightYear, rightValue] of anchors.slice(1)) {
-      if (year <= rightYear) {
-        return leftValue + (rightValue - leftValue) * (year - leftYear) / (rightYear - leftYear);
-      }
-      leftYear = rightYear;
-      leftValue = rightValue;
+    if (!parsed.stopPolicy) {
+      parsed.stopPolicy = resolveStopPolicy();
     }
-    return leftValue;
-  }
-  var PRICE_ANCHORS = [
-    [1880, 0.047],
-    [1897, 0.041],
-    [1914, 0.048],
-    [1917, 0.057],
-    [1920, 0.087],
-    [1925, 0.065],
-    [1929, 0.066],
-    [1933, 0.05],
-    [1939, 0.053],
-    [1942, 0.062],
-    [1946, 0.07],
-    [1948, 0.081],
-    [1950, 0.082],
-    [1952, 0.085],
-    [1960, 0.096],
-    [1968, 0.113],
-    [1973, 0.143],
-    [1978, 0.207],
-    [1982, 0.305],
-    [1990, 0.385],
-    [2e3, 0.498],
-    [2010, 0.63],
-    [2020, 0.775],
-    [2022, 0.9],
-    [2025, 1],
-    [2030, 1.13]
-  ];
-  function validYear(year) {
-    return Number.isInteger(year) && year >= FIRST_YEAR && year <= LAST_YEAR;
-  }
-  function priceIndex(year) {
-    return validYear(year) ? interpolate(PRICE_ANCHORS, year) : null;
-  }
-  var WAGE_YEARS = [1880, 1925, 1929, 1933, 1946, 1952, 1968, 1978, 1990, 2010, 2025, 2030];
-  var JOBS = {
-    odd_jobs: [2, [8, 30, 33, 24, 50, 75, 145, 275, 475, 850, 1500, 1690]],
-    shop_clerk: [6, [11, 39, 42, 32, 66, 90, 180, 315, 560, 1010, 1750, 1975]],
-    labourer: [8, [14, 48, 52, 36, 86, 120, 250, 510, 890, 1490, 2320, 2610]],
-    mechanic: [8, [22, 65, 74, 50, 114, 155, 310, 660, 1240, 2010, 3050, 3440]],
-    clerk: [8, [16, 52, 56, 40, 88, 125, 230, 475, 875, 1510, 2380, 2680]],
-    nurse: [8, [17, 44, 48, 36, 97, 140, 295, 730, 1520, 2760, 4050, 4575]],
-    teacher: [8, [21, 57, 62, 44, 103, 155, 355, 775, 1510, 2520, 3670, 4140]],
-    police_officer: [8, [20, 59, 65, 47, 108, 155, 350, 800, 1570, 2630, 3870, 4360]]
-  };
-  function wage(job, year) {
-    const key = job.trim().toLowerCase().replace(/[ -]+/g, "_");
-    const canonical = key === "laborer" ? "labourer" : key;
-    if (!validYear(year) || !Object.prototype.hasOwnProperty.call(JOBS, canonical)) return null;
-    const [shiftHours, rates2] = JOBS[canonical];
-    const hourlyCents = Math.round(interpolate(WAGE_YEARS.map((at, i) => [at, rates2[i]]), year));
-    return { hourlyCents, shiftHours, shiftCents: hourlyCents * shiftHours };
-  }
-  function formatMoney(cents, year) {
-    if (!Number.isSafeInteger(cents) || !validYear(year)) return null;
-    const sign = cents < 0 ? "-" : "";
-    const amount = Math.abs(cents);
-    if (amount > 0 && amount < 100 && year < 1980) return `${sign}${amount}¢`;
-    return `${sign}$${Math.floor(amount / 100)}.${String(amount % 100).padStart(2, "0")}`;
+    for (const place of Object.values(parsed.places)) {
+      if (!Array.isArray(place.staff)) place.staff = [];
+    }
+    if (!parsed.policeState && parsed.streetGraph) {
+      const restored = createLoopPolice({
+        seed: parsed.seed ?? "restored",
+        year: parsed.year ?? 1978,
+        startDay: parsed.currentDay ?? 0,
+        startHour: parsed.currentHour ?? 8,
+        places: parsed.places,
+        streetGraph: parsed.streetGraph,
+        peopleCount: Object.keys(parsed.peopleMeta).length,
+        crimeState: parsed.crimeState,
+        idMap: parsed.idMap
+      });
+      parsed.policeState = restored.policeState;
+      parsed.officers = restored.officers;
+    }
+    return parsed;
   }
 
   // src/economy/catalogue.ts

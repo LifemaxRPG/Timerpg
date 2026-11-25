@@ -23,7 +23,17 @@ class LoopOutcome(
     val wary: String? = null,
     /** The player is taken to this transit stop (a ride's end). */
     val moveToStop: LoopStop? = null,
+    /** A sale of stolen goods the shop knew for hot (`sell`'s `hot`): the HUD shows the line as hot. */
+    val hot: Boolean = false,
+    /** A street stop to play out before the line (an officer's papers and questions): [PoliceStop]. */
+    val stop: PoliceStop? = null,
 )
+
+/**
+ * A street stop as the player lives it (`spotted`'s `stopOutcome`): what is said, in order ([lines]: who, what), then
+ * [released] (the player walks on where they stand) or arrested (the outcome's line and the station, after the lines).
+ */
+class PoliceStop(val lines: List<Pair<String, String>>, val released: Boolean, val checkedPapers: Boolean, val caseStrength: Double, val threshold: Double)
 
 /** What the HUD and the debug panel show, made after each burst on the sim's thread (read anywhere). */
 class LoopView(
@@ -197,12 +207,6 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     /** What the player arrives with: about $60 of 2025 money in the era's cents. */
     fun startingCash(): Int = max(200, (LoopItems.START_CASH_2025 * priceIndex).roundToInt())
 
-    /** [dollars] of 2025 money (a fine from the facade) in the era's cents. */
-    private fun eraCents(dollars: Int): Int = max(if (dollars > 0) 1 else 0, (dollars * 100 * priceIndex).roundToInt())
-
-    /** The facade works in whole dollars (item value, pay): cents rounded to dollars, at least 1. */
-    private fun dollars(cents: Int): Int = max(1, (cents / 100.0).roundToInt())
-
     /** Each shop place's `ShopStock` (economy.openStock, plain JSON), opened the first time it is looked at; saved with the loop. */
     private val stocks = HashMap<String, JSONObject>()
     /** The part of a day the clock has moved since the last whole day passed on to `restock`. */
@@ -279,11 +283,14 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         while (messages.size > 12) messages.removeFirst()
     }
 
-    /** Starts a new game in the town at [startHour] of day 1, with the era's starting cash. */
-    fun init(startHour: Double, appearance: JSONObject = LoopTown.defaultAppearance(), startDate: IntArray? = null): JSONObject {
+    /**
+     * Starts a new game in the town at [startHour] of day 1, with the era's starting cash, the player called
+     * [playerName] (the facade's facts say "you" to them; strangers describe them from [appearance]).
+     */
+    fun init(startHour: Double, appearance: JSONObject = LoopTown.defaultAppearance(), startDate: IntArray? = null, playerName: String = LoopTown.DEFAULT_PLAYER_NAME): JSONObject {
         this.startDate = startDate ?: defaultStartDate(town.year)
         dayCache.clear(); spanCache.clear(); openCache.clear(); staffCache.clear(); hoursDay = -1
-        val init = town.initJson(startHour, appearance = appearance, startWeekday = dayInfo(1).weekday)
+        val init = town.initJson(startHour, playerName = playerName, appearance = appearance, startWeekday = dayInfo(1).weekday)
         val res = JSONObject(call("init", init))
         day = res.optInt("day", 1); hour = res.optDouble("hour", startHour)
         cash = startingCash()
@@ -330,7 +337,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     fun load(saved: String) {
         val o = JSONObject(saved)
         require(o.optString("town") == town.seed) { "the save is for ${o.optString("town")}, not ${town.seed}" }
-        val res = JSONObject(call("load", o.getString("sim")))
+        // (a save from before the junctions kept the town's own ids: moved to them by position, LoopTown.migrateNodeIds)
+        val res = JSONObject(call("load", LoopTown.migrateNodeIds(o.getString("sim"), town.nodes, town::vec)))
         // (a save from before the calendar began on the default start date, as the game did)
         startDate = o.optJSONArray("startDate")?.let { a -> intArrayOf(a.getInt(0), a.getInt(1), a.getInt(2)) } ?: defaultStartDate(town.year)
         dayCache.clear(); spanCache.clear(); openCache.clear(); staffCache.clear(); hoursDay = -1
@@ -384,8 +392,18 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         // (the player's needs move with the clock: what they were doing, or asleep in a bed)
         tickNeeds(hours, when (why) { "sleep" -> "sleeping"; "work" -> "working"; "hour", "action" -> walkActivity; else -> "idle" }, sleepBed)
         val res = JSONObject(call("advance", hours))
+        return clockMoved(hours, why, res, res.optInt("toDay", day), res.optDouble("toHour", hour))
+    }
+
+    /**
+     * The facade's clock has moved [hours] to [toDay] at [toHour] (an `advance`, or the hours a shift or a cell owns
+     * itself: `act work_shift` and `arrest` run them through the facade's own advance and answer with the same world
+     * changes in [res]): the game's side follows (restocking, the job's and the shop's days, attitudes, the police).
+     * The needs are the caller's (asleep, working, in a cell).
+     */
+    private fun clockMoved(hours: Double, why: String, res: JSONObject, toDay: Int, toHour: Double): JSONObject {
         val fromDay = day
-        day = res.optInt("toDay", day); hour = res.optDouble("toHour", hour)
+        day = toDay; hour = toHour
         lastAdvance = res
         restockFor(hours)
         daysEnded(fromDay)
@@ -470,10 +488,11 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val k = place.keeperId ?: return null to null
         val a = attitude(k, fresh = true)
         val name = a.optString("name", k).substringBefore(' ')
-        val why = a.optJSONArray("facts")?.let { f -> (0 until f.length()).map { f.getString(it) }.lastOrNull { !it.startsWith("You know this person") } }
+        val why = a.optJSONArray("facts")?.let { f -> (0 until f.length()).map { f.getString(it) }.lastOrNull { !it.startsWith(KNOWS_NAME) } }
         event("attitude", JSONObject().put("personId", k).put("place", place.id).put("stance", a.optString("stance")).put("trust", a.optDouble("trust")).put("for", what))
         return when (a.optString("stance")) {
-            "refuse", "report_on_sight" -> "$name won't $what you." + (why?.let { " (${toPlayer(it, name)})" } ?: "") to null
+            // (the facade's facts are the person's own words to the player: "I saw you steal ...", quoted as they are)
+            "refuse", "report_on_sight" -> "$name won't $what you." + (why?.let { " \"$it\"" } ?: "") to null
             "wary" -> null to "$name keeps an eye on you."
             else -> null to null
         }
@@ -488,7 +507,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
             stolen, crimeId, place.id, day)
     }
 
-    private fun itemPayload(i: LoopItem) = JSONObject().put("id", i.id).put("label", i.label).put("value", dollars(i.value)).also { o ->
+    // (money crosses to the facade as integer cents of the era, as the wallet keeps it)
+    private fun itemPayload(i: LoopItem) = JSONObject().put("id", i.id).put("label", i.label).put("value", i.value).also { o ->
         i.serial?.let { o.put("serialNumber", it) }; i.crimeId?.let { o.put("stolenFromCrimeId", it) }
     }
 
@@ -496,14 +516,24 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         // (the weather's face recognition range: in fog or heavy rain, people outdoors beyond it do not see who it is)
         val scene = (town.placeById[event.optString("placeId")]?.let { staffedScene(it, sceneIn) } ?: sceneIn).limitedTo(faceRangeUnits())
         scene.put(event)
+        // (the facade counts a place's `staff` as at the counter and watching while it is open unless the scene names
+        // them; the game knows who works this hour and where they stand (staffedScene), so the rest are named, unseeing)
+        town.placeById[event.optString("placeId")]?.let { p ->
+            val here = scene.bystanders.mapTo(HashSet()) { it.id }
+            val a = event.optJSONArray("bystanders") ?: JSONArray().also { event.put("bystanders", it) }
+            for (id in town.staffOf(p)) if (id !in here) a.put(JSONObject().put("id", id).put("position", town.vec(p.doorX, p.doorZ)).put("activity", "working").put("hasLineOfSight", false))
+        }
         val res = JSONObject(call("act", event))
         lastAct = res.put("bystanders", scene.bystanders.size).put("inside", scene.inside).put("sighted", scene.bystanders.count { it.los })
         // (the witnesses' and the clerk's attitudes may have changed)
         val again = HashSet<String>()
         res.optJSONArray("witnessedBy")?.let { w -> for (k in 0 until w.length()) again += w.getJSONObject(k).optString("personId") }
         for (k in listOf("clerkId", "employerId", "ownerId")) event.optString(k).takeIf { it.isNotEmpty() }?.let { again += it }
-        // (a shift: the coworkers learn the player's name too)
-        if (event.optString("kind") == "work_shift") town.people.filter { it.workplacePlaceId == event.optString("placeId") }.forEach { again += it.id }
+        // (a shift: the place's staff and coworkers learn the player's name too)
+        if (event.optString("kind") == "work_shift") {
+            town.people.filter { it.workplacePlaceId == event.optString("placeId") }.forEach { again += it.id }
+            town.placeById[event.optString("placeId")]?.let { again += town.staffOf(it) }
+        }
         refreshAttitudes(again)
         event("act", JSONObject().put("kind", event.optString("kind")).put("place", event.optString("placeId")).put("summary", res.optString("summary"))
             .put("crimeId", res.opt("crimeId")).put("witnessedBy", res.optJSONArray("witnessedBy")).put("bystanders", scene.bystanders.size)
@@ -657,14 +687,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         return LoopScene(scene.x, scene.z, out, scene.light, true, scene.appearance)
     }
 
-    /** Who stands behind the counter besides the keeper: the town's people who work at [place], then stand-ins picked from the town by the place's id. */
-    private fun clerksOf(place: LoopPlace): List<String> = clerkCache.getOrPut(place.id) {
-        val own = town.people.filter { it.workplacePlaceId == place.id && it.id != place.keeperId }.map { it.id }
-        val pool = town.people.filter { p -> town.places.none { it.kind != "home" && it.keeperId == p.id } && p.age in 16..65 && p.id !in own }.map { it.id }
-        val h = place.id.hashCode()
-        own + (0 until 3).mapNotNull { i -> pool.takeIf { it.isNotEmpty() }?.get(Math.floorMod(h + 7919 * i, pool.size)) }.distinct()
-    }
-    private val clerkCache = HashMap<String, List<String>>()
+    /** Who stands behind the counter besides the keeper ([LoopTown.clerksOf]: the facade knows them as the place's `staff`). */
+    private fun clerksOf(place: LoopPlace): List<String> = town.clerksOf(place)
 
     private fun closed(place: LoopPlace) = closedLine(place)
 
@@ -726,7 +750,10 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         cash += price
         items.removeAll { it.id == item.id }
         if (res.optBoolean("pawnTraceFlagged")) say("(the pawn ledger has ${item.label}: it is on file as stolen)")
-        return done(true, "Sold ${item.label} for ${money(price)}." + if (item.stolen) " They didn't ask where it came from." else "", wary = wary)
+        // (a hot sale, the facade's `hot`: the player is told, as the clerk writes it in the ledger the police read)
+        val hot = res.optBoolean("hot")
+        return done(true, "Sold ${item.label} for ${money(price)}." + if (hot) " Hot goods: the clerk writes it in the ledger${item.serial?.let { ", serial number and all" } ?: ""}." else "",
+            wary = wary, hot = hot)
     }
 
     /**
@@ -780,17 +807,30 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val hourly = w?.optInt("hourlyCents", 0) ?: 0
         val pay = max(1, (hours * hourly).roundToInt())
         val task = LoopItems.task(place.shopKind)
-        act(JSONObject().put("kind", "work_shift").put("placeId", place.id).put("hours", hours).put("pay", dollars(pay)).put("taskLabel", task)
-            .also { o -> place.keeperId?.let { o.put("employerId", it) } }, scene)
-        advance(hours, "work")
-        cash += pay
-        return done(true, "You worked ${hours.toInt()} hours $task at ${place.name}: ${money(pay)}.", hours, wary = wary)
+        val paid = shift(place, hours, pay, task, scene)
+        cash += paid
+        return done(true, "You worked ${hours.toInt()} hours $task at ${place.name}: ${money(paid)}.", hours, wary = wary)
     }
 
-    private fun done(ok: Boolean, line: String, hours: Double = 0.0, moveTo: LoopPlace? = null, wary: String? = null, moveToStop: LoopStop? = null): LoopOutcome {
+    /**
+     * [hours] of work at [place] for [pay] cents (`act work_shift`): the facade owns the shift's clock (it runs the hours
+     * through its own advance and answers with the day, the hour and the world's changes), so the game follows that answer
+     * instead of advancing again. Returns the cents the facade paid (`payEarned`).
+     */
+    private fun shift(place: LoopPlace, hours: Double, pay: Int, task: String, scene: LoopScene): Int {
+        tickNeeds(hours, "working")
+        val res = act(JSONObject().put("kind", "work_shift").put("placeId", place.id).put("hours", hours).put("pay", pay).put("taskLabel", task)
+            .also { o -> place.keeperId?.let { o.put("employerId", it) } }, scene)
+        val end = hour + hours
+        clockMoved(hours, "work", res, res.optInt("day", day + floor(end / 24.0).toInt()), res.optDouble("hour", end - 24.0 * floor(end / 24.0)))
+        return res.optInt("payEarned", pay)
+    }
+
+    private fun done(ok: Boolean, line: String, hours: Double = 0.0, moveTo: LoopPlace? = null, wary: String? = null, moveToStop: LoopStop? = null,
+                     hot: Boolean = false, stop: PoliceStop? = null): LoopOutcome {
         say(line + (wary?.let { " $it" } ?: ""))
         publish()
-        return LoopOutcome(ok, line, hour, hours, moveTo, wary, moveToStop)
+        return LoopOutcome(ok, line, hour, hours, moveTo, wary, moveToStop, hot, stop)
     }
 
 
@@ -911,11 +951,9 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         val hours = if (late) max(1.0, min(j.shiftHours.toDouble(), j.startHour + j.shiftHours - hour)) else j.shiftHours.toDouble()
         val pay = max(1, (hours * j.emp.optInt("hourlyCents")).roundToInt())
         val task = LoopItems.task(place.shopKind)
-        act(JSONObject().put("kind", "work_shift").put("placeId", place.id).put("hours", hours).put("pay", dollars(pay)).put("taskLabel", task)
-            .also { o -> place.keeperId?.let { o.put("employerId", it) } }, scene)
-        advance(hours, "work")
-        cash += pay
-        return done(true, "Shift as ${j.title.lowercase()} at ${place.name}: ${fmt(hours)} h, ${money(pay)}." + (if (late) " (late)" else "") + (note?.let { " $it" } ?: ""), hours)
+        val paid = shift(place, hours, pay, task, scene)
+        cash += paid
+        return done(true, "Shift as ${j.title.lowercase()} at ${place.name}: ${fmt(hours)} h, ${money(paid)}." + (if (late) " (late)" else "") + (note?.let { " $it" } ?: ""), hours)
     }
 
     /** Gives the job up: the reference it earned so far (good after a steady run) is kept for the next application. */
@@ -1213,8 +1251,10 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
     val officerPlans: List<JSONObject> get() = lastPolice?.optJSONArray("officers")?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } }.orEmpty()
 
     /**
-     * [officerId] sees the player [distanceM] away in [light] (`spotted`): watching them is shown; an approach or an
-     * arrest is the arrest scene ([arrest]). Null when they ignore the player.
+     * [officerId] sees the player [distanceM] away in [light] (`spotted`): watching them is shown; a stop
+     * (`approach_and_question`) is played on the street (papers, a question or two: [PoliceStop]) and ends as the
+     * facade's `stopOutcome` says, released where they stand or arrested; an arrest is the arrest scene ([arrest]).
+     * Null when they ignore the player.
      */
     fun spotted(officerId: String, distanceM: Double, light: Double, gameHour: Double): LoopOutcome? {
         clockTo(gameHour, exact = true)
@@ -1222,47 +1262,100 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         lastSpot = s
         val action = s.optString("action")
         event("spotted", JSONObject().put("officerId", officerId).put("distance", distanceM).put("light", light).put("action", action)
-            .put("recognition", s.optDouble("recognitionChance")).put("case", s.opt("matchedCaseId")).put("ms", timings["spotted"]?.first))
+            .put("recognition", s.optDouble("recognitionChance")).put("case", s.opt("matchedCaseId"))
+            .put("stop", s.optJSONObject("stopOutcome")?.optString("outcome")).put("ms", timings["spotted"]?.first))
         return when (action) {
             "watch" -> done(true, "A police officer is watching you.")
-            "approach_and_question", "arrest" -> arrest(officerId, action)
+            "approach_and_question" -> streetStop(officerId, s)
+            "arrest" -> arrest(officerId, action)
             else -> { publish(); null }
         }
     }
 
+    /** A stop on the street (`spotted`'s `stopOutcome`): released, the player walks on; else the arrest, from the stop. */
+    private fun streetStop(officerId: String, spot: JSONObject): LoopOutcome {
+        val so = spot.optJSONObject("stopOutcome")
+        val lines = stopLines(officerId, spot, so)
+        if (so == null || so.optString("outcome") != "released") return arrest(officerId, "approach_and_question", lines)
+        val stop = PoliceStop(lines + (OFFICER to pick(officerId, "go", "All right. On your way.", "That'll do. Move along.")), true,
+            so.optBoolean("checkedPapers"), so.optDouble("caseStrength"), so.optDouble("thresholdUsed"))
+        event("stop", JSONObject().put("officerId", officerId).put("outcome", "released").put("papers", stop.checkedPapers)
+            .put("caseStrength", stop.caseStrength).put("threshold", stop.threshold).put("reason", so.optString("reason")))
+        refreshPolice()
+        return done(true, "An officer stops you, asks a few questions and lets you go.", stop = stop)
+    }
+
+    /** One of [options] for this officer today (the same stop reads the same; another day, another way of saying it). */
+    private fun pick(officerId: String, key: String, vararg options: String): String = options[Math.floorMod("$officerId|$day|$key".hashCode(), options.size)]
+
     /**
-     * The arrest scene's outcome (`arrest`): the fine taken from the wallet (what there is), what was stolen taken
-     * away, a night in the cell (the clock to the next morning) or the hours of jail; the player is taken to the
-     * police station.
+     * What is said at a stop, from the facade's [so] (`checkedPapers`, `questioned`) and the case the officer matched
+     * ([spot]'s `matchedCaseId`, its place and kind from `policeView`): the officer's opening, the papers (an ID from
+     * 1950), the questions about the place, the player's answers. Plain lines in the game's voice, not the dialogue model's.
      */
-    fun arrest(officerId: String?, why: String = "arrest"): LoopOutcome {
-        val input = JSONObject().put("jurisdictionId", town.jurisdictionId).put("playerCash", max(0, (cash / 100.0 / priceIndex).roundToInt()))
+    private fun stopLines(officerId: String, spot: JSONObject, so: JSONObject?): List<Pair<String, String>> {
+        val out = ArrayList<Pair<String, String>>()
+        out += OFFICER to pick(officerId, "hi", "Hold on there. A word?", "You there. Stop a minute.", "Hold up a second.")
+        if (so?.optBoolean("checkedPapers") == true) {
+            out += OFFICER to if (town.year >= 1950) pick(officerId, "id", "Let's see some ID.", "ID, please.") else pick(officerId, "id", "Your papers, please.", "Let's see your papers.")
+            out += YOU to pick(officerId, "idok", "(You hand them over. The officer reads them slowly and gives them back.)", "(The officer looks from your papers to your face, and back.)")
+        }
+        if (so == null || so.optBoolean("questioned", true)) {
+            val case = spot.optString("matchedCaseId").takeIf { it.isNotEmpty() }?.let { id ->
+                lastPolice?.optJSONArray("cases")?.let { a -> (0 until a.length()).map { a.getJSONObject(it) }.firstOrNull { it.optString("crimeId") == id } }
+            }
+            val where = case?.optString("placeName")?.takeIf { it.isNotEmpty() }
+            out += OFFICER to (where?.let { pick(officerId, "q1", "Were you anywhere near $it lately?", "You been by $it these last few days?") }
+                ?: pick(officerId, "q1", "Where are you headed?", "What brings you around here?"))
+            out += YOU to pick(officerId, "a1", "(You say you were only passing through.)", "(You say you don't remember.)")
+            out += OFFICER to when (case?.optString("kind")) {
+                "shoplifting", "theft" -> "Something went missing from there. Someone of your description was seen."
+                "burglary" -> "Somebody broke in there. You wouldn't know anything about that?"
+                "car_theft" -> "A car went missing near there. Know anything about it?"
+                "robbery", "assault" -> "Someone got hurt there. Your description came up."
+                null -> pick(officerId, "q2", "You look like someone we're looking for.", "Someone matching your description has been seen about.")
+                else -> "There was trouble there. Your description came up."
+            }
+        }
+        return out
+    }
+
+    /**
+     * The arrest scene's outcome (`arrest`, with the cash in the wallet): the fine taken (what there is), what was stolen
+     * taken away, a night in the cell or the hours of jail (the facade runs them through its own clock and answers with
+     * the day and hour: the game follows); the player is taken to the police station. From a stop ([why]
+     * `approach_and_question`, with its [stopLines]) the facade may still let a thin case go: then the player walks on.
+     */
+    fun arrest(officerId: String?, why: String = "arrest", stopLines: List<Pair<String, String>>? = null): LoopOutcome {
+        val input = JSONObject().put("jurisdictionId", town.jurisdictionId).put("playerCash", cash)
             .put("carriedItemIds", JSONArray(items.map { it.id }))
         officerId?.let { input.put("officerId", it) }
+        val fromStop = why == "approach_and_question"
+        if (fromStop) input.put("fromStop", true).put("why", why)
         val r = JSONObject(call("arrest", input))
         lastArrest = r
-        val fine = min(eraCents(r.optInt("fineAmount", 0)), cash)
+        if (fromStop && r.optBoolean("releasedAfterStop")) {
+            event("arrest", JSONObject().put("officerId", officerId).put("why", why).put("penalty", r.optString("penalty")).put("released", true)
+                .put("summary", r.optString("summary")).put("ms", timings["arrest"]?.first))
+            refreshPolice()
+            val stop = PoliceStop(stopLines.orEmpty() + (OFFICER to "All right. On your way."), true, false, r.optDouble("totalCaseStrength"), 0.0)
+            return done(true, "An officer stops you, asks a few questions and lets you go.", stop = stop)
+        }
+        val fine = min(r.optInt("fineAmount", 0), cash)
         cash -= fine
         val gone = r.optJSONArray("confiscatedItems")?.let { a -> (0 until a.length()).map { a.getString(it) }.toSet() }.orEmpty()
         val lost = items.filter { it.id in gone }
         items.removeAll { it.id in gone }
-        refreshAttitudes(attitudes.keys.toList())
         val jailH = r.optDouble("jailHours", 0.0)
         val before = hour
-        // (the facade moves its own clock on by the hours held, without a day's gossip for the days it crosses; its
-        // answer has no clock, so it is worked out the same way here)
-        val total = hour + jailH
-        val fromDay = day
-        day += floor(total / 24.0).toInt(); hour = total - 24.0 * floor(total / 24.0)
-        daysEnded(fromDay)
-        businessDaysEnded(fromDay)
-        val passed = jailH
-        restockFor(jailH)
-        // (hours held: a night on the cell's bunk, else sitting about)
+        // (hours held: a night on the cell's bunk, else sitting about; the facade ran them through its clock, so gossip,
+        // reports and the police went on meanwhile, and its answer has the day and hour it let the player out)
         tickNeeds(jailH, if (jailH >= 6.0) "sleeping" else "idle", "cell")
+        if (jailH > 1e-6) clockMoved(jailH, "cell", r, r.optInt("day", day), r.optDouble("hour", hour))
+        refreshAttitudes(attitudes.keys.toList())
         event("arrest", JSONObject().put("officerId", officerId).put("why", why).put("penalty", r.optString("penalty")).put("fine", fine)
             .put("confiscated", JSONArray(gone.toList())).put("charges", r.optJSONArray("charges")).put("summary", r.optString("summary"))
-            .put("fromHour", before).put("hoursPassed", passed).put("ms", timings["arrest"]?.first))
+            .put("fromHour", before).put("hoursPassed", jailH).put("toDay", day).put("toHour", hour).put("ms", timings["arrest"]?.first))
         val what = when (r.optString("penalty")) {
             "warning" -> "You get off with a warning."
             "fine" -> "Fined ${money(fine)}."
@@ -1270,8 +1363,11 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
             else -> "${fmt(jailH)} hours in jail."
         }
         refreshPolice()
-        return done(true, (if (why == "approach_and_question") "An officer stops you and asks questions. " else "Arrested! ") + what +
-            (if (lost.isNotEmpty()) " They take ${lost.joinToString { it.label }}." else ""), passed, town.station)
+        val so = lastSpot?.optJSONObject("stopOutcome")
+        val stop = stopLines?.let { PoliceStop(it + (OFFICER to pick(officerId ?: "", "take", "You'll need to come with me.", "That's enough. You're coming to the station.")), false,
+            so?.optBoolean("checkedPapers") == true, r.optDouble("totalCaseStrength"), so?.optDouble("thresholdUsed") ?: 0.0) }
+        return done(true, (if (fromStop) "Stopped and arrested. " else "Arrested! ") + what +
+            (if (lost.isNotEmpty()) " They take ${lost.joinToString { it.label }}." else ""), jailH, town.station, stop = stop)
     }
 
 
@@ -1327,8 +1423,8 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
         return bits.takeIf { it.isNotEmpty() }?.joinToString(" and ")
     }
 
-    /** A note in everyone's fact sheet on how the player looks ("You notice this person looks unwashed and exhausted."), none when fine. */
-    private fun lookFacts(): List<String> = lookNote?.let { listOf("You notice this person looks $it.") }.orEmpty()
+    /** A note in everyone's fact sheet on how the player looks, in their own words as the facade's facts are ("I notice you look unwashed and exhausted."), none when fine. */
+    private fun lookFacts(): List<String> = lookNote?.let { listOf("I notice you look $it.") }.orEmpty()
 
     private fun dailyNeedsJson(): JSONObject? = dailyNeedsCache ?: (econ("dailyNeeds", town.year) as? JSONObject)?.also { dailyNeedsCache = it }
     private var dailyNeedsCache: JSONObject? = null
@@ -2066,10 +2162,12 @@ class LoopGame(private val js: SimJs, val town: LoopTown) {
             return if (a in 1..99 && year < 1980) sign + a + "¢" else sign + "$" + (a / 100) + "." + "%02d".format(a % 100)
         }
 
-        /** A fact from [name]'s fact sheet ("You saw this person steal ...") told to the player ("Mildred saw you steal ..."). */
-        fun toPlayer(fact: String, name: String): String = fact.replace("You saw this person", "$name saw you")
-            .replace("You heard this person", "$name heard you").replace(" told you this person", " told $name you")
-            .replace(" mentioned someone", " told $name someone").replace("this person", "you").removeSuffix(".")
+        /** Who speaks a stop's lines ([PoliceStop.lines]): the officer, and the player's own doings in brackets. */
+        const val OFFICER = "Officer"
+        const val YOU = "You"
+
+        /** How the facade's facts begin when the person knows the player's name ("I know you by name as Alex Mercer."). */
+        const val KNOWS_NAME = "I know you by name"
 
         private fun fmt(h: Double) = if (h == floor(h)) h.toInt().toString() else "%.1f".format(h)
 

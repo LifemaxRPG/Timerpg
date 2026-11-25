@@ -389,9 +389,9 @@ class DialogueEngine private constructor(private val app: Context) {
         val f = loopFacts?.invoke(npc.id).orEmpty().take(6).map { it.replace("<|", "<").replace("|>", ">").replace("\n", " ").take(300) }
         if (f.isEmpty()) return topic
         // (a person who knows the player's name from a shift or a sale does not take them for a stranger)
-        val known = if (f.any { it.startsWith("You know this person by name") }) p.replace("The player is a stranger.", "The player is someone you have met.") else p
+        val known = if (f.any { it.startsWith(com.lifemax.rpg.feature.habits.loop.LoopGame.KNOWS_NAME) }) p.replace("The player is a stranger.", "The player is someone you have met.") else p
         val at = known.indexOf("\nExample of the kind of answer:").takeIf { it >= 0 } ?: known.indexOf("<|im_end|>").takeIf { it >= 0 } ?: return topic
-        return topic.copy(prompt = known.substring(0, at) + "\nWhat you know about the player (\"this person\"):\n" + f.joinToString("\n") + known.substring(at))
+        return topic.copy(prompt = known.substring(0, at) + "\nWhat you know about the player, in your own words to them (\"you\" is the player):\n" + f.joinToString("\n") + known.substring(at))
     }
 
     /** Where the player is: building [index] (-1 between buildings) of [street]. Re-sorts the pre-generation queue. */

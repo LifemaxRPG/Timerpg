@@ -110,8 +110,30 @@ class LoopTown(
 
     fun m(units: Float): Double = units / VehicleWorld.U.toDouble()
 
-    /** The facade's `init` for a game starting on [startDay] at [startHour] with the player looking like [appearance]. */
-    fun initJson(startHour: Double, startDay: Int = 1, playerName: String = "Alex Mercer", appearance: JSONObject = defaultAppearance(), startWeekday: Int = 0): JSONObject {
+    /**
+     * Who works at [place] besides its keeper: the town's people whose workplace it is, then up to three stand-ins picked
+     * from the town by the place's id (people who keep no shop, 16-65), so each clerk behind a counter is a real person
+     * who can witness and learn the player's name. Passed to the facade as the place's `staff`; LoopGame stands them at
+     * the counter by the hour's staffing.
+     */
+    fun clerksOf(place: LoopPlace): List<String> = clerkCache.getOrPut(place.id) {
+        val own = people.filter { it.workplacePlaceId == place.id && it.id != place.keeperId }.map { it.id }
+        val pool = people.filter { p -> places.none { it.kind != "home" && it.keeperId == p.id } && p.age in 16..65 && p.id !in own }.map { it.id }
+        val h = place.id.hashCode()
+        own + (0 until 3).mapNotNull { i -> pool.takeIf { it.isNotEmpty() }?.get(Math.floorMod(h + 7919 * i, pool.size)) }.distinct()
+    }
+    private val clerkCache = HashMap<String, List<String>>()
+
+    /** The facade's `staff` for [place]: everyone who works there but the keeper (the facade's `ownerId`); none for homes and the station. */
+    fun staffOf(place: LoopPlace): List<String> =
+        if (place.kind == "home" || place.kind == "police_station") emptyList()
+        else (place.staff.drop(1) + clerksOf(place)).distinct().filter { it != place.keeperId }
+
+    /**
+     * The facade's `init` for a game starting on [startDay] at [startHour], the player called [playerName] and looking
+     * like [appearance] (described in words for those who don't know their name: [describe]).
+     */
+    fun initJson(startHour: Double, startDay: Int = 1, playerName: String = DEFAULT_PLAYER_NAME, appearance: JSONObject = defaultAppearance(), startWeekday: Int = 0): JSONObject {
         val o = JSONObject()
         o.put("seed", "loop-$seed")
         o.put("year", year)
@@ -120,11 +142,13 @@ class LoopTown(
         o.put("startDayOfWeek", startWeekday)
         o.put("playerId", PLAYER)
         o.put("playerName", playerName)
+        o.put("playerDescription", describe(appearance))
         o.put("playerAppearance", appearance)
         o.put("places", JSONArray().also { a ->
             for (p in places) a.put(JSONObject().put("id", p.id).put("name", p.name).put("kind", p.kind)
                 .put("position", vec(p.doorX, p.doorZ)).put("jurisdictionId", jurisdictionId).put("townId", seed).also { j ->
                     p.keeperId?.let { j.put("ownerId", it) }
+                    staffOf(p).takeIf { it.isNotEmpty() }?.let { j.put("staff", JSONArray(it)) }
                     if (p.kind != "home" && p.kind != "police_station") j.put("openHours", JSONArray().put(p.open).put(p.close))
                     if (p.kind == "police_station") j.put("nodeId", STATION_NODE)
                 })
@@ -169,18 +193,48 @@ class LoopTown(
 
         private fun h(vararg k: Any): Int = k.joinToString("|").hashCode()
 
-        /** The place of cell ([x], [y]) along a Hilbert curve over a 256 x 256 grid (neighbours on it are near). */
-        private fun hilbert(x0: Int, y0: Int): Int {
-            var x = x0.coerceIn(0, 255); var y = y0.coerceIn(0, 255); var d = 0
-            var s = 128
-            while (s > 0) {
-                val rx = if (x and s > 0) 1 else 0; val ry = if (y and s > 0) 1 else 0
-                d += s * s * ((3 * rx) xor ry)
-                if (ry == 0) { if (rx == 1) { x = 255 - x; y = 255 - y }; val t = x; x = y; y = t }
-                s = s shr 1
-            }
-            return d
+        /** What the facade calls the player when nobody has chosen a name (src/loop's own default). */
+        const val DEFAULT_PLAYER_NAME = "Alex Mercer"
+
+        /**
+         * The player as a stranger describes them (the facade's `playerDescription`, used in hearsay when the speaker does not
+         * know their name): "a tall, slim stranger with brown hair, dressed in navy" from [appearance] (defaultAppearance's fields).
+         */
+        fun describe(appearance: JSONObject): String {
+            val height = appearance.optString("height").takeIf { it.isNotEmpty() && it != "average" }
+            val build = appearance.optString("build").takeIf { it.isNotEmpty() && it != "average" }
+            val hair = appearance.optString("hair").takeIf { it.isNotEmpty() }
+            val clothes = appearance.optString("clothingColor").takeIf { it.isNotEmpty() }
+            val shape = listOfNotNull(height, build).joinToString(", ")
+            val who = if (shape.isEmpty()) "a stranger" else (if (shape.first() in "aeiou") "an " else "a ") + "$shape stranger"
+            return who + (hair?.let { " with $it hair" } ?: "") + (clothes?.let { ", dressed in $it" } ?: "")
         }
+
+        /** The loop's id of the town's junction [townNodeId]: its own number, so a junction keeps its id however the graph is listed. */
+        fun nodeIdOf(townNodeId: Int): String = "node:j$townNodeId"
+
+        /**
+         * A loop save's sim from before the junctions kept their own ids (they were numbered "node:000".. along a curve, the
+         * old beat workaround) with its junction ids moved to [nodes]' by position (the same metres the init sent), so the
+         * police the facade rebuilds for an old save walk real corners. A sim already on the new ids comes back unchanged.
+         */
+        fun migrateNodeIds(sim: String, nodes: List<LoopNode>, vec: (Float, Float) -> JSONObject): String {
+            if (!OLD_NODE.containsMatchIn(sim)) return sim
+            val graph = JSONObject(sim).optJSONObject("streetGraph")?.optJSONArray("nodes") ?: return sim
+            val byPos = nodes.associateBy { n -> vec(n.x, n.z).let { "${it.getDouble("x")},${it.getDouble("y")}" } }
+            val map = HashMap<String, String>()
+            for (k in 0 until graph.length()) {
+                val n = graph.getJSONObject(k)
+                val id = n.optString("id")
+                val p = n.optJSONObject("position") ?: continue
+                val to = byPos["${p.optDouble("x")},${p.optDouble("y")}"] ?: continue
+                OLD_NODE.matchEntire(id)?.let { map[it.groupValues[2]] = to.id.removePrefix("node:") }
+            }
+            if (map.isEmpty()) return sim
+            return OLD_NODE.replace(sim) { m -> map[m.groupValues[2]]?.let { "node${m.groupValues[1]}$it" } ?: m.value }
+        }
+        /** An old junction id, as the sim ("node:007") or the plan language ("node_007") writes it. */
+        private val OLD_NODE = Regex("node([:_])(\\d{3})(?![0-9a-z_])")
 
         /**
          * Builds the loop's town from the town's [street] (street.json v2's root) and [dialogue] (its dialogue.json),
@@ -333,15 +387,11 @@ class LoopTown(
                 )
             }
 
-            // ---- the street graph: the town's junctions, numbered along a Hilbert curve so the facade's patrol beats
-            // (runs of consecutive node ids) are a few neighbouring corners, not junctions scattered over the town
-            val x0 = town.nodes.minOf { it.x }; val z0 = town.nodes.minOf { it.z }
-            val span = maxOf(town.nodes.maxOf { it.x } - x0, town.nodes.maxOf { it.z } - z0).coerceAtLeast(1f)
-            val sorted = town.nodes.sortedBy { n -> hilbert(((n.x - x0) / span * 255f).toInt(), ((n.z - z0) / span * 255f).toInt()) }
+            // ---- the street graph: the town's junctions by their own ids (the facade builds patrol beats by graph distance)
             val nodeId = HashMap<Int, String>()
             val nodes = ArrayList<LoopNode>()
-            sorted.forEachIndexed { i, n ->
-                val id = "node:%03d".format(i)
+            for (n in town.nodes.sortedBy { it.id }) {
+                val id = nodeIdOf(n.id)
                 nodeId[n.id] = id
                 nodes += LoopNode(id, n.x, n.z, if (n.kind == NodeKind.CROSS || n.kind == NodeKind.TEE) "intersection" else "street")
             }

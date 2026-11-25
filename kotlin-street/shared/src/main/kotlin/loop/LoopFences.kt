@@ -106,5 +106,5 @@ object LoopFences {
     fun heat(item: LoopItem, today: Int): Double = if (!item.stolen) 0.0 else (today - item.day).let { age -> if (age <= 1) .9 else if (age <= 7) .6 else .3 }
 
     /** The lead's line for a source person's fact sheet. */
-    fun leadFact(f: LoopFence): String = "You know ${f.name} buys things, no questions asked, ${f.whereText}, after dark."
+    fun leadFact(f: LoopFence): String = "I know ${f.name} buys things, no questions asked, ${f.whereText}, after dark."
 }

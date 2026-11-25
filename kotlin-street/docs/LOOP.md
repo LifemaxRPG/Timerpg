@@ -108,8 +108,9 @@ desktop) and `app/src/main/kotlin/LoopSession.kt` (the game's side), `LoopHud.kt
   "$29.95"), made into text on the sim thread and handed to the UI in `LoopView` (`cashText`, `stock`, `pawnOffers`,
   `pawnOfferTexts`). Items carry their value in cents, serial numbers for valuables (the economy's `serial` flag) and
   whether they are hot (stolen, with the crime id); the cash readout is top left (orange when carrying something hot).
-  The facade itself takes whole dollars (item `value`, shift `pay`, `fineAmount`, `playerCash`): Kotlin converts (cents
-  rounded to dollars going in; a fine, a 2025-dollar number, is scaled by the price index into era cents coming out).
+  Since G012 the facade works in the same integer era cents at the boundary (item `value`, shift `pay`, `payEarned`,
+  `fineAmount`, `playerCash`), so nothing is converted: the wallet's cents go in and come out as they are (its fines
+  are already scaled by `priceIndex(year)`).
 - **The shops** (shelves: each place keeps a `ShopStock` (`openStock(econKind(shopKind), year, "<town>|<place>")`, plain JSON, opened on
   first look) in `LoopGame`, saved with the loop (`stocks`, `dayFrac`) and loaded back. Buy and Take call `take(stock, id, 1)`;
   if the quantity did not drop the action fails with "Sold out." (no money, no crime). Every clock advance (hours, shifts,
@@ -120,7 +121,8 @@ desktop) and `app/src/main/kotlin/LoopSession.kt` (the game's side), `LoopHud.kt
   the item; `act buy`), **Take** (shoplift: `act take`, no payment), **Sell** at the pawn shop (`pawnOffer(item, year, hot)`: hot is half the clean offer, 0 when they won't
   take it: `act sell`), **Work a shift** (the old odd-job shift, now only where no job opening exists this week, see "Calendar and employment"; up to 4 h, not past closing, paid `hours x wage(job, year).hourlyCents`, `shop_clerk` at counters and `odd_jobs` for crates,
   back rooms and cases (`LoopItems.job`), at the end: `act work_shift`,
-  then `advance`). Each sends the scene: inside a room, the keeper at their counter facing the way in (so the player
+  which owns the shift's clock since G012: it runs the hours through the facade's own advance and answers with the day,
+  the hour and the world's changes, which the game follows without advancing again; the wallet gets `payEarned`). Each sends the scene: inside a room, the keeper at their counter facing the way in (so the player
   behind them is not seen) and up to two more staff; outdoors, the people the game draws within 40 m (the keepers at
   their doors and the passers), their positions, facing, standing or walking, and line of sight by a ray against the
   walk's collision (buildings, walls and hedges block; fences and props don't); the room's light, or outdoors the
@@ -135,9 +137,15 @@ desktop) and `app/src/main/kotlin/LoopSession.kt` (the game's side), `LoopHud.kt
 - **Police:** the officers' plans (`policeView`'s officers) are walked along the town's roads on the pavement (Dijkstra
   over the roads between the plan's route nodes), there and back at 1.5 m/s in real time, drawn as townspeople
   (`TownPlay.extras`) with a "POLICE" label over their heads. Once a second an officer within 30 m with a clear line of
-  sight calls `spotted` (at most every 20 s each): `watch` is shown; `approach_and_question` or `arrest` is the arrest
-  scene: `arrest` with the cash and what the player carries; the fine is taken, stolen things confiscated, the hours
-  held passed; a card says what happened and closing it stands the player at the station's door with the clock moved.
+  sight calls `spotted` (at most every 20 s each): `watch` is shown; `arrest` is the arrest scene: `arrest` with the
+  cash (cents) and what the player carries; the fine is taken, stolen things confiscated, and the facade runs the hours
+  held through its own clock (gossip, reports and the police go on meanwhile) and answers with the day and hour the
+  game follows; a card says what happened and closing it stands the player at the station's door.
+  `approach_and_question` is a **street stop** (G012's `stopOutcome`): the police card plays it line by line
+  (`LoopGame.stopLines`: the officer's opening, papers or an ID when `checkedPapers` (an ID from 1950), a question about
+  the place of the case the officer matched and its kind, the player's answers in brackets; picked by officer and day),
+  then ends as the facade says: `released`, the player walks on where they stood with what they carry; `arrested`,
+  `arrest` with `fromStop` (the facade may still let a thin case go: `releasedAfterStop`), then the station.
 - **Debug:** the "Loop" chip under the location shows cash, inventory (hot, serials), the last act's witnesses (who and
   how confident, recognised, the victim), heat and open cases (reports, strength tier), each officer's assignment and
   reason, the last advance's attitude changes, new cases and pawn leads, the last sighting and arrest, and each facade
@@ -151,7 +159,7 @@ desktop) and `app/src/main/kotlin/LoopSession.kt` (the game's side), `LoopHud.kt
     (u1, u2 from the town seed and the person's id); job = the cover their workplace suggests (bait shop: hardware clerk,
     music store: repair clerk, pawn or antiques: secondhand dealer), else the seed picks. (The export repeats 22 ids; the
     fence input has each once.) The capital gets 1 fence with about 40 leads (the seed's draw, not a rule).
-  - *Leads are dialogue facts*: each lead's source person gets "You know <name> buys things, no questions asked, behind
+  - *Leads are dialogue facts*: each lead's source person gets "I know <name> buys things, no questions asked, behind
     <shop>, after dark." in their facts (`LoopGame.attitude`, so `DialogueEngine.loopFacts`), unless their stance is
     `refuse` or `report_on_sight`. The place is the real spot, not the economy's generic text.
   - *Where and when*: 20:00-02:00 at the back of the nearest shop the cover works from (hardware: bait shop, repair: music
@@ -178,36 +186,39 @@ desktop) and `app/src/main/kotlin/LoopSession.kt` (the game's side), `LoopHud.kt
 - The street's passers are anonymous: each is taken for one of the town's people by its seed (`LoopTown.passerId`), so
   a witness has a memory and friends; the same person can be in two places at once.
 - The officers only walk their routes: the plans' other steps (watch, ask, the stakeout's wait, a car) are not acted
-  out; they use a townsperson's look, not a uniform. A stop (`approach_and_question`) goes straight to the arrest.
-- The player's appearance is fixed (average, brown hair, navy) and their name is the facade's default, "Alex Mercer".
+  out; they use a townsperson's look, not a uniform. A stop's lines are the game's own, not the dialogue model's, and not
+  voiced yet.
+- The player's appearance is fixed (average, brown hair, navy) and their name is the facade's default, "Alex Mercer"
+  (`LoopGame.init` takes a name; strangers' hearsay uses `playerDescription`, `LoopTown.describe(appearance)`: "a
+  stranger with brown hair, dressed in navy").
 - Odd jobs are one shift kind per shop; the stock is a few items per shop kind (`LoopItems.STOCK`).
 - Opening hours by kind; traits only from warmth; in 2025 gamma's general store is an antiques dealer and its market a
   chapel, so the "market" is the open superstore, Broadmeadow, a kilometre west of downtown.
 - Without the dialogue model the consequences are not voiced (the templates don't use the facts); the shopkeeper's
   refusal, the debug panel and the police are the visible consequences then.
 
-**Mismatches with the facade (for Jeff):**
-1. `arrest` moves the facade's clock by the hours held but runs no day of gossip, reports or decay for the days it
-   crosses, and its answer has no `day`/`hour`: the game works the clock out itself.
-2. `TimerpgSim.advance` and `act` keep the clock separate from the action: a shift's hours need a separate `advance`
-   (fine, but `work_shift` could say so, or take the hours itself).
-3. Patrol beats are runs of consecutive node ids in sort order (`buildInitialOfficers`): with the town's real graph
-   that scattered them over the town, so the game numbers the junctions along a Hilbert curve to keep a beat to
-   neighbouring corners. A beat built by graph distance from the station would not need that.
-4. No `ownerId` for the landmark stores in the town data, so the game makes clerks (above); `LoopPlaceInit` has no
-   field for more staff than the owner (the coworkers come from `workplacePlaceId`, which works).
-5. Names and ids: dialogue ids such as `gen:1:c2>1984` work (the id map sanitises them); facts say "this person" for
-   the player, which the game rewords for the HUD ("Mildred saw you steal ...").
-6. `sell` of a stolen item is `legit: true` in the answer (the trace is `pawnTraceFlagged`); the HUD does not tell the
-   player, the debug panel does.
-7. `spotted` gives `approach_and_question` for a recognised description even with a weak case; the stand-in arrest then
-   gives a night in the cell. Harshness is the owner's call ("Open, for the owner").
+**Mismatches with the facade (for Jeff), resolved by G012 and wired in (2026-11-25):**
+1. `arrest` runs the hours held through `advance` and answers with `day`/`hour`: the game follows them.
+2. `work_shift` owns the shift's clock: the game's follow-up `advance` is gone.
+3. Patrol beats are built by graph distance: the Hilbert renumbering of the junctions is gone; a junction's id is the
+   town's own (`node:j<id>`). A save from before is moved to the new ids by position on load (`LoopTown.migrateNodeIds`).
+4. `staff` per place: every shop sends its clerks (the town's people who work there and the stand-ins
+   `LoopTown.clerksOf` picks); they learn the player's name on a shift. The facade counts staff absent from the scene as
+   present and watching, so `act` names the ones not at the counter this hour as not seeing (the game knows who is).
+5. Facts say "you" (`I saw you steal ...`): the HUD quotes them as they are, the dialogue's fact sheet says so
+   ("in your own words to them"), and the game's own facts (the look, a fence lead) are in the same voice.
+6. `sell` answers `hot`: the HUD says so (the line in the hot colour).
+7. `spotted`'s weak case is a real stop, released below `STOP_POLICY.stopArrestStrength` (above).
+Still open: the fence's informant tip (see "The fence"); money in a save from before G012 (the facade's stored item
+values were dollars) is not converted.
 
 **Tests** (`gradle :desktop:crossroadsTest --tests LoopGameTest`, the real gamma data, QuickJS through SimJs):
 init from the town (people, places, keepers, spouses, metres); buy at the general store's successor, a theft the keeper
 sees face on, 48 hours, the keeper refuses, the stolen watch sold at the pawn shop (flagged in the ledger), a shift;
 the save loaded into a fresh engine gives the same sim JSON back and the keeper still refuses; an unseen theft behind
-the keeper's back (no witnesses), a seen one, an officer's sighting and the arrest (stolen things taken, the clock on);
+the keeper's back (no witnesses), a seen one, an officer's sighting and the stop or the arrest (the stop's lines and how it ended; stolen things taken); a shift on
+the facade's clock (no second advance, the pay in cents, the staff learn the name) and an arrest's cell hours on it (the
+fine in cents); the init's staff, description and junction ids; an old save's junction ids moved by position;
 an officer's route on the roads; line of sight through a building and across the street.
 
 **Timing** (this 4-core x86 server, QuickJS, not the S25): `init` for the real town 43-80 ms (195 KB of JSON);

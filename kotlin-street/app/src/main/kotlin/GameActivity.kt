@@ -1308,7 +1308,9 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         if (townMode && townPlay.inCar) LoopBreakdownCard(ctx, Modifier.align(Alignment.BottomCenter).padding(bottom = 190.dp))
         LoopFade(Modifier.align(Alignment.Center))
         LoopSession.line?.let { l ->
-            Text(l, 14.sp, Modifier.align(Alignment.BottomCenter).padding(bottom = 140.dp, start = 24.dp, end = 24.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 6.dp))
+            // (a hot sale's line in the HUD's hot orange, as the cash readout is when carrying something stolen)
+            Text(l, 14.sp, Modifier.align(Alignment.BottomCenter).padding(bottom = 140.dp, start = 24.dp, end = 24.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 6.dp),
+                color = if (LoopSession.lineHot) Color(0xFFFF8A65) else Color.White)
             LaunchedEffect(LoopSession.lineAt) { val at = LoopSession.lineAt; kotlinx.coroutines.delay(6000); LoopSession.lineSeen(at) }
         }
         // (officers: a label over their heads while they are in view)

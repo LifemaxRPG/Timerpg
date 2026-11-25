@@ -118,12 +118,17 @@ class LoopGameTest {
                 println("LoopGameTest: buy again: ${again.line}")
                 assertFalse(again.line, again.ok)
                 assertTrue(again.line, again.line.contains("won't"))
+                // (the facade's facts speak to the player: "I saw you ...", never "this person")
+                assertTrue(again.line, again.line.contains("you"))
+                assertTrue(g.facts.values.flatten().none { it.contains("this person") })
                 // 5. the stolen watch sold at the pawn shop (opens at 10: the clock to 11)
                 val cashBefore = g.cash
                 val watchItem = g.items.single { it.key == "pocketwatch" }
                 val s = g.sell(pawn, watchItem, facing(pawn), if (g.hour < 11.0) 11.0 else g.hour + .1)
                 println("LoopGameTest: sell: ${s.line} | ${g.lastAct}")
                 assertTrue(s.line, s.ok)
+                // (the facade knew it for hot: the player is told)
+                assertTrue(g.lastAct!!.optBoolean("hot")); assertTrue(s.hot); assertTrue(s.line, s.line.contains("Hot goods"))
                 assertEquals(cashBefore + g.pawnPrice(watchItem), g.cash)
                 // (the hot offer is the economy's own: half the clean offer)
                 assertEquals(econLong(js, "pawnOffer", "\"pocketwatch\",2025,true"), g.pawnPrice(watchItem).toLong())
@@ -529,11 +534,108 @@ class LoopGameTest {
                 val officer = g.officerPlans.firstOrNull()?.optString("officerId") ?: "officer:${loop.jurisdictionId}:0"
                 val seen = g.spotted(officer, 4.0, .95, g.hour)
                 println("LoopGameTest: spotted: ${g.lastSpot}; ${seen?.line}")
-                assertTrue("a recognised description is stopped", g.lastSpot!!.optString("action") in setOf("approach_and_question", "arrest"))
+                val action = g.lastSpot!!.optString("action")
+                assertTrue("a recognised description is stopped", action in setOf("approach_and_question", "arrest"))
                 val r = seen!!
                 println("LoopGameTest: arrest: ${r.line} | ${g.lastArrest?.optString("penalty")} | at ${r.moveTo?.name} | hour ${g.hour}")
+                r.stop?.lines?.forEach { (who, what) -> println("LoopGameTest:   stop: $who: $what") }
+                if (action == "approach_and_question") {
+                    // (a street stop: played out first, then released where the player stands or arrested, as stopOutcome says)
+                    val so = g.lastSpot!!.getJSONObject("stopOutcome")
+                    val stop = r.stop!!
+                    assertEquals(LoopGame.OFFICER, stop.lines.first().first)
+                    assertEquals(so.optBoolean("checkedPapers"), stop.lines.any { it.second.contains("ID") || it.second.contains("papers") })
+                    assertEquals(so.optString("outcome") == "released" || g.lastArrest?.optBoolean("releasedAfterStop") == true, stop.released)
+                    if (stop.released) { assertNull(r.moveTo); assertTrue("let go: they keep what they carry", g.items.any { it.stolen }) }
+                }
+                if (r.stop?.released != true) {
+                    assertNotNull(r.moveTo)
+                    assertTrue("what was stolen is taken", g.items.none { it.stolen })
+                }
+            }.get()
+        }
+    }
+
+    /** The facade's clock after the game's own: the sim's day and hour as its save has them. */
+    private fun facadeClock(g: LoopGame): Pair<Int, Double> = JSONObject(g.call("save")).let { it.getInt("currentDay") to it.getDouble("currentHour") }
+
+    @Test fun theInitCarriesStaffTheDescriptionAndTheTownsJunctionIds() {
+        val init = loop.initJson(10.0, appearance = LoopTown.defaultAppearance("green").put("height", "tall").put("build", "slim"))
+        assertEquals("a tall, slim stranger with brown hair, dressed in green", init.getString("playerDescription"))
+        assertEquals(LoopTown.DEFAULT_PLAYER_NAME, init.getString("playerName"))
+        val places = init.getJSONArray("places").let { a -> (0 until a.length()).map { a.getJSONObject(it) } }
+        val withStaff = places.filter { it.has("staff") }
+        println("LoopGameTest: ${withStaff.size} places with staff, e.g. ${withStaff.firstOrNull()}")
+        assertTrue("shops have staff", withStaff.size >= loop.places.count { it.isShop })
+        for (p in withStaff) {
+            val st = p.getJSONArray("staff").let { a -> (0 until a.length()).map { a.getString(it) } }
+            assertFalse("the keeper is the owner, not staff", p.optString("ownerId") in st)
+            assertTrue(st.all { loop.personById.containsKey(it) })
+            assertFalse(p.getString("kind") in setOf("home", "police_station"))
+        }
+        // (the junctions by the town's own ids, not renumbered: the facade's beats are by graph distance)
+        val ids = loop.nodes.map { it.id }
+        assertTrue(ids.all { it == LoopTown.STATION_NODE || it.startsWith("node:j") })
+        assertEquals(town.nodes.map { LoopTown.nodeIdOf(it.id) }.toSet(), ids.toSet() - LoopTown.STATION_NODE)
+    }
+
+    @Test fun anOldSavesJunctionIdsMoveToTheTownsOwnByPosition() {
+        val a = loop.nodes[3]; val b = loop.nodes[10]
+        fun pos(n: com.lifemax.rpg.feature.habits.loop.LoopNode) = loop.vec(n.x, n.z).toString()
+        val old = """{"version":1,"streetGraph":{"nodes":[{"id":"node:007","position":${pos(a)}},{"id":"node:042","position":${pos(b)}},""" +
+            """{"id":"node:station","position":{"x":0,"y":0}}],"edges":[{"from":"node:007","to":"node:042"}]},""" +
+            """"places":{"x":{"nodeId":"node:042"}},"idMap":{"node:007":"node_007","node_0420":"keep"}}"""
+        val moved = LoopTown.migrateNodeIds(old, loop.nodes, loop::vec)
+        println("LoopGameTest: migrated: $moved")
+        val o = JSONObject(moved)
+        val nodes = o.getJSONObject("streetGraph").getJSONArray("nodes")
+        assertEquals(a.id, nodes.getJSONObject(0).getString("id"))
+        assertEquals(b.id, nodes.getJSONObject(1).getString("id"))
+        assertEquals(LoopTown.STATION_NODE, nodes.getJSONObject(2).getString("id"))
+        assertEquals(b.id, o.getJSONObject("places").getJSONObject("x").getString("nodeId"))
+        assertEquals(a.id.replace(':', '_'), o.getJSONObject("idMap").getString(a.id))
+        assertTrue("a longer id is not an old junction's", o.getJSONObject("idMap").has("node_0420"))
+        // (a save already on the town's ids comes back as it was)
+        assertSame(moved, LoopTown.migrateNodeIds(moved, loop.nodes, loop::vec))
+    }
+
+    @Test fun aShiftOwnsItsClockAndAnArrestItsCellInCents() {
+        SimJsThread().use { t ->
+            t.load(bundle).get()
+            t.run { js ->
+                val g = LoopGame(js, loop)
+                g.init(11.0)
+                val odd = loop.places.first { it.kind != "home" && it.kind != "police_station" && g.openingsAt(it).isEmpty() && g.isOpenNow(it) && it.keeperId != null }
+                val (d0, h0) = g.day to g.hour
+                val cash0 = g.cash
+                val wk = g.work(odd, facing(odd), g.hour)
+                println("LoopGameTest: shift: ${wk.line} | ${g.lastAct?.optString("summary")} day ${g.lastAct?.optInt("day")} hour ${g.lastAct?.optDouble("hour")}")
+                assertTrue(wk.line, wk.ok)
+                // the facade moved its own clock by the shift: the game follows it and never advances again
+                assertFalse("no separate advance after a shift", g.timings.containsKey("advance"))
+                assertEquals(d0, g.day); assertEquals(h0 + wk.hoursPassed, g.hour, 1e-6)
+                assertEquals(g.day to g.hour, facadeClock(g))
+                // the pay is integer cents both ways: what the game asked is what the facade paid and the wallet got
+                assertEquals(g.lastAct!!.getInt("payEarned"), g.cash - cash0)
+                // the shop's staff learn the player's name on a shift
+                val staff = loop.staffOf(odd)
+                assertTrue(staff.isNotEmpty())
+                assertTrue("staff know the player now", staff.any { g.attitude(it, fresh = true).optBoolean("knowsPlayerName") })
+                // a theft in plain view, a day for the report, then the arrest: the fine in the wallet's cents, the cell's hours on the facade's clock
+                val shop = loop.places.first { it.id.startsWith("shop:") && it.shopKind == "music store" }
+                val tk = g.take(shop, g.stockFor(shop).first(), facing(shop), maxOf(g.hour + .1, 11.5))
+                assertTrue(tk.ok)
+                g.advance(30.0, "test")
+                val cash1 = g.cash
+                val r = g.arrest(null)
+                val a = g.lastArrest!!
+                println("LoopGameTest: arrest: ${r.line} | ${a.optString("penalty")} fine ${a.optInt("fineAmount")} jail ${a.optDouble("jailHours")} h -> day ${a.optInt("day")} ${a.optDouble("hour")}")
+                assertEquals(a.getInt("day"), g.day); assertEquals(a.getDouble("hour"), g.hour, 1e-9)
+                assertEquals(g.day to g.hour, facadeClock(g))
+                assertEquals(minOf(a.getInt("fineAmount"), cash1), cash1 - g.cash)
+                assertEquals(a.optDouble("jailHours"), r.hoursPassed, 1e-9)
                 assertNotNull(r.moveTo)
-                assertTrue("what was stolen is taken", g.items.none { it.stolen })
+                assertNull("not a stop", r.stop)
             }.get()
         }
     }
@@ -775,7 +877,7 @@ class LoopGameTest {
                 assertTrue(g.view.needs!!.look.isNotEmpty())
                 val someone = loop.people.first().id
                 g.attitude(someone, fresh = true)
-                assertTrue(g.facts.getValue(someone).any { it.contains("looks ") && it.contains("this person") })
+                assertTrue(g.facts.getValue(someone).any { it.startsWith("I notice you look ") })
                 // 5. a bench restores less than the bed (the same tired player, saved and put back)
                 g.addCash(50000)
                 val tired = g.save()
