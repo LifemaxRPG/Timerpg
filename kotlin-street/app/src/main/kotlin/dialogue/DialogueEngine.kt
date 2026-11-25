@@ -687,7 +687,9 @@ class DialogueEngine private constructor(private val app: Context) {
     }
 
     /** Where the weights a device copy of [role] really took are kept (MB measured, by device, file size and head setting). */
-    private fun copyKey(role: ModelRole, dev: Int, fileBytes: Long) = "copy_${role.name.lowercase()}_d${dev}_m${fileBytes}_h${if (headMappedWanted) 1 else 0}"
+    private fun copyKey(role: ModelRole, dev: Int, fileBytes: Long) = "copy_${role.name.lowercase()}_d${dev}_m${fileBytes}_h${if (headMappedWanted) 1 else 0}" +
+        // (a file with the English-first head copies its K rows to the device: another measured size)
+        (if (role == ModelRole.LIVE) com.timerpg.street.llm.NativeLlm.headVocab(ModelFiles.live(app)).let { if (it > 0) "_k$it" else "" } else "")
 
     /** What [role]'s device copy takes of its file, as its last load on [dev] measured (bytes), else -1 (the whole file). */
     private fun copyWanted(role: ModelRole, fileBytes: Long, dev: Int? = deviceFor(role, backend as? com.timerpg.street.llm.NativeLlm)): Long {

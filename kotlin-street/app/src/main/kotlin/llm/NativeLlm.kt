@@ -525,6 +525,26 @@ class NativeLlm(context: Context? = null) : LlmBackend {
         }
 
         @JvmStatic private external fun nativeSetNpuPower(mode: ByteArray, holdMs: Int)
+        @JvmStatic private external fun nativeSetGpuBackend(atStart: Boolean)
+        @JvmStatic private external fun nativeSetTileCache(dir: ByteArray, write: Boolean, budget: Long)
+        @JvmStatic private external fun nativeTileStatus(): String?
+        @JvmStatic private external fun nativeHeadVocab(path: ByteArray): Long
+
+        /**
+         * The NPU's pre-tiled weights on flash from the next NPU load (docs/ENGINE_TAILORING.md, idea 5): [dir] null turns
+         * it off; [write]: tiles made at the first compute after a load are saved (else only read); [budgetBytes] for the
+         * whole directory. Keyed by the model file and the backend's build; any failure only skips the cache.
+         */
+        fun tileCache(dir: File?, write: Boolean, budgetBytes: Long) {
+            if (libraryError != null) return
+            runCatching { nativeSetTileCache((dir?.path ?: "").toByteArray(Charsets.UTF_8), write, budgetBytes) }
+        }
+
+        /** What the tile cache did since the last NPU load, for the breadcrumbs ("off", "read 180 (2010 MB in 640 ms)..."). */
+        fun tileStatus(): String = if (libraryError != null) "no library" else runCatching { nativeTileStatus() }.getOrNull() ?: "unknown"
+
+        /** The English-first head's size in a model file (its "timerpg.head_vocab"), 0 for a whole-vocabulary file. */
+        fun headVocab(file: File): Long = if (libraryError != null) 0L else runCatching { nativeHeadVocab(file.path.toByteArray(Charsets.UTF_8)) }.getOrDefault(0L)
         @JvmStatic private external fun nativeNpuPower(): String?
         @JvmStatic private external fun nativeNpuPowerEvents(): String?
 

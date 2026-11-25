@@ -61,6 +61,10 @@ void set_log_sink(LogSink sink);
  */
 bool init_backend(const std::vector<std::string> & cpu_libs, std::string * info);
 
+/** "timerpg.head_vocab" of a GGUF file: K, the rows of its English-first head (docs/ENGINE_TAILORING.md, idea 1;
+ *  patches/llama-head-vocab.patch computes only those), 0 for a file with the whole vocabulary. */
+int64_t head_vocab(const std::string & path);
+
 /** "dotprod fp16 i8mm"-style list of the ARM features that matter for the kernels (empty elsewhere). */
 std::string cpu_features();
 /** The CPU kernel libraries to try on this phone, best first (Android arm64). */

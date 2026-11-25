@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cctype>
+#include <cmath>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -494,6 +495,169 @@ void spec_test(const std::string & model, int threads, int n_ctx, int max_tokens
     }
 }
 
+// ------------------------------------------------------------------------------------------------ the English-first head
+
+/**
+ * --vocab-test PERMUTED --perm FILE (ENGINE_TAILORING.md, idea 1): [model] and [permuted], the same model with its
+ * vocabulary reordered English-first and "timerpg.head_vocab" = K (only the first K rows of the head computed, the rest
+ * -INF). FILE: new id -> original id, one a line. Checks: every prompt tokenizes to the same tokens through the
+ * permutation; at every greedy step of the original model, whether its 40 best (penalized) tokens all lie in the first
+ * K; greedy and sampled (same seed) replies token-identical through the permutation (required wherever the top-40 lay
+ * within K); and the speed of both.
+ */
+void vocab_test(const std::string & model, const std::string & permuted, const std::string & perm_file, int threads, int n_ctx,
+                int max_tokens, const std::vector<Prompt> & prompts) {
+    std::printf("\n== English-first head: %s vs %s\n", model.c_str(), permuted.c_str());
+    std::vector<int32_t> new_to_old;
+    {
+        std::ifstream f(perm_file);
+        long v;
+        while (f >> v) new_to_old.push_back((int32_t) v);
+    }
+    std::vector<int32_t> old_to_new(new_to_old.size(), -1);
+    for (size_t i = 0; i < new_to_old.size(); ++i)
+        if (new_to_old[i] >= 0 && (size_t) new_to_old[i] < old_to_new.size()) old_to_new[(size_t) new_to_old[i]] = (int32_t) i;
+    int K = 0;
+    {
+        llama_model_params vp = llama_model_default_params();
+        vp.vocab_only = true;
+        llama_model * pm = llama_model_load_from_file(permuted.c_str(), vp);
+        char buf[64] = {};
+        if (pm && llama_model_meta_val_str(pm, "timerpg.head_vocab", buf, sizeof buf) > 0) K = std::atoi(buf);
+        if (pm) llama_model_free(pm);
+    }
+    check(K > 0, "the permuted model has timerpg.head_vocab = " + std::to_string(K));
+    if (K <= 0) return;
+    const auto map_ids = [&](const std::vector<int32_t> & v) {
+        std::vector<int32_t> o;
+        for (int32_t x : v) o.push_back(x >= 0 && (size_t) x < old_to_new.size() ? old_to_new[(size_t) x] : -1);
+        return o;
+    };
+    const int np = (int) prompts.size();
+    // 1. the original model's own greedy loop, to look at its top 40 (penalties then top-k, as the app's chain)
+    std::vector<std::vector<int32_t>> own((size_t) np);
+    std::vector<char> all_in_k((size_t) np, 1), pick_in_k((size_t) np, 1);
+    long steps = 0, steps_in = 0, argmax_out = 0;
+    double max_out_mass = 0;
+    int n_vocab = 0;
+    {
+        llama_model_params mp = llama_model_default_params();
+        mp.n_gpu_layers = 0;
+        llama_model * om = llama_model_load_from_file(model.c_str(), mp);
+        llama_context_params cp = llama_context_default_params();
+        cp.n_ctx = (uint32_t) n_ctx;
+        cp.n_batch = cp.n_ubatch = 512;
+        cp.n_outputs_max = cp.n_outputs_max_per_seq = 1;  // (only the last token's logits: not n_batch rows of 248k)
+        cp.n_threads = cp.n_threads_batch = threads > 0 ? threads : 4;
+        cp.no_perf = true;
+        llama_context * oc = om ? llama_init_from_model(om, cp) : nullptr;
+        if (!oc) { check(false, "a context for the original model"); if (om) llama_model_free(om); return; }
+        const llama_vocab * ov = llama_model_get_vocab(om);
+        n_vocab = llama_vocab_n_tokens(ov);
+        check(n_vocab == (int) new_to_old.size(), "the permutation has the model's " + std::to_string(n_vocab) + " tokens");
+        if (n_vocab != (int) new_to_old.size()) { llama_free(oc); llama_model_free(om); return; }
+        std::vector<llama_token_data> cand((size_t) n_vocab);
+        for (int pi = 0; pi < np; ++pi) {
+            std::vector<int32_t> ta((size_t) prompts[(size_t) pi].text.size() + 16);
+            const int nt = llama_tokenize(ov, prompts[(size_t) pi].text.data(), (int32_t) prompts[(size_t) pi].text.size(), ta.data(),
+                                          (int32_t) ta.size(), true, true);
+            ta.resize(nt > 0 ? (size_t) nt : 0);
+            llama_memory_clear(llama_get_memory(oc), true);
+            llama_sampler * ch = llama_sampler_chain_init(llama_sampler_chain_default_params());
+            llama_sampler_chain_add(ch, llama_sampler_init_penalties(n_vocab, 64, 1.15f, 0.0f, 0.0f));
+            llama_sampler_chain_add(ch, llama_sampler_init_top_k(40));
+            if (!ta.empty() && llama_decode(oc, llama_batch_get_one(ta.data(), (int32_t) ta.size())) == 0) {
+                for (int n = 0; n < max_tokens; ++n) {
+                    const float * lg = llama_get_logits_ith(oc, -1);
+                    for (int i = 0; i < n_vocab; ++i) cand[(size_t) i] = {i, lg[i], 0.0f};
+                    llama_token_data_array arr = {cand.data(), cand.size(), -1, false};
+                    llama_sampler_apply(ch, &arr);
+                    // the probability mass outside the first K (softmax of the raw logits, temperature 1)
+                    float mx = -INFINITY;
+                    for (int i = 0; i < n_vocab; ++i) mx = std::max(mx, lg[i]);
+                    double z = 0, out = 0;
+                    for (int i = 0; i < n_vocab; ++i) {
+                        const double e = std::exp((double) (lg[i] - mx));
+                        z += e;
+                        if (old_to_new[(size_t) i] >= K) out += e;
+                    }
+                    max_out_mass = std::max(max_out_mass, out / z);
+                    bool in = true;
+                    for (size_t i = 0; i < arr.size; ++i) in = in && old_to_new[(size_t) arr.data[i].id] < K;
+                    ++steps;
+                    steps_in += in;
+                    if (!in) all_in_k[(size_t) pi] = 0;
+                    const llama_token t = arr.data[0].id;  // (top-k sorts: the greedy pick)
+                    argmax_out += old_to_new[(size_t) t] >= K;
+                    if (old_to_new[(size_t) t] >= K) pick_in_k[(size_t) pi] = 0;
+                    if (llama_vocab_is_eog(ov, t)) break;
+                    own[(size_t) pi].push_back(t);
+                    llama_sampler_accept(ch, t);
+                    llama_token tt = t;
+                    if (llama_decode(oc, llama_batch_get_one(&tt, 1)) != 0) break;
+                }
+            }
+            llama_sampler_free(ch);
+        }
+        llama_free(oc);
+        llama_model_free(om);
+    }
+    // 2. both models through the engine (one at a time: memory), greedy and sampled with the same seeds
+    struct Run { std::vector<std::vector<int32_t>> prompt, greedy, sampled; int64_t ms = 0; long tok = 0; double mem[5] = {0, 0, 0, 0, 0}; };
+    const auto run = [&](const std::string & path, Run & r) {
+        llm::Engine e;
+        e.arm();
+        llm::reset_load_mem();
+        if (!e.load(path, threads, n_ctx)) { check(false, "load " + path + ": " + e.error()); return false; }
+        llm::last_load_mem(r.mem);
+        for (int pi = 0; pi < np; ++pi) {
+            std::vector<int32_t> t;
+            e.tokenize(prompts[(size_t) pi].text, t);
+            r.prompt.push_back(t);
+            e.generate(prompts[(size_t) pi].text, max_tokens, 0.0f, nullptr);
+            r.greedy.push_back(e.reply_tokens());
+            r.ms += e.stats().gen_ms;
+            r.tok += e.stats().gen_tokens;
+            e.sampling().seed = 42 + (uint32_t) pi;
+            e.generate(prompts[(size_t) pi].text, max_tokens, 0.3f, nullptr);
+            r.sampled.push_back(e.reply_tokens());
+        }
+        return true;
+    };
+    Run a, b;
+    if (!run(model, a) || !run(permuted, b)) return;
+    int tok_same = 0, greedy_same = 0, sampled_same = 0, all_in = 0, all_in_same = 0, own_loop_same = 0, pick_in = 0, pick_in_same = 0;
+    for (int pi = 0; pi < np; ++pi) {
+        const size_t i = (size_t) pi;
+        tok_same += map_ids(a.prompt[i]) == b.prompt[i];
+        own_loop_same += own[i] == a.greedy[i];
+        const bool same = map_ids(a.greedy[i]) == b.greedy[i];
+        greedy_same += same;
+        all_in += all_in_k[i];
+        all_in_same += all_in_k[i] && same;
+        pick_in += pick_in_k[i];
+        pick_in_same += pick_in_k[i] && same;
+        sampled_same += map_ids(a.sampled[i]) == b.sampled[i];
+        if (!same) std::printf("  differs (%s): top-40 %s\n", prompts[i].label.c_str(), all_in_k[i] ? "always within K" : "not always within K");
+    }
+    std::printf("  memory (MiB): original weights mapped %.0f copied %.0f compute %.1f; permuted mapped %.0f copied %.0f compute %.1f\n",
+                a.mem[0], a.mem[1], a.mem[4], b.mem[0], b.mem[1], b.mem[4]);
+    std::printf("  K = %d of %d; %ld greedy steps: top-40 all within the first K in %ld (%.1f%%); the greedy pick outside K in %ld;"
+                " the largest probability mass outside K at one step %.2e\n", K, n_vocab, steps, steps_in,
+                steps ? 100.0 * steps_in / steps : 0.0, argmax_out, max_out_mass);
+    check(tok_same == np, std::to_string(tok_same) + " of " + std::to_string(np) + " prompts tokenize identically through the permutation");
+    // (the reference loop's context is llama.cpp's default one, not the engine's: its numbers may differ a little)
+    std::printf("  %d of %d engine greedy replies match the reference loop (its own context)\n", own_loop_same, np);
+    check(pick_in_same == pick_in, std::to_string(pick_in_same) + " of " + std::to_string(pick_in) +
+                                       " replies whose every greedy pick lay within K are greedy-identical (required)");
+    check(all_in_same == all_in, std::to_string(all_in_same) + " of " + std::to_string(all_in) +
+                                     " replies whose every step had its top-40 within K are greedy-identical (required)");
+    std::printf("  greedy identical %d of %d in all; sampled (a seed per prompt, temperature 0.3) identical %d of %d\n", greedy_same,
+                np, sampled_same, np);
+    std::printf("  host CPU decode: original %.1f tok/s, cut head %.1f tok/s (%ld / %ld tokens)\n", per_sec(a.tok, a.ms),
+                per_sec(b.tok, b.ms), a.tok, b.tok);
+}
+
 /** Restored generation must be token-identical to a fresh prefill (greedy), and the states must stay off the RAM. */
 void snapshot_test(const std::string & model, int mtp, int threads, int n_ctx, int max_tokens, const std::vector<Prompt> & prompts,
                    const std::string & dir) {
@@ -604,6 +768,10 @@ int main(int argc, char ** argv) {
     bool kv_q8 = false, mem_only = false;
     std::string snap_dir;
     int ngram = 0, ngram_min = 2;  // --ngram N: guess N tokens ahead by n-gram lookup (--ngram-min M: the shortest match)
+    int batch_n = 0;                     // --batch-test N: generate_batch with N sequences against each prompt alone, then exit
+    bool rules_only = false;             // --rules-only: the text helpers and the guide's rules (no model), then exit
+    std::string guide_out;               // --guide-eval FILE: replies without and with the guide, then exit
+    std::string vocab_model, perm_file;  // --vocab-test PERMUTED --perm FILE: the English-first head, then exit
     bool spec = false;             // --spec-test: n-gram guesses lossless (greedy, sampled) and their gain, then exit  // --snapshot-test DIR: the saved states on flash (restored == fresh, bake, budget), then exit
     std::vector<std::string> cpu_libs = llm::cpu_variant_libs(), who;
     // The app's settings (DialogueEngine: CONTEXT_TOKENS, MAX_TOKENS, TEMPERATURE).
@@ -634,6 +802,14 @@ int main(int argc, char ** argv) {
         else if (a == "--ngram") ngram = std::atoi(next().c_str());
         else if (a == "--ngram-min") ngram_min = std::atoi(next().c_str());
         else if (a == "--spec-test") spec = true;
+        else if (a == "--fixed-steps") g_fixed_steps = true;
+        else if (a == "--batch-same-context") g_batch_alone_same = true;
+        else if (a == "--batch-greedy-only") g_batch_greedy_only = true;
+        else if (a == "--vocab-test") vocab_model = next();
+        else if (a == "--perm") perm_file = next();
+        else if (a == "--guide-eval") guide_out = next();
+        else if (a == "--rules-only") rules_only = true;
+        else if (a == "--batch-test") batch_n = std::atoi(next().c_str());
         else {
             std::fprintf(stderr, "unknown option %s\n", a.c_str());
             return 2;
@@ -661,6 +837,21 @@ int main(int argc, char ** argv) {
         test_bad_models(tmp && *tmp ? tmp : "/tmp");
     }
 
+    if (batch_n > 0) {
+        batch_test(model, threads, n_ctx, max_tokens, prompts, batch_n);
+        std::printf("\n%s (%d failed checks)\n", failures ? "FAILED" : "ALL CHECKS PASSED", failures);
+        return failures ? 1 : 0;
+    }
+    if (!guide_out.empty()) {
+        guide_eval(model, threads, n_ctx, max_tokens, temperature, prompts, guide_out, seed);
+        std::printf("\n%s (%d failed checks)\n", failures ? "FAILED" : "ALL CHECKS PASSED", failures);
+        return failures ? 1 : 0;
+    }
+    if (!vocab_model.empty()) {
+        vocab_test(model, vocab_model, perm_file, threads, n_ctx, max_tokens, prompts);
+        std::printf("\n%s (%d failed checks)\n", failures ? "FAILED" : "ALL CHECKS PASSED", failures);
+        return failures ? 1 : 0;
+    }
     if (spec) {
         spec_test(model, threads, n_ctx, max_tokens, prompts, ngram > 0 ? ngram : 4, mtp);
         std::printf("\n%s (%d failed checks)\n", failures ? "FAILED" : "ALL CHECKS PASSED", failures);

@@ -107,6 +107,11 @@ extern "C" JNIEXPORT void JNICALL FN(nativeSetNpuPower)(JNIEnv * env, jclass, jb
     try { llm::npu_power_policy(from_bytes(env, mode), hold_ms); } catch (...) {}
 }
 
+/** "timerpg.head_vocab" of a model file (llm::head_vocab): 0 for a file with the whole vocabulary. */
+extern "C" JNIEXPORT jlong JNICALL FN(nativeHeadVocab)(JNIEnv * env, jclass, jbyteArray path) {
+    try { return (jlong) llm::head_vocab(from_bytes(env, path)); } catch (...) { return 0; }
+}
+
 extern "C" JNIEXPORT jstring JNICALL FN(nativeNpuPower)(JNIEnv * env, jclass) {
     std::string s;
     try { s = llm::npu_power_status(); } catch (...) { s = "unknown"; }

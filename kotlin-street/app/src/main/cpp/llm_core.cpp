@@ -5,6 +5,7 @@
 #include "speculative.h"
 
 #include "llama.h"
+#include "gguf.h"
 
 #include <algorithm>
 #include <cerrno>
@@ -565,6 +566,31 @@ void npu_compute_end(int n_tokens) {
     p.first_begin_us = 0;
 }
 
+namespace {
+/** "timerpg.head_vocab" of a GGUF file (the English-first head's K), 0 if it has none. Read from the header only. */
+int64_t head_vocab_of(const std::string & path) {
+    gguf_init_params gp = {/*no_alloc*/ true, /*ctx*/ nullptr};
+    gguf_context * g = gguf_init_from_file(path.c_str(), gp);
+    if (!g) return 0;
+    int64_t k = 0;
+    const int64_t id = gguf_find_key(g, "timerpg.head_vocab");
+    if (id >= 0 && gguf_get_kv_type(g, id) == GGUF_TYPE_UINT32) k = gguf_get_val_u32(g, id);
+    gguf_free(g);
+    return k;
+}
+}  // namespace
+
+int64_t head_vocab(const std::string & path) {
+    static std::mutex m;
+    static std::string last_path;
+    static int64_t last_mt = -1, last_k = 0;
+    struct stat st;
+    if (stat(path.c_str(), &st) != 0) return 0;
+    std::lock_guard<std::mutex> l(m);
+    if (path != last_path || mtime_ns(st) != last_mt) { last_k = head_vocab_of(path); last_path = path; last_mt = mtime_ns(st); }
+    return last_k;
+}
+
 bool init_backend(const std::vector<std::string> & cpu_libs, std::string * info) {
     static std::once_flag once;
     static bool ok = false;
@@ -1119,7 +1145,11 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
         // tensor's name sends both to the CPU's buffer, the same file pages. A model with an output.weight of its own is
         // untouched (the pattern matches only token_embd). The head's matrix-vector product then runs on the CPU, once
         // per generated token (prompts ask for one row of logits).
-        if (head_mapped_ && !devs_.empty()) {
+        // A file with the English-first head (timerpg.head_vocab, idea 1) puts only its first K rows on the device (a
+        // prefix of the same data, 67-134 MB instead of 497): the head stays on the NPU and the whole step with it.
+        if (head_mapped_ && !devs_.empty() && head_vocab(path) > 0) {
+            log_msg(GGML_LOG_LEVEL_INFO, "llm: the English-first head (" + std::to_string(head_vocab(path)) + " tokens) stays on the device");
+        } else if (head_mapped_ && !devs_.empty()) {
             overrides_[0] = { "^token_embd\\.weight$", ggml_backend_cpu_buffer_type() };
             overrides_[1] = { nullptr, nullptr };
             mp.tensor_buft_overrides = overrides_;

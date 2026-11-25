@@ -1,0 +1,212 @@
+diff -ruN a/src/llama-context.cpp b/src/llama-context.cpp
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -166,6 +166,25 @@
+     /*.n_tokens_per_seq =*/ 1,
+ };
+ 
++
++// timerpg: a head cut to the first K tokens (llama_hparams::n_vocab_head) gives K logits per row: each row's K go to the
++// start of its n_vocab-wide row, the rest of the row is -INFINITY (written once: nothing else writes there), so every
++// sampler still sees full rows in which the tokens past K can never win.
++static void timerpg_get_logits_async(ggml_backend_t backend, ggml_tensor * t_logits, float * out, int64_t n_rows, int64_t n_vocab) {
++    const int64_t k = t_logits->ne[0];
++    if (k >= n_vocab) {
++        ggml_backend_tensor_get_async(backend, t_logits, out, 0, n_rows*n_vocab*sizeof(float));
++        return;
++    }
++    for (int64_t r = 0; r < n_rows; ++r) {
++        float * row = out + r*n_vocab;
++        ggml_backend_tensor_get_async(backend, t_logits, row, r*t_logits->nb[1], k*sizeof(float));
++        if (!(row[k] == -INFINITY && row[n_vocab - 1] == -INFINITY && row[(k + n_vocab)/2] == -INFINITY)) {
++            std::fill(row + k, row + n_vocab, -INFINITY);
++        }
++    }
++}
++
+ llama_context::llama_context(
+         const llama_model & model,
+               llama_context_params params) :
+@@ -1988,7 +2007,7 @@
+         GGML_ASSERT(backend_res != nullptr);
+         GGML_ASSERT(logits.data != nullptr);
+ 
+-        ggml_backend_tensor_get_async(backend_res, t_logits, logits.data, 0, n_outputs*n_vocab*sizeof(float));
++        timerpg_get_logits_async(backend_res, t_logits, logits.data, n_outputs, n_vocab);
+     }
+ 
+     // extract embeddings
+@@ -2421,7 +2440,7 @@
+             if (n_outputs) {
+                 GGML_ASSERT( n_outputs_prev + n_outputs <= n_outputs_all);
+                 GGML_ASSERT((n_outputs_prev + n_outputs)*n_vocab <= (int64_t) logits.size);
+-                ggml_backend_tensor_get_async(backend_res, t_logits, logits_out, 0, n_outputs*n_vocab*sizeof(float));
++                timerpg_get_logits_async(backend_res, t_logits, logits_out, n_outputs, n_vocab);
+             }
+         }
+ 
+diff -ruN a/src/llama-hparams.h b/src/llama-hparams.h
+--- a/src/llama-hparams.h
++++ b/src/llama-hparams.h
+@@ -72,6 +72,10 @@
+     uint32_t n_embd;
+     uint32_t n_layer_all;
+     uint32_t n_layer_nextn = 0;
++
++    // timerpg: the GGUF key "timerpg.head_vocab" (a vocabulary reordered English-first): only the first n_vocab_head
++    // rows of the output head are computed; logits of ids >= n_vocab_head are -INFINITY. 0: the whole vocabulary.
++    uint32_t n_vocab_head = 0;
+     uint32_t n_layer_decision = 0; // trailing blocks that form the decision head
+ 
+     // granite-switch: index of the single-head "router" KV layer that encodes
+diff -ruN a/src/llama-model-loader.cpp b/src/llama-model-loader.cpp
+--- a/src/llama-model-loader.cpp
++++ b/src/llama-model-loader.cpp
+@@ -1429,10 +1429,21 @@
+     }
+ 
+     LLAMA_LOG_DEBUG("%s: loading tensor %s\n", __func__, tn.str().c_str());
+-    const struct ggml_tensor * cur = check_tensor_dims(tn.str(), ne, !(flags & TENSOR_NOT_REQUIRED), flags & TENSOR_ALLOW_RESHAPE);
++    // timerpg: TENSOR_PREFIX_ROWS: a matrix whose first ne[1] rows (a prefix of its data: rows are contiguous) are all
++    // that is used; the rest of it in the file is never read into the tensor
++    std::vector<int64_t> ne_file(ne);
++    if ((flags & TENSOR_PREFIX_ROWS) && ne_file.size() >= 2) {
++        if (const ggml_tensor * meta = get_tensor_meta(tn.str().c_str())) {
++            if (meta->ne[1] >= ne_file[1] && ggml_is_contiguous(meta)) {
++                ne_file[1] = meta->ne[1];
++            }
++        }
++    }
++    const struct ggml_tensor * cur = check_tensor_dims(tn.str(), ne_file, !(flags & TENSOR_NOT_REQUIRED), flags & TENSOR_ALLOW_RESHAPE);
+     if (cur == NULL) {
+         return NULL;
+     }
++    const bool prefix_rows = (flags & TENSOR_PREFIX_ROWS) && ne_file.size() >= 2 && ne_file[1] != ne.begin()[1];
+ 
+     if (flags & TENSOR_READ_LAZY) {
+         // the decision must not depend on the load mode, or the memory-fit pass (no_alloc, no mmap)
+@@ -1453,7 +1464,14 @@
+         }
+     }
+ 
+-    GGML_ASSERT(ggml_nbytes(&t_meta) == ggml_nbytes(cur));
++    if (prefix_rows) {
++        t_meta.ne[1] = ne.begin()[1];
++        for (int dim = 2; dim < GGML_MAX_DIMS; dim++) {
++            t_meta.nb[dim] = t_meta.ne[dim-1]*t_meta.nb[dim-1];
++        }
++    }
++
++    GGML_ASSERT(prefix_rows || ggml_nbytes(&t_meta) == ggml_nbytes(cur));
+ 
+     ggml_backend_buffer_type_t buft = buft_for_tensor(&t_meta);
+     if (buft == nullptr) {
+@@ -1479,6 +1497,9 @@
+         size_data += ggml_nbytes(&t_meta);
+     } else {
+         n_created++;
++        if (prefix_rows) {
++            size_data -= ggml_nbytes(cur) - ggml_nbytes(&t_meta);  // (the rows never loaded)
++        }
+     }
+ 
+     return tensor;
+diff -ruN a/src/llama-model-loader.h b/src/llama-model-loader.h
+--- a/src/llama-model-loader.h
++++ b/src/llama-model-loader.h
+@@ -68,6 +68,7 @@
+     static const int TENSOR_SKIP_IF_VIRTUAL = 1 << 3;
+     static const int TENSOR_ALLOW_RESHAPE   = 1 << 4;
+     static const int TENSOR_READ_LAZY       = 1 << 5; // read rows on demand instead of loading whole tensor; requires mmap for now
++    static const int TENSOR_PREFIX_ROWS     = 1 << 12; // timerpg: ne[1] may be fewer rows than the file's: only the first ne[1] rows are loaded
+ 
+     int n_kv      = 0;
+     int n_tensors = 0;
+diff -ruN a/src/llama-model.cpp b/src/llama-model.cpp
+--- a/src/llama-model.cpp
++++ b/src/llama-model.cpp
+@@ -1485,6 +1485,14 @@
+     }
+ 
+     ml.get_key(LLM_KV_CONTEXT_LENGTH,          hparams.n_ctx_train);
++    // timerpg: a head cut to the first K tokens of an English-first vocabulary (kotlin-street/docs/ENGINE_TAILORING.md, 1)
++    {
++        uint32_t k = 0;
++        if (ml.get_key(std::string("timerpg.head_vocab"), k, false) && k > 0 && k < (uint32_t) vocab.n_tokens()) {
++            hparams.n_vocab_head = k;
++            LLAMA_LOG_INFO("%s: timerpg.head_vocab = %u of %u tokens: the output head computes only those\n", __func__, k, (uint32_t) vocab.n_tokens());
++        }
++    }
+     ml.get_key(LLM_KV_EMBEDDING_LENGTH,        hparams.n_embd);
+     ml.get_key(LLM_KV_EMBEDDING_LENGTH_OUT,    hparams.n_embd_out_impl, false);
+     ml.get_key(LLM_KV_ATTENTION_CAUSAL,        hparams.causal_attn,     false);
+diff -ruN a/src/models/qwen35.cpp b/src/models/qwen35.cpp
+--- a/src/models/qwen35.cpp
++++ b/src/models/qwen35.cpp
+@@ -1,6 +1,15 @@
+ #include "models.h"
+ #include "llama-memory-recurrent.h"
+ 
++// timerpg: the output head's first n_vocab_head rows (all of it without timerpg.head_vocab). The loader gives a device
++// copy only those rows; a head that shares the CPU's full token_embd tensor (the same buffer) is viewed down to them.
++static ggml_tensor * timerpg_head_rows(ggml_context * ctx0, const llama_hparams & hp, ggml_tensor * w) {
++    if (hp.n_vocab_head == 0 || w->ne[1] <= (int64_t) hp.n_vocab_head) {
++        return w;
++    }
++    return ggml_view_2d(ctx0, w, w->ne[0], (int64_t) hp.n_vocab_head, w->nb[1], 0);
++}
++
+ void llama_model_qwen35::load_arch_hparams(llama_model_loader & ml) {
+     ml.get_key(LLM_KV_ATTENTION_LAYERNORM_RMS_EPS,       hparams.f_norm_rms_eps);
+     ml.get_key_or_arr(LLM_KV_ROPE_DIMENSION_SECTIONS,    hparams.rope_sections, 4, true);
+@@ -41,7 +50,11 @@
+ 
+     // output
+     output_norm = create_tensor(tn(LLM_TENSOR_OUTPUT_NORM, "weight"), { n_embd }, 0);
+-    output = create_tensor(tn(LLM_TENSOR_OUTPUT, "weight"), { n_embd, n_vocab }, TENSOR_NOT_REQUIRED);
++    // timerpg: with timerpg.head_vocab = K (an English-first vocabulary) the head is its first K rows only: on a device,
++    // only those are copied there (a prefix of the file's data)
++    const int64_t n_vocab_head = hparams.n_vocab_head > 0 ? (int64_t) hparams.n_vocab_head : n_vocab;
++    const int     head_rows    = hparams.n_vocab_head > 0 ? llama_model_loader::TENSOR_PREFIX_ROWS : 0;
++    output = create_tensor(tn(LLM_TENSOR_OUTPUT, "weight"), { n_embd, n_vocab_head }, TENSOR_NOT_REQUIRED | head_rows);
+ 
+     // optional projection of the embeddings output
+     cls_out   = create_tensor(tn(LLM_TENSOR_CLS_OUT, "weight"), { n_embd, hparams.n_embd_out() }, TENSOR_NOT_REQUIRED);
+@@ -49,7 +62,7 @@
+ 
+     // if output is NULL, init from the input tok embed
+     if (output == NULL) {
+-        output = create_tensor(tn(LLM_TENSOR_TOKEN_EMBD, "weight"), { n_embd, n_vocab }, TENSOR_DUPLICATED);
++        output = create_tensor(tn(LLM_TENSOR_TOKEN_EMBD, "weight"), { n_embd, n_vocab_head }, TENSOR_DUPLICATED | head_rows);
+     }
+ 
+     auto load_block_trunk = [&](int il, int flags) {
+@@ -122,7 +135,7 @@
+         layer.nextn.enorm            = create_tensor(tn(LLM_TENSOR_NEXTN_ENORM,            "weight", il), { n_embd },              mtp_flags);
+         layer.nextn.hnorm            = create_tensor(tn(LLM_TENSOR_NEXTN_HNORM,            "weight", il), { n_embd },              mtp_flags);
+         layer.nextn.embed_tokens     = create_tensor(tn(LLM_TENSOR_NEXTN_EMBED_TOKENS,     "weight", il), { n_embd, n_vocab },     mtp_flags|TENSOR_NOT_REQUIRED);
+-        layer.nextn.shared_head_head = create_tensor(tn(LLM_TENSOR_NEXTN_SHARED_HEAD_HEAD, "weight", il), { n_embd, n_vocab },     mtp_flags|TENSOR_NOT_REQUIRED);
++        layer.nextn.shared_head_head = create_tensor(tn(LLM_TENSOR_NEXTN_SHARED_HEAD_HEAD, "weight", il), { n_embd, n_vocab_head }, mtp_flags|TENSOR_NOT_REQUIRED|head_rows);
+         layer.nextn.shared_head_norm = create_tensor(tn(LLM_TENSOR_NEXTN_SHARED_HEAD_NORM, "weight", il), { n_embd },              mtp_flags|TENSOR_NOT_REQUIRED);
+     };
+ 
+@@ -233,8 +246,8 @@
+         ggml_build_forward_expand(gf, embd);
+     }
+ 
+-    // LM head
+-    cur = build_lora_mm(model.output, cur, model.output_s);
++    // LM head (timerpg: its first n_vocab_head rows only, see llama_hparams::n_vocab_head)
++    cur = build_lora_mm(timerpg_head_rows(ctx0, hparams, model.output), cur, model.output_s);
+ 
+     cb(cur, "result_output", -1);
+     res->t_logits = cur;
+@@ -662,7 +675,7 @@
+     ggml_tensor * head_w = layer.nextn.shared_head_head ? layer.nextn.shared_head_head : model.output;
+     ggml_tensor * head_s = layer.nextn.shared_head_head ? layer.nextn.shared_head_head_s : model.output_s;
+     GGML_ASSERT(head_w && "QWEN35 MTP: missing LM head (nextn.shared_head_head or model.output)");
+-    cur = build_lora_mm(head_w, cur, head_s);
++    cur = build_lora_mm(timerpg_head_rows(ctx0, hparams, head_w), cur, head_s);
+     cb(cur, "result_output", -1);
+ 
+     res->t_logits = cur;
