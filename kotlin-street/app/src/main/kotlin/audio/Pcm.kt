@@ -6,12 +6,20 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import java.nio.ByteOrder
 
-/** A sound decoded to interleaved stereo float at [Pcm.RATE] (mono files are doubled; other rates resampled). */
-class Pcm(val data: FloatArray) {
-    val frames: Int get() = data.size / 2
+/**
+ * A sound decoded to interleaved stereo at [Pcm.RATE] (mono files are doubled; other rates resampled), kept as 16-bit
+ * (half a float's memory: the beds are minutes of sound) and read as floats ([get]).
+ */
+class Pcm(val s: ShortArray) {
+    /** From floats (-1..1, interleaved stereo): what the made-live sounds give. */
+    constructor(f: FloatArray) : this(ShortArray(f.size) { (f[it].coerceIn(-1f, 1f) * 32767f).toInt().toShort() })
+    val frames: Int get() = s.size / 2
+    /** Sample [i] of the interleaved stereo (2 * frame + channel) as a float. */
+    operator fun get(i: Int): Float = s[i] * INV
 
     companion object {
         const val RATE = 48000
+        private const val INV = 1f / 32768f
 
         /** Decodes an asset (ogg, wav, mp3, m4a: whatever the phone's codecs read), or null. Blocking. */
         fun load(assets: AssetManager, path: String): Pcm? = try {
@@ -54,26 +62,26 @@ class Pcm(val data: FloatArray) {
                 codec.stop(); codec.release(); ex.release()
                 val sb = java.nio.ByteBuffer.wrap(out.toByteArray()).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
                 val n = sb.remaining() / ch
-                // to stereo float, then to the mixer's rate (linear: these are beds and music, not hi-fi masters)
-                val st = FloatArray(n * 2)
+                // to stereo 16-bit, then to the mixer's rate (linear: these are beds and steps, not masters)
+                val st = ShortArray(n * 2)
                 for (k in 0 until n) {
-                    val l = sb.get(k * ch) / 32768f
-                    val r = if (ch > 1) sb.get(k * ch + 1) / 32768f else l
+                    val l = sb.get(k * ch)
+                    val r = if (ch > 1) sb.get(k * ch + 1) else l
                     st[2 * k] = l; st[2 * k + 1] = r
                 }
                 Pcm(if (rate == RATE) st else resample(st, rate))
             }
         } catch (e: Exception) { null }
 
-        private fun resample(st: FloatArray, from: Int): FloatArray {
+        private fun resample(st: ShortArray, from: Int): ShortArray {
             val n = st.size / 2
             val m = (n.toLong() * RATE / from).toInt()
-            val out = FloatArray(m * 2)
+            val out = ShortArray(m * 2)
             for (k in 0 until m) {
                 val x = k.toDouble() * from / RATE
-                val a = x.toInt().coerceAtMost(n - 1); val b = (a + 1).coerceAtMost(n - 1); val t = (x - a).toFloat()
-                out[2 * k] = st[2 * a] + (st[2 * b] - st[2 * a]) * t
-                out[2 * k + 1] = st[2 * a + 1] + (st[2 * b + 1] - st[2 * a + 1]) * t
+                val a = x.toInt().coerceAtMost(n - 1); val b = (a + 1).coerceAtMost(n - 1); val t = x - a
+                out[2 * k] = (st[2 * a] + (st[2 * b] - st[2 * a]) * t).toInt().toShort()
+                out[2 * k + 1] = (st[2 * a + 1] + (st[2 * b + 1] - st[2 * a + 1]) * t).toInt().toShort()
             }
             return out
         }

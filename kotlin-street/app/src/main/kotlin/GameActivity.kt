@@ -136,6 +136,7 @@ class GameActivity : ComponentActivity() {
         val v = com.timerpg.street.voice.NpcVoiceService(applicationContext)
         voices = v
         // the street's sound: ambience, music, footsteps; it dips while someone speaks
+        com.timerpg.street.audio.SoundSettings.load(applicationContext)
         val s = com.timerpg.street.audio.SoundScape(applicationContext)
         sound = s
         v.onSpeaking = { on -> s.duck(on) }
@@ -615,6 +616,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     LaunchedEffect(talk != null) {
         if (talk != null) townPlay.dismount("talking")
         if (talk != null) engine.pause("talking") else engine.resume("talking")
+        // (the street dips under a conversation, as under a voice)
+        sound?.duckTalk(talk != null)
     }
     // walking away ends the conversation (one started by voice: walking out of earshot, see below)
     LaunchedEffect(here) {
@@ -626,33 +629,17 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     // own footfalls, on the street and in the rooms), a little louder running
     // the town's kind (harbor, farm, mill ...) picks its music
     val townKind = remember(data) { com.timerpg.street.audio.SoundRules.townOf(data.town) }
+    var soundFeed by remember { mutableStateOf<com.timerpg.street.audio.SoundFeed?>(null) }
     LaunchedEffect(sound) {
         if (sound == null) return@LaunchedEffect
-        var feet = GameState.footfalls; var foot = 0
+        // (all the game state the sound reads: audio/SoundFeed, docs/SOUND.md)
+        val feed = com.timerpg.street.audio.SoundFeed(sound)
+        soundFeed = feed
         while (true) {
             androidx.compose.runtime.withFrameNanos { }
             val w = effWeatherNow.value
-            val seasonNow = effSeasonNow.value
-            sound.set(com.timerpg.street.audio.SoundRules.at(hour, w?.rain ?: 0f, w?.cloudiness ?: 0f, w?.mist ?: 0f, seasonNow, townKind))
-            // the bicycle's tyres and freewheel follow the ride; no footsteps while riding (the ride adds none)
-            townPlay.open?.let { o ->
-                sound.bike.on = o.riding && townPlay.walk === o
-                sound.bike.speed = o.bike.speed; sound.bike.pedalling = o.bike.pedalling; sound.bike.wheelRadius = o.bike.wheelRadius
-                sound.bike.surface = if (seasonNow == 3 && GameState.surface != com.lifemax.rpg.feature.habits.presentation.scene.Surface.WOOD) com.lifemax.rpg.feature.habits.presentation.scene.Surface.GRASS else GameState.surface
-            } ?: run { sound.bike.on = false }
-            if (GameState.footfalls != feet) {
-                val fresh = GameState.footfalls - feet
-                feet = GameState.footfalls
-                if (fresh > 0) {
-                    foot = (foot + 1) % 5
-                    // recorded steps by what is underfoot (the street, a lawn, a deck, a room's floor, snow in winter)
-                    val set = com.lifemax.rpg.feature.habits.presentation.scene.Surface.sound(GameState.surface, GameState.indoors, GameState.carpet, seasonNow == 3)
-                    // one foot a little softer than the other, as real steps are: the ear hears a stride (two steps) as one
-                    // beat, not a patter of equal ones
-                    val accent = if (foot % 2 == 0) 1f else .7f
-                    sound.play("step_${set}_${foot + 1}", (if (GameState.running) .75f else .6f) * accent, if (foot % 2 == 0) -.12f else .12f)
-                }
-            }
+            feed.frame(hour, w?.rain ?: 0f, w?.cloudiness ?: 0f, w?.mist ?: 0f, effSeasonNow.value, townKind,
+                com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.town?.year ?: 2025)
         }
     }
     // the player's voice: hold the mic in a conversation, say something, let go
@@ -932,7 +919,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             // the owned cars in the world, the driven one's miles, engine and grip; a hard stop or a fall hurts
             if (TownSession.ready) {
                 LoopSession.tickCars(ctx)
-                townPlay.cars?.onImpact = { d -> LoopSession.hurtByCrash(d) }
+                townPlay.cars?.onImpact = { d -> LoopSession.hurtByCrash(d); soundFeed?.impact(d) }
                 townPlay.open?.onFall = { v -> LoopSession.hurtByFall(v) }
             }
         }
@@ -1594,6 +1581,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 3 -> {
                     HudText("Settings", 16.sp)
                     HudText(aiChipLabel(ai), 13.sp, HudStyle.DIM)
+                    com.timerpg.street.audio.SoundPanel(ctx)
                     updater.available?.let { r -> HudText("⬆ Update ready: ${r.versionName}", 13.sp, HudStyle.MONEY) }
                     AiPanel(ai, engine, voices, updater, micAlways, onMicAlways, ears, onPick = {
                         try { pickModel.launch(arrayOf("*/*")) } catch (e: Exception) { /* no document picker on this device */ }

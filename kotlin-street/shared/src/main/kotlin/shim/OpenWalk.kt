@@ -719,7 +719,8 @@ class OpenWalk(
 
     /** What is underfoot at ([px], [pz]) in [y] (null: the street, pavement or plaza): the topmost walkable layer there. */
     fun surfaceAt(px: Float, pz: Float, y: TownYard?): Int {
-        if (y == null) return Surface.HARD
+        // (out of the yards: the road's asphalt between its kerbs, else the pavement and the rest of the hard ground)
+        if (y == null) return if (onCarriageway(px, pz)) Surface.ASPHALT else Surface.HARD
         var best = Surface.GRASS
         val items = y.items
         for (k in items.indices) {
@@ -732,6 +733,26 @@ class OpenWalk(
             }
         }
         return best
+    }
+
+    /**
+     * Whether ([px], [pz]) is on the carriageway of the derived row's road: nearer its centre line than half its width less
+     * the two pavements and kerbs ([Road.width] is kerb to kerb across both pavements: Crossroads.MOUTH). For the footsteps.
+     */
+    fun onCarriageway(px: Float, pz: Float): Boolean {
+        val road = runCatching { town.road(row.road) }.getOrNull() ?: return false
+        val half = road.width / 2f - Crossroads.PAVE - Crossroads.KERB
+        if (half <= 0f) return false
+        val pts = road.pts
+        for (i in 0 until pts.size - 1) {
+            val a = pts[i]; val b = pts[i + 1]
+            val dx = b.x - a.x; val dz = b.z - a.z
+            val l2 = dx * dx + dz * dz
+            val t = if (l2 > 0f) (((px - a.x) * dx + (pz - a.z) * dz) / l2).coerceIn(0f, 1f) else 0f
+            val ex = px - (a.x + dx * t); val ez = pz - (a.z + dz * t)
+            if (ex * ex + ez * ez < half * half) return true
+        }
+        return false
     }
 
     private fun inside(r: FloatArray, px: Float, pz: Float) = px >= r[0] && px <= r[2] && pz >= r[1] && pz <= r[3]
