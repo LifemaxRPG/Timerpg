@@ -34,6 +34,17 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     @Volatile var fastCpu = false
     /** Tokens the model's MTP head guesses ahead from the next load (0: off; needs a model file with the head). */
     @Volatile var mtp = 0
+    /**
+     * Tokens guessed ahead by n-gram lookup from the next load (0: off; NOVEL_OPTIMIZATIONS.md, idea 8): what followed
+     * the reply's last few tokens where they appeared before (the fact sheet, the conversation in the prompt, the reply
+     * so far, [draftPool]), checked in one pass with the next token. Lossless: the same tokens greedily, the same
+     * distribution sampling. Tried before the MTP head. A hybrid model keeps this many steps of its recurrent state to
+     * step back over wrong guesses (counted in [workBytes] through llama.cpp's own buffer sizes).
+     */
+    @Volatile var ngram = 0
+    /** Lines the n-gram guesses may also copy from in the next [generate]: the person's lines in the bank, one a line. */
+    @Volatile var draftPool: String = ""
+    private var poolSent: String? = null
     /** The attention cache (KV) in 8 bits from the next load (about half its memory; falls back to 16 where it cannot). */
     @Volatile var kvQ8 = false
     /** The batch the prompt is processed in from the next load (512, 256 or 128 tokens): smaller shrinks the compute
@@ -186,7 +197,8 @@ class NativeLlm(context: Context? = null) : LlmBackend {
                 error = "cancelled"
                 return false
             }
-            runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0) or (if (kvQ8) 32 else 0) or (mtp.coerceIn(0, 15) shl 8) or (batchCode(batch) shl 12) or (if (headMapped) 1 shl 15 else 0)) }
+            runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0) or (if (kvQ8) 32 else 0) or (mtp.coerceIn(0, 15) shl 8) or (batchCode(batch) shl 12) or (if (headMapped) 1 shl 15 else 0) or (ngram.coerceIn(0, 15) shl 16)) }
+            poolSent = null
             runCatching { nativeSetSnapshots(handle, (stateDir?.path ?: "").toByteArray(Charsets.UTF_8), stateBudgetBytes, hotState) }
             loaded = false  // the native load frees the old model first
             val ok = try {
@@ -297,6 +309,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
             if (!loaded || handle == 0L) return generateFailed("no model loaded")
             if (!begin(req, entrySeq)) return generateFailed("cancelled")
             val sink = TokenSink(onToken)
+            draftPool.let { p -> if (p != poolSent) { runCatching { nativeSetPool(handle, p.toByteArray(Charsets.UTF_8)) }; poolSent = p } }
             val text = try {
                 nativeGenerate(handle, prompt.toByteArray(Charsets.UTF_8), maxTokens.coerceIn(0, 4096), temperature, sink)
             } catch (e: Throwable) {
@@ -345,7 +358,8 @@ class NativeLlm(context: Context? = null) : LlmBackend {
         val s = runCatching { nativeStats(handle) }.getOrNull() ?: return LlmStats()
         return LlmStats(loadMs = s[0], promptTokens = s[1].toInt(), reusedTokens = s[2].toInt(), prefillMs = s[3],
             genTokens = s[4].toInt(), genMs = s[5], firstTokenMs = s[6], threads = s[7].toInt(),
-            drafted = s.getOrElse(8) { 0L }.toInt(), accepted = s.getOrElse(9) { 0L }.toInt())
+            drafted = s.getOrElse(8) { 0L }.toInt(), accepted = s.getOrElse(9) { 0L }.toInt(),
+            ngramDrafted = s.getOrElse(10) { 0L }.toInt(), ngramAccepted = s.getOrElse(11) { 0L }.toInt())
     }
 
     private fun loadFailed(why: String): Boolean {
@@ -395,6 +409,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     private external fun nativeKvQ8(handle: Long): Boolean
     private external fun nativeSetSnapshots(handle: Long, dir: ByteArray, budgetBytes: Long, hot: Boolean)
     private external fun nativeBake(handle: Long, prompt: ByteArray): Int
+    private external fun nativeSetPool(handle: Long, lines: ByteArray)
     private external fun nativeSnapStats(handle: Long): LongArray?
 
     /** How the model's work splits between devices (llama.cpp's "graph splits" line; more: more fell back to the CPU). */

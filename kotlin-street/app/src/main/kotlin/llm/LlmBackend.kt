@@ -49,9 +49,12 @@ data class LlmStats(
     /** From the call to the first token of the reply. */
     val firstTokenMs: Long = 0,
     val threads: Int = 0,
-    /** MTP speculative decoding: tokens guessed by the model's prediction head, and how many were right. */
+    /** Speculative decoding: tokens guessed ahead (by the model's MTP head or by n-gram lookup), and how many were right. */
     val drafted: Int = 0,
     val accepted: Int = 0,
+    /** Of those, the n-gram lookup's guesses (copied from the prompt, the reply so far or the bank's lines). */
+    val ngramDrafted: Int = 0,
+    val ngramAccepted: Int = 0,
 ) {
     val prefillPerSec: Float get() = if (prefillMs > 0) (promptTokens - reusedTokens) * 1000f / prefillMs else 0f
     val genPerSec: Float get() = if (genMs > 0) genTokens * 1000f / genMs else 0f

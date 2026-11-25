@@ -14,6 +14,8 @@
 // --cpu-lib NAME: with a -DLLM_HOST_DL=ON build, the CPU kernel libraries to try by name, in order, as the app does.
 // --snapshot-test DIR: the saved states on flash in DIR (emptied): a new session restores them and answers token for
 //   token as the fresh prefill did (greedy), pre-baked states, the hot one, the budget; then exits.
+// --ngram N [--ngram-min M]: guess N tokens ahead by n-gram lookup. --spec-test: those guesses against none, greedy and
+//   sampled (token-identical replies), with and without the speaker's other lines as the pool; tok/s and acceptance.
 #include "llm_core.h"
 
 #include <nlohmann/json.hpp>  // llama.cpp's vendored copy
@@ -169,7 +171,7 @@ long rss_kb(const char * key) {
 
 void print_stats(const llm::Stats & s) {
     const int fresh = s.prompt_tokens - s.reused_tokens;
-    if (s.drafted > 0) std::printf("  MTP: %d of %d guesses right\n", s.accepted, s.drafted);
+    if (s.drafted > 0) std::printf("  guesses: %d of %d right (n-gram %d of %d); %d passes\n", s.accepted, s.drafted, s.ngram_accepted, s.ngram_drafted, s.steps);
     std::printf("  prompt %d tokens, reused %d from the KV cache, %d processed in %lld ms (%.1f tok/s)\n", s.prompt_tokens,
                 s.reused_tokens, fresh, (long long) s.prefill_ms, s.prefill_ms > 0 ? fresh * 1000.0 / s.prefill_ms : 0.0);
     std::printf("  generated %d tokens in %lld ms (%.1f tok/s); first token after %lld ms; %d threads\n", s.gen_tokens,
@@ -355,6 +357,9 @@ void clear_dir(const std::string & dir) {
     std::system(("mkdir -p '" + dir + "' && rm -f '" + dir + "'/*.state '" + dir + "'/*.tmp*").c_str());
 }
 
+/** N-gram guesses for the saved-state passes (--ngram): restores must stay exact with the rollback state too. */
+int g_ngram = 0;
+
 /** One pass over [prompts] greedily with a fresh engine; the reply tokens of each, and the engine's state stats. */
 struct Pass {
     std::vector<std::vector<int32_t>> tokens;
@@ -367,7 +372,7 @@ Pass run_pass(const std::string & model, int mtp, int threads, int n_ctx, int ma
               const std::string & dir, bool hot, bool bake_first, int64_t budget = 8LL << 30) {
     Pass out;
     llm::Engine e;
-    e.set_device(mtp << 8);
+    e.set_device((mtp << 8) | (g_ngram << 16));
     e.set_snapshot_dir(dir, budget, hot);
     e.arm();
     if (!e.load(model, threads, n_ctx)) { check(false, "load: " + e.error()); return out; }
@@ -391,6 +396,102 @@ std::string reused_list(const Pass & p) {
     std::string s;
     for (const auto & st : p.stats) s += (s.empty() ? "" : " ") + std::to_string(st.reused_tokens) + "/" + std::to_string(st.prompt_tokens);
     return s;
+}
+
+// ------------------------------------------------------------------------------------------------ n-gram guesses
+
+struct SpecPass {
+    std::vector<std::vector<int32_t>> tokens;
+    std::vector<std::string> replies;
+    long gen = 0, drafted = 0, accepted = 0, steps = 0;
+    int64_t gen_ms = 0;
+    double mem[5] = {0, 0, 0, 0, 0};
+};
+
+/** Who a prompt is for: its npc id, else its label up to the colon. */
+std::string speaker(const Prompt & p) { return !p.npc.empty() ? p.npc : p.label.substr(0, p.label.find(':')); }
+
+/**
+ * Every prompt with one engine: [ngram] guesses (min match [min_match]; above 4 none are made, on the same path),
+ * [mtp] MTP guesses, at [temp] with seed 42. [pool_from]: a pass whose replies of the same speaker (not this prompt's)
+ * are the pool, as the bank's lines would be.
+ */
+SpecPass spec_pass(const std::string & model, int threads, int n_ctx, int max_tokens, const std::vector<Prompt> & prompts,
+                   int ngram, int min_match, int mtp, float temp, const SpecPass * pool_from) {
+    SpecPass out;
+    llm::Engine e;
+    e.set_device((mtp << 8) | (ngram << 16));
+    e.set_ngram_min(min_match);
+    e.sampling().seed = 42;
+    e.arm();
+    llm::reset_load_mem();
+    if (!e.load(model, threads, n_ctx)) { check(false, "load: " + e.error()); return out; }
+    llm::last_load_mem(out.mem);
+    for (size_t i = 0; i < prompts.size(); ++i) {
+        std::string pool;
+        if (pool_from) for (size_t j = 0; j < prompts.size(); ++j)
+            if (j != i && speaker(prompts[j]) == speaker(prompts[i]) && j < pool_from->replies.size()) pool += pool_from->replies[j] + "\n";
+        e.set_draft_pool(pool);
+        e.sampling().seed = 42 + (uint32_t) i;
+        const std::string r = e.generate(prompts[i].text, max_tokens, temp, nullptr);
+        if (!e.error().empty()) check(false, "generate: " + e.error());
+        const llm::Stats s = e.stats();
+        out.tokens.push_back(e.reply_tokens());
+        out.replies.push_back(r);
+        out.gen += s.gen_tokens;
+        out.gen_ms += s.gen_ms;
+        out.drafted += s.ngram_drafted;
+        out.accepted += s.ngram_accepted;
+        out.steps += s.steps;
+    }
+    return out;
+}
+
+void spec_line(const char * what, const SpecPass & p) {
+    std::printf("  %-34s %5ld tokens in %6lld ms: %5.2f tok/s; %ld passes (%.2f tokens a pass); n-gram %ld guessed, %ld right (%.0f%%)\n",
+                what, p.gen, (long long) p.gen_ms, per_sec(p.gen, p.gen_ms), p.steps, p.steps ? (double) p.gen / p.steps : 0.0,
+                p.drafted, p.accepted, p.drafted ? 100.0 * p.accepted / p.drafted : 0.0);
+}
+
+int same_tokens(const SpecPass & a, const SpecPass & b) {
+    int n = 0;
+    for (size_t i = 0; i < a.tokens.size() && i < b.tokens.size(); ++i) n += a.tokens[i] == b.tokens[i];
+    return n;
+}
+
+/** Draft-free n-gram speculation: lossless (greedy and sampled), and what it gains. */
+void spec_test(const std::string & model, int threads, int n_ctx, int max_tokens, const std::vector<Prompt> & prompts, int ngram,
+               int mtp) {
+    const int np = (int) prompts.size();
+    std::printf("\n== n-gram guesses (%d prompts, %d tokens ahead, MTP %d, %d tokens a reply)\n", np, ngram, mtp, max_tokens);
+    for (float temp : {0.0f, 0.3f}) {
+        std::printf("\n -- temperature %.1f\n", temp);
+        // the same path and context with no guesses made (min match 5): the reference
+        const SpecPass off = spec_pass(model, threads, n_ctx, max_tokens, prompts, ngram, 5, mtp, temp, nullptr);
+        spec_line("no n-gram guesses:", off);
+        std::printf("    memory (MiB): KV %.1f, recurrent state %.1f (rollback for %d), compute %.1f\n", off.mem[2], off.mem[3], ngram, off.mem[4]);
+        for (int min_match : {3, 2}) {
+            const SpecPass on = spec_pass(model, threads, n_ctx, max_tokens, prompts, ngram, min_match, mtp, temp, nullptr);
+            const std::string what = "n-gram (match >= " + std::to_string(min_match) + "):";
+            spec_line(what.c_str(), on);
+            const int same = same_tokens(on, off);
+            check(same == np, std::to_string(same) + " of " + std::to_string(np) + " replies token-identical to no guesses (" +
+                                  (temp == 0.0f ? "greedy" : "sampled, same seed") + ")");
+            const SpecPass pooled = spec_pass(model, threads, n_ctx, max_tokens, prompts, ngram, min_match, mtp, temp, &off);
+            const std::string what2 = "  + the speaker's other lines:";
+            spec_line(what2.c_str(), pooled);
+            const int same2 = same_tokens(pooled, off);
+            check(same2 == np, std::to_string(same2) + " of " + std::to_string(np) + " with the pool token-identical too");
+        }
+        if (temp == 0.0f) {
+            // and the plain loop (no rollback state, no guesses at all), for the record: llama.cpp's numbers can differ
+            // with the batch a token is checked in
+            const SpecPass plain = spec_pass(model, threads, n_ctx, max_tokens, prompts, 0, 2, 0, temp, nullptr);
+            spec_line("plain loop (no rollback state):", plain);
+            std::printf("    %d of %d replies identical to the guess path's without guesses; memory: recurrent state %.1f MiB\n",
+                        same_tokens(plain, off), np, plain.mem[3]);
+        }
+    }
 }
 
 /** Restored generation must be token-identical to a fresh prefill (greedy), and the states must stay off the RAM. */
@@ -435,7 +536,7 @@ void snapshot_test(const std::string & model, int mtp, int threads, int n_ctx, i
     check(same_hot == (int) prompts.size() && hot.snap.ram <= 1, "with the hot state: identical replies, at most one state in RAM");
     {   // restore cost alone: the rules state, from RAM and from the mapped file, 20 times each
         llm::Engine e;
-        e.set_device(mtp << 8);
+        e.set_device((mtp << 8) | (g_ngram << 16));
         e.set_snapshot_dir(dir, 8LL << 30, true);
         e.arm();
         if (e.load(model, threads, n_ctx)) {
@@ -501,7 +602,9 @@ int main(int argc, char ** argv) {
     std::string model = argv[1], prompts_file, dialogue_file, json_out;
     int mtp = 0;
     bool kv_q8 = false, mem_only = false;
-    std::string snap_dir;  // --snapshot-test DIR: the saved states on flash (restored == fresh, bake, budget), then exit
+    std::string snap_dir;
+    int ngram = 0, ngram_min = 2;  // --ngram N: guess N tokens ahead by n-gram lookup (--ngram-min M: the shortest match)
+    bool spec = false;             // --spec-test: n-gram guesses lossless (greedy, sampled) and their gain, then exit  // --snapshot-test DIR: the saved states on flash (restored == fresh, bake, budget), then exit
     std::vector<std::string> cpu_libs = llm::cpu_variant_libs(), who;
     // The app's settings (DialogueEngine: CONTEXT_TOKENS, MAX_TOKENS, TEMPERATURE).
     int threads = 0, n_ctx = 1024, max_tokens = 56;
@@ -528,6 +631,9 @@ int main(int argc, char ** argv) {
         else if (a == "--kv-q8") kv_q8 = true;
         else if (a == "--mem-only") mem_only = true;
         else if (a == "--snapshot-test") snap_dir = next();
+        else if (a == "--ngram") ngram = std::atoi(next().c_str());
+        else if (a == "--ngram-min") ngram_min = std::atoi(next().c_str());
+        else if (a == "--spec-test") spec = true;
         else {
             std::fprintf(stderr, "unknown option %s\n", a.c_str());
             return 2;
@@ -555,7 +661,13 @@ int main(int argc, char ** argv) {
         test_bad_models(tmp && *tmp ? tmp : "/tmp");
     }
 
+    if (spec) {
+        spec_test(model, threads, n_ctx, max_tokens, prompts, ngram > 0 ? ngram : 4, mtp);
+        std::printf("\n%s (%d failed checks)\n", failures ? "FAILED" : "ALL CHECKS PASSED", failures);
+        return failures ? 1 : 0;
+    }
     if (!snap_dir.empty()) {
+        g_ngram = ngram;
         snapshot_test(model, mtp, threads, n_ctx, max_tokens, prompts, snap_dir);
         std::printf("\n%s (%d failed checks)\n", failures ? "FAILED" : "ALL CHECKS PASSED", failures);
         return failures ? 1 : 0;
@@ -564,7 +676,8 @@ int main(int argc, char ** argv) {
     llm::Engine e;
     e.sampling().seed = seed;
     e.arm();
-    e.set_device((mtp << 8) | (kv_q8 ? 32 : 0));
+    e.set_device((mtp << 8) | (kv_q8 ? 32 : 0) | (ngram << 16));
+    e.set_ngram_min(ngram_min);
     if (!e.load(model, threads, n_ctx)) {
         std::printf("  load failed: %s\n", e.error().c_str());
         return 1;

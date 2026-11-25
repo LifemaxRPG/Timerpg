@@ -2272,7 +2272,17 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             var n by remember { mutableIntStateOf(engine.mtpWanted) }
             val st = s.stats
             Chip("Guess ahead (MTP): " + (if (n == 0) "off" else "$n words"), n > 0) { n = (n + 1) % 4; engine.setMtp(n) }
-            if (st.drafted > 0) Text("MTP: %d of %d guesses right (%.0f%%)".format(st.accepted, st.drafted, 100f * st.accepted / st.drafted), 12.sp, color = DIM)
+            val md = st.drafted - st.ngramDrafted
+            val ma = st.accepted - st.ngramAccepted
+            if (md > 0) Text("MTP: %d of %d guesses right (%.0f%%)".format(ma, md, 100f * ma / md), 12.sp, color = DIM)
+        }
+        // n-gram guesses: copied from the fact sheet, the reply so far and the person's bank lines, checked the same way
+        run {
+            var n by remember { mutableIntStateOf(engine.ngramWanted) }
+            val st = s.stats
+            Chip("Guess ahead (copied): " + (if (n == 0) "off" else "$n words"), n > 0) { n = (n + 2) % 6; engine.setNgram(n) }
+            if (st.ngramDrafted > 0) Text("Copied: %d of %d guesses right (%.0f%%)".format(st.ngramAccepted, st.ngramDrafted,
+                100f * st.ngramAccepted / st.ngramDrafted), 12.sp, color = DIM)
         }
         if (s.hasNpu) {
             val act = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity

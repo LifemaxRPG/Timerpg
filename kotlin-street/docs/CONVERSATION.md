@@ -240,6 +240,46 @@ cannot take back (one per line end of the facts), and nothing counted them.
   state); the UFS write and cold-read times; the prefill saved per restored fact sheet at the NPU's rate; and that the
   NPU backend's `llama_state_seq_set_data` restores as exactly as the CPU's did here.
 
+## Guesses copied from the fact sheet: draft-free n-gram speculation (2026-11-25; NOVEL_OPTIMIZATIONS.md, idea 8)
+
+NPC lines quote their fact sheet (names, places, the job, the example line) and repeat themselves across topics, so the
+next few tokens are often already in the prompt. `Engine::ngram_draft` (`llm_core.cpp`) looks for the reply's last 4,
+3 or 2 tokens (`ngram_min`, default 2) where they appeared before, most recent first: the reply so far, then the
+prompt (the facts, the conversation so far), then the pool (`set_draft_pool`: that person's other lines in the bank,
+`DialogueEngine.poolFor`, up to 24), and guesses what followed them, up to `ngram` tokens (set_device bits 16-19;
+`NativeLlm.ngram`, the "npu" preference "ngram", default 2; the AI panel's "Guess ahead (copied)" chip: off / 2 / 4).
+- **Checked like MTP's guesses**, in the same loop (`generate_mtp`, now taken when MTP or n-grams are on): one pass over
+  [last token, guesses], each position sampled as it would be without guesses (`common_sampler_sample_and_accept_n`),
+  a guess kept only while it is what was sampled. So the same tokens greedily and the same distribution sampling, one
+  draw per token either way. **Stacked with MTP**: the n-gram guess first (free: no model runs), the MTP head only when
+  it found none; the head's `process`/`accept` see every verification batch whoever guessed.
+- **What it costs**: a hybrid model steps back over wrong guesses with llama.cpp's rollback planes (`n_rs_seq`, now
+  `max(mtp, ngram)`): one more copy of the recurrent state per guessed token. Measured on the 0.8B: recurrent state
+  19.3 MiB without, 57.8 with 2, 96.3 with 4. For the light model (50 MB state on the S25) that is ~+100 MB at 2 and
+  ~+200 MB at 4 (estimate), counted in its work bytes by the gate as llama.cpp reports it (the "RS buffer"). Hence 2
+  by default, 4 as the panel's choice. The saved states (above) hold only the current plane: their size is unchanged,
+  and restored replies stay token-identical with n-grams on (`--snapshot-test --ngram 2`: 5 of 5).
+- **Measured** (`llm_host_test --spec-test --ngram N`, Qwen3.5-0.8B Q4_0, 15 prompts of 3 people from
+  `assets/dialogue.json`, 56 tokens a reply, 2 threads on this shared 4-core server). **Every run token-identical**
+  to the same loop without guesses: 15 of 15 greedy and 15 of 15 sampled (temperature 0.3, same seed), with and
+  without the pool. Verification passes for the same 175 tokens (greedy; 190 without guesses) and acceptance:
+
+  | guesses | match >= 3 | + bank pool | match >= 2 | + bank pool |
+  |---|---|---|---|---|
+  | 2 tokens | 155 (-18%), 74% | 151 (-21%), 71% | 145 (-24%), 76% | 140 (-26%), 63% |
+  | 4 tokens | 146 (-23%), 72% | 140 (-26%), 72% | 136 (-28%), 64% | 129 (-32%), 54% |
+
+  Sampled at 0.3 (233 passes without): -13% to -23% passes, 39-69% acceptance. Tok/s here is not a usable measure: the
+  server was shared with another job's build (the loop without guesses ran at 13.1 tok/s in one run and 6.6 in the
+  next); in the first, least disturbed run the plain loop (no rollback planes) did 16.2 tok/s and 4-token guesses at
+  match >= 3 16.1-16.4, match >= 2 16.6. On a CPU a
+  pass of 3-5 tokens costs more than one of 1, so little is gained there; on the NPU, where decoding is bound by
+  reading the weights, a pass of a few tokens costs about one, so the pass count is the estimate: **~1.2-1.4x tok/s**
+  (estimate, needs the S25).
+- **Needs the S25**: tok/s with the chip at off / 2 / 4 on the light model (the panel shows the guesses right), the
+  rollback planes' real memory (the load's breadcrumb "state" figure), and that `validate()` pass rates are unchanged
+  (they must be: the tokens are the same).
+
 ## The overnight writer and Writer mode (kotlin-street/app/src/main/kotlin/night)
 
 The owner leaves the phone on the charger overnight; the dialogue model writes the bank of lines so the game needs

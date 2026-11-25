@@ -176,15 +176,21 @@ extern "C" JNIEXPORT jstring JNICALL FN(nativeLoadInfo)(JNIEnv * env, jobject) {
 
 extern "C" JNIEXPORT jlongArray JNICALL FN(nativeStats)(JNIEnv * env, jobject, jlong h) {
     const llm::Stats s = h ? engine(h)->stats() : llm::Stats{};
-    const jlong v[10] = {s.load_ms, s.prompt_tokens, s.reused_tokens, s.prefill_ms, s.gen_tokens, s.gen_ms, s.first_token_ms, s.threads,
-                         s.drafted, s.accepted};
-    jlongArray a = env->NewLongArray(10);
+    const jlong v[13] = {s.load_ms, s.prompt_tokens, s.reused_tokens, s.prefill_ms, s.gen_tokens, s.gen_ms, s.first_token_ms, s.threads,
+                         s.drafted, s.accepted, s.ngram_drafted, s.ngram_accepted, s.steps};
+    jlongArray a = env->NewLongArray(13);
     if (!a) {
         if (env->ExceptionCheck()) env->ExceptionClear();
         return nullptr;
     }
-    env->SetLongArrayRegion(a, 0, 10, v);
+    env->SetLongArrayRegion(a, 0, 13, v);
     return a;
+}
+
+/** The n-gram guesses' pool: the person's lines in the bank, one per line (llm::Engine::set_draft_pool). */
+extern "C" JNIEXPORT void JNICALL FN(nativeSetPool)(JNIEnv * env, jobject, jlong h, jbyteArray lines) {
+    if (!h) return;
+    try { engine(h)->set_draft_pool(from_bytes(env, lines)); } catch (...) {}
 }
 
 /** Saved states on flash (llm::Engine::set_snapshot_dir): [dir] empty keeps them in RAM. */

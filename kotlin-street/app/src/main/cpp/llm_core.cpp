@@ -786,6 +786,53 @@ int Engine::bake(const std::string & prompt) {
     return -1;
 }
 
+void Engine::set_draft_pool(const std::string & lines) {
+    pool_.clear();
+    if (!vocab_) return;
+    size_t at = 0;
+    while (at < lines.size()) {
+        size_t e = lines.find('\n', at);
+        if (e == std::string::npos) e = lines.size();
+        // each line as the reply would hold it: plain text, no special tokens
+        const std::string line = lines.substr(at, e - at);
+        at = e + 1;
+        if (line.empty() || line.size() > 4096) continue;
+        std::vector<int32_t> t((size_t) line.size() + 8);
+        const int32_t n = llama_tokenize(vocab_, line.data(), (int32_t) line.size(), t.data(), (int32_t) t.size(), false, false);
+        if (n <= 1) continue;
+        t.resize((size_t) n);
+        pool_.push_back(std::move(t));
+        if (pool_.size() >= 64) break;
+    }
+}
+
+void Engine::ngram_draft(const std::vector<int32_t> & seq, int n_max, std::vector<int32_t> & out) const {
+    out.clear();
+    if (n_max <= 0) return;
+    const size_t n = seq.size();
+    // the longest match first (4 tokens, down to ngram_min_), the most recent place first: the reply so far, then the
+    // prompt (the facts, the conversation), then the pool
+    for (int m = 4; m >= ngram_min_; --m) {
+        if (n < (size_t) m + 1) continue;
+        const int32_t * key = seq.data() + n - m;
+        for (size_t i = n - m; i-- > 0;) {
+            if (std::equal(key, key + m, seq.data() + i)) {
+                for (size_t k = i + m; k < n && (int) out.size() < n_max; ++k) out.push_back(seq[k]);
+                if (!out.empty()) return;
+            }
+        }
+        for (const auto & line : pool_) {
+            if (line.size() < (size_t) m + 1) continue;
+            for (size_t i = 0; i + m < line.size(); ++i) {
+                if (std::equal(key, key + m, line.data() + i)) {
+                    for (size_t k = i + m; k < line.size() && (int) out.size() < n_max; ++k) out.push_back(line[k]);
+                    return;
+                }
+            }
+        }
+    }
+}
+
 const char * end_name(End e) {
     switch (e) {
         case End::none: return "none";
@@ -887,10 +934,12 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
         // MTP: the guesses are checked in one batch (logits for each), and the recurrent state can step back over the
         // ones that were wrong
         const bool want_mtp = mtp_n_ > 0 && llama_model_n_layer_nextn(model_) > 0;
-        if (want_mtp) {
-            cp.n_outputs_max = (uint32_t) (mtp_n_ + 1);
-            cp.n_outputs_max_per_seq = (uint32_t) (mtp_n_ + 1);
-            cp.n_rs_seq = (uint32_t) mtp_n_;
+        // (n-gram guesses the same way: as many as either asks for)
+        const int guess_max = std::max(want_mtp ? mtp_n_ : 0, ngram_n_);
+        if (guess_max > 0) {
+            cp.n_outputs_max = (uint32_t) (guess_max + 1);
+            cp.n_outputs_max_per_seq = (uint32_t) (guess_max + 1);
+            cp.n_rs_seq = (uint32_t) guess_max;
         }
         cp.n_threads = threads;
         cp.n_threads_batch = threads;
@@ -928,6 +977,11 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
         }
         recurrent_ = llama_model_is_recurrent(model_) || llama_model_is_hybrid(model_);
         n_batch_ = (int32_t) llama_n_batch(ctx_);
+        // n-gram guesses need a cache that can step back over the wrong ones: an attention cache always can, a recurrent
+        // state only with its rollback snapshots (n_rs_seq, which llama.cpp clamps to 0 where the model cannot)
+        ngram_used_ = ngram_n_;
+        if (ngram_used_ > 0 && recurrent_) ngram_used_ = std::min(ngram_used_, (int) llama_n_rs_seq(ctx_));
+        if (ngram_n_ > 0 && ngram_used_ == 0) log_msg(GGML_LOG_LEVEL_WARN, "n-gram guesses need a state that can step back; generating without them");
         if (want_mtp) {
             // the head's own context, sharing the main one's memory; any failure: plain generation
             llama_context_params dp = cp;
@@ -1078,7 +1132,7 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
         stats_.prompt_tokens = (int32_t) toks.size();
         stats_.reused_tokens = (int32_t) reuse;
 
-        if (spec_ && max_tokens > 0) {
+        if ((spec_ || ngram_used_ > 0) && max_tokens > 0) {
             std::string r = generate_mtp(toks, reuse, max_tokens, temperature, on_text, t0);
             return r;
         }
@@ -1180,7 +1234,7 @@ std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, i
     const size_t n = toks.size();
     const size_t n_ctx = llama_n_ctx(ctx_);
     llama_memory_t mem = llama_get_memory(ctx_);
-    llama_memory_t dmem = llama_get_memory(dft_);
+    llama_memory_t dmem = dft_ ? llama_get_memory(dft_) : nullptr;
     // the head's cache keeps what it shares with this prompt, up to where the main cache goes on from
     {
         size_t keep = 0;
@@ -1212,7 +1266,7 @@ std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, i
             break;
         }
         cached_.insert(cached_.end(), toks.begin() + (ptrdiff_t) i, toks.begin() + (ptrdiff_t) e);
-        common_speculative_process(spec_, cb);
+        if (spec_) common_speculative_process(spec_, cb);
         i = e;
     }
     const int64_t tg = now_ms();
@@ -1246,7 +1300,8 @@ std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, i
     llama_token id_last = toks.back();
     std::vector<llama_token> in_ctx(toks.begin(), toks.end() - 1);  // the tokens in the cache, position i = in_ctx[i]
     std::vector<llama_token> draft;
-    common_speculative_begin(spec_, 0, in_ctx);
+    if (spec_) common_speculative_begin(spec_, 0, in_ctx);
+    std::vector<int32_t> seq;  // the prompt and the reply so far, ending with id_last: what the n-gram guess looks in
     common_batch bt(ctx_);
     char buf[256];
     int produced = 0;
@@ -1256,10 +1311,18 @@ std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, i
             const int n_past = (int) in_ctx.size();
             int n_draft_max = std::min((int) n_ctx - n_past - 2, max_tokens - produced - 1);
             draft.clear();
-            if (n_draft_max > 0) {
+            bool from_ngram = false;
+            if (n_draft_max > 0 && ngram_used_ > 0) {
+                // first the n-gram guess (free: no model runs), then the MTP head if it found none
+                seq.assign(in_ctx.begin(), in_ctx.end());
+                seq.push_back(id_last);
+                ngram_draft(seq, std::min(n_draft_max, ngram_used_), draft);
+                from_ngram = !draft.empty();
+            }
+            if (n_draft_max > 0 && spec_ && draft.empty()) {
                 auto & dp = common_speculative_get_draft_params(spec_, 0);
                 dp.drafting = true;
-                dp.n_max = n_draft_max;
+                dp.n_max = std::min(n_draft_max, mtp_n_);
                 dp.pos0 = n_past;
                 dp.id_last = id_last;
                 dp.prompt = &in_ctx;
@@ -1279,12 +1342,19 @@ std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, i
                 if (cancel_.load()) error_ = "cancelled";
                 break;
             }
-            common_speculative_process(spec_, bt);
+            if (spec_) common_speculative_process(spec_, bt);
+            // each position sampled as without guesses, a guess kept only while it is what was sampled: the same tokens
+            // (greedy) and the same distribution (sampling), one draw per token either way
             const std::vector<llama_token> ids = common_sampler_sample_and_accept_n(smpl, ctx_, draft);
             if (ids.empty()) { error_ = "sampling failed"; stats_.end = End::error; break; }
-            common_speculative_accept(spec_, 0, (uint16_t) (ids.size() - 1));
+            if (spec_) common_speculative_accept(spec_, 0, (uint16_t) (ids.size() - 1));
+            ++stats_.steps;
             stats_.drafted += (int32_t) draft.size();
             stats_.accepted += (int32_t) ids.size() - 1;
+            if (from_ngram) {
+                stats_.ngram_drafted += (int32_t) draft.size();
+                stats_.ngram_accepted += (int32_t) ids.size() - 1;
+            }
             in_ctx.push_back(id_last);  // now in the cache, with the accepted guesses after it
             for (size_t i = 0; i < ids.size(); ++i) {
                 const llama_token tok = ids[i];

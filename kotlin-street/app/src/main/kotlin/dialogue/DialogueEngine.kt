@@ -593,6 +593,21 @@ class DialogueEngine private constructor(private val app: Context) {
     /** MTP speculative decoding: tokens to guess ahead (0 off; default 2), see [com.timerpg.street.llm.NativeLlm.mtp]. */
     val mtpWanted: Int get() = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getInt("mtp", 2)
 
+    /** N-gram guesses: tokens to guess ahead by lookup in the prompt, the reply and the person's bank lines (0 off),
+     *  see [com.timerpg.street.llm.NativeLlm.ngram]. */
+    val ngramWanted: Int get() = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getInt("ngram", NGRAM_DEFAULT)
+
+    fun setNgram(n: Int) {
+        app.getSharedPreferences("npu", Context.MODE_PRIVATE).edit().putInt("ngram", n).apply()
+        lock.withLock { running?.let { cancelLocked(it) } }
+        command { closeBackend(); loadModel() }
+    }
+
+    /** The n-gram guesses' pool for a line of [npc]'s: their other lines in the bank (the line [key] itself left out). */
+    private fun poolFor(npc: Npc, key: String): String = npc.topics.asSequence()
+        .mapNotNull { t -> t.prompt?.let { keyOf(it) }?.takeIf { it != key }?.let { cache.get(it)?.lines } }
+        .flatten().take(POOL_LINES).joinToString("\n")
+
     fun setMtp(n: Int) {
         app.getSharedPreferences("npu", Context.MODE_PRIVATE).edit().putInt("mtp", n).apply()
         lock.withLock { running?.let { cancelLocked(it) } }
@@ -1529,6 +1544,8 @@ class DialogueEngine private constructor(private val app: Context) {
         val mtpSet = app.getSharedPreferences("npu", Context.MODE_PRIVATE).contains("mtp")
         // (MTP is the main model's own build: the light one runs without it)
         native?.mtp = if (role == ModelRole.BANK && useMtp && (mtpSet || native?.device == com.timerpg.street.llm.NativeLlm.NPU)) mtpWanted else 0
+        // n-gram guesses (no model of their own: either role), stacked before MTP's
+        native?.ngram = ngramWanted
         // loading holds the AI lane: speech, memory and the voices do not load beside it (their memory added to a load's
         // is what took the phone down)
         // the prompt's batch: 128 on the NPU (its compute buffers: MEMORY_AUDIT.md, M2), 512 elsewhere (batchFor)
@@ -1892,6 +1909,7 @@ class DialogueEngine private constructor(private val app: Context) {
                 }
                 return !g.cancelled && !closed
             }
+            (b as? NativeLlm)?.draftPool = poolFor(npc, g.key)
             var raw: String? = try {
                 com.timerpg.street.llm.AiLane.run("dialogue") { b.generate(prompt, MAX_TOKENS, if (g.variant) VARIANT_TEMPERATURE else TEMPERATURE, onPiece) }
             } catch (t: Throwable) {
@@ -2215,6 +2233,10 @@ class DialogueEngine private constructor(private val app: Context) {
         const val FIT_TEST = "fit test"
         /** The pause reason while the light model is loaded (pre-generation is the main model's). */
         const val LIVE_PAUSE = "light model loaded"
+        /** N-gram guesses ahead by default ([ngramWanted]). */
+        const val NGRAM_DEFAULT = 2
+        /** The most bank lines in a person's n-gram pool ([poolFor]). */
+        const val POOL_LINES = 24
         /** How many of the nearest unwritten lines' people the idle light model pre-bakes ([bakeJobLocked]). */
         const val BAKE_AHEAD = 12
         /** The most the saved model states may take on flash (~55 MB each for the light model: ~55 fact sheets). */

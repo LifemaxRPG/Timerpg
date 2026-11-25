@@ -95,9 +95,14 @@ struct Stats {
     int64_t first_token_ms = 0;
     int32_t threads = 0;
     End end = End::none;
-    /** MTP speculative decoding: tokens the model's own prediction head guessed, and how many of them were right. */
+    /** Speculative decoding: tokens guessed ahead (by the MTP head, or by n-gram lookup), and how many of them were right. */
     int32_t drafted = 0;
     int32_t accepted = 0;
+    /** Of those, the n-gram lookup's (set_device bits 16-19): copied from the prompt, the reply so far or the pool. */
+    int32_t ngram_drafted = 0;
+    int32_t ngram_accepted = 0;
+    /** Verification passes (one per batch of [last token, guesses...]); gen_tokens / steps is the tokens per pass. */
+    int32_t steps = 0;
 };
 
 /** The saved model states of a recurrent or hybrid model (Engine::set_snapshot_dir): where they are and what they cost. */
@@ -155,7 +160,15 @@ public:
      *  497 MB for Qwen3.5-4B Q4_0). No effect on a model with its own output weights. */
     void set_device(int kind) { device_ = kind & 3; repack_ = (kind & 16) != 0; kv_q8_ = (kind & 32) != 0; mtp_n_ = (kind >> 8) & 15;
                                 const int b = (kind >> 12) & 7; batch_max_ = b == 1 ? 256 : b == 2 ? 128 : 512;
-                                head_mapped_ = (kind & (1 << 15)) != 0; }
+                                head_mapped_ = (kind & (1 << 15)) != 0; ngram_n_ = (kind >> 16) & 15; }
+    /** Bits 16-19 of set_device's kind: tokens to guess ahead by n-gram lookup (0: off). The guess is what followed the
+     *  last [ngram_min]..4 tokens where they appeared before: in the prompt (the fact sheet, the conversation so far),
+     *  the reply so far, or the pool (set_draft_pool). Checked like MTP's guesses (lossless), tried before the MTP head. */
+    void set_ngram_min(int n) { ngram_min_ = n < 1 ? 1 : n; }  // (above 4: no guess is ever made: the same path, for tests)
+    /** Text the n-gram guesses may also copy from (the person's lines in the bank, one per line); "" clears it. */
+    void set_draft_pool(const std::string & lines);
+    /** Whether the loaded model guesses with n-grams (asked for, and its cache can step back over wrong guesses). */
+    bool ngram() const { return ctx_ && ngram_used_ > 0; }
     /** Whether the loaded model's cache is in 8 bits. */
     bool kv_q8() const { return ctx_ && kv_q8_used_; }
     /** Whether the loaded model writes with MTP speculative decoding (it has the prediction head and it was asked for). */
@@ -214,7 +227,9 @@ private:
     /** Where a recurrent or hybrid model (Qwen3.5) can start: a snapshot whose tokens begin [toks], restored. 0 if none. */
     size_t restore_snapshot(const std::vector<int32_t> & toks);
     void take_snapshot();
-    /** generate() with MTP: the prompt from [at] on (all but its last token), then guess-and-check. */
+    /** The n-gram guess for what follows [seq] (its last tokens matched where they appeared before), at most [n_max]. */
+    void ngram_draft(const std::vector<int32_t> & seq, int n_max, std::vector<int32_t> & out) const;
+    /** generate() with MTP and/or n-gram guesses: the prompt from [at] on (all but its last token), then guess-and-check. */
     std::string generate_mtp(const std::vector<int32_t> & toks, size_t at, int max_tokens, float temperature,
                              const OnText & on_text, int64_t t0);
     void free_mtp();
@@ -256,6 +271,10 @@ private:
     bool kv_q8_ = false;
     bool kv_q8_used_ = false;
     int mtp_n_ = 0;                          // tokens to guess ahead with the MTP head (0: off)
+    int ngram_n_ = 0;                        // tokens to guess ahead by n-gram lookup (0: off)
+    int ngram_used_ = 0;                     // what the loaded context allows (0 when its state cannot step back)
+    int ngram_min_ = 2;                      // the shortest match a guess is made from (3: right more often, fewer passes saved)
+    std::vector<std::vector<int32_t>> pool_; // set_draft_pool's lines, tokenized
     int batch_max_ = 512;                    // the prompt's batch (n_batch = n_ubatch), at most the context
     bool head_mapped_ = false;               // a tied output head kept on the CPU, mapped (set_device bit 15)
     llama_model_tensor_buft_override overrides_[2] = {};  // (alive through the load: llama.cpp reads it there)
