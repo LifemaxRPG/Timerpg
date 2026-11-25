@@ -73,11 +73,12 @@ internal class PropLayer(
         val entity: Int, val proxy: Int, val mi: MaterialInstance, val pmi: MaterialInstance?,
         val glows: Boolean, val geo: GeomSlice, val casts: Boolean,
         var visible: Boolean = true, var layerShown: Boolean = true, var layerShadow: Boolean = true,
-        var ti: Int = 0, var pti: Int = 0,
         /** Its entities, material instances and buffers are gone ([release]): its slot stays so the other batches keep their index. */
         var released: Boolean = false,
     )
     private val batches = ArrayList<Batch>()
+    /** Batch [index]'s entity (tests). */
+    internal fun batchEntity(index: Int): Int = batches[index].entity
 
     /** How many props were placed, and drawn in how many batches. */
     var count = 0; private set
@@ -345,20 +346,15 @@ internal class PropLayer(
         val b = batches[index]
         if (b.released) return
         val tm = engine.transformManager
-        var ti = b.ti
-        if (ti == 0) {
-            if (!tm.hasComponent(b.entity)) tm.create(b.entity)
-            ti = tm.getInstance(b.entity)
-            b.ti = ti
-        }
+        // (the instance looked up each time, never kept: Filament keeps its components packed, so destroying any entity
+        // with a transform moves another into its slot. A kept instance then named someone else's entity, and a car's
+        // parts stood where they were when streaming let something moved go: 0.1.909's "car stayed where it was")
+        var ti = tm.getInstance(b.entity)
+        if (ti == 0) { tm.create(b.entity); ti = tm.getInstance(b.entity) }
         if (ti != 0) tm.setTransform(ti, m)
         if (b.proxy != 0) {
-            var pti = b.pti
-            if (pti == 0) {
-                if (!tm.hasComponent(b.proxy)) tm.create(b.proxy)
-                pti = tm.getInstance(b.proxy)
-                b.pti = pti
-            }
+            var pti = tm.getInstance(b.proxy)
+            if (pti == 0) { tm.create(b.proxy); pti = tm.getInstance(b.proxy) }
             if (pti != 0) tm.setTransform(pti, m)
         }
     }
