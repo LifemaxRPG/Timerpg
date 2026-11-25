@@ -95,7 +95,10 @@ object VehicleDesc {
     /** The rear tyres' lateral grip multiplier (0: as FRICTION_LAT), and the front tyres' lateral grip past their peak slip as a share of the peak (0: Jolt's). */
     const val FRICTION_LAT_REAR = 35
     const val FRONT_LAT_TAIL = 36
-    const val COUNT = 37
+    /** The upshift's rpm flat out (SHIFT_UP_RPM with no throttle, between by the throttle), and an upshift's torque cut (s). */
+    const val SHIFT_UP_FULL_RPM = 37
+    const val SHIFT_TIME = 38
+    const val COUNT = 39
 }
 
 /** Indices into [Physics.state]'s output (physics_core.h VehicleStateIndex). */

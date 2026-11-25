@@ -112,16 +112,16 @@ throttle held):
 
 | | Road Torrel | Race Torrel |
 | --- | ---: | ---: |
-| Top speed after 60 s | 209 km/h | 273 km/h |
-| 0-100 km/h (the game's automatic) | 9.3 s | 6.1 s |
+| Top speed after 60 s | 211 km/h | 273 km/h |
+| 0-100 km/h (the game's automatic) | 8.0 s | 5.4 s |
 | Lateral grip, half lock at 90 km/h | 9.9 m/s² | 13.0 m/s² (11.6 before the balance work) |
 | Lateral grip, half lock at 150 km/h | 10.4 m/s² | 14.8 m/s² (13.2) |
-| 100-0 km/h | 40.3 m | 33.2 m |
+| 100-0 km/h | 40.5 m | 35.0 m |
 | Suspension at 236 km/h vs at rest | | 0.107 m vs 0.119 m (pressed down by the wing) |
 
 The race Torrel stays upright through every test, including full lock at 120 km/h. At 236 km/h the body bobs 1 mm.
 Dropped from 30 cm, it lands without hopping and settles. The 0-100 times are slower than the model-info estimates:
-the game's automatic shifts gently and the tyres spin at launch. The gap between the two cars is what counts.
+the tyres spin at launch (before 2026-11-25 the automatic also waited on the limiter while they spun: [VEHICLES.md](VEHICLES.md), "The gearbox"). The gap between the two cars is what counts.
 
 ### Cornering balance (2026-11-25, the owner: "it still understeers")
 

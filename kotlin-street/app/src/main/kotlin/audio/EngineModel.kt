@@ -40,6 +40,15 @@ class EngineProfile(
     /** Firing pulses a second at [rpm] (a four-stroke fires each cylinder once in two turns). */
     fun fireHz(rpm: Float) = rpm / 120f * cylinders
 
+    /**
+     * This engine with its limiter at [rpm]: the drivetrain's governed speed, so the sound's limiter is where the physics'
+     * is (the race Torrel revs to 8,200 on the twin-cam four whose road tune stops at 7,000: before, its sound sat on the
+     * limiter from 6,900 while the car pulled on to 8,200).
+     */
+    fun withRedline(rpm: Float): EngineProfile = if (electric || rpm <= 0f || rpm == redline) this else EngineProfile(
+        name, cylinders, firing, bank, idleRpm, rpm, pipeMs, pipeFeedback, mufflerHz, boomHz, boom, pulseMs, rough, lope, clatter,
+        intake, pops, crankS, gain, electric)
+
     companion object {
         private fun even(n: Int) = FloatArray(n) { it / n.toFloat() }
 
@@ -87,6 +96,9 @@ class EngineProfile(
             key.contains("electric") || key.contains("-ev") -> ELECTRIC
             else -> forYear(from)
         }
+
+        /** The engine of the drivable car [s] (its key and year: [forCar]), its limiter at its drivetrain's governed speed. */
+        fun forSpec(s: com.lifemax.rpg.feature.habits.vehicle.VehicleSpec): EngineProfile = forCar(s.key, s.from).withRedline(s.drivetrain.maxRpm)
 
         /** An engine typical of cars first built in [year] (the far traffic, a car with no profile of its own). */
         fun forYear(year: Int, pick: Float = .5f): EngineProfile = when {

@@ -162,16 +162,30 @@ All five cars reach their top speed with the throttle held:
 
 | Car | Top speed | Era target | 0-60 km/h | Braking from 50 km/h | Full-lock radius |
 | --- | ---: | ---: | ---: | --- | ---: |
-| 1928 | 97 km/h | 103 km/h | 10.6 s | 15.6 m, 2.4 s | 5.0 m |
-| 1938 | 125 km/h | 132 km/h | 7.8 s | 13.5 m | 5.0 m |
-| 1956 | 148 km/h | 153 km/h | 6.0 s | 12.6 m | 5.6 m |
-| 1970 coupe | 189 km/h | 192 km/h | 4.5 s | 11.9 m | 8.0 m |
-| 1972 pickup | 147 km/h | 153 km/h | 6.6 s | 12.8 m | 6.2 m |
-| Torrel 1968 | 175 km/h | 188 km/h | 5.9 s | | 4.7 m |
-| Torrel 1988 | 216 km/h | 224 km/h | 4.8 s | | 5.0 m |
-| Torrel 1988 RS (race build, C046) | 273 km/h | 278 km/h | | 100-0: 33.4 m | |
+| 1928 | 97 km/h | 103 km/h | 9.5 s | 15.6 m, 2.4 s | 5.0 m |
+| 1938 | 125 km/h | 132 km/h | 6.9 s | 13.5 m | 5.0 m |
+| 1956 | 148 km/h | 153 km/h | 5.2 s | 12.6 m | 5.6 m |
+| 1970 coupe | 189 km/h | 192 km/h | 3.3 s | 11.9 m | 8.0 m |
+| 1972 pickup | 147 km/h | 153 km/h | 5.0 s | 12.8 m | 6.2 m |
+| Torrel 1968 | 175 km/h | 188 km/h | 5.1 s | | 4.7 m |
+| Torrel 1988 | 216 km/h | 224 km/h | 4.3 s | | 5.0 m |
+| Torrel 1988 RS (race build, C046) | 273 km/h | 278 km/h | | 100-0: 35.0 m | |
 
 The race Torrel, its downforce and the car button's list are described in [CARS.md](CARS.md).
+
+### The gearbox (2026-11-25)
+
+The 0-60 times above dropped by 0.5-1.2 s on 2026-11-25. Jolt's automatic does not shift up while a driven wheel slips
+more than 10%. Flat out, every car spun its tyres in the low gears, so the engine sat on its limiter for 0.2-2.1 s
+before each shift (`ShiftPointTest`, before: the 1956 sedan held 4,400 rpm for 2.1 s in second). That is what the owner
+heard as the engine "topped out before it shifts".
+
+The upshifts are now the physics' own (`stepGearbox` in physics_core.cpp; Jolt still makes the downshifts and the first
+gear from a stop). In a forward gear, with the driven wheels on the ground and Jolt's box idle, the car shifts up past
+`SHIFT_UP_RPM` (72% of the governed speed, coasting) or up to `SHIFT_UP_FULL_RPM` (92%, flat out), scaled by the
+throttle. The clutch stays in, and the throttle is cut and eased back in over `SHIFT_TIME`: 0.4 s before 1950, 0.3 s
+to 1979, 0.2 s after, 0.15 s for the race build. Flat out, every car now shifts at 92% and spends no time at its
+limiter before a shift. Top speeds are unchanged.
 
 The Torrels (976 and 1,088 kg two-seaters) once had the 1970 coupe's 560 Nm drivetrain: on a quarter throttle the
 one-tonne car spun up to 46 km/h and slid wide at full lock, a 23 m circle. They now have their own: a small

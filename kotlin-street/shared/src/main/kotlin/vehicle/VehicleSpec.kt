@@ -276,9 +276,13 @@ class Drivetrain(
         d[VehicleDesc.FRICTION_LAT] = latFront
         d[VehicleDesc.FRICTION_LAT_REAR] = latRear
         d[VehicleDesc.FRONT_LAT_TAIL] = frontTail
-        // (shifts up near the top of the rev range, down well below it: an automatic's gentle pattern)
-        d[VehicleDesc.SHIFT_UP_RPM] = maxRpm * .82f
+        // (an automatic's pattern: up early when cruising, near the top flat out but before the limiter (97%), down well
+        // below; the upshifts are the physics' own, not held back by wheelspin, with a short torque cut: quicker in a
+        // newer or a race car. 2026-11-25: flat out, Jolt's box sat on the limiter up to 2 s while the tyres spun)
+        d[VehicleDesc.SHIFT_UP_RPM] = maxRpm * .72f
+        d[VehicleDesc.SHIFT_UP_FULL_RPM] = maxRpm * .92f
         d[VehicleDesc.SHIFT_DOWN_RPM] = maxRpm * .36f
+        d[VehicleDesc.SHIFT_TIME] = when { s.race != null -> .15f; s.from >= 1980 -> .2f; s.from >= 1950 -> .3f; else -> .4f }
         d[VehicleDesc.DOWNFORCE] = downforceK
         d[VehicleDesc.DOWNFORCE_FRONT] = downforceFront
         return d

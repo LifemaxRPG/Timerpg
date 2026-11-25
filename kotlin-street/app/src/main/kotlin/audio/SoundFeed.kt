@@ -65,7 +65,7 @@ class SoundFeed(private val sound: SoundScape) {
     private fun cars(w: VehicleWorld, dt: Float) {
         val driven = w.driven
         for (c in w.cars) {
-            val f = sound.cars.feed(c) { EngineProfile.forCar(c.spec.key, c.spec.from) }
+            val f = sound.cars.feed(c) { EngineProfile.forSpec(c.spec) }
             f.x = c.x; f.z = c.z; f.vx = c.vx; f.vz = c.vz; f.speed = c.forwardSpeed
             f.rpm = c.rpm; f.gear = c.gear; f.throttle = c.throttle
             val mine = c === driven

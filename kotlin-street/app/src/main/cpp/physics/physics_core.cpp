@@ -89,6 +89,11 @@ struct Vehicle {
     float downFront = .5f;  // its front share
     float frontZ = 0.f, rearZ = 0.f;
     float previousForward = 1.f;
+    // the upshifts, ours (stepGearbox): the rpm at no and at full throttle, the torque cut's length and what is left of it,
+    // the driver's input as given (the throttle is eased back in over the cut), the driven wheels
+    float shiftUp = 0.f, shiftUpFull = 0.f, shiftTime = .25f, cutLeft = 0.f;
+    float inForward = 0.f, inRight = 0.f, inBrake = 0.f, inHand = 0.f;
+    int drive = 0;
     bool live = false;
 };
 
@@ -435,7 +440,10 @@ int addVehicle(World *w, const float *d, const float *boxes, int boxCount, float
     int gears = std::clamp((int) d[VD_GEARS], 1, 6);
     for (int g = 0; g < gears; ++g) c->mTransmission.mGearRatios.push_back(d[VD_GEAR1 + g]);
     c->mTransmission.mReverseGearRatios = {d[VD_REVERSE]};
-    c->mTransmission.mShiftUpRPM = d[VD_SHIFT_UP_RPM];
+    // (the upshifts are ours, stepGearbox: Jolt's auto box will not shift up while a driven wheel slips more than 10%,
+    // so a car spinning its tyres flat out sat on its limiter for up to two seconds before each shift; its downshifts
+    // and its first gear from a stop stay Jolt's)
+    c->mTransmission.mShiftUpRPM = 1e9f;
     c->mTransmission.mShiftDownRPM = d[VD_SHIFT_DOWN_RPM];
     int drive = (int) d[VD_DRIVE];
     if (drive == 2) {
@@ -463,6 +471,10 @@ int addVehicle(World *w, const float *d, const float *boxes, int boxCount, float
     v.downFront = std::clamp(d[VD_DOWNFORCE_FRONT], 0.f, 1.f);
     v.frontZ = d[VD_FRONT_Z];
     v.rearZ = d[VD_REAR_Z];
+    v.shiftUp = d[VD_SHIFT_UP_RPM];
+    v.shiftUpFull = d[VD_SHIFT_UP_FULL_RPM] > 0.f ? d[VD_SHIFT_UP_FULL_RPM] : d[VD_SHIFT_UP_RPM];
+    v.shiftTime = d[VD_SHIFT_TIME] > 0.f ? d[VD_SHIFT_TIME] : .25f;
+    v.drive = drive;
     v.live = true;
     w->system.AddConstraint(v.constraint);
     w->system.AddStepListener(v.constraint);
@@ -491,7 +503,43 @@ void setVehicleInput(World *w, int vehicle, float forward, float right, float br
     handbrake = std::clamp(handbrake, 0.f, 1.f);
     if (forward != 0.f || right != 0.f || brake != 0.f || handbrake != 0.f)
         w->system.GetBodyInterface().ActivateBody(v->body);
-    c->SetDriverInput(forward, right, brake, handbrake);
+    v->inForward = forward; v->inRight = right; v->inBrake = brake; v->inHand = handbrake;
+    // (during an upshift's torque cut the throttle is eased back in: stepGearbox)
+    const float cut = v->cutLeft > 0.f ? 1.f - v->cutLeft / v->shiftTime : 1.f;
+    c->SetDriverInput(forward > 0.f ? forward * cut : forward, right, brake, handbrake);
+}
+
+/**
+ * One step of a vehicle's upshifts (before Jolt's update): in a forward gear below the top, its driven wheels on the
+ * ground, with Jolt's own box idle (not mid-shift, its clutch home), past the shift point (VD_SHIFT_UP_RPM with no
+ * throttle .. VD_SHIFT_UP_FULL_RPM flat out) it goes up a gear at once, the clutch staying in (the engine is pulled down
+ * to the new gear's speed), and the throttle is cut and eased back in over VD_SHIFT_TIME: an automatic's torque-managed
+ * shift. Wheelspin does not hold it back (Jolt's own rule would), so the engine never waits on its limiter.
+ */
+static void stepGearbox(Vehicle &v, float dt) {
+    auto *c = static_cast<WheeledVehicleController *>(v.constraint->GetController());
+    VehicleTransmission &tr = c->GetTransmission();
+    if (v.cutLeft > 0.f) {
+        v.cutLeft = std::max(0.f, v.cutLeft - dt);
+        const float cut = 1.f - v.cutLeft / v.shiftTime;
+        c->SetDriverInput(v.inForward > 0.f ? v.inForward * cut : v.inForward, v.inRight, v.inBrake, v.inHand);
+        return;
+    }
+    const int g = tr.GetCurrentGear();
+    const int n = (int) tr.mGearRatios.size();
+    if (g < 1 || g >= n || v.inForward < 0.f || !tr.AllowSleep()) return;
+    const float thr = std::clamp(v.inForward, 0.f, 1.f);
+    const float up = v.shiftUp + (v.shiftUpFull - v.shiftUp) * thr;
+    if (c->GetEngine().GetCurrentRPM() <= up) return;
+    // (not in the air: after a jump the engine races and must not run up the box)
+    const auto &wheels = v.constraint->GetWheels();
+    const int a = v.drive == 1 ? 0 : 2;
+    const int b = v.drive == 2 ? 4 : a + 2;
+    for (int i = (v.drive == 2 ? 0 : a); i < b && i < (int) wheels.size(); ++i)
+        if (!wheels[i]->HasContact()) return;
+    tr.Set(g + 1, 1.f);
+    v.cutLeft = v.shiftTime;
+    c->SetDriverInput(0.f, v.inRight, v.inBrake, v.inHand);
 }
 
 void setVehiclePose(World *w, int vehicle, float x, float y, float z, float yaw) {
@@ -548,6 +596,7 @@ int step(World *w, float dt, int collisionSteps) {
             bi.AddForce(v.body, down * (f * (1.f - v.downFront)), p + q * Vec3(0.f, v.wheelY, v.rearZ));
         }
     }
+    for (Vehicle &v : w->vehicles) if (v.live) stepGearbox(v, dt);
     w->system.Update(dt, std::max(1, collisionSteps), &w->temp, &w->jobs);
     // what passed through something soft this step is slowed (horizontally: a bush does not hold a car up)
     if (w->dragCount > 0) {

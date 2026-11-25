@@ -109,6 +109,29 @@ class EngineSoundTest {
     }
 
     @Test
+    fun theLimiterBouncesAndKeepsTheEnginesVoice() {
+        // flat out on the limiter (2026-11-25, "topped out before it shifts"): it used to cut every firing to 15% for as
+        // long as it was held, a thin hiss at a quarter of the loudness; now a cut-and-fire bounce of the same engine
+        for (p in EngineProfile.ALL.filter { !it.electric }) {
+            val climb = render(p, 2f) { p.redline * .93f to 1f }.copyOfRange(Pcm.RATE / 2, Pcm.RATE * 2)
+            val top = render(p, 2f) { p.redline to 1f }.copyOfRange(Pcm.RATE / 2, Pcm.RATE * 2)
+            assertTrue("${p.name} keeps its body on the limiter: ${rms(climb)} -> ${rms(top)}", rms(top) > .5f * rms(climb))
+            // the loudness in 5 ms frames swings at the limiter's 6-20 Hz (its cuts), far more than below it
+            fun swing(a: FloatArray): Float {
+                val fr = Pcm.RATE / 200
+                val env = FloatArray(a.size / fr) { i -> var s = 0f; for (j in 0 until fr) s += a[i * fr + j] * a[i * fr + j]; sqrt(s / fr) }
+                val m = env.average().toFloat()
+                return sqrt(env.sumOf { ((it - m) * (it - m)).toDouble() }.toFloat() / env.size) / m
+            }
+            assertTrue("${p.name} bounces on the limiter (${swing(climb)} -> ${swing(top)})", swing(top) > swing(climb) * 1.5f)
+        }
+        // the sound's limiter is where the car's drivetrain governs it (the race Torrel's four revs to 8,200)
+        val rs = com.lifemax.rpg.feature.habits.vehicle.VehicleSpec.parse(java.io.File("src/main/assets/vehicles/torrel-1988-rs/model-info.json").readText())
+        assertEquals(8200f, EngineProfile.forSpec(rs).redline, 1f)
+        assertEquals(EngineProfile.TWINCAM_FOUR.cylinders, EngineProfile.forSpec(rs).cylinders)
+    }
+
+    @Test
     fun theFiringRateIsHeard() {
         // the envelope's strongest period at idle is the firing rate (a V8 at 600 rpm: 40 a second)
         val p = EngineProfile.OHV_V8

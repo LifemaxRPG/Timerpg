@@ -88,6 +88,22 @@ smash by severity, from where the car is. Getting in and out: the door opens, th
 **Doppler** for every car but the driven one (the listener rides in it): the radial speed relative to the listener's own
 velocity scales every frequency of the synth (`doppler`), eased.
 
+### The limiter (2026-11-25)
+
+Before, above 98.5% of the profile's redline the synth cut every firing to 15% for as long as the revs stayed there.
+It sounded like a thin hiss at a quarter of the loudness, with the exhaust's body gone (`limiter_*` clips: RMS 0.07-0.10
+against 0.16-0.53 just below, spectral centroid 3-4 times higher). The automatic also held cars there for up to 2 s
+while the tyres spun (VEHICLES.md, "The gearbox"). The race Torrel was worse still: it used the twin-cam four's 7,000
+rpm redline while its drivetrain revs to 8,200, so the sound sat on the limiter from 6,900 rpm.
+
+Now each car's profile takes its drivetrain's governed speed as its redline (`EngineProfile.forSpec`, `withRedline`).
+At the limit the synth bounces like a real limiter: a spark cut of 35-55 ms, then the engine fires again for 28-45 ms,
+and so on (10-14 cuts a second). Each cut dips the revs about 3.5%, and now and then unburnt mixture pops in the pipe.
+Held there for over a second (flat out at top speed in top gear), the cuts get shallower, more a governor's flutter.
+On the limiter, loudness now stays at 0.7-1.0 of the climb's, the timbre stays the engine's, and the loudness swings at
+6-20 Hz (`EngineSoundTest.theLimiterBouncesAndKeepsTheEnginesVoice`). `ShiftClipRenderTest` renders each car's
+full-throttle Jolt run (`SHIFT_TRACES`) and a limiter clip (`SOUND_OUT`).
+
 ## Ambience
 
 `SoundRules.at(hour, rain, cloud, mist, season, town, Place)` (pure) decides the levels; `SoundFeed.look` measures the
