@@ -152,14 +152,18 @@ class SoundFeed(private val sound: SoundScape) {
             if (best < Float.MAX_VALUE) { waterM = sqrt(best) / u; sound.waterAt(bx, bz, "river") }
         }
         fountain?.let { sound.fountainAt(it[0], it[1]) }
-        // the police: out looking (the loop's searching officers), the siren from the nearest's way, far off
-        val officers = runCatching { com.timerpg.street.LoopSession.officers(System.nanoTime()) }.getOrNull().orEmpty()
-        officers.minByOrNull { hypot(it.second - x, it.third - z) }?.let { o ->
+        // the police: only officers on a call (chasing, responding) within earshot sound the siren, from their way, at
+        // least a street off (a patrol is silent: SoundRules.sirenFor)
+        val range = SoundRules.SIREN_RANGE_M * u
+        val calls = runCatching { com.timerpg.street.LoopSession.sirenOfficers(System.nanoTime()) }.getOrNull().orEmpty()
+            .filter { hypot(it.second - x, it.third - z) < range }
+        calls.minByOrNull { hypot(it.second - x, it.third - z) }?.let { o ->
             val dx = o.second - x; val dz = o.third - z; val d = hypot(dx, dz).coerceAtLeast(1f)
-            val far = 250f * u
+            val far = d.coerceAtLeast(60f * u)
             sound.sirenAt(x + dx / d * far, z + dz / d * far)
         }
         val moving = w?.cars?.count { kotlin.math.abs(it.forwardSpeed) > 1f && it !== w.driven } ?: 0
-        return SoundRules.Place(year, green, urban, nPeople, waterM, GameState.indoors, TownPlay.inCar, officers.isNotEmpty(), 0f, moving)
+        return SoundRules.Place(year, green, urban, nPeople, waterM, GameState.indoors, TownPlay.inCar, calls.isNotEmpty(), 0f, moving,
+            (System.nanoTime() % 3_600_000_000_000L) / 1e9f)
     }
 }

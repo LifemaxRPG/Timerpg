@@ -53,7 +53,7 @@ class SirenSource : Mixer.Source(Mixer.AMB) {
     private var ph = 0f; private var ph2 = 0f
     private var g = 0f
     private var burst = 0f
-    private var rest = 3f
+    private var rest = .5f
     private val tmp = FloatArray(3)
     private val lp = OnePole(2500f)
     private val clang = Biquad().bandpass(1800f, 6f)
@@ -61,10 +61,11 @@ class SirenSource : Mixer.Source(Mixer.AMB) {
 
     override fun render(m: Mixer, out: FloatArray, frames: Int) {
         val dt = frames / m.rate.toFloat()
-        // bursts of 8-20 s, rests of 15-60 s, while the police are out
+        // while officers are on a call near (SoundRules.sirenFor): long runs of 20-40 s with short gaps of 2-6 s (the car
+        // behind a block, the driver cutting it at a junction); it starts within a second of the call
         if (on) {
-            if (burst > 0f) burst -= dt else { rest -= dt; if (rest <= 0f) { burst = r.range(8f, 20f); rest = r.range(15f, 60f) } }
-        } else burst = (burst - dt).coerceAtMost(0f)
+            if (burst > 0f) burst -= dt else { rest -= dt; if (rest <= 0f) { burst = r.range(20f, 40f); rest = r.range(2f, 6f) } }
+        } else { burst = (burst - dt).coerceAtMost(0f); rest = .5f }
         val target = if (on && burst > 0f) .5f else 0f
         if (g < 1e-4f && target == 0f) return
         if (!m.spatial(x, z, 40f, tmp)) return
