@@ -34,6 +34,12 @@ class WorldFarPlan(
     val town: HubFrame?,
     /** The year (roads built by then). */
     val year: Int = 1958,
+    /**
+     * Where the levels are centred (WORLD_STREAM.md): null round the town's middle, as before; out in the country the
+     * world streamer re-plans round the player's position, snapped to the coarsest level's lattice ([ANCHOR_CELLS] cells),
+     * so every level's vertices stay where they were and only the rings' extent moves. [origin] stays the town's frame.
+     */
+    val centre: WorldPos? = null,
 ) {
     /** The ground's height (m) every y is measured from. */
     val baseElev: Double = town?.elevM ?: 0.0
@@ -103,13 +109,20 @@ class WorldFarPlan(
         return ((raw - baseElev) * b - UNDER_M * (1 - b)).toFloat()
     }
 
+    /** The anchor's cell (a multiple of [ANCHOR_CELLS]): the levels' middle is this cell's centre. */
+    var anchorI = 0; private set
+    var anchorJ = 0; private set
+    /** The levels' middle on the planet (the anchor cell's centre). */
+    val middle: WorldPos get() = WorldPos.ofCells(anchorI + .5, anchorJ + .5)
+
     init { build() }
 
     private fun build() {
         // the anchor: the lattice point of the coarsest level nearest the town's middle (the origin out in the country)
-        val mid = ground?.let { doubleArrayOf((it[0] + it[2]) / 2, (it[1] + it[3]) / 2) } ?: doubleArrayOf(0.0, 0.0)
-        val ai = (floor((cx(mid[0]) - .5) / 4).roundToInt()) * 4
-        val aj = (floor((cz(mid[1]) - .5) / 4).roundToInt()) * 4
+        val mid = centre?.let { doubleArrayOf(origin.dx(it), origin.dz(it)) } ?: ground?.let { doubleArrayOf((it[0] + it[2]) / 2, (it[1] + it[3]) / 2) } ?: doubleArrayOf(0.0, 0.0)
+        // (round the town: the lattice cell below and left of its middle, as always; the streamer's middles are lattice cells already)
+        val ai = if (centre == null) anchorOf(cx(mid[0])) else nearestAnchor(cx(mid[0])); val aj = if (centre == null) anchorOf(cz(mid[1])) else nearestAnchor(cz(mid[1]))
+        anchorI = ai; anchorJ = aj
         // (the anchor's centre in metres from the origin; vertices of level 1 and 2 on the cells' centres)
         val ax = origin.dx(WorldPos.ofCells(ai + .5, 0.0)); val az = (aj + .5) * Planet.CELL_M - origin.z
         var inner: Level? = null
@@ -296,6 +309,12 @@ class WorldFarPlan(
         java.util.Locale.US, reach / 1000, lines.size, lines.count { it.kind == RIVER }, boxes.size)
 
     companion object {
+        /** The levels' anchor lattice (cells): a re-plan moves the middle by whole coarsest quads, so no vertex moves. */
+        const val ANCHOR_CELLS = 4
+        /** The anchor (a multiple of [ANCHOR_CELLS]) for a middle at cell coordinate [c]. */
+        fun anchorOf(c: Double): Int = (floor((c - .5) / ANCHOR_CELLS).roundToInt()) * ANCHOR_CELLS
+        /** The anchor nearest a middle at cell coordinate [c] (the streamer's). */
+        fun nearestAnchor(c: Double): Int = Math.round((c - .5) / ANCHOR_CELLS).toInt() * ANCHOR_CELLS
         /** The levels: atlas cells a quad, quads a side (finest first). */
         val LEVELS = listOf(.125 to 128, 1.0 to 96, 4.0 to 80)
         /** How far the coarsest level reaches from its middle (m): the horizon, 172 km. */

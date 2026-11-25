@@ -41,6 +41,8 @@ import org.jetbrains.skia.Image as SkiaImage
  */
 /** Called with the open world's town once it is built (GpuBudgetTest reads its GPU account there; -DgpuOnly then stops). */
 @Volatile var openBuilt: ((FilamentTown) -> Unit)? = null
+/** The world round the open world's town with -Dworld=1 (GpuWorldDriveTest drives out into it), else null. */
+@Volatile internal var openWorld: com.lifemax.rpg.feature.habits.presentation.scene3d.WorldFar? = null
 
 fun renderFilamentOpen(out: String) {
     val dir = File(out, "filament-open").also { it.mkdirs() }
@@ -142,6 +144,7 @@ fun renderFilamentOpen(out: String) {
     // (-Dworld=1: gamma on the planet, the world's far view round it: FilamentWorldPreview.kt)
     val worldSite = WorldPreview.site(town)
     val world = worldSite?.let { WorldPreview.attach(ft, town, it) }
+    openWorld = world
     // (-DworldVis=<m>: the air's visibility at sea level, for the far view and the horizon ring; a clear day 90 km)
     System.getProperty("worldVis")?.toDoubleOrNull()?.let { ft.air = com.lifemax.rpg.feature.habits.domain.WorldAir(it) }
     // (a still picture shows everyone in its one frame)

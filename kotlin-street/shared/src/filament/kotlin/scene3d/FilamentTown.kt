@@ -1884,6 +1884,11 @@ class FilamentTown(
      */
     internal var worldReach = 0f
 
+    /** How far from the eye the town's far boxes are drawn (street units; TownFar.REACH, or further with the world streamer). */
+    internal var townFarReach: Float
+        get() = far.reach
+        set(v) { far.reach = v }
+
     /**
      * Whether the town's grass runs on as plain fields to the horizon round its ground (TownGround); the world's near
      * terrain (W5a) turns it off and meets the town's grass at its edge instead. Set before the ground is built.

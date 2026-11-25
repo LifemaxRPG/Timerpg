@@ -211,6 +211,9 @@ internal class TownFar(
      * edge): each cell's crossing eased by [step] (a share of the switch a frame), its far boxes drawn or not; [look] and
      * [dark] as every layer's. Returns draws and triangles drawn.
      */
+    /** How far from the eye the far boxes are drawn (street units): [REACH], or further with the world streamer (the town stays on the skyline). */
+    var reach = REACH
+
     fun frame(pose: TownPose, look: FloatArray, dark: Float, detail: Float, step: Float, out: IntArray, hide: Boolean = false) {
         var draws = 0; var tris = 0
         // the districts first: past [SLOD_FROM] (with [SLOD_SLACK] either side) a district's coarse mesh stands in for its cells'
@@ -222,7 +225,7 @@ internal class TownFar(
             d.far = slod && if (d.far) dd > SLOD_FROM - SLOD_SLACK else dd > SLOD_FROM + SLOD_SLACK
             d.t = if (d.far) min(1f, d.t + step) else max(0f, d.t - step)
             val r = hypot(d.x1 - d.x0, d.z1 - d.z0) / 2f + d.top / 2f
-            val on = d.t > .02f && dd < REACH && pose.sees((d.x0 + d.x1) / 2f, d.top / 2f, (d.z0 + d.z1) / 2f, r) && !hide
+            val on = d.t > .02f && dd < reach && pose.sees((d.x0 + d.x1) / 2f, d.top / 2f, (d.z0 + d.z1) / 2f, r) && !hide
             l.update(look, dark, on, d.t, false)
             if (on) { draws += l.draws; tris += d.triangles }
         }
@@ -237,7 +240,7 @@ internal class TownFar(
             val mx = (c.x0 + c.x1) / 2f; val mz = (c.z0 + c.z1) / 2f
             // (crossing over to its district's coarse mesh: the inverse of the district's screen door)
             val f = min(c.t, 1f - (c.district?.t ?: 0f))
-            val on = f > .02f && d < REACH && pose.sees(mx, c.top / 2f, mz, r) && !hide
+            val on = f > .02f && d < reach && pose.sees(mx, c.top / 2f, mz, r) && !hide
             l.update(look, dark, on, f, false)
             if (on) { draws += l.draws; tris += c.triangles }
         }

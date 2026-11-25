@@ -78,6 +78,12 @@ internal class WorldNear(
     private val jobs = HashMap<WorldTerrain.Node, Future<Packed>>()
     private var desired: List<WorldTerrain.Node> = emptyList()
     private var desiredSet: Set<WorldTerrain.Node> = emptySet()
+    /** The nodes the eye will want in [LEAD_S] at its speed (made ahead, kept from eviction; drawn once wanted). */
+    private var ahead: List<WorldTerrain.Node> = emptyList()
+    private var keepSet: Set<WorldTerrain.Node> = emptySet()
+    /** Nodes drawn coarser than wanted (a wanted one not up yet) in the last frame, and over the whole run (frames). */
+    var coarseNow = 0; private set
+    var coarseFrames = 0L; private set
     private var eye: WorldTerrain.Eye? = null
     private var eyeGround = 0.0
     private var frameNo = 0L
@@ -110,6 +116,9 @@ internal class WorldNear(
             if (terrain == null) return
         }
         terrainJob?.let { j -> if (j.isDone) { terrain = j.get(); terrainJob = null } }
+        // (the world streamer planned the far view again: its terrain is the same ground (WORLD_STREAM.md), its roots the
+        // new plan's; the nodes up stay valid)
+        far.terrain?.let { ft -> if (terrain != null && ft !== terrain) { terrain = ft; eye = null } }
         stepAtlas(block = false)
     }
 
@@ -181,6 +190,8 @@ internal class WorldNear(
         drawn.clear(); covered.clear()
         val e = eye!!
         for (r in t.roots(e)) if (coverOf(t, r, e)) covered += WorldFar.blockKey(r.i, r.j)
+        coarseNow = desired.count { it !in live }
+        if (coarseNow > 0) coarseFrames++
         far.cover(HashSet(covered))
         val rm = engine.renderableManager
         val show = HashSet(drawn)
@@ -231,16 +242,24 @@ internal class WorldNear(
         eyeGround = t.heightLocal(t.localX(Math.round(e.x / Planet.TILE_M)), t.localZ(Math.round(e.z / Planet.TILE_M)))
         desired = t.select(e, eyeGround)
         desiredSet = desired.toHashSet()
+        // (the eye [LEAD_S] ahead at the streamer's eased velocity: those nodes are made before they are wanted)
+        val vx = far.stream.vx; val vz = far.stream.vz
+        ahead = if (vx * vx + vz * vz < 4.0) emptyList() else {
+            val a = WorldTerrain.Eye(e.x + vx * LEAD_S, e.z + vz * LEAD_S, e.y)
+            t.select(a, eyeGround).filter { it !in desiredSet }
+        }
+        keepSet = desiredSet + ahead
     }
 
     /** Starts the wanted nodes not yet made: coarse first (a cover comes soonest), then nearest. */
     private fun schedule(t: WorldTerrain) {
         // (jobs for nodes no longer wanted are dropped: a worker already on one finishes it, unused)
         val it = jobs.entries.iterator()
-        while (it.hasNext()) { val (n, j) = it.next(); if (n !in desiredSet && !j.isDone) { j.cancel(false); it.remove() } }
+        while (it.hasNext()) { val (n, j) = it.next(); if (n !in keepSet && !j.isDone) { j.cancel(false); it.remove() } }
         if (jobs.size >= IN_FLIGHT) return
         val e = eye ?: return
-        val todo = desired.filter { it !in live && it !in jobs }.sortedWith(compareBy({ -it.level }, { t.distance2d(it, e) }))
+        val todo = desired.filter { it !in live && it !in jobs }.sortedWith(compareBy({ -it.level }, { t.distance2d(it, e) })) +
+            ahead.filter { it !in live && it !in jobs }.sortedWith(compareBy({ -it.level }, { t.distance2d(it, e) }))
         for (n in todo) {
             if (jobs.size >= IN_FLIGHT) break
             jobs[n] = kit.pool.submit(Callable { pack(t, n, u) })
@@ -258,7 +277,7 @@ internal class WorldNear(
             it.remove()
             if (j.isCancelled) continue
             val p = try { j.get() } catch (e: java.util.concurrent.ExecutionException) { throw BuildFailure("building the near terrain's node $node", e.cause ?: e) }
-            if (node !in desiredSet || node in live) continue
+            if (node !in keepSet || node in live) continue
             live[node] = make(p)
             n++
             if (n >= max || System.nanoTime() - t0 > budgetNs) break
@@ -310,11 +329,19 @@ internal class WorldNear(
         l.ids?.let { GpuAccount.remove(it); engine.destroyTexture(it) }
     }
 
-    /** Keeps the [CACHE] most recently drawn nodes no longer wanted; frees the rest. */
+    /**
+     * Keeps the [CACHE] most recently drawn nodes no longer wanted, within [WorldMemory.NEAR_GPU_BUDGET] for all the nodes
+     * up; frees the rest, the least recently drawn first.
+     */
     private fun evict() {
-        val spare = live.values.filter { !it.shown && it.node !in desiredSet }
-        if (spare.size <= CACHE) return
-        for (l in spare.sortedBy { it.used }.take(spare.size - CACHE)) { destroy(l); live.remove(l.node) }
+        val spare = live.values.filter { !it.shown && it.node !in keepSet }
+        var bytes = live.values.sumOf { it.bytes + it.texBytes }
+        if (spare.size <= CACHE && bytes <= WorldMemory.NEAR_GPU_BUDGET) return
+        var drop = spare.size - CACHE
+        for (l in spare.sortedBy { it.used }) {
+            if (drop <= 0 && bytes <= WorldMemory.NEAR_GPU_BUDGET) break
+            destroy(l); live.remove(l.node); drop--; bytes -= l.bytes + l.texBytes
+        }
     }
 
     private fun account() {
@@ -395,9 +422,11 @@ internal class WorldNear(
         /** Nodes being made at once, uploaded a frame, and the upload's time budget a frame. */
         const val IN_FLIGHT = 6
         const val UPLOADS = 2
-        const val UPLOAD_BUDGET_NS = 3_000_000L
+        const val UPLOAD_BUDGET_NS = 2_500_000L
         /** Uploaded nodes kept when no longer wanted. */
         const val CACHE = 48
+        /** The nodes the eye will want this far ahead (s) at its speed are made before they are wanted. */
+        const val LEAD_S = 4.0
         /** The camera moves this far (m) before the nodes are chosen again. */
         const val RESELECT_M = 6.0
         /** How far (m) the dither reaches across a border between two materials. */

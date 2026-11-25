@@ -177,7 +177,7 @@ class WorldSite(val skeleton: WorldSkeleton, val hub: WorldSkeleton.Place, val f
         if (!frame.near(s.pos, 3000.0)) return null
         return floatArrayOf(frame.streetX(s.pos).toFloat(), frame.streetZ(s.pos).toFloat())
     }
-    fun plan(year: Int): WorldFarPlan = WorldFarPlan(skeleton, origin.origin, frame, year)
+    fun plan(year: Int, centre: WorldPos? = null): WorldFarPlan = WorldFarPlan(skeleton, frame.origin, frame, year, centre)
     /** One line for the breadcrumbs. */
     val report: String get() = "world ${skeleton.seed} v${skeleton.version}: ${hub.name} (${hub.id}) at %.3f, %.3f km, %.0f m up; %d places, %d roads, %d rail lines, %d rivers".format(
         java.util.Locale.US, frame.origin.x / 1000, frame.origin.z / 1000, frame.elevM, skeleton.places.size, skeleton.roads.size, skeleton.railLines.size, skeleton.rivers.size)

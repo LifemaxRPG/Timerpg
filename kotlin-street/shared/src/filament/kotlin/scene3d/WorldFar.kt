@@ -4,6 +4,7 @@ import com.lifemax.rpg.feature.habits.domain.RenderOrigin
 import com.lifemax.rpg.feature.habits.domain.WorldFarPlan
 import com.lifemax.rpg.feature.habits.domain.WorldMemory
 import com.lifemax.rpg.feature.habits.domain.WorldPos
+import com.lifemax.rpg.feature.habits.domain.WorldStream
 import com.lifemax.rpg.feature.habits.domain.Planet
 import com.lifemax.rpg.feature.habits.domain.WorldTerrain
 import com.lifemax.rpg.feature.habits.domain.WorldNoise
@@ -40,13 +41,18 @@ internal class WorldFar(
      * draws no fields past it, so the finest level covers everything but this; null: the town's ground ([WorldFarPlan.outside]).
      */
     private val townGrass: DoubleArray? = null,
+    /**
+     * The world streamer (docs/WORLD_STREAM.md): the far view planned again round a point out in the country (the eye's
+     * lead, [WorldStream]); null: planned once round the town, as before.
+     */
+    private val replanOf: ((WorldPos) -> WorldFarPlan)? = null,
 ) : TownExtra {
     /** The plan, made on a worker at the first [step]. */
     @Volatile var plan: WorldFarPlan? = null; private set
     private val u = origin.unitsPerMetre.toFloat()
 
     /** A mesh of the far view; [block]: the near terrain's root block ([blockKey]) it lies in, hidden where that is drawn near. */
-    private class Part(val name: String, val anchor: WorldPos, packed: PropLayer.Packed, val block: Long? = null) {
+    private class Part(val name: String, val anchor: WorldPos, packed: PropLayer.Packed, val block: Long? = null, val ocean: Boolean = false) {
         var layer: PropLayer? = null; var gen = -1
         /** Its packed buffers and picture until uploaded, then let go (they were kept for the town's life: ~15 MB). */
         var packed: PropLayer.Packed? = packed
@@ -56,6 +62,23 @@ internal class WorldFar(
     private var job: java.util.concurrent.Future<List<Part>>? = null
     private var parts: List<Part>? = null
     private var buildMs = 0f
+
+    // ---- the streamer: the next plan built on a worker, uploaded within [UPLOAD_NS] a frame, then swapped in whole
+    /** A plan made again round a new middle, with its terrain and parts (a worker). */
+    private class Next(val plan: WorldFarPlan, val terrain: WorldTerrain?, val parts: List<Part>, val planMs: Float, val packMs: Float)
+    val stream = WorldStream()
+    private var nextJob: java.util.concurrent.Future<Next>? = null
+    private var next: Next? = null
+    /** The parts swapped out, freed a few a frame. */
+    private val retiring = ArrayList<Part>()
+    /** Re-plans swapped in, and their times (ms: planning and packing on a worker). */
+    var swaps = 0; private set
+    val planTimes = ArrayList<Float>()
+    val packTimes = ArrayList<Float>()
+    /** Each frame's time (ms) uploading and freeing the far view's parts, for the frames that did any. */
+    val uploadFrames = ArrayList<Float>()
+    /** Called once a re-planned terrain is swapped in (the cars' ground reads it from then on: the same heights). */
+    var onTerrainSwap: ((WorldTerrain) -> Unit)? = null
 
     override val pending: Boolean get() = parts?.any { it.layer == null } ?: true
     override val report: String get() = "world far view: ${plan?.report ?: "not planned yet"}; ${WorldMemory.triangles} triangles in ${WorldMemory.draws} draws, built in %.0f ms".format(java.util.Locale.US, buildMs) + (horizon?.let { "; ${it.report}" } ?: "")
@@ -68,34 +91,113 @@ internal class WorldFar(
             job = null
             WorldMemory.plan = parts!!.sumOf { it.packed?.heldBytes ?: 0L }
         }
-        // one upload a call (a big mesh is a frame's work on the phone)
-        val p = parts?.firstOrNull { it.layer == null } ?: return
+        // the streamer's next plan, once made: its parts uploaded within the frame's budget
+        nextJob?.let { j ->
+            if (j.isDone) {
+                next = try { j.get() } catch (e: java.util.concurrent.ExecutionException) { throw BuildFailure("planning the world's far view again", e.cause ?: e) }
+                nextJob = null
+                next!!.let { n -> synchronized(planTimes) { planTimes += n.planMs; packTimes += n.packMs } }
+            }
+        }
+        val t0 = System.nanoTime()
+        var did = false
+        // (the first plan: one upload a call, as before (a big mesh is a frame's work on the phone); the streamer's within [UPLOAD_NS])
+        val first = parts?.firstOrNull { it.layer == null }
+        if (first != null) { upload(first); did = true }
+        else next?.let { n ->
+            for (p in n.parts) {
+                if (p.layer != null) continue
+                if (did && System.nanoTime() - t0 > UPLOAD_NS) break
+                upload(p); did = true
+                // (hidden until the whole plan is up and swapped in)
+                lastFrame?.let { f -> p.layer!!.update(f.look, f.dark, false, 1f, false) }
+            }
+        }
+        // the parts swapped out: freed a few a frame (their materials over the next frames, the graveyard's way)
+        while (retiring.isNotEmpty() && (!did || System.nanoTime() - t0 < UPLOAD_NS)) { retiring.removeAt(retiring.size - 1).layer?.destroy(later = true); did = true }
+        if (did) synchronized(uploadFrames) { uploadFrames += (System.nanoTime() - t0) / 1e6f }
+        account()
+    }
+
+    private fun upload(p: Part) {
         val l = PropLayer(kit.engine, kit.scene, kit.lit, null, sharedTextures = kit.textures, cull = false)
         l.seeThrough = false
         l.upload(p.packed!!, casts = false)
         p.layer = l
         p.packed = null
-        val all = parts!!
+    }
+
+    /** The far view's GPU memory: the plan drawn, the next one uploading and the parts still being freed. */
+    private fun account() {
+        val all = (parts ?: emptyList()) + (next?.parts ?: emptyList()) + retiring
         WorldMemory.gpuBuffers = all.sumOf { it.bytes * if (it.layer != null) 1 else 0 }
         WorldMemory.gpuTextures = all.filter { it.layer != null }.sumOf { it.texBytes }
-        WorldMemory.triangles = all.sumOf { it.layer?.triangles ?: 0 }
-        WorldMemory.draws = all.sumOf { it.layer?.draws ?: 0 }
-        if (all.all { it.layer != null }) WorldMemory.plan = 0
+        val drawn = parts ?: emptyList()
+        WorldMemory.triangles = drawn.sumOf { it.layer?.triangles ?: 0 }
+        WorldMemory.draws = drawn.sumOf { it.layer?.draws ?: 0 }
+        WorldMemory.plan = all.sumOf { it.packed?.heldBytes ?: 0L }
+        WorldMemory.farParts = all.count { it.layer != null }
     }
+
+    /**
+     * The streamer (a frame): plans the far view again round the eye's lead once it strays [WorldStream.RECENTRE_M] from
+     * the plan's middle; swaps a next plan in once all of it is uploaded (its parts shown and the old ones hidden in the
+     * same frame: every vertex the two share is the same, so only the rings' far rim changes).
+     */
+    private fun streamStep(f: TownExtra.Frame) {
+        val make = replanOf ?: return
+        val pl = plan ?: return
+        if (parts?.all { it.layer != null } != true) return
+        val u = origin.unitsPerMetre
+        val eye = origin.origin.plus(f.pose.ex / u, f.pose.ez / u)
+        stream.observe(eye, f.seconds)
+        val n = next
+        if (n != null && n.parts.all { it.layer != null }) {
+            // the swap
+            val old = parts!!
+            parts = n.parts; plan = n.plan; next = null
+            for (p in old) p.layer?.update(f.look, f.dark, false, 1f, false)
+            retiring += old
+            swaps++
+            n.terrain?.let { t -> terrain = t; onTerrainSwap?.invoke(t) }
+            for (p in n.parts) p.gen = -1
+            return
+        }
+        if (n != null || nextJob != null) return
+        val mid = stream.replanFor(eye, pl.middle) ?: return
+        // (the same middle: nothing to do)
+        val ai = WorldFarPlan.anchorOf(mid.x / Planet.CELL_M); val aj = WorldFarPlan.anchorOf(mid.z / Planet.CELL_M)
+        if (Math.floorMod(ai - pl.anchorI, com.lifemax.rpg.feature.habits.domain.WorldSkeleton.W) == 0 && aj == pl.anchorJ) return
+        val grass = townGrass
+        nextJob = kit.pool.submit(java.util.concurrent.Callable {
+            val t0 = System.nanoTime()
+            val np = make(mid)
+            val t = if (grass != null) WorldTerrain(np.sk, np, grass) else null
+            val t1 = System.nanoTime()
+            val ps = partsOf(np, t)
+            Next(np, t, ps, (t1 - t0) / 1e6f, (System.nanoTime() - t1) / 1e6f)
+        })
+    }
+
+    /** Whether the streamer has a plan being made or uploaded. */
+    val streaming: Boolean get() = nextJob != null || next != null
 
     private val m = FloatArray(16).also { it[0] = 1f; it[5] = 1f; it[10] = 1f; it[15] = 1f }
     private val at = FloatArray(2)
 
     override fun frame(f: TownExtra.Frame, out: IntArray): IntArray {
+        streamStep(f)
         var draws = 0; var tris = 0
         for (p in parts ?: emptyList()) {
             val l = p.layer ?: continue
-            if (p.gen != origin.generation) {
-                // (the root transform: the part's own origin less the render origin, in doubles, then floats)
+            val gen = origin.generation * 2 + (if (p.ocean && oceanDropM > 0f) 1 else 0)
+            if (p.gen != gen) {
+                // (the root transform: the part's own origin less the render origin, in doubles, then floats; the flat sea
+                // sunk under the near ocean's troughs while that is drawn: WorldOcean)
                 origin.toRender(p.anchor, at)
-                m[12] = at[0]; m[13] = 0f; m[14] = at[1]
+                m[12] = at[0]; m[13] = if (p.ocean) -oceanDropM * u else 0f; m[14] = at[1]
                 l.setTransform(m)
-                p.gen = origin.generation
+                p.gen = gen
             }
             val shown = !hidden && (p.block == null || p.block !in covered)
             l.update(f.look, f.dark, shown, 1f, false)
@@ -157,6 +259,9 @@ internal class WorldFar(
         }
     }
 
+    /** How far (m) the far view's flat sea is sunk: under the near ocean's waves while [WorldOcean] draws them, else 0. */
+    var oceanDropM = 0f
+
     /** Whether every part of the far view is uploaded. */
     val ready: Boolean get() = parts?.all { it.layer != null } == true
 
@@ -165,8 +270,11 @@ internal class WorldFar(
 
     /** The near terrain drawn with it (W5a), if any. */
     var near: WorldNear? = null
+    /** The near ocean's waves drawn with it (WORLD_STREAM.md), if any. */
+    var ocean: WorldOcean? = null
 
-    override fun destroy() { job?.cancel(true); ringJob?.cancel(true); ringJob = null; parts?.forEach { it.layer?.destroy() }; parts = null; WorldMemory.gpuBuffers = 0; WorldMemory.gpuTextures = 0; WorldMemory.triangles = 0; WorldMemory.draws = 0 }
+    override fun destroy() { job?.cancel(true); ringJob?.cancel(true); ringJob = null; nextJob?.cancel(true); nextJob = null; next?.parts?.forEach { it.layer?.destroy() }; next = null
+        retiring.forEach { it.layer?.destroy() }; retiring.clear(); parts?.forEach { it.layer?.destroy() }; parts = null; WorldMemory.gpuBuffers = 0; WorldMemory.gpuTextures = 0; WorldMemory.triangles = 0; WorldMemory.draws = 0 }
 
     // ---------------------------------------------------------------- building (a worker)
 
@@ -180,14 +288,19 @@ internal class WorldFar(
 
     private fun build(): List<Part> {
         val plan = planOf().also { this.plan = it }
-        if (townGrass != null) terrainMade(WorldTerrain(plan.sk, plan, townGrass))
+        val t = if (townGrass != null) WorldTerrain(plan.sk, plan, townGrass).also { terrainMade(it) } else null
+        return partsOf(plan, t)
+    }
+
+    /** Every part of [plan]'s far view (any thread); [t]: the near terrain's ground made with it, whose materials the finest level wears. */
+    private fun partsOf(plan: WorldFarPlan, t: WorldTerrain?): List<Part> {
         val out = ArrayList<Part>()
-        for ((k, lv) in plan.levels.withIndex()) out += if (k == 0) blocks(lv) else listOfNotNull(level(k, lv))
+        for ((k, lv) in plan.levels.withIndex()) out += if (k == 0) blocks(plan, t, lv) else listOfNotNull(level(plan, k, lv))
         val mid = plan.levels.first().let { doubleArrayOf(it.ox + it.n * it.spacing / 2, it.oz + it.n * it.spacing / 2) }
         val anchor = plan.origin.plus(mid[0], mid[1])
-        ocean()?.let { out += Part("ocean", anchor, it) }
-        out += lines(mid, anchor)
-        boxes(mid)?.let { out += Part("towns", anchor, it) }
+        ocean(plan)?.let { out += Part("ocean", anchor, it, ocean = true) }
+        out += lines(plan, mid, anchor)
+        boxes(plan, mid)?.let { out += Part("towns", anchor, it) }
         return out
     }
 
@@ -266,8 +379,7 @@ internal class WorldFar(
     /** Runs [draw] twice on a [Pack]: counting, then writing. */
     private inline fun pack(p: Pack, draw: (Pack) -> Unit): PropLayer.Packed? { draw(p); p.begin(); draw(p); return p.done() }
 
-    private fun level(k: Int, lv: WorldFarPlan.Level): Part? {
-        val plan = plan!!
+    private fun level(plan: WorldFarPlan, k: Int, lv: WorldFarPlan.Level): Part? {
         val n = lv.n
         val img = IntArray(n * n) { lv.colours[it].takeIf { c -> c != 0 } ?: 0xFF000000.toInt() }
         val s = (lv.spacing * u).toFloat()
@@ -309,13 +421,11 @@ internal class WorldFar(
      * The finest level as a part a root block of the near terrain (eight quads a side: [WorldTerrain.ROOT_TILES]), each
      * with a skirt round its rim, so the near terrain can take any block's place and neither leaves a crack.
      */
-    private fun blocks(lv: WorldFarPlan.Level): List<Part> {
-        val plan = plan!!
+    private fun blocks(plan: WorldFarPlan, t: WorldTerrain?, lv: WorldFarPlan.Level): List<Part> {
         val n = lv.n
         // (a quad wholly on the town's ground has no colour of its own in the plan: the town's grass, where it is drawn;
         // with the near terrain, each quad wears the near ground's material at its middle, in that picture's mean colour, so
         // the far view goes on as the near ground looks: the same fields, rock and water)
-        val t = terrain
         val pt = WorldTerrain.Point()
         val img = IntArray(n * n) { k ->
             val own = lv.colours[k].takeIf { c -> c != 0 } ?: WorldFarPlan.TOWN_GRASS
@@ -370,8 +480,7 @@ internal class WorldFar(
         return out
     }
 
-    private fun ocean(): PropLayer.Packed? {
-        val plan = plan!!
+    private fun ocean(plan: WorldFarPlan): PropLayer.Packed? {
         val r = (plan.reach * u).toFloat(); val y = plan.seaLevel * u
         return pack(Pack(intArrayOf(OCEAN, OCEAN, OCEAN, OCEAN), 2, 2)) { p ->
             p.flat(-r, y, -r, r, y, -r, r, y, r, 1f, 1f)
@@ -383,8 +492,7 @@ internal class WorldFar(
      * The lines as ribbons on the ground: those over the finest level cut at the root blocks' edges, a part a block (hidden
      * with its block where the near terrain paints the lines itself), the rest one part.
      */
-    private fun lines(mid: DoubleArray, anchor: WorldPos): List<Part> {
-        val plan = plan!!
+    private fun lines(plan: WorldFarPlan, mid: DoubleArray, anchor: WorldPos): List<Part> {
         val cols = WorldFarPlan.LINE_COLOURS
         val by = LinkedHashMap<Long?, Tris>()
         // (drawn in order: county roads, highways, expressways, rail, then the rivers over all)
@@ -464,8 +572,7 @@ internal class WorldFar(
         }
     }
 
-    private fun boxes(mid: DoubleArray): PropLayer.Packed? {
-        val plan = plan!!
+    private fun boxes(plan: WorldFarPlan, mid: DoubleArray): PropLayer.Packed? {
         if (plan.boxes.isEmpty()) return null
         // one picture: each wall colour's 6 x 4 front (its windows, some lit at night: the mask) in a column, the roofs under them
         val walls = WorldFarPlan.WALLS; val roofs = WorldFarPlan.ROOFS
@@ -505,6 +612,8 @@ internal class WorldFar(
 
     companion object {
         const val OCEAN = 0xFF2C6296.toInt()
+        /** The streamer's upload and free time a frame (ns): with the near terrain's 2.5 ms the world's 4 ms (the capital's own budget, TownSession). */
+        const val UPLOAD_NS = 1_500_000L
 
         /** A root block's key: the near terrain's top-level node ([WorldTerrain.Node]) at ([i], [j]), x wrapped round the planet. */
         fun blockKey(i: Int, j: Int): Long = (Math.floorMod(i, BLOCKS_ROUND).toLong() shl 32) or (j.toLong() and 0xffffffffL)
@@ -513,20 +622,39 @@ internal class WorldFar(
 
         /**
          * Adds the world round the town to [town] ([plan] made on a worker) (its far plane reaching the horizon, its own grass apron left out:
-         * the world's ground runs on from the town's edge instead); [origin] is the app's render origin.
+         * the world's ground runs on from the town's edge instead); [origin] is the app's render origin. [replan] (the world
+         * streamer, docs/WORLD_STREAM.md): the same plan made round another middle, so the world follows the player out of
+         * town; null: planned once round the town. With it the town's far boxes are drawn out to [TOWN_REACH_M] (the capital
+         * stays on the skyline as the player drives off) and the near ocean's waves ([WorldOcean]) come with it.
          */
-        fun attach(town: FilamentTown, plan: () -> WorldFarPlan, origin: RenderOrigin, near: Boolean = nearOn): WorldFar {
+        fun attach(town: FilamentTown, plan: () -> WorldFarPlan, origin: RenderOrigin, near: Boolean = nearOn, replan: ((WorldPos) -> WorldFarPlan)? = null): WorldFar {
             town.worldReach = (WorldFarPlan.REACH_M * origin.unitsPerMetre * 1.02).toFloat()
             town.worldUnitsPerMetre = origin.unitsPerMetre
             town.worldBaseM = origin.town?.elevM ?: 0.0
             // the town's own grass, in metres from the plan's origin (the town's frame while the plan is made in it)
             val u = origin.unitsPerMetre
             val grass = if (near) TownGround.boundsOf(town.town).let { b -> doubleArrayOf(b[0] / u, b[1] / u, b[2] / u, b[3] / u) } else null
-            val far = town.addExtra { WorldFar(it, plan, origin, grass) }
+            val far = town.addExtra { WorldFar(it, plan, origin, grass, if (streamOn) replan else null) }
             if (ringOn) far.onHorizon = { town.horizon(it) }
             if (near) { far.near = WorldNear.attach(town, far, origin, grass); town.farFields = false }
+            if (streamOn && replan != null) {
+                town.townFarReach = (TOWN_REACH_M * u).toFloat()
+                if (oceanOn) far.ocean = WorldOcean.attach(town, far, origin)
+            }
             return far
         }
+
+        /** The capital's far boxes reach this far from the eye (m) with the streamer on: past it the air has hidden them. */
+        const val TOWN_REACH_M = 60_000.0
+
+        /** Whether the world follows the player out of town (previews: -DworldStream=0: planned once round the town, as before). */
+        @JvmStatic var streamOn = true
+        /**
+         * Whether the near ocean's waves are drawn by the coast. Off by default for now (previews: -DworldOcean=1): placed,
+         * anchored and budgeted, but in the town's view it reads as one flat teal, not Jeff's stepped waves
+         * (docs/WORLD_STREAM.md, "The near ocean": a follow-up).
+         */
+        @JvmStatic var oceanOn = false
 
         /** The finest level's rim over which its colours fade from the near ground's materials to the biomes' (quads). */
         private const val RIM_FADE = 40

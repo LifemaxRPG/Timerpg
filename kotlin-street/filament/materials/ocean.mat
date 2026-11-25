@@ -57,6 +57,10 @@ material {
         { type : float4, name : waveB5, precision : high },
         // Camera world position (xyz)
         { type : float4, name : eyePos, precision : high },
+        // The ocean's own frame (metres) to the scene's user world (the world streamer, WorldOcean: metres from an
+        // anchor near the eye to the town's street units); identity in the ocean preview. Filament's fog and shading
+        // position come from the world position, so it must be the scene's, not the ocean's metres.
+        { type : mat4, name : worldOf, precision : high },
         // Unit vector pointing TOWARDS the sun (day/dusk) or moon (night) in xyz; night factor 0..1 in w
         { type : float4, name : lightDir, precision : high },
         // Sun/moon glint sparkle colour (rgb) and base strength (a)
@@ -183,7 +187,7 @@ vertex {
             materialParams.gridOrigin.y + disp.y,
             worldXZ.y + disp.z
         );
-        material.worldPosition = vec4(displacedWorld, 1.0);
+        material.worldPosition = inverse(getUserWorldFromWorldMatrix()) * (materialParams.worldOf * vec4(displacedWorld, 1.0));
 
         // Shift localPos -> displacedWorld, then project via materialParams.look (exact same transform as street_lit.mat)
         vec3 delta = displacedWorld - localPos;

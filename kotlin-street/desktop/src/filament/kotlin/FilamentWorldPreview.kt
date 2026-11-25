@@ -35,11 +35,18 @@ internal object WorldPreview {
         return site
     }
 
-    fun attach(ft: FilamentTown, town: Town, site: WorldSite): WorldFar = WorldFar.also { it.ringOn = System.getProperty("horizon") != "0" }.attach(ft, {
+    fun attach(ft: FilamentTown, town: Town, site: WorldSite): WorldFar = WorldFar.also {
+        it.ringOn = System.getProperty("horizon") != "0"
+        // (-DworldStream=0: the far view planned once round the town, as before the streamer; -DworldOcean=1: the near waves)
+        it.streamOn = System.getProperty("worldStream") != "0"
+        it.oceanOn = System.getProperty("worldOcean") == "1"
+    }.attach(ft, {
         val t0 = System.nanoTime()
         // (-DworldYear=1990: the world's roads as they are that year, Highways v2)
-        site.plan(System.getProperty("worldYear")?.toIntOrNull() ?: town.year).also { println("  world: far view planned in %.0f ms: %s".format((System.nanoTime() - t0) / 1e6, it.report)) }
-    }, site.origin, near = System.getProperty("worldNear") != "0")
+        site.plan(year(town)).also { println("  world: far view planned in %.0f ms: %s".format((System.nanoTime() - t0) / 1e6, it.report)) }
+    }, site.origin, near = System.getProperty("worldNear") != "0", replan = { c -> site.plan(year(town), c) })
+
+    private fun year(town: Town): Int = System.getProperty("worldYear")?.toIntOrNull() ?: town.year
 
     /** A free camera over ([tx], [ty], [tz]) (street units), [yaw] (0 north, clockwise), [pitch] down, [dist] back, [fov] tall. */
     private fun pose(tx: Float, ty: Float, tz: Float, yaw: Float, pitch: Float, dist: Float, fov: Float, w: Int, h: Int, far: Float, hazeKm: Float): TownPose {

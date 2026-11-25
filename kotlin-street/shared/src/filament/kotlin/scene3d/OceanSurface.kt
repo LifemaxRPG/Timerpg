@@ -211,6 +211,8 @@ class OceanSurface(
 
         // Default hull foam ring off until setHullFoam() is called
         mi.setParameter("hullPose", 0f, 0f, 1f, 0f)
+        // The ocean's metres are the scene's world (the preview); WorldOcean places them in the town's street units
+        setWorldOf(floatArrayOf(1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f))
         mi.setParameter("hullShape", 1f, 2f, 0.35f, 0f)
 
         RenderableManager.Builder(1)
@@ -314,6 +316,19 @@ class OceanSurface(
         mi.setParameter("colLipHighlight", p.colLipHighlight[0], p.colLipHighlight[1], p.colLipHighlight[2], 1f)
         mi.setParameter("foamColor", p.foamColor[0], p.foamColor[1], p.foamColor[2], foamThreshold)
     }
+
+    /** The ocean's frame (metres) to the scene's world (column-major): its fog and shading position (WorldOcean). */
+    fun setWorldOf(m: FloatArray) { mi.setParameter("worldOf", MaterialInstance.FloatElement.MAT4, m, 0, 1) }
+
+    /** Shows or hides it (the world's near ocean draws it only by the coast: WorldOcean). */
+    fun setVisible(on: Boolean) {
+        val rm = engine.renderableManager
+        val ri = rm.getInstance(entity)
+        if (ri != 0) rm.setLayerMask(ri, 0xff, if (on) 0xff else 0)
+    }
+
+    /** Its vertex and index buffers (bytes). */
+    val bytes: Long get() = vertexCount * 12L + triangleCount * 3L * (if (vertexCount <= 65535) 2 else 4)
 
     fun destroy() {
         scene.remove(entity)

@@ -645,7 +645,11 @@ private class FilamentHost(private val ctx: Context, private val view: View, pri
             }
             // the world round the town (docs/WORLD_GEN.md W4: the skeleton's far view to the horizon), planned and built on the town's workers
             data.world?.let { w ->
-                val far = com.lifemax.rpg.feature.habits.presentation.scene3d.WorldFar.attach(ft, { w.plan(data.town.year) }, w.origin)
+                // (the world streamer, docs/WORLD_STREAM.md: the far view planned again round the player out in the country)
+                val far = com.lifemax.rpg.feature.habits.presentation.scene3d.WorldFar.attach(ft, { w.plan(data.town.year) }, w.origin,
+                    replan = { c -> w.plan(data.town.year, c) })
+                // (a re-planned terrain is the same ground: the cars' chunks stay, they read the new one from now on)
+                far.onTerrainSwap = { t -> com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.terrain = t }
                 // (the cars' ground beyond the town is this same terrain, handed over once it is made)
                 com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.terrain = null
                 far.whenTerrain { t ->
@@ -661,8 +665,10 @@ private class FilamentHost(private val ctx: Context, private val view: View, pri
             run = rn
             FilamentStats.loadMs = (System.nanoTime() - t0) / 1e6f
         }
-        // (the render origin follows the player: in the town it stays the town's own frame, so nothing moves)
-        data.world?.let { w -> w.origin.update(w.world(walk.wx, walk.wz)) }
+        // (the render origin stays the capital's own frame: the player, the camera and the cars are in its street units, so
+        // the world's parts are placed from it too (docs/WORLD_STREAM.md, "Coordinates"). Re-centring out in the country
+        // waits for the player, camera and physics to be re-based with it (step 3, travel between towns); moving the origin
+        // alone would shift the world's parts against everything else.)
         // (the AI panel's resolution changed)
         val q = com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.resolution
         if (q != appliedResolution) { appliedResolution = q; town?.view?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.applyResolution(it) } }
