@@ -1557,6 +1557,9 @@ class DialogueEngine private constructor(private val app: Context) {
         native?.mtp = if (role == ModelRole.BANK && useMtp && (mtpSet || native?.device == com.timerpg.street.llm.NativeLlm.NPU)) mtpWanted else 0
         // n-gram guesses (no model of their own: either role), stacked before MTP's
         native?.ngram = ngramWanted
+        native?.fixedSteps = fixedStepsWanted
+        // overnight, the main model: several lines a pass (one state per sequence: only when asked for)
+        native?.batchSeqs = if (night && role == ModelRole.BANK) writerBatchWanted else 0
         // loading holds the AI lane: speech, memory and the voices do not load beside it (their memory added to a load's
         // is what took the phone down)
         // the prompt's batch: 128 on the NPU (its compute buffers: MEMORY_AUDIT.md, M2), 512 elsewhere (batchFor)

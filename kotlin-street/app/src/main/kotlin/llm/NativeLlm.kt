@@ -158,6 +158,29 @@ class NativeLlm(context: Context? = null) : LlmBackend {
         val hold = runCatching { prefs?.getInt("power_hold_ms", 400) }.getOrNull() ?: 400
         if (mode != "auto") runCatching { if (android.system.Os.getenv("GGML_HEXAGON_POWER_MODE") == null) android.system.Os.setenv("GGML_HEXAGON_POWER_MODE", mode, false) }
         runCatching { nativeSetNpuPower(mode.toByteArray(Charsets.UTF_8), hold) }
+        npuKnobs(prefs)
+    }
+
+    /**
+     * The NPU knobs to A/B on the S25 (docs/ENGINE_TAILORING.md, idea 4; "npu" preferences, read once per process before
+     * the backends load; NpuTune's own settings, when tuning or tuned, win):
+     * - "opencl_at_start" (default false): the GPU's backend (OpenCL) loads with the others; off, only when a load asks
+     *   for the GPU (in play the model runs on the NPU: the Adreno driver's start-up and memory are skipped).
+     * - "play_sessions" (default 0: ggml-hexagon's 2): HTP sessions in the game's process (the light 4B fits one; one
+     *   session means no hand-off between sessions per token). The writer's process (the 9B needs 2) keeps 2.
+     * - "oppoll" (default false): GGML_HEXAGON_OPPOLL=1 in the game's process: completions polled instead of waited for
+     *   on an interrupt (one ARM core spins while the NPU works; lower latency per op). Never in the writer's process.
+     */
+    private fun npuKnobs(prefs: android.content.SharedPreferences?) {
+        val writer = runCatching { android.app.Application.getProcessName().endsWith(":writer") }.getOrDefault(false)
+        val gpuAtStart = prefs?.getBoolean("opencl_at_start", false) ?: false
+        runCatching { nativeSetGpuBackend(gpuAtStart) }
+        if (writer) return
+        val sessions = runCatching { prefs?.getInt("play_sessions", 0) }.getOrNull() ?: 0
+        if (sessions in 1..4) runCatching {
+            if (android.system.Os.getenv("GGML_HEXAGON_DEVICES") == null) android.system.Os.setenv("GGML_HEXAGON_DEVICES", sessions.toString(), false)
+        }
+        if (prefs?.getBoolean("oppoll", false) == true) runCatching { android.system.Os.setenv("GGML_HEXAGON_OPPOLL", "1", false) }
     }
 
     /**
@@ -242,7 +265,8 @@ class NativeLlm(context: Context? = null) : LlmBackend {
                 error = "cancelled"
                 return false
             }
-            runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0) or (if (kvQ8) 32 else 0) or (mtp.coerceIn(0, 15) shl 8) or (batchCode(batch) shl 12) or (if (headMapped) 1 shl 15 else 0) or (ngram.coerceIn(0, 15) shl 16)) }
+            runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0) or (if (kvQ8) 32 else 0) or (mtp.coerceIn(0, 15) shl 8) or (batchCode(batch) shl 12) or (if (headMapped) 1 shl 15 else 0) or (ngram.coerceIn(0, 15) shl 16) or (if (fixedSteps) 1 shl 20 else 0) or
+                ((batchSeqs.coerceIn(1, 8) - 1) shl 24)) }
             poolSent = null
             if (!backendReady) powerEnv()  // (the native load loads the backends first if nothing did yet)
             runCatching { nativeSetSnapshots(handle, (stateDir?.path ?: "").toByteArray(Charsets.UTF_8), stateBudgetBytes, hotState, statePoints) }

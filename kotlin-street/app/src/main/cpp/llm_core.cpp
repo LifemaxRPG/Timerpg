@@ -349,7 +349,34 @@ std::vector<ggml_backend_dev_t> devices_of(int kind) {
     return out;
 }
 
-bool has_gpu() { return !devices_of(1).empty(); }
+namespace {
+std::atomic<bool> g_gpu_at_start{false};
+std::atomic<bool> g_gpu_tried{false};
+}  // namespace
+
+void set_gpu_backend(bool at_start) { g_gpu_at_start.store(at_start); }
+
+bool ensure_gpu_backend() {
+#if defined(__ANDROID__)
+    static std::mutex m;
+    std::lock_guard<std::mutex> l(m);
+    if (!g_gpu_tried.exchange(true)) {
+        const auto t0 = std::chrono::steady_clock::now();
+        const bool ok = ggml_backend_load("libggml-opencl.so") != nullptr;
+        const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count();
+        log_msg(GGML_LOG_LEVEL_INFO, std::string("llm: the GPU's backend (OpenCL) ") + (ok ? "loaded" : "did not load") + " in " +
+                                         std::to_string((long long) ms) + " ms");
+    }
+#endif
+    return !devices_of(1).empty();
+}
+
+bool has_gpu() {
+#if defined(__ANDROID__)
+    if (!g_gpu_tried.load()) return true;  // (not loaded yet: it is, when a load asks for the GPU)
+#endif
+    return !devices_of(1).empty();
+}
 bool has_npu() { return !devices_of(2).empty(); }
 
 // ------------------------------------------------------------------------------------------------ the NPU's power vote
@@ -620,7 +647,8 @@ bool init_backend(const std::vector<std::string> & cpu_libs, std::string * info)
             // the Adreno GPU (OpenCL) and the Hexagon NPU, if this build has them and the phone's drivers load; else the
             // CPU alone. The NPU opens two sessions (each holds ~3.5 GB of weights: the 9B model is split over both).
             if (!getenv("GGML_HEXAGON_DEVICES")) setenv("GGML_HEXAGON_NDEV", "2", 0);
-            ggml_backend_load("libggml-opencl.so");
+            // the GPU's backend only when asked for (set_gpu_backend): in play the model runs on the NPU
+            if (g_gpu_at_start.load()) ensure_gpu_backend();
             ggml_backend_load("libggml-hexagon.so");
             npu_attach();  // (the NPU's power vote: per burst, or ggml-hexagon's fixed profile)
             for (size_t i = 0; i < ggml_backend_dev_count(); ++i) {
@@ -1126,7 +1154,9 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
 
         clear_log_errors();
         llama_model_params mp = llama_model_default_params();
-        // on the GPU or the NPU when asked and there is one (all layers: they share the phone's memory)
+        // on the GPU or the NPU when asked and there is one (all layers: they share the phone's memory); the GPU's backend
+        // is loaded now if it was left for later
+        if (device_ == 1) ensure_gpu_backend();
         devs_ = device_ > 0 ? devices_of(device_) : std::vector<ggml_backend_dev_t>();
         if (!devs_.empty()) {
             devs_.push_back(nullptr);
@@ -1612,6 +1642,13 @@ std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, i
                 // drafting ran the head ahead in its own cache: back to where the main model is before checking
                 if (dmem) llama_memory_seq_rm(dmem, 0, (llama_pos) n_past, -1);
             }
+            // a fixed length: a short guess padded with filler (the last guess again, or the last token), so every pass
+            // has the same shape (graph reuse); filler is checked like any guess (kept only if it is what is sampled)
+            const size_t real = draft.size();
+            if (pad_to > 0 && (int) draft.size() < std::min(pad_to, n_draft_max)) {
+                const llama_token fill = draft.empty() ? id_last : draft.back();
+                while ((int) draft.size() < std::min(pad_to, n_draft_max)) draft.push_back(fill);
+            }
             // check [last, guess0, guess1, ...] in one pass
             bt.clear();
             bt.add(id_last, n_past, 0, true);
@@ -1638,11 +1675,15 @@ std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, i
             if (ids.empty()) { error_ = "sampling failed"; stats_.end = End::error; break; }
             if (spec_) common_speculative_accept(spec_, 0, (uint16_t) (ids.size() - 1));
             ++stats_.steps;
-            stats_.drafted += (int32_t) draft.size();
-            stats_.accepted += (int32_t) ids.size() - 1;
+            const int32_t right = (int32_t) ids.size() - 1;
+            const int32_t right_real = std::min(right, (int32_t) real);
+            stats_.drafted += (int32_t) real;
+            stats_.accepted += right_real;
+            stats_.padded += (int32_t) (draft.size() - real);
+            stats_.pad_accepted += right - right_real;
             if (from_ngram) {
-                stats_.ngram_drafted += (int32_t) draft.size();
-                stats_.ngram_accepted += (int32_t) ids.size() - 1;
+                stats_.ngram_drafted += (int32_t) real;
+                stats_.ngram_accepted += right_real;
             }
             in_ctx.push_back(id_last);  // now in the cache, with the accepted guesses after it
             for (size_t i = 0; i < ids.size(); ++i) {

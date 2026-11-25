@@ -112,6 +112,11 @@ extern "C" JNIEXPORT jlong JNICALL FN(nativeHeadVocab)(JNIEnv * env, jclass, jby
     try { return (jlong) llm::head_vocab(from_bytes(env, path)); } catch (...) { return 0; }
 }
 
+/** When the GPU's backend loads (llm::set_gpu_backend): at start, or only when a load asks for the GPU. */
+extern "C" JNIEXPORT void JNICALL FN(nativeSetGpuBackend)(JNIEnv *, jclass, jboolean at_start) {
+    try { llm::set_gpu_backend(at_start == JNI_TRUE); } catch (...) {}
+}
+
 extern "C" JNIEXPORT jstring JNICALL FN(nativeNpuPower)(JNIEnv * env, jclass) {
     std::string s;
     try { s = llm::npu_power_status(); } catch (...) { s = "unknown"; }

@@ -360,6 +360,9 @@ void clear_dir(const std::string & dir) {
 
 /** N-gram guesses for the saved-state passes (--ngram): restores must stay exact with the rollback state too. */
 int g_ngram = 0;
+bool g_fixed_steps = false;
+bool g_batch_alone_same = false;
+bool g_batch_greedy_only = false;  // --batch-greedy-only  // --batch-same-context: --batch-test's prompts alone in a context like the batch's  // --fixed-steps: guess-and-check passes padded to one length (set_device bit 20)
 
 /** One pass over [prompts] greedily with a fresh engine; the reply tokens of each, and the engine's state stats. */
 struct Pass {
@@ -404,7 +407,7 @@ std::string reused_list(const Pass & p) {
 struct SpecPass {
     std::vector<std::vector<int32_t>> tokens;
     std::vector<std::string> replies;
-    long gen = 0, drafted = 0, accepted = 0, steps = 0;
+    long gen = 0, drafted = 0, accepted = 0, steps = 0, padded = 0, pad_accepted = 0;
     int64_t gen_ms = 0;
     double mem[5] = {0, 0, 0, 0, 0};
 };
@@ -421,7 +424,7 @@ SpecPass spec_pass(const std::string & model, int threads, int n_ctx, int max_to
                    int ngram, int min_match, int mtp, float temp, const SpecPass * pool_from) {
     SpecPass out;
     llm::Engine e;
-    e.set_device((mtp << 8) | (ngram << 16));
+    e.set_device((mtp << 8) | (ngram << 16) | (g_fixed_steps ? 1 << 20 : 0));
     e.set_ngram_min(min_match);
     e.sampling().seed = 42;
     e.arm();
@@ -444,6 +447,8 @@ SpecPass spec_pass(const std::string & model, int threads, int n_ctx, int max_to
         out.drafted += s.ngram_drafted;
         out.accepted += s.ngram_accepted;
         out.steps += s.steps;
+        out.padded += s.padded;
+        out.pad_accepted += s.pad_accepted;
     }
     return out;
 }
@@ -452,6 +457,7 @@ void spec_line(const char * what, const SpecPass & p) {
     std::printf("  %-34s %5ld tokens in %6lld ms: %5.2f tok/s; %ld passes (%.2f tokens a pass); n-gram %ld guessed, %ld right (%.0f%%)\n",
                 what, p.gen, (long long) p.gen_ms, per_sec(p.gen, p.gen_ms), p.steps, p.steps ? (double) p.gen / p.steps : 0.0,
                 p.drafted, p.accepted, p.drafted ? 100.0 * p.accepted / p.drafted : 0.0);
+    if (p.padded > 0) std::printf("    %-34s %ld filler tokens checked, %ld of them right\n", "(fixed-shape steps)", p.padded, p.pad_accepted);
 }
 
 int same_tokens(const SpecPass & a, const SpecPass & b) {

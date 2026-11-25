@@ -71,7 +71,18 @@ std::string cpu_features();
 /** The CPU kernel libraries to try on this phone, best first (Android arm64). */
 std::vector<std::string> cpu_variant_libs();
 
-/** Whether a GPU backend (the Adreno, through OpenCL) / an NPU backend (Hexagon) is loaded. */
+/**
+ * When the GPU's backend (libggml-opencl.so) loads (ENGINE_TAILORING.md, idea 4): [at_start] true, with the others in
+ * init_backend (as before); false (the default), only when a load asks for the GPU: the game in play runs the model on
+ * the NPU, so the Adreno OpenCL driver's start-up and its context memory beside Filament are skipped. Call before
+ * init_backend.
+ */
+void set_gpu_backend(bool at_start);
+/** Loads the GPU's backend now if it is not yet (once per process); whether a GPU device is there. */
+bool ensure_gpu_backend();
+
+/** Whether a GPU backend (the Adreno, through OpenCL) / an NPU backend (Hexagon) is loaded. With the GPU's backend left
+ *  for later (set_gpu_backend(false)), has_gpu() is true until it has been tried: the GPU is then loaded when asked for. */
 bool has_gpu();
 bool has_npu();
 
