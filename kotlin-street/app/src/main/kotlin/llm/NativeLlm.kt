@@ -116,7 +116,22 @@ class NativeLlm(context: Context? = null) : LlmBackend {
 
     /** Loads llama.cpp's backends once per process (the CPU kernels, then the GPU's and the NPU's libraries if this build
      *  has them and the phone's drivers open them) and says what loaded; [accelerators] is right only after it. */
-    private fun initBackend(): String = (runCatching { nativeBackendInfo() }.getOrNull() ?: "unknown").also { backendReady = true }
+    private fun initBackend(): String {
+        if (!backendReady) powerEnv()
+        return (runCatching { nativeBackendInfo() }.getOrNull() ?: "unknown").also { backendReady = true }
+    }
+
+    /**
+     * The NPU's power profile for the whole process (the "npu" preference "power": ggml-hexagon's
+     * GGML_HEXAGON_POWER_MODE, e.g. "balanced", "sustained_high_performance"; unset: its default, "burst": clocks pinned at
+     * maximum and the DSP kept awake). ggml-hexagon reads it once, when its backend loads, and votes it for each HTP
+     * session for as long as the process lives (docs/CONVERSATION.md, "The NPU's power vote"), so it is set before
+     * anything loads the backends.
+     */
+    private fun powerEnv() {
+        val mode = appContext?.getSharedPreferences("npu", Context.MODE_PRIVATE)?.getString("power", null)?.takeIf { it.isNotBlank() } ?: return
+        runCatching { if (android.system.Os.getenv("GGML_HEXAGON_POWER_MODE") == null) android.system.Os.setenv("GGML_HEXAGON_POWER_MODE", mode, false) }
+    }
 
     /**
      * Why [accelerators] has no NPU, specifically (for the HUD and the reports): the engine's library missing, the NPU's
@@ -202,6 +217,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
             }
             runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0) or (if (kvQ8) 32 else 0) or (mtp.coerceIn(0, 15) shl 8) or (batchCode(batch) shl 12) or (if (headMapped) 1 shl 15 else 0) or (ngram.coerceIn(0, 15) shl 16)) }
             poolSent = null
+            if (!backendReady) powerEnv()  // (the native load loads the backends first if nothing did yet)
             runCatching { nativeSetSnapshots(handle, (stateDir?.path ?: "").toByteArray(Charsets.UTF_8), stateBudgetBytes, hotState, statePoints) }
             loaded = false  // the native load frees the old model first
             val ok = try {
