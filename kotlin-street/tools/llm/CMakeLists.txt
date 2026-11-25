@@ -3,6 +3,7 @@
 #   cmake --build /dev/shm/tl/tools -j4
 # vocab_reorder: the phone-side tool (vocab_reorder.cpp/.h need only ggml's gguf API, ggml-base).
 # vocab_test: server-side checks (links libllama).
+# quantize_ours: the phone-side calibrated quantization (quantize_ours.cpp/.h: llama_model_quantize with our imatrix).
 # llama-quantize / llama-imatrix / llama-perplexity: llama.cpp's own tools from the same tree.
 cmake_minimum_required(VERSION 3.18)
 project(timerpg_llm_tools CXX C)
@@ -30,6 +31,13 @@ target_link_libraries(vocab_reorder PRIVATE vocab_reorder_lib)
 
 add_executable(vocab_test vocab_test.cpp)
 target_link_libraries(vocab_test PRIVATE vocab_reorder_lib llama)
+
+add_library(quantize_ours_lib STATIC quantize_ours.cpp)
+target_include_directories(quantize_ours_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(quantize_ours_lib PUBLIC llama ggml-base)
+
+add_executable(quantize_ours quantize_ours_main.cpp)
+target_link_libraries(quantize_ours PRIVATE quantize_ours_lib)
 
 add_custom_target(llama_tools ALL)
 add_dependencies(llama_tools llama-quantize llama-imatrix llama-perplexity)
