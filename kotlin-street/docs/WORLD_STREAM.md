@@ -88,7 +88,7 @@ calmed to 40% beside roads) and a 10 ms physics hitch each time the car crossed 
 
 ### The near ocean (`WorldOcean`)
 
-**Status: wired, but off by default** (`WorldFar.oceanOn`; previews `-DworldOcean=1`). Jeff's G002 ocean
+**Status: on by default since step 1b** (`WorldFar.oceanOn`; previews `-DworldOcean=0` for the flat sea). Jeff's G002 ocean
 (`OceanSurface`, ocean.mat, its palettes and wave specs unchanged) placed in the world: its look is the town's look
 matrix times the metres' scale and a translation to an anchor on a 4 km lattice near the eye (its coordinates stay small
 wherever the coast is; the waves stay put as the eye moves), its world position for Filament's fog the same (a new
@@ -98,14 +98,16 @@ the far view's flat sea sinks under the troughs (`WorldFar.oceanDropM`, the wave
 fight; past its 24 km skirt the flat sea runs on to the horizon. Palette by the hour (`OceanPalette.forHour`), calm by
 default (the weather's hook: `WorldOcean.spec`).
 
-**What is wrong**: in the town's view the waves read as one flat teal (the palette's crest colour everywhere), not the
-stepped bands of Jeff's preview. The geometry, depth and placement are right (it meets the land and the far sea where
-it should, and the difference against the flat sea is confined to the water); the shading's inputs are not yet. Not
-found in this step; the far view's flat sea is drawn instead until it is. The anchor's step (the waves' phase jumping
-when the eye crosses into the next 4 km cell) also wants a fix before ships (step 3).
+**Fixed in step 1b** (it read as one flat teal in step 1): in the world the water's coordinates run to kilometres from
+the anchor, and ocean.mat's fragment noise was mediump: `hash21`'s `p * 456.21` overflowed to infinity, `fract(inf)` is
+NaN, every band test failed on NaN and the last `else` left the whole sea the crest colour. The noise, its inputs and the
+time are highp now (found with NaN-coloured debug renders); Jeff's preview, near its origin, computes the same values. The
+anchor's step (the waves' phase jumping when the eye crosses into the next 4 km cell) still wants a fix before ships
+(step 3).
 
-The coast itself is the near terrain's (sand under 3.5 m by the sea, beaches by biome, WORLD_GEN W5a); the flat sea and
-the coastline follow the player with the far view's re-plans.
+The coast itself is the near terrain's (wet sand at the water's edge, sand under 3.5 m by the sea, dunes behind, beaches
+by biome) with the surf drawn on it (step 1b: section 9); the flat sea and the coastline follow the player with the far
+view's re-plans.
 
 ### Seamless with the capital
 
@@ -155,9 +157,12 @@ re-plan:
 
 Before the fixes the same drive stopped dead 9.4 km out against a 60% terrace under the expressway, and jolts of up to
 218 m/s2 came from the driver taking a county road's bends at 113 km/h (the driver now slows for a bend's radius).
-**A small seam signal remains**: bumps within 2.5 m of a chunk's seam are three times those elsewhere at the 99th
-percentile (0.3 against 0.1 m/s2, both far below what a driver feels) with one 10 m/s2 jolt at 115 km/h 0.8 m from a seam.
-Worth a follow-up (overlapping the chunks by one cell, or one heightfield for the 3 x 3), and a look on the phone.
+**The seam signal is gone (step 1b)**: step 1 measured bumps within 2.5 m of a chunk's seam three times those elsewhere
+at the 99th percentile (0.3 against 0.1 m/s2) and one 10.1 m/s2 jolt at 115 km/h 0.8 m from a seam. Each heightfield chunk
+now reaches one cell (2 m) into its neighbours (`VehicleWorld.chunkOverlap`, 35 samples where it had 33; the shared
+samples are the same heights, so the two surfaces coincide where they overlap): the same drive measures p99 **0.1 m/s2
+at the seams, worst 1.2** (5,890 samples), away from them p99 0.1, worst 1.7 (35,957); never under the ground, no rescue,
+physics step p99 0.21 ms (desktop). `-DchunkOverlap=0` puts the old edge-to-edge chunks back for a comparison.
 
 ### Frames and memory (`GpuWorldDriveTest`, desktop)
 
@@ -219,9 +224,10 @@ origin moves) is needed before journeys of hundreds of km and before a second to
   land from the sea").
 - **Step 4, Dove Beach**: a coast town: the near ocean and beaches must meet its waterfront; judge the ocean against its
   harbour in renders from the beach and from the sea.
-- Open from step 1: trees and props on the open country (the land is bare between towns), a small remaining seam signal
-  in the physics (section 4), the terrain's line index not yet counted in the RAM budget, region tiles (T2) if the
-  far view's 1 km level looks too coarse from mountains.
+- Open: the terrain's line index (and since step 1b the country's scatter cells, ~5 MB) not yet counted in the RAM
+  budget, region tiles (T2) if the far view's 1 km level looks too coarse from mountains; from step 1b (section 9): the
+  trees have no collision yet, gas stations at the highways' roadside sites, a floating origin before trees and things
+  are placed past a few hundred km.
 
 ## 8. Tests and previews
 
@@ -230,6 +236,96 @@ origin moves) is needed before journeys of hundreds of km and before a second to
 - `gradle :desktop:crossroadsTest --tests GpuWorldDriveTest` (the capital built with the world, the chase camera driven
   to Evanvale in real time: about 20 minutes; `WORLD_DRIVE_KM=10` for a shorter run). Writes
   `desktop/build/world-drive/drive.txt` and the renders.
-- `-DworldStream=0` (the far view planned once, as before), `-DworldOcean=0` in the previews.
+- `gradle :desktop:crossroadsTest --tests WorldViewsTest` (step 1b: the capital built with the world, the camera jumped
+  to each view along the drive and at the nearest coast, about 2.5 minutes; `WORLD_VIEWS=name,name` for some only,
+  `WORLD_VIEWS_OUT=dir`, `WORLD_OCEAN=0`, `WORLD_PROPS=0`). Writes `desktop/build/world-views`.
+- `-DworldStream=0` (the far view planned once, as before), `-DworldOcean=0` (the flat sea), `-DworldProps=0` (the bare
+  country), `-DchunkOverlap=0` (the physics chunks edge to edge) in the previews and tests.
 - Unchanged: `GpuBudgetTest`, `GpuRouteTest`, `OpenWalkTest`, `VehiclePhysicsTest`, `HeightfieldSeamTest` (the capital
   alone; the streamer is attached only with the world).
+
+## 9. Step 1b: the open country (2026-11-26)
+
+Step 1's drive went through a bare country: one ploughed-field picture everywhere, terraced grey cliffs on every steep
+hillside, a 100 m wall of rock beside the road where it ran under a bluff, no trees, fences or farms, the near ocean off.
+Step 1b makes it a place (renders: desktop, software GL, not S25 captures).
+
+### The ground (`WorldCountry.cover`, `WorldTerrain.material`, `TerrainPics`, terrain.mat)
+
+- **Land use from the planet's data**: on farmed land (the skeleton's crop belt on a farmable biome) plots of ~200 m
+  (each split in two), each one use by its belt (`WorldCountry.USES`: wheat, corn and other row crops, ploughed ground,
+  fallow, pasture, hay meadow, orchards, paddies), its rows along its long side, a grass verge round it (at least half a
+  coarse quad wide, so the field edges stay lines from afar); steep plots left to woods and pasture. Woods by a slow
+  noise, ragged at the edges, more of them on steep ground and along rivers, and the odd woodlot plot; the wild biomes
+  their own ground (forest floor, meadow, scrub, dry grass, marsh, dunes, gravel). The drive's country is temperate
+  forest in an orchard belt: orchards, pasture, meadow, hedgerows and woods.
+- **Nine new pictures** (21 layers): wheat, row crop (two ways), pasture, meadow, scrub, marsh, dunes, wet sand, at the
+  town's texel, in the same pixel-art way (flat shades, an ordered dither, small things scattered).
+- **The atlas is ASTC** where the GPU reads it (the town's encoder): 21 layers in **28.0 MB** where step 1's 12 took 64.0
+  as RGBA8.
+- **Rock only where truly steep**: the near ground terraces into cliffs only past a slope of 0.95 (whole at 1.35;
+  `CLIFF_NEAR_FROM`), not the relief's 0.62 (cross-language, unchanged: the far view's finest level still uses it, 3 km
+  off); scree only right under a cliff. **Cuttings and embankments**: the land's detail comes back beside a road over
+  36 m or 1.6 m a metre it stands off the grade, at most 200 m (`CUT_SLOPE`, `CALM_ROAD_MAX_M`): a grassy slope of about
+  1 in 1.1, not a rock wall.
+- **The shore**: wet sand at the water's edge (under 0.45 m), sand, dunes behind (marram tufts), and **the surf**:
+  terrain.mat draws a ragged foam line at the water's edge and a broken second one where the last wave reached, in whole
+  art texels, on nodes that reach the sea (a new `sea` parameter: its level, the unit, on).
+
+### The trees and things (`WorldCountry.scatter`, `WorldProps`, `WorldPropKit`)
+
+What stands is a function of the world position alone, made in cells of 134.4 m on the town's workers (median 2.2 ms a
+cell, p90 6.5), streamed round the eye:
+
+| | reach | how |
+|---|---|---|
+| trees and bushes in 3D | cells within 50 m (kept to 75) | the town's TreeKit, simple level, every look grown once at a reference height and scaled; one merged mesh a cell (one draw, its shadow) |
+| trees as impostors | to 1.6 km | the town's `TreeImpostors` (8 views, its own atlas baked once for the country's 88 looks: 7.6 MB), tiles of 2 x 2 cells packed again as the eye goes round; a tile leaves out its cells drawn in 3D and swaps in the same frame (never a tree twice, never a gap) |
+| fences, poles and wires, mile markers, billboards | to 750 m, faded by screen door | `WorldPropKit`: pixel pictures in one fixed atlas, one mesh a cell |
+| farmsteads | to 1.5 km, faded | the capital's farm models (farmhouse, barn, silos, shed, tractor, hay, troughs) round a dirt yard in a plot's corner, each on the lowest ground under it |
+| woods past 1.6 km | to 3 km / the horizon | the near terrain's forest floor, the far view's dark green |
+
+- **Trees**: woods on a 7.2 m jittered lattice (species by biome: oak, maple, linden, birch, copper beech, spruce, pine;
+  the taiga's conifers; poplars and birches in marsh), smaller trees and bushes at a wood's edge, clearings; orchards in
+  rows (one fruit an orchard); **hedgerows** along plot edges (bushes every 1.9 m off a ruler line, an oak or linden now
+  and then; half the edges in orchard and dairy country, an eighth in the wheat and corn belts), **tree lines** along
+  some edges and along the rivers' banks, lone oaks in the pastures, scrub's bushes.
+- **Fences**: post and wire round pastures (from 1880; post and rail before, and on some), clipped at roads and rivers.
+- **By the roads**: power poles with crossarms, glass insulators and sagging wires along county roads and most highways
+  (from 1925), telegraph poles along the railways (from 1870), mile markers on the highways (from 1930), billboards set
+  back from the highways now and then (from 1915; the game's own: Fizz Cola, Acme Tires, a motel, Rosie's, Sunray Gas,
+  Golden Loaf, "Visit Dove Beach", "Drive safely"; painted boards on wooden legs before 1950, a steel frame after).
+- **Farmsteads**: about one plot in 14 on farmed land with gentle ground; the yard's dirt and grass are the terrain's
+  material (the same function), so trees and orchards keep off it.
+- Not yet: **gas stations** (the highways' roadside sites, TOWNS_EVERYWHERE, are not in the near world yet: step 2 with
+  the towns), **collision** for trunks, poles and farm buildings (the car drives through them: Jolt cylinders and boxes
+  round the car from the same scatter, a follow-up), seasons on the fields and trees.
+
+### Measurements (desktop, the drive to Evanvale at 120 km/h, `GpuWorldDriveTest`, 2026-11-26)
+
+| | step 1 | step 1b |
+|---|---|---|
+| Filament's whole count, peak | 556.4 MB (budget 575) | **533.0 MB** (budget lowered to 550) |
+| the world's own GPU, peak | 132.0 MB (budget 140) | **145.2 MB** (budget raised to 155, `TownBudget.WORLD_MB`, with this reason) |
+| of which the ground's pictures | 64.0 (RGBA8) | 28.0 (ASTC, 21 layers) |
+| of which the country (trees, impostors and their atlas, things, farms) | - | 30-60 MB along the drive (the most at the wooded stretch 8 km out) |
+| the world along the drive once out of town | 108-125 MB | 107-144 MB |
+| CPU a frame (the engine thread's share; this machine) | median 1.75 ms, p99 3.73, p99.9 11.8; over 16.7 ms: 20 frames | median **2.76**, p99 **6.43**, p99.9 17.2; over 16.7 ms: 46 of 44,340 |
+| far view uploads | median 0.15, worst 2.05 ms | median 0.12, worst 6.19 ms |
+| near terrain drawn coarser than wanted | 218 frames | 236 frames |
+| the chase camera's frame 12 km out (draws, triangles) | 330, 1.63 M | 1,545, 2.11 M (21 km: 1,356, 2.33 M) |
+
+The frame's extra CPU is the country's uploads (within 1.5 ms a frame, at least one) and its bookkeeping (the whole
+pass every 6 frames or 8 m; between them only finished jobs are taken). The views test (`WorldViewsTest`) settles each
+view in 4-10 s.
+
+### What needs the S25 (besides section 6)
+
+1. The country's draw cost on the Adreno 830: about 1,200 more draws (the cells' and tiles' batches and their shadow twins) and ~0.5 M more triangles in a chase view, the impostor
+   tiles' alpha-cut quads, the 3D trees' shadows. If the frame is over, the impostors' reach (`WorldProps.R_IMP`) and the
+   3D reach (`R3D`) are the knobs, not the content.
+2. The workers' share at speed: a cell's scatter 2-7 ms on the desktop's JVM, tiles packed again as the eye goes round;
+   the frame's extra 1 ms of uploads and bookkeeping in Perfetto.
+3. The ASTC terrain atlas's look on the phone (the desktop decodes ASTC in software, as the phone's GPU does in hardware:
+   the same pixels, but worth a glance), and its encode time on first launch (21 layers, a worker).
+4. The surf line and the waves at the beach on the phone's screen, and the near ocean's cost (section 6, item 4).
