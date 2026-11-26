@@ -1324,3 +1324,21 @@ expressway ribbons in 1990 and none in 1930.
   cores, the loop a smooth spline through them (TOWNS_EVERYWHERE.md, "Highways").
 - The interchanges near the old highways sometimes merge (1.5 km rule) onto a crossing a little off the town's own
   road; the town's connector then runs to the centre from there.
+
+## The window-seat standard (the owner's direction, 2026-11-26)
+
+Long journeys are part of the game (no fast travel), and the owner is leaning toward unpiloted travel taking real time:
+board a train or ship, go live your life, and check in every few hours to see where you are (not yet decided; if it
+is, the trip runs on the real clock while the app is closed, the scene is rebuilt from where the vehicle would be,
+arrival is announced by a notification, and the ride has things to do: walking the train, the dining car, passengers,
+stops, events). Either way the world seen from a moving window must hold up for hours:
+- **Never the same view every few seconds:** land use, settlement, trees and colour change with geography and climate
+  across a continent: farm belts, forests of different kinds, wetlands, dry country, mountains, coasts, river valleys,
+  snow up high, towns at the right spacing.
+- **Each region recognisable:** its own tree species, ground colours, field shapes, building styles and road furniture,
+  shifting gradually at the boundaries, not tiled.
+- **Landmarks along the line:** viaducts, tunnels, gorges, lakes, a distant city's skyline, coastline running beside
+  the track, so a long ride has moments.
+- **The real train ride's magic, amplified:** light and weather changing over the trip, dawn and dusk across different
+  country, night with town lights passing.
+Judge world generation by riding it (a long route rendered at intervals), not only by single views.
