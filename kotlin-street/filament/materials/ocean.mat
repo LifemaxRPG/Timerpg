@@ -224,15 +224,18 @@ fragment {
         return (m[int(i)] + 0.5) / 16.0;
     }
 
-    float hash21(vec2 p) {
+    // (highp: in the world the water's coordinates run to kilometres from the waves' anchor (WorldOcean), and a mediump
+    // p * 456.21 overflowed to infinity there: fract(inf) is NaN, and every band test failing on NaN left the whole sea
+    // the crest colour, step 1's "flat teal". The prototype's preview, near its origin, looks the same either way)
+    highp float hash21(highp vec2 p) {
         p = fract(p * vec2(123.34, 456.21));
         p += dot(p, p + 45.32);
         return fract(p.x * p.y);
     }
 
-    float vnoise(vec2 p) {
-        vec2 i = floor(p);
-        vec2 f = fract(p);
+    highp float vnoise(highp vec2 p) {
+        highp vec2 i = floor(p);
+        highp vec2 f = fract(p);
         f = f * f * (3.0 - 2.0 * f);
         float a = hash21(i);
         float b = hash21(i + vec2(1.0, 0.0));
@@ -258,7 +261,7 @@ fragment {
         float night = clamp(materialParams.lightDir.w, 0.0, 1.0);
         float cell = max(materialParams.waveParams.w, 1.0);
         float dither = bayer4(gl_FragCoord.xy / cell);
-        float t = materialParams.oceanTime.x;
+        highp float t = materialParams.oceanTime.x;
 
         // Swell-aligned world coordinates (along = travel axis, across = crest axis)
         vec2 swellDir = normalize(materialParams.oceanTime.zw);
