@@ -70,14 +70,18 @@ object TownBudget {
      * cap; this is the measured figure and a little room. Step 1 measured 130.0 MB (budget 140). **Raised to 155 on purpose
      * in step 1b** (2026-11-26, docs/WORLD_STREAM.md section 9): the country's trees, impostors, fences, poles and farmsteads
      * are new and take 30-60 MB along the drive (the most at the wooded stretch 8 km out), while the ground's pictures went
-     * to ASTC (21 layers in 28 MB, where 12 took 64 as RGBA8); the peak measured 145.2 MB.
+     * to ASTC (21 layers in 28 MB, where 12 took 64 as RGBA8); the peak measured 145.2 MB. **Raised to 180 for the
+     * country's batching** (2026-11-26, section 9 "Batching"): the farm models merged need their pictures in two atlases of
+     * their own (17.1 MB as ASTC; the models' own pictures were shared with the capital's farms before), the price of the
+     * country's ~1,200 draws down to ~110; the peak measured 173.7 MB (8 km out, the wooded stretch).
      */
-    const val WORLD_MB = 155.0
+    const val WORLD_MB = 180.0
     /**
      * Filament's whole count at any frame of that drive: the capital's streamed share plus the world's. Lowered in step 1b
-     * to the measured peak and a little room: 533.0 MB (0.3 km out; step 1: 557.7 with the budget 575).
+     * to the measured peak and a little room: 533.0 MB (0.3 km out; step 1: 557.7 with the budget 575). Raised to 570
+     * with the country's batching (its farm atlases, [WORLD_MB]): the peak measured 561.3 MB (8 km out).
      */
-    const val WORLD_ROUTE_MB = 550.0
+    const val WORLD_ROUTE_MB = 570.0
 
     /** One part's figure against its budget. */
     class Row(val part: String, val mb: Double?, val budget: Double) {

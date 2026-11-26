@@ -112,6 +112,8 @@ internal class PropLayer(
     /** How many of the batches throw a shadow (have a shadow twin), and the triangles of all of them. */
     val casters: Int get() = batches.count { it.proxy != 0 && !it.released }
     val triangles: Int get() = batches.sumOf { if (it.released) 0 else it.geo.triangles }
+    /** The primitives its batches draw (a batch split into its opaque and cut-out triangles is two), shadow twins not counted. */
+    val primitives: Int get() = batches.sumOf { b -> if (b.released) 0.toInt() else if (b.split) 2.toInt() else 1.toInt() }
 
     /** Adds [props]: those of one look (the same mesh) go into one batch. */
     fun add(props: List<WorldProp>) {
@@ -164,7 +166,9 @@ internal class PropLayer(
 
     object Packing {
         /** [mesh] at each of [at] (see [addMesh]) packed for [upload], on any thread; null for nothing to add. */
-        fun pack(mesh: PropMesh, at: List<FloatArray>, share: MutableMap<IntArray, StreetTextures.Prepared>? = null): Packed? {
+        fun pack(mesh: PropMesh, at: List<FloatArray>, share: MutableMap<IntArray, StreetTextures.Prepared>? = null,
+                 /** >= 0: [mesh]'s indices already have this many opaque ones first (its pieces judged on their own pictures: WorldFarmKit) */
+                 opaque: Int = -1): Packed? {
         if (at.isEmpty()) return null
         val nv = mesh.vertexCount * at.size
         val vb = TownMemory.direct(nv * TownVertex.STRIDE).order(ByteOrder.nativeOrder())
@@ -194,7 +198,7 @@ internal class PropLayer(
             }
         }
         // (the triangles with no cut-out texels first, in every copy, then the rest: [Cutouts], drawn opaque where it can)
-        val (idx, no) = opaqueFirst(mesh)
+        val (idx, no) = if (opaque >= 0) mesh.idx to (if (Cutouts.on) opaque.coerceAtMost(mesh.idx.size) else 0) else opaqueFirst(mesh)
         for (part in 0..1) for (k in at.indices) {
             val base = k * mesh.vertexCount
             val from = if (part == 0) 0 else no; val to = if (part == 0) no else idx.size
@@ -358,6 +362,13 @@ internal class PropLayer(
     /** Whether the open world's see-through cone ([SeeThrough]) cuts this layer (not the ground's). */
     var seeThrough = true
     /**
+     * The windows' glow (r, g, b, amount) and the glass's tint (r, g, b, 1) its batches wear each frame, as the town's
+     * models are given them (the country's farmsteads: WorldProps); null: the layer's own (its lamps' glow by [update]'s
+     * darkness, untinted glass).
+     */
+    var glowParam: FloatArray? = null
+    var glassParam: FloatArray? = null
+    /**
      * The cutaway of this layer's building while the player is inside it ([SeeThrough.cutaway]: 8 floats), or null.
      * Only a landmark's layer sets it.
      */
@@ -425,7 +436,10 @@ internal class PropLayer(
                 if (b.seeAt != SeeThrough.gen) { SeeThrough.apply(mm); b.seeAt = SeeThrough.gen }
                 applyCut(mm)
             }
-            if (b.glows && b.glowAt != on) { m0.setParameter("glow", GLOW, GLOW, GLOW, on); m1?.setParameter("glow", GLOW, GLOW, GLOW, on); b.glowAt = on }
+            val gp = glowParam; val tp = glassParam
+            if (gp != null) { m0.setParameter("glow", gp[0], gp[1], gp[2], gp[3]); m1?.setParameter("glow", gp[0], gp[1], gp[2], gp[3]) }
+            else if (b.glows && b.glowAt != on) { m0.setParameter("glow", GLOW, GLOW, GLOW, on); m1?.setParameter("glow", GLOW, GLOW, GLOW, on); b.glowAt = on }
+            if (tp != null) { m0.setParameter("glass", tp[0], tp[1], tp[2], 1f); m1?.setParameter("glass", tp[0], tp[1], tp[2], 1f) }
             if (f < 1f || faded) mm?.setParameter("fade", if (inverseFade) -f else f)
         }
         if (shown) faded = fade < 1f || castFade < 1f

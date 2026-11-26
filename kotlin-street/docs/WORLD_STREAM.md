@@ -280,9 +280,9 @@ cell, p90 6.5), streamed round the eye:
 | | reach | how |
 |---|---|---|
 | trees and bushes in 3D | cells within 50 m (kept to 75) | the town's TreeKit, simple level, every look grown once at a reference height and scaled; one merged mesh a cell (one draw, its shadow) |
-| trees as impostors | to 1.6 km | the town's `TreeImpostors` (8 views, its own atlas baked once for the country's 88 looks: 7.6 MB), tiles of 2 x 2 cells packed again as the eye goes round; a tile leaves out its cells drawn in 3D and swaps in the same frame (never a tree twice, never a gap) |
-| fences, poles and wires, mile markers, billboards | to 750 m, faded by screen door | `WorldPropKit`: pixel pictures in one fixed atlas, one mesh a cell |
-| farmsteads | to 1.5 km, faded | the capital's farm models (farmhouse, barn, silos, shed, tractor, hay, troughs) round a dirt yard in a plot's corner, each on the lowest ground under it |
+| trees as impostors | to 1.6 km | the town's `TreeImpostors` (8 views, its own atlas baked once for the country's 88 looks: 7.6 MB), tiles of 4 x 4 cells (538 m; 2 x 2 until the batching below) packed again as the eye goes round; a tile leaves out its cells drawn in 3D and swaps in the same frame (never a tree twice, never a gap) |
+| fences, poles and wires, mile markers, billboards | to 750 m, faded by screen door | `WorldPropKit`: pixel pictures in one fixed atlas; merged by block (below) |
+| farmsteads | to 1.5 km, faded | the capital's farm models (farmhouse, barn, silos, shed, tractor, hay, troughs) round a dirt yard in a plot's corner, each on the lowest ground under it; meshed once into two atlases of their own (`WorldFarmKit`) and merged by block (below) |
 | woods past 1.6 km | to 3 km / the horizon | the near terrain's forest floor, the far view's dark green |
 
 - **Trees**: woods on a 7.2 m jittered lattice (species by biome: oak, maple, linden, birch, copper beech, spruce, pine;
@@ -298,8 +298,86 @@ cell, p90 6.5), streamed round the eye:
 - **Farmsteads**: about one plot in 14 on farmed land with gentle ground; the yard's dirt and grass are the terrain's
   material (the same function), so trees and orchards keep off it.
 - Not yet: **gas stations** (the highways' roadside sites, TOWNS_EVERYWHERE, are not in the near world yet: step 2 with
-  the towns), **collision** for trunks, poles and farm buildings (the car drives through them: Jolt cylinders and boxes
-  round the car from the same scatter, a follow-up), seasons on the fields and trees.
+  the towns), seasons on the fields and trees, breaking through a fence (below).
+
+### Batching (`WorldProps`, `WorldFarmKit`, 2026-11-26)
+
+Step 1b first drew the country with about 1,300 draws in the 12 km chase view (fully settled; 1,029 in the first
+measurement, before the far impostor tiles were all up), some 900 of them the farm models: each model a draw for every
+group of its faces (its atlas, each plain colour, its yard's pictures), as the town draws a building. Now:
+
+- **The farm models are meshed once** (`FilamentModels.Mesher`, the same faces in the same model pixels) and their pictures
+  packed into **one atlas** with a swatch for each plain colour (a plain face is the white picture tinted; here its
+  colour's texels: the same linear colour once the sRGB picture is read), the farmhouses in **a second** with their
+  windows' and glass's mask (the panes reflect the sky as the town's do). A cell's farmsteads are then one mesh, their
+  opaque triangles first (each judged on its own picture, as before). The country's farmhouses light a fixed share of
+  their windows at night (the town's switch theirs one by one by the hour): a night-only difference, far off.
+- **Blocks of 4 x 4 cells** (538 m): where the things and farmsteads stand whole (inside their reach's fade: 630 m for the
+  things, 1,305 m for the farmsteads) a block's cells are **merged into one mesh** a kind (things, farm buildings,
+  farmhouses), each a batch culled by its box; the cells in the fade at the reach's edge stay a batch each, faded on their
+  own exactly as before. A block leaves out what it does not hold whole and swaps in the same frame as those cells' own
+  batches come and go (the impostor tiles' way): never a thing twice, never a gap. A whole cell joins 10 m inside the
+  line and leaves once past it (no churn standing on it).
+- **Impostor tiles of 4 x 4 cells** instead of 2 x 2; a tile still holds a 2 x 2 quarter only where step 1b's 2 x 2 tile
+  would have been drawn (the same reach, kept 120 m past it), so the same trees are drawn.
+- The textures are one per atlas (shared by content across every batch); each batch keeps its own material instances
+  (its own fade, see-through and opaque/cut-out twin, as PropLayer has them).
+
+| the views, fully settled (`WorldViewsTest`, WORLD_VIEWS_SETTLE=600) | draws before | draws after | country's draws before -> after | pixels differing (any / by more than 8 of 255) |
+|---|---|---|---|---|
+| open_country_12km (chase) | 1,621 | **438** | 1,291 -> **108** | 0.043% / 0.000% |
+| open_country_21km (chase) | 1,435 | 454 | 1,088 -> 107 | 0.151% / 0.011% |
+| road_06km (chase) | 1,885 | 474 | 1,531 -> 120 | 0.097% / 0.008% |
+| road_14km (chase) | 2,020 | 455 | 1,687 -> 122 | 0.018% / 0.000% |
+| farm_valley (120 m up) | 1,867 | 464 | 1,523 -> 120 | 0.044% / 0.010% |
+| valley_09km (40 m up) | 8,479 | 7,227 | 1,365 -> 113 | 0.103% / 0.000% |
+
+Triangles are the same (12 km: 2,288,568 both). The country's draws are counted as primitives now (a batch split into
+its opaque and cut-out triangles is two; the farm models were counted so before); the shadow twins are not counted, as
+before. Of the 108 at 12 km: 4 3D tree cells, 41 impostor tiles, 9 things' blocks and 22 things' cells in the fade, 24
+farm primitives in 6 blocks and 8 in cells. The country's GPU in that view: 50.2 MB before, 67.3 MB after: the two farm
+atlases (2048 x 4960 and 2048 x 912, with the farmhouses' mask) are 17.1 MB; the farm models' own pictures before were
+shared with the capital's farms and not counted to the country.
+
+### Collision (`CountrySolids`, physics_core `addStatics`, 2026-11-26)
+
+The car crashed through trees, poles and farm buildings. Now the cells round the driven car are Jolt statics, made from
+the same scatter the country is drawn from (`WorldCountry.scatterShared`: the drawn country's cells, made once):
+
+- **Trunks**: an upright cylinder each, 3.5 m tall from the foot, radius 3.5% of the tree's height (TreeKit's trunks), 0.12
+  to 0.6 m, rounded to 2 cm so the shapes are shared; **bushes and hedges are not solid** (as the town's hedges).
+- **Poles**: a cylinder, 0.15 m, their whole height. **Billboards**: their two legs. Mile markers are left out.
+- **Fences**: their runs as thin boxes (0.2 m) as tall as the posts, runs on one line joined up to 18 m: a car crashes
+  into a post-and-wire fence (breaking through one at speed, with debris, is for later: the town's Wreckage way).
+- **Farm buildings**: each model's standing parts as boxes (FarmSolids' way: walls, posts, tanks, bales, the tractor; not
+  roofs or cards), from the farm's models.json (the app's `farmArt`).
+- **Streaming**: cells (134 m) within 70 m of the car or of where it will be in 1 and 2 s are made on a worker (its
+  records: 2-8 ms a cell on this server) and added on the game's thread as **one batch** (`Physics.addStatics`:
+  `AddBodiesPrepare`/`AddBodiesFinalize`, shapes shared by size); cells past 110 m go as one batch (`removeAll`:
+  `RemoveBodies`/`DestroyBodies`); the broad phase is optimised (`OptimizeBroadPhase`) after every 4,000 bodies added.
+  Freed handles are reused lowest first (a heap: the old scan of every slot made a cell's thousand adds quadratic).
+- The world with a terrain allows 32,768 bodies (`VehicleWorld.WORLD_BODIES`); the body pairs and contacts stay at 4,096
+  (their buffers come from the 4 MB step allocator: 32,768 of each overran it and aborted).
+- The crash: `onImpact` hears the speed lost (12-14 m/s at 45-50 km/h into a tree, a pole, a fence, a barn), so the
+  crash sound and the player's hurt come as in the town.
+
+Measured (this server, not the S25): 5,000 statics added as one batch in 2.5 ms, optimised in 0.9 ms, removed in 0.7 ms
+(one at a time: 3.8-7.5 ms in, 1.7-5.9 ms out); the drive's cells (a few hundred statics each) add in 0.1-0.2 ms.
+`CountryCrashTest`: full throttle from 35 m into an oak, a power pole, a wire fence and a red barn: the car stops with its
+middle 1.5-2.1 m short (its bumper against it), 0 m/s, the impact 13.8-14.0 m/s; not solid, it drives on to 135 m; a
+bush is driven through. `WorldStreamTest`: the real country, a tree and a power pole beside the drive's road on the
+streamed terrain: full throttle from 24 m (45 km/h): stopped 2.7 and 2.2 m short, impacts 12.1 and 11.6 m/s; and the
+whole drive to the next town at 120 km/h with the country solid meets none of it: 24.6 km, up to 2,497 statics at once
+in 387 batches, the longest add 0.33 ms, removal 0.59 ms, optimisation 0.40 ms (14 of them), a cell's records 2.5 ms
+median on the worker; the physics step's p99 4.0 ms as before. (Its pure-pursuit driver used to look 18 m + 0.9 s ahead,
+which cut a junction's corner 7.7 m off the route, into a power pole 2 m past the verge, once the country was solid: a
+real crash, the driver's; it now looks 8 m + 0.8 s ahead and keeps within 4.7 m of the route.)
+
+GpuWorldDriveTest with both (this server, shared with another job's tests during the run: the CPU tail is not a clean
+comparison): Filament's peak **561.3 MB** (533.0 before), the world's own peak **173.7 MB** (145.2), both 8 km out at the
+wooded stretch, the difference the farm atlases (17.1) and the blocks' merges swapping in; the budgets raised to 570 and
+180 (`TownBudget`, with this reason). CPU a frame: median 2.51 ms (2.76), p99 8.14 (6.43), p99.9 20.1 (17.2), over 16.7
+ms 71 of 44,340 (46). The chase camera's frame 12 km out: **440 draws** (1,545), 2.32 M triangles.
 
 ### Measurements (desktop, the drive to Evanvale at 120 km/h, `GpuWorldDriveTest`, 2026-11-26)
 
@@ -321,11 +399,15 @@ view in 4-10 s.
 
 ### What needs the S25 (besides section 6)
 
-1. The country's draw cost on the Adreno 830: about 1,200 more draws (the cells' and tiles' batches and their shadow twins) and ~0.5 M more triangles in a chase view, the impostor
-   tiles' alpha-cut quads, the 3D trees' shadows. If the frame is over, the impostors' reach (`WorldProps.R_IMP`) and the
+1. The country's draw cost on the Adreno 830: since the batching about 110 draws (and their shadow twins near by) and
+   ~0.5 M more triangles in a chase view, the impostor tiles' alpha-cut quads, the 3D trees' shadows; the blocks' merges
+   uploaded as the eye goes (a block's things or farmsteads, 0.5-2 MB) in Perfetto. If the frame is over, the impostors' reach (`WorldProps.R_IMP`) and the
    3D reach (`R3D`) are the knobs, not the content.
 2. The workers' share at speed: a cell's scatter 2-7 ms on the desktop's JVM, tiles packed again as the eye goes round;
    the frame's extra 1 ms of uploads and bookkeeping in Perfetto.
 3. The ASTC terrain atlas's look on the phone (the desktop decodes ASTC in software, as the phone's GPU does in hardware:
    the same pixels, but worth a glance), and its encode time on first launch (21 layers, a worker).
 4. The surf line and the waves at the beach on the phone's screen, and the near ocean's cost (section 6, item 4).
+5. The country's statics on the phone: a cell's batch add and removal on the game's thread (0.1-0.2 ms here), the
+   broad-phase optimisation (about 1 ms here for 5,000), the physics step with a few thousand statics round the car, and
+   how a crash into a tree feels (the impact sound, the hurt) on the device. The farm atlases' ASTC encode on first launch.

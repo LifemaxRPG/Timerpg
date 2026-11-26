@@ -117,6 +117,11 @@ object TownSession {
                         ground = d.world?.let { TownPlay.groundFor(it) }, flat = flat)
                 }.onSuccess { vw -> vw?.onEvent = { m -> com.timerpg.street.shot.Crumbs.add(m); com.timerpg.street.play.PlayLog.event("car", "rescue", 1, m) } }
                 .onFailure { com.timerpg.street.shot.Crumbs.add("cars: failed: ${it.javaClass.simpleName}: ${it.message}") }.getOrNull()
+                // (the open country's trees, poles, fences and farm buildings solid round the car: docs/WORLD_STREAM.md, step 1b)
+                d.world?.let { w ->
+                    TownPlay.cars?.country = com.lifemax.rpg.feature.habits.vehicle.CountrySolids(w.frame, { TownPlay.terrain?.country },
+                        d.farmArt?.text?.invoke("buildings/models.json")?.let { com.lifemax.rpg.feature.habits.domain.ModelShape.parseAll(it) })
+                }
                 com.timerpg.street.shot.Crumbs.add("cars: " + (TownPlay.cars?.cars?.joinToString { it.spec.key + " at " + it.spot } ?: "none"))
                 // where the player was last time in this town (the world position), if anywhere
                 restore(app, d.town.seed, w)

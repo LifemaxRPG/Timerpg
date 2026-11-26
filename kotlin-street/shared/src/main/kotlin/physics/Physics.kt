@@ -16,6 +16,26 @@ interface Physics : AutoCloseable {
     /** A static heightfield: [n] x [n] samples (rows of x, z by z), the first at ([x0], [z0]), [cell] metres apart, heights absolute. */
     fun addHeightfield(x0: Float, z0: Float, n: Int, cell: Float, heights: FloatArray, friction: Float = 1f): Int
     fun remove(handle: Int)
+    /**
+     * Many statics at once (a streamed cell's trunks, poles, fences and farm buildings): [n] records of [Statics.COUNT]
+     * floats in [d] (kind: [Statics.BOX] or [Statics.CYLINDER]; centre; a box's half extents or a cylinder's radius and
+     * half height; a box's yaw; friction), each one's handle (or -1) into [out]. Same-sized shapes are shared and the
+     * bodies go into the broad phase as one batch. Returns how many were made.
+     */
+    fun addStatics(d: FloatArray, n: Int, out: IntArray): Int {
+        var made = 0
+        for (i in 0 until n) {
+            val o = i * Statics.COUNT
+            out[i] = if (d[o].toInt() == Statics.BOX) addBox(d[o + 1], d[o + 2], d[o + 3], d[o + 4], d[o + 5], d[o + 6], d[o + 7], d[o + 8])
+            else addCylinder(d[o + 1], d[o + 2], d[o + 3], d[o + 4], d[o + 5], d[o + 8])
+            if (out[i] >= 0) made++
+        }
+        return made
+    }
+    /** Takes the first [n] of [handles] out together (one broad-phase removal). */
+    fun removeAll(handles: IntArray, n: Int) { for (i in 0 until n) remove(handles[i]) }
+    /** Rebuilds the broad phase's trees for what is in it now (after many batches added). */
+    fun optimize() {}
     /** How many bodies the world holds now (statics and vehicles). */
     val bodies: Int
 
@@ -57,6 +77,16 @@ interface Physics : AutoCloseable {
         /** A physics world, or null where the native library cannot load (a unit test on a JVM without it). */
         fun create(maxBodies: Int = 4096): Physics? = if (JoltNative.load()) JoltPhysics(maxBodies) else null
     }
+}
+
+/** A static's record for [Physics.addStatics] (physics_core.h StaticIndex: change them together). */
+object Statics {
+    const val KIND = 0; const val X = 1; const val Y = 2; const val Z = 3
+    /** A box's half extents; a cylinder's radius and half height in the first two. */
+    const val HX = 4; const val HY = 5; const val HZ = 6
+    const val YAW = 7; const val FRICTION = 8
+    const val COUNT = 9
+    const val BOX = 0; const val CYLINDER = 1
 }
 
 /** Indices into [Physics.addVehicle]'s description (physics_core.h VehicleDesc: change them together). */
@@ -145,7 +175,7 @@ object JoltNative {
             val ok = runCatching {
                 val file = System.getProperty("timerpg.physics.lib")
                 if (file != null && java.io.File(file).isFile) System.load(java.io.File(file).absolutePath) else System.loadLibrary("timerpg_physics")
-                check(descCount() == VehicleDesc.COUNT && stateCount() == VehicleState.COUNT && breakCount() == Breaks.COUNT) { "physics library's layout differs from Physics.kt" }
+                check(descCount() == VehicleDesc.COUNT && stateCount() == VehicleState.COUNT && breakCount() == Breaks.COUNT && staticCount() == Statics.COUNT) { "physics library's layout differs from Physics.kt" }
             }.isSuccess
             loaded = ok
             return ok
@@ -158,6 +188,10 @@ object JoltNative {
     @JvmStatic external fun addCylinder(w: Long, cx: Float, cy: Float, cz: Float, r: Float, hh: Float, friction: Float): Int
     @JvmStatic external fun addHeightfield(w: Long, x0: Float, z0: Float, n: Int, cell: Float, heights: FloatArray, friction: Float): Int
     @JvmStatic external fun removeBody(w: Long, h: Int)
+    @JvmStatic external fun addStatics(w: Long, d: FloatArray, n: Int, out: IntArray): Int
+    @JvmStatic external fun removeBodies(w: Long, h: IntArray, n: Int)
+    @JvmStatic external fun optimizeBroadPhase(w: Long)
+    @JvmStatic external fun staticCount(): Int
     @JvmStatic external fun bodyCount(w: Long): Int
     @JvmStatic external fun addVehicle(w: Long, desc: FloatArray, boxes: FloatArray, x: Float, y: Float, z: Float, yaw: Float): Int
     @JvmStatic external fun removeVehicle(w: Long, v: Int)
@@ -184,6 +218,9 @@ class JoltPhysics(maxBodies: Int = 4096) : Physics {
     override fun addCylinder(cx: Float, cy: Float, cz: Float, radius: Float, halfHeight: Float, friction: Float) = JoltNative.addCylinder(h(), cx, cy, cz, radius, halfHeight, friction)
     override fun addHeightfield(x0: Float, z0: Float, n: Int, cell: Float, heights: FloatArray, friction: Float) = JoltNative.addHeightfield(h(), x0, z0, n, cell, heights, friction)
     override fun remove(handle: Int) { if (handle >= 0) JoltNative.removeBody(h(), handle) }
+    override fun addStatics(d: FloatArray, n: Int, out: IntArray): Int = if (n <= 0) 0 else JoltNative.addStatics(h(), d, n, out)
+    override fun removeAll(handles: IntArray, n: Int) { if (n > 0) JoltNative.removeBodies(h(), handles, n) }
+    override fun optimize() = JoltNative.optimizeBroadPhase(h())
     override val bodies: Int get() = JoltNative.bodyCount(h())
     override fun addVehicle(desc: FloatArray, boxes: FloatArray, x: Float, y: Float, z: Float, yaw: Float) = JoltNative.addVehicle(h(), desc, boxes, x, y, z, yaw)
     override fun removeVehicle(v: Int) { if (v >= 0) JoltNative.removeVehicle(h(), v) }

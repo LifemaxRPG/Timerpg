@@ -114,13 +114,27 @@ internal object WorldPropKit {
     }
 
     /** [d]'s things as one mesh in the cell's frame (street units, [u] a metre), as they stand in [year]; null for none. */
-    fun pack(d: WorldCountry.Scatter, u: Float, year: Int): PropLayer.Packed? {
+    fun mesh(d: WorldCountry.Scatter, u: Float, year: Int): PropMesh? {
         val m = MeshBuilder()
         for (p in d.poles) pole(m, p, u)
         for (f in d.fences) fence(m, f, u)
         for (s in d.signs) if (s[5].toInt() == WorldCountry.MILE) mile(m, s, u) else billboard(m, s, u, year)
         if (m.mark == 0) return null
-        return PropLayer.Packing.pack(m.build(atlas), IDENTITY, share)
+        return m.build(atlas)
+    }
+
+    /** [d]'s things packed for the GPU as one batch ([mesh]); null for none. */
+    fun pack(d: WorldCountry.Scatter, u: Float, year: Int): PropLayer.Packed? = mesh(d, u, year)?.let { pack(it) }
+
+    /** [m] (one of [mesh]'s, or several merged: [merge]) packed for the GPU, wearing the one shared atlas. */
+    fun pack(m: PropMesh): PropLayer.Packed? = PropLayer.Packing.pack(m, IDENTITY, share)
+
+    /** [parts] (meshes of this kit, each in its own frame) offset by ([ox], [oz]) each, merged into one mesh. */
+    fun merge(parts: List<Triple<PropMesh, Float, Float>>): PropMesh? {
+        if (parts.isEmpty()) return null
+        if (parts.size == 1 && parts[0].second == 0f && parts[0].third == 0f) return parts[0].first
+        val wrapped = parts.map { (m, x, z) -> Triple(WorldFarmKit.Part(m, 0), x, z) }
+        return WorldFarmKit.merge(wrapped)?.mesh
     }
 
     private val share: MutableMap<IntArray, StreetTextures.Prepared> = java.util.Collections.synchronizedMap(java.util.IdentityHashMap())

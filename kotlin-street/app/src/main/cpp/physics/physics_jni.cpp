@@ -38,6 +38,26 @@ JNIEXPORT jint JNICALL FN(addHeightfield)(JNIEnv *env, jclass, jlong w, jfloat x
 
 JNIEXPORT void JNICALL FN(removeBody)(JNIEnv *, jclass, jlong w, jint h) { removeBody(W(w), h); }
 
+JNIEXPORT jint JNICALL FN(addStatics)(JNIEnv *env, jclass, jlong w, jfloatArray d, jint n, jintArray out) {
+    if (n <= 0 || env->GetArrayLength(d) < n * ST_COUNT || env->GetArrayLength(out) < n) return 0;
+    std::vector<float> f((size_t) n * ST_COUNT);
+    std::vector<int> h((size_t) n);
+    env->GetFloatArrayRegion(d, 0, n * ST_COUNT, f.data());
+    const int made = addStatics(W(w), f.data(), n, h.data());
+    env->SetIntArrayRegion(out, 0, n, h.data());
+    return made;
+}
+
+JNIEXPORT void JNICALL FN(removeBodies)(JNIEnv *env, jclass, jlong w, jintArray handles, jint n) {
+    if (n <= 0 || env->GetArrayLength(handles) < n) return;
+    std::vector<int> h((size_t) n);
+    env->GetIntArrayRegion(handles, 0, n, h.data());
+    removeBodies(W(w), h.data(), n);
+}
+
+JNIEXPORT void JNICALL FN(optimizeBroadPhase)(JNIEnv *, jclass, jlong w) { optimizeBroadPhase(W(w)); }
+JNIEXPORT jint JNICALL FN(staticCount)(JNIEnv *, jclass) { return ST_COUNT; }
+
 JNIEXPORT jint JNICALL FN(bodyCount)(JNIEnv *, jclass, jlong w) { return bodyCount(W(w)); }
 
 JNIEXPORT jint JNICALL FN(addVehicle)(JNIEnv *env, jclass, jlong w, jfloatArray desc, jfloatArray boxes, jfloat x, jfloat y, jfloat z, jfloat yaw) {

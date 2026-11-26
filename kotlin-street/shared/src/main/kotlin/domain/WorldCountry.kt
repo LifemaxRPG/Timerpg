@@ -267,7 +267,20 @@ class WorldCountry(private val t: WorldTerrain) {
         plots(s, p, o)
         roads(s, p)
         s.ms = (System.nanoTime() - t0) / 1e6f
+        synchronized(recent) { recent[key(ci, cj)] = s }
         return s
+    }
+
+    /**
+     * Cell ([ci], [cj])'s things, the one [scatter] made lately if it is still held (the drawn country's and the cars'
+     * statics' cells are mostly the same ones: made once), else made now (any thread).
+     */
+    fun scatterShared(ci: Int, cj: Int): Scatter = synchronized(recent) { recent[key(ci, cj)] } ?: scatter(ci, cj)
+
+    private fun key(ci: Int, cj: Int): Long = (ci.toLong() shl 32) or (cj.toLong() and 0xffffffffL)
+    /** The cells [scatter] made last ([RECENT] of them: a few hundred kB). */
+    private val recent = object : LinkedHashMap<Long, Scatter>(64, .75f, true) {
+        override fun removeEldestEntry(e: MutableMap.MutableEntry<Long, Scatter>?) = size > RECENT
     }
 
     private fun woodTree(b: Int, hv: Double, hk: Double): Pair<Int, Double> {
@@ -517,6 +530,8 @@ class WorldCountry(private val t: WorldTerrain) {
             min(p.road, min(p.county, p.rail)) > off - half - 2.5
 
     companion object {
+        /** The cells [scatterShared] can find made ([scatter]'s last ones). */
+        const val RECENT = 96
         /** A scatter cell's side (m): 64 tiles. */
         const val CELL_M = 64 * Planet.TILE_M
         /** Scatter cells round the planet (east-west). */

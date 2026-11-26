@@ -149,6 +149,11 @@ class VehicleWorld(
     @Volatile var engineOff = false
     @Volatile var gripScale = 1f
     @Volatile var onImpact: ((Float) -> Unit)? = null
+    /**
+     * The open country's trees, poles, fences and farm buildings round the driven car (step 1b, [CountrySolids]): set by the
+     * app once the world round the town is there; null: the country is not solid (the town's own shapes still are).
+     */
+    @Volatile var country: CountrySolids? = null
     private var lastDrivenSpeed = Float.NaN
     private var impactAt = -1e9f
 
@@ -445,6 +450,7 @@ class VehicleWorld(
         if (c != null && phase != Phase.EXITING) {
             walk.carry(c.pose.x, c.pose.z, c.pose.fx, c.pose.fz, abs(c.forwardSpeed) * U)
             stream(c, force = false)
+            country?.stream(physics, c.now[VehicleState.X], c.now[VehicleState.Z], c.now[VehicleState.VX], c.now[VehicleState.VZ])
         }
     }
 
@@ -633,6 +639,7 @@ class VehicleWorld(
         chunks.clear()
         for (j in chunkJobs.values) j.cancel(false)
         chunkJobs.clear()
+        country?.clear(physics)
         streamX = Float.NaN
     }
 
@@ -718,10 +725,13 @@ class VehicleWorld(
                   ground: ((xM: Float, zM: Float) -> Float?)? = null, flat: FloatArray? = null): VehicleWorld? {
             val specs = VehicleSpec.CATALOGUE.mapNotNull { k -> read("$k/model-info.json")?.let { runCatching { VehicleSpec.parse(it) }.getOrNull() } }
             if (specs.isEmpty()) return null
-            val ph = Physics.create() ?: return null
+            // (out in the country the trees, poles and fences round the car are statics too: CountrySolids, a few thousand)
+            val ph = Physics.create(if (ground != null) WORLD_BODIES else 4096) ?: return null
             return VehicleWorld(ph, collision, specs, ground, flat).also { it.park(town, yards, year) }
         }
 
+        /** The physics' bodies at most with the world round the town (the country's statics round the car: CountrySolids). */
+        const val WORLD_BODIES = 32768
         /** Street units in a metre (the buildings' 0.0388 m texel is 184/224 units). */
         const val U = (184f / 224f) / .0388f
         /** Parked cars stand at least this far apart (m). */

@@ -66,6 +66,10 @@ class WorldViewsTest {
             if (only != null && name !in only) return
             val t0 = System.nanoTime()
             settle(pose, hour)
+            // (WORLD_VIEWS_SETTLE: this many frames more, for the far impostor tiles still being made, whose lateness the
+            // settling does not wait for; the clock set to the same moment for every shot, so the clouds stand still between runs)
+            repeat(System.getenv("WORLD_VIEWS_SETTLE")?.toIntOrNull() ?: 0) { k -> frame(pose, hour); if (k % 4 == 0) Thread.sleep(2) }
+            clock = 1000.0
             frame(pose, hour); frame(pose, hour)
             shooter.save(File(out, "$name.png"), 1170, 540, hour)
             log.appendLine("$name: $caption; draws %d, triangles %d; settled in %.1f s; %s".format(ft.stats.draws, ft.stats.triangles, (System.nanoTime() - t0) / 1e9, WorldMemory.line()))

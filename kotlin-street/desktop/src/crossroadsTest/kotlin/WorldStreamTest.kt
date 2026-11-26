@@ -1,4 +1,7 @@
+import com.lifemax.rpg.feature.habits.domain.ModelShape
 import com.lifemax.rpg.feature.habits.domain.Planet
+import com.lifemax.rpg.feature.habits.domain.WorldCountry
+import com.lifemax.rpg.feature.habits.vehicle.CountrySolids
 import com.lifemax.rpg.feature.habits.domain.WorldFarPlan
 import com.lifemax.rpg.feature.habits.domain.WorldPos
 import com.lifemax.rpg.feature.habits.domain.WorldStream
@@ -110,7 +113,7 @@ class WorldStreamTest {
     }
 
     @Test fun aCarDrivesToTheNextTownAtHighwaySpeedOnTheStreamedGround() {
-        val ph = Physics.create() ?: error("the physics library did not load (-Dtimerpg.physics.lib: gradle :desktop:physicsHost)")
+        val ph = Physics.create(VehicleWorld.WORLD_BODIES) ?: error("the physics library did not load (-Dtimerpg.physics.lib: gradle :desktop:physicsHost)")
         val d = WorldDrive.drive
         val f = site.frame
         val u = f.unitsPerMetre
@@ -124,6 +127,12 @@ class WorldStreamTest {
         val vw = VehicleWorld(ph, null, listOf(spec), ground, f.ground)
         val events = ArrayList<String>()
         vw.onEvent = { events += it }
+        // (the country's trees, poles, fences and farm buildings solid round the car, as the app has them: the drive keeps
+        // to the road and must meet none of them)
+        val solids = CountrySolids(f, { terrain.country }, ModelShape.parseAll(File("../app/src/main/assets/farm/buildings/models.json").readText()))
+        vw.country = solids
+        val impacts = ArrayList<String>()
+        var mostStatics = 0
         // the route in physics metres (the capital's frame)
         val pts = d.street(site).let { s -> DoubleArray(s.size) { s[it] / U.toDouble() } }
         val p = DoubleArray(4)
@@ -134,6 +143,21 @@ class WorldStreamTest {
         val dt = VehicleWorld.STEP
         repeat(90) { vw.step(dt, walk, 0f, 0f) }
         val stream = WorldStream()
+        vw.onImpact = { dd ->
+            // (what stood there: the country's solid things within 8 m of the car, from its cell's scatter)
+            val w = f.world(car.x.toDouble(), car.z.toDouble())
+            val near = ArrayList<String>()
+            for (di in -1..1) for (dj in -1..1) {
+                val sc = terrain.country.scatterShared(Math.floorMod(Math.floor(w.x / WorldCountry.CELL_M).toInt() + di, WorldCountry.CELLS_ROUND), Math.floor(w.z / WorldCountry.CELL_M).toInt() + dj)
+                fun dist(lx: Float, lz: Float): Double = hypot(Planet.wrapDx(sc.x0 + lx - w.x), sc.z0 + lz - w.z)
+                for (t in 0 until sc.treeCount) { val o = t * WorldCountry.TREE; val dd2 = dist(sc.trees[o], sc.trees[o + 2]); if (dd2 < 8 && sc.trees[o + 3].toInt() < WorldCountry.BUSH_ROUND) near += "tree %d %.1f m".format(sc.trees[o + 3].toInt(), dd2) }
+                for (q in sc.poles) { val dd2 = dist(q[0], q[2]); if (dd2 < 8) near += "pole %.1f m".format(dd2) }
+                for (q in sc.fences) { val dd2 = minOf(dist(q[0], q[2]), dist(q[3], q[5])); if (dd2 < 8) near += "fence %.1f m".format(dd2) }
+                for (q in sc.signs) { val dd2 = dist(q[0], q[2]); if (dd2 < 10) near += "sign %d %.1f m".format(q[5].toInt(), dd2) }
+                for (q in sc.buildings) { val dd2 = dist(q[0], q[2]); if (dd2 < 30) near += "building %s %.1f m".format(WorldCountry.FARM_MODELS[q[5].toInt()], dd2) }
+            }
+            impacts += "%.1f m/s at %.0f, %.0f m, %.0f km/h; near: %s".format(java.util.Locale.US, dd, car.x / U, car.z / U, abs(car.forwardSpeed) * 3.6f + dd * 3.6f, near)
+        }
         var t = 0.0; var along = 0.0
         val stepMs = ArrayList<Float>(); val planMs = ArrayList<Float>()
         var maxSpeed = 0f; var speedSum = 0.0; var speedN = 0
@@ -156,7 +180,8 @@ class WorldStreamTest {
             if (along > 400) worstLat = max(worstLat, bd)
             // pure pursuit: aim at the route a little ahead; the speed held at 120 km/h, less where it bends
             val v = car.forwardSpeed
-            val look = 18.0 + v * .9
+            // (a shorter look at bends: the longer one, 18 m + 0.9 s, cut a junction's corner 7.7 m off the route into a power pole once the country was solid)
+            val look = 8.0 + v * .8
             WorldDrive.along(pts, along + look, p)
             val hx = car.fx.toDouble(); val hz = car.fz.toDouble()
             val tx = p[0] - x; val tz = p[1] - z
@@ -176,6 +201,7 @@ class WorldStreamTest {
             val t0 = System.nanoTime()
             vw.step(dt, walk, steer, -pedal)
             stepMs += (System.nanoTime() - t0) / 1e6f
+            mostStatics = max(mostStatics, solids.bodies)
             t += dt
             // the streamer: a re-plan round the car's lead (made here at once and timed; on the phone a worker makes it)
             val w = f.world(s[VehicleState.X] * U.toDouble(), s[VehicleState.Z] * U.toDouble())
@@ -230,13 +256,123 @@ class WorldStreamTest {
             hypot(s[VehicleState.X], s[VehicleState.Z]) / 1000, Math.ulp(hypot(s[VehicleState.X], s[VehicleState.Z]) * U)))
         println("jolts over 20 m/s2 (m/s2 @ km / m from a seam): $jolts")
         println("the worst jolt: $worstWhere; the ground's chunks made at once ${vw.chunksNow}, ahead ${vw.chunksAhead}")
+        println("the country solid round the car: ${solids.report}; at most $mostStatics statics at once; impacts $impacts")
         File("build/world-stream").mkdirs()
         File("build/world-stream/physics.txt").writeText("the drive $d\n" + "%.1f km driven, %d re-plans, rescues %s".format(km, planMs.size, events))
         assertTrue("the car was rescued: $events", events.none { it.startsWith("car: rescued") })
+        assertTrue("the drive along the road met the country's things: $impacts", impacts.isEmpty())
+        assertTrue("the country was solid round the car (${solids.report})", solids.batches > 20)
         assertTrue("it reached the next town (%.1f of %.1f km)".format(km, total / 1000), along >= limit - 1)
         assertTrue("it fell under the ground ($worstUnder m)", worstUnder < .5f)
         assertTrue("a bump at a chunk's seam: p99 %.1f m/s2 against %.1f elsewhere".format(q(seamAcc, .99), q(awayAcc, .99)), q(seamAcc, .99) <= max(3f, q(awayAcc, .99) * 1.5f))
     }
+
+    /**
+     * The real country solid (docs/WORLD_STREAM.md, step 1b): beside the drive's road, a car on the streamed terrain set
+     * 24 m from one of the country's own trees, and from one of its power poles, on a clear line over gentle ground, driven
+     * at it at full throttle: it crashes and stops in front of it, the crash heard.
+     */
+    @Test fun aCarDrivenIntoTheCountrysTreesAndPolesStops() {
+        val d = WorldDrive.drive
+        val f = site.frame
+        val u = f.unitsPerMetre
+        val U = VehicleWorld.U
+        val plan = site.plan(year)
+        val terrain = WorldTerrain(sk, plan)
+        val ctry = terrain.country
+        val ground: (Float, Float) -> Float? = { xm, zm -> terrain.heightLocal(xm * U / u, zm * U / u).toFloat() }
+        val spec = VehicleSpec.parse(File("../app/src/main/assets/vehicles/northcairn-1956/model-info.json").readText())
+        val pts = d.street(site).let { s -> DoubleArray(s.size) { s[it] / U.toDouble() } }
+        val p = DoubleArray(4)
+        class Solid(val x: Float, val z: Float, val r: Float, val pole: Boolean)
+        val k = U / u
+        fun cellAt(xm: Double, zm: Double): WorldCountry.Scatter {
+            val w = f.world(xm * U, zm * U)
+            return ctry.scatter(Math.floorMod(Math.floor(w.x / WorldCountry.CELL_M).toInt(), WorldCountry.CELLS_ROUND), Math.floor(w.z / WorldCountry.CELL_M).toInt())
+        }
+        fun local(sc: WorldCountry.Scatter, lx: Float, lz: Float): FloatArray =
+            floatArrayOf((Planet.wrapDx(sc.x0 + lx - f.origin.x) / k).toFloat(), ((sc.z0 + lz - f.origin.z) / k).toFloat())
+        fun segDist(px: Float, pz: Float, ax: Float, az: Float, bx: Float, bz: Float): Float {
+            val dx = bx - ax; val dz = bz - az; val l2 = (dx * dx + dz * dz).coerceAtLeast(1e-6f)
+            val t = (((px - ax) * dx + (pz - az) * dz) / l2).coerceIn(0f, 1f)
+            return hypot(px - ax - dx * t, pz - az - dz * t)
+        }
+        // a trunk and a pole near the route from 4 km on, with a clear run at it over gentle ground
+        val found = HashMap<Boolean, Pair<Solid, FloatArray>>()
+        var s = 4000.0
+        while (s < 16000.0 && found.size < 2) {
+            WorldDrive.along(pts, s, p)
+            val sc = cellAt(p[0], p[1])
+            val solids = ArrayList<Solid>()
+            for (t in 0 until sc.treeCount) {
+                val o = t * WorldCountry.TREE
+                val sp = sc.trees[o + 3].toInt()
+                if (sp == WorldCountry.BUSH_ROUND || sp == WorldCountry.BUSH_TALL) continue
+                val a = local(sc, sc.trees[o], sc.trees[o + 2])
+                solids += Solid(a[0], a[1], (sc.trees[o + 5] * CountrySolids.TRUNK_K).coerceIn(CountrySolids.TRUNK_MIN, CountrySolids.TRUNK_MAX), false)
+            }
+            for (q in sc.poles) { val a = local(sc, q[0], q[2]); solids += Solid(a[0], a[1], CountrySolids.POLE_R, true) }
+            val fences = sc.fences.map { q -> local(sc, q[0], q[2]) + local(sc, q[3], q[5]) }
+            for (c in solids) {
+                if (c.pole in found) continue
+                // (not too near the cell's edge: its neighbours' things are not in this list)
+                val lx = (c.x * k + f.origin.x - sc.x0).let { Planet.wrapDx(it) }; val lz = c.z * k + f.origin.z - sc.z0
+                if (lx < 30 || lx > WorldCountry.CELL_M - 30 || lz < 30 || lz > WorldCountry.CELL_M - 30) continue
+                for (a in 0 until 16) {
+                    val ang = a * Math.PI / 8
+                    val sx = (c.x + 24 * kotlin.math.cos(ang)).toFloat(); val sz = (c.z + 24 * kotlin.math.sin(ang)).toFloat()
+                    var ok = true
+                    var prev = ground(sx, sz)!!
+                    for (n in 1..24) {
+                        val qx = sx + (c.x - sx) * n / 24f; val qz = sz + (c.z - sz) * n / 24f
+                        val h = ground(qx, qz)!!
+                        if (abs(h - prev) > .35f) { ok = false; break }
+                        prev = h
+                    }
+                    if (!ok) continue
+                    if (solids.any { o -> o !== c && segDist(o.x, o.z, sx, sz, c.x, c.z) < o.r + 3f }) continue
+                    if (fences.any { fr -> (0..10).any { n -> segDist(fr[0] + (fr[2] - fr[0]) * n / 10f, fr[1] + (fr[3] - fr[1]) * n / 10f, sx, sz, c.x, c.z) < 3f } }) continue
+                    found[c.pole] = c to floatArrayOf(sx, sz)
+                    break
+                }
+            }
+            s += 250.0
+        }
+        assertEquals("a tree and a pole found beside the road", 2, found.size)
+        for ((pole, pair) in found) {
+            val (c, st) = pair
+            val ph = Physics.create(VehicleWorld.WORLD_BODIES) ?: error("the physics library did not load")
+            val vw = VehicleWorld(ph, null, listOf(spec), ground, f.ground)
+            vw.country = CountrySolids(f, { ctry })
+            val impacts = ArrayList<Float>()
+            vw.onImpact = { impacts += it }
+            val dx = c.x - st[0]; val dz = c.z - st[1]; val l = hypot(dx, dz)
+            val car = vw.add(spec, 0, false, VehicleSpots.Spot("t", st[0] * U, st[1] * U, dx / l, dz / l, 8f * U))
+            // (stood on the terrain there: add stands it at the town's ground height)
+            vw.physics.place(car.handle, st[0], ground(st[0], st[1])!! + .3f, st[1], atan2(dx / l, dz / l))
+            vw.physics.state(car.handle, car.now); car.now.copyInto(car.before)
+            car.home[0] = st[0]; car.home[1] = ground(st[0], st[1])!! + .3f; car.home[2] = st[1]
+            val walk = Walk()
+            assertTrue(vw.enter(car, walk))
+            repeat(120) { vw.step(VehicleWorld.STEP, walk, 0f, 0f); Thread.sleep(1) }
+            var closest = Float.MAX_VALUE; var t = 0f; var top = 0f
+            while (t < 8f) {
+                // (held on the line: steered at the target)
+                val tx = c.x - car.x / U; val tz = c.z - car.z / U
+                val ang = atan2(car.fx * tz - car.fz * tx, car.fx * tx + car.fz * tz)
+                vw.step(VehicleWorld.STEP, walk, (ang * 2.4f).coerceIn(-1f, 1f), -1f)
+                closest = min(closest, hypot(c.x - car.x / U, c.z - car.z / U)); top = max(top, abs(car.forwardSpeed)); t += VehicleWorld.STEP
+            }
+            val what = if (pole) "a power pole" else "a tree (trunk %.2f m)".format(c.r)
+            println("the real country: full throttle from 24 m into $what at (%.0f, %.0f) m: at most %.1f km/h, its middle came within %.2f m of it, ends at %.2f m/s; impacts %s; %s"
+                .format(c.x, c.z, top * 3.6f, closest, car.forwardSpeed, impacts.joinToString { "%.1f m/s".format(it) }, vw.country!!.report))
+            assertTrue("$what stops the car (its middle came within $closest m)", closest > c.r + 1.2f)
+            assertTrue("$what: the car stands (${car.forwardSpeed} m/s)", abs(car.forwardSpeed) < 1.5f)
+            assertTrue("$what: the crash is heard ($impacts)", impacts.any { it > 6f })
+            vw.close()
+        }
+    }
+
 
     companion object {
         const val TARGET_KMH = 120.0

@@ -22,6 +22,9 @@
 #include <cmath>
 #include <mutex>
 #include <vector>
+#include <cstring>
+#include <functional>
+#include <unordered_map>
 
 JPH_SUPPRESS_WARNINGS
 
@@ -146,7 +149,10 @@ public:
     explicit World(int maxBodies)
         : temp(4 * 1024 * 1024), jobs(cMaxPhysicsJobs) {
         const uint n = (uint) std::max(64, maxBodies);
-        system.Init(n, 0, n, n, broadPhases, objectVsBroadPhase, objectPairs);
+        // (the body pairs and contacts are the cars' and the debris's with what they touch: a few thousand at most however
+        // many statics stand round them; their buffers come from the 4 MB step allocator, which 32,768 of each overran)
+        const uint pairs = std::min(n, 4096u);
+        system.Init(n, 0, pairs, pairs, broadPhases, objectVsBroadPhase, objectPairs);
         system.SetGravity(Vec3(0.f, -9.81f, 0.f));
         system.SetContactListener(&breaker);
     }
@@ -159,7 +165,13 @@ public:
 
     int keep(BodyID id, bool isStatic) {
         int h = -1;
-        for (size_t i = 0; i < bodies.size(); ++i) if (bodies[i].IsInvalid()) { bodies[i] = id; h = (int) i; break; }
+        // (the lowest free slot, as the scan over every slot it replaces found: a min-heap of the freed ones, so a streamed
+        // cell's thousand statics are not a thousand scans of every body)
+        if (!freeSlots.empty()) {
+            std::pop_heap(freeSlots.begin(), freeSlots.end(), std::greater<int>());
+            h = freeSlots.back(); freeSlots.pop_back();
+            bodies[h] = id;
+        }
         if (h < 0) { bodies.push_back(id); gives.emplace_back(); staticFlags.push_back(0); touches.emplace_back(); h = (int) bodies.size() - 1; }
         gives[h] = Give();
         touches[h] = Touch();
@@ -185,11 +197,47 @@ public:
         BodyInterface &bi = system.GetBodyInterface();
         bi.RemoveBody(bodies[h]);
         bi.DestroyBody(bodies[h]);
+        forget(h);
+    }
+
+    /** Slot [h] is free again (its body already removed and destroyed). */
+    void forget(int h) {
         bodies[h] = BodyID();
         if (staticFlags[h]) statics--;
         gives[h] = Give();
         touches[h] = Touch();
+        freeSlots.push_back(h);
+        std::push_heap(freeSlots.begin(), freeSlots.end(), std::greater<int>());
     }
+
+    /**
+     * A shape for a static of `kind` (0 box, 1 upright cylinder) and these sizes, made once and shared by every body of the
+     * same sizes (a wood's trunks come in a few dozen sizes: [addStatics] rounds them); null if Jolt refuses it.
+     */
+    const Shape *sharedShape(int kind, float a, float b, float c) {
+        uint32 ka, kb, kc;
+        std::memcpy(&ka, &a, 4); std::memcpy(&kb, &b, 4); std::memcpy(&kc, &c, 4);
+        const uint64 key = ((uint64) kind << 62) ^ ((uint64) ka << 31) ^ ((uint64) kb << 11) ^ (uint64) kc * 0x9E3779B97F4A7C15ull;
+        auto it = shapes.find(key);
+        if (it != shapes.end() && it->second.kind == kind && it->second.a == a && it->second.b == b && it->second.c == c) return it->second.shape.GetPtr();
+        // (a bound on the cache: the shapes in use stay alive through their bodies)
+        if (shapes.size() > 8192) shapes.clear();
+        ShapeSettings::ShapeResult res;
+        if (kind == 0) {
+            float r = std::min(cDefaultConvexRadius, std::min(a, std::min(b, c)) * .3f);
+            res = BoxShapeSettings(Vec3(a, b, c), r).Create();
+        } else {
+            float r = std::min(cDefaultConvexRadius, std::min(a, b) * .3f);
+            res = CylinderShapeSettings(b, a, r).Create();
+        }
+        if (res.HasError()) return nullptr;
+        SharedShape &e = shapes[key];
+        e.kind = kind; e.a = a; e.b = b; e.c = c; e.shape = res.Get();
+        return e.shape.GetPtr();
+    }
+    struct SharedShape { int kind = -1; float a = 0.f, b = 0.f, c = 0.f; RefConst<Shape> shape; };
+    std::unordered_map<uint64, SharedShape> shapes;
+    std::vector<int> freeSlots;
 
     void dropVehicle(Vehicle &v) {
         system.RemoveStepListener(v.constraint);
@@ -343,6 +391,56 @@ int addHeightfield(World *w, float x0, float z0, int n, float cell, const float 
 }
 
 void removeBody(World *w, int handle) { w->remove(handle); }
+
+int addStatics(World *w, const float *d, int n, int *out) {
+    BodyInterface &bi = w->system.GetBodyInterface();
+    std::vector<BodyID> ids;
+    ids.reserve((size_t) std::max(0, n));
+    int made = 0;
+    for (int i = 0; i < n; ++i) {
+        const float *r = d + (size_t) i * ST_COUNT;
+        out[i] = -1;
+        const int kind = (int) r[ST_KIND];
+        const float a = r[ST_HX], b = r[ST_HY], c = r[ST_HZ];
+        if (a <= 0.f || b <= 0.f || (kind == 0 && c <= 0.f)) continue;
+        const Shape *shape = w->sharedShape(kind, a, b, kind == 0 ? c : 0.f);
+        if (shape == nullptr) continue;
+        BodyCreationSettings s(shape, RVec3(r[ST_X], r[ST_Y], r[ST_Z]), kind == 0 ? yawQuat(r[ST_YAW]) : Quat::sIdentity(), EMotionType::Static, Layers::STATIC);
+        s.mFriction = r[ST_FRICTION];
+        Body *body = bi.CreateBody(s);
+        if (body == nullptr) break;     // (the world is full: the rest are not made)
+        ids.push_back(body->GetID());
+        w->statics++;
+        out[i] = w->keep(body->GetID(), true);
+        made++;
+    }
+    if (!ids.empty()) {
+        // (one batch into the broad phase: Jolt builds the batch's own tree and merges it in, instead of a body at a time)
+        BodyInterface::AddState st = bi.AddBodiesPrepare(ids.data(), (int) ids.size());
+        bi.AddBodiesFinalize(ids.data(), (int) ids.size(), st, EActivation::DontActivate);
+    }
+    return made;
+}
+
+void removeBodies(World *w, const int *handles, int n) {
+    BodyInterface &bi = w->system.GetBodyInterface();
+    std::vector<BodyID> ids;
+    std::vector<int> hs;
+    ids.reserve((size_t) std::max(0, n)); hs.reserve((size_t) std::max(0, n));
+    for (int i = 0; i < n; ++i) {
+        const int h = handles[i];
+        if (h < 0 || h >= (int) w->bodies.size() || w->bodies[h].IsInvalid()) continue;
+        ids.push_back(w->bodies[h]); hs.push_back(h);
+        // (a handle twice in the list: once)
+        w->bodies[h] = BodyID();
+    }
+    if (ids.empty()) return;
+    bi.RemoveBodies(ids.data(), (int) ids.size());
+    bi.DestroyBodies(ids.data(), (int) ids.size());
+    for (int h : hs) w->forget(h);
+}
+
+void optimizeBroadPhase(World *w) { w->system.OptimizeBroadPhase(); }
 
 int bodyCount(World *w) { return (int) w->system.GetNumBodies(); }
 

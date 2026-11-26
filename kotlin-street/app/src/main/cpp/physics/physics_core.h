@@ -82,6 +82,22 @@ int addCylinder(World *w, float cx, float cy, float cz, float radius, float half
 // n must be a multiple of 4 plus 1 is not needed: any n >= 4 works (Jolt pads it to its block size).
 int addHeightfield(World *w, float x0, float z0, int n, float cell, const float *heights, float friction);
 void removeBody(World *w, int handle);
+// Many statics at once (a streamed cell's trunks, poles, fences and farm buildings): n records of ST_COUNT floats; each
+// one's handle (or -1) into out. Same-sized shapes are shared; the bodies go into the broad phase as one batch (Jolt's
+// AddBodiesPrepare / AddBodiesFinalize). Returns how many were made.
+enum StaticIndex {
+    ST_KIND = 0,            // 0 a box, 1 an upright cylinder
+    ST_X, ST_Y, ST_Z,       // its centre (m)
+    ST_HX, ST_HY, ST_HZ,    // a box's half extents; a cylinder's radius, half height (ST_HZ unused)
+    ST_YAW,                 // a box's turn about +y (rad, as addBox)
+    ST_FRICTION,
+    ST_COUNT
+};
+int addStatics(World *w, const float *d, int n, int *out);
+// Takes the n bodies out together (one broad-phase removal) and frees their handles.
+void removeBodies(World *w, const int *handles, int n);
+// Rebuilds the broad phase's trees for the bodies now in it (after many batches: queries stay quick).
+void optimizeBroadPhase(World *w);
 int bodyCount(World *w);
 
 // Vehicles: desc of VD_COUNT floats; boxes the chassis's collision boxes (6 floats each: centre x, y, z, size x, y, z in
