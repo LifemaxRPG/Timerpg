@@ -43,6 +43,8 @@ import org.jetbrains.skia.Image as SkiaImage
 @Volatile var openBuilt: ((FilamentTown) -> Unit)? = null
 /** The world round the open world's town with -Dworld=1 (GpuWorldDriveTest drives out into it), else null. */
 @Volatile internal var openWorld: com.lifemax.rpg.feature.habits.presentation.scene3d.WorldFar? = null
+/** The generated towns round it (planet step 2), when baked (WorldPreview.townsDir), else null. */
+@Volatile internal var openTowns: com.lifemax.rpg.feature.habits.presentation.scene3d.WorldTowns? = null
 
 fun renderFilamentOpen(out: String) {
     val dir = File(out, "filament-open").also { it.mkdirs() }

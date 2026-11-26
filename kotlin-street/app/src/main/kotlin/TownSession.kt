@@ -61,6 +61,10 @@ object TownSession {
     const val DEFAULT = "gamma"
     /** The planet's world seed (the baked skeleton the app ships: src/world/gen/hubs.ts PLANET_SEED). */
     const val WORLD = "alpha"
+
+    /** The generated towns' folder in the app's files (towns/<world>/manifest.json and the packs beside it), or null when none are there. */
+    fun townsDir(ctx: android.content.Context): java.io.File? =
+        ctx.getExternalFilesDir(null)?.let { java.io.File(it, "towns/$WORLD") }?.takeIf { java.io.File(it, "manifest.json").isFile }
     /** The engine thread's building budget a frame (ms): while playing, and behind the loading screen. */
     const val BUDGET_MS = 4f
     const val LOADING_BUDGET_MS = 14f
@@ -263,6 +267,13 @@ object TownSession {
             com.lifemax.rpg.feature.habits.domain.WorldSite.of(sk, town.seed, town.scale.toDouble()).also {
                 com.timerpg.street.shot.Crumbs.add(if (it == null) "world: no hub has the plan ${town.seed}"
                     else "${it.report}, read in %.0f ms; ".format(java.util.Locale.US, (System.nanoTime() - w0) / 1e6f) + com.lifemax.rpg.feature.habits.domain.WorldMemory.line())
+                // the generated towns (planet step 2, docs/TOWNS_EVERYWHERE.md "Streaming"): the baker's manifest and packs,
+                // pushed to the app's files (towns/<world>/: adb push kotlin-street/build-towns/alpha ...); none: the far view's stand-ins
+                val dir = townsDir(ctx)
+                if (it != null && dir != null) try {
+                    it.takeTowns(com.lifemax.rpg.feature.habits.domain.WorldTownSet.parse(java.io.File(dir, "manifest.json").readText()), town.year)
+                    com.timerpg.street.shot.Crumbs.add("world towns: ${it.towns.ids.size} baked in $dir, ${it.roadside.size} roadside sites")
+                } catch (t: Throwable) { com.timerpg.street.shot.Crumbs.add("world towns: not read (${t.javaClass.simpleName}: ${t.message})") }
             }
         } catch (t: Throwable) { com.timerpg.street.shot.Crumbs.add("world: not loaded (${t.javaClass.simpleName}: ${t.message})"); null }
         // the city map (docs/MAPS.md): its footprints read from the collision here, before the walk has it (it answers one thread at a time)

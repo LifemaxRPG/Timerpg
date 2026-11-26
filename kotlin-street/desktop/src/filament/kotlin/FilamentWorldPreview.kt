@@ -33,7 +33,30 @@ internal object WorldPreview {
         val sk = f.inputStream().use { WorldSkeleton.read(it) }
         val site = WorldSite.of(sk, town.seed, town.scale.toDouble()) ?: error("no hub of the skeleton has the plan ${town.seed}")
         println("  world: read in %.0f ms; %s".format((System.nanoTime() - t0) / 1e6, site.report))
+        // the generated towns (planet step 2: the baker's manifest, tools/towns-bake.ts; -DworldTowns=<dir>, 0 for none)
+        townsDir()?.let { d ->
+            val t1 = System.nanoTime()
+            site.takeTowns(com.lifemax.rpg.feature.habits.domain.WorldTownSet.parse(File(d, "manifest.json").readText()), year(town))
+            println("  world: ${site.towns.ids.size} generated towns baked in $d; ${site.roadside.size} roadside sites (%.0f ms)".format((System.nanoTime() - t1) / 1e6))
+        }
         return site
+    }
+
+    /** The baked towns' folder (-DworldTowns=<dir>; default ../build-towns/alpha when baked; 0: none). */
+    fun townsDir(): File? = (System.getProperty("worldTowns") ?: System.getenv("WORLD_TOWNS")).let { p ->
+        if (p == "0") null else (p?.let { File(it) } ?: File("build-towns/alpha").takeIf { it.exists() } ?: File("../build-towns/alpha")).takeIf { File(it, "manifest.json").exists() }
+    }
+
+    /** The generated towns' packs and art, read from [dir] and the app's assets. */
+    fun townsSource(dir: File): com.lifemax.rpg.feature.habits.presentation.scene3d.TownsSource {
+        val lm = File("../app/src/main/assets/landmarks")
+        val fd = File("../app/src/main/assets/farm")
+        fun img(f: File) = f.takeIf { it.exists() }?.let { org.jetbrains.skia.Image.makeFromEncoded(it.readBytes()).toComposeImageBitmap() }
+        return com.lifemax.rpg.feature.habits.presentation.scene3d.TownsSource(
+            { p -> File(dir, p).takeIf { it.exists() }?.readBytes() },
+            { b -> runCatching { org.jetbrains.skia.Image.makeFromEncoded(b).toComposeImageBitmap() }.getOrNull() },
+            File(lm, "landmarks.json").takeIf { it.exists() }?.readText(), { p -> File(lm, p).takeIf { it.exists() }?.readBytes() },
+            com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt({ p -> img(File(fd, p)) }, { p -> File(fd, p).takeIf { it.exists() }?.readText() }, { p -> img(File("../../public/assets", p)) }))
     }
 
     fun attach(ft: FilamentTown, town: Town, site: WorldSite): WorldFar = WorldFar.also {
@@ -49,6 +72,11 @@ internal object WorldPreview {
     }, site.origin, near = System.getProperty("worldNear") != "0", replan = { c -> site.plan(year(town), c) },
         // (the country's farmsteads wear the capital's farm models)
         farmArt = java.io.File("../app/src/main/assets/farm").let { d -> com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt({ p -> java.io.File(d, p).takeIf { it.exists() }?.let { org.jetbrains.skia.Image.makeFromEncoded(it.readBytes()).toComposeImageBitmap() } }, { p -> java.io.File(d, p).takeIf { it.exists() }?.readText() }) })
+        .also { far ->
+            // the generated towns streamed in round the player (planet step 2)
+            com.lifemax.rpg.feature.habits.presentation.scene3d.WorldTowns.on = (System.getProperty("worldTowns") ?: System.getenv("WORLD_TOWNS")) != "0"
+            openTowns = townsDir()?.let { d -> com.lifemax.rpg.feature.habits.presentation.scene3d.WorldTowns.attach(ft, far, site.origin, site, site.towns, townsSource(d), year(town)) }
+        }
 
     private fun year(town: Town): Int = System.getProperty("worldYear")?.toIntOrNull() ?: town.year
 
