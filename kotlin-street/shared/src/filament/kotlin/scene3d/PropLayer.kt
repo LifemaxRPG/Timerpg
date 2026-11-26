@@ -306,7 +306,7 @@ internal class PropLayer(
             rb.geometry(1, RenderableManager.PrimitiveType.TRIANGLES, geo.vb, geo.ib, geo.first + no, geo.count - no).material(1, mi!!)
         } else rb.geometry(0, RenderableManager.PrimitiveType.TRIANGLES, geo.vb, geo.ib, geo.first, geo.count).material(0, omi ?: mi!!)
         rb.build(engine, e)
-        scene.addEntity(e)
+        scene.addEntity(e); TownRoot.adopt(engine, e)
         var pe = 0
         var pmi: MaterialInstance? = null
         var pomi: MaterialInstance? = null
@@ -323,7 +323,7 @@ internal class PropLayer(
                 pb.geometry(1, RenderableManager.PrimitiveType.TRIANGLES, geo.vb, geo.ib, geo.first + no, geo.count - no).material(1, pmi!!)
             } else pb.geometry(0, RenderableManager.PrimitiveType.TRIANGLES, geo.vb, geo.ib, geo.first, geo.count).material(0, pomi ?: pmi!!)
             pb.build(engine, pe)
-            scene.addEntity(pe)
+            scene.addEntity(pe); TownRoot.adopt(engine, pe)
         }
         val c = FloatArray(3); val hx = FloatArray(3)
         box.getCenter(c); box.getHalfExtent(hx)
@@ -514,7 +514,7 @@ internal class PropLayer(
      * Lets go of everything: its entities at once; [later] (streaming: [Graveyard]) its material instances and own textures
      * over the next frames, in order, instead of now.
      */
-    fun destroy(later: Boolean = false) {
+    fun destroy(later: Boolean = deferDestroy) {
         val em = EntityManager.get()
         val held = batches.filter { !it.released }
         for (b in held) {
@@ -534,6 +534,11 @@ internal class PropLayer(
     private fun smooth(t: Float): Float { val u = t.coerceIn(0f, 1f); return u * u * (3f - 2f * u) }
 
     companion object {
+        /**
+         * While set, every [destroy] buries its material instances and textures ([Graveyard]) as streaming does: a whole
+         * guest town let go (WorldTowns) spreads its Filament destroys over the next frames instead of a 100+ ms one.
+         */
+        @JvmField internal var deferDestroy = false
         internal const val STRIDE = TownVertex.STRIDE
         /** How strongly the glowing parts shine at night (their own colours, times the material's 1.8). */
         const val GLOW = 1.6f

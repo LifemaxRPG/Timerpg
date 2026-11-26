@@ -2,7 +2,7 @@
 // offline into one packed file per town plus a manifest, for the app to stream in from storage when the player comes near.
 //
 //   npx tsx kotlin-street/tools/towns-bake.ts [--world alpha] [--out kotlin-street/build-towns/<world>] [--jobs N]
-//       [--sample 30 | --places t:12,m:40 | --all] [--keep] [--resume]
+//       [--sample 30 | --places t:12,m:40 | --all] [--keep | --keep-only id,id] [--resume] [--measure] [--list]
 //   npx tsx kotlin-street/tools/towns-bake.ts --unpack <out>/towns/<id>.ttwn <dir>   (a town as a folder, for -Dtown=<dir>)
 //
 // The main process generates the world once (src/world/gen, ~20 s), writes each chosen place's site (tools/towns-site.ts:
@@ -165,8 +165,9 @@ export async function bakeOne(sitePath: string, out: string): Promise<void> {
   const pics = readdirSync(join(dir, 'buildings')).sort();
   for (const f of pics) files.push({ path: `buildings/${f}`, data: readFileSync(join(dir, 'buildings', f)) });
   const buf = pack(s.place.id, files);
-  mkdirSync(join(out, 'towns'), { recursive: true });
-  writeFileSync(join(out, 'towns', `${id}.ttwn`), buf);
+  // (--measure: the pack is made and weighed but not written: for measuring a bake bigger than the disk at hand)
+  const measure = argv.includes('--measure');
+  if (!measure) { mkdirSync(join(out, 'towns'), { recursive: true }); writeFileSync(join(out, 'towns', `${id}.ttwn`), buf); }
   const raw: Record<string, number> = { street: 0, dialogue: 0, interiors: 0, recipe: 0, pictures: 0 };
   const packed: Record<string, number> = { json: 0, pictures: 0 };
   for (const f of files) {
@@ -183,14 +184,15 @@ export async function bakeOne(sitePath: string, out: string): Promise<void> {
   const dlg = JSON.parse(readFileSync(join(dir, 'dialogue.json'), 'utf8')) as { npcs?: unknown[] };
   const rooms = Object.keys((JSON.parse(readFileSync(join(dir, 'interiors.json'), 'utf8')) as { rooms: object }).rooms).length;
   lap('pack');
-  if (!argv.includes('--keep')) rmSync(join(dir, 'buildings'), { recursive: true, force: true });
+  // (the work folder goes whole unless kept: the pack holds everything, and a planet's work folders would fill the disk)
+  if (!argv.includes('--keep')) rmSync(dir, { recursive: true, force: true });
   const row: Row = {
     id: s.place.id, name: s.place.name, rank: recipe.rank, type: recipe.type, ...(recipe.setting ? { setting: recipe.setting } : {}), ...(recipe.ore ? { ore: recipe.ore } : {}),
     seed: recipe.seed, at: [s.place.x, s.place.z], frame: placed.frame, ground: groundOf(plan), bounds: boundsOf(s, plan, placed.frame),
     sizeM: [Math.round(plan.width * 2.1), Math.round(plan.height * 2.1)], water: recipe.water, river: placed.river, rail: recipe.rail, countySeat: recipe.countySeat,
     shiftM: placed.shiftM, height, entries: fp.entries,
     counts: { buildings: street.shops.length, lots: street.graph.lots.length, people: dlg.npcs?.length ?? 0, rooms, pictures: pics.length },
-    file: `towns/${id}.ttwn`, bytes: buf.length, raw: { ...raw, packedJson: packed.json!, packedPictures: packed.pictures! }, ms, problems,
+    ...(measure ? {} : { file: `towns/${id}.ttwn` }), bytes: buf.length, raw: { ...raw, packedJson: packed.json!, packedPictures: packed.pictures! }, ms, problems,
   };
   mkdirSync(join(out, 'rows'), { recursive: true });
   writeFileSync(join(out, 'rows', `${id}.json`), JSON.stringify(row));
@@ -279,6 +281,11 @@ async function main(): Promise<void> {
   else if (flag('--places')) chosen = flag('--places')!.split(',');
   else chosen = sampleOf(sites, startMass, Number(flag('--sample') ?? 30));
   chosen = chosen.filter((id) => byId.has(id) && !handmade[id]);
+  // (--list: the chosen places and their facts, nothing baked)
+  if (argv.includes('--list')) {
+    for (const id of chosen) { const s = byId.get(id)!; console.log([id, s.place.name, s.place.kind, s.place.rank, s.place.type, s.place.setting ?? '-', `mass ${s.place.mass}`, s.station ? 'station' : '-'].join('\t')); }
+    return;
+  }
   mkdirSync(join(out, 'sites'), { recursive: true });
   const todo = chosen.filter((id) => !(argv.includes('--resume') && existsSync(join(out, 'rows', `${fileId(id)}.json`))));
   for (const id of todo) writeFileSync(join(out, 'sites', `${fileId(id)}.json`), JSON.stringify(byId.get(id)));
@@ -291,7 +298,9 @@ async function main(): Promise<void> {
     const run = (): void => {
       if (next >= todo.length) { if (done === todo.length) ok(); return; }
       const id = todo[next++]!;
-      const p = spawn('npx', ['tsx', join(here, 'towns-bake.ts'), '--one', join(out, 'sites', `${fileId(id)}.json`), out, ...(argv.includes('--keep') ? ['--keep'] : [])], { cwd: root, stdio: ['ignore', 'ignore', 'pipe'] });
+      // (--keep-only id,id: only those kept unpacked; --measure: the rest weighed, not written)
+      const keep = argv.includes('--keep') || (flag('--keep-only') ?? '').split(',').includes(id);
+      const p = spawn('npx', ['tsx', join(here, 'towns-bake.ts'), '--one', join(out, 'sites', `${fileId(id)}.json`), out, ...(keep ? ['--keep'] : []), ...(argv.includes('--measure') && !keep ? ['--measure'] : [])], { cwd: root, stdio: ['ignore', 'ignore', 'pipe'] });
       let err = '';
       p.stderr.on('data', (d) => { err += d; if (err.length > 20000) err = err.slice(-10000); });
       p.on('close', (code) => {
@@ -306,7 +315,7 @@ async function main(): Promise<void> {
   });
   // ---- the manifest: every place
   const rows = manifestRows(sites, out, handmade);
-  const manifest = { version: 1, world, pack: PACK_VERSION, places: rows.length, baked: rows.filter((r) => r.file).length, handmade: rows.filter((r) => r.handmade).length, towns: rows };
+  const manifest = { version: 1, world, pack: PACK_VERSION, places: rows.length, baked: rows.filter((r) => r.file).length, measured: rows.filter((r) => r.bytes && !r.file).length, handmade: rows.filter((r) => r.handmade).length, towns: rows };
   writeFileSync(join(out, 'manifest.json'), JSON.stringify(manifest));
   writeFileSync(join(out, 'summary.json'), JSON.stringify(summarize(rows, out, sites.length), null, 1));
   console.error(`manifest: ${rows.length} places (${manifest.baked} baked, ${manifest.handmade} hand-made); failed: ${failed.join(', ') || 'none'}; ${((Date.now() - t0) / 1000).toFixed(0)} s`);
@@ -319,7 +328,7 @@ function summarize(rows: Row[], out: string, places: number): object {
   const by: Record<string, { n: number; baked: number; msMean: number; msMax: number; mbMean: number; mbMax: number; jsonMbMean: number; picMbMean: number; buildingsMean: number; peopleMean: number; sizeM: string }> = {};
   const seen = new Map<string, number>();
   let picsAll = 0;
-  for (const r of rows) for (const line of existsSync(join(out, 'rows', `${fileId(r.id)}.pics`)) && r.file ? readFileSync(join(out, 'rows', `${fileId(r.id)}.pics`), 'utf8').split('\n').filter(Boolean) : []) {
+  for (const r of rows) for (const line of existsSync(join(out, 'rows', `${fileId(r.id)}.pics`)) && r.bytes ? readFileSync(join(out, 'rows', `${fileId(r.id)}.pics`), 'utf8').split('\n').filter(Boolean) : []) {
     const [h, b] = line.split(':');
     picsAll += Number(b);
     seen.set(h!, Number(b));
@@ -327,7 +336,7 @@ function summarize(rows: Row[], out: string, places: number): object {
   const unique = [...seen.values()].reduce((a, b) => a + b, 0);
   let total = 0;
   for (const k of ranks) {
-    const all = rows.filter((r) => r.rank === k && !r.handmade), baked = all.filter((r) => r.file);
+    const all = rows.filter((r) => r.rank === k && !r.handmade), baked = all.filter((r) => r.bytes);
     const mean = (f: (r: Row) => number): number => (baked.length ? baked.reduce((a, r) => a + f(r), 0) / baked.length : 0);
     const ms = (r: Row): number => Object.values(r.ms ?? {}).reduce((a, b) => a + b, 0);
     by[k] = {

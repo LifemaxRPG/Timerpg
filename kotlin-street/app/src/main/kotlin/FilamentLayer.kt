@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.filament.Engine
 import com.google.android.filament.Filament
@@ -648,6 +649,15 @@ private class FilamentHost(private val ctx: Context, private val view: View, pri
                 // (the world streamer, docs/WORLD_STREAM.md: the far view planned again round the player out in the country)
                 val far = com.lifemax.rpg.feature.habits.presentation.scene3d.WorldFar.attach(ft, { w.plan(data.town.year) }, w.origin,
                     replan = { c -> w.plan(data.town.year, c) }, farmArt = data.farmArt)
+                // the generated towns streamed in round the player, and the roadside sites (planet step 2)
+                TownSession.townsDir(ctx)?.takeIf { w.towns.ids.isNotEmpty() }?.let { dir ->
+                    com.lifemax.rpg.feature.habits.presentation.scene3d.WorldTowns.attach(ft, far, w.origin, w, w.towns, com.lifemax.rpg.feature.habits.presentation.scene3d.TownsSource(
+                        { p -> java.io.File(dir, p).takeIf { it.isFile }?.readBytes() },
+                        { b -> android.graphics.BitmapFactory.decodeByteArray(b, 0, b.size)?.asImageBitmap() },
+                        runCatching { ctx.assets.open("landmarks/landmarks.json").use { it.readBytes().decodeToString() } }.getOrNull(),
+                        { p -> runCatching { ctx.assets.open("landmarks/$p").use { it.readBytes() } }.getOrNull() },
+                        data.farmArt), data.town.year)
+                }
                 // (a re-planned terrain is the same ground: the cars' chunks stay, they read the new one from now on)
                 far.onTerrainSwap = { t -> com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.terrain = t }
                 // (the cars' ground beyond the town is this same terrain, handed over once it is made)

@@ -71,7 +71,15 @@ object YardKitBuilder : YardBuilder {
     /** How far an open gate's leaf may reach past its lot's items (a patch's circle is that much wider). */
     const val GATE_SWING = 20f
 
-    override fun build(town: com.lifemax.rpg.feature.habits.domain.Town, yards: com.lifemax.rpg.feature.habits.domain.TownYards, sink: YardSink) {
+    override fun build(town: com.lifemax.rpg.feature.habits.domain.Town, yards: com.lifemax.rpg.feature.habits.domain.TownYards, sink: YardSink) = build(town, yards, sink, own = true)
+
+    /**
+     * [own]: the town is the game's own (the capital): its near pictures become the shared atlas every later bake lays its
+     * meshes on ([YardKit.sharedAtlas]) and its far pictures are kept for [rebuild]. A guest town ([YardKitGuestBuilder],
+     * a generated town streamed in) leaves both as they are: its meshes go on the capital's atlas where their pictures are
+     * on it (the same yard kit), on sheets of their own where not.
+     */
+    fun build(town: com.lifemax.rpg.feature.habits.domain.Town, yards: com.lifemax.rpg.feature.habits.domain.TownYards, sink: YardSink, own: Boolean) {
         fun item(i: com.lifemax.rpg.feature.habits.domain.TownYardItem) =
             YardItem(i.kind, i.rect[0], i.rect[1], i.rect[2], i.rect[3], i.faceX, i.faceZ, i.variant, i.layer, i.on, i.zone)
         // a lot at a time (culled with the view, cut with its house), then each lane's and verge's items. A lot's tall
@@ -97,10 +105,11 @@ object YardKitBuilder : YardBuilder {
         }
         // (the near pictures, the whole town's, on a few shared sheets every lot's near patch and far version lays its meshes
         // on: MEMORY_AUDIT.md, "Step 4 as built")
-        YardKit.sharedAtlas = if (TownQuality.yardAtlas) YardKit.nearAtlas(work.map { it.near }) else null
+        if (own) YardKit.sharedAtlas = if (TownQuality.yardAtlas) YardKit.nearAtlas(work.map { it.near }) else null
         // (the far versions' own pictures, the whole town's: one atlas every lot's far version shares)
-        farPictures = if (far) YardKit.farPictures(work.mapNotNull { it.far }) else emptyList()
-        bakeAll(work, sink)
+        val pics = if (far) YardKit.farPictures(work.mapNotNull { it.far }) else emptyList()
+        if (own) farPictures = pics
+        bakeAll(work, sink, pics)
         YardKit.trim()
     }
 
@@ -155,7 +164,7 @@ object YardKitBuilder : YardBuilder {
     private class Job(val near: List<YardItem>, val far: List<YardItem>?, val patch: YardPatch, val tall: List<YardItem> = emptyList())
 
     /** Bakes each [Job] and hands the batches to [sink]. */
-    private fun bakeAll(work: List<Job>, sink: YardSink) {
+    private fun bakeAll(work: List<Job>, sink: YardSink, farPictures: List<PropMesh> = this.farPictures) {
         val at = listOf(floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f))
         // baked a few lots at a time on the common pool (the kit's caches are shared under locks), handed to the sink in
         // order, so only those few lots' meshes are held at once (each lot's atlases and vertices: up to some 5 MB); the
@@ -189,4 +198,10 @@ object YardKitBuilder : YardBuilder {
             }
         }
     }
+}
+
+/** The yard kit for a guest town ([TownGuest]): as [YardKitBuilder], leaving the capital's shared atlas and far pictures be. */
+object YardKitGuestBuilder : YardBuilder {
+    override fun build(town: com.lifemax.rpg.feature.habits.domain.Town, yards: com.lifemax.rpg.feature.habits.domain.TownYards, sink: YardSink) =
+        YardKitBuilder.build(town, yards, sink, own = false)
 }

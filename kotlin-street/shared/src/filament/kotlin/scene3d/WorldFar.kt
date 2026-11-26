@@ -52,7 +52,7 @@ internal class WorldFar(
     private val u = origin.unitsPerMetre.toFloat()
 
     /** A mesh of the far view; [block]: the near terrain's root block ([blockKey]) it lies in, hidden where that is drawn near. */
-    private class Part(val name: String, val anchor: WorldPos, packed: PropLayer.Packed, val block: Long? = null, val ocean: Boolean = false) {
+    private class Part(val name: String, val anchor: WorldPos, packed: PropLayer.Packed, val block: Long? = null, val ocean: Boolean = false, val place: String? = null) {
         var layer: PropLayer? = null; var gen = -1
         /** Its packed buffers and picture until uploaded, then let go (they were kept for the town's life: ~15 MB). */
         var packed: PropLayer.Packed? = packed
@@ -199,7 +199,7 @@ internal class WorldFar(
                 l.setTransform(m)
                 p.gen = gen
             }
-            val shown = !hidden && (p.block == null || p.block !in covered)
+            val shown = !hidden && (p.block == null || p.block !in covered) && (p.place == null || p.place !in placesHidden)
             l.update(f.look, f.dark, shown, 1f, false)
             if (shown) { draws += l.draws; tris += l.triangles }
         }
@@ -302,9 +302,17 @@ internal class WorldFar(
         val anchor = plan.origin.plus(mid[0], mid[1])
         ocean(plan)?.let { out += Part("ocean", anchor, it, ocean = true) }
         out += lines(plan, mid, anchor)
-        boxes(plan, mid)?.let { out += Part("towns", anchor, it) }
+        // (a generated town's stand-in blocks a part of their own: hidden while WorldTowns draws the town itself)
+        val own = plan.boxes.filter { it.place in plan.towns.ids }.groupBy { it.place }
+        boxes(plan, mid, plan.boxes.filter { it.place !in own })?.let { out += Part("towns", anchor, it) }
+        for ((place, list) in own) boxes(plan, mid, list)?.let { out += Part("town $place", anchor, it, place = place) }
         return out
     }
+
+    /** The places whose stand-in blocks are hidden ([hidePlace]: WorldTowns draws them). */
+    private val placesHidden = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+    fun hidePlace(id: String) { placesHidden += id }
+    fun showPlace(id: String) { placesHidden -= id }
 
     /**
      * Triangles written straight into the vertex and index buffers (no face objects in between: the far view is about
@@ -574,8 +582,8 @@ internal class WorldFar(
         }
     }
 
-    private fun boxes(plan: WorldFarPlan, mid: DoubleArray): PropLayer.Packed? {
-        if (plan.boxes.isEmpty()) return null
+    private fun boxes(plan: WorldFarPlan, mid: DoubleArray, list: List<WorldFarPlan.Box>): PropLayer.Packed? {
+        if (list.isEmpty()) return null
         // one picture: each wall colour's 6 x 4 front (its windows, some lit at night: the mask) in a column, the roofs under them
         val walls = WorldFarPlan.WALLS; val roofs = WorldFarPlan.ROOFS
         val tw = 6; val th = walls.size * 4 + roofs.size
@@ -589,7 +597,7 @@ internal class WorldFar(
         }
         for ((k, c) in roofs.withIndex()) for (x in 0 until tw) tex[(walls.size * 4 + k) * tw + x] = c
         return pack(Pack(tex, tw, th, mask, mips = false)) { p ->
-            for (b in plan.boxes) {
+            for (b in list) {
                 val x0 = ((b.x - b.w / 2 - mid[0]) * u).toFloat(); val x1 = ((b.x + b.w / 2 - mid[0]) * u).toFloat()
                 val z0 = ((b.z - b.d / 2 - mid[1]) * u).toFloat(); val z1 = ((b.z + b.d / 2 - mid[1]) * u).toFloat()
                 val y0 = b.y * u; val y1 = (b.y + b.h) * u

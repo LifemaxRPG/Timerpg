@@ -112,7 +112,7 @@ internal class TownCars(
             val e = EntityManager.get().create()
             LightManager.Builder(LightManager.Type.FOCUSED_SPOT).color(1f, .93f, .78f).intensity(0f).falloff(HEAD_REACH).castShadows(false)
                 .spotLightCone(.18f, .42f).position(0f, 0f, 0f).direction(0f, 0f, 1f).build(kit.engine, e)
-            kit.scene.addEntity(e)
+            kit.scene.addEntity(e); TownRoot.adopt(kit.engine, e)
             e
         }
         d.ready = true

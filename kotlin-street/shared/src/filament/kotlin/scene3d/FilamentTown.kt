@@ -307,8 +307,16 @@ class FilamentTown(
     railYear: Int = 0,
     /** The hand-made landmark models (docs/LANDMARKS_GLB.md): the catalogue, its files and what the town places; null: none. */
     landmarks: LandmarkAssets? = null,
+    /**
+     * Another town's world this one is drawn in ([TownGuest]: a generated town streamed in round the player, planet step 2,
+     * docs/TOWNS_EVERYWHERE.md "Streaming"): its scene and the root entity every one of this town's entities is parented
+     * to (the town's frame on the planet), and its workers. Such a town draws no sky, sun, sky light or haze of its own
+     * (the host's view and lights do), and is drawn each frame with the host's look ([frame]'s `hostLook`). Null: a town
+     * of its own, as always.
+     */
+    val guest: TownGuest? = null,
 ) {
-    val scene: Scene = engine.createScene()
+    val scene: Scene = guest?.scene ?: engine.createScene()
     val view: View = engine.createView()
     val camera: Camera = engine.createCamera(EntityManager.get().create())
     private val lit: Material = load("street_lit", materialBytes)
@@ -339,7 +347,7 @@ class FilamentTown(
      * Backdrop no longer shows under it (docs/CLEANUP_PLAN.md step 2). Null: no sky material (an old asset set) or
      * [sky3d] off; then the view stays see-through over the stage's sky, as before.
      */
-    private val skyMat: Material? = if (!sky3d) null else runCatching { load("sky", materialBytes) }.getOrNull()
+    private val skyMat: Material? = if (!sky3d || guest != null) null else runCatching { load("sky", materialBytes) }.getOrNull()
     private val skySurface: SkySurface? = skyMat?.let { SkySurface(engine, scene, it) }
     /** The sky's state this frame: its colours feed the haze too, so the far ground meets the horizon with no line. */
     val skyState = SkyState()
@@ -684,6 +692,8 @@ class FilamentTown(
         (if (farCounted && !far.allReady) 1 else 0) + extras.count { it.pending }
     /** The far cells have been counted (each building's cell, at the first [buildNearest]). */
     private var farCounted = false
+    /** Every far cell and district is up (a guest town's stand-in blocks on the far view can go: [WorldTowns]). */
+    internal val farReady: Boolean get() = farCounted && far.allReady
     /** The far boxes: cells, cells up, their triangles (for reports). */
     val farReport: String get() = "far: ${far.readyCount} of ${far.cellCount} cells up, ${far.triangles} triangles; coarser level: ${far.districtReport}; lights far off: $farLightCount"
 
@@ -693,7 +703,7 @@ class FilamentTown(
     internal fun <T : TownExtra> addExtra(make: (TownExtra.Kit) -> T): T =
         make(TownExtra.Kit(engine, scene, lit, proxyMat, textures, later, ::extraMaterial, art)).also { extras += it }
     private val extraMaterials = HashMap<String, Material>()
-    private val materialBytesOf = materialBytes
+    internal val materialBytesOf = materialBytes
     private fun extraMaterial(name: String): Material = extraMaterials.getOrPut(name) { load(name, materialBytesOf) }
     /** The extras' report lines (for previews). */
     val extraReport: List<String> get() = extras.map { it.report }
@@ -742,7 +752,7 @@ class FilamentTown(
         LightManager.Builder(LightManager.Type.DIRECTIONAL)
             .color(1f, 1f, 1f).intensity(1f).direction(0f, -1f, 0f).castShadows(true).shadowOptions(shadow)
             .build(engine, sun)
-        scene.addEntity(sun)
+        if (guest == null) scene.addEntity(sun)
     }
 
     private fun load(name: String, bytes: (String) -> ByteArray): Material {
@@ -909,7 +919,9 @@ class FilamentTown(
      * queue goes by priority ([TownWorkers]): the ground and the buildings nearest the player first, the landmarks, stores,
      * cinema, farms and the world round the town after the first view's buildings, the landmarks' height fields last.
      */
-    private val pool = TownWorkers(max(2, Runtime.getRuntime().availableProcessors() - 1))
+    private val pool = guest?.workers ?: TownWorkers(max(2, Runtime.getRuntime().availableProcessors() - 1))
+    /** The town's workers (a guest town shares its host's: [TownGuest.workers]). */
+    internal val workers: TownWorkers get() = pool
     /** The workers for what the first view does not wait for (the stores' cars, the far boxes, the extras). */
     private val later by lazy { pool.lane(TownWorkers.LATER, "later") }
     /** How long the workers took to make the ground ready (ms), and the engine's thread to upload it (ms, all batches). */
@@ -1266,7 +1278,7 @@ class FilamentTown(
             for (e in lampLights) {
                 LightManager.Builder(LightManager.Type.POINT).color(1f, .7f, .42f).intensity(0f).falloff(LAMP_REACH).castShadows(false)
                     .position(0f, -1000f, 0f).build(engine, e)
-                scene.addEntity(e)
+                scene.addEntity(e); TownRoot.adopt(engine, e)
             }
             groundBuilt = true
             buildSkirt()
@@ -1561,7 +1573,7 @@ class FilamentTown(
             if (e == 0) continue
             tm.create(e)
             tm.setTransform(tm.getInstance(e), xf)
-            scene.addEntity(e)
+            scene.addEntity(e); TownRoot.adopt(engine, e)
         }
         s.built = built
         if (stream) { val by = textures.sizeOf(s.held) + built.geo.vLen * built.geo.stride.toLong() + built.geo.iLen * 2L; slotBytes[s] = by; buildingBytes += by }
@@ -1614,7 +1626,7 @@ class FilamentTown(
     private var sentSee = -1
 
     /** Brings the scene to camera [pose] at [hour]; [seconds] is the clock (the yards' water shimmers by it). */
-    fun frame(pose: TownPose, hour: Float, seconds: Double = 0.0) {
+    fun frame(pose: TownPose, hour: Float, seconds: Double = 0.0, hostLook: FloatArray? = null) {
         // (what streaming let go of, destroyed a little a frame: docs/HEAT.md)
         Graveyard.drain(TownStream.GRAVE_MS)
         if (TownQuality.msaa != msaaSet) { msaaSet = TownQuality.msaa; TownQuality.applyMsaa(view) }
@@ -1624,9 +1636,12 @@ class FilamentTown(
         // (the look's depth reaches 1 at the camera's own near: Filament's lights are sorted into the view's depth slices
         // by the camera's projection, so the two must agree or the street lamps' light lands in the wrong slices)
         LookMatrix.pinhole(pose.screen(m12), pose.w, pose.h, pose.near, look)
-        aim(pose)
+        // (a guest town: [pose] is the host's camera in this town's own frame, for culling and distances; what reaches the
+        // screen is the host's look, applied to the world positions its root's transform puts every entity at)
+        if (hostLook != null) System.arraycopy(hostLook, 0, look, 0, 16)
+        if (guest == null) aim(pose)
         val sky = skyColors(hour)
-        light(pose, hour, sky)
+        if (guest == null) light(pose, hour, sky)
         skySurface?.let { ss ->
             if (day.isEmpty()) skyState.update(hour, .5f, weather, season, seconds.toFloat()) else skyState.update(hour, day, weather, season, seconds.toFloat())
             // (the pinhole's ray through each pixel, as LookMatrix.pinhole projects: the principal point off the middle)
@@ -1636,7 +1651,7 @@ class FilamentTown(
             // (the horizon ring's air: the world's haze, as [haze] sets the fog for the far view, from the eye's height)
             worldBaseM?.let { base -> ss.horizonAir(air.extinction.toFloat(), (1.0 / air.scaleHeightM).toFloat(), (base + pose.ey / worldUnitsPerMetre).toFloat()) }
         }
-        haze(pose, sky)
+        if (guest == null) haze(pose, sky)
         val dark = sky.dark
         crowd.dark = dark
         val wl = SceneInk.WindowLit
@@ -2473,10 +2488,20 @@ class FilamentTown(
 
     // ------------------------------------------------------------------ teardown
 
-    fun destroy() {
+    /**
+     * Lets go of the whole town. [later] (a guest town streamed out, [WorldTowns]): its entities leave the scene now, its
+     * material instances, textures and materials are destroyed over the next frames ([Graveyard], in order), so letting go
+     * of a town is not a 100+ ms frame.
+     */
+    fun destroy(later: Boolean = false) {
+        if (later) { val was = PropLayer.deferDestroy; PropLayer.deferDestroy = true; try { destroyNow(true) } finally { PropLayer.deferDestroy = was } }
+        else destroyNow(false)
+    }
+
+    private fun destroyNow(later: Boolean) {
         closed = true
         synchronized(queueLock) { queueLock.notifyAll() }
-        Graveyard.drainAll()
+        if (!later) Graveyard.drainAll()
         val em = EntityManager.get()
         crowd.destroy()
         cinemaDraw?.destroy()
@@ -2490,9 +2515,10 @@ class FilamentTown(
         for (s in slots) {
             val b = s.built ?: continue
             for (e in listOf(b.entity, b.proxy)) if (e != 0) { scene.remove(e); engine.destroyEntity(e); em.destroy(e) }
-            for (mi in b.mis) engine.destroyMaterialInstance(mi)
-            b.twins?.idle?.forEach { engine.destroyMaterialInstance(it) }
-            for (mi in b.proxyMis) engine.destroyMaterialInstance(mi)
+            fun kill(mi: MaterialInstance) { if (later) Graveyard.bury(engine, mi) else engine.destroyMaterialInstance(mi) }
+            for (mi in b.mis) kill(mi)
+            b.twins?.idle?.forEach { kill(it) }
+            for (mi in b.proxyMis) kill(mi)
             b.geo.free(engine)
             s.built = null
             s.held.clear()
@@ -2500,27 +2526,27 @@ class FilamentTown(
         for (f in yardIn.values) f.cancel(true)
         yardIn.clear()
         far.destroy()
-        pool.shutdownNow()
+        if (guest?.workers == null) pool.shutdownNow()
         ground.destroy(); yardLayer.destroy(); ticks.clear()
         for (c in chunks.values) c.destroy()
         chunks.clear()
         for (e in lampLights) { scene.remove(e); engine.destroyEntity(e); em.destroy(e) }
         for (pt in patches.values) pt.layer.destroy()
         patches.clear()
-        textures.destroy(all = true)
+        if (later) Graveyard.later { textures.destroy(all = true) } else textures.destroy(all = true)
         scene.remove(sun); engine.destroyEntity(sun); em.destroy(sun)
         ibl?.let { engine.destroyIndirectLight(it) }; ibl = null
         Cutouts.unregister(lit); Cutouts.unregister(proxyMat)
-        engine.destroyMaterial(lit); engine.destroyMaterial(proxyMat)
-        litOpaque?.let { engine.destroyMaterial(it) }; proxyOpaque?.let { engine.destroyMaterial(it) }
-        for (m in extraMaterials.values) engine.destroyMaterial(m)
+        // (the materials after every instance of them: the graveyard keeps its order)
+        val mats = listOfNotNull(lit, proxyMat, litOpaque, proxyOpaque) + extraMaterials.values
         extraMaterials.clear()
+        if (later) Graveyard.later { for (m in mats) engine.destroyMaterial(m) } else for (m in mats) engine.destroyMaterial(m)
         engine.destroyColorGrading(grading)
         skySurface?.destroy(); skyMat?.let { engine.destroyMaterial(it) }
         val ce = camera.entity
         engine.destroyCameraComponent(ce); em.destroy(ce)
         engine.destroyView(view)
-        engine.destroyScene(scene)
+        if (guest == null) engine.destroyScene(scene)
     }
 
     companion object {

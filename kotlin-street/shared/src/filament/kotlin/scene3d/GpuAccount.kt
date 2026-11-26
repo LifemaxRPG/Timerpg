@@ -14,7 +14,9 @@ object GpuAccount {
     /** [exact]: for an ASTC texture, the share of its level 0's blocks stored exactly; -1 for any other. */
     class Entry(val owner: String, val w: Int, val h: Int, val format: String, val levels: Int, val bytes: Long, val exact: Double = -1.0,
         /** The picture's content hash for one shared by content ([StreetTextures]), else 0. */
-        val content: Long = 0L)
+        val content: Long = 0L,
+        /** The guest town it was made for ([TownRoot.current]: a generated town streamed in), 0 for the capital's and the world's. */
+        val town: Int = TownRoot.current)
 
     private val live = java.util.Collections.synchronizedMap(java.util.IdentityHashMap<Texture, Entry>())
 
@@ -55,7 +57,7 @@ object GpuAccount {
      * what is listed is what is still held.
      */
     /** [gpu]: a buffer object of its own; else a range of [BufferArena]'s shared pages ([GeomSlice]). */
-    class Buf(val owner: String, val bytes: Long, val gpu: Boolean = true)
+    class Buf(val owner: String, val bytes: Long, val gpu: Boolean = true, val town: Int = TownRoot.current)
     private val buffers = java.util.Collections.synchronizedMap(java.util.IdentityHashMap<Any, Buf>())
 
     /** A vertex or index buffer of [bytes] just built (any of Filament's buffer objects), or ([gpu] false) a range of the shared pages. */
@@ -170,6 +172,21 @@ object GpuAccount {
     }
 
     internal fun remove(t: Texture) { live.remove(t) }
+
+    /**
+     * The generated towns' share (planet step 2, [WorldTowns]): the bytes of the textures and buffers (own buffers and
+     * ranges of the shared pages) made while a guest town was being built or drawn ([Entry.town]), all guests, or [town]'s.
+     */
+    /** The towns' share by owner (the first scene3d class: MB, biggest first), for reports. */
+    fun townOwners(): String {
+        val m = HashMap<String, Long>()
+        for (e in entries()) if (e.town != 0) m.merge(e.owner.substringBefore('<') + " pictures", e.bytes, Long::plus)
+        for (b in bufferEntries()) if (b.town != 0) m.merge(b.owner.substringBefore('<') + " buffers", b.bytes, Long::plus)
+        return m.entries.sortedByDescending { it.value }.take(12).joinToString(", ") { "%s %.1f".format(java.util.Locale.US, it.key, it.value / 1048576.0) }
+    }
+
+    fun townBytes(town: Int = 0): Long =
+        entries().filter { it.town != 0 && (town == 0 || it.town == town) }.sumOf { it.bytes } + bufferEntries().filter { it.town != 0 && (town == 0 || it.town == town) }.sumOf { it.bytes }
 
     /** Forgets every texture and buffer listed (a test's fresh start: those of engines already destroyed stay listed otherwise). */
     fun reset() { live.clear(); buffers.clear() }

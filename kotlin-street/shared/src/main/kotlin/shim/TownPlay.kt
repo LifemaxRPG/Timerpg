@@ -89,7 +89,7 @@ object TownPlay {
             if (t == null) null else {
                 val o = t.plan.origin
                 val dx = o.dx(site.frame.origin); val dz = o.dz(site.frame.origin)
-                t.heightLocal(xm * com.lifemax.rpg.feature.habits.vehicle.VehicleWorld.U / u + dx, zm * com.lifemax.rpg.feature.habits.vehicle.VehicleWorld.U / u + dz).toFloat()
+                t.groundLocal(xm * com.lifemax.rpg.feature.habits.vehicle.VehicleWorld.U / u + dx, zm * com.lifemax.rpg.feature.habits.vehicle.VehicleWorld.U / u + dz).toFloat()
             }
         }
     }

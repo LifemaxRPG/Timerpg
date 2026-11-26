@@ -83,6 +83,16 @@ object TownBudget {
      */
     const val WORLD_ROUTE_MB = 570.0
 
+    // ------------------------------------------------------------------ the generated towns (planet step 2, docs/TOWNS_EVERYWHERE.md)
+
+    /**
+     * The generated towns' own GPU share ([GpuAccount.townBytes]: the guest towns WorldTowns streams in, at most
+     * WorldTowns.MAX_GUESTS at once) at any frame of the drive on through the towns (GpuWorldDriveTest's tour).
+     */
+    const val TOWNS_MB = 400.0
+    /** Filament's whole count at any frame of that tour: the capital's streamed share, the world's and the towns'. */
+    const val TOWNS_ROUTE_MB = 850.0
+
     /** One part's figure against its budget. */
     class Row(val part: String, val mb: Double?, val budget: Double) {
         val over: Boolean get() = mb != null && mb > budget

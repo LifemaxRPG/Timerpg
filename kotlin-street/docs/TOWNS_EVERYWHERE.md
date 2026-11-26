@@ -1,16 +1,18 @@
 # Towns everywhere: a real town for every place on the planet
 
-> **On hold** (the owner's decision, 2026-11-23): the first playable loop in the capital comes first
-> (kotlin-street/docs/LOOP.md). This resumes once it is playable and the owner has played it.
+> **Resumed as planet step 2** (2026-11-26, WORLD_STREAM.md section 10): the generated towns stream in round the player
+> on the phone ("Streaming", below). It was on hold from 2026-11-23 for the first playable loop (LOOP.md).
 
 The planet (WORLD_GEN.md) has 5,100 places on `alpha`: 21 hubs besides the capital, 64 major towns, 398 towns, 789
 villages and 3,827 hamlets (alpine villages, pass hamlets and mining towns among them). Until now only the capital
 (`gamma`) was a walkable town; the rest were blocks in the far view. This is the **offline pipeline that generates a
-real town for every place**, packed one file per town with a manifest, so the app can stream a town from storage when
-the player comes near (the streaming itself is the next step).
+real town for every place**, packed one file per town with a manifest, and the app's **streaming** of them round the
+player (planet step 2: "Streaming", below).
 
-Status (2026-11-23): the pipeline runs end to end. A 31-town sample of every rank on two continents is baked and
-rendered; the whole planet has not been baked (see "Bake everything" and "Size").
+Status (2026-11-26): the pipeline runs end to end; the app streams the baked towns in (the desktop's drive and views
+tests; the phone reads them from its files when pushed there). Baked so far: the eight places of the drive from the capital
+through Evanvale, Roserdale and Chaley (`tools/towns-route.ts`); the whole planet has not been baked (see "Bake
+everything" and "Size").
 
 ## The recipe (place -> town)
 
@@ -69,9 +71,14 @@ never bend to the town: the far view cuts them at the ground's edge exactly wher
 
 ```
 npx tsx kotlin-street/tools/towns-bake.ts [--world alpha] [--out kotlin-street/build-towns/<world>] [--jobs N]
-    [--sample 30 | --places t:12,m:40 | --all] [--keep] [--resume] [--fresh]
+    [--sample 30 | --places t:12,m:40 | --all] [--keep | --keep-only id,id] [--resume] [--fresh] [--measure] [--list]
 npx tsx kotlin-street/tools/towns-bake.ts --unpack <out>/towns/<id>.ttwn <dir>
+npx tsx kotlin-street/tools/towns-route.ts [--to Evanvale] [--more 2] [--km 4]   # the places a drive passes, as a --places list
 ```
+
+(From the unmerged branch of 2026-11-23, brought in on 2026-11-26: `--list` prints the chosen places and their facts
+without baking; `--measure` makes and weighs each pack without writing it, for measuring a bake bigger than the disk;
+`--keep-only` keeps just those towns unpacked; a town's whole work folder now goes once it is packed.)
 
 The main process generates the world once (~50 s), writes the sites (cached in `<out>/sites.json.gz`) and runs a pool
 of worker processes (one per town, `--jobs` at a time). A worker plans the town, places it, sets its entries, and
@@ -145,10 +152,20 @@ Between ranks (median drive, p90 in brackets): hub to its nearest major town 39 
 hub to nearest town 29 min (37) / 21 min (27); major to nearest town 34 (56) / 24 (40); town to nearest village 57
 (164) / 41 (111); village to nearest hamlet 9 (80) / 6 (57).
 
+**By rail** (`towns-density.ts --rail`, ported from the old branch: `planRoute` on the skeleton's network, leaving 08:00
+on a Monday, between neighbouring places of the rank that both have a station; the old branch's 1965 figures):
+hamlets 9 min on the train (10 door to door, 10 pairs), villages 34 (175), towns 26 (388), major towns 59 (59), hubs 196
+(500). Door to door is long for villages and towns because they sit on branches with few trains.
+
 Reading: the places are close together (a place of some kind every 5-6 km), but **villages and towns are far apart by
 road**: their nearest same-rank neighbour is 15-24 km away in a straight line and 64-76 km by road, because the county
 roads link each place towards the network's trunk rather than to its neighbours. That is the world's road network, not
 the towns; worth a pass of "neighbour roads" in roads.ts before the density is judged.
+
+**Recommendation** (the old branch's, not applied): thin the hamlets to one every 8-14 km of road, none within 6 km of
+another place (about 1,700 instead of 3,827: an estimate), the nearest place 8-10 km off, about 10 minutes' drive in the
+1960s; keep the towns; let county roads join each other where two towns are close. Best done before anything refers to
+hamlets by id (changing the density re-places them all), and before the planet is baked.
 
 **The setting** (`src/world/gen/density.ts`): `SPACING`, one multiplier per rank, 1 everywhere = the world as
 generated (no place moved): `hub` (hub spacing), `town` (every town: major towns, towns and villages share one
@@ -168,19 +185,42 @@ towns) and `hamlet` (hamlets along the roads). 2 spreads that rank twice as far 
   motels and diners in the quadrants round their exit (380, 260, 220 m out); toll plazas stay across the road.
 - The `src/world` tests pass (75).
 
-## Streaming plan (the next step, not built)
+## Streaming (built: planet step 2, 2026-11-26)
 
-(The world between the towns streams round the player since 2026-11-25: WORLD_STREAM.md, whose section 7 says what this
-plan needs from it.)
+The design and its numbers are in WORLD_STREAM.md section 10; in short:
 
-1. The app ships `manifest.json` (about 2 MB) and the packs (or the JSON packs plus on-device pictures, above).
-2. When the player comes within ~3 km of a town's `bounds`, its pack is read and inflated on a worker, its pictures
-   composited or read from the cache; within ~1 km the town is built as gamma is today (`FilamentTown`, ground first,
-   buildings nearest first in 4 ms batches); past ~5 km it is dropped back to its far-view blocks.
-3. The town's frame (`frame`: turn, plan anchor, world anchor) places it on the planet as `HubFrame` places gamma; the
-   render origin is the town's own while the player is in it (W4's rules).
-4. The far view cuts the world's roads at each town's ground edge (its `entries` are exactly where its roads take over).
-5. A hand-made town's row points at its folder instead of a pack.
+1. **Bake, don't generate on the phone** (measured, decided): a town takes 14 s (a hamlet) to 58-81 s (a village or a
+   town) to bake on one desktop core under load (the TypeScript generator in Node's JIT, the pictures in Python), the
+   phone has neither: the generator in QuickJS (no JIT) would take minutes a town. The packs are baked offline; the app
+   reads them (size is no concern). The pictures on the phone (the split, above) remain the way to a smaller planet.
+2. **The manifest** (`WorldTownSet.parse`, shared/domain/WorldTowns.kt) is read when the world is: each baked town's frame,
+   ground, height, file. The app looks for it in its files (`<external files>/towns/alpha/manifest.json` and
+   `towns/*.ttwn`, pushed with adb for now); the desktop reads `kotlin-street/build-towns/alpha` (`-DworldTowns=<dir>`,
+   `WORLD_TOWNS=0` for none).
+3. **The world round each town**: the terrain is levelled to the town's height under its ground (0.6 m under its plan,
+   0.05 m under its farm ring: the town draws its own ground there) and blends back to the land over 40 + 360 m; the far
+   view's roads and rivers are cut at its ground's edge (its entries are where the town's country roads take over); no
+   trees, fences or farmsteads of the country stand on it; its stand-in blocks on the far view lie in its own footprint
+   (a far view part per town, hidden once the town's own far boxes are up).
+4. **Guest towns** (`WorldTowns`, `TownGuest`): the nearest two within 3.5 km of the eye are loaded whole (pack read on a
+   worker, a `FilamentTown` made in guest mode: the capital's scene, its workers, every entity under the town's root, its
+   frame a turn and a move into the capital's street units) and stream as the capital does (full detail near, its far
+   cells and districts out to 6 km, its lights at night as dots); built within 2.5 ms a frame; let go past 5 km, its
+   destroys spread over the next frames. Its farm ring is drawn as its roads in only (the world's own fields round them).
+5. **Roadside sites** (`WorldRoadside`): Highways v2's truck stops, motels, diners and rest areas, and stops along the
+   highways and county roads at `roadsideAlong`'s spacing (diners, gas stations, motels by era), each wearing its landmark
+   model on a levelled pad beside the road, made within 1.5 km of the eye.
+6. **People**: none yet in the guest towns (lights, parked cars at their stores and lots); the hook for the loop is
+   `WorldTowns.onGuest` (called with each town as it is made).
+
+## Tests (the app's side)
+
+`gradle :desktop:crossroadsTest --tests WorldTownsTest` (the views: the approach and arrival in Evanvale, where the road
+meets it, its Main Street, from above by day and night, a village and a hamlet from the road, a town's lights from a hill,
+a roadside diner; build/world-towns) and `--tests GpuWorldDriveTest` (the tour on through the towns: their GPU share
+against `TownBudget.TOWNS_MB`, the whole against `TOWNS_ROUTE_MB`). Both read `kotlin-street/build-towns/alpha`: bake the
+drive's towns first (`towns-route.ts`, then `towns-bake.ts --places <its list>`, about 2 minutes); `WORLD_TOWNS=0` runs
+without them.
 
 ## Tests
 
@@ -206,7 +246,43 @@ npx tsx kotlin-street/tools/towns-bake.ts --world alpha --all --jobs $(nproc) --
 Output in `kotlin-street/build-towns/alpha/` (git-ignored): 21 GB whole, or about 0.7 GB once the pictures move to the
 phone. `--resume` skips towns already baked, so it can be stopped and restarted.
 
+## The quality bar: a town you could not tell was generated
+
+The owner's bar (2026-11-23): "You should never be able to tell it was randomly generated." (From the old branch's
+review.) What the generator does, and what it cannot do yet:
+
+- **It grows from its reason to exist** (done): the road through a place is its Main Street; a river town's Main Street
+  crosses its river on the bridge downtown; a rail town's depot is on its rail band; the strip runs out towards the busiest
+  road or the interchange; a hamlet is the crossroads itself. *Missing*: a mining town has no mine (no headframe, tipple or
+  mill model yet), a harbor town no wharf, a pass hamlet no inn.
+- **Hierarchy and era layering** (the generator's): one Main Street, side streets, alleys behind the core, cul-de-sacs in
+  the late subdivisions; the core platted first, the post-war, heights and strip additions later, lots built as the
+  population grows (a hamlet's unbuilt plots are fields).
+- **Coherent districts** (the generator's): the square with the hall and post office, school, fire and police behind it,
+  industry on the rail band, villas on the heights, a cemetery and chapel at the edge, the water tower.
+- **The terrain shapes it** (*not yet*): the plan is flat and levelled to one height; contour streets and terraced alpine
+  villages need a "contour" plat form (an estimate: a week of work).
+- **Variety within a style** (partly): one American small-town kit for every region; the site carries the landmass, biome
+  and climate for when there are cultures.
+- **Skyline** (partly): water tower, grain elevator, steeples, the courthouse where a seat; *missing*: headframes, a mill
+  chimney, a lighthouse.
+
 ## Problems (honest)
+
+- **Evanvale reads sparse** (the coordinator's review of the first renders): its 190 lots are all built (221 buildings),
+  but 62 of them are villas and estates on wide lots and the plat leaves lawns between; a town of the same rank as the
+  capital's plat has fewer, bigger lots. Densifying is the plat's job (smaller lots, more rows, fewer villas for a
+  generated town of this rank), in the shared town generator the capital uses too: not done here (the capital's look
+  must not change), a recipe-only plat option is the way.
+- **The approaches keep their character** (the owner liked the county road through the woods with the power line beside
+  it into Evanvale): the world's roads keep their era's surfaces up to each town's edge; nothing in step 2 paves them.
+- **A guest town costs ~1 MB a building** while loaded (its whole ground and every lot's yard), and **the tour leaks**
+  after the third town is let go (WORLD_STREAM.md section 10: the first fix).
+- **The views' villages hide**: from the road 250-300 m out, a village or hamlet is behind the orchards and woods round
+  it (the country's trees stand right up to its ground's edge); a town shows from a hill or from above.
+- **The roadside diner's asphalt blob**: in front of the diner the near terrain draws an asphalt patch with a ragged
+  gravel rim: by its shape probably a world road's end (an interchange's stub) in the near ground's road material, not the site's lot (not yet checked).
+  Not from step 2; worth a look with the roads' ends (W6).
 
 - **The towns are grids.** The town generator lays axis-aligned streets (TOWN_PLAN.md: the street graph, rows,
   collision, rail crossings and farms all assume it). So every town reads as a planned railroad grid, the right look

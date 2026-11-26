@@ -77,7 +77,7 @@ internal class FarLights(private val engine: Engine, private val scene: Scene, m
             .boundingBox(Box((x0 + x1) / 2f, (y0 + y1) / 2f, (z0 + z1) / 2f, (x1 - x0) / 2f + 10f, (y1 - y0) / 2f + 10f, (z1 - z0) / 2f + 10f))
             .culling(false).castShadows(false).receiveShadows(false).priority(6)
             .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, vbuf, ibuf, 0, n * 6).material(0, mi).build(engine, e)
-        scene.addEntity(e)
+        scene.addEntity(e); TownRoot.adopt(engine, e)
         entity = e; vb = vbuf; ib = ibuf; count = n
     }
 
@@ -108,7 +108,7 @@ internal class FarLights(private val engine: Engine, private val scene: Scene, m
         count = 0; bytes = 0L
     }
 
-    fun destroy() { clear(); engine.destroyMaterialInstance(mi) }
+    fun destroy() { clear(); if (PropLayer.deferDestroy) Graveyard.bury(engine, mi) else engine.destroyMaterialInstance(mi) }
 
     companion object {
         /** A vertex: position (float3), its corner's offset in art pixels (float2), colour and kind (ubyte4). */

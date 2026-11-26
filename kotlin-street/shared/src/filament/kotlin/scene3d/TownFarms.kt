@@ -63,6 +63,12 @@ class TownFarms internal constructor(
     /** The year the farms stand as (which fields are farmed, which crop). */
     val year: Int,
     day: Int,
+    /**
+     * Only the country roads (the spokes and section roads, the roads in from the world's crossings): no farmsteads, fields
+     * or fences, the world's own country drawn there instead. A generated town streamed in (WorldTowns) draws its farm
+     * ring so: its farms' fields, crops and models would take ~100 MB for a town of 36 farms.
+     */
+    private val roadsOnly: Boolean = false,
 ) : TownExtra {
     private val engine = kit.engine
 
@@ -135,7 +141,7 @@ class TownFarms internal constructor(
     private class Batch(val packed: PropLayer.Packed, val casts: Boolean, val tiled: Boolean, val layer: Int)
     private class Built(val batches: List<Batch>, val models: List<Pair<Model, FilamentModels.Ready?>>, val keys: List<String>)
 
-    private val groups: List<Group> = data.farms.map { f -> Group(f, data.fields.filter { it.farm == f.id && it.farmedIn(year) }) }
+    private val groups: List<Group> = if (roadsOnly) emptyList() else data.farms.map { f -> Group(f, data.fields.filter { it.farm == f.id && it.farmedIn(year) }) }
     private var roads: PropLayer? = null
     private var roadJob: java.util.concurrent.Future<List<Batch>>? = null
     private var roadsDone = false
@@ -226,7 +232,7 @@ class TownFarms internal constructor(
                 val mm = try { FilamentModels.finish(engine, kit.lit, kit.proxy, kit.textures, r) } finally { kit.textures.drop(r.warmed) }
                 val rm = engine.renderableManager
                 rm.getInstance(mm.entity).takeIf { it != 0 }?.let { rm.setCulling(it, true) }
-                kit.scene.addEntity(mm.entity); if (mm.proxy != 0) kit.scene.addEntity(mm.proxy)
+                kit.scene.addEntity(mm.entity); TownRoot.adopt(engine, mm.entity); if (mm.proxy != 0) { kit.scene.addEntity(mm.proxy); TownRoot.adopt(engine, mm.proxy) }
                 m.mesh = mm
                 val bb = mm.bounds
                 m.cx = (bb[0] + bb[3]) / 2f; m.cy = (bb[1] + bb[4]) / 2f; m.cz = (bb[2] + bb[5]) / 2f
@@ -776,8 +782,8 @@ class TownFarms internal constructor(
         const val UPLOAD_NS = 3_000_000L
 
         /** Adds the farms of [data] to [town] (nothing for a town without): built for [year] (the town's) on [day] of it. */
-        fun attach(town: FilamentTown, data: TownFarmsData, art: FarmArt, collision: TownCollision?, year: Int = town.town.year, day: Int = 200): TownFarms? =
-            if (data.isEmpty) null else town.addExtra { TownFarms(it, data, art, collision, year, day) }
+        fun attach(town: FilamentTown, data: TownFarmsData, art: FarmArt, collision: TownCollision?, year: Int = town.town.year, day: Int = 200, roadsOnly: Boolean = false): TownFarms? =
+            if (data.isEmpty) null else town.addExtra { TownFarms(it, data, art, collision, year, day, roadsOnly) }
 
         internal fun hash(a: Int, b: Int, c: Int): Float {
             var h = a * 374761393 + b * 668265263 + c * 1274126177

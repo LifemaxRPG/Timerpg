@@ -40,6 +40,13 @@ class WorldFarPlan(
      * so every level's vertices stay where they were and only the rings' extent moves. [origin] stays the town's frame.
      */
     val centre: WorldPos? = null,
+    /**
+     * The generated towns on the planet (planet step 2, [WorldTownSet]): the terrain flattened to each one's height under
+     * and round its ground ([TownGroundShape]), the world's roads and rivers cut at its ground's edge (its own streets and
+     * country roads take over there, met at its entries), and their stand-in blocks laid in their own footprints (WorldFar
+     * hides them while WorldTowns draws the town itself); none: as before.
+     */
+    val towns: WorldTownSet = WorldTownSet.NONE,
 ) {
     /** The ground's height (m) every y is measured from. */
     val baseElev: Double = town?.elevM ?: 0.0
@@ -106,8 +113,13 @@ class WorldFarPlan(
     private fun shape(x: Double, z: Double, raw: Double): Float {
         if (outside(x, z) <= 0) return (-UNDER_M).toFloat()
         val b = blend(x, z)
-        return ((raw - baseElev) * b - UNDER_M * (1 - b)).toFloat()
+        // (the generated towns' grounds flattened to their own heights, then the capital's: the capital's pad wins round it)
+        val h = if (towns.towns.isEmpty()) raw - baseElev else TownGroundShape.shape(towns, origin.x + x, origin.z + z, raw - baseElev, baseElev)
+        return (h * b - UNDER_M * (1 - b)).toFloat()
     }
+
+    /** How far (m) ([x], [z]) (from the origin) is outside the nearest generated town's ground (MAX_VALUE: none near). */
+    fun townOutside(x: Double, z: Double): Double = if (towns.towns.isEmpty()) Double.MAX_VALUE else TownGroundShape.outside(towns, origin.x + x, origin.z + z)
 
     /** The anchor's cell (a multiple of [ANCHOR_CELLS]): the levels' middle is this cell's centre. */
     var anchorI = 0; private set
@@ -175,8 +187,8 @@ class WorldFarPlan(
         // (snow above the skeleton's snow line where it was kept: the climate's, not one height for the planet)
         val line = if (sk.has("snowline")) sk.raw("snowline", Math.floorMod(i, WorldSkeleton.W) + j.coerceIn(0, WorldSkeleton.H - 1) * WorldSkeleton.W) else SNOW_M
         if (sk.land(i, j) && e > line && b != 0) c = if (dither < .5) 0xFFF2F4FA.toInt() else 0xFFE2E8F2.toInt()
-        // the town's own grass dithered in round its ground
-        val d = outside(x, z)
+        // the town's own grass dithered in round its ground (and round the generated towns')
+        val d = min(outside(x, z), townOutside(x, z))
         if (d < GRASS_M && sk.land(i, j)) {
             val t = (d / GRASS_M).coerceIn(0.0, 1.0)
             if (WorldNoise.hashU(tone, floor(x / 60).toInt(), floor(z / 60).toInt(), 7) > t) c = TOWN_GRASS
@@ -223,7 +235,7 @@ class WorldFarPlan(
         if (n < 2) return
         var cur = ArrayList<Double>()
         fun flush() { if (cur.size >= 4) lines += Line(cur.toDoubleArray(), width, kind); cur = ArrayList() }
-        fun keep(x: Double, z: Double) = outside(x, z) > 0 && inReach(x, z)
+        fun keep(x: Double, z: Double) = outside(x, z) > 0 && inReach(x, z) && townOutside(x, z) > 0
         for (k in 0 until n - 1) {
             val x0 = pts[k * 2]; val z0 = pts[k * 2 + 1]; val x1 = pts[k * 2 + 2]; val z1 = pts[k * 2 + 3]
             val a = keep(x0, z0); val b = keep(x1, z1)
@@ -277,6 +289,9 @@ class WorldFarPlan(
             if (p.id == skip) continue
             val x = origin.dx(WorldPos.ofCells(p.x, p.z)); val z = p.z * Planet.CELL_M - origin.z
             if (!inReach(x, z)) continue
+            // (a generated town: its blocks in its own plan, turned with it, as tall as its rank's buildings)
+            val baked = towns.of(p.id)
+            if (baked != null) { townBoxes(p, baked); continue }
             // (a far town is a stand-in, as TownFar's boxes are for the town's own buildings: its blocks a little bigger than
             // a real block, so the place still reads as a town 10-40 km off; heights by rank)
             val (count, radius, tall) = when {
@@ -301,6 +316,30 @@ class WorldFarPlan(
                 if (top < seaLevel + 1) continue
                 boxes += Box(bx.toFloat(), bz.toFloat(), foot - 6f, w.toFloat(), d.toFloat(), (top - foot + 6 + hgt).toFloat(), wall, roof, p.id)
             }
+        }
+    }
+
+    /** A generated town's stand-in: blocks scattered over its plan (denser in its middle third), each standing on the far surface. */
+    private fun townBoxes(p: WorldSkeleton.Place, t: WorldTownSet.Town) {
+        val h0 = WorldNoise.hashStr("${sk.seed}|w4-box|${p.id}")
+        val count = (t.buildings / 5).coerceIn(5, 45)
+        val tall = when (t.rank) { "hamlet" -> 9.0; "village" -> 11.0; "town" -> 15.0; "major" -> 22.0; else -> 30.0 }
+        val w = t.px1 - t.px0; val hgt = t.py1 - t.py0
+        for (k in 0 until count) {
+            val a = WorldNoise.hashU(h0, k, 1); val b = WorldNoise.hashU(h0, k, 2)
+            // (two in three in the middle third: the town's downtown and Main Street)
+            val mid = WorldNoise.hashU(h0, k, 3) < .66
+            val tx = t.px0 + w * (if (mid) .33 + .34 * a else .08 + .84 * a)
+            val ty = t.py0 + hgt * (if (mid) .3 + .4 * b else .1 + .8 * b)
+            val at = t.world(tx, ty)
+            val bx = origin.dx(at); val bz = origin.dz(at)
+            val bw = 18 + 26 * WorldNoise.hashU(h0, k, 4); val bd = 18 + 26 * WorldNoise.hashU(h0, k, 5)
+            val ht = tall * (.5 + .5 * WorldNoise.hashU(h0, k, 6)) * (if (mid) 1.0 else .7)
+            val wall = WALLS[(WorldNoise.hashU(h0, k, 7) * WALLS.size).toInt().coerceIn(0, WALLS.size - 1)]
+            val roof = ROOFS[(WorldNoise.hashU(h0, k, 8) * ROOFS.size).toInt().coerceIn(0, ROOFS.size - 1)]
+            // (on the town's own levelled ground)
+            val foot = (t.heightM - baseElev).toFloat()
+            boxes += Box(bx.toFloat(), bz.toFloat(), foot - 1f, bw.toFloat(), bd.toFloat(), (ht + 1).toFloat(), wall, roof, p.id)
         }
     }
 

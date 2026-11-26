@@ -55,6 +55,30 @@ object WorldDrive {
 
     const val MIN_KM = 15.0
 
+    /**
+     * The drive on from the first town (planet step 2, tools/towns-route.ts): to [TOUR]'s places in turn, each leg the
+     * fastest by road in the capital's year (Evanvale to the village Roserdale, 20 km, then the town Chaley, 27 km).
+     */
+    val tour: List<Drive> by lazy {
+        val r = WorldRoute(sk, town.year)
+        var from = drive.to
+        TOUR.map { n ->
+            val p = sk.places.first { it.name == n }
+            val a = WorldPos.ofCells(from.x, from.z)
+            val path = r.fastest(r.nearest(a), r.nearest(WorldPos.ofCells(p.x, p.z))) ?: error("no road from ${from.name} to $n")
+            from = p
+            Drive(p, path, a)
+        }
+    }
+    val TOUR = listOf("Roserdale", "Chaley")
+
+    /** The whole drive (the capital to the first town, then [tour]) in the capital's street units (x, z pairs), as doubles. */
+    fun whole(site: WorldSite): DoubleArray {
+        val out = ArrayList<Double>()
+        for (d in listOf(drive) + tour) { val s = d.street(site); for (v in s) out += v.toDouble() }
+        return out.toDoubleArray()
+    }
+
     /** The point [s] metres along [pts] (x, z pairs) and its heading (dx, dz unit): x, z, dx, dz. */
     fun along(pts: DoubleArray, s: Double, out: DoubleArray = DoubleArray(4)): DoubleArray {
         // (each polyline's running lengths kept, the stretch found by halving)
