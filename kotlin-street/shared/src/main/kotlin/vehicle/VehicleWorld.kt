@@ -567,18 +567,20 @@ class VehicleWorld(
     var chunksAhead = 0; private set
 
     private fun chunkHeights(g: (Float, Float) -> Float?, i: Int, j: Int): FloatArray? {
-        val x0 = i * CHUNK_M; val z0 = j * CHUNK_M
+        // (with [chunkOverlap], [CHUNK_N] + 2 x overlap samples from that many cells before the chunk's corner)
+        val o = chunkOverlap
+        val n = CHUNK_N + 2 * o
         val cell = CHUNK_M / (CHUNK_N - 1)
-        val hs = FloatArray(CHUNK_N * CHUNK_N)
+        val x0 = i * CHUNK_M - o * cell; val z0 = j * CHUNK_M - o * cell
+        val hs = FloatArray(n * n)
         var any = false
-        for (b in 0 until CHUNK_N) for (a in 0 until CHUNK_N) {
+        for (b in 0 until n) for (a in 0 until n) {
             val h = g(x0 + a * cell, z0 + b * cell)
             if (h != null) any = true
-            hs[b * CHUNK_N + a] = h ?: 0f
+            hs[b * n + a] = h ?: 0f
         }
         return if (any) hs else null
     }
-
     private fun streamGround(c: Car) {
         val g = ground ?: return
         val xm = c.x / U; val zm = c.z / U
@@ -600,7 +602,7 @@ class VehicleWorld(
                 else -> { if (job == null) { chunkJobs[key] = groundPool.submit(java.util.concurrent.Callable { chunkHeights(g, i, j) }); chunksAhead++ }; continue }
             }
             // (a chunk the terrain cannot give yet is tried again at the next restream)
-            if (hs != null) chunks[key] = physics.addHeightfield(i * CHUNK_M, j * CHUNK_M, CHUNK_N, cell, hs)
+            if (hs != null) { val o = chunkOverlap; chunks[key] = physics.addHeightfield(i * CHUNK_M - o * cell, j * CHUNK_M - o * cell, CHUNK_N + 2 * o, cell, hs) }
         }
         // (let go only past a chunk's slack round the car and its lead: no churn as the lead's chunk wavers)
         val li = kotlin.math.floor((xm + vx * GROUND_LEAD_S) / CHUNK_M).toInt(); val lj = kotlin.math.floor((zm + vz * GROUND_LEAD_S) / CHUNK_M).toInt()
@@ -742,6 +744,12 @@ class VehicleWorld(
         /** The terrain's heightfield chunks round the car: this wide (m), this many samples a side. */
         const val CHUNK_M = 64f
         const val CHUNK_N = 33
+        /**
+         * Each chunk reaches this many cells into its neighbours (step 1b, docs/WORLD_STREAM.md): the two overlap on the same
+         * samples, so a wheel crossing the seam always has ground under it from both sides (step 1's drive measured bumps
+         * three times the others' within 2.5 m of a seam, and one 10 m/s2 jolt). 0: chunks meet edge to edge, as before.
+         */
+        @JvmStatic var chunkOverlap = (System.getProperty("chunkOverlap")?.toIntOrNull() ?: 1)
         /** The chunks round where the car will be this far ahead (s) are made on a worker before they are wanted. */
         const val GROUND_LEAD_S = 3.5f
         /** The worker making the ground's chunks ahead (one, low priority: a trickle of a few ms every second or two). */
