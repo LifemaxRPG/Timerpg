@@ -1,0 +1,725 @@
+{
+  "kind": "screenshot",
+  "time": "2026-11-25T21:23:14.562-0500",
+  "epochMs": 1795659794562,
+  "note": "car drives into stairs.  if anything you should be able to drive up stairs maybe not in such a low car but in a truck or something",
+  "app": {
+    "versionName": "0.1.976 (58216b0)",
+    "versionCode": 976,
+    "git": "58216b0",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "image": {
+    "file": "212314-car-drives-into-stairs-if-anythi.webp",
+    "format": "webp-lossless",
+    "scale": 1,
+    "width": 2340,
+    "height": 1080,
+    "bytes": 2232434,
+    "captured": "PixelCopy of the town's SurfaceView under the window"
+  },
+  "screen": {
+    "widthPx": 2244,
+    "heightPx": 1038,
+    "density": 2.8125,
+    "densityDpi": 450
+  },
+  "device": {
+    "ramFreeMb": 2657,
+    "ramTotalMb": 11113,
+    "lowMemory": false,
+    "gamePssMb": 1366,
+    "thermalStatus": 2,
+    "thermalHeadroom10s": 0.9720329
+  },
+  "game": {
+    "renderer": "Filament",
+    "camera": "medium",
+    "view": "open",
+    "orbit": {
+      "yaw": -46.29014,
+      "pitch": 19.187988,
+      "dist": 420,
+      "pulled": 483,
+      "goalYaw": -46.29014,
+      "goalPitch": 19.187988,
+      "goalDist": 420,
+      "tx": 4897.132,
+      "tz": 15188.473,
+      "line": "camera open yaw -46.3 pitch 19.2 dist 420 (pulled to 483) at (4897, 15188)"
+    },
+    "rendererError": null,
+    "town": "eta · Commuter suburb · 2025",
+    "walkableTown": {
+      "seed": "gamma",
+      "loading": false,
+      "ready": true,
+      "progress": 1,
+      "error": null,
+      "loadMs": 870.95026,
+      "firstViewMs": 12302.988,
+      "built": "town built: ground 12296 ms (workers 12293), buildings 498 ms here (slowest b103 5.8 ms, largest batch 6.1 ms), 37845 ms on workers (slowest b145 1039 ms); textures 1354, 86.1M texels, 19040 shared",
+      "memory": {
+        "when": "town built",
+        "graphicsMb": 811,
+        "nativeMb": 212,
+        "javaMb": 220,
+        "codeMb": 27,
+        "totalPssMb": 1324,
+        "graphicsParts": {
+          "Gfx dev": 233,
+          "EGL mtrack": 78,
+          "GL mtrack": 499,
+          "Other mtrack": 0,
+          "kgslMappedPssMb": 0,
+          "dmabufPssMb": 0
+        },
+        "gpuByPart": {
+          "farms": {
+            "mb": 75,
+            "texturesMb": 9.9,
+            "textures": 85,
+            "buffersMb": 65.1,
+            "buffers": 958
+          },
+          "yards": {
+            "mb": 73.7,
+            "texturesMb": 5.1,
+            "textures": 33,
+            "buffersMb": 68.6,
+            "buffers": 3063
+          },
+          "buildings and stores": {
+            "mb": 41.9,
+            "texturesMb": 39,
+            "textures": 290,
+            "buffersMb": 2.9,
+            "buffers": 206
+          },
+          "GLB landmarks": {
+            "mb": 39.1,
+            "texturesMb": 29,
+            "textures": 381,
+            "buffersMb": 10,
+            "buffers": 533
+          },
+          "trees": {
+            "mb": 26,
+            "texturesMb": 10.8,
+            "textures": 20,
+            "buffersMb": 15.2,
+            "buffers": 5093
+          },
+          "ground and terrain": {
+            "mb": 21.9,
+            "texturesMb": 13,
+            "textures": 364,
+            "buffersMb": 8.9,
+            "buffers": 226
+          },
+          "street things and greenery": {
+            "mb": 10.7,
+            "texturesMb": 0.8,
+            "textures": 142,
+            "buffersMb": 10,
+            "buffers": 2747
+          },
+          "rail": {
+            "mb": 6,
+            "texturesMb": 0.3,
+            "textures": 7,
+            "buffersMb": 5.7,
+            "buffers": 34
+          },
+          "town, other": {
+            "mb": 4.5,
+            "texturesMb": 0,
+            "textures": 3,
+            "buffersMb": 4.5,
+            "buffers": 2
+          },
+          "vehicles": {
+            "mb": 2,
+            "texturesMb": 0.9,
+            "textures": 25,
+            "buffersMb": 1.1,
+            "buffers": 319
+          },
+          "PropLayer": {
+            "mb": 0.8,
+            "texturesMb": 0.4,
+            "textures": 2,
+            "buffersMb": 0.4,
+            "buffers": 3
+          },
+          "people": {
+            "mb": 0.4,
+            "texturesMb": 0.4,
+            "textures": 2,
+            "buffersMb": 0,
+            "buffers": 0
+          },
+          "buffer pages, free space": {
+            "mb": 22.1,
+            "pages": 166,
+            "pagesMb": 162.9
+          },
+          "shadow map": {
+            "mb": 32
+          },
+          "render targets + surfaces": {
+            "mb": 86.8
+          },
+          "total": {
+            "mb": 442.9,
+            "textures": 1354,
+            "buffers": 237,
+            "bufferPages": 166,
+            "bufferRanges": 13113,
+            "buffersUnder16k": 0,
+            "texturesUnder64k": 1041,
+            "allocationsAt4kMb": 327.1,
+            "allocationsAt64kMb": 386.2
+          }
+        },
+        "graphicsBeyondFilamentMb": 368
+      },
+      "gpuNow": {
+        "farms": {
+          "mb": 75,
+          "texturesMb": 9.9,
+          "textures": 85,
+          "buffersMb": 65.1,
+          "buffers": 958
+        },
+        "yards": {
+          "mb": 56.5,
+          "texturesMb": 5.1,
+          "textures": 33,
+          "buffersMb": 51.4,
+          "buffers": 2645
+        },
+        "GLB landmarks": {
+          "mb": 39.1,
+          "texturesMb": 29,
+          "textures": 381,
+          "buffersMb": 10,
+          "buffers": 533
+        },
+        "trees": {
+          "mb": 31.6,
+          "texturesMb": 10.8,
+          "textures": 20,
+          "buffersMb": 20.8,
+          "buffers": 5215
+        },
+        "ground and terrain": {
+          "mb": 21.9,
+          "texturesMb": 13,
+          "textures": 364,
+          "buffersMb": 8.9,
+          "buffers": 226
+        },
+        "street things and greenery": {
+          "mb": 10.6,
+          "texturesMb": 0.8,
+          "textures": 142,
+          "buffersMb": 9.9,
+          "buffers": 2722
+        },
+        "buildings and stores": {
+          "mb": 10,
+          "texturesMb": 7.7,
+          "textures": 141,
+          "buffersMb": 2.3,
+          "buffers": 141
+        },
+        "rail": {
+          "mb": 6,
+          "texturesMb": 0.3,
+          "textures": 7,
+          "buffersMb": 5.7,
+          "buffers": 34
+        },
+        "town, other": {
+          "mb": 4.5,
+          "texturesMb": 0,
+          "textures": 3,
+          "buffersMb": 4.5,
+          "buffers": 5
+        },
+        "vehicles": {
+          "mb": 2.5,
+          "texturesMb": 1.2,
+          "textures": 29,
+          "buffersMb": 1.4,
+          "buffers": 361
+        },
+        "people": {
+          "mb": 1.3,
+          "texturesMb": 1.3,
+          "textures": 9,
+          "buffersMb": 0,
+          "buffers": 0
+        },
+        "PropLayer": {
+          "mb": 0.8,
+          "texturesMb": 0.4,
+          "textures": 2,
+          "buffersMb": 0.4,
+          "buffers": 3
+        },
+        "debris": {
+          "mb": 0.2,
+          "texturesMb": 0,
+          "textures": 0,
+          "buffersMb": 0.2,
+          "buffers": 42
+        },
+        "buffer pages, free space": {
+          "mb": 15.2,
+          "pages": 149,
+          "pagesMb": 146.9
+        },
+        "total": {
+          "mb": 275.2,
+          "textures": 1216,
+          "buffers": 214,
+          "bufferPages": 149,
+          "bufferRanges": 12820,
+          "buffersUnder16k": 0,
+          "texturesUnder64k": 981,
+          "allocationsAt4kMb": 277.8,
+          "allocationsAt64kMb": 332.4
+        }
+      },
+      "row": "128R",
+      "street": "Willow Road",
+      "neighbourhood": "Oak Gardens",
+      "x": 4185.1313,
+      "lane": 1302.8994,
+      "wx": 4897.1313,
+      "wz": 15188.473,
+      "heading": -0.14186336,
+      "front": null,
+      "transit": null,
+      "liveRows": [
+        "128R"
+      ],
+      "people": 0,
+      "talkTo": null,
+      "walk": "open",
+      "open": {
+        "door": null,
+        "yard": null,
+        "speed": 0,
+        "blocked": 0,
+        "cameraYaw": -0.80791533,
+        "hx": -0.141388,
+        "hz": -0.9899543
+      }
+    },
+    "street": {
+      "index": 0,
+      "name": "Main Street",
+      "nearestBuilding": -1,
+      "building": null,
+      "owner": null,
+      "atCorner": false,
+      "edge": 0
+    },
+    "player": {
+      "x": 4185.1313,
+      "lane": 1302.8994,
+      "street": 0,
+      "dir": 1,
+      "walking": false,
+      "running": false,
+      "viewMiddle": 284.625
+    },
+    "turn": {
+      "active": false,
+      "forward": true,
+      "p": 0,
+      "yaw": 0,
+      "ease": 0,
+      "blocked": false
+    },
+    "inRoom": false,
+    "room": null,
+    "doorFade": false,
+    "time": {
+      "hour": 17.6,
+      "clock": "17:36",
+      "season": "summer",
+      "weather": "Clear"
+    },
+    "frames": {
+      "compose": "Frames: 16.6 ms (60 fps) · p95 16.6 ms · 0.8% late · display 60 Hz",
+      "filament": "Filament: CPU 10.5 ms (p95 14.3) · GPU 19.7 ms (p95 22.8) · start 798 ms, street 2999 ms",
+      "spikes": "spikes: 201 of 574 frames (moving 574) over 20 ms by render 201, gpu 201, uploads 13, gc 7, build 4, HUD 1; GPU over 16.7 ms in 405 of 405 frames (worst 30.7); gc 12 (386 ms); worst: 177 ms: ours 15.1 (render 10.2, green 1.5, stores 1.1, occlude 0.8, build 0.5, yards 0.4), gpu 22.4, gc 3 70 ms | 171 ms: ours 13.4 (render 9.5, green 1.3, stores 0.9, occlude 0.7, build 0.4, yards 0.3), gpu 23.1, gc 1 108 ms | 154 ms: ours 13.6 (render 9.5, green 1.4, stores 1.0, occlude 0.7, build 0.4, yards 0.3), gpu 27.7, gc 1 29 ms; HUD composed 2 times, worst 1.7 ms, 3.1 ms in all; minimap: 574 draws, worst 0.6 ms; 0 pictures first drawn (0.0 MB, the biggest 0.0 MB)"
+    },
+    "ai": {
+      "state": "WAITING",
+      "detail": "The NPU is there, but the light model's copy does not fit yet: waiting for NPU memory (2432 MB free, 4191 MB needed): in play the model never runs on the CPU. People speak their lines written ahead and their built-in ones meanwhile; looking again every 30 s.",
+      "runsOn": "CPU",
+      "modelMb": 5417,
+      "role": null,
+      "forceBank": false,
+      "gpuNote": null,
+      "npuWait": "NPU short of memory: 2432 of 4191 MB free",
+      "lane": null,
+      "linesWritten": 137,
+      "builtIn": 0,
+      "queued": 0,
+      "paused": "",
+      "working": null,
+      "pregenOff": null,
+      "prefillTokPerSec": 0,
+      "genTokPerSec": 0,
+      "firstTokenMs": 0,
+      "loadInfo": null
+    },
+    "conversation": null,
+    "voices": {
+      "enabled": false,
+      "speaking": false,
+      "only": 2,
+      "timing": null
+    },
+    "mic": {
+      "always": true,
+      "granted": true,
+      "listening": true,
+      "state": "IDLE",
+      "hearer": "phone",
+      "hearing": true,
+      "writing": 0,
+      "problem": null,
+      "loop": "phone recognizer listening, last sign of life 0 s ago, errors 0, client errors 0, stalls 0",
+      "lastListener": null,
+      "attempts": [
+        "21:20:18 9.3 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "21:20:29 9.9 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "21:20:38 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "21:20:48 9.8 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "21:20:59 10.4 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "21:21:08 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "21:21:19 11.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "21:21:29 9.8 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "21:21:39 9.2 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "21:21:50 11.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "21:22:01 11.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "21:22:12 10.4 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "21:22:22 9.8 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "21:22:53 5.3 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "21:23:03 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "21:23:12 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)"
+      ]
+    },
+    "panels": {
+      "aiPanel": false,
+      "crashShown": false,
+      "tuningNpu": false
+    }
+  },
+  "diagnostics": {
+    "breadcrumbs": {
+      "thisRun": [
+        "11-25 21:22:14.685 row 127L: Ash Grove, Oak Gardens at (9933, 15500); camera open yaw -90.6 pitch 19.2 dist 420 (pulled to 483) at (9952, 15500)",
+        "11-25 21:22:15.026 row 127R: Ash Grove, Oak Gardens at (9554, 15527); camera open yaw -91.7 pitch 19.2 dist 420 (pulled to 483) at (9574, 15526)",
+        "11-25 21:22:15.367 row 127L: Ash Grove, Oak Gardens at (9156, 15578); camera open yaw -93.6 pitch 19.2 dist 420 (pulled to 483) at (9176, 15576)",
+        "11-25 21:22:19.968 frames 10 s: frame p50 16.6 ms, p95 16.7, max 149.8; 553 frames, 49 refreshes dropped (60 Hz); Filament 553 frames, CPU 11.0/17.6/39.4 ms, GPU 26.5/36.8/48.2 ms (p50/p95/max); thermal 2, headroom 0.99; 2267 MB free; AI WAITING (held while moving: 0 lines, 0 s in all); standing on 127L",
+        "11-25 21:22:19.969 frame spikes 10 s: spikes: 187 of 553 frames (moving 553) over 20 ms by gpu 187, render 185, uploads 49, gc 19, green 13, build 8, step 3, HUD 3, occlude 2, yards 1, stores 1; GPU over 16.7 ms in 304 of 388 frames (worst 48.2); gc 23 (922 ms); worst: 159 ms: ours 15.3 (render 10.4, green 1.6, stores 1.2, occlude 0.9, build 0.5, yards 0.5), gpu 35.7, gc 2 50 ms | 159 ms: ours 14.4 (render 9.9, green 1.8, stores 0.9, occlude 0.7, build 0.4, yards 0.3), gpu 30.9, up 1 tree cells 0.1 MB, gc 2 45 ms | 141 ms: ours 11.3 (render 7.6, green 1.3, occlude 0.7, stores 0.7, build 0.4, yards 0.3), gpu 24.5, gc 1 30 ms; HUD composed 5 times, worst 2.5 ms, 8.1 ms in all; minimap: 553 draws, worst 2.3 ms; 5 pictures first drawn (1.0 MB, the biggest 0.3 MB)",
+        "11-25 21:22:22.086 mic: attempt: 21:22:22 9.8 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "11-25 21:22:22.560 frame pacing: display 120 Hz, 60 a second, a frame every 2 refreshes",
+        "11-25 21:22:23.475 frame pacing: display 60 Hz, 60 a second, a frame every 1 refresh",
+        "11-25 21:22:23.894 frame pacing: display 120 Hz, 60 a second, a frame every 2 refreshes",
+        "11-25 21:22:24.245 frame pacing: display 60 Hz, 60 a second, a frame every 1 refresh",
+        "11-25 21:22:25.017 frame pacing: display 120 Hz, 60 a second, a frame every 2 refreshes",
+        "11-25 21:22:25.556 frame pacing: display 60 Hz, 60 a second, a frame every 1 refresh",
+        "11-25 21:22:25.949 mic off",
+        "11-25 21:22:29.980 frames 10 s: frame p50 16.6 ms, p95 16.7, max 133.2; 632 frames, 40 refreshes dropped (60 Hz); Filament 579 frames, CPU 11.4/13.7/19.3 ms, GPU 16.7/22.1/25.2 ms (p50/p95/max); thermal 2, headroom 0.99; 2414 MB free; AI WAITING (held while moving: 0 lines, 0 s in all); standing on 127L",
+        "11-25 21:22:29.980 frame spikes 10 s: spikes: 42 of 579 frames (moving 579) over 20 ms by render 42, gpu 39, gc 7, build 2, green 1, HUD 1; GPU over 16.7 ms in 255 of 530 frames (worst 25.2); gc 8 (197 ms); worst: 148 ms: ours 12.5 (render 8.2, green 1.3, stores 1.1, occlude 0.7, build 0.4, yards 0.4), gpu 18.8, gc 2 50 ms | 140 ms: ours 14.5 (render 9.9, green 1.5, stores 1.1, occlude 0.8, build 0.4, yards 0.4), gpu 18.9, gc 1 27 ms | 139 ms: ours 12.1 (render 7.9, green 1.3, stores 1.1, occlude 0.7, build 0.4, yards 0.4), gpu 17.5, gc 1 26 ms; HUD composed 3 times, worst 18.9 ms, 21.6 ms in all; minimap: 402 draws, worst 0.3 ms; 0 pictures first drawn (0.0 MB, the biggest 0.0 MB)",
+        "11-25 21:22:39.981 frames 10 s: frame p50 16.6 ms, p95 16.6, max 149.8; 579 frames, 22 refreshes dropped (60 Hz); Filament 579 frames, CPU 11.3/12.6/21.4 ms, GPU 16.7/22.8/25.8 ms (p50/p95/max); thermal 2, headroom 0.99; 2493 MB free; AI WAITING (held while moving: 0 lines, 0 s in all); standing on 127L",
+        "11-25 21:22:39.981 frame spikes 10 s: spikes: 39 of 579 frames (moving 579) over 20 ms by render 39, gpu 38, gc 3; GPU over 16.7 ms in 254 of 544 frames (worst 25.8); gc 6 (151 ms); worst: 163 ms: ours 13.8 (render 8.9, green 1.5, stores 1.3, occlude 0.8, build 0.4, yards 0.4), gpu 23.3, gc 2 54 ms | 147 ms: ours 11.9 (render 7.8, green 1.3, stores 1.0, occlude 0.7, yards 0.4, build 0.3), gpu 17.3, gc 2 49 ms | 137 ms: ours 12.0 (render 7.9, green 1.4, stores 1.0, occlude 0.7, yards 0.4, build 0.3), gpu 17.5, gc 1 25 ms",
+        "11-25 21:22:48.465 mic listening",
+        "11-25 21:22:48.465 mic: the phone's on-device recognizer listens",
+        "11-25 21:22:49.983 frames 10 s: frame p50 16.6 ms, p95 16.6, max 133.2; 579 frames, 22 refreshes dropped (60 Hz); Filament 579 frames, CPU 10.8/14.0/21.7 ms, GPU 22.5/29.8/39.4 ms (p50/p95/max); thermal 2, headroom 0.99; 2453 MB free; AI WAITING (held while moving: 0 lines, 0 s in all); standing on 127L",
+        "11-25 21:22:49.983 frame spikes 10 s: spikes: 176 of 579 frames (moving 579) over 20 ms by render 176, gpu 176, gc 5, green 3, build 2, HUD 1; GPU over 16.7 ms in 400 of 400 frames (worst 39.4); gc 7 (176 ms); worst: 155 ms: ours 12.2 (render 8.3, green 1.2, stores 0.9, occlude 0.7, build 0.3, yards 0.3), gpu 32.2, gc 1 27 ms | 148 ms: ours 12.5 (render 8.3, green 1.4, stores 1.0, occlude 0.7, build 0.4, yards 0.4), gpu 23.6, gc 1 27 ms | 146 ms: ours 11.4 (render 7.7, green 1.2, stores 0.9, occlude 0.6, build 0.3, yards 0.3), gpu 22.5, gc 1 29 ms; HUD composed 1 times, worst 5.8 ms, 5.8 ms in all; minimap: 86 draws, worst 0.9 ms; 2 pictures first drawn (0.4 MB, the biggest 0.3 MB)",
+        "11-25 21:22:53.780 mic: attempt: 21:22:53 5.3 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "11-25 21:22:59.984 frames 10 s: frame p50 16.6 ms, p95 16.7, max 200.0; 569 frames, 33 refreshes dropped (60 Hz); Filament 569 frames, CPU 12.1/15.2/26.1 ms, GPU 25.9/33.6/39.8 ms (p50/p95/max); thermal 2, headroom 0.98; 2444 MB free; AI WAITING (held while moving: 0 lines, 0 s in all); standing on 127L",
+        "11-25 21:22:59.984 frame spikes 10 s: spikes: 212 of 569 frames (moving 569) over 20 ms by render 212, gpu 212, gc 5, build 2, uploads 2, HUD 1; GPU over 16.7 ms in 359 of 359 frames (worst 39.8); gc 7 (284 ms); worst: 197 ms: ours 17.9 (render 11.7, green 2.0, stores 1.7, occlude 1.0, build 0.6, yards 0.5), gpu 32.5, gc 1 42 ms | 158 ms: ours 15.1 (render 10.3, green 1.6, stores 1.2, occlude 0.8, yards 0.5, build 0.4), gpu 26.8, gc 2 57 ms | 153 ms: ours 12.4 (render 8.2, green 1.4, stores 1.1, occlude 0.7, build 0.4, yards 0.4), gpu 29.6, gc 1 99 ms; HUD composed 1 times, worst 1.3 ms, 1.3 ms in all; minimap: 569 draws, worst 0.5 ms; 6 pictures first drawn (1.1 MB, the biggest 0.3 MB)",
+        "11-25 21:23:03.063 mic: attempt: 21:23:03 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "11-25 21:23:05.344 row 128R: Willow Road, Oak Gardens at (6203, 15940); camera open yaw -82.7 pitch 19.2 dist 420 (pulled to 483) at (6214, 15942)",
+        "11-25 21:23:09.985 frames 10 s: frame p50 16.6 ms, p95 16.7, max 183.1; 574 frames, 27 refreshes dropped (60 Hz); Filament 574 frames, CPU 12.4/14.8/22.6 ms, GPU 22.9/27.2/30.7 ms (p50/p95/max); thermal 2, headroom 0.97; 2488 MB free; AI WAITING (held while moving: 0 lines, 0 s in all); standing on 128R",
+        "11-25 21:23:09.985 frame spikes 10 s: spikes: 201 of 574 frames (moving 574) over 20 ms by render 201, gpu 201, uploads 13, gc 7, build 4, HUD 1; GPU over 16.7 ms in 405 of 405 frames (worst 30.7); gc 12 (386 ms); worst: 177 ms: ours 15.1 (render 10.2, green 1.5, stores 1.1, occlude 0.8, build 0.5, yards 0.4), gpu 22.4, gc 3 70 ms | 171 ms: ours 13.4 (render 9.5, green 1.3, stores 0.9, occlude 0.7, build 0.4, yards 0.3), gpu 23.1, gc 1 108 ms | 154 ms: ours 13.6 (render 9.5, green 1.4, stores 1.0, occlude 0.7, build 0.4, yards 0.3), gpu 27.7, gc 1 29 ms; HUD composed 2 times, worst 1.7 ms, 3.1 ms in all; minimap: 574 draws, worst 0.6 ms; 0 pictures first drawn (0.0 MB, the biggest 0.0 MB)",
+        "11-25 21:23:12.348 mic: attempt: 21:23:12 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "11-25 21:23:14.699 mic off",
+        "11-25 21:23:19.987 frames 10 s: frame p50 16.6 ms, p95 16.7, max 133.2; 572 frames, 30 refreshes dropped (60 Hz); Filament 572 frames, CPU 10.5/14.5/26.3 ms, GPU 19.8/22.5/27.1 ms (p50/p95/max); thermal 2, headroom 0.97; 2598 MB free; AI WAITING (held while moving: 0 lines, 0 s in all); standing on 128R",
+        "11-25 21:23:19.987 frame spikes 10 s: spikes: 122 of 572 frames (moving 572) over 20 ms by render 122, gpu 122, gc 7, green 5, occlude 2, build 1, stores 1, HUD 1; GPU over 16.7 ms in 368 of 459 frames (worst 27.1); gc 9 (199 ms); worst: 141 ms: ours 11.1 (render 7.2, green 1.1, stores 0.9, occlude 0.7, yards 0.4, build 0.4), gpu 21.8, gc 1 24 ms | 135 ms: ours 11.3 (render 7.3, green 1.2, stores 1.0, occlude 0.8, build 0.4, yards 0.3), gpu 20.3, gc 2 45 ms | 123 ms: ours 11.4 (render 7.8, green 1.2, stores 0.9, occlude 0.6, build 0.3), gpu 19.4, gc 1 22 ms; HUD composed 2 times, worst 4.9 ms, 6.4 ms in all; minimap: 260 draws, worst 0.3 ms; 0 pictures first drawn (0.0 MB, the biggest 0.0 MB)",
+        "11-25 21:23:29.998 frames 10 s: frame p50 16.6 ms, p95 16.6, max 116.5; 578 frames, 24 refreshes dropped (60 Hz); Filament 578 frames, CPU 10.8/19.2/27.9 ms, GPU 20.6/22.5/25.6 ms (p50/p95/max); thermal 2, headroom 0.97; 2615 MB free; AI WAITING (held while moving: 0 lines, 0 s in all); standing on 128R",
+        "11-25 21:23:29.998 frame spikes 10 s: spikes: 156 of 578 frames (moving 578) over 20 ms by render 156, gpu 156, green 8, gc 4, HUD 1; GPU over 16.7 ms in 437 of 437 frames (worst 25.6); gc 8 (170 ms); worst: 128 ms: ours 11.1 (render 7.3, green 1.2, stores 1.0, occlude 0.6, build 0.3, yards 0.3), gpu 21.0, gc 2 41 ms | 126 ms: ours 12.4 (render 8.2, green 1.4, occlude 0.8, stores 0.8, build 0.4, yards 0.4), gpu 20.5, gc 1 26 ms | 125 ms: ours 12.1 (render 7.6, green 1.4, stores 1.1, occlude 0.7, yards 0.4, build 0.4), gpu 20.3, gc 1 23 ms; HUD composed 1 times, worst 1.0 ms, 1.0 ms in all",
+        "11-25 21:23:40.002 frames 10 s: frame p50 16.6 ms, p95 16.7, max 149.8; 574 frames, 27 refreshes dropped (60 Hz); Filament 574 frames, CPU 14.0/21.1/29.0 ms, GPU 20.5/22.5/25.1 ms (p50/p95/max); thermal 2, headroom 0.98; 2633 MB free; AI WAITING (held while moving: 0 lines, 0 s in all); standing on 128R",
+        "11-25 21:23:40.002 frame spikes 10 s: spikes: 174 of 574 frames (moving 574) over 20 ms by render 174, gpu 174, green 17, gc 4, build 2; GPU over 16.7 ms in 437 of 437 frames (worst 25.1); gc 7 (156 ms); worst: 144 ms: ours 10.7 (render 7.3, green 1.2, stores 0.7, occlude 0.6, build 0.3), gpu 21.8, gc 1 27 ms | 143 ms: ours 10.7 (render 7.3, green 1.2, stores 0.6, occlude 0.6, build 0.3, yards 0.3), gpu 21.2, gc 2 49 ms | 131 ms: ours 17.6 (render 7.6, build 6.0, green 1.5, occlude 1.1, stores 0.7, yards 0.4), gpu 22.6, gc 2 40 ms",
+        "11-25 21:23:50.012 frames 10 s: frame p50 16.6 ms, p95 16.6, max 133.2; 579 frames, 22 refreshes dropped (60 Hz); Filament 579 frames, CPU 14.0/20.6/26.7 ms, GPU 20.2/22.4/24.9 ms (p50/p95/max); thermal 2, headroom 0.97; 2642 MB free; AI WAITING (held while moving: 0 lines, 0 s in all); standing on 128R",
+        "11-25 21:23:50.012 frame spikes 10 s: spikes: 144 of 579 frames (moving 579) over 20 ms by render 144, gpu 136, green 12, gc 4, build 1, yards 1; GPU over 16.7 ms in 376 of 465 frames (worst 24.9); gc 8 (173 ms); worst: 137 ms: ours 10.6 (render 7.2, green 1.1, stores 0.7, occlude 0.6, build 0.3), gpu 19.7, gc 2 39 ms | 137 ms: ours 11.4 (render 7.3, green 1.5, occlude 0.8, stores 0.8, build 0.4, yards 0.4), gpu 21.8, gc 2 43 ms | 128 ms: ours 10.9 (render 7.3, green 1.4, stores 0.7, occlude 0.6, build 0.3), gpu 15.4, gc 2 43 ms",
+        "11-25 21:23:54.450 mic listening",
+        "11-25 21:23:54.450 mic: the phone's on-device recognizer listens"
+      ],
+      "previousRun": [
+        "11-25 14:28:28.808 row 68R: Main Street, Old Town at (25900, 9650); camera open yaw -91.0 pitch 21.9 dist 420 (pulled to 483) at (25910, 9652)",
+        "11-25 14:28:29.946 row 68L: Main Street, Old Town at (25215, 9663); camera open yaw -92.0 pitch 21.9 dist 420 (pulled to 483) at (25226, 9662)",
+        "11-25 14:28:30.118 row 48R: Elm Street, Old Town at (25128, 9673); camera open yaw -93.0 pitch 21.9 dist 420 (pulled to 483) at (25138, 9673)",
+        "11-25 14:28:30.266 mic: attempt: 14:28:30 9.1 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "11-25 14:28:30.325 row 68L: Main Street, Old Town at (25013, 9679); camera open yaw -93.1 pitch 21.9 dist 420 (pulled to 483) at (25022, 9679)",
+        "11-25 14:28:30.388 row 48L: Elm Street, Old Town at (24980, 9678); camera open yaw -92.9 pitch 21.9 dist 420 (pulled to 483) at (24989, 9679)",
+        "11-25 14:28:30.654 row 70L: Main Street, Oak Gardens at (24863, 9669); camera open yaw -91.2 pitch 21.9 dist 420 (pulled to 483) at (24870, 9670)",
+        "11-25 14:28:30.907 row 70R: Main Street, Oak Gardens at (24768, 9649); camera open yaw -88.7 pitch 21.9 dist 420 (pulled to 483) at (24774, 9651)",
+        "11-25 14:28:31.098 frames 10 s: frame p50 16.6 ms, p95 33.3, max 166.4; 513 frames, 87 refreshes dropped (60 Hz); Filament 513 frames, CPU 16.7/24.4/41.0 ms, GPU 25.8/31.6/38.1 ms (p50/p95/max); thermal 3, headroom 0.99; 1752 MB free; AI READY (held while moving: 0 lines, 0 s in all); standing on 70R",
+        "11-25 14:28:31.098 frame spikes 10 s: spikes: 246 of 513 frames (moving 513) over 20 ms by render 246, gpu 246, build 43, uploads 43, gc 24, HUD 23, green 12, occlude 7, step 3, yards 3, far 1, buildings 1, night 1, stores 1; GPU over 16.7 ms in 359 of 359 frames (worst 38.1); gc 27 (1587 ms); worst: 173 ms: ours 17.9 (render 11.1, green 1.6, people 1.0, buildings 0.9, stores 0.8, yards 0.8, occlude 0.7, build 0.4), gpu 25.6, gc 2 125 ms | 161 ms: ours 17.7 (render 11.0, green 1.5, people 1.0, stores 0.9, yards 0.7, occlude 0.7, buildings 0.7, build 0.7), gpu 29.9, gc 1 34 ms | 155 ms: ours 17.5 (render 11.2, green 1.6, stores 1.1, people 0.9, occlude 0.8, yards 0.7, build 0.4, buildings 0.3), gpu 22.2, gc 1 30 ms; HUD composed 31 times, worst 2.0 ms, 40.9 ms in all; minimap: 513 draws, worst 2.6 ms; 0 pictures first drawn (0.0 MB, the biggest 0.0 MB)",
+        "11-25 14:28:32.270 memory: Resident: dialogue 3391 MB (live, copied, work 890 MB, 8-bit KV) · memory 609 MB · game PSS 1629 MB (Java 146, native 131, graphics 888, code 18, other 76, system 366) · 1745 MB free",
+        "11-25 14:28:34.948 row 70L: Main Street, Oak Gardens at (24064, 9663); camera open yaw -112.3 pitch 21.9 dist 420 (pulled to 483) at (24068, 9660)",
+        "11-25 14:28:35.103 damage: a young tree (70L) at (23996, 9714) by torrel-1988-rs at 15.3 m/s, t 287.8 s",
+        "11-25 14:28:38.227 row 70R: Main Street, Oak Gardens at (22934, 9648); camera open yaw -74.4 pitch 21.9 dist 420 (pulled to 483) at (22941, 9654)",
+        "11-25 14:28:38.794 npu gate: margin 900 -> 800 MB (the load held 5 min; lowest free 1593 MB, critical line 716 MB)",
+        "11-25 14:28:39.592 row 73R: Spring Lane, Oak Gardens at (22337, 9337); camera open yaw -66.7 pitch 21.9 dist 420 (pulled to 483) at (22347, 9340)",
+        "11-25 14:28:41.108 frames 10 s: frame p50 16.6 ms, p95 33.3, max 183.1; 548 frames, 53 refreshes dropped (60 Hz); Filament 548 frames, CPU 14.9/21.7/43.4 ms, GPU 25.8/30.3/33.3 ms (p50/p95/max); thermal 3, headroom 1.00; 1803 MB free; AI READY (held while moving: 0 lines, 0 s in all); standing on 73R",
+        "11-25 14:28:41.108 frame spikes 10 s: spikes: 241 of 548 frames (moving 548) over 20 ms by render 241, gpu 241, build 38, gc 21, uploads 19, green 6, HUD 5, occlude 4, step 2, yards 2, far 1, night 1, stores 1; GPU over 16.7 ms in 361 of 361 frames (worst 33.3); gc 23 (1059 ms); worst: 177 ms: ours 27.2 (render 10.9, occlude 8.3, yards 2.4, green 2.2, stores 1.0, far 0.7, people 0.6, build 0.5), gpu 26.0, up  0.0 MB, gc 2 47 ms | 161 ms: ours 16.8 (render 11.0, green 1.6, stores 1.0, occlude 0.8, yards 0.7, build 0.5, people 0.5, step 0.3), gpu 29.3, gc 1 32 ms | 158 ms: ours 17.3 (render 11.0, green 1.7, stores 1.0, occlude 0.8, yards 0.6, people 0.5, buildings 0.5, build 0.4, night 0.4), gpu 23.3, gc 2 135 ms; HUD composed 5 times, worst 1.4 ms, 6.2 ms in all; minimap: 548 draws, worst 1.1 ms; 6 pictures first drawn (1.4 MB, the biggest 0.3 MB)",
+        "11-25 14:28:41.592 row 70R: Main Street, Oak Gardens at (22221, 9470); camera open yaw -13.4 pitch 21.9 dist 420 (pulled to 483) at (22223, 9468)",
+        "11-25 14:28:42.122 mic: attempt: 14:28:42 11.7 s, speech, 0 partials (0 words shown): error no match (0 quiet tries before)",
+        "11-25 14:28:46.605 row 70L: Main Street, Oak Gardens at (22800, 9664); camera open yaw 45.5 pitch 21.9 dist 420 (pulled to 483) at (22796, 9662)",
+        "11-25 14:28:47.379 damage: a fire hydrant (70L) at (23085, 9715) by torrel-1988-rs at 17.0 m/s, t 299.7 s",
+        "11-25 14:28:47.970 row 70R: Main Street, Oak Gardens at (23259, 9650); camera open yaw 77.4 pitch 21.9 dist 420 (pulled to 483) at (23253, 9651)",
+        "11-25 14:28:48.769 row 70L: Main Street, Oak Gardens at (23525, 9662); camera open yaw 85.3 pitch 21.9 dist 420 (pulled to 483) at (23519, 9661)",
+        "11-25 14:28:49.096 damage: a young tree (70L) at (23683, 9715) by torrel-1988-rs at 18.2 m/s, t 301.3 s",
+        "11-25 14:28:50.443 frame pacing: display 120 Hz, 60 a second, a frame every 2 refreshes",
+        "11-25 14:28:50.630 pause",
+        "11-25 14:28:50.646 mic off",
+        "11-25 14:28:51.261 row 70R: Main Street, Oak Gardens at (24385, 9650); camera open yaw 106.5 pitch 10.0 dist 420 (pulled to 483) at (24149, 9668)",
+        "11-25 14:28:51.652 memory low: 1220 MB free (Android's threshold 216 MB)",
+        "11-25 14:28:52.103 trim memory 20",
+        "11-25 14:28:54.055 uploads: sent play/2026-11-25/141157-976-p2.jsonl.gz (22 kB)",
+        "11-25 14:28:55.495 uploads: sent play/2026-11-25/141157-976.jsonl.gz (78 kB)",
+        "11-25 14:28:56.935 uploads: sent play/2026-11-25/142330-976.jsonl.gz (60 kB)",
+        "11-25 14:28:58.215 uploads: sent talk/2026-11-25/141157-976.jsonl (0 kB)",
+        "11-25 14:28:59.502 uploads: sent talk/2026-11-25/142330-976.jsonl (14 kB)",
+        "11-25 14:28:59.502 uploads: 3 trace waiting, not allowed now (Wi-Fi no, charging yes): traces need both",
+        "11-25 14:29:02.410 memory: Resident: dialogue 3391 MB (live, copied, work 890 MB, 8-bit KV) · game PSS 1421 MB (Java 119, native 119, graphics 791, code 9, other 49, system 330) · 1429 MB free",
+        "11-25 14:29:53.226 memory fine: 1885 MB free (Android's threshold 216 MB)",
+        "11-25 14:33:33.552 memory: Resident: dialogue 3391 MB (live, copied, work 890 MB, 8-bit KV) · game PSS 1406 MB (Java 24, native 7, graphics 791, code 5, other 70, system 505) · 1812 MB free"
+      ],
+      "writer": [
+        "11-25 20:26:52.316 dialogue model: load put off (6 of 8): Not enough free memory to load the model (2689 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:27:07.332 dialogue model: load put off (7 of 8): Not enough free memory to load the model (2664 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:27:22.348 dialogue model: load put off (8 of 8): Not enough free memory to load the model (2625 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:27:37.557 writer: model-failed: the model failed to load: Not enough free memory to load the model (2613 MB free, about 4191 MB needed with room for the game). Close other apps and tap Retry.",
+        "11-25 20:28:37.732 dialogue model: load put off (1 of 8): Not enough free memory to load the model (2641 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:28:37.738 writer: loading: Not enough free memory to load the model (2641 MB free, about 4191 MB needed with room for the game). Waiting for memory to free up (try 1 of 8).",
+        "11-25 20:28:52.757 dialogue model: load put off (2 of 8): Not enough free memory to load the model (2650 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:29:07.778 dialogue model: load put off (3 of 8): Not enough free memory to load the model (2640 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:29:22.800 dialogue model: load put off (4 of 8): Not enough free memory to load the model (2630 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:29:37.824 dialogue model: load put off (5 of 8): Not enough free memory to load the model (2619 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:29:52.842 dialogue model: load put off (6 of 8): Not enough free memory to load the model (2631 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:30:07.867 dialogue model: load put off (7 of 8): Not enough free memory to load the model (2636 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:30:22.889 dialogue model: load put off (8 of 8): Not enough free memory to load the model (2623 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:30:38.075 writer: resting: resting between bursts",
+        "11-25 20:31:38.205 dialogue model: load put off (1 of 8): Not enough free memory to load the model (2557 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:31:53.229 dialogue model: load put off (2 of 8): Not enough free memory to load the model (2544 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:32:08.261 dialogue model: load put off (3 of 8): Not enough free memory to load the model (2564 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:32:23.283 dialogue model: load put off (4 of 8): Not enough free memory to load the model (2556 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:32:36.690 dialogue model: let go by the overnight writer",
+        "11-25 20:32:38.121 writer: stop (job): the system ended the job (its time was up, or a condition changed)",
+        "11-25 20:32:38.122 writer: Nothing was written: 7 min waiting for the model to load (Not enough free memory to load the model (2556 MB free, about 4191 MB needed with room for the game). Waiting for memory to free up (try 4 of 8).). It stopped: the system ended the job (its time was up, or a condition changed).",
+        "11-25 20:41:01.425 dialogue model: load put off (5 of 8): Not enough free memory to load the model (2487 MB free, about 4491 MB needed with room for the game).",
+        "11-25 20:41:01.426 overnight writer: the service may not start from here (ForegroundServiceStartNotAllowedException)",
+        "11-25 20:41:01.429 writer: start (job), battery 95% plugged in, thermal 0, 2487 MB free",
+        "11-25 20:41:01.430 writer: 2487 MB free before the load (Android's threshold 216 MB); the main model's NPU copy needs 7200 MB, the light one's 4253 MB",
+        "11-25 20:41:01.439 writer: loading: Not enough free memory to load the model (2487 MB free, about 4491 MB needed with room for the game). Waiting for memory to free up (try 5 of 8).",
+        "11-25 20:41:01.501 player themes: 19 (8 frequent), 9 follow-ups",
+        "11-25 20:41:01.504 dialogue model: load put off (1 of 8): Not enough free memory to load the model (2442 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:41:16.525 dialogue model: load put off (2 of 8): Not enough free memory to load the model (2416 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:41:31.532 dialogue model: load put off (3 of 8): Not enough free memory to load the model (2503 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:41:46.546 dialogue model: load put off (4 of 8): Not enough free memory to load the model (2502 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:42:01.561 dialogue model: load put off (5 of 8): Not enough free memory to load the model (2551 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:42:16.578 dialogue model: load put off (6 of 8): Not enough free memory to load the model (2450 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:42:31.594 dialogue model: load put off (7 of 8): Not enough free memory to load the model (2577 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:42:46.619 dialogue model: load put off (8 of 8): Not enough free memory to load the model (2566 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:43:01.723 dialogue model: load put off (1 of 8): Not enough free memory to load the model (2381 MB free, about 4191 MB needed with room for the game).",
+        "11-25 20:43:15.787 dialogue model: let go by the overnight writer",
+        "11-25 20:43:15.788 writer: stop (job): the system ended the job (its time was up, or a condition changed)",
+        "11-25 20:43:15.789 writer: Nothing was written: 2 min waiting for the model to load (Not enough free memory to load the model (2381 MB free, about 4191 MB needed with room for the game). Waiting for memory to free up (try 1 of 8).). It stopped: the system ended the job (its time was up, or a condition changed).",
+        "11-25 20:43:16.762 dialogue model: load put off (2 of 8): Not enough free memory to load the model (2462 MB free, about 4491 MB needed with room for the game)."
+      ],
+      "writerPrevious": [
+        "11-25 15:32:20.012 dialogue model: load put off (2 of 8): Not enough free memory to load the model (3309 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:32:35.029 dialogue model: load put off (3 of 8): Not enough free memory to load the model (3478 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:32:50.036 dialogue model: load put off (4 of 8): Not enough free memory to load the model (3483 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:33:05.051 dialogue model: load put off (5 of 8): Not enough free memory to load the model (3487 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:33:20.072 dialogue model: load put off (6 of 8): Not enough free memory to load the model (3470 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:33:35.095 dialogue model: load put off (7 of 8): Not enough free memory to load the model (3455 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:33:50.110 dialogue model: load put off (8 of 8): Not enough free memory to load the model (3470 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:34:09.936 writer: model-failed: the model failed to load: Not enough free memory to load the model (3437 MB free, about 4191 MB needed with room for the game). Close other apps and tap Retry.",
+        "11-25 15:34:09.937 dialogue model: load put off (1 of 8): Not enough free memory to load the model (3431 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:34:14.946 writer: loading: Not enough free memory to load the model (3431 MB free, about 4191 MB needed with room for the game). Waiting for memory to free up (try 1 of 8).",
+        "11-25 15:34:24.959 dialogue model: load put off (2 of 8): Not enough free memory to load the model (3417 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:34:39.977 dialogue model: load put off (3 of 8): Not enough free memory to load the model (3458 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:34:54.995 dialogue model: load put off (4 of 8): Not enough free memory to load the model (3448 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:35:10.019 dialogue model: load put off (5 of 8): Not enough free memory to load the model (3437 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:35:25.037 dialogue model: load put off (6 of 8): Not enough free memory to load the model (3426 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:35:40.057 dialogue model: load put off (7 of 8): Not enough free memory to load the model (3350 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:35:55.077 dialogue model: load put off (8 of 8): Not enough free memory to load the model (3369 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:36:10.241 writer: model-failed: the model failed to load: Not enough free memory to load the model (3362 MB free, about 4191 MB needed with room for the game). Close other apps and tap Retry.",
+        "11-25 15:37:10.405 dialogue model: load put off (1 of 8): Not enough free memory to load the model (3292 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:37:15.416 writer: loading: Not enough free memory to load the model (3292 MB free, about 4191 MB needed with room for the game). Waiting for memory to free up (try 1 of 8).",
+        "11-25 15:37:25.429 dialogue model: load put off (2 of 8): Not enough free memory to load the model (3285 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:37:40.454 dialogue model: load put off (3 of 8): Not enough free memory to load the model (3394 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:37:55.476 dialogue model: load put off (4 of 8): Not enough free memory to load the model (3412 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:38:10.501 dialogue model: load put off (5 of 8): Not enough free memory to load the model (3427 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:38:25.526 dialogue model: load put off (6 of 8): Not enough free memory to load the model (3417 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:38:40.549 dialogue model: load put off (7 of 8): Not enough free memory to load the model (3404 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:38:55.570 dialogue model: load put off (8 of 8): Not enough free memory to load the model (3332 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:39:10.765 writer: model-failed: the model failed to load: Not enough free memory to load the model (3336 MB free, about 4191 MB needed with room for the game). Close other apps and tap Retry.",
+        "11-25 15:40:05.916 writer: resting: resting between bursts",
+        "11-25 15:40:10.934 dialogue model: load put off (1 of 8): Not enough free memory to load the model (3251 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:40:25.959 dialogue model: load put off (2 of 8): Not enough free memory to load the model (3261 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:40:40.981 dialogue model: load put off (3 of 8): Not enough free memory to load the model (3251 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:40:56.000 dialogue model: load put off (4 of 8): Not enough free memory to load the model (3257 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:41:11.018 dialogue model: load put off (5 of 8): Not enough free memory to load the model (3243 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:41:26.040 dialogue model: load put off (6 of 8): Not enough free memory to load the model (3222 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:41:41.060 dialogue model: load put off (7 of 8): Not enough free memory to load the model (3212 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:41:56.080 dialogue model: load put off (8 of 8): Not enough free memory to load the model (3010 MB free, about 4191 MB needed with room for the game).",
+        "11-25 15:42:04.501 dialogue model: let go by the overnight writer",
+        "11-25 15:42:04.502 writer: stop (job): the system ended the job (its time was up, or a condition changed)",
+        "11-25 15:42:04.505 writer: Nothing was written: 7 min waiting for the model to load (Not enough free memory to load the model (3010 MB free, about 4191 MB needed with room for the game). Waiting for memory to free up (try 8 of 8).). It stopped: the system ended the job (its time was up, or a condition changed)."
+      ]
+    },
+    "reports": {
+      "pending": {
+        "crashes": 0,
+        "night": 0,
+        "npu": 0,
+        "play": 0,
+        "talk": 0,
+        "trace": 3,
+        "recording": 1
+      },
+      "uploads": {
+        "lastError": {
+          "kind": "night",
+          "path": "night/2026-11-25/162709.json",
+          "code": -1,
+          "what": "No network",
+          "time": "2026-11-25T20:22:36.664-0500",
+          "minutesAgo": 61
+        },
+        "lastOk": {
+          "kind": "night",
+          "path": "night/2026-11-25/202236.json",
+          "code": 201,
+          "what": "sent",
+          "time": "2026-11-25T20:41:10.622-0500",
+          "minutesAgo": 42
+        },
+        "lastSkip": {
+          "kind": "trace",
+          "path": "",
+          "code": 0,
+          "what": "not allowed now (Wi-Fi no, charging yes): traces need both",
+          "time": "2026-11-25T21:19:58.963-0500",
+          "minutesAgo": 3
+        },
+        "lastByKind": {
+          "play": {
+            "kind": "play",
+            "path": "play/2026-11-25/142330-976.jsonl.gz",
+            "code": 201,
+            "what": "sent",
+            "time": "2026-11-25T14:28:56.935-0500",
+            "minutesAgo": 414
+          },
+          "talk": {
+            "kind": "talk",
+            "path": "talk/2026-11-25/142330-976.jsonl",
+            "code": 201,
+            "what": "sent",
+            "time": "2026-11-25T14:28:59.501-0500",
+            "minutesAgo": 414
+          },
+          "trace": {
+            "kind": "trace",
+            "path": "",
+            "code": 0,
+            "what": "not allowed now (Wi-Fi no, charging yes): traces need both",
+            "time": "2026-11-25T21:19:58.963-0500",
+            "minutesAgo": 3
+          },
+          "crashes": {
+            "kind": "crashes",
+            "path": "crashes/2026-11-24/104936-native.json",
+            "code": 201,
+            "what": "sent",
+            "time": "2026-11-25T02:14:08.641-0500",
+            "minutesAgo": 1149
+          },
+          "night": {
+            "kind": "night",
+            "path": "night/2026-11-25/202236.json",
+            "code": 201,
+            "what": "sent",
+            "time": "2026-11-25T20:41:10.622-0500",
+            "minutesAgo": 42
+          },
+          "npu": null
+        }
+      }
+    },
+    "recorder": {
+      "initialised": true,
+      "threadAlive": true,
+      "foreground": true,
+      "session": "211958-976",
+      "part": 1,
+      "seconds": 238,
+      "file": "open-play~2026-11-25~211958-976.jsonl.gz",
+      "fileBytes": 50105,
+      "fileLines": 1429,
+      "recordTalk": true,
+      "ownerBuild": true
+    },
+    "uploadGate": {
+      "wifi": false,
+      "networkError": null,
+      "charging": true,
+      "playAllowed": true,
+      "traceAllowed": false,
+      "hasToken": true
+    },
+    "writer": {
+      "status": {
+        "how": "job",
+        "running": false,
+        "state": "not-started",
+        "reason": "the game is open",
+        "secondsAgo": 237,
+        "stale": false,
+        "lines": 0,
+        "variants": 0,
+        "rejected": 0,
+        "timedOut": 0,
+        "failed": 0,
+        "model": ""
+      },
+      "lastRun": "Wed 20:41-20:43: 0 lines + 0 variants (0.0/h), 0.0 tok/s, 0 warm spells, 0 hot pauses. Nothing was written: 2 min waiting for the model to load (Not enough free memory to load the model (2381 MB free, about 4191 MB needed with room for the game). Waiting for memory to free up (try 1 of 8).). It stopped: the system ended the job (its time was up, or a condition changed).",
+      "enabled": true,
+      "unrestricted": false
+    },
+    "power": {
+      "plugged": "wireless",
+      "charging": true,
+      "battery": 92
+    }
+  }
+}
