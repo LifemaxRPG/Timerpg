@@ -177,7 +177,21 @@ class WorldSite(val skeleton: WorldSkeleton, val hub: WorldSkeleton.Place, val f
         if (!frame.near(s.pos, 3000.0)) return null
         return floatArrayOf(frame.streetX(s.pos).toFloat(), frame.streetZ(s.pos).toFloat())
     }
-    fun plan(year: Int, centre: WorldPos? = null): WorldFarPlan = WorldFarPlan(skeleton, frame.origin, frame, year, centre)
+    /** The generated towns on the planet (planet step 2: the baker's manifest, [WorldTownSet]); none until the app reads them. */
+    @Volatile var towns: WorldTownSet = WorldTownSet.NONE
+    /** The highways' roadside sites (planet step 2, [WorldRoadside]: their pads are in [towns], levelled as a town's ground). */
+    @Volatile var roadside: List<WorldRoadside.Site> = emptyList()
+
+    /**
+     * Takes the generated towns of [set] and the roadside sites of [year] round them (their pads levelled with the towns'
+     * grounds): before the first far plan is made.
+     */
+    fun takeTowns(set: WorldTownSet, year: Int) {
+        val sites = WorldRoadside.sites(skeleton, year, set, frame)
+        roadside = sites
+        towns = WorldTownSet(set.towns + WorldRoadside.pads(sites))
+    }
+    fun plan(year: Int, centre: WorldPos? = null): WorldFarPlan = WorldFarPlan(skeleton, frame.origin, frame, year, centre, towns)
     /** One line for the breadcrumbs. */
     val report: String get() = "world ${skeleton.seed} v${skeleton.version}: ${hub.name} (${hub.id}) at %.3f, %.3f km, %.0f m up; %d places, %d roads, %d rail lines, %d rivers".format(
         java.util.Locale.US, frame.origin.x / 1000, frame.origin.z / 1000, frame.elevM, skeleton.places.size, skeleton.roads.size, skeleton.railLines.size, skeleton.rivers.size)

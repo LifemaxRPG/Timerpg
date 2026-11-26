@@ -186,7 +186,7 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
         p.cliff = c * min(calmR, calmD)
         p.slope = slope * min(calmR, calmD)
         p.river = d[WorldFarPlan.RIVER]; p.road = d[WorldFarPlan.HIGHWAY]; p.county = d[WorldFarPlan.COUNTY]; p.rail = d[WorldFarPlan.RAIL]
-        p.outside = plan.outside(lx, lz)
+        p.outside = min(plan.outside(lx, lz), plan.townOutside(lx, lz))
         p.y = plan.shapeRaw(lx, lz, h).toDouble()
         // (under the town's own grass the town draws the ground: the terrain kept below it and below its river's water)
         townGrass?.let { g -> if (lx >= g[0] && lx <= g[2] && lz >= g[1] && lz <= g[3]) p.y = -TOWN_UNDER_M }
@@ -195,6 +195,16 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
 
     /** The scene's height (m above [WorldFarPlan.baseElev]) at plan-local ([lx], [lz]) m. */
     fun heightLocal(lx: Double, lz: Double): Double = pointAt((ox + lx) / Planet.CELL_M, (oz + lz) / Planet.CELL_M, lx, lz, Point()).y
+
+    /**
+     * The height people and cars stand on at plan-local ([lx], [lz]) m: on a generated town's ground its own level (its
+     * streets, lots and farm ring, which the town draws: the terrain is kept a little under them, [TownGroundShape]), else
+     * the terrain's [heightLocal].
+     */
+    fun groundLocal(lx: Double, lz: Double): Double {
+        if (plan.towns.towns.isNotEmpty()) plan.towns.at(Planet.wrapX(ox + lx), oz + lz)?.let { return it.heightM - plan.baseElev }
+        return heightLocal(lx, lz)
+    }
 
     // ------------------------------------------------------------------ materials
 
