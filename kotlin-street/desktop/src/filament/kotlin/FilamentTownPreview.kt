@@ -217,7 +217,7 @@ fun renderFilamentTown(out: String) {
         shoot("fit_low", TownFrame.aerial(mx, mz, yaw + 150f, 22f, span * 0.45f, 45f, aw.toFloat(), ah.toFloat()), 16f)
     }
     val plaza = town.plaza
-    val civic = town.road(town.civicRoad ?: 8)
+    val civic = town.road(town.civicRoad ?: minOf(8, town.roads.size - 1))
     val cx = civic.pts.first().x
     val cz = plaza?.let { (it[1] + it[3]) / 2f } ?: civic.pts.first().z
     shoot("civic_13h", TownFrame.aerial(cx - 150f, cz - 700f, 200f, 34f, 2300f, 45f, aw.toFloat(), ah.toFloat()), 13f)
