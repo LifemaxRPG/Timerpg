@@ -50,20 +50,33 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
 
     // ------------------------------------------------------------------ the height on the town's planet (Kotlin only)
 
-    /** A world line near the camera (a river, road or rail line) in metres from the plan's origin; [half] its half width. */
-    private class Seg(val x0: Double, val z0: Double, val x1: Double, val z1: Double, val half: Double, val kind: Int)
+    /**
+     * A stretch of a world line near the camera (a river, road or rail line) in metres from the plan's origin; [half] its
+     * half width; [line] its line in the plan ([WorldFarPlan.lines]) and [s0] how far along it the stretch starts (m).
+     */
+    class Seg(val x0: Double, val z0: Double, val x1: Double, val z1: Double, val half: Double, val kind: Int, val line: Int, val s0: Double) {
+        val length: Double get() = hypot(x1 - x0, z1 - z0)
+    }
     private val segs = HashMap<Long, ArrayList<Seg>>()
+    /** Each line's running lengths along its points (m). */
+    private val cum = ArrayList<DoubleArray>()
+    private val kinds = ArrayList<Int>()
+    private val halves = ArrayList<Double>()
 
     init {
         // the far view's lines (cut at the town's ground already), indexed by the chunk (537.6 m) they reach into
-        for (l in plan.lines) {
+        for ((li, l) in plan.lines.withIndex()) {
             val half = nearHalf(l.kind, l.width.toDouble())
             // (an expressway is asphalt as a highway is, wider)
             val kind = if (l.kind == WorldFarPlan.EXPRESSWAY) WorldFarPlan.HIGHWAY else l.kind
             val pts = l.pts
+            val c = DoubleArray(pts.size / 2)
+            for (k in 1 until c.size) c[k] = c[k - 1] + hypot(pts[k * 2] - pts[k * 2 - 2], pts[k * 2 + 1] - pts[k * 2 - 1])
+            cum += c; kinds += kind; halves += half
             for (k in 0 until pts.size / 2 - 1) {
-                val s = Seg(pts[k * 2], pts[k * 2 + 1], pts[k * 2 + 2], pts[k * 2 + 3], half, kind)
-                val m = half + CALM_M
+                val s = Seg(pts[k * 2], pts[k * 2 + 1], pts[k * 2 + 2], pts[k * 2 + 3], half, kind, li, c[k])
+                // (a road's or rail bed's calm reaches up to [CALM_ROAD_MAX_M] from it: its cuttings and embankments)
+                val m = half + if (kind == WorldFarPlan.RIVER) CALM_M else CALM_ROAD_MAX_M + SHOULDER_M
                 val i0 = floor((min(s.x0, s.x1) - m) / Planet.CHUNK_M).toInt(); val i1 = floor((max(s.x0, s.x1) + m) / Planet.CHUNK_M).toInt()
                 val j0 = floor((min(s.z0, s.z1) - m) / Planet.CHUNK_M).toInt(); val j1 = floor((max(s.z0, s.z1) + m) / Planet.CHUNK_M).toInt()
                 // (only what could ever be near: within the far view's finest level)
@@ -75,6 +88,33 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
 
     private fun key(i: Int, j: Int): Long = (i.toLong() shl 32) or (j.toLong() and 0xffffffffL)
 
+    /** The line stretches indexed round the square from plan-local ([lx], [lz]) m, [size] a side (each once). */
+    fun segsNear(lx: Double, lz: Double, size: Double): List<Seg> {
+        val out = LinkedHashSet<Seg>()
+        for (j in floor(lz / Planet.CHUNK_M).toInt()..floor((lz + size) / Planet.CHUNK_M).toInt())
+            for (i in floor(lx / Planet.CHUNK_M).toInt()..floor((lx + size) / Planet.CHUNK_M).toInt()) segs[key(i, j)]?.let { out += it }
+        return out.toList()
+    }
+
+    /** Line [line]'s kind on the near ground (an expressway is a highway), its half width there (m) and its length (m). */
+    fun lineKind(line: Int): Int = kinds[line]
+    fun lineHalf(line: Int): Double = halves[line]
+    fun lineLength(line: Int): Double = cum[line].last()
+
+    /** The point [s] m along line [line] and its heading: plan-local x, z, unit dx, dz into [out]; false off its ends. */
+    fun lineAt(line: Int, s: Double, out: DoubleArray): Boolean {
+        val c = cum[line]
+        if (s < 0 || s > c.last() || c.size < 2) return false
+        var lo = 0; var hi = c.size - 1
+        while (hi - lo > 1) { val m = (lo + hi) / 2; if (c[m] <= s) lo = m else hi = m }
+        val pts = plan.lines[line].pts
+        val dx = pts[lo * 2 + 2] - pts[lo * 2]; val dz = pts[lo * 2 + 3] - pts[lo * 2 + 1]
+        val l = hypot(dx, dz)
+        if (l < 1e-9) return false
+        val f = (s - c[lo]) / l
+        out[0] = pts[lo * 2] + dx * f; out[1] = pts[lo * 2 + 1] + dz * f; out[2] = dx / l; out[3] = dz / l
+        return true
+    }
     /** The near terrain's half width of a far view line of [kind] (the far view draws them wider, to read from afar). */
     private fun nearHalf(kind: Int, far: Double): Double = when (kind) {
         WorldFarPlan.HIGHWAY -> HIGHWAY_HALF_M
@@ -105,7 +145,10 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
      * Everything about one point: its height (m above the town's ground height, [WorldFarPlan.baseElev]: the y the scene
      * draws) and what the ground there is ([material], with the cliff, the lines' distances); [p] is reused.
      */
-    class Point { var y = 0.0; var abs = 0.0; var cliff = 0.0; var river = 0.0; var road = 0.0; var county = 0.0; var rail = 0.0; var outside = 0.0 }
+    class Point { var y = 0.0; var abs = 0.0; var cliff = 0.0; var river = 0.0; var road = 0.0; var county = 0.0; var rail = 0.0; var outside = 0.0; /** the relief's slope (calmed by the lines as the height is) */ var slope = 0.0 }
+
+    /** How much of a cliff the near ground terraces at [slope]: none under [CLIFF_NEAR_FROM], whole past [CLIFF_NEAR_FULL]. */
+    fun cliffNear(slope: Double): Double = smoothstep(sat((slope - CLIFF_NEAR_FROM) / (CLIFF_NEAR_FULL - CLIFF_NEAR_FROM)))
 
     private val lineD = ThreadLocal.withInitial { DoubleArray(4) }
 
@@ -116,7 +159,11 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
     fun pointAt(cx: Double, cz: Double, lx: Double, lz: Double, p: Point): Point {
         val base = sk.height(cx, cz)
         val h0 = relief.smooth(cx, cz)
-        val c = relief.cliffOf(relief.slope(cx, cz))
+        val slope = relief.slope(cx, cz)
+        // (the owner's terrain: smooth rolling ground, hard low-poly cliff faces only where it is truly steep. The relief's
+        // own terracing ([WorldRelief.cliffOf], cross-language) starts at a 0.62 slope, which terraced every steep hillside
+        // into grey ledges (step 1's renders); the near ground terraces only past [CLIFF_NEAR_FROM], step 1b)
+        val c = cliffNear(slope)
         var h = if (c <= 0.0) h0 else h0 + (relief.terrace(h0, cx, cz) - h0) * c
         val d = lineD.get()
         near(lx, lz, d)
@@ -124,15 +171,20 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
         // rivers' beds carved
         val calmR = smoothstep(sat(d[WorldFarPlan.RIVER] / CALM_M))
         // (a road or rail bed is graded: on it and its shoulders the ground is the cells' own smooth height, the land's
-        // detail coming back over [CALM_ROAD_M] beside it: cuttings and embankments, never the relief's cliffs under the
-        // wheels (WORLD_STREAM.md: the drive found a 60% terrace on the expressway))
-        val calmD = smoothstep(sat((min(d[WorldFarPlan.HIGHWAY], min(d[WorldFarPlan.COUNTY], d[WorldFarPlan.RAIL])) - SHOULDER_M) / CALM_ROAD_M))
+        // detail coming back beside it: cuttings and embankments, never the relief's cliffs under the wheels (WORLD_STREAM.md:
+        // the drive found a 60% terrace on the expressway). The detail comes back over [CALM_ROAD_M], or more where the land
+        // stands far above or below the grade, so a cutting's or embankment's side is a slope of about 1 in 1.1 (step 1 left
+        // 100 m walls of rock beside the road where it ran under a bluff), up to [CALM_ROAD_MAX_M])
+        val dRoad = min(d[WorldFarPlan.HIGHWAY], min(d[WorldFarPlan.COUNTY], d[WorldFarPlan.RAIL]))
+        val reach = (abs(h - base) * CUT_SLOPE).coerceIn(CALM_ROAD_M, CALM_ROAD_MAX_M)
+        val calmD = smoothstep(sat((dRoad - SHOULDER_M) / reach))
         h = base + (h - base) * min(calmR, calmD)
         val bed = 1.0 - smoothstep(sat((d[WorldFarPlan.RIVER] + BANK_M) / BANK_M))
         // (no bed carved under a road or rail bed: it crosses on its grade (bridges are W6))
         h -= RIVER_DEPTH_M * bed * calmD
         p.abs = h
         p.cliff = c * min(calmR, calmD)
+        p.slope = slope * min(calmR, calmD)
         p.river = d[WorldFarPlan.RIVER]; p.road = d[WorldFarPlan.HIGHWAY]; p.county = d[WorldFarPlan.COUNTY]; p.rail = d[WorldFarPlan.RAIL]
         p.outside = plan.outside(lx, lz)
         p.y = plan.shapeRaw(lx, lz, h).toDouble()
@@ -146,12 +198,17 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
 
     // ------------------------------------------------------------------ materials
 
+    /** The country's land use and what stands on it (step 1b, [WorldCountry]): the fields, woods and wild ground. */
+    val country: WorldCountry by lazy { WorldCountry(this) }
+    private val plotOf = ThreadLocal.withInitial { WorldCountry.Plot() }
+
     /**
      * The ground's material at plan-local ([lx], [lz]) (cells [cx], [cz]) whose point is [p], on a quad whose own slope
-     * is [quadSlope]: a layer of the ground's pictures ([GRASS]...). The biome's ground, fields in a patchwork, rock where
-     * steep, scree under it, beaches, snow, the rivers' water and the roads' asphalt and gravel.
+     * is [quadSlope] and size [quadM] (m; 0 for the far view's): a layer of the ground's pictures ([GRASS]...). The roads,
+     * rivers, rock where truly steep, scree under it, beaches and dunes, snow; between them the country's cover
+     * ([WorldCountry.cover]: fields of several crops with their verges, pasture, meadow, woods, scrub, marsh...).
      */
-    fun material(cx: Double, cz: Double, lx: Double, lz: Double, p: Point, quadSlope: Double): Int {
+    fun material(cx: Double, cz: Double, lx: Double, lz: Double, p: Point, quadSlope: Double, quadM: Double = 0.0): Int {
         // the lines first: they lie over everything
         // (a road over a river keeps its surface: it crosses on its grade)
         if (p.road < 0) return ASPHALT
@@ -161,54 +218,43 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
         val i = floor(cx).toInt(); val j = floor(cz).toInt()
         val land = sk.land(i, j)
         val above = p.abs
-        if (!land && above < 1.0) return SAND
-        if (quadSlope > ROCK_SLOPE || (p.cliff > .8 && quadSlope > ROCK_SLOPE * .5)) return ROCK
+        // the shore: wet sand at the water's edge, the beach, dunes behind it
+        if (!land && above < 1.0) return if (above < WET_M) WET_SAND else SAND
+        // (rock only on true cliffs: the quad steeper than 1 in 1, or on a terraced face)
+        if (quadSlope > ROCK_SLOPE || (p.cliff > .6 && quadSlope > ROCK_SLOPE * .6)) return ROCK
         val b = sk.biome(i, j)
         val coast = (sk.flags(i, j) shr 3) and 3
-        if (above < 3.5 && (b == 15 || coast == 1 || !land)) return SAND
-        if (b == 15 && above < 8.0) return SAND
+        if (above < 3.5 && (b == 15 || coast == 1 || !land)) return if (above < WET_M) WET_SAND else SAND
+        if ((b == 15 || coast == 1) && above < 9.0 && quadSlope < .45) return if (b == 15 && above < 6.0) SAND else DUNE
         // snow above the snowline (where the warmest month freezes), a ragged edge
         val line = if (sk.has("snowline")) sk.raw("snowline", Math.floorMod(i, WorldSkeleton.W) + j.coerceIn(0, WorldSkeleton.H - 1) * WorldSkeleton.W).toDouble() else 2700.0
         val pn = patch.at(cx, cz)
         if (b == 1 || b == 18 || above > line + (pn - .5) * 160.0) return if (quadSlope > ROCK_SLOPE * .8) ROCK else SNOW
-        return ground(cx, cz, lx, lz, p, quadSlope, b, i, j, pn)
-    }
-
-    private fun ground(cx: Double, cz: Double, lx: Double, lz: Double, p: Point, quadSlope: Double, b: Int, i: Int, j: Int, pn0: Double): Int {
-        if (p.cliff > .1 || quadSlope > ROCK_SLOPE * .75) return GRAVEL
+        // (scree only right under the cliffs)
+        if (p.cliff > .25) return GRAVEL
         // round the town: its grass, dithered out over [WorldFarPlan.GRASS_M] like the far view's
-        val pn = pn0
         if (p.outside < GRASS_NEAR_M) {
             // (in organic patches by the patch noise, thinning out with the distance)
             val t = (p.outside / GRASS_NEAR_M).coerceIn(0.0, 1.0)
             if (pn > .2 + .6 * t) return GRASS
         }
-        // fields: a patchwork of plots (about 200 m), each a crop in rows one way or the other, pasture or fallow
-        val crop = if (sk.has("crop")) sk.raw("crop", Math.floorMod(i, WorldSkeleton.W) + j.coerceIn(0, WorldSkeleton.H - 1) * WorldSkeleton.W) else 0
-        if (crop != 0 && b in FARMED) {
-            val wx = lx + plan.origin.x; val wz = lz + plan.origin.z
-            val fx = floor(wx / FIELD_M).toInt(); val fz = floor(wz / FIELD_M).toInt()
-            // (each plot split in two one way or the other at a random place: plots of different sizes)
-            val cut = .3 + .4 * WorldNoise.hashU(tone, fx, fz, 6)
-            val along = WorldNoise.hashU(tone, fx, fz, 5) < .5
-            val side = if ((if (along) wx - fx * FIELD_M else wz - fz * FIELD_M) < cut * FIELD_M) 0 else 1
-            val r = WorldNoise.hashU(tone, fx * 2 + side, fz, 3)
-            if (r < .55) return if (WorldNoise.hashU(tone, fx * 2 + side, fz, 4) < .5) FARM_X else FARM_Z
-            if (r < .68) return DIRT
-        }
-        return when (b) {
-            0 -> SAND
-            2 -> if (pn > .62) GRAVEL else DRY
-            3, 5, 10, 11 -> if (pn < .3) GRASS else FOREST
-            4 -> if (pn > .58) FOREST else GRASS
-            6 -> if (pn > .7) DRY else GRASS
-            7, 9 -> if (pn < .3) GRASS else DRY
-            8 -> if (pn > .6) DIRT else SAND
-            12 -> if (pn > .6) GRAVEL else if (pn < .3) ROCK else DRY
-            13 -> if (pn > .6) DIRT else GRASS
-            14 -> WATER
-            16 -> ROCK
-            17 -> if (pn > .66) DIRT else if (pn < .28) GRASS else DRY
+        val o = plotOf.get()
+        val wx = lx + plan.origin.x; val wz = lz + plan.origin.z
+        return when (country.cover(cx, cz, wx, wz, p, quadM * .55, o)) {
+            WorldCountry.GRASS, WorldCountry.VERGE -> GRASS
+            WorldCountry.MEADOW -> MEADOW
+            WorldCountry.PASTURE, WorldCountry.ORCHARD -> PASTURE
+            WorldCountry.DRY, WorldCountry.SPARSE -> DRY
+            WorldCountry.SCRUB -> SCRUB
+            WorldCountry.WOOD -> FOREST
+            WorldCountry.WHEAT -> WHEAT
+            WorldCountry.CORN -> if (o.rowsX) CROP_X else CROP_Z
+            WorldCountry.PLOUGHED -> if (o.rowsX) FARM_X else FARM_Z
+            WorldCountry.FALLOW, WorldCountry.DIRT -> DIRT
+            WorldCountry.MARSH, WorldCountry.PADDY -> MARSH
+            WorldCountry.SAND -> SAND
+            WorldCountry.GRAVEL -> GRAVEL
+            WorldCountry.ROCK -> ROCK
             else -> GRASS
         }
     }
@@ -274,7 +320,7 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
             // dither hides the half quad's shift)
             val q = pts[(b + 1) * w + a + 1]!!
             val gx = node.gx0 + a.toLong() * s; val gz = node.gz0 + b.toLong() * s
-            val m = material(gx * Planet.TILE_M / Planet.CELL_M, gz * Planet.TILE_M / Planet.CELL_M, localX(gx), localZ(gz), q, qs)
+            val m = material(gx * Planet.TILE_M / Planet.CELL_M, gz * Planet.TILE_M / Planet.CELL_M, localX(gx), localZ(gz), q, qs, sp)
             ids[(b + 1) * wi + a + 1] = m.toByte()
             if (a in 0 until n && b in 0 until n) {
                 faceted[b * n + a] = q.cliff > FACET_CLIFF || qs > FACET_SLOPE
@@ -408,16 +454,27 @@ class WorldTerrain(val sk: WorldSkeleton, val plan: WorldFarPlan, /** The town's
         /** The ground's pictures (the terrain atlas's layers, terrain.mat). */
         const val GRASS = 0; const val DRY = 1; const val DIRT = 2; const val FARM_X = 3; const val FARM_Z = 4; const val SAND = 5
         const val ROCK = 6; const val SNOW = 7; const val GRAVEL = 8; const val FOREST = 9; const val WATER = 10; const val ASPHALT = 11
-        const val LAYERS = 12
+        /** (Step 1b: the country's crops, grazing, wild ground and shore.) */
+        const val WHEAT = 12; const val CROP_X = 13; const val CROP_Z = 14; const val PASTURE = 15; const val MEADOW = 16; const val SCRUB = 17
+        const val MARSH = 18; const val DUNE = 19; const val WET_SAND = 20
+        const val LAYERS = 21
         /** Each picture's mean colour (ARGB; the far view's finest level wears them, the pictures' own last mip level). */
         val MEAN = intArrayOf(
             0xFF479656.toInt(), 0xFFA69D5A.toInt(), 0xFF9E7C58.toInt(), 0xFF84603E.toInt(), 0xFF84603E.toInt(), 0xFFE1D199.toInt(),
             0xFF827C72.toInt(), 0xFFE9EFF6.toInt(), 0xFF9C937E.toInt(), 0xFF4C5C38.toInt(), 0xFF3A6E9E.toInt(), 0xFF4F4B4F.toInt(),
+            0xFFC8A858.toInt(), 0xFF5E7E3A.toInt(), 0xFF5E7E3A.toInt(), 0xFF5E9E50.toInt(), 0xFF6A9A4E.toInt(), 0xFF8A8A4E.toInt(),
+            0xFF4E6E48.toInt(), 0xFFC8BA88.toInt(), 0xFFA89A74.toInt(),
         )
-        val NAMES = listOf("grass", "dry grass", "dirt", "farmland (rows east-west)", "farmland (rows north-south)", "sand", "rock", "snow", "gravel", "forest floor", "water", "asphalt")
-        /** The biomes farmed where the skeleton has a crop (temperate forest, prairie, steppe, savanna, chaparral). */
-        private val FARMED = setOf(4, 6, 7, 9, 17)
-
+        val NAMES = listOf("grass", "dry grass", "dirt", "farmland (rows east-west)", "farmland (rows north-south)", "sand", "rock", "snow", "gravel", "forest floor", "water", "asphalt",
+            "wheat", "row crop (east-west)", "row crop (north-south)", "pasture", "meadow", "scrub", "marsh", "dunes", "wet sand")
+        /** The near ground terraces into cliffs only past this slope, wholly past [CLIFF_NEAR_FULL] (the relief's own: [CLIFF_FROM]). */
+        const val CLIFF_NEAR_FROM = .95
+        const val CLIFF_NEAR_FULL = 1.35
+        /** A road's cutting or embankment: the land comes back over this many metres a metre it stands off the grade, at most [CALM_ROAD_MAX_M]. */
+        const val CUT_SLOPE = 1.6
+        const val CALM_ROAD_MAX_M = 200.0
+        /** Wet sand under this height over the sea (m). */
+        const val WET_M = .45
         private fun sat(t: Double): Double = if (t < 0.0) 0.0 else if (t > 1.0) 1.0 else t
         private fun smoothstep(t: Double): Double = t * t * (3.0 - 2.0 * t)
     }

@@ -23,7 +23,9 @@ material {
         // x: street units a quad, y: street units a texel, z: quads a side, w: the dither's reach (quads)
         { type : float4, name : node, precision : high },
         // the node's corner in texels, wrapped (xy: x and z, modulo the pictures' size), z: the pictures' size (texels)
-        { type : float4, name : corner, precision : high }
+        { type : float4, name : corner, precision : high },
+        // the sea (step 1b): x its level (street units, the scene's y), y street units a metre, z 1 where the node reaches the shore
+        { type : float4, name : sea, precision : high }
     ],
     variables : [
         // xy: the world's texel (wrapped as the corner is), zw: the quad's coordinates in the node
@@ -81,11 +83,25 @@ fragment {
         highp vec2 m = floor((tex + vec2(hash2(t) * 24.0)) / 384.0);
         float v = hash2(m + 7.0);
         col.rgb *= 0.95 + 0.05 * floor(v * 3.0);
+        // the surf (step 1b): where the land meets the sea, a ragged line of foam at the water's edge and a broken second
+        // one where the last wave reached, in whole art texels (clumps of 2), on the shore's ground only
+        if (materialParams.sea.z > 0.5 && layer != 10.0 && layer != 11.0) {
+            highp float hm = (wp.y - materialParams.sea.x) / materialParams.sea.y;
+            if (hm > -0.4 && hm < 0.9) {
+                highp vec2 c2 = floor(tex / 2.0);
+                float r = hash2(c2 + 3.0);
+                float edge = 0.10 + 0.22 * hash2(floor(tex / 14.0) + 9.0);
+                if (hm < edge && hm > -0.25 && r > 0.18) col.rgb = r > 0.8 ? vec3(0.80, 0.88, 0.93) : vec3(0.93, 0.96, 0.98);
+                else if (hm < edge + 0.12 && r > 0.6) col.rgb = mix(col.rgb, vec3(0.93, 0.96, 0.98), 0.75);
+                else if (abs(hm - 0.55 - 0.1 * hash2(floor(tex / 20.0))) < 0.04 && r > 0.45) col.rgb = mix(col.rgb, vec3(0.90, 0.92, 0.90), 0.6);
+            }
+        }
         material.baseColor = vec4(col.rgb, 1.0);
-        // the ground is matt; the water a little glossy
+        // the ground is matt; the water a little glossy, wet sand (layer 20) and the marsh's pools (18) a little too
         bool water = abs(layer - 10.0) < 0.5;
-        material.roughness = water ? 0.35 : 0.95;
+        bool wet = abs(layer - 20.0) < 0.5 || abs(layer - 18.0) < 0.5;
+        material.roughness = water ? 0.35 : (wet ? 0.7 : 0.95);
         material.metallic = 0.0;
-        material.reflectance = water ? 0.5 : 0.25;
+        material.reflectance = water ? 0.5 : (wet ? 0.35 : 0.25);
     }
 }

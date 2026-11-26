@@ -28,7 +28,169 @@ internal object TerrainPics {
         WorldTerrain.GRAVEL -> gravel(n)
         WorldTerrain.FOREST -> forest(n)
         WorldTerrain.WATER -> water(n)
+        WorldTerrain.WHEAT -> wheat(n)
+        WorldTerrain.CROP_X -> crop(n, false)
+        WorldTerrain.CROP_Z -> crop(n, true)
+        WorldTerrain.PASTURE -> pasture(grass ?: TownGround.grassPicture(n, pic))
+        WorldTerrain.MEADOW -> meadow(grass ?: TownGround.grassPicture(n, pic))
+        WorldTerrain.SCRUB -> scrub(grass ?: TownGround.grassPicture(n, pic))
+        WorldTerrain.MARSH -> marsh(n)
+        WorldTerrain.DUNE -> dune(n)
+        WorldTerrain.WET_SAND -> wetSand(n)
         else -> asphalt(n, pic)
+    }
+
+    // ------------------------------------------------------------------ step 1b: the country's crops, grazing, wild ground and shore
+
+    /** Standing wheat: straw-gold heads in short upright strokes, the drill rows faint along x, a darker patch where the wind laid it. */
+    private fun wheat(n: Int): IntArray {
+        val px = shades(n, intArrayOf(c(0xB08A3E), c(0xBE9A48), c(0xCAA852), c(0xD4B45E), c(0xDEC06C)), 501, midCells = 30, fineCells = 140, spread = .8f)
+        val r = Paint.Rnd(502)
+        // the heads: strokes two or three texels tall, light on top
+        repeat(n * n / 9) {
+            val x = r.int(n); val y = r.int(n); val len = 2 + r.int(2)
+            val col = if (r.next() < .5) c(0xE8CC7A) else c(0xC69E4C)
+            for (k in 0 until len) px[((y + k) % n) * n + x] = if (k == 0) col else c(0xA88440)
+        }
+        // the drill rows (every 0.5 m) a little darker between
+        for (y in 0 until n) if (y % 13 == 0) for (x in 0 until n) if ((x * 7 + y) % 5 != 0) px[y * n + x] = c(0x9E7C38)
+        // a few green weeds and the odd poppy
+        scatter(px, n, n * n / 900, 503, intArrayOf(c(0x7A9A40), c(0x6E8E38)), 2)
+        scatter(px, n, n * n / 6000, 504, intArrayOf(c(0xC8402E)))
+        return px
+    }
+
+    /** A row crop (corn, beans, cotton): broad green rows (about 0.8 m apart) over dark soil, leaves lit on top; along x (or z, [across]). */
+    private fun crop(n: Int, across: Boolean): IntArray {
+        val period = 21
+        val soil = shades(n, intArrayOf(c(0x5E4430), c(0x664A34), c(0x6E5038)), 511, spread = .6f)
+        val leaf = shades(n, intArrayOf(c(0x2E5E28), c(0x3A6E2E), c(0x467E34), c(0x52903A), c(0x64A244)), 512, midCells = 40, fineCells = 200)
+        val wob = TownGround.wrapNoise(n, 32, 513)
+        val px = IntArray(n * n)
+        val r = Paint.Rnd(514)
+        val jag = IntArray(n) { r.int(3) }
+        for (y in 0 until n) for (x in 0 until n) {
+            val (a, b) = if (across) y to x else x to y
+            val row = Math.floorMod(b + (wob(x, y) * 2f).toInt(), period)
+            // (the leaves reach a ragged way across the gap, by the texel along the row)
+            val reach = 6 + jag[a] + (if ((a / 3) % 4 == 0) 2 else 0)
+            val d = kotlin.math.abs(row - period / 2)
+            px[y * n + x] = when {
+                d <= reach - 2 -> leaf[y * n + x]
+                d <= reach -> if ((a + row) % 3 == 0) c(0x24502A) else leaf[y * n + x]
+                d == reach + 1 -> c(0x4E3826)
+                else -> soil[y * n + x]
+            }
+        }
+        // highlights on the leaves' tops
+        scatter(px, n, n * n / 60, 515, intArrayOf(c(0x7AB850), c(0x6CAC48)))
+        return px
+    }
+
+    /** Pasture: the town's grass grazed short (a fresher, yellower green), clover and the odd darker tussock. */
+    private fun pasture(grass: PixImg): IntArray {
+        val n = grass.w
+        val px = recolour(grass.px, intArrayOf(c(0x4A8E44), c(0x529848), c(0x5AA04C), c(0x62A850), c(0x6CB056), c(0x78B85E)))
+        scatter(px, n, n * n / 500, 521, intArrayOf(c(0xF2F2E4), c(0xE6E6D6)))
+        scatter(px, n, n * n / 1400, 522, intArrayOf(c(0x3E7A3A), c(0x447E3C)), 3)
+        return px
+    }
+
+    /** A hay meadow: longer grass, a bluer green, flowers (white, yellow, violet, red) scattered in drifts. */
+    private fun meadow(grass: PixImg): IntArray {
+        val n = grass.w
+        val px = recolour(grass.px, intArrayOf(c(0x3E7E44), c(0x46884A), c(0x4E924E), c(0x589C52), c(0x64A658), c(0x72B060)))
+        // long blades: vertical strokes
+        val r = Paint.Rnd(531)
+        repeat(n * n / 30) {
+            val x = r.int(n); val y = r.int(n)
+            px[y * n + x] = c(0x7CB866); px[((y + 1) % n) * n + x] = c(0x4A8A4A)
+        }
+        val drift = TownGround.wrapNoise(n, 12, 532)
+        val fl = intArrayOf(c(0xFFFFF0), c(0xF4D84A), c(0xA87ED0), c(0xE8E8F8), c(0xD84A3A))
+        repeat(n * n / 120) {
+            val x = r.int(n); val y = r.int(n)
+            if (drift(x, y) < .45f) return@repeat
+            val col = fl[r.int(fl.size)]
+            px[y * n + x] = col
+            if (r.next() < .5) px[y * n + (x + 1) % n] = col
+        }
+        return px
+    }
+
+    /** Scrub: dry grass with shrubs (round clumps of olive leaves, dark under, lit on top) a few texels to a metre across. */
+    private fun scrub(grass: PixImg): IntArray {
+        val n = grass.w
+        val px = dry(grass)
+        val r = Paint.Rnd(541)
+        val leaf = intArrayOf(c(0x4E5E2E), c(0x5A6C34), c(0x66783A), c(0x768A44))
+        repeat(n * n / 700) {
+            val cx = r.int(n); val cy = r.int(n); val rad = 3 + r.int(10)
+            for (dy in -rad..rad) for (dx in -rad..rad) {
+                val d2 = dx * dx + dy * dy * 1.3f
+                if (d2 > rad * rad) continue
+                val x = Math.floorMod(cx + dx, n); val y = Math.floorMod(cy + dy, n)
+                px[y * n + x] = when {
+                    d2 > (rad - 1) * (rad - 1) && dy > 0 -> c(0x3A4422)
+                    dy < -rad / 2 && r.next() < .5 -> leaf[3]
+                    else -> leaf[r.int(3)]
+                }
+            }
+        }
+        scatter(px, n, n * n / 900, 542, intArrayOf(c(0x8A7A62), c(0x9A8A70)), 2)
+        return px
+    }
+
+    /** Marsh: dark reeds and sedge in upright strokes, standing water showing between in pools. */
+    private fun marsh(n: Int): IntArray {
+        val px = shades(n, intArrayOf(c(0x3A5A34), c(0x42643A), c(0x4C6E40), c(0x587A46)), 551, midCells = 28)
+        val pools = TownGround.wrapNoise(n, 18, 552)
+        val fine = TownGround.wrapNoise(n, 90, 553)
+        for (y in 0 until n) for (x in 0 until n) {
+            val v = pools(x, y) * .75f + fine(x, y) * .25f
+            if (v > .62f) px[y * n + x] = if (v > .7f) c(0x3E6488) else c(0x486C88)
+            else if (v > .6f) px[y * n + x] = c(0x2E4A2C)
+        }
+        val r = Paint.Rnd(554)
+        repeat(n * n / 14) {
+            val x = r.int(n); val y = r.int(n)
+            if (pools(x, y) > .6f) return@repeat
+            val len = 2 + r.int(3)
+            for (k in 0 until len) px[((y + k) % n) * n + x] = if (k == 0) c(0x8AA058) else c(0x5A7A3E)
+        }
+        // cattails
+        scatter(px, n, n * n / 3000, 555, intArrayOf(c(0x6A4A2E)), 2)
+        return px
+    }
+
+    /** Dunes: pale wind-rippled sand, marram grass in tufts of straw-green blades. */
+    private fun dune(n: Int): IntArray {
+        val px = sand(n)
+        val r = Paint.Rnd(561)
+        val clumps = TownGround.wrapNoise(n, 10, 562)
+        repeat(n * n / 60) {
+            val x = r.int(n); val y = r.int(n)
+            if (clumps(x, y) < .5f) return@repeat
+            val len = 2 + r.int(4)
+            val lean = if (r.next() < .5) 1 else -1
+            for (k in 0 until len) {
+                val xx = Math.floorMod(x + (if (k > 1) lean else 0), n); val yy = Math.floorMod(y - k, n)
+                px[yy * n + xx] = if (k == len - 1) c(0xB4BC78) else if (k == 0) c(0x6E7A44) else c(0x8E9A58)
+            }
+        }
+        return px
+    }
+
+    /** Wet sand at the water's edge: darker and smoother, a sheen in streaks, shells and the odd pebble. */
+    private fun wetSand(n: Int): IntArray {
+        val px = shades(n, intArrayOf(c(0x9C8C66), c(0xA4946C), c(0xAC9C74), c(0xB4A47C)), 571, spread = .7f)
+        val wob = TownGround.wrapNoise(n, 12, 572)
+        for (y in 0 until n) for (x in 0 until n) {
+            val v = y + wob(x, y) * 30f
+            if (Math.floorMod(v.toInt(), 37) == 0 && (x / 5) % 3 != 0) px[y * n + x] = c(0xC8BC9A)
+        }
+        scatter(px, n, n * n / 1500, 573, intArrayOf(c(0xF0E8D8), c(0x7A6A52)))
+        return px
     }
 
     /** Shades of [ramp] over [n] x [n] by three wrapped noises (slow, mid, fine), dithered a texel at a time at their edges. */

@@ -127,10 +127,15 @@ internal class WorldNear(
         if (atlasReady) return
         val n = ATLAS
         if (atlas == null) {
+            // (ASTC 4x4 where the GPU reads it, as the town's pictures: a quarter of RGBA8's bytes, step 1b's 21 layers in
+            // 29 MB where step 1's 12 took 64; the pictures' few flat shades a block encode near exactly)
+            astc = TownQuality.astc && Texture.isTextureFormatSupported(engine, Texture.InternalFormat.SRGB8_ALPHA8_ASTC_4x4)
+            val fmt = if (astc) Texture.InternalFormat.SRGB8_ALPHA8_ASTC_4x4 else Texture.InternalFormat.SRGB8_A8
             atlas = Texture.Builder().width(n).height(n).depth(WorldTerrain.LAYERS).levels(levels(n)).sampler(Texture.Sampler.SAMPLER_2D_ARRAY)
-                .format(Texture.InternalFormat.SRGB8_A8).build(engine)
-            GpuAccount.add(atlas!!, n, n * WorldTerrain.LAYERS, "SRGB8_A8 array", levels(n), chainBytes(n) * WorldTerrain.LAYERS)
-            WorldMemory.nearTextures += chainBytes(n) * WorldTerrain.LAYERS
+                .format(fmt).build(engine)
+            val bytes = (if (astc) Astc.chainBytes(n, n, levels(n)).toLong() else chainBytes(n)) * WorldTerrain.LAYERS
+            GpuAccount.add(atlas!!, n, n * WorldTerrain.LAYERS, if (astc) "SRGB_ASTC_4x4 array" else "SRGB8_A8 array", levels(n), bytes)
+            WorldMemory.nearTextures += bytes
         }
         while (atlasLayer < WorldTerrain.LAYERS) {
             if (atlasJob == null) {
@@ -144,10 +149,12 @@ internal class WorldNear(
             // (each mip level of this layer: one slice of the array)
             var off = 0; var s = n; var level = 0
             while (s >= 1) {
-                val len = s * s * 4
+                val len = if (astc) Astc.levelBytes(s, s) else s * s * 4
                 val buf = ByteBuffer.allocateDirect(len).order(ByteOrder.nativeOrder())
                 buf.put(bytes, off, len).flip()
-                atlas!!.setImage(engine, level, 0, 0, atlasLayer, s, s, 1, Texture.PixelBufferDescriptor(buf, Texture.Format.RGBA, Texture.Type.UBYTE))
+                val pb = if (astc) Texture.PixelBufferDescriptor(buf, Texture.CompressedType.SRGB8_ALPHA8_ASTC_4x4, len)
+                else Texture.PixelBufferDescriptor(buf, Texture.Format.RGBA, Texture.Type.UBYTE)
+                atlas!!.setImage(engine, level, 0, 0, atlasLayer, s, s, 1, pb)
                 off += len; s /= 2; level++
             }
             atlasLayer++
@@ -156,16 +163,25 @@ internal class WorldNear(
         atlasGrass = null
     }
 
-    /** One layer's texels and mip levels as RGBA bytes (a worker). */
+    /** Whether the atlas is ASTC (else RGBA8). */
+    private var astc = false
+
+    /** One layer's texels and mip levels as RGBA bytes, or ASTC blocks (a worker). */
     private fun layerBytes(k: Int): ByteArray {
         val n = ATLAS
         val pic: (String) -> PixImg? = { p -> kit.art?.image(p)?.let { im -> PixImg(im.width, im.height).also { StreetTextures.argb(im).copyInto(it.px) } } }
-        val px = when (k) {
-            WorldTerrain.GRASS, WorldTerrain.DRY -> {
-                val g = atlasGrass ?: TownGround.grassPicture(n, pic).also { atlasGrass = it }
-                if (k == WorldTerrain.GRASS) g.px else TerrainPics.layer(k, n, pic, g)
-            }
-            else -> TerrainPics.layer(k, n, pic, null)
+        val grassBased = k == WorldTerrain.GRASS || k == WorldTerrain.DRY || k == WorldTerrain.PASTURE || k == WorldTerrain.MEADOW || k == WorldTerrain.SCRUB
+        val px = if (grassBased) {
+            val g = atlasGrass ?: synchronized(this) { atlasGrass ?: TownGround.grassPicture(n, pic).also { atlasGrass = it } }
+            if (k == WorldTerrain.GRASS) g.px else TerrainPics.layer(k, n, pic, g)
+        } else TerrainPics.layer(k, n, pic, null)
+        if (astc) {
+            var r = 0L; var g = 0L; var b = 0L
+            for (p in px) { r += p shr 16 and 255; g += p shr 8 and 255; b += p and 255 }
+            val c = px.size.toLong()
+            means[k] = (0xFF shl 24) or ((r / c).toInt() shl 16) or ((g / c).toInt() shl 8) or (b / c).toInt()
+            val buf = Astc.encodeChain(px, n, n, levels(n), srgb = true)
+            return ByteArray(buf.remaining()).also { buf.get(it) }
         }
         val chain = TerrainPics.mips(px, n)
         means[k] = chain.last()[0]
@@ -174,7 +190,6 @@ internal class WorldNear(
         for (lv in chain) for (p in lv) { out[o++] = (p shr 16).toByte(); out[o++] = (p shr 8).toByte(); out[o++] = p.toByte(); out[o++] = (p ushr 24).toByte() }
         return out
     }
-
     private val m = FloatArray(16).also { it[0] = 1f; it[5] = 1f; it[10] = 1f; it[15] = 1f }
     private val at = FloatArray(2)
 
@@ -308,6 +323,10 @@ internal class WorldNear(
             mi.setParameter("ids", ids, idSampler)
             mi.setParameter("node", (sp * u).toFloat(), (WorldTerrain.TEXEL_M * u).toFloat(), WorldTerrain.QUADS.toFloat(), (DITHER_M / sp).toFloat())
             mi.setParameter("corner", Math.floorMod(p.node.gx0 * WorldTerrain.TEXELS_A_TILE, ATLAS.toLong()).toFloat(), Math.floorMod(p.node.gz0 * WorldTerrain.TEXELS_A_TILE, ATLAS.toLong()).toFloat(), ATLAS.toFloat(), 0f)
+            // (the surf where the node reaches down to the sea: its box from below the sea's level to just above it)
+            val sea = (far.plan?.seaLevel ?: -1e6f) * u.toFloat()
+            val lo = p.box[1] - p.box[4]; val hi = p.box[1] + p.box[4]
+            mi.setParameter("sea", sea, u.toFloat(), if (lo < sea + u.toFloat() && hi > sea - .5f * u.toFloat()) 1f else 0f, 0f)
         }
         val e = EntityManager.get().create()
         val b = p.box
