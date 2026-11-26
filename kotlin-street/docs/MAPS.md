@@ -191,3 +191,15 @@ that can be searched on the GPS in modern eras, found on paper maps and in direc
 letters, given by NPCs and read off house numbers and street signs in the world. The professor's opening letter
 ("come to the capital, to this address") is the first use. Built by Jeff in G025 (src/), drawn by Claude (signs,
 house numbers, the GPS search).
+
+## Finding your way (the owner's decisions, 2026-11-26)
+
+No quest markers: the address is the marker. In the eras before GPS the player finds an address the way people did:
+the city map's street index ("Elm Street ... C4"), house numbers rising away from the centre (odd one side, even the
+other), street signs at every corner, and landmark directions from people ("past the fountain, left at the bank"),
+which are true to the town and can be asked again. The player can pencil a mark on any map they own once they've found
+the street.
+
+**The character's memory:** once the player has been somewhere (driven, walked or ridden there), the character knows
+the way for good: the place is remembered on every map they own and in the GPS-less eras the way there is shown as a
+remembered route, like a person who never forgets a road. Only new places need the map, the index or asking.
