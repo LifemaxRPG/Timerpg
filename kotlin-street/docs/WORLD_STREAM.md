@@ -1,4 +1,4 @@
-# World streaming: the open country follows the player (planet step 1, 2026-11-25)
+# World streaming: the open country follows the player (planet steps 1, 1b and 2, 2026-11-25/26)
 
 The owner's decision (CLAUDE.md, "Next milestone", 2026-11-25): the planet-scale features start now, each measured on the
 S25 before the next. Step 1, this document: **the world streams round the player** (terrain, coast and ocean) within a
@@ -213,11 +213,9 @@ origin moves) is needed before journeys of hundreds of km and before a second to
 
 ## 7. What steps 2-4 need from this
 
-- **Step 2, towns everywhere**: a place's town streams in where the far view now draws its blocks: `TownStream`-like
-  residency per town by distance (TOWNS_EVERYWHERE.md, "Streaming plan"), the far view cutting its roads at each town's
-  ground edge (`WorldFarPlan.addCut` for every town, not only the capital) and flattening the terrain under each town
-  (`WorldFarPlan.shapeRaw` for many frames: a spatial index of town grounds). The streamer's re-plan already makes
-  everything a town needs from the world round any middle.
+- **Step 2, towns everywhere**: built (section 10): the towns' grounds levelled into the terrain and the roads cut at
+  their edges in the same plan the streamer makes round any middle, the nearest towns loaded whole as guests of the
+  capital's scene, the roadside sites beside the highways.
 - **Step 3, travel**: the floating origin (section 5) with each town's frame as the origin while in it; `WorldRoute` for
   routes, signs, the sat-nav and AI traffic; bridges and tunnels (W6) where roads cross rivers and ranges; the near ocean
   under a ship (`OceanSurface.boatTransformInto` is there) and the far coast silhouettes from the sea (WORLD_GEN "Seeing
@@ -243,6 +241,10 @@ origin moves) is needed before journeys of hundreds of km and before a second to
   country), `-DchunkOverlap=0` (the physics chunks edge to edge) in the previews and tests.
 - Unchanged: `GpuBudgetTest`, `GpuRouteTest`, `OpenWalkTest`, `VehiclePhysicsTest`, `HeightfieldSeamTest` (the capital
   alone; the streamer is attached only with the world).
+- Step 2: `gradle :desktop:crossroadsTest --tests WorldTownsTest` (the towns' views, about 5 minutes) and
+  `GpuWorldDriveTest` now drives the whole tour (about 50 minutes; `WORLD_DRIVE_TOUR=0` to Evanvale only,
+  `WORLD_DRIVE_FROM_KM=<km>` from part way, `WORLD_DRIVE_DEBUG=1` the GPU by part every 2 km, `WORLD_TOWNS=0` without the
+  towns). Both read the baked towns in `kotlin-street/build-towns/alpha` (TOWNS_EVERYWHERE.md, "Tests (the app's side)").
 
 ## 9. Step 1b: the open country (2026-11-26)
 
@@ -329,3 +331,81 @@ view in 4-10 s.
 3. The ASTC terrain atlas's look on the phone (the desktop decodes ASTC in software, as the phone's GPU does in hardware:
    the same pixels, but worth a glance), and its encode time on first launch (21 layers, a worker).
 4. The surf line and the waves at the beach on the phone's screen, and the near ocean's cost (section 6, item 4).
+
+## 10. Step 2: towns everywhere (2026-11-26)
+
+Every baked place on the planet is a real town in the world: drawn from far off as a stand-in in its own footprint, loaded
+whole as the player comes near, levelled into the terrain with the world's roads meeting its own; roadside sites stand
+beside the highways between them. The pipeline that makes the towns is TOWNS_EVERYWHERE.md's; this is the app's side.
+Desktop numbers (the 4-core build server, software GL, the JVM, another job sharing the machine), not the S25's.
+
+### Bake, don't generate on the phone (measured, decided)
+
+A town takes 14 s (a hamlet) to 58-81 s (a village or a town) to bake on one core of this server (the TypeScript
+generator in Node's JIT, the buildings' pictures in Python; measured with three bakes in parallel). The phone has neither:
+the generator in QuickJS (no JIT) would take minutes a town, the pictures need the port the split proposes. So the towns
+are baked offline into packs (`.ttwn`: 1.8-2.9 MB a hamlet, 9.3 a village, 11.0-11.5 a town); the app reads a pack in
+70-270 ms on a worker. Size is no concern (CLAUDE.md); what the phone must watch is memory and load hitches, below.
+
+### The design
+
+| | what | code |
+|---|---|---|
+| the manifest | each baked town's frame (a turn and an anchor), ground (plan and farm ring), level, pack; an index of 4 km cells | `WorldTownSet`, `TownPack` (shared/domain/WorldTowns.kt) |
+| the terrain | levelled to the town's height under its ground (0.6 m under its plan, 0.05 under its ring), blending back over 40 + 360 m; the same function in the far view, the near terrain and the cars' heightfields; the cars stand on the town's own level (`WorldTerrain.groundLocal`) | `TownGroundShape`, `WorldFarPlan.shapeRaw` |
+| the world's roads and rivers | cut at the town's ground edge, where its own country roads take over (the baker laid them to the world's crossings, to a tenth of a tile) | `WorldFarPlan.addCut` |
+| the country | no trees, fences or farmsteads on a town's ground; its grass dithered in round it | `WorldTerrain.pointAt` (`outside`) |
+| far off (to the far view's 172 km) | its stand-in: 5-45 blocks laid in its own plan, as tall as its rank, lit at night; a far view part per town | `WorldFarPlan.townBoxes`, `WorldFar` (`hidePlace`) |
+| near (the two nearest within 3.5 km of the eye; let go past 5 km) | the whole town, as the capital is drawn: a `FilamentTown` in guest mode under a root entity whose transform is its frame in the capital's street units (`TownGuest`, `TownRoot.adopt`); its stores, cinema, landmark models; its farm ring's roads in; streaming as the capital does (full detail near, its far cells and districts to 6 km, its lights as dots at night); its stand-in hidden once its own far boxes are up | `WorldTowns`, `TownGuest` |
+| building | the pack read and parsed on a worker; the town made on the engine's thread (11-42 ms); its ground and buildings within 2.5 ms a frame (`WorldTowns.STEP_MS`) | `WorldTowns.step` |
+| letting go | its entities out of the scene at once, its material instances, textures and materials over the next frames (the graveyard) | `FilamentTown.destroy(later)` |
+| roadside sites | Highways v2's truck stops, motels, diners and rest areas, and stops at `roadsideAlong`'s spacing along the highways and county roads (diners, gas stations, motels by era): each a landmark model on a levelled pad 40 m off its road, facing it, within 1.5 km of the eye | `WorldRoadside`, `WorldTowns.Stop` |
+| people | none yet (lights, the stores' parked cars); the loop's hook: `WorldTowns.onGuest` | |
+
+The render origin stays the capital's (section 5): a guest's frame is placed in the capital's street units in doubles and
+turned into floats once (1.5 mm steps at 25 km, as the world's). The app reads the manifest and packs from its files
+(`<external files>/towns/alpha/`: push `kotlin-street/build-towns/alpha` there with adb); with none, nothing changes.
+
+### Measurements (desktop, `GpuWorldDriveTest`'s tour, 2026-11-26)
+
+The tour (`WorldDrive.tour`, `tools/towns-route.ts`): the capital to Evanvale (a town, 24.6 km), on to Roserdale (a
+village, 28.1 km) and Chaley (a town, 44.1 km): **96.8 km**, 174,265 frames at 60 Hz paced to the wall clock, the chase
+camera at 120 km/h. Eight places baked along it (the three and five hamlets); seven loaded on the way, five let go.
+
+| | |
+|---|---|
+| the towns' own GPU (`GpuAccount.townBytes`) | a hamlet 44-60 MB, two hamlets 103-117, Roserdale (163 buildings) 134-194, Evanvale (221) with a hamlet 246-**340 MB** (peak, budget `TownBudget.TOWNS_MB` 400); 0-3 MB between towns |
+| Filament's whole count | 485-560 MB between towns, 630-800 MB at the towns (Evanvale 24 km out: 800, the capital's streamed share still ~300) |
+| a town loaded | read 70-270 ms on a worker, made 11-42 ms, its ground up in 1.7-4.5 s, settled (its first buildings up) in 2.4-9.0 s from asking |
+| the engine thread's share | building the towns: median 0.05 ms, p99 1.7, **worst 257 ms** (a hamlet's ground: one batch uploaded whole); drawing them: median 0.9, p99 3.0, worst 54 |
+| letting a town go | 8-20 ms a frame (was 115-133 ms before the graveyard) |
+| CPU a frame (all of it) | median 3.59 ms, p99 9.62, p99.9 20.2, worst 271; over 16.7 ms: 316 of 174,265 frames (step 1b's drive to Evanvale: 46 of 44,340) |
+| the world's own GPU | peak 149.3 MB (budget 155) |
+| roadside sites | 2,594 on the planet in 2025; 11 drawn along the tour |
+
+**Open: a leak on the tour's last stretch.** In the whole tour, after the third town was let go (59 km), the towns made
+after it (Harrow Siding at 85 km, Chaley at 93 km) are not counted as the towns' (their share reads 0) and the whole count
+climbs to **1,048 MB** at Chaley (`TOWNS_ROUTE_MB` 850: the test fails). The same stretch driven alone
+(`WORLD_DRIVE_FROM_KM=80`) peaks at **689 MB** with the towns' share 200 MB, and from 55 km (Roserdale loaded and let go
+on the way) at **678 MB**, the test passing: only the whole tour from the capital shows it, so something left from its
+first 55 km (the capital close by, Evanvale and the hamlets let go, the stops) makes the later towns' resources untagged
+and larger. Not found yet; it is the first thing to fix, and why the whole tour's test fails now.
+
+### What it costs, and the next cuts
+
+A guest town's fixed cost is about 1 MB a building with no building resident: its whole ground (TownGround's pieces)
+and every lot's yard (near and far versions, baked at once) are uploaded as the capital's are. The capital holds that for
+one town; a guest pays it for a town seen from 3.5 km. The cuts, in order: the guest's yards baked far-only and brought
+near by streaming (as the capital's near versions come back), its ground uploaded by chunk as it comes near; the guests
+sharing the capital's pictures (a `StreetTextures` set per town duplicates the ground's and yards' pictures); and the
+worst hitch, a guest's ground batch uploaded whole (257 ms on this machine): split into budgeted pieces.
+
+### What needs the S25
+
+1. **The tour on the phone** with the packs pushed (`adb push kotlin-street/build-towns/alpha
+   /sdcard/Android/data/<package>/files/towns/alpha`): the play log's `mem` line at each town (expect the desktop's
+   600-800 MB), and the guests' build frames in Perfetto (the 2.5 ms slices; the ground batch's hitch).
+2. **Pop at 3.5 km**: the stand-in blocks giving way to the town's own far boxes, in the haze, on the phone's screen.
+3. **Heat**: a town loading every few minutes on top of the world's streaming (HEAT.md).
+4. **The night**: a town's lights from a hill (the dots' size at 3120 x 1440).
+5. **The roadside models' cost** (each a GLB landmark: its own pictures, freed with it).
