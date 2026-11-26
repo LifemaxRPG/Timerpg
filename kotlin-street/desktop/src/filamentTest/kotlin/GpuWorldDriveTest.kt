@@ -55,11 +55,15 @@ class GpuWorldDriveTest {
         val site = WorldDrive.site
         val d = WorldDrive.drive
         val u = site.frame.unitsPerMetre.toFloat()
-        val pts = d.street(site).let { s -> DoubleArray(s.size) { s[it].toDouble() } }
+        // (planet step 2: on through the first town to the next two, WorldDrive.tour; WORLD_DRIVE_TOUR=0: to the first town only)
+        val tour = System.getenv("WORLD_DRIVE_TOUR") != "0"
+        val pts = if (tour) WorldDrive.whole(site) else d.street(site).let { s -> DoubleArray(s.size) { s[it].toDouble() } }
+        val towns = openTowns
         val total = run { var l = 0.0; for (k in 0 until pts.size / 2 - 1) l += hypot(pts[k * 2 + 2] - pts[k * 2], pts[k * 2 + 3] - pts[k * 2 + 1]); l }
         val km = System.getenv("WORLD_DRIVE_KM")?.toDoubleOrNull()
         val length = min(total, (km ?: 1e9) * 1000 * u)
-        log.appendLine("the drive $d; driven %.1f km of it".format(length / u / 1000))
+        log.appendLine("the drive $d${if (tour) "; then " + WorldDrive.tour.joinToString { it.toString() } else ""}; driven %.1f km of it".format(length / u / 1000))
+        log.appendLine("the generated towns: ${towns?.set?.towns?.size ?: 0} baked (${towns?.set?.towns?.joinToString { it.name } ?: "none: WORLD_TOWNS=0 or no bake"})")
         val w = 2340f; val h = 1080f
         fun ground(sx: Float, sz: Float): Float = far.terrain?.heightLocal(sx / u.toDouble(), sz / u.toDouble())?.toFloat()?.times(u) ?: 0f
         val p = DoubleArray(4)
@@ -74,7 +78,8 @@ class GpuWorldDriveTest {
         // settle at the start (behind the loading screen, as the app's first view)
         val t0 = System.nanoTime()
         var n0 = 0
-        while ((!far.ready || far.near?.pending == true) && n0 < 20000) { frame(chase(0.0)); clock += 1 / 60.0; n0++; if (n0 % 4 == 0) Thread.sleep(2) }
+        val s0 = (System.getenv("WORLD_DRIVE_FROM_KM")?.toDoubleOrNull() ?: 0.0) * 1000 * u
+        while ((n0 < 60 || far.streaming || !far.ready || far.near?.pending == true) && n0 < 20000) { frame(chase(s0)); clock += 1 / 60.0; n0++; if (n0 % 4 == 0) Thread.sleep(2) }
         log.appendLine("the world settled round the start in %.0f ms, %d frames; %s".format((System.nanoTime() - t0) / 1e6, n0, WorldMemory.line()))
         val start0 = total(ft)
         log.appendLine("at the start: GPU %.1f MB (the world %.1f)".format(start0, WorldMemory.gpu / 1048576.0))
@@ -92,9 +97,11 @@ class GpuWorldDriveTest {
         val speedU = (120 / 3.6 * u)
         val frameMs = ArrayList<Float>()
         var peak = 0.0; var peakAt = ""; var peakWorld = 0.0
-        var f = 0; var s = 0.0
+        var peakTowns = 0.0; var peakTownsAt = ""
+        // (WORLD_DRIVE_FROM_KM: start that far along, the world settled there first: a part of the tour)
+        var f = 0; var s = (System.getenv("WORLD_DRIVE_FROM_KM")?.toDoubleOrNull() ?: 0.0) * 1000 * u
         val start = System.nanoTime()
-        val shots = listOf(2500.0, 12000.0, 21000.0).map { it * u }.toMutableList()
+        val shots = listOf(2500.0, 12000.0, 21000.0).map { it * u }.filter { it > s }.toMutableList()
         var hill = false
         var gc0 = gcMs()
         while (s < length) {
@@ -107,8 +114,12 @@ class GpuWorldDriveTest {
                 val mb = total(ft); val wmb = WorldMemory.gpu / 1048576.0
                 if (mb > peak) { peak = mb; peakAt = "%.1f km".format(s / u / 1000) }
                 peakWorld = max(peakWorld, wmb)
-                if (f % (SAMPLE * 240) == 0) log.appendLine("%6.1f km: GPU %.1f MB, the world %.1f MB; far view %d swaps; near %d nodes up, %d drawn; %s".format(
-                    s / u / 1000, mb, wmb, far.swaps, WorldMemory.nearNodes, far.near?.drawnNodes ?: 0, if (far.ocean?.near == true) "the sea near" else "inland"))
+                val tmb = com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.townBytes() / 1048576.0
+                if (tmb > peakTowns) { peakTowns = tmb; peakTownsAt = "%.1f km (%s)".format(s / u / 1000, towns?.guestList?.joinToString { it.t.name } ?: "") }
+                if (f % (SAMPLE * 240) == 0) log.appendLine("%6.1f km: GPU %.1f MB, the world %.1f MB, the towns %.1f MB; far view %d swaps; near %d nodes up, %d drawn; %s; %s".format(
+                    s / u / 1000, mb, wmb, tmb, far.swaps, WorldMemory.nearNodes, far.near?.drawnNodes ?: 0, if (far.ocean?.near == true) "the sea near" else "inland",
+                    towns?.guestList?.joinToString { it.toString() }?.ifEmpty { "no guest towns" } ?: "no towns"))
+                if (f % (SAMPLE * 240) == 0 && System.getenv("WORLD_DRIVE_DEBUG") != null) log.appendLine("      " + com.lifemax.rpg.feature.habits.presentation.scene3d.GpuAccount.townOwners() + " || " + GpuAccount.categoryLine(ft.gpuEstimate(2340, 1080)).take(700))
             }
             // (renders along the way, the drive paused for them: the pause is not counted in the frames' times)
             if (shots.isNotEmpty() && s >= shots[0]) {
@@ -145,7 +156,16 @@ class GpuWorldDriveTest {
         log.appendLine("the far view: %d re-plans swapped in; planned in %s ms, packed in %s ms (a worker, each); upload and free a frame: median %.2f, worst %.2f ms over %d frames".format(
             far.swaps, far.planTimes.joinToString { "%.0f".format(it) }, far.packTimes.joinToString { "%.0f".format(it) }, if (up.isEmpty()) 0f else up[up.size / 2], up.lastOrNull() ?: 0f, up.size))
         log.appendLine("the near terrain: frames with a wanted node not yet up (drawn coarser) %d of %d; %s".format(far.near?.coarseFrames ?: 0, frameMs.size, far.near?.report))
-        log.appendLine("peak GPU %.1f MB at %s (budget %.0f); the world's own peak %.1f MB (budget %.0f); %s".format(peak, peakAt, TownBudget.WORLD_ROUTE_MB, peakWorld, TownBudget.WORLD_MB, WorldMemory.line()))
+        log.appendLine("peak GPU %.1f MB at %s (budget %.0f); the world's own peak %.1f MB (budget %.0f); %s".format(peak, peakAt, if (towns != null) TownBudget.TOWNS_ROUTE_MB else TownBudget.WORLD_ROUTE_MB, peakWorld, TownBudget.WORLD_MB, WorldMemory.line()))
+        towns?.let { t ->
+            log.appendLine("the generated towns: their own peak %.1f MB at %s (budget %.0f, TownBudget.TOWNS_MB); %d loaded, %d let go".format(peakTowns, peakTownsAt, TownBudget.TOWNS_MB, t.loaded, t.dropped))
+            val st = synchronized(t.stepFrames) { t.stepFrames.sorted() }; val dr = synchronized(t.drawFrames) { t.drawFrames.sorted() }
+            fun q(l: List<Float>, k: Double) = if (l.isEmpty()) 0f else l[((l.size - 1) * k).toInt()]
+            log.appendLine("  building them (the engine's thread, within %.1f ms a frame): median %.2f, p99 %.2f, worst %.2f ms over %d frames; drawing them: median %.2f, p99 %.2f, worst %.2f ms; worst frame a town was made in %.1f ms, let go in %.1f ms".format(
+                com.lifemax.rpg.feature.habits.presentation.scene3d.WorldTowns.STEP_MS, q(st, .5), q(st, .99), st.lastOrNull() ?: 0f, st.size, q(dr, .5), q(dr, .99), dr.lastOrNull() ?: 0f, t.worstMakeMs, t.worstDropMs))
+            log.appendLine("  the worst single step: ${t.worstStep}; roadside sites made ${t.stopsMade}")
+            for (l in t.log) log.appendLine("  $l")
+        }
         log.appendLine(GpuAccount.categoryLine(ft.gpuEstimate(2340, 1080)))
         // a coast with the ocean: the nearest coast to the end of the drive (a jump there, the world settled round it)
         coast(ft, far, site.skeleton, pts, length, u)?.let { c ->
@@ -174,7 +194,9 @@ class GpuWorldDriveTest {
         }
         File(out, "sheet.txt").writeText(sheet.joinToString("\n"))
         if (peakWorld > TownBudget.WORLD_MB) return "the world's GPU peaked at %.1f MB, over its budget %.0f (TownBudget.WORLD_MB)".format(peakWorld, TownBudget.WORLD_MB)
-        if (peak > TownBudget.WORLD_ROUTE_MB) return "the drive's GPU peaked at %.1f MB, over its budget %.0f (TownBudget.WORLD_ROUTE_MB)".format(peak, TownBudget.WORLD_ROUTE_MB)
+        if (towns == null && peak > TownBudget.WORLD_ROUTE_MB) return "the drive's GPU peaked at %.1f MB, over its budget %.0f (TownBudget.WORLD_ROUTE_MB)".format(peak, TownBudget.WORLD_ROUTE_MB)
+        if (towns != null && peak > TownBudget.TOWNS_ROUTE_MB) return "the drive's GPU peaked at %.1f MB, over its budget %.0f (TownBudget.TOWNS_ROUTE_MB)".format(peak, TownBudget.TOWNS_ROUTE_MB)
+        if (towns != null && peakTowns > TownBudget.TOWNS_MB) return "the generated towns' GPU peaked at %.1f MB, over their budget %.0f (TownBudget.TOWNS_MB)".format(peakTowns, TownBudget.TOWNS_MB)
         if (far.swaps < 1) return "the far view never followed the drive"
         return null
     }
