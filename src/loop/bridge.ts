@@ -8,6 +8,8 @@ import {
   civilianSpotted,
   courtInterfere,
   courtView,
+  jump,
+  timeMachineView,
   create,
   load,
   plead,
@@ -34,6 +36,7 @@ import type {
   ChooseCounselInput,
   CivilianSightingInput,
   CourtInterferenceInput,
+  JumpInput,
   LoopActionEvent,
   LoopInit,
   LoopSim,
@@ -133,6 +136,16 @@ export function courtInterfereJson(simJson: string, inputJson: string): string {
 
 export function courtViewJson(simJson: string): string {
   return JSON.stringify(courtView(load(simJson)));
+}
+
+export function jumpJson(simJson: string, inputJson: string): string {
+  const sim = load(simJson);
+  const input = JSON.parse(inputJson) as JumpInput;
+  return JSON.stringify(jump(sim, input));
+}
+
+export function timeMachineViewJson(simJson: string): string {
+  return JSON.stringify(timeMachineView(load(simJson)));
 }
 
 /**
@@ -252,6 +265,19 @@ export const TimerpgSim = {
     return JSON.stringify(courtView(requireActive()));
   },
 
+  jump(inputJson: string): string {
+    const current = requireActive();
+    const input = JSON.parse(inputJson) as JumpInput;
+    const res = jump(current, input);
+    activeSim = res.sim;
+    const { sim: _omit, ...delta } = res;
+    return JSON.stringify(delta);
+  },
+
+  timeMachineView(): string {
+    return JSON.stringify(timeMachineView(requireActive()));
+  },
+
   save(): string {
     return save(requireActive());
   },
@@ -282,6 +308,8 @@ export const TimerpgSim = {
   pleadJson,
   courtInterfereJson,
   courtViewJson,
+  jumpJson,
+  timeMachineViewJson,
 };
 
 // Expose globally for QuickJS-ng (`esbuild --format=iife`)

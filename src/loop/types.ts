@@ -11,6 +11,7 @@ import type {
   VehicleKind,
   WeatherKind,
 } from '../crime/types';
+import type { TimeTravelAnomaly } from '../crime/forensics';
 import type { OfficerAssignment, PoliceState } from '../police/types';
 import type { Fence } from '../economy/fence';
 import type {
@@ -24,6 +25,15 @@ import type {
   VerdictKind,
 } from '../court/types';
 import type { Id, Person, World } from '../sim/types';
+import type {
+  CarriedItemStatus,
+  CaseStatusReport,
+  CausalAnchorTag,
+  LooseThread,
+  Timeline,
+  TimelineChangesReport,
+  TimelineCrimeKind,
+} from '../timeline/types';
 
 export type LoopPlaceKind =
   | 'general_store'
@@ -31,6 +41,7 @@ export type LoopPlaceKind =
   | 'pawn_shop'
   | 'police_station'
   | 'courthouse'
+  | 'time_machine'
   | 'home'
   | 'yard'
   | 'street'
@@ -82,6 +93,10 @@ export interface LoopPlaceInit {
   openHours?: [number, number];
   /** Optional linked street-graph node id (defaults to `id` if present in graph). */
   nodeId?: string;
+  /** Optional linked `src/sim` business id (for timeline arson / rebuilding). */
+  businessId?: string;
+  /** Optional linked `World.settlement.properties` lot slot. */
+  slot?: string;
 }
 
 export interface LoopStreetNode {
@@ -153,6 +168,20 @@ export interface LoopInit {
   streetLamps?: StreetLamp[];
   /** Optional map of `jurisdictionId -> parentJurisdictionId` for serious-crime escalation. */
   escalateJurisdiction?: Record<string, string>;
+  /** Optional timeline baseline start year (defaults to `Math.min(1950, year)`). */
+  timelineStartYear?: number;
+  /** Optional town/place id for `src/timeline` (defaults to `'capital'`). */
+  timelinePlaceId?: string;
+  /** Optional player birth year for cross-era forensic anomaly detection. */
+  playerBirthYear?: number;
+  /** Optional initial nuclear fuel units for the time machine (default 4 trips). */
+  initialFuel?: number;
+  /** Optional maximum fuel capacity (default `Math.max(4, initialFuel ?? 4)`). */
+  maxFuel?: number;
+  /** Optional place id where the time machine sits in the capital. */
+  timeMachinePlaceId?: string;
+  /** Optional pre-existing `Timeline` ledger to attach to this loop sim. */
+  timeline?: Timeline;
 }
 
 /** Bijective mapping between arbitrary `src/sim/` ids (e.g. `p:0001`) and G007 plan-safe `[a-z][a-z0-9_]*` ids. */
@@ -172,6 +201,10 @@ export interface LoopPlaceRecord {
   townId: string;
   openHours?: [number, number];
   nodeId: string;
+  /** Optional linked `src/sim` business id (populated from `presentAt` or mapped on arson). */
+  businessId?: string;
+  /** Optional linked `World.settlement.properties` lot slot. */
+  slot?: string;
 }
 
 export interface LoopPersonMeta {
@@ -354,6 +387,12 @@ export interface LoopSim {
   courtCases?: Record<string, LoopCourtCase>;
   /** Bench warrants issued for missed court dates (G019). */
   warrants?: LoopWarrantRecord[];
+  /** Authoritative G017/G018 timeline ledger backing `jump()` (G020). */
+  timeline?: Timeline;
+  /** Time machine fuel, jump history, and loose threads (G020). */
+  timeMachine?: LoopTimeMachineState;
+  /** Items carried on the player's person across time jumps (G020). */
+  carriedItems?: LoopCarriedItem[];
   /** Cached stance per personId so `advance` reports exact attitude diffs. */
   lastStances: Record<string, AttitudeStance>;
   nextSeq: number;
@@ -480,6 +519,18 @@ export type LoopActionEvent =
       bribeAmount?: number;
       /** True if perjury is caught in open court. */
       caughtInCourt?: boolean;
+    } & SceneSnapshot)
+  | ({
+      kind: 'arson';
+      placeId: string;
+      /** Optional explicit `src/sim` business id (defaults to `place.businessId` or matched open store). */
+      businessId?: string;
+      /** Defaults to true (nighttime fire risks casualties in `src/sim`). */
+      atNight?: boolean;
+      gloved?: boolean;
+      /** Optional causal anchor tag (surfaces a loose thread on jump). */
+      causeTag?: CausalAnchorTag;
+      summary?: string;
     } & SceneSnapshot);
 
 export interface WitnessNotice {
@@ -527,6 +578,10 @@ export interface ActResult {
   interferenceSucceeded?: boolean;
   /** Populated on `court_interference`: whether the target refused or reported to police. */
   interferenceReported?: boolean;
+  /** Populated on `arson`: the `src/sim` business id recorded on the timeline. */
+  burnedBusinessId?: string;
+  /** Populated on `arson`: the `World.settlement` lot slot recorded on the timeline. */
+  burnedSlot?: string;
   /** Updated sim clock and world changes when `act` advances time (owned by `work_shift`). */
   day?: number;
   hour?: number;
@@ -605,6 +660,8 @@ export interface AttitudeResult {
   trust: number;
   /** Short, plain-English facts written for speaking to the player ("you"), ready for the dialogue model's fact sheet. */
   facts: string[];
+  /** Optional plain-English timeline loose-thread dialogue hooks relevant to this NPC / current era (G020). */
+  looseThreadFacts?: string[];
 }
 
 export interface PoliceViewCase {
@@ -1033,3 +1090,118 @@ export interface CourtViewResult {
 }
 
 export type SimPersonMap = Record<Id, Person>;
+
+/* ── G020: Time Machine & Jump Types ─────────────────────────────────────────── */
+
+export interface LoopCarriedItem {
+  id: string;
+  label: string;
+  /** Value in integer era cents when acquired. */
+  value: number;
+  acquiredYear: number;
+  acquiredDay: number;
+  acquiredPlaceId: string;
+  acquiredPlaceName: string;
+  stolen: boolean;
+  serialNumber?: string;
+  ownerId?: string;
+  ownerName?: string;
+  businessId?: string;
+  businessName?: string;
+  crimeId?: string;
+  provenanceNote: string;
+}
+
+export interface LoopJumpRecord {
+  jumpIndex: number;
+  fromYear: number;
+  toYear: number;
+  fuelSpent: number;
+  fuelRemaining: number;
+  looseThreadCount: number;
+  gazetteStoryCount: number;
+}
+
+export interface LoopTimeMachineState {
+  fuelRemaining: number;
+  maxFuel: number;
+  machinePlaceId: string;
+  originYear: number;
+  currentYear: number;
+  jumpHistory: LoopJumpRecord[];
+  looseThreads: LooseThread[];
+  looseThreadFacts: string[];
+}
+
+export interface LoopGazetteEntry {
+  id: string;
+  year: number;
+  template: string;
+  category: string;
+  headline: string;
+  body: string;
+  people: string[];
+  business?: string;
+}
+
+export interface LoopCrossEraMatch {
+  crimeId: string;
+  crimeKind: TimelineCrimeKind;
+  crimeYear: number;
+  matchedInYear: number;
+  traceKind: TraceKind;
+  method: string;
+  confidence: number;
+  yearsToMatch: number;
+  anomalies: TimeTravelAnomaly[];
+  summary: string;
+}
+
+export interface JumpInput {
+  toYear: number;
+  /** Optional day-of-year upon arrival (default 1). */
+  arrivalDay?: number;
+  /** Optional hour-of-day upon arrival (default 9). */
+  arrivalHour?: number;
+  /** Optional player place id; checked when `requireAtMachine` is true. */
+  playerPlaceId?: string;
+  /** When true and `playerPlaceId` is supplied, requires the player to be at the machine in the capital. */
+  requireAtMachine?: boolean;
+}
+
+export interface JumpResult {
+  sim: LoopSim;
+  ok: boolean;
+  reason?: string;
+  fromYear: number;
+  toYear: number;
+  fuelSpent: number;
+  fuelRemaining: number;
+  maxFuel: number;
+  alivePeopleCount: number;
+  placeCount: number;
+  changes?: TimelineChangesReport;
+  gazette: LoopGazetteEntry[];
+  carriedItems: CarriedItemStatus[];
+  crimeStatuses: CaseStatusReport[];
+  crossEraMatches: LoopCrossEraMatch[];
+  looseThreads: LooseThread[];
+  /** Plain-English loose-thread facts for HUD & NPC fact sheets. */
+  looseThreadFacts: string[];
+  policePlans: OfficerPlanDirective[];
+  summary: string;
+}
+
+export interface TimeMachineViewResult {
+  currentYear: number;
+  originYear: number;
+  fuelRemaining: number;
+  maxFuel: number;
+  machinePlaceId: string;
+  jumpHistory: LoopJumpRecord[];
+  carriedItems: LoopCarriedItem[];
+  carriedItemStatuses: CarriedItemStatus[];
+  looseThreads: LooseThread[];
+  looseThreadFacts: string[];
+  gazette: LoopGazetteEntry[];
+}

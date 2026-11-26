@@ -52,6 +52,19 @@ import {
   stepLoopPolice,
 } from './policeBridge';
 import {
+  DEFAULT_TIME_MACHINE_FUEL,
+  addLoopCarriedItem,
+  buildTimeMachineView,
+  ensureTimeMachine,
+  ensureTimeline,
+  looseThreadHooksForPerson,
+  performTimeJump,
+  recordArsonInTimeline,
+  removeLoopCarriedItem,
+  syncSimToTimeline,
+} from './timeJump';
+import { branch } from '../timeline';
+import {
   applyBailDecision,
   applyChooseCounsel,
   applyCourtInterference,
@@ -85,6 +98,10 @@ import type {
   CourtInterferenceInput,
   CourtInterferenceResult,
   CourtViewResult,
+  JumpInput,
+  JumpResult,
+  LoopCarriedItem,
+  TimeMachineViewResult,
   CrimeMetaRecord,
   LoopActionEvent,
   LoopCourtCase,
@@ -523,6 +540,8 @@ export function create(init: LoopInit): LoopSim {
       townId: p.townId ?? p.jurisdictionId,
       ...(p.openHours !== undefined ? { openHours: [p.openHours[0], p.openHours[1]] as [number, number] } : {}),
       nodeId,
+      ...(p.businessId !== undefined ? { businessId: p.businessId } : {}),
+      ...(p.slot !== undefined ? { slot: p.slot } : {}),
     };
   }
 
@@ -687,7 +706,7 @@ export function create(init: LoopInit): LoopSim {
     lastStances[pid] = 'serve';
   }
 
-  return {
+  const baseSim: LoopSim = {
     version: 1,
     seed: init.seed,
     year: init.year,
@@ -723,6 +742,36 @@ export function create(init: LoopInit): LoopSim {
     lastStances,
     nextSeq: 1,
   };
+  const hasExplicitTimeInit =
+    init.timeline !== undefined ||
+    init.initialFuel !== undefined ||
+    init.maxFuel !== undefined ||
+    init.timeMachinePlaceId !== undefined ||
+    init.timelineStartYear !== undefined ||
+    init.timelinePlaceId !== undefined ||
+    init.playerBirthYear !== undefined;
+  if (hasExplicitTimeInit) {
+    baseSim.timeMachine = ensureTimeMachine(baseSim, {
+      ...(init.initialFuel !== undefined ? { initialFuel: init.initialFuel } : {}),
+      ...(init.maxFuel !== undefined ? { maxFuel: init.maxFuel } : {}),
+      ...(init.timeMachinePlaceId !== undefined ? { machinePlaceId: init.timeMachinePlaceId } : {}),
+    });
+    if (
+      init.timeline !== undefined ||
+      init.timelineStartYear !== undefined ||
+      init.timelinePlaceId !== undefined ||
+      init.playerBirthYear !== undefined
+    ) {
+      baseSim.timeline =
+        init.timeline ??
+        ensureTimeline(baseSim, {
+          ...(init.timelineStartYear !== undefined ? { startYear: init.timelineStartYear } : {}),
+          ...(init.timelinePlaceId !== undefined ? { placeId: init.timelinePlaceId } : {}),
+          ...(init.playerBirthYear !== undefined ? { birthYear: init.playerBirthYear } : {}),
+        });
+    }
+  }
+  return baseSim;
 }
 
 /**
@@ -794,10 +843,29 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
       const fam = touchFamiliarity(clerkId);
       fam.trustDelta = Math.round((fam.trustDelta + 0.04) * 1000) / 1000;
     }
+    const ownerName = clerkId ? sim.peopleMeta[clerkId]?.name : undefined;
+    const boughtCarried: LoopCarriedItem = {
+      id: event.item.id,
+      label: event.item.label,
+      value: event.item.value ?? 100,
+      acquiredYear: sim.year,
+      acquiredDay: sim.currentDay,
+      acquiredPlaceId: event.placeId,
+      acquiredPlaceName: placeName,
+      stolen: false,
+      ...(event.item.serialNumber ? { serialNumber: event.item.serialNumber } : {}),
+      ...(clerkId ? { ownerId: clerkId } : {}),
+      ...(ownerName ? { ownerName } : {}),
+      ...(place?.businessId ? { businessId: place.businessId } : {}),
+      businessName: placeName,
+      provenanceNote: `Bought ${event.item.label} at ${placeName} in ${sim.year}.`,
+    };
+    const nextCarried = addLoopCarriedItem(sim.carriedItems, boughtCarried);
     const nextSim: LoopSim = {
       ...sim,
       playerAppearance,
       familiarity: nextFamiliarity,
+      carriedItems: nextCarried,
     };
     return {
       sim: nextSim,
@@ -976,6 +1044,7 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
       }
     }
 
+    const nextCarried = removeLoopCarriedItem(sim.carriedItems, event.item.id);
     const nextSim: LoopSim = {
       ...sim,
       playerAppearance,
@@ -983,6 +1052,7 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
       stolenItems: nextStolenItems,
       pawnRecords: nextPawnRecords,
       familiarity: nextFamiliarity,
+      ...(nextCarried !== undefined ? { carriedItems: nextCarried } : {}),
       nextSeq,
     };
 
@@ -1269,6 +1339,12 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
     ownerId = event.targetId;
     gloved = Boolean(event.gloved);
     exposure = place?.kind === 'street' || place?.kind === 'yard' ? 'outdoor' : 'indoor';
+  } else if (event.kind === 'arson') {
+    crimeKind = 'robbery';
+    severity = 0.85;
+    ownerId = place?.ownerId;
+    gloved = Boolean(event.gloved);
+    exposure = 'indoor';
   } else {
     // Closed or forced `enter`
     crimeKind = 'burglary';
@@ -1444,20 +1520,87 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
     ...(t.serialNumber !== undefined ? { serialNumber: t.serialNumber } : {}),
   }));
 
-  const nextSim: LoopSim = {
+  let nextCarried = sim.carriedItems;
+  if (event.kind === 'take' && itemId && itemLabel) {
+    const oName = ownerId ? sim.peopleMeta[ownerId]?.name : undefined;
+    nextCarried = addLoopCarriedItem(sim.carriedItems, {
+      id: itemId,
+      label: itemLabel,
+      value: itemValue ?? 500,
+      acquiredYear: sim.year,
+      acquiredDay: sim.currentDay,
+      acquiredPlaceId: event.placeId,
+      acquiredPlaceName: placeName,
+      stolen: true,
+      ...(effectiveSerial ? { serialNumber: effectiveSerial } : {}),
+      ...(ownerId ? { ownerId } : {}),
+      ...(oName ? { ownerName: oName } : {}),
+      ...(place?.businessId ? { businessId: place.businessId } : {}),
+      businessName: placeName,
+      crimeId,
+      provenanceNote: `Taken from ${placeName} in ${sim.year}${effectiveSerial ? ` (serial ${effectiveSerial})` : ''}.`,
+    });
+  }
+
+  let nextSim: LoopSim = {
     ...sim,
     playerAppearance: eventAppearance,
     crimeState: nextCrimeState,
     crimeMeta: nextCrimeMeta,
     stolenItems: nextStolenItems,
     familiarity: nextFamiliarity,
+    ...(nextCarried !== undefined ? { carriedItems: nextCarried } : {}),
     nextSeq,
   };
+
+  let burnedBusinessId: string | undefined;
+  let burnedSlot: string | undefined;
+  if (event.kind === 'arson') {
+    const arsonRes = recordArsonInTimeline({
+      sim: nextSim,
+      crimeId,
+      placeId: event.placeId,
+      businessId: event.businessId,
+      atNight: event.atNight ?? true,
+      causeTag: event.causeTag,
+      summary: event.summary,
+      traces: traces.map((t) => ({ ...t })),
+      witnesses: sightings.map((s) => ({
+        personId: s.witnessId,
+        name: sim.peopleMeta[s.witnessId]?.name ?? s.witnessId,
+        confidence: s.confidence,
+        identifiedCulprit: s.identifiedCulpritId === sim.playerId,
+      })),
+      reported: Boolean(nextCrimeState.jurisdictions[jurisdictionId]?.cases[crimeId]),
+      policeCase: nextCrimeState.jurisdictions[jurisdictionId]?.cases[crimeId],
+    });
+    burnedBusinessId = arsonRes.businessId;
+    burnedSlot = arsonRes.slot;
+    nextSim = {
+      ...nextSim,
+      timeline: arsonRes.timeline,
+    };
+  } else if (event.kind === 'assault' && event.lethal && sim.timeline) {
+    const tl = syncSimToTimeline(nextSim);
+    nextSim = {
+      ...nextSim,
+      timeline: branch(tl, {
+        year: sim.year,
+        placeId: tl.placeId,
+        kind: 'kill',
+        targetId: event.targetId,
+        crimeId,
+        summary: `Killed ${sim.peopleMeta[event.targetId]?.name ?? event.targetId} in ${sim.year}.`,
+      }),
+    };
+  }
 
   return {
     sim: nextSim,
     kind: event.kind,
     legit: false,
+    ...(burnedBusinessId !== undefined ? { burnedBusinessId } : {}),
+    ...(burnedSlot !== undefined ? { burnedSlot } : {}),
     crimeId,
     ...(effectiveSerial !== undefined ? { stolenSerialNumber: effectiveSerial } : {}),
     witnessedBy,
@@ -2726,6 +2869,9 @@ export function attitude(
     stance = 'wary';
   }
 
+  const looseThreadFacts = looseThreadHooksForPerson(sim, personId);
+  const combinedFacts =
+    looseThreadFacts.length > 0 ? [...facts, ...looseThreadFacts] : facts;
   return {
     personId,
     name,
@@ -2733,7 +2879,8 @@ export function attitude(
     knowsPlayerName,
     ...(playerNameKnown !== undefined ? { playerNameKnown } : {}),
     trust,
-    facts,
+    facts: combinedFacts,
+    ...(looseThreadFacts.length > 0 ? { looseThreadFacts } : {}),
   };
 }
 
@@ -3544,7 +3691,11 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
     });
     nextCourtCases[courtCase.id] = courtCase;
 
-    const chargedSim = pruneResolvedState({
+    const confiscatedSet = new Set(confiscatedItems);
+    const nextCarriedAfterConfiscation = sim.carriedItems
+      ? sim.carriedItems.filter((c) => !confiscatedSet.has(c.id))
+      : undefined;
+    let chargedBase: LoopSim = {
       ...sim,
       crimeState: nextCrimeState,
       policeState: {
@@ -3553,10 +3704,17 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
         nextSeq: policeSeq,
       },
       stolenItems: nextStolenItems,
+      ...(nextCarriedAfterConfiscation !== undefined
+        ? { carriedItems: nextCarriedAfterConfiscation }
+        : {}),
       courtCases: nextCourtCases,
       ...(nextWarrants ? { warrants: nextWarrants } : {}),
       nextSeq,
-    });
+    };
+    if (chargedBase.timeline) {
+      chargedBase = { ...chargedBase, timeline: syncSimToTimeline(chargedBase) };
+    }
+    const chargedSim = pruneResolvedState(chargedBase);
 
     const bailLine = courtCase.bail.granted
       ? `Bail set at ${eraFormatMoney(courtCase.bail.amountCents, sim.year)}`
@@ -3732,7 +3890,11 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
     findings: bookingOutcome.report.findings.slice(),
   };
 
-  const bookedSim = pruneResolvedState({
+  const pettyConfiscatedSet = new Set(confiscatedItems);
+  const pettyCarried = sim.carriedItems
+    ? sim.carriedItems.filter((c) => !pettyConfiscatedSet.has(c.id))
+    : undefined;
+  let bookedBase: LoopSim = {
     ...sim,
     crimeState: nextCrimeState,
     policeState: {
@@ -3742,10 +3904,15 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
     },
     crimeMeta: nextCrimeMeta,
     stolenItems: nextStolenItems,
+    ...(pettyCarried !== undefined ? { carriedItems: pettyCarried } : {}),
     familiarity: nextFamiliarity,
     priorOffenses: nextPriorOffenses,
     nextSeq,
-  });
+  };
+  if (bookedBase.timeline) {
+    bookedBase = { ...bookedBase, timeline: syncSimToTimeline(bookedBase) };
+  }
+  const bookedSim = pruneResolvedState(bookedBase);
 
   // Run any cell / jail time through advance() so gossip, reports, decay & police plans run normally
   let finalSim = bookedSim;
@@ -3978,6 +4145,47 @@ export function courtInterfere(
 export function courtView(sim: LoopSim): CourtViewResult {
   return buildCourtView(sim);
 }
+
+/**
+ * Steps into the capital time machine and jumps to `input.toYear` via G017/G018 `presentAt`.
+ * Spends 1 nuclear fuel unit (starting budget: 4 trips), preserves carried items and cross-era
+ * forensic rules, resets attitudes except where the timeline carries memory, and returns the
+ * target-year town, Gazette archive, police state, cross-era matches, and plain-English loose threads.
+ */
+export function jump(sim: LoopSim, input: JumpInput): JumpResult {
+  return performTimeJump(sim, input, {
+    createLoopPolice,
+    stepArrivalPolice: (arrivedSim) => {
+      const tick = stepLoopPolice({
+        policeState: arrivedSim.policeState,
+        activeCrimeState: activeCrimeStateForPolice(arrivedSim),
+        fullCrimeState: arrivedSim.crimeState,
+        world: arrivedSim.world,
+        places: arrivedSim.places,
+        streetGraph: arrivedSim.streetGraph,
+        day: arrivedSim.currentDay,
+        hour: arrivedSim.currentHour,
+        year: arrivedSim.year,
+        idMap: cloneIdMap(arrivedSim.idMap),
+      });
+      return {
+        sim: {
+          ...arrivedSim,
+          policeState: tick.policeState,
+          officers: tick.officers,
+          respondedCases: { ...tick.policeState.respondedCases },
+        },
+        policePlans: tick.directives,
+      };
+    },
+  });
+}
+
+export function timeMachineView(sim: LoopSim): TimeMachineViewResult {
+  return buildTimeMachineView(sim);
+}
+
+export { DEFAULT_TIME_MACHINE_FUEL };
 
 /**
  * Prunes state that resolved (or completely forgotten) crimes no longer need:
