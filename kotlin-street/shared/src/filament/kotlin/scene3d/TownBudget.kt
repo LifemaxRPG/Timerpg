@@ -65,14 +65,19 @@ object TownBudget {
 
     /**
      * The world's own GPU share (WorldMemory.gpu: the far view, both plans while one is swapped in, the near terrain's
-     * nodes and pictures, the near ocean) at any frame of the drive out of the capital (GpuWorldDriveTest): the streamer's
-     * fixed budget, wherever the player is. WorldMemory.GPU_BUDGET (250) is the design's cap; this is the measured
-     * figure and a little room: 130.0 MB peak on the drive to Evanvale (2026-11-25, desktop), most of it the ground's
-     * pictures (64 MB as RGBA8; 16 as ASTC) and 200-240 near nodes (31 MB).
+     * nodes and pictures, the near ocean, the country's trees and things) at any frame of the drive out of the capital
+     * (GpuWorldDriveTest): the streamer's fixed budget, wherever the player is. WorldMemory.GPU_BUDGET (250) is the design's
+     * cap; this is the measured figure and a little room. Step 1 measured 130.0 MB (budget 140). **Raised to 155 on purpose
+     * in step 1b** (2026-11-26, docs/WORLD_STREAM.md section 9): the country's trees, impostors, fences, poles and farmsteads
+     * are new and take 30-60 MB along the drive (the most at the wooded stretch 8 km out), while the ground's pictures went
+     * to ASTC (21 layers in 28 MB, where 12 took 64 as RGBA8); the peak measured 145.2 MB.
      */
-    const val WORLD_MB = 140.0
-    /** Filament's whole count at any frame of that drive: the capital's streamed share plus the world's (557.7 MB peak, 0.3 km out). */
-    const val WORLD_ROUTE_MB = 575.0
+    const val WORLD_MB = 155.0
+    /**
+     * Filament's whole count at any frame of that drive: the capital's streamed share plus the world's. Lowered in step 1b
+     * to the measured peak and a little room: 533.0 MB (0.3 km out; step 1: 557.7 with the budget 575).
+     */
+    const val WORLD_ROUTE_MB = 550.0
 
     /** One part's figure against its budget. */
     class Row(val part: String, val mb: Double?, val budget: Double) {

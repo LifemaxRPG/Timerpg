@@ -38,6 +38,11 @@ object WorldMemory {
     /** The near ocean's waves (WorldOcean): its mesh's buffers (bytes); whether it is drawn. */
     @Volatile var oceanBuffers = 0L
     @Volatile var oceanOn = false
+    /** The country's trees and things (step 1b, WorldProps): their meshes' buffers, the impostors' atlas (bytes), the cells held. */
+    @Volatile var propsBuffers = 0L
+    @Volatile var propsTextures = 0L
+    @Volatile var propsCells = 0
+    val propsGpu: Long get() = propsBuffers + propsTextures
 
     const val RAM_BUDGET = 200L shl 20
     const val GPU_BUDGET = 250L shl 20
@@ -45,14 +50,14 @@ object WorldMemory {
     const val NEAR_GPU_BUDGET = 64L shl 20
 
     val ram: Long get() = skeleton + facts + plan
-    val gpu: Long get() = gpuBuffers + gpuTextures + nearBuffers + nearIds + nearTextures + oceanBuffers
+    val gpu: Long get() = gpuBuffers + gpuTextures + nearBuffers + nearIds + nearTextures + oceanBuffers + propsGpu
 
     private fun mb(b: Long) = "%.1f".format(java.util.Locale.US, b / 1048576.0)
 
     fun line(): String = "world: RAM ${mb(ram)} MB of ${RAM_BUDGET shr 20} (skeleton grids ${mb(skeleton)}, facts ~${mb(facts)}, far plan ${mb(plan)}), " +
         "GPU ${mb(gpu)} MB of ${GPU_BUDGET shr 20} (far view $farParts parts: buffers ${mb(gpuBuffers)}, pictures ${mb(gpuTextures)}; $triangles triangles in $draws draws; " +
         "near terrain $nearNodes nodes: buffers ${mb(nearBuffers)}, material maps ${mb(nearIds)}, ground pictures ${mb(nearTextures)}; $nearTriangles triangles in $nearDraws draws; " +
-        "ocean ${if (oceanOn) "on" else "off"} ${mb(oceanBuffers)})"
+        "ocean ${if (oceanOn) "on" else "off"} ${mb(oceanBuffers)}; the country's trees and things $propsCells cells: buffers ${mb(propsBuffers)}, impostor atlas ${mb(propsTextures)})"
 
     /** Whether the world keeps within its budgets. */
     val withinBudget: Boolean get() = ram <= RAM_BUDGET && gpu <= GPU_BUDGET

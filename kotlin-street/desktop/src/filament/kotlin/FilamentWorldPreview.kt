@@ -1,3 +1,4 @@
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import com.lifemax.rpg.feature.habits.domain.Town
 import com.lifemax.rpg.feature.habits.domain.WorldFarPlan
 import com.lifemax.rpg.feature.habits.domain.WorldMemory
@@ -39,12 +40,15 @@ internal object WorldPreview {
         it.ringOn = System.getProperty("horizon") != "0"
         // (-DworldStream=0: the far view planned once round the town, as before the streamer; -DworldOcean=1: the near waves)
         it.streamOn = System.getProperty("worldStream") != "0"
-        it.oceanOn = System.getProperty("worldOcean") == "1"
+        it.oceanOn = System.getProperty("worldOcean") != "0"
+        it.propsOn = System.getProperty("worldProps") != "0"
     }.attach(ft, {
         val t0 = System.nanoTime()
         // (-DworldYear=1990: the world's roads as they are that year, Highways v2)
         site.plan(year(town)).also { println("  world: far view planned in %.0f ms: %s".format((System.nanoTime() - t0) / 1e6, it.report)) }
-    }, site.origin, near = System.getProperty("worldNear") != "0", replan = { c -> site.plan(year(town), c) })
+    }, site.origin, near = System.getProperty("worldNear") != "0", replan = { c -> site.plan(year(town), c) },
+        // (the country's farmsteads wear the capital's farm models)
+        farmArt = java.io.File("../app/src/main/assets/farm").let { d -> com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt({ p -> java.io.File(d, p).takeIf { it.exists() }?.let { org.jetbrains.skia.Image.makeFromEncoded(it.readBytes()).toComposeImageBitmap() } }, { p -> java.io.File(d, p).takeIf { it.exists() }?.readText() }) })
 
     private fun year(town: Town): Int = System.getProperty("worldYear")?.toIntOrNull() ?: town.year
 

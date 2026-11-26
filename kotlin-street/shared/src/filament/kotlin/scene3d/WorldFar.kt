@@ -272,6 +272,8 @@ internal class WorldFar(
     var near: WorldNear? = null
     /** The near ocean's waves drawn with it (WORLD_STREAM.md), if any. */
     var ocean: WorldOcean? = null
+    /** The country's trees and things drawn with it (WORLD_STREAM.md, step 1b), if any. */
+    var props: WorldProps? = null
 
     override fun destroy() { job?.cancel(true); ringJob?.cancel(true); ringJob = null; nextJob?.cancel(true); nextJob = null; next?.parts?.forEach { it.layer?.destroy() }; next = null
         retiring.forEach { it.layer?.destroy() }; retiring.clear(); parts?.forEach { it.layer?.destroy() }; parts = null; WorldMemory.gpuBuffers = 0; WorldMemory.gpuTextures = 0; WorldMemory.triangles = 0; WorldMemory.draws = 0 }
@@ -627,7 +629,9 @@ internal class WorldFar(
          * town; null: planned once round the town. With it the town's far boxes are drawn out to [TOWN_REACH_M] (the capital
          * stays on the skyline as the player drives off) and the near ocean's waves ([WorldOcean]) come with it.
          */
-        fun attach(town: FilamentTown, plan: () -> WorldFarPlan, origin: RenderOrigin, near: Boolean = nearOn, replan: ((WorldPos) -> WorldFarPlan)? = null): WorldFar {
+        fun attach(town: FilamentTown, plan: () -> WorldFarPlan, origin: RenderOrigin, near: Boolean = nearOn, replan: ((WorldPos) -> WorldFarPlan)? = null,
+                   /** The farm models' assets for the country's farmsteads (step 1b); null: none drawn. */ farmArt: FarmArt? = null): WorldFar {
+            WorldProps.farmArt = farmArt
             town.worldReach = (WorldFarPlan.REACH_M * origin.unitsPerMetre * 1.02).toFloat()
             town.worldUnitsPerMetre = origin.unitsPerMetre
             town.worldBaseM = origin.town?.elevM ?: 0.0
@@ -636,7 +640,7 @@ internal class WorldFar(
             val grass = if (near) TownGround.boundsOf(town.town).let { b -> doubleArrayOf(b[0] / u, b[1] / u, b[2] / u, b[3] / u) } else null
             val far = town.addExtra { WorldFar(it, plan, origin, grass, if (streamOn) replan else null) }
             if (ringOn) far.onHorizon = { town.horizon(it) }
-            if (near) { far.near = WorldNear.attach(town, far, origin, grass); town.farFields = false }
+            if (near) { far.near = WorldNear.attach(town, far, origin, grass); town.farFields = false; if (propsOn) far.props = WorldProps.attach(town, far, origin) }
             if (streamOn && replan != null) {
                 town.townFarReach = (TOWN_REACH_M * u).toFloat()
                 if (oceanOn) far.ocean = WorldOcean.attach(town, far, origin)
@@ -650,11 +654,12 @@ internal class WorldFar(
         /** Whether the world follows the player out of town (previews: -DworldStream=0: planned once round the town, as before). */
         @JvmStatic var streamOn = true
         /**
-         * Whether the near ocean's waves are drawn by the coast. Off by default for now (previews: -DworldOcean=1): placed,
-         * anchored and budgeted, but in the town's view it reads as one flat teal, not Jeff's stepped waves
-         * (docs/WORLD_STREAM.md, "The near ocean": a follow-up).
+         * Whether the near ocean's waves are drawn by the coast (previews: -DworldOcean=0 for the far view's flat sea). On since step
+         * 1b, which fixed its shading (ocean.mat's noise in highp: docs/WORLD_STREAM.md, "The near ocean").
          */
-        @JvmStatic var oceanOn = false
+        @JvmStatic var oceanOn = true
+        /** Whether the country's trees and things are drawn with the near terrain (previews: -DworldProps=0: the bare ground). */
+        @JvmStatic var propsOn = true
 
         /** The finest level's rim over which its colours fade from the near ground's materials to the biomes' (quads). */
         private const val RIM_FADE = 40

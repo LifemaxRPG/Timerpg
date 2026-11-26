@@ -143,6 +143,7 @@ object GpuAccount {
             has("TownCars", "VehicleKit", "TownBike", "RideLayer") -> "vehicles"
             has("TownPeople") -> "people"
             s == "yards" || has("YardLayer", "YardKit", "TownYardHook") -> "yards"
+            s == "world country" || has("WorldProps", "WorldPropKit") -> "world country"
             has("WorldNear", "WorldFar", "TerrainPics", "TownGround", "OceanSurface", "TownFar") || s == "ground" -> "ground and terrain"
             s == "trees" || has("TreeCells", "TreeKit") -> "trees"
             s == "chunks" -> "street things and greenery"

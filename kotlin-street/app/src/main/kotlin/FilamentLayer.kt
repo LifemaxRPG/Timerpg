@@ -647,7 +647,7 @@ private class FilamentHost(private val ctx: Context, private val view: View, pri
             data.world?.let { w ->
                 // (the world streamer, docs/WORLD_STREAM.md: the far view planned again round the player out in the country)
                 val far = com.lifemax.rpg.feature.habits.presentation.scene3d.WorldFar.attach(ft, { w.plan(data.town.year) }, w.origin,
-                    replan = { c -> w.plan(data.town.year, c) })
+                    replan = { c -> w.plan(data.town.year, c) }, farmArt = data.farmArt)
                 // (a re-planned terrain is the same ground: the cars' chunks stay, they read the new one from now on)
                 far.onTerrainSwap = { t -> com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.terrain = t }
                 // (the cars' ground beyond the town is this same terrain, handed over once it is made)

@@ -141,7 +141,7 @@ internal object TreeImpostors {
     }
 
     /**
-     * [trees] (each a look and its place: x, z, along x, z, out x, z) as quads facing the eye at ([ex], [ez]), each wearing
+     * [trees] (each a look and its place: x, z, along x, z, out x, z, and optionally its turn and its foot's height) as quads facing the eye at ([ex], [ez]), each wearing
      * its view nearest the eye's direction from it; null if none has a view in [atlas].
      */
     fun mesh(atlas: Atlas, trees: List<Pair<TreeKit.Spec, FloatArray>>, ex: Float, ez: Float): PropMesh? {
@@ -149,7 +149,7 @@ internal object TreeImpostors {
         if (list.isEmpty()) return null
         val n = list.size
         val pos = FloatArray(n * 12); val uv = FloatArray(n * 8); val nrm = FloatArray(n * 12); val tan = FloatArray(n * 12); val idx = IntArray(n * 6)
-        val bb = floatArrayOf(Float.MAX_VALUE, 0f, Float.MAX_VALUE, -Float.MAX_VALUE, 0f, -Float.MAX_VALUE)
+        val bb = floatArrayOf(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE)
         for ((i, p) in list.withIndex()) {
             val (s, a) = p
             // (the look baked at its middle height, scaled to this tree's own)
@@ -167,6 +167,8 @@ internal object TreeImpostors {
             val rx = a[2] * dzl + a[4] * -dxl; val rz = a[3] * dzl + a[5] * -dxl
             val fx = a[2] * dxl + a[4] * dzl; val fz = a[3] * dxl + a[5] * dzl
             val cx = a[0]; val cz = a[1]
+            // (its foot's height, if given: the open country's trees stand on the terrain, WorldProps; the town's at 0)
+            val y0 = if (a.size > 7) a[7] else 0f
             val corners = arrayOf(floatArrayOf(-half, 0f), floatArrayOf(half, 0f), floatArrayOf(half, tall), floatArrayOf(-half, tall))
             val u0 = (r[0] + k * r[2]).toFloat() / atlas.w; val u1 = (r[0] + (k + 1) * r[2]).toFloat() / atlas.w
             val v0 = r[1].toFloat() / atlas.h; val v1 = (r[1] + r[3]).toFloat() / atlas.h
@@ -176,11 +178,11 @@ internal object TreeImpostors {
             val nx = fx / nl * .9f; val ny = .44f; val nz = fz / nl * .9f
             for (c in 0 until 4) {
                 val o = (i * 4 + c) * 3
-                pos[o] = cx + rx * corners[c][0]; pos[o + 1] = corners[c][1]; pos[o + 2] = cz + rz * corners[c][0]
+                pos[o] = cx + rx * corners[c][0]; pos[o + 1] = y0 + corners[c][1]; pos[o + 2] = cz + rz * corners[c][0]
                 nrm[o] = nx; nrm[o + 1] = ny; nrm[o + 2] = nz
                 tan[o] = rx; tan[o + 1] = 0f; tan[o + 2] = rz
                 uv[(i * 4 + c) * 2] = uvs[c * 2]; uv[(i * 4 + c) * 2 + 1] = uvs[c * 2 + 1]
-                bb[0] = min(bb[0], pos[o]); bb[2] = min(bb[2], pos[o + 2]); bb[3] = max(bb[3], pos[o]); bb[5] = max(bb[5], pos[o + 2]); bb[4] = max(bb[4], tall)
+                bb[0] = min(bb[0], pos[o]); bb[2] = min(bb[2], pos[o + 2]); bb[3] = max(bb[3], pos[o]); bb[5] = max(bb[5], pos[o + 2]); bb[1] = min(bb[1], pos[o + 1]); bb[4] = max(bb[4], pos[o + 1])
             }
             val b = i * 4
             idx[i * 6] = b; idx[i * 6 + 1] = b + 1; idx[i * 6 + 2] = b + 2; idx[i * 6 + 3] = b; idx[i * 6 + 4] = b + 2; idx[i * 6 + 5] = b + 3
