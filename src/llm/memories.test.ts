@@ -422,6 +422,52 @@ describe('G021: NPC first-person memories from loop events', () => {
     expect(validate('Lois told me you were picked up by the police.', stringBrief)).toBeTruthy();
   });
 
+  it('handles unconfirmed sightings (recognizedPlayer: false), friendIds promotion, and witness+hearer deduplication', () => {
+    const events: LoopMemoryEvent[] = [
+      {
+        id: 'ev:dim:1',
+        kind: 'crime',
+        crimeKind: 'burglary',
+        day: 10,
+        dayName: 'Tuesday',
+        placeName: "Fairchild's",
+        itemLabel: 'watch',
+        witnesses: [
+          { personId: 'p:dim_witness', confidence: 0.55, recognizedPlayer: false },
+          { personId: 'p:both', confidence: 0.9, recognizedPlayer: true },
+        ],
+        hearers: [
+          // Same person also heard gossip later -> seen must win, never duplicated
+          { personId: 'p:both', toldById: 'p:lois', toldByName: 'Lois', fromFriend: true, hops: 1 },
+          // friendIds option promotes teller to heard_friend even if fromFriend is omitted
+          { personId: 'p:pal', toldById: 'p:lois', toldByName: 'Lois', hops: 1 },
+        ],
+      },
+    ];
+
+    const dim = memoriesFor('p:dim_witness', events, { day: 11 })[0]!;
+    expect(dim.line).toContain('someone who looked like you');
+    expect(dim.source).toBe('seen');
+
+    const both = memoriesFor('p:both', events, { day: 11 });
+    expect(both).toHaveLength(1);
+    expect(both[0]!.source).toBe('seen');
+    expect(both[0]!.heardOnly).toBe(false);
+
+    const palViaFriendIds = memoriesFor('p:pal', events, { day: 11 }, { friendIds: ['p:lois'] })[0]!;
+    const palWithoutFriend = memoriesFor('p:pal', events, { day: 11 })[0]!;
+    expect(palViaFriendIds.source).toBe('heard_friend');
+    expect(palWithoutFriend.source).toBe('heard_rumor');
+    expect(palViaFriendIds.certainty).toBeGreaterThan(palWithoutFriend.certainty);
+
+    // Additional epistemic guard variants
+    const b = brief(baseCtx, 'chat', narrate(baseCtx, 'chat'), [], [], [palViaFriendIds]);
+    expect(whyRejected('I was there when you broke in.', b)).toBe('claimed to have seen something only heard');
+    expect(whyRejected('I saw the whole thing.', b)).toBe('claimed to have seen something only heard');
+    expect(whyRejected('I saw what you did.', b)).toBe('claimed to have seen something only heard');
+    expect(validate("Lois told me about Fairchild's, though I wasn't there when it happened.", b)).toBeTruthy();
+  });
+
   it('works as pure plain JSON via memoriesForJson', () => {
     const events: LoopMemoryEvent[] = [
       {

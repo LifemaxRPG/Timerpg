@@ -371,6 +371,7 @@ function formatDirectLine(
   tone: MemoryTone,
   certainty: number,
   playerName?: string,
+  recognizedPlayer = true,
 ): string {
   const when = timePhrase(ageDays, e.dayName);
   const place = cleanText(e.placeName);
@@ -381,13 +382,14 @@ function formatDirectLine(
 
   if (e.kind === 'crime') {
     const clause = crimeActionClause(e, false);
+    const subject = recognizedPlayer ? 'you' : 'someone who looked like you';
     if (tone === 'downplayed') {
-      return `${fadedPrefix}I saw you ${clause} ${when}, though I'm sure there was more to it.`;
+      return `${fadedPrefix}I saw ${subject} ${clause} ${when}, though I'm sure there was more to it.`;
     }
     if (tone === 'embellished') {
-      return `${fadedPrefix}I saw you with my own eyes ${clause} ${when} — quite the scene.`;
+      return `${fadedPrefix}I saw ${subject} with my own eyes ${clause} ${when} — quite the scene.`;
     }
-    return `${fadedPrefix}I saw you ${clause} ${when}.`;
+    return `${fadedPrefix}I saw ${subject} ${clause} ${when}.`;
   }
 
   if (e.kind === 'work_shift') {
@@ -587,6 +589,7 @@ interface KnowledgeHit {
   baseCertainty: number;
   sourceWeight: number;
   isVictim: boolean;
+  recognizedPlayer: boolean;
   toldByName?: string;
   heardDay: number;
 }
@@ -608,9 +611,12 @@ function resolveKnowledge(
 
   if (witness || isDirectParticipant) {
     const isVictim = Boolean(witness?.isVictim || e.victimId === personId);
+    const recognizedPlayer = witness ? witness.recognizedPlayer !== false : true;
     const rawConf = witness?.confidence ?? 0.94;
-    // Direct/seen certainty stays strictly above heard_friend at matching age.
-    const baseCertainty = clamp(0.78 + 0.21 * clamp(rawConf, 0, 1), 0.78, 0.99);
+    // Direct/seen certainty stays strictly above heard_friend at matching age (slightly softer if unconfirmed face).
+    const baseCertainty = recognizedPlayer
+      ? clamp(0.78 + 0.21 * clamp(rawConf, 0, 1), 0.78, 0.99)
+      : clamp(0.74 + 0.14 * clamp(rawConf, 0, 1), 0.74, 0.88);
     const source: MemorySource =
       witness || e.kind === 'crime' || e.kind === 'stop' || e.kind === 'arrest' || e.kind === 'trial'
         ? 'seen'
@@ -618,8 +624,9 @@ function resolveKnowledge(
     return {
       source,
       baseCertainty,
-      sourceWeight: 1.0,
+      sourceWeight: recognizedPlayer ? 1.0 : 0.9,
       isVictim,
+      recognizedPlayer,
       heardDay: e.day,
     };
   }
@@ -645,6 +652,7 @@ function resolveKnowledge(
       baseCertainty,
       sourceWeight: fromFriend ? 0.78 : 0.56,
       isVictim: false,
+      recognizedPlayer: true,
       toldByName: cleanText(h.toldByName),
       heardDay: h.dayHeard ?? e.day,
     };
@@ -708,7 +716,7 @@ export function memoriesFor(
     const line =
       hit.source === 'heard_friend' || hit.source === 'heard_rumor'
         ? formatHeardLine(e, hit.source, hit.toldByName, eventAge, tone, certainty)
-        : formatDirectLine(personId, e, eventAge, tone, certainty, options?.playerName);
+        : formatDirectLine(personId, e, eventAge, tone, certainty, options?.playerName, hit.recognizedPlayer);
 
     const entry: MemoryLine = {
       eventId: e.id,

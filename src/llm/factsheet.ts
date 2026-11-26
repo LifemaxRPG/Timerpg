@@ -408,7 +408,7 @@ const DEFLECT = /\b(talk about something else|chat about something else|change t
 /** A sentence that doubts or denies: the player's own word in it is not a claim ("A library? I haven't heard of one."). */
 const HEDGE = /\?|\b(no|not|never|nothing|nobody)\b|n't\b/i;
 /** Claims first-hand eyewitness observation of the player or an event. */
-const CLAIMED_SEEN = /\b(i saw you|i saw them|i saw him|i saw her|i saw it|i saw the police|i watched you|i watched it|i witnessed|with my own eyes|right in front of me|i was right there|i caught you|saw you myself)\b/i;
+const CLAIMED_SEEN = /\b(i saw you|i saw them|i saw him|i saw her|i saw it|i saw the police|i saw the whole thing|i saw what you did|i watched you|i watched it|i witnessed|with my own eyes|right in front of me|i was right there|i was there when|i caught you|saw you myself|saw it myself|saw you do it)\b/i;
 /** Explicitly denies having seen it (e.g. "I didn't see it myself", "I never saw you do it"). */
 const NEGATED_SIGHT = /\b(didn't|did not|never|haven't|have not|don't|do not|cannot|can't|not that i)\s+(?:actually\s+|even\s+|really\s+)?(see|saw|seen|watch|watched|witness|witnessed|catch|caught)\b|\b(wasn't|was not)\s+(?:even\s+|right\s+)?there\b/i;
 
