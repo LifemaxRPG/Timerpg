@@ -4,7 +4,7 @@ The single plain-JSON simulation API that the phone (`kotlin-street`, via QuickJ
 
 Every input and output across the boundary is **plain JSON** — no class instances, `Map`, `Set`, `Date`, functions, or Node/browser APIs. All randomness is seeded via `rand(seed, ...keys)` from `src/sim/rng.ts`.
 
-Policing is powered directly by the real G009 police engine (`src/police/`: `createPoliceForce`, `stepPoliceTick`, `spotting.ts`, and `plans.ts`) over G005/G008 crime/evidence (`src/crime/`) and G007 plans (`src/plan/`), and criminal prosecution runs through the real G010/G013 court engine (`src/court/`).
+Policing is powered directly by the real G009 police engine (`src/police/`: `createPoliceForce`, `stepPoliceTick`, `spotting.ts`, and `plans.ts`) over G005/G008 crime/evidence (`src/crime/`) and G007 plans (`src/plan/`), criminal prosecution runs through the real G010/G013 court engine (`src/court/`), and time jumps run through the real G006/G014 timeline engine (`src/timeline/`).
 
 ---
 
@@ -16,7 +16,8 @@ There is one clear owner for every simulated hour so callers never double-advanc
 - **`act(sim, { kind: 'work_shift', ... })`** **owns the shift's clock**: it records wages and familiarity, then runs `advance(sim, hours)` internally and returns the updated `day`, `hour`, `daysElapsed`, `policePlans`, `attitudeChanges`, `newPoliceCases`, and `pawnLeadsMatched`. Callers must **not** call `advance()` again for the shift.
 - **`arrest(sim, input)`** routes chargeable felonies, repeat offenses, and serious misdemeanors onto the court docket (`penalty: 'charged'`, `daysElapsed: 0`, returning `courtCase` with bail and first court date). Only petty first-offense misdemeanors retain the immediate summary fine path.
 - **`plead(sim, { plea: 'guilty' })`** and **`advance(sim, hours)` crossing a court date** **own the sentence clock**: when a guilty plea or guilty trial verdict imposes `jailHours > 0`, the skipped hours run through `advance()` (so gossip, police reports, trace/heat decay, and police plans progress during time served) unless `serveSentence: false` / `skipSentenceAdvance: true` is passed.
-- All other `act()` kinds (`buy`, `sell`, `take`, `take_vehicle`, `enter`) are instantaneous and do not advance the clock.
+- All other `act()` kinds (`buy`, `sell`, `take`, `take_vehicle`, `enter`, `arson`) are instantaneous and do not advance the clock.
+- **`jump(sim, { toYear })`** transitions the entire loop to `toYear` (resetting the local arrival clock to `day 1, 09:00` in the new year unless `arrivalHour` is provided) and spends 1 unit of nuclear fuel.
 
 ### Money Units (Integer Cents & Era Scaling)
 Every monetary field crossing the facade boundary is **integer cents** in era money, matching `src/economy/` (`docs/ECONOMY.md`):
@@ -43,7 +44,7 @@ Officer patrol beats are constructed by **graph distance (nearby corners)** in `
   --outfile=kotlin-street/app/src/main/assets/sim/sim.js
 ```
 
-Loading `sim.js` attaches `globalThis.TimerpgSim` (`init`, `act`, `advance`, `attitude`, `policeView`, `spotted`, `arrest`, `civilianSpotted`, `tipOff`, `bailDecision`, `chooseCounsel`, `plead`, `courtInterfere`, `courtView`, `save`, `load`), stateless `*Json` wrappers for every method, and `globalThis.simCall`.
+Loading `sim.js` attaches `globalThis.TimerpgSim` (`init`, `act`, `advance`, `attitude`, `policeView`, `spotted`, `arrest`, `civilianSpotted`, `tipOff`, `bailDecision`, `chooseCounsel`, `plead`, `courtInterfere`, `courtView`, `jump`, `timeMachineView`, `save`, `load`), stateless `*Json` wrappers for every method, and `globalThis.simCall`.
 
 ---
 
@@ -58,6 +59,9 @@ Key optional `LoopInit` / `LoopPlaceInit` fields:
 - `playerDescription?: string` — optional plain-English description (e.g. `"a slim stranger in a green coat"`) used in hearsay facts when the speaker doesn't know the player by name.
 - `stopPolicy?: Partial<StopPolicyTable>` — optional threshold overrides for street stops & arrests (defaults to `STOP_POLICY`).
 - `places[i].staff?: string[]` — person IDs of clerks/coworkers who work at the place. Staff automatically witness crimes when the shop is open (unless explicitly overridden in `event.bystanders`) and learn the player's name + gain trust after a `work_shift`.
+- `initialFuel?: number` / `maxFuel?: number` — nuclear fuel trips for the time machine (defaults to `DEFAULT_TIME_MACHINE_FUEL = 4` trips).
+- `playerBirthYear?: number` — optional player birth year used by cross-era forensics (`detectTimeTravelAnomalies`).
+- `timelineStartYear?: number` — optional base simulation start year for `src/timeline/` (defaults to `min(1890, year)`).
 
 **Example input (`LoopInit`):**
 ```json
@@ -406,3 +410,70 @@ Returns a plain-JSON snapshot of the player's court docket (also exposed as `Tim
 - `pending`: all `pending_trial` and `missed_date` `LoopCourtCase` entries (charges, bail, plea offer, lawyer options, seated jury, court date, and plain-English `facts[]`).
 - `resolved`: completed `plea_guilty`, `guilty`, and `not_guilty` cases (compacted without bulky jury pools after save/pruning).
 - `activeWarrants`: all currently active `LoopWarrantRecord` entries.
+
+
+---
+
+### 16. `jump(sim: LoopSim, input: JumpInput): JumpResult`
+
+Jumps the player and the playable loop to `input.toYear` via `src/timeline/` (`branch`, `presentAt`, `npcMemoryOfPlayer`, `inspectCarriedItems`, `caseStatusAt`, `looseThreads`) and `src/crime/` (`reexamineColdCases`, `detectTimeTravelAnomalies`). Also exposed as `TimerpgSim.jump(inputJson)`, `jumpJson`, and `simCall({"method":"jump","args":[input]})`.
+
+- **Fuel (nuclear material):** Every `LoopSim` starts with `DEFAULT_TIME_MACHINE_FUEL = 4` trips (`timeMachine.fuelRemaining = 4`, `maxFuel = 4`). Each successful jump spends 1 unit. Refuelling is out of scope; calling `jump()` with `0` fuel returns `{ ok: false, reason: 'out_of_fuel', fuelSpent: 0, fuelRemaining: 0, ... }` and leaves `sim` completely unchanged.
+- **What changes in the target year:**
+  - The town, active businesses, lots, and living residents come from `presentAt(timeline, toYear)`.
+  - Arson (`act(sim, { kind: 'arson', placeId, businessId })`) and lethal assault in an earlier year branch the timeline so later years reflect closed businesses and changed/vacant lots in `changes.buildings` (`demolishedOrReplaced`, `businessesClosedEarly`) and Gazette headlines in `gazette[]`.
+  - Attitudes reset for the new era **except** where the timeline carries branch memory (`npcMemoryOfPlayer`) for people alive in `toYear`.
+  - Police force, open cases (`crimeStatuses[]`), and initial `policePlans[]` rebuild for `toYear`.
+- **What travels with the player:**
+  - **Carried items** (`sim.carriedItems`, populated by `buy` and `take`, removed by `sell`, accepted `fence_sale`, and arrest confiscation) travel back and forth across any number of jumps with their original `acquiredYear`, `businessName`, `ownerName`, and `provenanceNote` intact, and are evaluated via `inspectCarriedItems()` into `JumpResult.carriedItems`.
+  - **Evidence across time (G008/G017):** prints/DNA enrolled at booking in year `Y` match cold cases from earlier years when arriving in any year `>= Y` (reported in `crossEraMatches[]`, with `anomalies[]` when `playerBirthYear > crimeYear`), and do **not** match in years `< Y` because the enrollment record does not exist yet.
+- **Loose threads:** `looseThreads(timeline, toYear)` is surfaced as both structured `looseThreads[]` and plain-English `looseThreadFacts[]` in `JumpResult`, `timeMachineView()`, and `attitude(sim, personId)` (`looseThreadFacts` and `facts[]`) for both the HUD and NPC dialogue.
+
+**Example input:**
+```json
+{ "toYear": 2025 }
+```
+
+**Example output (abbreviated):**
+```json
+{
+  "ok": true,
+  "fromYear": 1952,
+  "toYear": 2025,
+  "fuelSpent": 1,
+  "fuelRemaining": 3,
+  "maxFuel": 4,
+  "alivePeopleCount": 148,
+  "placeCount": 26,
+  "changes": {
+    "buildings": {
+      "businessesClosedEarly": ["b:1"],
+      "demolishedOrReplaced": [{ "slot": "lot:0", "was": "Hale's General Store", "now": null }]
+    }
+  },
+  "gazette": [
+    {
+      "year": 1952,
+      "headline": "Hale's General Store burns down",
+      "body": "..."
+    }
+  ],
+  "carriedItems": [],
+  "crimeStatuses": [],
+  "crossEraMatches": [],
+  "looseThreads": [],
+  "looseThreadFacts": [
+    "Unresolved 1952 arson at Hale's General Store (cold)."
+  ],
+  "policePlans": [],
+  "summary": "Jumped from 1952 to 2025 (3/4 nuclear fuel remaining)."
+}
+```
+
+---
+
+### 17. `timeMachineView(sim: LoopSim): TimeMachineViewResult`
+
+Returns a plain-JSON snapshot of the time machine for the HUD without mutating state (also exposed as `TimerpgSim.timeMachineView()`, `timeMachineViewJson`, and `simCall({"method":"timeMachineView","args":[]})`):
+
+- `currentYear`, `originYear`, `fuelRemaining`, `maxFuel`, `machinePlaceId`, `jumpHistory[]`, `carriedItems[]`, `carriedItemStatuses[]`, `looseThreads[]`, `looseThreadFacts[]`, `gazette[]`.

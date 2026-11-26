@@ -1036,6 +1036,7 @@ function rebuildCrimeStateForYear(params: {
       jurisdictionId: jurId,
       day: crimeDay,
       dayName: `${rec.year}`,
+      year: rec.year,
       ...(rec.summary ? { itemLabel: rec.summary } : {}),
       ...(rec.victimId ? { ownerId: rec.victimId } : {}),
       resolved: false,

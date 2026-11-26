@@ -1182,11 +1182,13 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
     );
     nextFamiliarity[fenceId] = fam;
 
+    const nextCarriedFenced = removeLoopCarriedItem(sim.carriedItems, event.item.id);
     let nextSim: LoopSim = {
       ...sim,
       playerAppearance,
       stolenItems: nextStolenItems,
       familiarity: nextFamiliarity,
+      ...(nextCarriedFenced !== undefined ? { carriedItems: nextCarriedFenced } : {}),
       nextSeq: sim.nextSeq + 1,
     };
 
@@ -1493,6 +1495,7 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
       jurisdictionId,
       day: sim.currentDay,
       dayName,
+      year: sim.year,
       ...(itemLabel !== undefined ? { itemLabel } : {}),
       ...(itemValue !== undefined ? { itemValue } : {}),
       ...(ownerId !== undefined ? { ownerId } : {}),
@@ -1806,6 +1809,12 @@ function bookSuspectAtStation(params: {
         if (!beforeMatches.has(key) && m.suspectId === suspectId) {
           const placeName =
             sim.crimeMeta[c.crimeId]?.placeName ?? sim.places[c.placeId]?.name ?? c.placeId;
+          const crimeYear =
+            sim.crimeMeta[c.crimeId]?.year ??
+            sim.crimeState.crimes[c.crimeId]?.when.year ??
+            sim.timeline?.crimes[c.crimeId]?.year;
+          const yearsToMatch =
+            crimeYear !== undefined ? Math.max(0, sim.year - crimeYear) : undefined;
           const fact = formatBookingColdCaseFact(c.kind, placeName, m.method);
           coldCaseHits.push({
             crimeId: c.crimeId,
@@ -1813,6 +1822,7 @@ function bookSuspectAtStation(params: {
             placeName,
             method: m.method,
             confidence: Math.round(m.confidence * 1000) / 1000,
+            ...(crimeYear !== undefined ? { crimeYear, yearsToMatch } : {}),
             fact,
           });
           if (!coldCasesTriggered.includes(c.crimeId)) {
@@ -3948,6 +3958,12 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
               finalSim.crimeMeta[c.crimeId]?.placeName ??
               finalSim.places[c.placeId]?.name ??
               c.placeId;
+            const crimeYear =
+              finalSim.crimeMeta[c.crimeId]?.year ??
+              finalSim.crimeState.crimes[c.crimeId]?.when.year ??
+              finalSim.timeline?.crimes[c.crimeId]?.year;
+            const yearsToMatch =
+              crimeYear !== undefined ? Math.max(0, finalSim.year - crimeYear) : undefined;
             const fact = formatBookingColdCaseFact(c.kind, placeName, m.method);
             bookingReport.coldCaseHits.push({
               crimeId: c.crimeId,
@@ -3955,6 +3971,7 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
               placeName,
               method: m.method,
               confidence: Math.round(m.confidence * 1000) / 1000,
+              ...(crimeYear !== undefined ? { crimeYear, yearsToMatch } : {}),
               fact,
             });
             bookingReport.findings.push(fact);

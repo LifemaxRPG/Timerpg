@@ -334,6 +334,8 @@ export interface CrimeMetaRecord {
   jurisdictionId: string;
   day: number;
   dayName: string;
+  /** Calendar year the crime occurred (populated for cross-era cold cases). */
+  year?: number;
   itemLabel?: string;
   /** Item value in integer cents (era money). */
   itemValue?: number;
@@ -788,6 +790,10 @@ export interface BookingColdCaseHit {
   placeName: string;
   method: string;
   confidence: number;
+  /** Calendar year of the matched cold case when known. */
+  crimeYear?: number;
+  /** Years elapsed between the crime and the booking match (0 for same-year). */
+  yearsToMatch?: number;
   /** Plain-English fact describing the forensic match. */
   fact: string;
 }
