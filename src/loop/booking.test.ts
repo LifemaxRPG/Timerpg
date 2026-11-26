@@ -3,6 +3,7 @@ import {
   act,
   advance,
   arrest,
+  plead,
   attitude,
   civilianSpotted,
   create,
@@ -572,8 +573,14 @@ describe('G014: booking pipeline, civilians who call it in, small saves & fence 
             crimeIds: [cid],
             playerCash: 100000,
           });
-          if (arr.charges.length > 0) resolvedCycles++;
           sim = arr.sim;
+          if (arr.penalty === 'charged' && arr.courtCase) {
+            const pleaRes = plead(sim, { courtCaseId: arr.courtCase.id, plea: 'guilty' });
+            sim = pleaRes.sim;
+            if (pleaRes.ok) resolvedCycles++;
+          } else if (arr.charges.length > 0) {
+            resolvedCycles++;
+          }
         }
 
         // Advance remaining 2 days of each 10-day cycle -> ~100+ days total

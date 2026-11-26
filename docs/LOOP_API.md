@@ -4,7 +4,7 @@ The single plain-JSON simulation API that the phone (`kotlin-street`, via QuickJ
 
 Every input and output across the boundary is **plain JSON** — no class instances, `Map`, `Set`, `Date`, functions, or Node/browser APIs. All randomness is seeded via `rand(seed, ...keys)` from `src/sim/rng.ts`.
 
-Policing is powered directly by the real G009 police engine (`src/police/`: `createPoliceForce`, `stepPoliceTick`, `spotting.ts`, and `plans.ts`) over G005/G008 crime/evidence (`src/crime/`) and G007 plans (`src/plan/`).
+Policing is powered directly by the real G009 police engine (`src/police/`: `createPoliceForce`, `stepPoliceTick`, `spotting.ts`, and `plans.ts`) over G005/G008 crime/evidence (`src/crime/`) and G007 plans (`src/plan/`), and criminal prosecution runs through the real G010/G013 court engine (`src/court/`).
 
 ---
 
@@ -14,13 +14,14 @@ Policing is powered directly by the real G009 police engine (`src/police/`: `cre
 There is one clear owner for every simulated hour so callers never double-advance the clock:
 - **`advance(sim, hours)`** advances time between player actions (walking, waiting, sleeping).
 - **`act(sim, { kind: 'work_shift', ... })`** **owns the shift's clock**: it records wages and familiarity, then runs `advance(sim, hours)` internally and returns the updated `day`, `hour`, `daysElapsed`, `policePlans`, `attitudeChanges`, `newPoliceCases`, and `pawnLeadsMatched`. Callers must **not** call `advance()` again for the shift.
-- **`arrest(sim, input)`** **owns the cell/jail clock**: when `jailHours > 0`, it runs the skipped hours through `advance()` (so gossip, police reports, trace/heat decay, and police plans progress during time served) and returns `day`, `hour`, `daysElapsed`, `policePlans`, `attitudeChanges`, and `newPoliceCases`.
+- **`arrest(sim, input)`** routes chargeable felonies, repeat offenses, and serious misdemeanors onto the court docket (`penalty: 'charged'`, `daysElapsed: 0`, returning `courtCase` with bail and first court date). Only petty first-offense misdemeanors retain the immediate summary fine path.
+- **`plead(sim, { plea: 'guilty' })`** and **`advance(sim, hours)` crossing a court date** **own the sentence clock**: when a guilty plea or guilty trial verdict imposes `jailHours > 0`, the skipped hours run through `advance()` (so gossip, police reports, trace/heat decay, and police plans progress during time served) unless `serveSentence: false` / `skipSentenceAdvance: true` is passed.
 - All other `act()` kinds (`buy`, `sell`, `take`, `take_vehicle`, `enter`) are instantaneous and do not advance the clock.
 
 ### Money Units (Integer Cents & Era Scaling)
 Every monetary field crossing the facade boundary is **integer cents** in era money, matching `src/economy/` (`docs/ECONOMY.md`):
-- Inputs: `item.value`, `vehicle.value`, `work_shift.pay`, `arrest.playerCash`.
-- Outputs: `ActResult.payEarned`, `ArrestOutcomeResult.fineAmount`.
+- Inputs: `item.value`, `vehicle.value`, `work_shift.pay`, `arrest.playerCash`, `bailDecision.playerCash`, `chooseCounsel.playerCash`, `courtInterfere.bribeAmount`.
+- Outputs: `ActResult.payEarned`, `ArrestOutcomeResult.fineAmount`, `LoopCourtCase.bail.amountCents`, `LoopCourtCase.pleaOffer.recommendedFineCents`, `LoopLawyerOption.feeCents`, `LoopCourtSentence.fineAmount`, `PleaResult.fineAmount`, `BailDecisionResult.bailPaidCents`.
 - Default `work_shift` pay (when `pay` is omitted) uses `wage('shop_clerk', year).hourlyCents * hours` from `src/economy/eras.ts`.
 - Arrest fines scale by `priceIndex(year)` from `src/economy/eras.ts` (2025 = `1.0`, 1978 = `0.207`, 1952 = `0.085`), so fines match the era's wallet.
 
@@ -42,7 +43,7 @@ Officer patrol beats are constructed by **graph distance (nearby corners)** in `
   --outfile=kotlin-street/app/src/main/assets/sim/sim.js
 ```
 
-Loading `sim.js` attaches `globalThis.TimerpgSim` (unchanged method names: `init`, `act`, `advance`, `attitude`, `policeView`, `spotted`, `arrest`, `save`, `load`), stateless `*Json` wrappers, and `globalThis.simCall`.
+Loading `sim.js` attaches `globalThis.TimerpgSim` (`init`, `act`, `advance`, `attitude`, `policeView`, `spotted`, `arrest`, `civilianSpotted`, `tipOff`, `bailDecision`, `chooseCounsel`, `plead`, `courtInterfere`, `courtView`, `save`, `load`), stateless `*Json` wrappers for every method, and `globalThis.simCall`.
 
 ---
 
@@ -193,7 +194,10 @@ Supported `event.kind` values:
 
 ### 3. `advance(sim: LoopSim, hours: number, options?: AdvanceOptions): AdvanceResult`
 
-Advances the clock by `hours`, stepping crossed days through G005/G008 `advanceDay`, delivering timed civilian/informant reports when their era latency elapses (including sub-day telephone calls), collecting scene traces on open cases, matching pawn-shop leads, stepping the real G009 police engine (`stepPoliceTick`), booking any arrest that finishes transport to the station (`transportedToStation: true`, returned in `bookingEvents`), and returning new `policePlans`, `attitudeChanges`, `newPoliceCases`, and `pawnLeadsMatched`.
+Advances the clock by `hours`, stepping crossed days through G005/G008 `advanceDay`, delivering timed civilian/informant reports when their era latency elapses (including sub-day telephone calls), collecting scene traces on open cases, matching pawn-shop leads, stepping the real G009 police engine (`stepPoliceTick`), booking any arrest that finishes transport to the station (`transportedToStation: true`, returned in `bookingEvents`), and checking pending court dates:
+
+- **Trial on court date:** when `advance()` crosses a `pending_trial` case's `courtDateDay` at `courtDateHour` (9:00), it runs the real G010/G013 trial (`runTrial`), appends a `LoopTrialEventSummary` (`kind: 'trial_completed'`, plain-English `facts[]`, `verdict`, `guiltyVotes`, `notGuiltyVotes`, `deliberationRounds`, `sentence` or `retrialDateDay` on a hung jury) to `AdvanceResult.courtEvents`, and serves any guilty `jailHours` through `advance()` (unless `options.skipSentenceAdvance: true`).
+- **Missed court date:** if the defendant is `out_on_bail` and `options.attendCourt === false` (or `options.playerPlaceId` is provided and differs from `courtCase.courtPlaceId`), bail is forfeited, a `LoopWarrantRecord` (`reason: 'missed_court_date'`) is issued, the underlying case is re-opened with a high-confidence Failure-to-Appear report, and police immediately wake/dispatch on the warrant (`courtEvents` entry with `kind: 'missed_court_date'`). In-custody defendants (`in_custody_bail_unpaid`, `remanded_no_bail`, `awaiting_bail_decision`) are brought to court automatically.
 
 ---
 
@@ -267,9 +271,10 @@ When `action === 'approach_and_question'`, `SpotResult.stopOutcome` reports the 
 
 ### 7. `arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult`
 
-Loop stand-in for arrest resolution (replaced later by G010 trials):
-- If initiated from a street stop (`fromStop: true` or `why: 'approach_and_question'`) and `!forceArrest`, cases below `sim.stopPolicy.stopArrestStrength` release immediately with `penalty: 'warning'`, `fineAmount: 0`, `jailHours: 0`, `releasedAfterStop: true`, and zero booking/confiscation/priors.
-- Otherwise imposes era-scaled integer-cent fines (`priceIndex(year)`) or cell/jail time, confiscates stolen items, enrolls booking prints/DNA into G008 `identityFiles` (`reexamineColdCases`), appends real G009 `ArrestRecord` entries to `sim.policeState.arrests`, and runs any `jailHours > 0` through `advance()`.
+Evaluates street-stop release, runs the G014 booking pipeline, and routes chargeable cases onto the real G010/G013 court docket:
+- **Thin-case street-stop release (unchanged):** if initiated from a street stop (`fromStop: true` or `why: 'approach_and_question'`) and `!forceArrest`, cases below `sim.stopPolicy.stopArrestStrength` release immediately with `penalty: 'warning'`, `fineAmount: 0`, `jailHours: 0`, `releasedAfterStop: true`, and zero booking/confiscation/priors.
+- **Court docket (`penalty: 'charged'`):** felonies (`burglary`, `car_theft`, `robbery`, `assault`, `murder`, `bribery`, `intimidation`, `perjury`, etc.), repeat offenders, serious misdemeanors (`severity >= 0.35`), or `demandTrial: true` return `penalty: 'charged'` with `courtCase: LoopCourtCase`: real G010 statutory `charges`, era-scaled integer-cent `bail` (or `bail.granted: false`, `custody: 'remanded_no_bail'` for murder / extreme flight risk), `pleaOffer`, all four `lawyerOptions`, pre-selected `jurySelection`, prosecution `witnessIds`, and a scheduled `courtDateDay` (`currentDay + era.arraignmentDays` at `9:00`). Any active FTA warrants for the jurisdiction/charge are executed (`active: false`) and feed `priorEscape: true` into bail evaluation.
+- **Petty first-offense summary citation:** first-offense minor misdemeanors (`severity < 0.35`, non-felony, 0 priors, `!demandTrial`) still resolve immediately with an era-scaled integer-cent fine.
 
 **Example output (`ArrestOutcomeResult`, omitting `sim`):**
 ```json
@@ -345,3 +350,59 @@ Files an informant's tip to the police (used internally when `act({ kind: 'fence
 ### 10. `save(sim: LoopSim): string`, `load(serialized: string): LoopSim`, and `pruneResolvedState(sim: LoopSim): LoopSim`
 
 Compact JSON serialization round-trip of the entire `LoopSim`. Both `arrest()` and `save()` run `pruneResolvedState(sim)` to drop what resolved (or completely forgotten) crimes no longer need — `toldPairs`, scene `traces`, stale `pendingReports`, resolved police `cases`, resolved `respondedCases`, resolved `pawnRecords`, and expired `backupAlerts` — while compacting resolved-crime memories so `attitude()`, `identityFiles`, `priorOffenses`, and all active unresolved crimes round-trip cleanly and continue identically.
+
+---
+
+### 11. `bailDecision(sim: LoopSim, input: BailDecisionInput): BailDecisionResult`
+
+Records the player's bail choice on a `pending_trial` case (also exposed as `TimerpgSim.bailDecision(inputJson)`, `bailDecisionJson`, and `simCall({"method":"bailDecision","args":[input]})`):
+
+- `choice: 'pay_bail'`: posts `courtCase.bail.amountCents` (if `bail.granted` and `playerCash` is absent or `>= amountCents`), transitioning `custody` to `'out_on_bail'` and returning `bailPaidCents`. Fails with `ok: false, inCustody: true` when held without bail or short on cash.
+- `choice: 'stay_in_cell'`: sets `custody` to `'in_custody_bail_unpaid'` (or `'remanded_no_bail'`) until the court date.
+
+**Example input:**
+```json
+{ "courtCaseId": "court:jur:capital:3:1", "choice": "pay_bail", "playerCash": 150000 }
+```
+
+---
+
+### 12. `chooseCounsel(sim: LoopSim, input: ChooseCounselInput): ChooseCounselResult`
+
+Retains defense counsel on a `pending_trial` case using G010's four era-scaled tiers (`public_defender`, `local_attorney`, `retained_counsel`, `elite_defense`) and re-runs `selectJury()` with the chosen counsel's peremptory strikes (also exposed as `TimerpgSim.chooseCounsel`, `chooseCounselJson`, and `simCall`).
+
+- Pass `tier` to request a specific tier (validated against `playerCash` when provided), or omit `tier` and pass `playerCash` to automatically retain the strongest tier the player can afford.
+
+**Example input:**
+```json
+{ "courtCaseId": "court:jur:capital:3:1", "playerCash": 30000 }
+```
+
+---
+
+### 13. `plead(sim: LoopSim, input: PleaInput): PleaResult`
+
+Enters a plea on a `pending_trial` case (also exposed as `TimerpgSim.plead`, `pleadJson`, and `simCall`):
+
+- `plea: 'guilty'`: accepts the case's `pleaOffer` (guaranteed lighter than a guilty trial verdict on the same case), records the conviction in `priorOffenses`, resolves the underlying crimes, and serves `jailHours` through `advance()` (unless `serveSentence: false`), returning `fineAmount` (cents), `jailDays`, `jailHours`, `day`, `hour`, `daysElapsed`, `policePlans`, `attitudeChanges`, `newPoliceCases`, and plain-English `facts[]`.
+- `plea: 'not_guilty'`: keeps the case on the docket for its scheduled `courtDateDay`.
+
+---
+
+### 14. `courtInterfere(sim: LoopSim, input: CourtInterferenceInput): CourtInterferenceResult`
+
+Attempts a court crime against a seated juror or prosecution witness on a `pending_trial` case via G010/G013 `commitTrialInterference` (also callable through `act({ kind: 'court_interference', interferenceKind, ... })`, `TimerpgSim.courtInterfere`, `courtInterfereJson`, and `simCall`):
+
+- `kind`: `'bribe_juror' | 'threaten_juror' | 'bribe_witness' | 'threaten_witness' | 'perjury'`.
+- `bribeAmount`: integer cents (converted to era dollars internally).
+- Opens real G013 crimes (`bribery`, `intimidation`, or `perjury`) in `crimeState` and opens a live police case immediately when the target refuses, perjury is caught in court, or a bystander witnesses the act. If it succeeds, attaches an `ActiveTrialTampering` effect to the court case so the trial reflects the tampered juror/witness.
+
+---
+
+### 15. `courtView(sim: LoopSim): CourtViewResult`
+
+Returns a plain-JSON snapshot of the player's court docket (also exposed as `TimerpgSim.courtView()`, `courtViewJson`, and `simCall({"method":"courtView","args":[]})`):
+
+- `pending`: all `pending_trial` and `missed_date` `LoopCourtCase` entries (charges, bail, plea offer, lawyer options, seated jury, court date, and plain-English `facts[]`).
+- `resolved`: completed `plea_guilty`, `guilty`, and `not_guilty` cases (compacted without bulky jury pools after save/pruning).
+- `activeWarrants`: all currently active `LoopWarrantRecord` entries.

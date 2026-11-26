@@ -130,6 +130,70 @@ export function collectProsecutionWitnessIds(
   return out;
 }
 
+/**
+ * Realistic prosecution witness selection: a DA puts first-hand eyewitnesses
+ * (strongest first, plus any witness targeted by tampering) on the stand rather
+ * than calling 15+ second-hand rumor callers whose mutated hearsay tanks the case
+ * under cross-examination.
+ */
+function selectProsecutionReports(
+  reports: PoliceCase['reports'],
+  tamperedTargetIds?: Set<string>,
+): PoliceCase['reports'] {
+  if (reports.length <= 2) return reports;
+  // Deduplicate by reporterId, keeping the highest-confidence report per person.
+  const byReporter = new Map<string, PoliceCase['reports'][number]>();
+  for (let i = 0; i < reports.length; i++) {
+    const r = reports[i]!;
+    const prev = byReporter.get(r.reporterId);
+    if (
+      !prev ||
+      (r.source === 'first_hand' && prev.source !== 'first_hand') ||
+      (r.source === prev.source && r.confidence > prev.confidence)
+    ) {
+      byReporter.set(r.reporterId, r);
+    }
+  }
+  const unique = Array.from(byReporter.values());
+  const sortBest = (
+    a: PoliceCase['reports'][number],
+    b: PoliceCase['reports'][number],
+  ) => {
+    const aNamed = a.identifiedCulpritId ? 1 : 0;
+    const bNamed = b.identifiedCulpritId ? 1 : 0;
+    if (bNamed !== aNamed) return bNamed - aNamed;
+    if (b.confidence !== a.confidence) return b.confidence - a.confidence;
+    return a.reporterId < b.reporterId ? -1 : 1;
+  };
+
+  const firstHand = unique.filter((r) => r.source === 'first_hand').sort(sortBest);
+  const secondHand = unique.filter((r) => r.source !== 'first_hand').sort(sortBest);
+
+  const chosen: PoliceCase['reports'] = [];
+  const chosenIds = new Set<string>();
+  const add = (r: PoliceCase['reports'][number]) => {
+    if (!chosenIds.has(r.reporterId)) {
+      chosenIds.add(r.reporterId);
+      chosen.push(r);
+    }
+  };
+
+  // Up to 4 strongest first-hand witnesses
+  for (let i = 0; i < Math.min(4, firstHand.length); i++) add(firstHand[i]!);
+  // If fewer than 2 first-hand witnesses exist, allow up to 2 strongest second-hand witnesses
+  if (chosen.length < 2) {
+    const slots = Math.min(2 - chosen.length, secondHand.length);
+    for (let i = 0; i < slots; i++) add(secondHand[i]!);
+  }
+  // Always include any witness explicitly targeted by tampering so interference takes effect
+  if (tamperedTargetIds && tamperedTargetIds.size > 0) {
+    for (const r of unique) {
+      if (tamperedTargetIds.has(r.reporterId)) add(r);
+    }
+  }
+  return chosen;
+}
+
 export function reconstructPoliceCase(sim: LoopSim, cc: LoopCourtCase): PoliceCase {
   const existing = sim.crimeState.jurisdictions[cc.jurisdictionId]?.cases[cc.primaryCrimeId];
   if (existing) return existing;
@@ -701,7 +765,15 @@ export function executeTrialOnDate(params: {
   summary: string;
 } {
   const { sim, courtCase: cc, day } = params;
-  const policeCase = reconstructPoliceCase(sim, cc);
+  const rawPoliceCase = reconstructPoliceCase(sim, cc);
+  const tamperedTargets = new Set(cc.tampering.map((t) => t.targetId));
+  const selectedReports = selectProsecutionReports(rawPoliceCase.reports, tamperedTargets);
+  const policeCase: PoliceCase = {
+    ...rawPoliceCase,
+    reports: selectedReports,
+    reportCount: selectedReports.length,
+    firstHandCount: selectedReports.filter((r) => r.source === 'first_hand').length,
+  };
   const outcome = runTrial({
     seed: `${sim.seed}:court:${cc.id}:a${cc.attempt}`,
     world: sim.world,

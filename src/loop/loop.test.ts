@@ -5,6 +5,7 @@ import {
   act,
   advance,
   arrest,
+  plead,
   attitude,
   create,
   load,
@@ -290,9 +291,13 @@ describe('src/loop facade', () => {
 
     const secondArrest = arrest(sim, { jurisdictionId: CAPITAL_JURISDICTION });
     sim = secondArrest.sim;
-    expect(['cell_night', 'jail']).toContain(secondArrest.penalty);
-    expect(secondArrest.jailHours).toBeGreaterThan(0);
-    expect(secondArrest.priorOffenses).toBe(2);
+    expect(secondArrest.penalty).toBe('charged');
+    expect(secondArrest.courtCase).toBeDefined();
+    const pleaRes = plead(sim, { courtCaseId: secondArrest.courtCase!.id, plea: 'guilty' });
+    sim = pleaRes.sim;
+    expect(pleaRes.ok).toBe(true);
+    expect(pleaRes.jailHours).toBeGreaterThan(0);
+    expect(sim.priorOffenses.length).toBe(2);
   });
 
   it('round-trips cleanly through save/load and continues identically', () => {
@@ -518,10 +523,17 @@ describe('G012: real police & wiring fixes', () => {
     // Arrest ONLY for the car theft -> jail time >= 48h must advance clock AND run gossip/reports!
     const dayBefore = sim.currentDay;
     const hourBefore = sim.currentHour;
-    const res = arrest(sim, {
+    const charged = arrest(sim, {
       jurisdictionId: CAPITAL_JURISDICTION,
       crimeIds: [burg.crimeId!],
     });
+    expect(charged.penalty).toBe('charged');
+    expect(charged.courtCase).toBeDefined();
+    const res = plead(charged.sim, {
+      courtCaseId: charged.courtCase!.id,
+      plea: 'guilty',
+    });
+    expect(res.ok).toBe(true);
     expect(res.jailHours).toBeGreaterThanOrEqual(48);
     expect(res.daysElapsed).toBe(Math.floor((hourBefore + res.jailHours) / 24));
     expect(res.day).toBe(dayBefore + res.daysElapsed);
@@ -919,7 +931,9 @@ describe('G012: real police & wiring fixes', () => {
     });
     expect(strongArrest.releasedAfterStop).toBeUndefined();
     expect(strongArrest.charges.length).toBeGreaterThan(0);
-    expect(strongArrest.priorOffenses).toBe(1);
+    expect(strongArrest.penalty).toBe('charged');
+    expect(strongArrest.courtCase).toBeDefined();
+    expect(strongArrest.priorOffenses).toBe(0);
   });
 });
 
