@@ -7,6 +7,29 @@ import { GENRE_WORDS } from '../town/films';
 import { REUSE_WORDS, storeState, townStoreHistories, type StoreState } from '../town/stores';
 import { heardBy, secretsOf } from '../sim/knowledge';
 import { originWords } from '../sim/origin';
+import {
+  MAX_MEMORIES,
+  memoriesFor,
+  memoriesForJson,
+  type MemoryLine,
+  type MemoryNow,
+  type MemoryOptions,
+  type MemoryPersonTraits,
+  type MemorySource,
+  type MemoryTone,
+} from './memories';
+
+export {
+  MAX_MEMORIES,
+  memoriesFor,
+  memoriesForJson,
+  type MemoryLine,
+  type MemoryNow,
+  type MemoryOptions,
+  type MemoryPersonTraits,
+  type MemorySource,
+  type MemoryTone,
+};
 
 // THE FACT SHEET. A language model only gives words to what the simulation already decided: it is
 // handed a short sheet of facts about the person and what the player just did, and told to answer in
@@ -22,6 +45,8 @@ export interface Brief {
   self: string;
   /** Their last replies in this conversation: a reply that says one of them again is rejected. */
   recent?: string[];
+  /** Grounded first-person memories attached to this brief (used for epistemic checks in validate()). */
+  memories?: MemoryLine[];
 }
 
 /** Constant, so it is cached between lines. */
@@ -194,14 +219,104 @@ function keeping(c: TalkCtx, intent: 'secret' | 'rumors', kind: VoiceKind): stri
   return `You ${own ? 'have' : 'know'} ${what}, but you do not trust the player enough yet: ${how}. Never make it up. ${AVOID}`;
 }
 
-/** [b] with their last replies in this conversation: the prompt quotes the last 2 (prefill time matters), validate() checks the last 3. */
-export function withRecent(b: Brief, recent: string[]): Brief {
+const HEARD_LINE_HINT = /\b(told me|word around town|heard (?:from|some talk|a rumou?r|that)|people .* whispering|only heard it secondhand|didn't see it myself|wasn't there to see it)\b/i;
+const SEEN_LINE_HINT = /\b(i saw you|i saw the|i arrested you|i stopped you|i was in court|i was at the courthouse|you worked a shift|you bought|you sold)\b/i;
+const EPISTEMIC_RULE = 'Only claim to have seen things you witnessed yourself; if you only heard about something, say you heard it.';
+
+function extractLineCues(line: string): string[] {
+  const stop = new Set([
+    'the', 'and', 'but', 'you', 'your', 'that', 'this', 'with', 'from', 'were', 'was',
+    'told', 'heard', 'know', 'true', 'though', 'about', 'around', 'town', 'word',
+    'some', 'talk', 'just', 'only', 'myself', 'didn', 'don', 'see', 'saw', 'there',
+    'everyone', 'people', 'hardly', 'believe', 'sure', 'more', 'secondhand', 'gossip',
+  ]);
+  return Array.from(
+    new Set(
+      line
+        .toLowerCase()
+        .replace(/[^a-z0-9'\s]+/g, ' ')
+        .split(/\s+/)
+        .map((w) => w.replace(/^'+|'+$/g, '').replace(/'s$/, ''))
+        .filter((w) => w.length >= 3 && !stop.has(w)),
+    ),
+  );
+}
+
+function normalizeMemoryInput(item: MemoryLine | string, index: number): MemoryLine {
+  if (typeof item !== 'string') return item;
+  const trimmed = item.replace(/\s+/g, ' ').trim();
+  const heardOnly = HEARD_LINE_HINT.test(trimmed) && !SEEN_LINE_HINT.test(trimmed);
+  return {
+    eventId: `mem:${index}`,
+    kind: heardOnly ? 'rumor' : 'crime',
+    line: trimmed,
+    source: heardOnly ? 'heard_rumor' : 'seen',
+    heardOnly,
+    certainty: heardOnly ? 0.5 : 0.85,
+    relevance: 0.5,
+    ageDays: 0,
+    tone: 'neutral',
+    cues: extractLineCues(trimmed),
+  };
+}
+
+/**
+ * [b] with grounded first-person memories added to its fact sheet (before the example answer).
+ * Accepts either structured `MemoryLine[]` from `memoriesFor()` or plain strings.
+ */
+export function withMemories(b: Brief, memories: readonly (MemoryLine | string)[]): Brief {
+  const normalized = memories
+    .map((m, i) => normalizeMemoryInput(m, i))
+    .filter((m) => m.line.trim().length > 0)
+    .slice(0, MAX_MEMORIES);
+  if (!normalized.length) return b;
+
+  const existing = b.memories ?? [];
+  const merged = [...existing];
+  const addedLines: string[] = [];
+  for (const m of normalized) {
+    if (!b.system.includes(m.line)) {
+      addedLines.push(m.line);
+    }
+    if (!merged.some((e) => e.eventId === m.eventId && e.line === m.line)) {
+      merged.push(m);
+    }
+  }
+
+  let system = b.system;
+  // Direct or seen contact means the player is no longer a total stranger; mere hearsay does not.
+  if (merged.some((m) => !m.heardOnly)) {
+    system = system.replace(
+      'The player is a stranger.',
+      'The player is someone you have crossed paths with before.',
+    );
+  }
+  const hasHeard = merged.some((m) => m.heardOnly);
+  const block: string[] = [...addedLines];
+  if (hasHeard && !system.includes(EPISTEMIC_RULE)) {
+    block.push(EPISTEMIC_RULE);
+  }
+  if (block.length) {
+    const snippet = block.join('\n');
+    const at = system.indexOf('\nExample of the kind of answer:');
+    system = at >= 0 ? system.slice(0, at) + '\n' + snippet + system.slice(at) : system + '\n' + snippet;
+  }
+  return { ...b, system, memories: merged.slice(0, MAX_MEMORIES) };
+}
+
+/** [b] with their last replies in this conversation (and optional memories): the prompt quotes the last 2 (prefill time matters), validate() checks the last 3. */
+export function withRecent(
+  b: Brief,
+  recent: string[],
+  memories?: readonly (MemoryLine | string)[],
+): Brief {
+  const base = memories?.length ? withMemories(b, memories) : b;
   const r = recent.slice(-3).filter((x) => x.trim());
-  if (!r.length) return b;
+  if (!r.length) return base;
   const line = `You already said: ${r.slice(-2).map((x) => `"${x}"`).join(' ')} Do not repeat those words.`;
-  const at = b.system.indexOf('\nExample of the kind of answer:');
-  const system = at >= 0 ? b.system.slice(0, at) + '\n' + line + b.system.slice(at) : b.system + '\n' + line;
-  return { ...b, system, recent: r };
+  const at = base.system.indexOf('\nExample of the kind of answer:');
+  const system = at >= 0 ? base.system.slice(0, at) + '\n' + line + base.system.slice(at) : base.system + '\n' + line;
+  return { ...base, system, recent: r };
 }
 
 /**
@@ -220,7 +335,14 @@ export function freeQuestion(b: Brief, said: string, recent: string[] = [], keep
  * model repeats everything it is given, relevant or not). `facts` are extra sentences that must be
  * true (the secret being shared) and `must` are words that must show up in the reply.
  */
-export function brief(c: TalkCtx, intent: string, template: string, facts: string[] = [], must: string[] = []): Brief {
+export function brief(
+  c: TalkCtx,
+  intent: string,
+  template: string,
+  facts: string[] = [],
+  must: string[] = [],
+  memories?: readonly (MemoryLine | string)[],
+): Brief {
   const p = c.person, w = c.w;
   const mayor = w.mayor ? w.people[w.mayor] : undefined;
   const know = c.familiarity === 0 ? 'a stranger' : c.familiarity < 3 ? 'an acquaintance' : 'a friend';
@@ -254,7 +376,8 @@ export function brief(c: TalkCtx, intent: string, template: string, facts: strin
   ].join('\n');
   // The rules come first and never change, so the model's prompt cache can reuse them every time.
   const system = [RULES, sheet, `Example of the kind of answer: ${template.split('\n')[0]}`].join('\n');
-  return { system, user: PLAYER[intent] ?? 'Hmm.', must, self: fullName(p) };
+  const out: Brief = { system, user: PLAYER[intent] ?? 'Hmm.', must, self: fullName(p) };
+  return memories?.length ? withMemories(out, memories) : out;
 }
 
 /** The raw text prompt (ChatML with thinking switched off, which Qwen3 expects). */
@@ -284,6 +407,54 @@ const MOVED = /\b(moved here|came here from|not from here|not from around here)\
 const DEFLECT = /\b(talk about something else|chat about something else|change the subject|perhaps we (can|could) (talk|chat) about|let's (talk|chat) about|(talk|chat) about [a-z' ]+ instead)\b/i;
 /** A sentence that doubts or denies: the player's own word in it is not a claim ("A library? I haven't heard of one."). */
 const HEDGE = /\?|\b(no|not|never|nothing|nobody)\b|n't\b/i;
+/** Claims first-hand eyewitness observation of the player or an event. */
+const CLAIMED_SEEN = /\b(i saw you|i saw them|i saw him|i saw her|i saw it|i saw the police|i watched you|i watched it|i witnessed|with my own eyes|right in front of me|i was right there|i caught you|saw you myself)\b/i;
+/** Explicitly denies having seen it (e.g. "I didn't see it myself", "I never saw you do it"). */
+const NEGATED_SIGHT = /\b(didn't|did not|never|haven't|have not|don't|do not|cannot|can't|not that i)\s+(?:actually\s+|even\s+|really\s+)?(see|saw|seen|watch|watched|witness|witnessed|catch|caught)\b|\b(wasn't|was not)\s+(?:even\s+|right\s+)?there\b/i;
+
+function claimedSeenOnHearsay(reply: string, b: Brief, sheet: string): boolean {
+  const mems = b.memories ?? [];
+  let heardMems = mems.filter((m) => m.heardOnly);
+  let seenMems = mems.filter((m) => !m.heardOnly);
+
+  // Also support hearsay lines passed directly via brief(..., facts) without withMemories().
+  if (!mems.length && sheet) {
+    const lines = sheet.split('\n').filter((l) => l.trim() && l !== EPISTEMIC_RULE);
+    for (let i = 0; i < lines.length; i++) {
+      const l = lines[i]!;
+      if (HEARD_LINE_HINT.test(l) && !SEEN_LINE_HINT.test(l)) {
+        heardMems.push(normalizeMemoryInput(l, i));
+      } else if (SEEN_LINE_HINT.test(l)) {
+        seenMems.push(normalizeMemoryInput(l, i));
+      }
+    }
+  }
+  if (!heardMems.length) return false;
+
+  const heardCues = new Set<string>();
+  for (const m of heardMems) {
+    for (const c of m.cues) heardCues.add(c);
+  }
+  const seenCues = new Set<string>();
+  for (const m of seenMems) {
+    for (const c of m.cues) seenCues.add(c);
+  }
+
+  const sents = reply.match(/[^.!?]+[.!?]*|[^.!?]+/g) ?? [reply];
+  for (const sent of sents) {
+    if (!CLAIMED_SEEN.test(sent)) continue;
+    if (NEGATED_SIGHT.test(sent)) continue;
+    // If the NPC has zero seen memories of the player, any eyewitness claim is false.
+    if (seenMems.length === 0) return true;
+    // If the NPC has both seen and heard memories, reject only when the claimed-seen sentence
+    // talks about a heard-only topic rather than a seen one.
+    const tokens = extractLineCues(sent);
+    const hitsHeard = tokens.some((tok) => heardCues.has(tok));
+    const hitsSeen = tokens.some((tok) => seenCues.has(tok));
+    if (hitsHeard && !hitsSeen) return true;
+  }
+  return false;
+}
 
 /** The sentence of [t] around index [i] (with its closing mark). */
 function sentenceAt(t: string, i: number): string {
@@ -372,6 +543,8 @@ function check(raw: string, b: Brief): [string | null, string | null] {
     if (sheet.includes('born and raised in') && MOVED.test(t)) return [null, 'said they moved here (they were born here)'];
     // "Perhaps we can talk about something else": only about a topic they would rather not talk about
     if (DEFLECT.test(t) && !sheet.includes(AVOID)) return [null, 'changed the subject'];
+    // Epistemic guard (G021): never claim to have seen something the NPC only heard about
+    if (claimedSeenOnHearsay(t, b, sheet)) return [null, 'claimed to have seen something only heard'];
   }
   // the same words as one of their last replies ("It is a lovely day for it, isn't it?" three times)
   if (b.recent?.length && repeats(t, b.recent)) return [null, 'said it again'];

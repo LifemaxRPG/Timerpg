@@ -761,3 +761,97 @@ export interface TipOffResult {
 }
 
 export type SimPersonMap = Record<Id, Person>;
+
+// ---------------------------------------------------------------------------
+// G021: Plain-JSON loop events for NPC first-person memories (`src/llm/memories.ts`)
+// ---------------------------------------------------------------------------
+
+export type LoopMemoryEventKind =
+  | 'crime'
+  | 'rumor'
+  | 'work_shift'
+  | 'stop'
+  | 'arrest'
+  | 'trial'
+  | 'purchase'
+  | 'kindness';
+
+export interface LoopMemoryWitness {
+  personId: string;
+  /** 0..1 sighting confidence (defaults to 0.9). */
+  confidence?: number;
+  recognizedPlayer?: boolean;
+  isVictim?: boolean;
+}
+
+export interface LoopMemoryHearer {
+  personId: string;
+  /** Person id who told this NPC (optional for unattributed town talk). */
+  toldById?: string;
+  /** Display name (e.g. "Lois" or "Lois Baker") used in hedged first-person memory lines. */
+  toldByName?: string;
+  /** True when the teller is a friend or close relation of this NPC. */
+  fromFriend?: boolean;
+  /** Gossip hops from the witness (1 = heard directly from a witness; >= 2 = second-hand rumor). */
+  hops?: number;
+  /** 0..1 confidence of the heard account. */
+  confidence?: number;
+  /** Simulation day when this NPC heard about the event (defaults to `event.day`). */
+  dayHeard?: number;
+}
+
+/**
+ * Plain-JSON loop event shape consumed by `memoriesFor(personId, events, now)` in `src/llm/`.
+ * Maps directly to events produced by `src/loop/` (witnessed crimes, heard rumours, shifts worked
+ * together, police stops, arrests, trials, purchases, and acts of kindness).
+ */
+export interface LoopMemoryEvent {
+  /** Stable event identifier (every returned memory line maps back to this id). */
+  id: string;
+  kind: LoopMemoryEventKind;
+  /** Simulation day the event happened. */
+  day: number;
+  /** Optional weekday label (e.g. "Tuesday") grounded in the world calendar. */
+  dayName?: string;
+  hour?: number;
+  year?: number;
+  placeId?: string;
+  /** Grounded place or business name (e.g. "Fairchild's"). */
+  placeName?: string;
+  /** Player name if known to the NPC through this event (e.g. coworker/employer). */
+  playerName?: string;
+  /** Grounded item label (e.g. "a watch", "a loaf of bread"). */
+  itemLabel?: string;
+  /** Crime kind (e.g. 'shoplifting', 'burglary', 'theft', 'car_theft', 'robbery', 'assault', 'arson', 'trespass'). */
+  crimeKind?: CrimeKind | string;
+  /** Optional 0..1 severity override. */
+  severity?: number;
+  /** People who directly saw this event happen. */
+  witnesses?: LoopMemoryWitness[];
+  /** People who heard about this event from someone else (gossip / word of mouth). */
+  hearers?: LoopMemoryHearer[];
+  /** Direct participants in the event (coworkers, clerk, officer, juror, recipient, etc.). */
+  participants?: string[];
+  employerId?: string;
+  coworkerIds?: string[];
+  clerkId?: string;
+  officerId?: string;
+  recipientId?: string;
+  victimId?: string;
+  /** Shift length in hours (for `work_shift`). */
+  hours?: number;
+  /** True when a purchase/sale involved stolen ("hot") goods. */
+  hot?: boolean;
+  /** For `purchase`: true if the player sold the item to the NPC rather than buying it. */
+  sold?: boolean;
+  /** Outcome for `stop` events. */
+  stopOutcome?: 'questioned' | 'searched' | 'warned' | 'released' | 'arrested';
+  /** Charge labels for `arrest` or `trial` events (e.g. ['burglary']). */
+  charges?: string[];
+  /** Verdict/outcome for `trial` events. */
+  verdict?: 'guilty' | 'not_guilty' | 'plea_guilty' | 'hung' | 'missed_date';
+  /** Grounded description of a kindness (e.g. "helped carry crates", "returned a lost wallet"). */
+  kindnessDetail?: string;
+  /** Grounded clause for `rumor` events (e.g. "you were picked up by the police"). */
+  rumorSummary?: string;
+}
