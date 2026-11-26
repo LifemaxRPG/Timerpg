@@ -95,7 +95,7 @@ internal class CinemaLights(private val engine: com.google.android.filament.Engi
             val bld = com.google.android.filament.LightManager.Builder(type).color(c.r, c.g, c.b).intensity(0f).falloff(c.reach).castShadows(false).position(wx, c.y, wz)
             if (c.down) bld.direction(0f, -1f, 0f).spotLightCone(c.cone * .5f, c.cone)
             bld.build(engine, e)
-            scene.addEntity(e)
+            scene.addEntity(e); TownRoot.adopt(engine, e)
             lights += L(e, c.lumens)
         }
     }
