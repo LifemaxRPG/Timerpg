@@ -183,3 +183,11 @@ from Main Street to the police station), `minimap_paper_1952.png` (with the comp
 - The icons mark one place per building; a shop row's many small shops crowd Main Street close in on the full map.
 - Nothing measured on the S25 yet: the minimap's frame cost, the pictures' memory (the zoom steps up to about 35 MB each, 3 kept per look; the
   world map 7 MB, a road map about 4 MB).
+
+## Real addresses (the owner's decision, 2026-11-26)
+
+Every building in the game has a real address (number, street, town, and a postal code from the era that had them)
+that can be searched on the GPS in modern eras, found on paper maps and in directories in older ones, written on
+letters, given by NPCs and read off house numbers and street signs in the world. The professor's opening letter
+("come to the capital, to this address") is the first use. Built by Jeff in G025 (src/), drawn by Claude (signs,
+house numbers, the GPS search).
