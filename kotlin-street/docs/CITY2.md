@@ -57,6 +57,9 @@ map label, NPC line or loading text calls it a driving city. Players find out by
 - **The dove motif**, never spelled out:
   - the city crest is a dove over three waves;
   - the legend says the first settlers followed doves to the bay;
+    (the owner, 2026-11-26: it stays a legend, never confirmed history. It's the story around town of why everything
+    is dove-themed. Townspeople tell it in their own versions, the old-timers with more detail, the sceptics with a
+    shrug; no record, plaque or quest ever proves or disproves it.)
   - the **Dove Fountain** (a bronze dove with spread wings over a shell basin) stands at Fountain Circus;
   - Old Town roofs have dovecotes;
   - the Headland Tunnel's portals carry a dove mural.
