@@ -3,9 +3,14 @@ import {
   advance,
   arrest,
   attitude,
+  bailDecision,
+  chooseCounsel,
   civilianSpotted,
+  courtInterfere,
+  courtView,
   create,
   load,
+  plead,
   policeView,
   save,
   spotted,
@@ -25,11 +30,15 @@ import { fenceDeal, fenceLeads, fenceRisk, townFences } from '../economy/fence';
 import type {
   AdvanceOptions,
   ArrestInput,
+  BailDecisionInput,
+  ChooseCounselInput,
   CivilianSightingInput,
+  CourtInterferenceInput,
   LoopActionEvent,
   LoopInit,
   LoopSim,
   OfficerSightingInput,
+  PleaInput,
   TipOffInput,
 } from './types';
 
@@ -96,6 +105,34 @@ export function tipOffJson(simJson: string, inputJson: string): string {
   const sim = load(simJson);
   const input = JSON.parse(inputJson) as TipOffInput;
   return JSON.stringify(tipOff(sim, input));
+}
+
+export function bailDecisionJson(simJson: string, inputJson: string): string {
+  const sim = load(simJson);
+  const input = JSON.parse(inputJson) as BailDecisionInput;
+  return JSON.stringify(bailDecision(sim, input));
+}
+
+export function chooseCounselJson(simJson: string, inputJson: string): string {
+  const sim = load(simJson);
+  const input = JSON.parse(inputJson) as ChooseCounselInput;
+  return JSON.stringify(chooseCounsel(sim, input));
+}
+
+export function pleadJson(simJson: string, inputJson: string): string {
+  const sim = load(simJson);
+  const input = JSON.parse(inputJson) as PleaInput;
+  return JSON.stringify(plead(sim, input));
+}
+
+export function courtInterfereJson(simJson: string, inputJson: string): string {
+  const sim = load(simJson);
+  const input = JSON.parse(inputJson) as CourtInterferenceInput;
+  return JSON.stringify(courtInterfere(sim, input));
+}
+
+export function courtViewJson(simJson: string): string {
+  return JSON.stringify(courtView(load(simJson)));
 }
 
 /**
@@ -175,6 +212,46 @@ export const TimerpgSim = {
     return JSON.stringify(delta);
   },
 
+  bailDecision(inputJson: string): string {
+    const current = requireActive();
+    const input = JSON.parse(inputJson) as BailDecisionInput;
+    const res = bailDecision(current, input);
+    activeSim = res.sim;
+    const { sim: _omit, ...delta } = res;
+    return JSON.stringify(delta);
+  },
+
+  chooseCounsel(inputJson: string): string {
+    const current = requireActive();
+    const input = JSON.parse(inputJson) as ChooseCounselInput;
+    const res = chooseCounsel(current, input);
+    activeSim = res.sim;
+    const { sim: _omit, ...delta } = res;
+    return JSON.stringify(delta);
+  },
+
+  plead(inputJson: string): string {
+    const current = requireActive();
+    const input = JSON.parse(inputJson) as PleaInput;
+    const res = plead(current, input);
+    activeSim = res.sim;
+    const { sim: _omit, ...delta } = res;
+    return JSON.stringify(delta);
+  },
+
+  courtInterfere(inputJson: string): string {
+    const current = requireActive();
+    const input = JSON.parse(inputJson) as CourtInterferenceInput;
+    const res = courtInterfere(current, input);
+    activeSim = res.sim;
+    const { sim: _omit, ...delta } = res;
+    return JSON.stringify(delta);
+  },
+
+  courtView(): string {
+    return JSON.stringify(courtView(requireActive()));
+  },
+
   save(): string {
     return save(requireActive());
   },
@@ -200,6 +277,11 @@ export const TimerpgSim = {
   civilianSpottedJson,
   tipOffJson,
   arrestJson,
+  bailDecisionJson,
+  chooseCounselJson,
+  pleadJson,
+  courtInterfereJson,
+  courtViewJson,
 };
 
 // Expose globally for QuickJS-ng (`esbuild --format=iife`)

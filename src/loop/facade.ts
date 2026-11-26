@@ -51,6 +51,18 @@ import {
   resolveStopPolicy,
   stepLoopPolice,
 } from './policeBridge';
+import {
+  applyBailDecision,
+  applyChooseCounsel,
+  applyCourtInterference,
+  buildCourtView,
+  createCourtCaseFromArrest,
+  executeTrialOnDate,
+  findTargetCourtCase,
+  issueMissedDateWarrant,
+  pruneResolvedCourtCases,
+  shouldRouteArrestToCourt,
+} from './courtBridge';
 import type {
   ActResult,
   ActTraceSummary,
@@ -62,18 +74,29 @@ import type {
   AttitudeChange,
   AttitudeResult,
   AttitudeStance,
+  BailDecisionInput,
+  BailDecisionResult,
   BookingColdCaseHit,
   BookingReport,
+  ChooseCounselInput,
+  ChooseCounselResult,
   CivilianSightingInput,
   CivilianSpotResult,
+  CourtInterferenceInput,
+  CourtInterferenceResult,
+  CourtViewResult,
   CrimeMetaRecord,
   LoopActionEvent,
+  LoopCourtCase,
+  LoopCourtSentence,
   LoopInit,
   LoopPersonInit,
   LoopPersonMeta,
   LoopPlaceRecord,
   LoopSim,
   LoopSpotAction,
+  LoopTrialEventSummary,
+  LoopWarrantRecord,
   OfficerPlanDirective,
   OfficerSightingInput,
   PawnLeadMatch,
@@ -82,6 +105,8 @@ import type {
   PlayerFamiliarity,
   PoliceViewCase,
   PoliceViewResult,
+  PleaInput,
+  PleaResult,
   PriorOffenseRecord,
   ReportMeans,
   ResolvedCrimeMemory,
@@ -414,16 +439,25 @@ function formatCrimePhrase(meta: CrimeMetaRecord): string {
 }
 
 function activeCrimeStateForPolice(sim: LoopSim): CrimeState {
-  const resolvedIds = new Set<string>();
+  const hiddenIds = new Set<string>();
   for (const [cid, meta] of Object.entries(sim.crimeMeta)) {
-    if (meta.resolved) resolvedIds.add(cid);
+    if (meta.resolved) hiddenIds.add(cid);
   }
-  if (resolvedIds.size === 0) return sim.crimeState;
+  if (sim.courtCases) {
+    for (const cc of Object.values(sim.courtCases)) {
+      if (cc.status === 'pending_trial' && cc.custody !== 'warrant_for_fta') {
+        for (let i = 0; i < cc.crimeIds.length; i++) {
+          hiddenIds.add(cc.crimeIds[i]!);
+        }
+      }
+    }
+  }
+  if (hiddenIds.size === 0) return sim.crimeState;
   const filteredJurs: CrimeState['jurisdictions'] = {};
   for (const [jurId, jur] of Object.entries(sim.crimeState.jurisdictions)) {
     const activeCases: Record<string, PoliceCase> = {};
     for (const [cid, c] of Object.entries(jur.cases)) {
-      if (!resolvedIds.has(cid)) activeCases[cid] = c;
+      if (!hiddenIds.has(cid)) activeCases[cid] = c;
     }
     filteredJurs[jurId] = { jurisdictionId: jurId, cases: activeCases };
   }
@@ -698,6 +732,35 @@ export function create(init: LoopInit): LoopSim {
  * familiarity or pawn-shop registries.
  */
 export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
+  if (event.kind === 'court_interference') {
+    const res = courtInterfere(sim, {
+      courtCaseId: event.courtCaseId,
+      kind: event.interferenceKind,
+      targetId: event.targetId,
+      placeId: event.placeId,
+      bribeAmount: event.bribeAmount,
+      bystanders: event.bystanders,
+      caughtInCourt: event.caughtInCourt,
+    });
+    return {
+      sim: res.sim,
+      kind: 'court_interference',
+      legit: false,
+      ...(res.crimeId ? { crimeId: res.crimeId } : {}),
+      witnessedBy: res.witnessIds.map((pid) => ({
+        personId: pid,
+        name: res.sim.peopleMeta[pid]?.name ?? pid,
+        confidence: 0.85,
+        recognizedPlayer: true,
+        isVictim: pid === res.targetId,
+        description: { ...res.sim.playerAppearance },
+      })),
+      tracesLeft: [],
+      interferenceSucceeded: res.succeeded,
+      interferenceReported: res.targetReported,
+      summary: res.summary,
+    };
+  }
   const place = sim.places[event.placeId];
   const placeName = place?.name ?? event.placeId;
   const jurisdictionId = place?.jurisdictionId ?? Object.values(sim.places)[0]?.jurisdictionId ?? 'capital';
@@ -1152,7 +1215,9 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
         ? 'shoplifting'
         : subkind === 'house'
           ? 'burglary'
-          : 'theft';
+          : subkind === 'robbery'
+            ? 'robbery'
+            : 'theft';
     const idx = Math.max(0.02, eraPriceIndex(sim.year));
     const resolvedItemCents =
       event.item.value !== undefined
@@ -1167,7 +1232,9 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
           ? 0.36
           : subkind === 'pickpocket'
             ? 0.42
-            : 0.60) + valBoost,
+            : subkind === 'robbery'
+              ? 0.80
+              : 0.60) + valBoost,
     );
     ownerId = event.ownerId ?? place?.ownerId;
     itemId = event.item.id;
@@ -1196,6 +1263,12 @@ export function act(sim: LoopSim, event: LoopActionEvent): ActResult {
         color: event.vehicle.color,
       },
     };
+  } else if (event.kind === 'assault') {
+    crimeKind = event.lethal ? 'murder' : 'assault';
+    severity = event.lethal ? 1.0 : event.weapon ? 0.82 : 0.72;
+    ownerId = event.targetId;
+    gloved = Boolean(event.gloved);
+    exposure = place?.kind === 'street' || place?.kind === 'yard' ? 'outdoor' : 'indoor';
   } else {
     // Closed or forced `enter`
     crimeKind = 'burglary';
@@ -1781,7 +1854,316 @@ function deliverDueTimedReports(params: {
  * - compiles G007 police plans for officers;
  * - returns new police plans and people whose attitude toward the player changed.
  */
+function findEarliestDueCourtCase(
+  sim: LoopSim,
+  endTotalHours: number,
+): LoopCourtCase | undefined {
+  if (!sim.courtCases) return undefined;
+  let earliest: LoopCourtCase | undefined;
+  let earliestHours = Infinity;
+  for (const cc of Object.values(sim.courtCases)) {
+    if (cc.status !== 'pending_trial') continue;
+    const dueHours = cc.courtDateDay * 24 + cc.courtDateHour;
+    if (dueHours <= endTotalHours + 1e-6) {
+      if (dueHours < earliestHours || (dueHours === earliestHours && earliest && cc.id < earliest.id)) {
+        earliest = cc;
+        earliestHours = dueHours;
+      }
+    }
+  }
+  return earliest;
+}
+
+function finalizeCourtDisposition(params: {
+  sim: LoopSim;
+  updatedCase: LoopCourtCase;
+  convicted: boolean;
+  sentence?: LoopCourtSentence;
+  day: number;
+}): LoopSim {
+  const { sim, updatedCase, convicted, sentence, day } = params;
+  const nextCrimeMeta: Record<string, CrimeMetaRecord> = { ...sim.crimeMeta };
+  const nextFamiliarity: Record<string, PlayerFamiliarity> = { ...sim.familiarity };
+  const nextPriorOffenses: PriorOffenseRecord[] = sim.priorOffenses.slice();
+  let nextSeq = sim.nextSeq;
+
+  for (let i = 0; i < updatedCase.crimeIds.length; i++) {
+    const cid = updatedCase.crimeIds[i]!;
+    const meta = nextCrimeMeta[cid];
+    if (meta) {
+      nextCrimeMeta[cid] = { ...meta, resolved: true };
+      if (convicted && meta.ownerId && sim.peopleMeta[meta.ownerId]) {
+        const fam = cloneFamiliarity(nextFamiliarity[meta.ownerId]);
+        if (!fam.bannedFromPlaceIds.includes(meta.placeId)) {
+          fam.bannedFromPlaceIds.push(meta.placeId);
+        }
+        nextFamiliarity[meta.ownerId] = fam;
+      }
+    }
+    if (convicted) {
+      const ch = updatedCase.charges.find((c) => c.crimeId === cid) ?? updatedCase.charges[0];
+      const jailHours = i === 0 ? sentence?.jailHours ?? 0 : 0;
+      const fineAmount = i === 0 ? sentence?.fineAmount ?? 0 : 0;
+      nextPriorOffenses.push({
+        id: `prior:${day}:${nextSeq++}`,
+        crimeId: cid,
+        kind: ch?.kind ?? meta?.kind ?? 'theft',
+        severity: ch?.severity ?? 0.5,
+        jurisdictionId: updatedCase.jurisdictionId,
+        day,
+        penalty: jailHours > 0 ? 'jail' : 'fine',
+        fineAmount,
+        jailHours,
+      });
+    }
+  }
+
+  return pruneResolvedState({
+    ...sim,
+    crimeMeta: nextCrimeMeta,
+    familiarity: nextFamiliarity,
+    priorOffenses: nextPriorOffenses,
+    courtCases: {
+      ...(sim.courtCases ?? {}),
+      [updatedCase.id]: updatedCase,
+    },
+    nextSeq,
+  });
+}
+
+function mergeAttitudeChanges(
+  existing: AttitudeChange[],
+  incoming: AttitudeChange[],
+): AttitudeChange[] {
+  const byId = new Map<string, AttitudeChange>();
+  for (let i = 0; i < existing.length; i++) {
+    byId.set(existing[i]!.personId, existing[i]!);
+  }
+  for (let i = 0; i < incoming.length; i++) {
+    const ch = incoming[i]!;
+    const prev = byId.get(ch.personId);
+    if (prev) {
+      if (prev.previousStance === ch.newStance) {
+        byId.delete(ch.personId);
+      } else {
+        byId.set(ch.personId, {
+          ...ch,
+          previousStance: prev.previousStance,
+        });
+      }
+    } else {
+      byId.set(ch.personId, ch);
+    }
+  }
+  return Array.from(byId.values());
+}
+
 export function advance(sim: LoopSim, hours: number, options?: AdvanceOptions): AdvanceResult {
+  const safeHours = Math.max(0, hours);
+  const startTotalHours = sim.currentDay * 24 + sim.currentHour;
+  const endTotalHours = Math.round((startTotalHours + safeHours) * 1000) / 1000;
+  const dueCourt = findEarliestDueCourtCase(sim, endTotalHours);
+  if (!dueCourt) {
+    return advanceCore(sim, safeHours, options);
+  }
+
+  const origFromDay = sim.currentDay;
+  const origFromHour = sim.currentHour;
+  const dueTotalHours = dueCourt.courtDateDay * 24 + dueCourt.courtDateHour;
+  const hoursToCourt = Math.max(0, Math.round((dueTotalHours - startTotalHours) * 1000) / 1000);
+  const preStep = advanceCore(sim, hoursToCourt, options);
+
+  let workingSim = preStep.sim;
+  let allPolicePlans = preStep.policePlans;
+  let allAttitudeChanges = preStep.attitudeChanges.slice();
+  const newCaseSet = new Set<string>(preStep.newPoliceCases);
+  const allPawnLeads = preStep.pawnLeadsMatched.slice();
+  const allBookings = (preStep.bookingEvents ?? []).slice();
+  const courtEvents: LoopTrialEventSummary[] = [];
+
+  const liveCase = workingSim.courtCases?.[dueCourt.id] ?? dueCourt;
+  const inCustody =
+    liveCase.custody === 'in_custody_bail_unpaid' ||
+    liveCase.custody === 'remanded_no_bail' ||
+    liveCase.custody === 'awaiting_bail_decision';
+  let attended = true;
+  if (!inCustody) {
+    if (options?.attendCourt !== undefined) {
+      attended = options.attendCourt;
+    } else if (options?.playerPlaceId !== undefined) {
+      attended = options.playerPlaceId === liveCase.courtPlaceId;
+    }
+  }
+
+  let servedSentence = false;
+  if (!attended) {
+    const fta = issueMissedDateWarrant({
+      sim: workingSim,
+      crimeState: workingSim.crimeState,
+      courtCase: liveCase,
+      day: workingSim.currentDay,
+      hour: workingSim.currentHour,
+      seq: workingSim.nextSeq,
+    });
+    const nextResponded = { ...workingSim.policeState.respondedCases };
+    delete nextResponded[`${liveCase.jurisdictionId}:${liveCase.primaryCrimeId}`];
+    const nextOfficers = { ...workingSim.policeState.officers };
+    for (const [oid, o] of Object.entries(nextOfficers)) {
+      if (
+        o.jurisdictionId === liveCase.jurisdictionId &&
+        (o.assignment === 'patrol' ||
+          (o.targetCrimeId === liveCase.primaryCrimeId &&
+            (o.assignment === 'respond_crime' || o.assignment === 'stakeout')))
+      ) {
+        nextOfficers[oid] = {
+          ...o,
+          assignment: 'patrol',
+          targetCrimeId: undefined,
+          targetNodeId: undefined,
+          planSource: undefined,
+          planState: undefined,
+        };
+      }
+    }
+    const nextWarrants: LoopWarrantRecord[] = [
+      ...(workingSim.warrants ?? []),
+      fta.warrant,
+    ];
+    workingSim = {
+      ...workingSim,
+      crimeState: fta.crimeState,
+      policeState: {
+        ...workingSim.policeState,
+        officers: nextOfficers,
+        respondedCases: nextResponded,
+      },
+      respondedCases: nextResponded,
+      courtCases: {
+        ...(workingSim.courtCases ?? {}),
+        [fta.updatedCase.id]: fta.updatedCase,
+      },
+      warrants: nextWarrants,
+      nextSeq: workingSim.nextSeq + 1,
+    };
+    newCaseSet.add(liveCase.primaryCrimeId);
+    courtEvents.push({
+      courtCaseId: liveCase.id,
+      jurisdictionId: liveCase.jurisdictionId,
+      crimeIds: liveCase.crimeIds.slice(),
+      day: workingSim.currentDay,
+      hour: workingSim.currentHour,
+      kind: 'missed_court_date',
+      warrant: fta.warrant,
+      bailForfeitedCents: fta.bailForfeitedCents,
+      facts: fta.facts,
+      summary: fta.summary,
+    });
+    const warrantTick = advanceCore(workingSim, 0, options);
+    workingSim = warrantTick.sim;
+    allPolicePlans = warrantTick.policePlans;
+    allAttitudeChanges = mergeAttitudeChanges(allAttitudeChanges, warrantTick.attitudeChanges);
+    for (const cid of warrantTick.newPoliceCases) newCaseSet.add(cid);
+    allPawnLeads.push(...warrantTick.pawnLeadsMatched);
+    if (warrantTick.bookingEvents) allBookings.push(...warrantTick.bookingEvents);
+  } else {
+    const trialRes = executeTrialOnDate({
+      sim: workingSim,
+      courtCase: liveCase,
+      day: workingSim.currentDay,
+    });
+    if (trialRes.outcome.verdict === 'guilty') {
+      workingSim = finalizeCourtDisposition({
+        sim: workingSim,
+        updatedCase: trialRes.updatedCase,
+        convicted: true,
+        sentence: trialRes.sentence,
+        day: workingSim.currentDay,
+      });
+    } else if (trialRes.outcome.verdict === 'not_guilty') {
+      workingSim = finalizeCourtDisposition({
+        sim: workingSim,
+        updatedCase: trialRes.updatedCase,
+        convicted: false,
+        day: workingSim.currentDay,
+      });
+    } else {
+      workingSim = {
+        ...workingSim,
+        courtCases: {
+          ...(workingSim.courtCases ?? {}),
+          [trialRes.updatedCase.id]: trialRes.updatedCase,
+        },
+      };
+    }
+
+    courtEvents.push({
+      courtCaseId: liveCase.id,
+      jurisdictionId: liveCase.jurisdictionId,
+      crimeIds: liveCase.crimeIds.slice(),
+      day: workingSim.currentDay,
+      hour: workingSim.currentHour,
+      kind: 'trial_completed',
+      verdict: trialRes.outcome.verdict,
+      guiltyVotes: trialRes.outcome.guiltyVotes,
+      notGuiltyVotes: trialRes.outcome.notGuiltyVotes,
+      deliberationRounds: trialRes.outcome.deliberationRounds,
+      ...(trialRes.retrialDateDay !== undefined
+        ? { retrialDateDay: trialRes.retrialDateDay, retrialDateHour: trialRes.retrialDateHour }
+        : {}),
+      ...(trialRes.sentence ? { sentence: trialRes.sentence } : {}),
+      facts: trialRes.facts,
+      summary: trialRes.summary,
+    });
+
+    if (
+      trialRes.outcome.verdict === 'guilty' &&
+      trialRes.sentence &&
+      trialRes.sentence.jailHours > 0 &&
+      !options?.skipSentenceAdvance
+    ) {
+      servedSentence = true;
+      const jailAdv = advance(workingSim, trialRes.sentence.jailHours, options);
+      workingSim = pruneResolvedState(jailAdv.sim);
+      allPolicePlans = jailAdv.policePlans;
+      allAttitudeChanges = mergeAttitudeChanges(allAttitudeChanges, jailAdv.attitudeChanges);
+      for (const cid of jailAdv.newPoliceCases) newCaseSet.add(cid);
+      allPawnLeads.push(...jailAdv.pawnLeadsMatched);
+      if (jailAdv.bookingEvents) allBookings.push(...jailAdv.bookingEvents);
+      if (jailAdv.courtEvents) courtEvents.push(...jailAdv.courtEvents);
+    }
+  }
+
+  const curTotalHours = workingSim.currentDay * 24 + workingSim.currentHour;
+  const remainingHours = Math.max(0, Math.round((endTotalHours - curTotalHours) * 1000) / 1000);
+  if (!servedSentence && remainingHours > 0) {
+    const postStep = advance(workingSim, remainingHours, options);
+    workingSim = postStep.sim;
+    allPolicePlans = postStep.policePlans;
+    allAttitudeChanges = mergeAttitudeChanges(allAttitudeChanges, postStep.attitudeChanges);
+    for (const cid of postStep.newPoliceCases) newCaseSet.add(cid);
+    allPawnLeads.push(...postStep.pawnLeadsMatched);
+    if (postStep.bookingEvents) allBookings.push(...postStep.bookingEvents);
+    if (postStep.courtEvents) courtEvents.push(...postStep.courtEvents);
+  }
+
+  const newPoliceCases = Array.from(newCaseSet).sort();
+  return {
+    sim: workingSim,
+    fromDay: origFromDay,
+    toDay: workingSim.currentDay,
+    fromHour: origFromHour,
+    toHour: workingSim.currentHour,
+    daysElapsed: workingSim.currentDay - origFromDay,
+    policePlans: allPolicePlans,
+    attitudeChanges: allAttitudeChanges,
+    newPoliceCases,
+    pawnLeadsMatched: allPawnLeads,
+    ...(allBookings.length > 0 ? { bookingEvents: allBookings } : {}),
+    ...(courtEvents.length > 0 ? { courtEvents } : {}),
+  };
+}
+
+function advanceCore(sim: LoopSim, hours: number, options?: AdvanceOptions): AdvanceResult {
   const safeHours = Math.max(0, hours);
   const fromDay = sim.currentDay;
   const fromHour = sim.currentHour;
@@ -3046,12 +3428,172 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
   }
 
   const priorCount = sim.priorOffenses.length;
+  const chargedIdSet = new Set(charges.map((c) => c.crimeId));
+  const activeMatchingWarrants = (sim.warrants ?? []).filter(
+    (w) => w.active && (chargedIdSet.has(w.crimeId) || w.jurisdictionId === jurId),
+  );
+  const priorEscape =
+    activeMatchingWarrants.length > 0 ||
+    (sim.warrants ?? []).some((w) => w.reason === 'missed_court_date');
+  const routeToCourt = shouldRouteArrestToCourt({
+    sim,
+    targetCases,
+    priorConvictions: priorCount,
+    demandTrial: input.demandTrial,
+    priorEscape,
+  });
+
+  if (routeToCourt) {
+    const carriedSet = input.carriedItemIds ? new Set(input.carriedItemIds) : undefined;
+    const confiscatedItems: string[] = [];
+    const nextStolenItems = { ...sim.stolenItems };
+    for (const [itemId, rec] of Object.entries(sim.stolenItems)) {
+      const belongs =
+        chargedIdSet.has(rec.crimeId) || (carriedSet !== undefined && carriedSet.has(itemId));
+      if (belongs && !rec.pawnedAtPlaceId) {
+        confiscatedItems.push(itemId);
+        delete nextStolenItems[itemId];
+      }
+    }
+    confiscatedItems.sort();
+
+    const nextPoliceArrests = sim.policeState.arrests.slice();
+    let policeSeq = sim.policeState.nextSeq;
+    let nextSeq = sim.nextSeq + 1;
+    const arrestingOfficerId =
+      input.officerId ??
+      Object.values(sim.policeState.officers).find((o) => o.jurisdictionId === jurId)?.id ??
+      'officer_unknown';
+    const timeSec = sim.currentDay * 86400 + sim.currentHour * 3600;
+    const arrestingOfficer = sim.policeState.officers[arrestingOfficerId];
+    const stationNodeId = arrestingOfficer?.stationNodeId ?? 'station';
+    const stationPlace = Object.values(sim.places).find(
+      (p) => p.jurisdictionId === jurId && p.kind === 'police_station',
+    );
+    for (let i = 0; i < charges.length; i++) {
+      const ch = charges[i]!;
+      nextPoliceArrests.push({
+        id: `arrest_${policeSeq++}`,
+        crimeId: ch.crimeId,
+        suspectId: sim.playerId,
+        arrestingOfficerId,
+        assistingOfficerIds: [],
+        jurisdictionId: jurId,
+        stationNodeId,
+        arrestDay: sim.currentDay,
+        arrestYear: sim.year,
+        arrestTimeSec: timeSec,
+        arrestPosition: stationPlace
+          ? { x: stationPlace.position.x, y: stationPlace.position.y }
+          : { x: 0, y: 0 },
+        method: input.surrendered ? 'surrender' : 'foot_pursuit',
+        searchedInventory: (input.carriedItemIds ?? []).slice(),
+        seizedContraband: confiscatedItems.slice(),
+        cuffed: true,
+        transportedToStation: true,
+      });
+    }
+
+    const preBookingSim: LoopSim = {
+      ...sim,
+      stolenItems: nextStolenItems,
+    };
+    const bookingOutcome = bookSuspectAtStation({
+      sim: preBookingSim,
+      crimeState: sim.crimeState,
+      jurisdictionId: jurId,
+      suspectId: sim.playerId,
+      day: sim.currentDay,
+      seq: sim.nextSeq,
+      confiscatedItems,
+    });
+    const nextCrimeState = bookingOutcome.crimeState;
+    const coldCasesTriggered = bookingOutcome.coldCasesTriggered.slice();
+    const bookingReport: BookingReport = {
+      ...bookingOutcome.report,
+      coldCaseHits: bookingOutcome.report.coldCaseHits.slice(),
+      pawnLinks: bookingOutcome.report.pawnLinks.slice(),
+      findings: bookingOutcome.report.findings.slice(),
+    };
+
+    const nextWarrants = sim.warrants
+      ? sim.warrants.map((w) =>
+          w.active && (chargedIdSet.has(w.crimeId) || w.jurisdictionId === jurId)
+            ? { ...w, active: false }
+            : w,
+        )
+      : undefined;
+    const nextCourtCases: Record<string, LoopCourtCase> = { ...(sim.courtCases ?? {}) };
+    for (const [id, existing] of Object.entries(nextCourtCases)) {
+      if (
+        existing.status === 'missed_date' &&
+        existing.crimeIds.some((cid) => chargedIdSet.has(cid))
+      ) {
+        nextCourtCases[id] = { ...existing, custody: 'resolved' };
+      }
+    }
+
+    const courtCase = createCourtCaseFromArrest({
+      sim,
+      crimeState: nextCrimeState,
+      jurId,
+      targetCases,
+      playerCashCents: input.playerCash,
+      priorEscape,
+      seq: nextSeq++,
+    });
+    nextCourtCases[courtCase.id] = courtCase;
+
+    const chargedSim = pruneResolvedState({
+      ...sim,
+      crimeState: nextCrimeState,
+      policeState: {
+        ...sim.policeState,
+        arrests: nextPoliceArrests,
+        nextSeq: policeSeq,
+      },
+      stolenItems: nextStolenItems,
+      courtCases: nextCourtCases,
+      ...(nextWarrants ? { warrants: nextWarrants } : {}),
+      nextSeq,
+    });
+
+    const bailLine = courtCase.bail.granted
+      ? `Bail set at ${eraFormatMoney(courtCase.bail.amountCents, sim.year)}`
+      : 'Held without bail';
+    const summary = `Charged with ${charges.length} offense(s); ${bailLine}; court date Day ${courtCase.courtDateDay} at ${courtCase.courtDateHour}:00.`;
+
+    return {
+      sim: chargedSim,
+      jurisdictionId: jurId,
+      penalty: 'charged',
+      fineAmount: 0,
+      jailHours: 0,
+      jailNights: 0,
+      day: chargedSim.currentDay,
+      hour: chargedSim.currentHour,
+      daysElapsed: 0,
+      charges,
+      priorOffenses: chargedSim.priorOffenses.length,
+      totalCaseStrength,
+      confiscatedItems,
+      coldCasesTriggered,
+      booking: bookingReport,
+      bookingFindings: bookingReport.findings,
+      courtCase,
+      policePlans: [],
+      attitudeChanges: [],
+      newPoliceCases: [],
+      summary,
+    };
+  }
+
   const maxSeverity = charges.reduce((m, c) => Math.max(m, c.severity), 0);
   const idx = eraPriceIndex(sim.year);
   const surrenderMult = input.surrendered ? 0.8 : 1;
   const minCashForFineCents = Math.max(10, Math.round(1500 * idx));
 
-  let penalty: ArrestOutcomeResult['penalty'] = 'warning';
+  let penalty: PriorOffenseRecord['penalty'] = 'warning';
   let fineAmount = 0;
   let jailHours = 0;
 
@@ -3305,6 +3847,138 @@ export function arrest(sim: LoopSim, input: ArrestInput): ArrestOutcomeResult {
   };
 }
 
+export function bailDecision(sim: LoopSim, input: BailDecisionInput): BailDecisionResult {
+  return applyBailDecision(sim, input);
+}
+
+export function chooseCounsel(sim: LoopSim, input: ChooseCounselInput): ChooseCounselResult {
+  return applyChooseCounsel(sim, input);
+}
+
+export function plead(sim: LoopSim, input: PleaInput): PleaResult {
+  const cc = findTargetCourtCase(sim, input.courtCaseId, ['pending_trial']);
+  if (!cc) {
+    return {
+      sim,
+      ok: false,
+      plea: input.plea,
+      fineAmount: 0,
+      jailDays: 0,
+      jailHours: 0,
+      day: sim.currentDay,
+      hour: sim.currentHour,
+      daysElapsed: 0,
+      policePlans: [],
+      attitudeChanges: [],
+      newPoliceCases: [],
+      facts: [],
+      summary: 'No pending court case to enter a plea on.',
+    };
+  }
+
+  if (input.plea === 'not_guilty') {
+    const fact = `Entered a NOT GUILTY plea; trial remains set for Day ${cc.courtDateDay} at ${cc.courtDateHour}:00.`;
+    const updated: LoopCourtCase = {
+      ...cc,
+      facts: [...cc.facts, fact],
+    };
+    const nextSim: LoopSim = {
+      ...sim,
+      courtCases: { ...(sim.courtCases ?? {}), [cc.id]: updated },
+    };
+    return {
+      sim: nextSim,
+      ok: true,
+      courtCase: updated,
+      plea: 'not_guilty',
+      fineAmount: 0,
+      jailDays: 0,
+      jailHours: 0,
+      day: nextSim.currentDay,
+      hour: nextSim.currentHour,
+      daysElapsed: 0,
+      policePlans: [],
+      attitudeChanges: [],
+      newPoliceCases: [],
+      facts: [fact],
+      summary: fact,
+    };
+  }
+
+  const jailDays = cc.pleaOffer.recommendedJailDays;
+  const jailHours = jailDays * 24;
+  const fineAmount = cc.pleaOffer.recommendedFineCents;
+  const sentence: LoopCourtSentence = {
+    jailDays,
+    jailHours,
+    fineAmount,
+    probationDays: jailDays < 60 ? 90 : 0,
+    reputationDelta: -0.2,
+    judgeId: 'court:plea',
+    judgeName: 'Presiding Judge',
+    reasoning: cc.pleaOffer.reasoning,
+  };
+  const fact = `Pleaded GUILTY under plea deal: ${jailDays} day(s) in custody and ${eraFormatMoney(fineAmount, sim.year)} fine (${Math.round(cc.pleaOffer.discountRatio * 100)}% plea discount).`;
+  const updated: LoopCourtCase = {
+    ...cc,
+    status: 'plea_guilty',
+    custody: 'resolved',
+    sentence,
+    facts: [...cc.facts, fact],
+  };
+
+  let nextSim = finalizeCourtDisposition({
+    sim,
+    updatedCase: updated,
+    convicted: true,
+    sentence,
+    day: sim.currentDay,
+  });
+
+  let daysElapsed = 0;
+  let policePlans: OfficerPlanDirective[] = [];
+  let attitudeChanges: AttitudeChange[] = [];
+  let newPoliceCases: string[] = [];
+
+  if (input.serveSentence !== false && jailHours > 0) {
+    const adv = advance(nextSim, jailHours);
+    nextSim = pruneResolvedState(adv.sim);
+    daysElapsed = adv.daysElapsed;
+    policePlans = adv.policePlans;
+    attitudeChanges = adv.attitudeChanges;
+    newPoliceCases = adv.newPoliceCases;
+  }
+
+  return {
+    sim: nextSim,
+    ok: true,
+    courtCase: nextSim.courtCases?.[cc.id] ?? updated,
+    plea: 'guilty',
+    fineAmount,
+    jailDays,
+    jailHours,
+    day: nextSim.currentDay,
+    hour: nextSim.currentHour,
+    daysElapsed,
+    policePlans,
+    attitudeChanges,
+    newPoliceCases,
+    facts: [fact],
+    summary: fact,
+  };
+}
+
+export function courtInterfere(
+  sim: LoopSim,
+  input: CourtInterferenceInput,
+): CourtInterferenceResult {
+  return applyCourtInterference(sim, input);
+}
+
+export function courtView(sim: LoopSim): CourtViewResult {
+  return buildCourtView(sim);
+}
+
 /**
  * Prunes state that resolved (or completely forgotten) crimes no longer need:
  * - `crimeState.toldPairs` for resolved crimes and forgotten crimes (zero remaining knowers)
@@ -3374,6 +4048,8 @@ export function pruneResolvedState(sim: LoopSim): LoopSim {
     }
   }
 
+  const prunedCourts = pruneResolvedCourtCases(sim.courtCases);
+
   // Quick check: if there are no resolved crimes and nothing else to prune, return sim untouched
   if (
     resolvedIds.size === 0 &&
@@ -3381,7 +4057,8 @@ export function pruneResolvedState(sim: LoopSim): LoopSim {
     !pendingChanged &&
     !hasExpiredBackup &&
     !hasStalePendingMeta &&
-    !hasResolvedSightings
+    !hasResolvedSightings &&
+    !prunedCourts.changed
   ) {
     return sim;
   }
@@ -3540,7 +4217,7 @@ export function pruneResolvedState(sim: LoopSim): LoopSim {
     changed = true;
   }
 
-  if (!changed && !memoriesChanged) return sim;
+  if (!changed && !memoriesChanged && !prunedCourts.changed) return sim;
 
   const nextCrimeState: CrimeState = {
     ...sim.crimeState,
@@ -3571,6 +4248,7 @@ export function pruneResolvedState(sim: LoopSim): LoopSim {
     ...(Object.keys(nextResolvedMemories).length > 0
       ? { resolvedCrimeMemories: nextResolvedMemories }
       : {}),
+    ...(prunedCourts.next !== undefined ? { courtCases: prunedCourts.next } : {}),
   };
   if (nextPendingMeta !== undefined) {
     out.pendingReportMeta = nextPendingMeta;

@@ -13,6 +13,16 @@ import type {
 } from '../crime/types';
 import type { OfficerAssignment, PoliceState } from '../police/types';
 import type { Fence } from '../economy/fence';
+import type {
+  ActiveTrialTampering,
+  Charge,
+  CourtEraProfile,
+  DefenseLawyer,
+  JurySelectionResult,
+  LawyerTier,
+  TrialInterferenceKind,
+  VerdictKind,
+} from '../court/types';
 import type { Id, Person, World } from '../sim/types';
 
 export type LoopPlaceKind =
@@ -20,6 +30,7 @@ export type LoopPlaceKind =
   | 'market'
   | 'pawn_shop'
   | 'police_station'
+  | 'courthouse'
   | 'home'
   | 'yard'
   | 'street'
@@ -276,7 +287,7 @@ export interface PriorOffenseRecord {
   severity: number;
   jurisdictionId: string;
   day: number;
-  penalty: 'warning' | 'fine' | 'cell_night' | 'jail';
+  penalty: 'warning' | 'fine' | 'cell_night' | 'jail' | 'charged';
   /** Fine in integer cents (era money). */
   fineAmount: number;
   jailHours: number;
@@ -339,6 +350,10 @@ export interface LoopSim {
   pendingReportMeta?: Record<string, PendingReportMeta>;
   /** Most recent confirmed sighting/tip place per active crime id. */
   latestSightingPlaceByCrime?: Record<string, string>;
+  /** Active and historical court dockets owned by `src/loop/` (G019). */
+  courtCases?: Record<string, LoopCourtCase>;
+  /** Bench warrants issued for missed court dates (G019). */
+  warrants?: LoopWarrantRecord[];
   /** Cached stance per personId so `advance` reports exact attitude diffs. */
   lastStances: Record<string, AttitudeStance>;
   nextSeq: number;
@@ -404,7 +419,7 @@ export type LoopActionEvent =
       kind: 'take';
       placeId: string;
       item: LoopItemPayload;
-      subkind?: 'shoplift' | 'yard' | 'house' | 'pickpocket';
+      subkind?: 'shoplift' | 'yard' | 'house' | 'pickpocket' | 'robbery';
       ownerId?: string;
       gloved?: boolean;
     } & SceneSnapshot)
@@ -444,6 +459,27 @@ export type LoopActionEvent =
       heat?: number;
       /** Optional explicit override for the `fenceRisk` informant tip roll (useful in tests/scripts). */
       forceTip?: boolean;
+    } & SceneSnapshot)
+  | ({
+      kind: 'assault';
+      placeId: string;
+      targetId: string;
+      /** True when a weapon is used (raises severity). */
+      weapon?: boolean;
+      /** True when the attack is lethal (records `murder`, capital charge). */
+      lethal?: boolean;
+      gloved?: boolean;
+    } & SceneSnapshot)
+  | ({
+      kind: 'court_interference';
+      interferenceKind: TrialInterferenceKind;
+      courtCaseId?: string;
+      targetId?: string;
+      placeId?: string;
+      /** Bribe cash offered in integer cents (era money). */
+      bribeAmount?: number;
+      /** True if perjury is caught in open court. */
+      caughtInCourt?: boolean;
     } & SceneSnapshot);
 
 export interface WitnessNotice {
@@ -487,6 +523,10 @@ export interface ActResult {
   tipArrivalDay?: number;
   tipArrivalHour?: number;
   tipMeans?: ReportMeans;
+  /** Populated on `court_interference`: whether the bribe/threat/perjury bent the target. */
+  interferenceSucceeded?: boolean;
+  /** Populated on `court_interference`: whether the target refused or reported to police. */
+  interferenceReported?: boolean;
   /** Updated sim clock and world changes when `act` advances time (owned by `work_shift`). */
   day?: number;
   hour?: number;
@@ -531,6 +571,12 @@ export interface PawnLeadMatch {
 
 export interface AdvanceOptions {
   weather?: WeatherKind;
+  /** Explicit court attendance flag when out on bail and `advance()` reaches a court date (`false` = missed date -> warrant). */
+  attendCourt?: boolean;
+  /** Optional current player place id when `advance()` runs; if set while out on bail and not at the courthouse, counts as missing the court date unless `attendCourt` is explicitly true. */
+  playerPlaceId?: string;
+  /** Optional flag to skip automatically serving jail days inside `advance()` after a guilty verdict. */
+  skipSentenceAdvance?: boolean;
 }
 
 export interface AdvanceResult {
@@ -546,6 +592,8 @@ export interface AdvanceResult {
   pawnLeadsMatched: PawnLeadMatch[];
   /** Booking reports produced when a G009 arrest completes transport to the station during `advance()`. */
   bookingEvents?: BookingReport[];
+  /** Trial outcomes or missed-court-date warrants triggered when `advance()` reached a scheduled court date. */
+  courtEvents?: LoopTrialEventSummary[];
 }
 
 export interface AttitudeResult {
@@ -633,6 +681,8 @@ export interface ArrestInput {
   why?: string;
   /** Bypass thin-case stop release and force booking/sentencing. */
   forceArrest?: boolean;
+  /** Force a petty first-offense misdemeanor onto the court docket instead of summary citation. */
+  demandTrial?: boolean;
 }
 
 export interface ArrestChargeSummary {
@@ -646,7 +696,7 @@ export interface ArrestChargeSummary {
 export interface ArrestOutcomeResult {
   sim: LoopSim;
   jurisdictionId: string;
-  penalty: 'warning' | 'fine' | 'cell_night' | 'jail';
+  penalty: 'warning' | 'fine' | 'cell_night' | 'jail' | 'charged';
   /** Fine in integer cents (era money, scaled by `priceIndex(year)`). */
   fineAmount: number;
   jailHours: number;
@@ -667,6 +717,8 @@ export interface ArrestOutcomeResult {
   booking?: BookingReport;
   /** Plain-English facts found during station booking (prints/DNA, cold-case matches, pawn links, seizures). */
   bookingFindings: string[];
+  /** Populated when `penalty === 'charged'`: formal court charges, bail, first court date, plea offer, and lawyer tiers. */
+  courtCase?: LoopCourtCase;
   policePlans: OfficerPlanDirective[];
   attitudeChanges: AttitudeChange[];
   newPoliceCases: string[];
@@ -758,6 +810,226 @@ export interface TipOffResult {
   means: ReportMeans;
   reason: string;
   summary: string;
+}
+
+export type LoopCourtCustody =
+  | 'awaiting_bail_decision'
+  | 'out_on_bail'
+  | 'in_custody_bail_unpaid'
+  | 'remanded_no_bail'
+  | 'warrant_for_fta'
+  | 'resolved';
+
+export type LoopCourtStatus =
+  | 'pending_trial'
+  | 'plea_guilty'
+  | 'guilty'
+  | 'not_guilty'
+  | 'hung'
+  | 'missed_date';
+
+export interface LoopLawyerOption {
+  tier: LawyerTier;
+  name: string;
+  /** Retainer fee in integer cents (era money). */
+  feeCents: number;
+  canAfford: boolean;
+  preparation: number;
+  crossSkill: number;
+  persuasion: number;
+  peremptoryStrikes: number;
+}
+
+export interface LoopBailSummary {
+  granted: boolean;
+  /** Bail amount in integer cents (era money); 0 when denied. */
+  amountCents: number;
+  flightRisk: number;
+  canAfford: boolean;
+  paid: boolean;
+  forfeited?: boolean;
+  reasons: string[];
+}
+
+export interface LoopPleaOfferSummary {
+  offered: boolean;
+  chargeIds: string[];
+  reducedToMisdemeanor: boolean;
+  recommendedJailDays: number;
+  /** Recommended plea fine in integer cents (era money). */
+  recommendedFineCents: number;
+  discountRatio: number;
+  caseStrengthAtOffer: number;
+  reasoning: string;
+}
+
+export interface LoopCourtSentence {
+  jailDays: number;
+  jailHours: number;
+  /** Court fine in integer cents (era money). */
+  fineAmount: number;
+  probationDays: number;
+  reputationDelta: number;
+  judgeId: string;
+  judgeName: string;
+  reasoning: string;
+}
+
+export interface LoopCourtCase {
+  id: string;
+  jurisdictionId: string;
+  defendantId: string;
+  primaryCrimeId: string;
+  crimeIds: string[];
+  charges: Charge[];
+  era: CourtEraProfile;
+  filedDay: number;
+  filedHour: number;
+  courtDateDay: number;
+  courtDateHour: number;
+  courtPlaceId: string;
+  status: LoopCourtStatus;
+  custody: LoopCourtCustody;
+  bail: LoopBailSummary;
+  pleaOffer: LoopPleaOfferSummary;
+  lawyer: DefenseLawyer;
+  lawyerFeeCents: number;
+  lawyerOptions: LoopLawyerOption[];
+  attempt: number;
+  jurySelection?: JurySelectionResult;
+  witnessIds: string[];
+  tampering: ActiveTrialTampering[];
+  warrantIssued?: boolean;
+  warrantDay?: number;
+  lastVerdict?: VerdictKind;
+  sentence?: LoopCourtSentence;
+  facts: string[];
+}
+
+export interface LoopWarrantRecord {
+  id: string;
+  courtCaseId: string;
+  crimeId: string;
+  jurisdictionId: string;
+  reason: 'missed_court_date';
+  issuedDay: number;
+  issuedHour: number;
+  active: boolean;
+  summary: string;
+}
+
+export interface LoopTrialEventSummary {
+  courtCaseId: string;
+  jurisdictionId: string;
+  crimeIds: string[];
+  day: number;
+  hour: number;
+  kind: 'trial_completed' | 'missed_court_date';
+  verdict?: VerdictKind;
+  guiltyVotes?: number;
+  notGuiltyVotes?: number;
+  deliberationRounds?: number;
+  retrialDateDay?: number;
+  retrialDateHour?: number;
+  sentence?: LoopCourtSentence;
+  warrant?: LoopWarrantRecord;
+  bailForfeitedCents?: number;
+  facts: string[];
+  summary: string;
+}
+
+export interface BailDecisionInput {
+  courtCaseId?: string;
+  choice: 'pay_bail' | 'stay_in_cell';
+  /** Player cash on hand in integer cents (era money). */
+  playerCash?: number;
+}
+
+export interface BailDecisionResult {
+  sim: LoopSim;
+  ok: boolean;
+  courtCase?: LoopCourtCase;
+  bailPaidCents: number;
+  inCustody: boolean;
+  summary: string;
+}
+
+export interface ChooseCounselInput {
+  courtCaseId?: string;
+  /** Desired counsel tier; if omitted, hires the best tier affordable within `playerCash`. */
+  tier?: LawyerTier;
+  /** Player cash on hand in integer cents (era money). */
+  playerCash?: number;
+}
+
+export interface ChooseCounselResult {
+  sim: LoopSim;
+  ok: boolean;
+  courtCase?: LoopCourtCase;
+  lawyer?: DefenseLawyer;
+  feeCents: number;
+  summary: string;
+}
+
+export interface PleaInput {
+  courtCaseId?: string;
+  plea: 'guilty' | 'not_guilty';
+  /** Whether a guilty plea immediately serves jail days through `advance()` (default true). */
+  serveSentence?: boolean;
+}
+
+export interface PleaResult {
+  sim: LoopSim;
+  ok: boolean;
+  courtCase?: LoopCourtCase;
+  plea: 'guilty' | 'not_guilty';
+  /** Fine in integer cents (era money). */
+  fineAmount: number;
+  jailDays: number;
+  jailHours: number;
+  day: number;
+  hour: number;
+  daysElapsed: number;
+  policePlans: OfficerPlanDirective[];
+  attitudeChanges: AttitudeChange[];
+  newPoliceCases: string[];
+  facts: string[];
+  summary: string;
+}
+
+export interface CourtInterferenceInput {
+  courtCaseId?: string;
+  kind: TrialInterferenceKind;
+  /** Target juror or witness personId (defaults to first seated juror / first witness of the active court case). */
+  targetId?: string;
+  placeId?: string;
+  /** Cash offered for bribery in integer cents (era money). */
+  bribeAmount?: number;
+  bystanders?: SceneBystander[];
+  /** True if perjury is caught in open court. */
+  caughtInCourt?: boolean;
+}
+
+export interface CourtInterferenceResult {
+  sim: LoopSim;
+  ok: boolean;
+  courtCaseId?: string;
+  crimeId?: string;
+  crimeKind?: CrimeKind;
+  kind: TrialInterferenceKind;
+  targetId?: string;
+  succeeded: boolean;
+  targetReported: boolean;
+  policeCaseOpened: boolean;
+  witnessIds: string[];
+  tampering?: ActiveTrialTampering;
+  summary: string;
+}
+
+export interface CourtViewResult {
+  pending: LoopCourtCase[];
+  resolved: LoopCourtCase[];
+  activeWarrants: LoopWarrantRecord[];
 }
 
 export type SimPersonMap = Record<Id, Person>;
