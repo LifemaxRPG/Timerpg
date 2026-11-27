@@ -1,0 +1,305 @@
+{
+  "name": "Tideglass Board Co.",
+  "id": "tideglass",
+  "era": "2008 onward",
+  "file": "tideglass.glb",
+  "dimensions_m": {
+    "width": 13,
+    "depth": 10.35,
+    "height": 6.06
+  },
+  "axes": "glTF metres, Y up and +Z toward the sidewalk. Front center at grade.",
+  "triangles": 2044,
+  "materials": [
+    "detail_frames",
+    "detail_ivory",
+    "detail_stock",
+    "detail_storefront_overlay",
+    "floor_timber",
+    "glow_shop",
+    "ground_sidewalk",
+    "roof_shop",
+    "sign_name",
+    "wall_detail",
+    "wall_shop"
+  ],
+  "anchors": {
+    "door_main": [
+      -2.62,
+      0.162,
+      -0.36
+    ],
+    "door_back": [
+      4.7,
+      0.16,
+      -10.52
+    ]
+  },
+  "storefront_panes": [
+    {
+      "name": "Modern window frontage",
+      "axis": "front",
+      "fixed_m": 0.035,
+      "span_m": [
+        -5.95,
+        -4.12
+      ],
+      "heights_m": [
+        0.49,
+        3.82
+      ]
+    },
+    {
+      "name": "Modern window frontage",
+      "axis": "front",
+      "fixed_m": 0.035,
+      "span_m": [
+        -1.17,
+        6.08
+      ],
+      "heights_m": [
+        0.49,
+        3.82
+      ]
+    },
+    {
+      "name": "East wraparound display",
+      "axis": "side",
+      "fixed_m": 6.54,
+      "span_m": [
+        0.17,
+        5.22
+      ],
+      "heights_m": [
+        0.44,
+        3.8
+      ]
+    }
+  ],
+  "collision": {
+    "boxes_blender_z_up": [
+      {
+        "name": "Concrete facade pier",
+        "center": [
+          -6.225,
+          0.07100000000000001,
+          2.5500000000000003
+        ],
+        "size": [
+          0.5499999999999998,
+          0.308,
+          4.78
+        ]
+      },
+      {
+        "name": "Concrete facade pier",
+        "center": [
+          -3.94,
+          0.07100000000000001,
+          2.5500000000000003
+        ],
+        "size": [
+          0.3600000000000003,
+          0.308,
+          4.78
+        ]
+      },
+      {
+        "name": "Concrete facade pier",
+        "center": [
+          -1.3199999999999998,
+          0.07100000000000001,
+          2.5500000000000003
+        ],
+        "size": [
+          0.30000000000000004,
+          0.308,
+          4.78
+        ]
+      },
+      {
+        "name": "Concrete facade pier",
+        "center": [
+          6.29,
+          0.07100000000000001,
+          2.5500000000000003
+        ],
+        "size": [
+          0.41999999999999993,
+          0.308,
+          4.78
+        ]
+      },
+      {
+        "name": "Modern window frontage",
+        "center": [
+          -5.035,
+          0.035,
+          2.155
+        ],
+        "size": [
+          1.83,
+          0.12,
+          3.33
+        ]
+      },
+      {
+        "name": "Modern window frontage",
+        "center": [
+          2.455,
+          0.035,
+          2.155
+        ],
+        "size": [
+          7.25,
+          0.12,
+          3.33
+        ]
+      },
+      {
+        "name": "Return of entrance",
+        "center": [
+          -3.75,
+          0.435,
+          1.75
+        ],
+        "size": [
+          0.17999999999999972,
+          0.63,
+          3.1799999999999997
+        ]
+      },
+      {
+        "name": "Return of entrance",
+        "center": [
+          -1.48,
+          0.435,
+          1.75
+        ],
+        "size": [
+          0.18000000000000016,
+          0.63,
+          3.1799999999999997
+        ]
+      },
+      {
+        "name": "West structure",
+        "center": [
+          -6.475,
+          5.1935,
+          2.1
+        ],
+        "size": [
+          0.20999999999999996,
+          10.273,
+          3.88
+        ]
+      },
+      {
+        "name": "East wraparound display",
+        "center": [
+          6.54,
+          2.695,
+          2.12
+        ],
+        "size": [
+          0.11999999999999922,
+          5.05,
+          3.36
+        ]
+      },
+      {
+        "name": "East service wall",
+        "center": [
+          6.51,
+          7.775,
+          2.5
+        ],
+        "size": [
+          0.2400000000000002,
+          5.11,
+          4.68
+        ]
+      },
+      {
+        "name": "Rear service wall",
+        "center": [
+          -1.3099999999999998,
+          10.235,
+          2.48
+        ],
+        "size": [
+          10.48,
+          0.23000000000000043,
+          4.64
+        ]
+      },
+      {
+        "name": "Rear service wall",
+        "center": [
+          5.99,
+          10.235,
+          2.48
+        ],
+        "size": [
+          1.0599999999999996,
+          0.23000000000000043,
+          4.64
+        ]
+      },
+      {
+        "name": "Fixed island counter",
+        "center": [
+          -4.655,
+          5.215,
+          0.631
+        ],
+        "size": [
+          2.41,
+          2.33,
+          0.9420000000000001
+        ]
+      },
+      {
+        "name": "Utility crate",
+        "center": [
+          -6.61,
+          -0.5914999999999999,
+          0.2645
+        ],
+        "size": [
+          0.39400000000000013,
+          0.483,
+          0.391
+        ],
+        "group": "lot",
+        "attachment": "lot"
+      },
+      {
+        "name": "Utility crate",
+        "center": [
+          5.8,
+          -0.7015,
+          0.2645
+        ],
+        "size": [
+          0.39400000000000013,
+          0.483,
+          0.391
+        ],
+        "group": "lot",
+        "attachment": "lot"
+      }
+    ]
+  },
+  "optional_nodes": [
+    "lot",
+    "display_stock"
+  ],
+  "swatches": [
+    "pavement",
+    "plank_horizontal"
+  ],
+  "display_board_source": "Beach Day Prop Pack, PR #35. Display copies preserve original geometry and texel density.",
+  "glazing": "The storefront uses an alpha overlay under a BODY-role name so the current loader's painted-room glass rule does not replace the see-through view."
+}
