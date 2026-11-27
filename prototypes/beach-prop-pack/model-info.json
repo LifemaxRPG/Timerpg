@@ -1,0 +1,484 @@
+{
+  "name": "Beach Day Prop Pack",
+  "coordinate_system": "glTF metres with Y up, ground at Y=0, object origin at its footprint",
+  "swatches": [
+    "plank_horizontal"
+  ],
+  "art_texel_m": 0.0388,
+  "props": [
+    {
+      "id": "umbrella-coral",
+      "name": "Coral Stripe Umbrella",
+      "category": "Shade",
+      "era": "1950 onward",
+      "pose": "Open",
+      "file": "props/umbrella-coral.glb",
+      "size_gltf_m": [
+        2.1914,
+        2.195,
+        2.1914
+      ],
+      "triangles": 364,
+      "materials": 1,
+      "collision_boxes": [
+        {
+          "center_m": [
+            0,
+            0.89,
+            0
+          ],
+          "size_m": [
+            0.13,
+            1.78,
+            0.13
+          ]
+        }
+      ]
+    },
+    {
+      "id": "umbrella-teal",
+      "name": "Teal Stripe Umbrella",
+      "category": "Shade",
+      "era": "1950 onward",
+      "pose": "Open",
+      "file": "props/umbrella-teal.glb",
+      "size_gltf_m": [
+        2.1914,
+        2.195,
+        2.1914
+      ],
+      "triangles": 364,
+      "materials": 1,
+      "collision_boxes": [
+        {
+          "center_m": [
+            0,
+            0.89,
+            0
+          ],
+          "size_m": [
+            0.13,
+            1.78,
+            0.13
+          ]
+        }
+      ]
+    },
+    {
+      "id": "towel-coral",
+      "name": "Coral Beach Towel",
+      "category": "Shade",
+      "era": "1950 onward",
+      "pose": "Laid flat",
+      "file": "props/towel-coral.glb",
+      "size_gltf_m": [
+        0.89,
+        0.03,
+        1.815
+      ],
+      "triangles": 284,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "towel-teal",
+      "name": "Teal Beach Towel",
+      "category": "Shade",
+      "era": "1950 onward",
+      "pose": "Laid flat",
+      "file": "props/towel-teal.glb",
+      "size_gltf_m": [
+        0.89,
+        0.03,
+        1.815
+      ],
+      "triangles": 284,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "surf-longboard",
+      "name": "Classic Stringer Longboard",
+      "category": "Surf",
+      "era": "1950 onward",
+      "pose": "Fin-up on sand",
+      "file": "props/surf-longboard.glb",
+      "size_gltf_m": [
+        0.572,
+        0.26,
+        2.835
+      ],
+      "triangles": 124,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "surf-fish",
+      "name": "Swallowtail Fish Surfboard",
+      "category": "Surf",
+      "era": "1970 onward",
+      "pose": "Fin-up on sand",
+      "file": "props/surf-fish.glb",
+      "size_gltf_m": [
+        0.562,
+        0.198,
+        1.885
+      ],
+      "triangles": 124,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "surf-shortboard",
+      "name": "Sunset Shortboard",
+      "category": "Surf",
+      "era": "1980 onward",
+      "pose": "Fin-up on sand",
+      "file": "props/surf-shortboard.glb",
+      "size_gltf_m": [
+        0.484,
+        0.176,
+        1.995
+      ],
+      "triangles": 148,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "bodyboard",
+      "name": "Striped Bodyboard",
+      "category": "Surf",
+      "era": "1975 onward",
+      "pose": "Deck-up",
+      "file": "props/bodyboard.glb",
+      "size_gltf_m": [
+        0.586,
+        0.081,
+        1.06
+      ],
+      "triangles": 120,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "ball-beach",
+      "name": "Six-Panel Beach Ball",
+      "category": "Play",
+      "era": "1950 onward",
+      "pose": "Resting",
+      "file": "props/ball-beach.glb",
+      "size_gltf_m": [
+        0.4972,
+        0.51,
+        0.4972
+      ],
+      "triangles": 144,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "ball-volleyball",
+      "name": "Stitched Volleyball",
+      "category": "Play",
+      "era": "1950 onward",
+      "pose": "Resting",
+      "file": "props/ball-volleyball.glb",
+      "size_gltf_m": [
+        0.2125,
+        0.218,
+        0.2125
+      ],
+      "triangles": 144,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "bucket",
+      "name": "Sand Pail",
+      "category": "Play",
+      "era": "1950 onward",
+      "pose": "Upright",
+      "file": "props/bucket.glb",
+      "size_gltf_m": [
+        0.3793,
+        0.4462,
+        0.308
+      ],
+      "triangles": 308,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "shovel",
+      "name": "Toy Sand Shovel",
+      "category": "Play",
+      "era": "1950 onward",
+      "pose": "Laid flat",
+      "file": "props/shovel.glb",
+      "size_gltf_m": [
+        0.16,
+        0.062,
+        0.6139
+      ],
+      "triangles": 132,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "rake",
+      "name": "Toy Sand Rake",
+      "category": "Play",
+      "era": "1950 onward",
+      "pose": "Laid flat",
+      "file": "props/rake.glb",
+      "size_gltf_m": [
+        0.182,
+        0.055,
+        0.4295
+      ],
+      "triangles": 156,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "star-mold",
+      "name": "Starfish Sand Mold",
+      "category": "Play",
+      "era": "1950 onward",
+      "pose": "Open side up",
+      "file": "props/star-mold.glb",
+      "size_gltf_m": [
+        0.2569,
+        0.062,
+        0.2701
+      ],
+      "triangles": 76,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "sandcastle",
+      "name": "Drip Sandcastle",
+      "category": "Play",
+      "era": "1950 onward",
+      "pose": "Built on sand",
+      "file": "props/sandcastle.glb",
+      "size_gltf_m": [
+        0.78,
+        0.426,
+        0.5897
+      ],
+      "triangles": 468,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "flying-disc",
+      "name": "Pocket Flying Disc",
+      "category": "Play",
+      "era": "1950 onward",
+      "pose": "Laid flat",
+      "file": "props/flying-disc.glb",
+      "size_gltf_m": [
+        0.306,
+        0.039,
+        0.306
+      ],
+      "triangles": 116,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "cooler",
+      "name": "Two-Tone Picnic Cooler",
+      "category": "Comfort",
+      "era": "1950 onward",
+      "pose": "Resting",
+      "file": "props/cooler.glb",
+      "size_gltf_m": [
+        0.634,
+        0.3755,
+        0.4005
+      ],
+      "triangles": 160,
+      "materials": 1,
+      "collision_boxes": [
+        {
+          "center_m": [
+            0.0,
+            0.1877,
+            0.0053
+          ],
+          "size_m": [
+            0.634,
+            0.3755,
+            0.4005
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tote",
+      "name": "Canvas Beach Tote",
+      "category": "Comfort",
+      "era": "1950 onward",
+      "pose": "Resting",
+      "file": "props/tote.glb",
+      "size_gltf_m": [
+        0.498,
+        0.4171,
+        0.31
+      ],
+      "triangles": 384,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "folding-chair",
+      "name": "Canvas Folding Chair",
+      "category": "Comfort",
+      "era": "1950 onward",
+      "pose": "Resting",
+      "file": "props/folding-chair.glb",
+      "size_gltf_m": [
+        0.676,
+        0.9216,
+        0.7
+      ],
+      "triangles": 336,
+      "materials": 1,
+      "collision_boxes": [
+        {
+          "center_m": [
+            0.0,
+            0.4608,
+            -0.015
+          ],
+          "size_m": [
+            0.676,
+            0.9216,
+            0.7
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lounger",
+      "name": "Striped Sun Lounger",
+      "category": "Comfort",
+      "era": "1950 onward",
+      "pose": "Resting",
+      "file": "props/lounger.glb",
+      "size_gltf_m": [
+        0.706,
+        0.7123,
+        1.9747
+      ],
+      "triangles": 376,
+      "materials": 1,
+      "collision_boxes": [
+        {
+          "center_m": [
+            0.0,
+            0.3562,
+            0.003
+          ],
+          "size_m": [
+            0.706,
+            0.7123,
+            1.9747
+          ]
+        }
+      ]
+    },
+    {
+      "id": "swim-ring",
+      "name": "Coral and Cream Swim Ring",
+      "category": "Comfort",
+      "era": "1950 onward",
+      "pose": "Laid flat",
+      "file": "props/swim-ring.glb",
+      "size_gltf_m": [
+        0.912,
+        0.2,
+        0.912
+      ],
+      "triangles": 212,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "air-mattress",
+      "name": "Channel Air Mattress",
+      "category": "Comfort",
+      "era": "1950 onward",
+      "pose": "Inflated and laid flat",
+      "file": "props/air-mattress.glb",
+      "size_gltf_m": [
+        0.626,
+        0.188,
+        1.82
+      ],
+      "triangles": 472,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "flip-flops",
+      "name": "Pair of Flip-Flops",
+      "category": "Comfort",
+      "era": "1950 onward",
+      "pose": "Laid flat",
+      "file": "props/flip-flops.glb",
+      "size_gltf_m": [
+        0.2899,
+        0.0796,
+        0.325
+      ],
+      "triangles": 280,
+      "materials": 1,
+      "collision_boxes": []
+    },
+    {
+      "id": "volleyball-net",
+      "name": "Beach Volleyball Net",
+      "category": "Play",
+      "era": "1950 onward",
+      "pose": "Strung",
+      "file": "props/volleyball-net.glb",
+      "size_gltf_m": [
+        8.284,
+        2.514,
+        0.124
+      ],
+      "triangles": 412,
+      "materials": 1,
+      "collision_boxes": [
+        {
+          "center_m": [
+            -4.08,
+            1.26,
+            0
+          ],
+          "size_m": [
+            0.124,
+            2.52,
+            0.124
+          ]
+        },
+        {
+          "center_m": [
+            4.08,
+            1.26,
+            0
+          ],
+          "size_m": [
+            0.124,
+            2.52,
+            0.124
+          ]
+        }
+      ]
+    }
+  ]
+}
