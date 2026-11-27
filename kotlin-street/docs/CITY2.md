@@ -434,3 +434,20 @@ five days, XL more than that (agent days).
 - **The Sallow Bridge hump** is now gentle (crest R 612, no lift). Do you want one deliberate small hop somewhere (a
   humpback bridge that lifts the car a little at speed), or none at all?
 - **The tram** returning in 2034 narrows the Esplanade to two lanes in the future eras. Keep it?
+
+## Phase 5a — Lots on curved streets and the era ledger (G023)
+
+Dove Beach's buildable plan now lives beside the roads in `src/town/city2/` without altering a single road alignment, grade, or dove outline point (`align.ts`, `site.ts`, `roads.ts`, `ground.ts`, and `city2.test.ts` are untouched).
+
+### Modules
+
+- **`src/town/city2/lots.ts`** — Lays oriented frontage lots along the 13 curved, sloped roads of `roads.ts` and Seagrove's 1905 `newTownGrid` streets (`generateLots(seed)`), plus reserved footprints for all 19 landmarks in `LANDMARKS` (`reserveLandmarkPlots()`).
+  - Each lot carries its road reference (`roadId`, `roadS`, `side`), district (`districtId`), `LotKind` (reusing `src/town/kinds.ts`), front and rear yard setbacks (`frontYard`, `backYard`), leveled inner building pad (`padW`, `padD`, `padCorners`, `y`), ground grade, and 4-corner world polygon (`corners`).
+  - Every candidate is rejected if any corner, midpoint, or center falls on any curved carriageway or junction clearance zone, any Seagrove street, Heron Marsh (`0` lots), the Long Strand beach or dunes, the Sallow River (`< 26 m`), the railway (`< 13 m`), ground steeper than `MAX_BUILDABLE_GRADE` (`0.30`), any exclusive landmark footprint, or any existing lot (exact 2D SAT polygon intersection with `1.5 m` separation).
+  - Canonical seed (`"city2"`) places **1,662 frontage lots** across all 11 buildable districts (`harbour: 23`, `oldtown: 101`, `crown: 47`, `mills: 10`, `strand: 124`, `fellside: 164`, `ridge: 55`, `eastcove: 31`, `head: 68`, `uplands: 4`, `newtown: 1,035`, `marsh: 0`) plus **19 landmark plots**.
+
+- **`src/town/city2/ledger.ts`** — Builds the deterministic per-lot and per-landmark history from the 1700s to the 2050s (`buildDoveBeachPlan(seed)` and `plan.standingIn(year)`).
+  - Follows the town's chronology: 1700s fishing hamlet (`4` harbour shacks in 1760), Neck Fort (1790), Old Town (1800), Custom House (1838), Head Light (1851), Sallow Mills (1861) & Brewery (1871), railway & Harbour Station (1886), Crown Observatory (1894) & Funicular (1899), Seagrove & Esplanade/Strand (1905), Strand Pier (1909), Dove Fountain (1912), Heron Creek drawbridge (1923), Ridge Drive (1936), Headland Naval Yard (1939–1984, cleared into headland parkland in 1994), Fellside (1948), Eastcove marina & shrimp dock and Strand motor courts (1952), shuttered mills (1970s), Uplands (1978), adaptive-reuse mill lofts/taprooms & boutique motels (1990s), and the modern town through 2050 (including the tram's 2034 return).
+  - Regular buildings stay within `1–4` storeys in every era; only **Head Light** exceeds 4 storeys.
+
+- **`src/town/city2/mapSvg.ts`** — Pure TypeScript top-down cartographic SVG map renderer (`renderDoveBeachSvg(plan, year)`) showing coastline, ocean, Long Strand dunes, Heron Marsh, Sallow River & creeks, railway (1886+), moles & pier, era-filtered roads (highlighting the 5-road dove loop), Seagrove's grid (1905+), era-colored lots & pads, and active landmark plots. Generated snapshots for **1900** (127 buildings, 9 landmarks), **1960** (1,130 buildings, 19 landmarks), and **2025** (1,626 buildings, 19 landmarks) live in `prototypes/G023/`.

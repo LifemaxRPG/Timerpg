@@ -194,7 +194,7 @@ function pick<T>(arr: readonly T[], r: number): T {
   return arr[Math.min(arr.length - 1, Math.floor(r * arr.length))]!;
 }
 
-function buildLotStages(seed: string, lot: City2Lot): BuildingStage[] {
+function buildLotStages(seed: string, lot: City2Lot, districtOrdinal: number): BuildingStage[] {
   const R = (...k: (string | number)[]) => rand(seed, 'ledger', lot.id, ...k);
   const r0 = R('t0');
   const r1 = R('r1');
@@ -453,7 +453,7 @@ function buildLotStages(seed: string, lot: City2Lot): BuildingStage[] {
 
     case 'uplands': {
       // Uplands: built from 1978 onward (houses, school, small shopping strip).
-      const from = Math.floor(1978 + r0 * r0 * 24);
+      const from = districtOrdinal === 0 ? 1978 : Math.floor(1979 + r0 * 22);
       const role: DoveBeachRole =
         lot.kind === 'shop'
           ? (r1 < 0.35 ? 'upland_school' : 'shopping_strip')
@@ -525,11 +525,16 @@ export function buildDoveBeachPlan(seed = CITY2_SEED): DoveBeachPlan {
   const lotById = new Map(layout.lots.map((l) => [l.id, l]));
   const landmarkById = new Map(layout.landmarkPlots.map((l) => [l.id, l]));
 
-  const lotLedger: LotLedgerEntry[] = layout.lots.map((lot) => ({
-    lotId: lot.id,
-    districtId: lot.districtId,
-    stages: buildLotStages(seed, lot),
-  }));
+  const districtOrdinals = new Map<DoveBeachDistrictId, number>();
+  const lotLedger: LotLedgerEntry[] = layout.lots.map((lot) => {
+    const ord = districtOrdinals.get(lot.districtId) ?? 0;
+    districtOrdinals.set(lot.districtId, ord + 1);
+    return {
+      lotId: lot.id,
+      districtId: lot.districtId,
+      stages: buildLotStages(seed, lot, ord),
+    };
+  });
 
   const landmarkLedger: LandmarkLedgerEntry[] = layout.landmarkPlots.map((lm) => ({
     landmarkId: lm.id,

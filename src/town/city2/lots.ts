@@ -839,11 +839,12 @@ export function generateLots(
           FRONT[kind] === 0
             ? Math.round(rFY * Math.min(1.5, profile.frontYardRange[1]) * 10) / 10
             : Math.round((profile.frontYardRange[0] + rFY * (profile.frontYardRange[1] - profile.frontYardRange[0])) * 10) / 10;
-        const backYard =
+        const rawBackYard =
           Math.round((profile.backYardRange[0] + rBY * (profile.backYardRange[1] - profile.backYardRange[0])) * 10) / 10;
         const sideMargin = kind === 'shop' || kind === 'apartment' ? 1.2 : 2.0;
         const padW = Math.max(6, Math.round((w - 2 * sideMargin) * 10) / 10);
-        const padD = Math.max(7, Math.round((d - frontYard - backYard) * 10) / 10);
+        const padD = Math.max(7, Math.round((d - frontYard - rawBackYard) * 10) / 10);
+        const backYard = Math.max(0, Math.round((d - frontYard - padD) * 10) / 10);
         const padCenterOffset = frontYard + padD / 2;
         const padCx = frontX + ox * padCenterOffset;
         const padCz = frontZ + oz * padCenterOffset;
