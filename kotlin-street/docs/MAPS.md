@@ -203,3 +203,8 @@ the street.
 **The character's memory:** once the player has been somewhere (driven, walked or ridden there), the character knows
 the way for good: the place is remembered on every map they own and in the GPS-less eras the way there is shown as a
 remembered route, like a person who never forgets a road. Only new places need the map, the index or asking.
+
+**Waypoints from good directions:** when a local who knows the way gives the player directions, the player can turn
+them into a waypoint on their map in one tap ("Mark it"). How good the mark is depends on the person: someone who knows
+the place well gives an exact mark; a vague or unsure person gives a rough area ("somewhere past the mill"); a person
+who'd mislead the player (a hostile one, or a joker) can give a wrong one, and the player may find out the hard way.
