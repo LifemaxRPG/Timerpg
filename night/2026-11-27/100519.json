@@ -1,0 +1,209 @@
+{
+  "kind": "night",
+  "start": "2026-11-27T10:05:19.518-0500",
+  "end": "2026-11-27T10:16:04.809-0500",
+  "minutes": 10.8,
+  "how": "job",
+  "stopReason": "the system ended the job (its time was up, or a condition changed)",
+  "inPlainWords": "Nothing was written: 8 min waiting for the model to load (Not enough free memory to load the model (2578 MB free, about 4191 MB needed with room for the game). Close other apps and tap Retry.). It stopped: the system ended the job (its time was up, or a condition changed).",
+  "app": {
+    "versionName": "0.1.976 (58216b0)",
+    "versionCode": 976,
+    "git": "58216b0",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "written": {
+    "lines": 0,
+    "variants": 0,
+    "rejected": 0,
+    "timedOut": 0,
+    "failed": 0,
+    "lastFailure": null,
+    "linesPerHour": 0,
+    "linesPerWritingHour": 0
+  },
+  "speed": {
+    "model": "",
+    "runsOn": "",
+    "genTokens": 0,
+    "genTokPerSec": 0,
+    "prefillTokens": 0,
+    "prefillTokPerSec": 0
+  },
+  "time": {
+    "writingMin": 0,
+    "coolingMin": 0,
+    "hotPausedMin": 0,
+    "burstRestMin": 2,
+    "batteryWaitMin": 0,
+    "pausedByYouMin": 0,
+    "heldMin": 0,
+    "heldBy": null,
+    "closingGameMin": 0,
+    "modelLoadMin": 8.7
+  },
+  "model": {
+    "loaded": "",
+    "problem": "Not enough free memory to load the model (2578 MB free, about 4191 MB needed with room for the game). Close other apps and tap Retry.",
+    "engineAtEnd": "error: Not enough free memory to load the model (2578 MB free, about 4191 MB needed with room for the game). Close other apps and tap Retry.",
+    "lastRejected": null,
+    "freeAtStartMb": 2502,
+    "freedByClosingGameMb": -1,
+    "freeBeforeLoadMb": 2502,
+    "androidThresholdMb": 216,
+    "mainCopyNeedsMb": 7200,
+    "lightCopyNeedsMb": 4253,
+    "freeAfterLoadMb": -1
+  },
+  "heat": {
+    "coolDowns": 0,
+    "hotPauses": 0,
+    "maxThermalStatus": 1
+  },
+  "battery": {
+    "start": 20,
+    "end": 22,
+    "pluggedAtStart": true,
+    "pluggedAtEnd": true
+  },
+  "bank": {
+    "prompts": 2115,
+    "ready": 119,
+    "templates": 0,
+    "missing": 1996,
+    "lines": 119,
+    "variantsDone": 0,
+    "stale": 1,
+    "years": [
+      2025
+    ],
+    "light": 119,
+    "left": 2353,
+    "etaMin": null
+  },
+  "queue": {
+    "byYear": {
+      "2025": 2353
+    },
+    "byPerson": {
+      "Ernest Reyes": 41,
+      "Betty Chen": 32,
+      "Clyde Novak": 30,
+      "Robert Kowalski": 30,
+      "Vera Singh": 30,
+      "William Kowalski": 30,
+      "Gladys Novak": 29,
+      "Louise Radcliffe": 29,
+      "others (141)": 2102
+    },
+    "byTopic": {
+      "your themes": 1288,
+      "chat": 381,
+      "work": 180,
+      "family": 165,
+      "rumors": 165,
+      "secret": 165,
+      "follow-ups": 9
+    }
+  },
+  "recent": [],
+  "player": {
+    "themes": [
+      {
+        "label": "other: yo, hear",
+        "kind": "other",
+        "asked": 3,
+        "live": 3,
+        "people": 3
+      },
+      {
+        "label": "the town: secrets, town",
+        "kind": "the town",
+        "asked": 2,
+        "live": 2,
+        "people": 2
+      },
+      {
+        "label": "the town: town, find",
+        "kind": "the town",
+        "asked": 2,
+        "live": 2,
+        "people": 1
+      },
+      {
+        "label": "personal: name, asked",
+        "kind": "personal",
+        "asked": 4,
+        "live": 0,
+        "people": 2
+      },
+      {
+        "label": "other: local, merchant",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: anyways, asking",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: better, bro",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "flirting: nice, pretty",
+        "kind": "flirting",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: ask, asked",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      },
+      {
+        "label": "other: buddy, right",
+        "kind": "other",
+        "asked": 1,
+        "live": 1,
+        "people": 1
+      }
+    ],
+    "answersByDay": [
+      {
+        "day": "2026-11-18",
+        "ready": 0,
+        "live": 0,
+        "template": 1,
+        "readyShare": 0
+      },
+      {
+        "day": "2026-11-23",
+        "ready": 0,
+        "live": 7,
+        "template": 0,
+        "readyShare": 0
+      },
+      {
+        "day": "2026-11-25",
+        "ready": 0,
+        "live": 16,
+        "template": 7,
+        "readyShare": 0
+      }
+    ]
+  }
+}
