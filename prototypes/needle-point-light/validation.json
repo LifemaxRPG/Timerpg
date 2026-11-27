@@ -1,0 +1,22 @@
+[
+  {
+    "state": "historic",
+    "triangles": 7695,
+    "materials": 12,
+    "embedded_pixel_textures": 12,
+    "max_uv_edge_error_m": 4.39e-06,
+    "anchors_checked": 5,
+    "treads_checked": 96,
+    "focal_height_m": 19.88
+  },
+  {
+    "state": "modern",
+    "triangles": 5971,
+    "materials": 11,
+    "embedded_pixel_textures": 11,
+    "max_uv_edge_error_m": 4.39e-06,
+    "anchors_checked": 5,
+    "treads_checked": 144,
+    "focal_height_m": 26.1
+  }
+]
