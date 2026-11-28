@@ -1,0 +1,138 @@
+{
+  "texel_m": 0.0388,
+  "forward": "+Z",
+  "up": "+Y",
+  "origin": "ground between axles",
+  "vehicles": [
+    {
+      "name": "wren-rowcrop-1952",
+      "era": [
+        1940,
+        1959
+      ],
+      "mass_kg": 1750,
+      "wheelbase_m": 2.15,
+      "track_m": {
+        "front": 0.42,
+        "rear": 1.55
+      },
+      "tyres_m": {
+        "front": {
+          "radius": 0.28,
+          "width": 0.17
+        },
+        "rear": {
+          "radius": 0.68,
+          "width": 0.29
+        }
+      },
+      "top_speed_kph": 24,
+      "triangles": {
+        "far": 116,
+        "mid": 444,
+        "full": 1772
+      },
+      "paint_colors": [
+        "#855A39",
+        "#687351",
+        "#826A78",
+        "#536F73",
+        "#A58E69"
+      ],
+      "faded_paint": "#A58E69",
+      "paint_mask_material": "body_paint",
+      "emission_mask_material": "lamp_faces",
+      "collision": [
+        {
+          "center": [
+            0,
+            0.76,
+            0.32
+          ],
+          "size": [
+            0.68,
+            0.72,
+            2.18
+          ]
+        },
+        {
+          "center": [
+            0,
+            1.16,
+            -0.75
+          ],
+          "size": [
+            0.7,
+            0.5,
+            1.05
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wren-utility-1978",
+      "era": [
+        1970,
+        1989
+      ],
+      "mass_kg": 3750,
+      "wheelbase_m": 2.6,
+      "track_m": {
+        "front": 1.68,
+        "rear": 1.92
+      },
+      "tyres_m": {
+        "front": {
+          "radius": 0.42,
+          "width": 0.27
+        },
+        "rear": {
+          "radius": 0.79,
+          "width": 0.4
+        }
+      },
+      "top_speed_kph": 32,
+      "triangles": {
+        "far": 116,
+        "mid": 600,
+        "full": 2024
+      },
+      "paint_colors": [
+        "#855A39",
+        "#687351",
+        "#826A78",
+        "#536F73",
+        "#A58E69"
+      ],
+      "faded_paint": "#A58E69",
+      "paint_mask_material": "body_paint",
+      "emission_mask_material": "lamp_faces",
+      "collision": [
+        {
+          "center": [
+            0,
+            0.76,
+            0.32
+          ],
+          "size": [
+            0.68,
+            0.72,
+            2.18
+          ]
+        },
+        {
+          "center": [
+            0,
+            1.8,
+            -0.76
+          ],
+          "size": [
+            1.3,
+            1.76,
+            1.32
+          ]
+        }
+      ]
+    }
+  ]
+}
