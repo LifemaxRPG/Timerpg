@@ -367,9 +367,8 @@ export function buildTownStreets(
   const useNumberedCross = numberedCandidates.length >= 3;
   const numberedMap = new Map<RawLine, string>();
   if (useNumberedCross) {
-    // Number cross streets west-to-east (or from civic outward) cleanly as First Street, Second Street, ...
-    const ordered = [...numberedCandidates].sort((a, b) => a.coord - b.coord);
-    ordered.forEach((line, i) => {
+    // Number cross streets stepping outward from the town center so First Street is closest to core
+    numberedCandidates.forEach((line, i) => {
       const name = `${ordinalWord(i + 1)} Street`;
       if (claim(name)) numberedMap.set(line, name);
     });

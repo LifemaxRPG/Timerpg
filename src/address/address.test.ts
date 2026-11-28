@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { runTimeline, worldAt } from '../sim/simulate';
 import { layoutTown } from '../town/layout';
-import { planTown } from '../town/plan';
+import { planTown, setPlanVersion } from '../town/plan';
 import { CAPITAL_SEED, isCountySeat } from '../town/plat';
 import { PEOPLE, SIZE, type TownRecipe } from '../town/recipe';
 import {
@@ -365,5 +365,97 @@ describe('src/address: real addresses for every building', () => {
 
     const bad = JSON.parse(bridge.call('{invalid'));
     expect(bad.ok).toBe(false);
+  });
+
+  it('resolves ordinals, typos, split 1/2 addresses, and apartment units in find()', () => {
+    // Outward-numbered cross streets place First and Second Street in the core
+    const firstHits = find(capital, '1st St', 2025);
+    expect(firstHits.length).toBeGreaterThan(0);
+    expect(firstHits[0]!.address.streetName).toContain('First Street');
+
+    const secondHits = find(capital, '2nd St', 2025);
+    expect(secondHits.length).toBeGreaterThan(0);
+    expect(secondHits[0]!.address.streetName).toContain('Second Street');
+
+    // Misspelled street query with exact house number
+    const typoHits = find(capital, '101 W Mian St', 2025);
+    expect(typoHits.length).toBeGreaterThan(0);
+    expect(typoHits[0]!.address.line1).toBe('101 W. Main Street');
+
+    // Split 1/2 upstairs flat address lookup
+    const splitBldg = capital.buildings.find((b) => b.units.some((u) => u.kind === 'half'));
+    expect(splitBldg).toBeDefined();
+    const splitAddr = addressOf(capital, splitBldg!.id, 2025, { unit: '1/2' })!;
+    expect(splitAddr.line1).toContain('1/2');
+    const splitHits = find(capital, splitAddr.line1, 2025);
+    expect(splitHits[0]!.address.buildingId).toBe(splitBldg!.id);
+    expect(splitHits[0]!.address.numberSuffix).toBe('1/2');
+    expect(splitHits[0]!.address.houseNumber).toContain('1/2');
+
+    // Apartment unit query
+    const aptBldg = capital.buildings.find((b) => b.units.some((u) => u.kind === 'apartment'));
+    expect(aptBldg).toBeDefined();
+    const aptUnit = aptBldg!.units.find((u) => u.kind === 'apartment')!;
+    const aptAddr = addressOf(capital, aptBldg!.id, 2025, { unit: aptUnit.label })!;
+    const aptHits = find(capital, aptAddr.line1, 2025);
+    expect(aptHits[0]!.address.buildingId).toBe(aptBldg!.id);
+    expect(aptHits[0]!.address.unit).toBe(aptUnit.label);
+  });
+
+  it('supports v1 town plans and Dove Beach extra buildings without tunnel bleed', () => {
+    // Legacy planVersion: 1 compatibility
+    setPlanVersion(1);
+    let v1Book: TownAddressBook;
+    try {
+      v1Book = buildTownAddresses('alpha', { plan: planTown('alpha') });
+    } finally {
+      setPlanVersion(2);
+    }
+    assertBookInvariants(v1Book, [1920, 1985, 2025]);
+
+    // Dove Beach surface landmarks stay off underground Headland Tunnel
+    expect(addressOf(doveBeach, 'fort', 1985)?.streetName).toBe('Neck Hill');
+    expect(addressOf(doveBeach, 'shrimpdock', 1985)?.streetName).toBe('Head Road');
+    expect(addressOf(doveBeach, 'tunnel', 1985)?.streetName).toBe('Headland Tunnel');
+
+    // Caller-supplied Dove Beach buildings integrate into numbering & search
+    const customDb = buildDoveBeachAddresses({
+      extraBuildings: [
+        {
+          id: 'shop:strand-surf',
+          label: 'Strand Surf Shop',
+          kind: 'shop',
+          roles: ['surf shop', 'store'],
+          at: [-1745, 1055],
+          fromYear: 1962,
+        },
+        {
+          id: 'shop:strand-bait',
+          label: 'Strand Tackle Annex',
+          kind: 'shop',
+          roles: ['tackle', 'store'],
+          at: [-1745, 1055],
+          fromYear: 1968,
+        },
+      ],
+    });
+    const surfAddr = addressOf(customDb, 'shop:strand-surf', 1975);
+    const annexAddr = addressOf(customDb, 'shop:strand-bait', 1975);
+    expect(surfAddr).not.toBeNull();
+    expect(annexAddr).not.toBeNull();
+    expect(surfAddr!.streetName).toBe('The Esplanade');
+    expect(surfAddr!.postalCode).toMatch(/^\d{5}$/);
+    // Co-located split building receives a distinct 1/2 or unit suffix
+    expect(annexAddr!.line1).not.toBe(surfAddr!.line1);
+    expect(annexAddr!.houseNumber).toContain('1/2');
+    const surfHits = find(customDb, 'surf shop on Esplanade', 1975);
+    expect(surfHits[0]!.address.buildingId).toBe('shop:strand-surf');
+  });
+
+  it('holds all street & numbering invariants across 8 diverse generated seeds', () => {
+    for (const seed of ['alpha', 'beta', 'delta', 'epsilon', 'zeta', 'eta', 'theta', 'rho']) {
+      const book = buildTownAddresses(seed);
+      assertBookInvariants(book, [1900, 1955, 1985, 2025]);
+    }
   });
 });

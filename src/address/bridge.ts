@@ -2,7 +2,7 @@ import { archetypeOf } from '../sim/archetype';
 import type { World } from '../sim/types';
 import { CITY2_SEED, DISTRICTS } from '../town/city2/site';
 import { planFarms } from '../town/farms';
-import { planTown } from '../town/plan';
+import { planTown, type TownPlan } from '../town/plan';
 import { CAPITAL_SEED, isCapital } from '../town/plat';
 import { recipeOf, useRecipe, type TownRecipe } from '../town/recipe';
 import { townFounded, townName } from '../world/names';
@@ -24,11 +24,13 @@ export interface BuildTownAddressOptions {
   townName?: string;
   /** Optional town ID override (defaults to recipe.place or seed). */
   townId?: string;
+  /** Optional pre-computed TownPlan to avoid recomputing planTown(seed). */
+  plan?: TownPlan;
 }
 
 /** Build the complete, deterministic, plain-JSON TownAddressBook for the capital or any procedural/recipe town. */
 export function buildTownAddresses(seed: string, options?: BuildTownAddressOptions): TownAddressBook {
-  const plan = planTown(seed);
+  const plan = options?.plan ?? planTown(seed);
   const includeFarms = options?.includeFarms !== false;
   const farmPlan = includeFarms ? planFarms(plan) : null;
   const recipe = recipeOf(seed);

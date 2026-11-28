@@ -737,14 +737,19 @@ export function numberDoveBeachBuildings(
 ): BuildingEntry[] {
   const pending: PendingBuilding[] = [];
 
-  const attachNearest = (x: number, z: number, fromYear: number): { street: StreetRecord; proj: Projection } => {
-    // Prefer streets already built (or built closest to fromYear) when picking among nearby streets
-    let bestStreet = streets[0]!;
-    let bestProj = projectOntoStreet(bestStreet, x, z);
-    let bestScore = bestProj.distance + (bestStreet.builtYear > fromYear ? 25 : 0);
+  const attachNearest = (
+    x: number,
+    z: number,
+    fromYear: number,
+    allowTunnel = false,
+  ): { street: StreetRecord; proj: Projection } => {
+    // Prefer surface streets already built when picking among nearby streets; only tunnel portals use Headland Tunnel
+    let bestStreet: StreetRecord | null = null;
+    let bestProj: Projection | null = null;
+    let bestScore = Infinity;
 
-    for (let i = 1; i < streets.length; i++) {
-      const s = streets[i]!;
+    for (const s of streets) {
+      if (!allowTunnel && s.id === 'city2:tunnel') continue;
       const p = projectOntoStreet(s, x, z);
       const score = p.distance + (s.builtYear > fromYear ? 25 : 0);
       if (score < bestScore - 1e-6) {
@@ -753,13 +758,17 @@ export function numberDoveBeachBuildings(
         bestScore = score;
       }
     }
+    if (!bestStreet || !bestProj) {
+      bestStreet = streets[0]!;
+      bestProj = projectOntoStreet(bestStreet, x, z);
+    }
     return { street: bestStreet, proj: bestProj };
   };
 
   for (const lm of CITY2_LANDMARKS) {
     const [x, z] = lm.at;
     const dist = doveBeachDistrictAt(x, z);
-    const { street, proj } = attachNearest(x, z, lm.from);
+    const { street, proj } = attachNearest(x, z, lm.from, lm.id.includes('tunnel') || /tunnel/i.test(lm.name));
     const units: UnitSpec[] =
       lm.id === 'brewery'
         ? [
@@ -795,7 +804,7 @@ export function numberDoveBeachBuildings(
   for (const b of extraBuildings) {
     const [x, z] = b.at;
     const dist = doveBeachDistrictAt(x, z);
-    const { street, proj } = attachNearest(x, z, b.fromYear);
+    const { street, proj } = attachNearest(x, z, b.fromYear, /tunnel/i.test(b.label));
     pending.push({
       id: b.id,
       aliases: b.aliases ?? [],
