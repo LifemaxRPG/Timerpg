@@ -1,0 +1,32 @@
+{
+  "name": "Tall Forest Pine",
+  "era": "All forest eras",
+  "footprint": [
+    4.243,
+    4.345
+  ],
+  "height": 17.2,
+  "triangles": 380,
+  "materials": [
+    "bark_pine",
+    "needles_shadow",
+    "needles_light"
+  ],
+  "swatches": [],
+  "collisionBoxes": [
+    {
+      "center": [
+        0,
+        3.15,
+        0
+      ],
+      "size": [
+        0.64,
+        6.3,
+        0.64
+      ],
+      "group": "trunk",
+      "attachment": "Pine trunk"
+    }
+  ]
+}
