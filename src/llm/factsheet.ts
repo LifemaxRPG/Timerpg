@@ -18,6 +18,20 @@ import {
   type MemorySource,
   type MemoryTone,
 } from './memories';
+import {
+  collectToldTopics,
+  deriveMood,
+  formatToldGuidance,
+  isUnprovokedHostility,
+  repeatsToldTopic,
+  summarizeConversation,
+  type ConversationTurn,
+  type MoodInput,
+  type MoodKind,
+  type MoodState,
+  type MoodStrength,
+  type ToldTopic,
+} from './conversation';
 
 export {
   MAX_MEMORIES,
@@ -29,6 +43,18 @@ export {
   type MemoryPersonTraits,
   type MemorySource,
   type MemoryTone,
+  collectToldTopics,
+  deriveMood,
+  formatToldGuidance,
+  isUnprovokedHostility,
+  repeatsToldTopic,
+  summarizeConversation,
+  type ConversationTurn,
+  type MoodInput,
+  type MoodKind,
+  type MoodState,
+  type MoodStrength,
+  type ToldTopic,
 };
 
 // THE FACT SHEET. A language model only gives words to what the simulation already decided: it is
@@ -47,6 +73,22 @@ export interface Brief {
   recent?: string[];
   /** Grounded first-person memories attached to this brief (used for epistemic checks in validate()). */
   memories?: MemoryLine[];
+  /** Prior conversation turns summarized into the brief. */
+  turns?: ConversationTurn[];
+  /** Rumours and facts already told in this conversation. */
+  told?: ToldTopic[];
+  /** Fresh untold facts added on a follow-up turn (distinguished from already-told ones). */
+  freshFacts?: string[];
+  /** Fact-grounded mood toward the player (controls tone and unprovoked-hostility guard). */
+  mood?: MoodState;
+  /** True when the current topic has been exhausted and the NPC may say they have nothing more. */
+  allowNothingMore?: boolean;
+  /** Speaker voice kind derived from traits (used by withMood/followUp). */
+  voiceKind?: VoiceKind;
+  /** Speaker familiarity with the player (used by followUp). */
+  familiarity?: number;
+  /** Whether the player is wanted (used by followUp). */
+  wanted?: boolean;
 }
 
 /** Constant, so it is cached between lines. */
@@ -330,6 +372,178 @@ export function freeQuestion(b: Brief, said: string, recent: string[] = [], keep
   return withRecent({ ...b, system, user: said, must: keepMust ? b.must : [] }, recent);
 }
 
+export interface ConversationOptions {
+  /** Explicitly marked already-told rumours or facts in addition to those inferred from turns. */
+  told?: readonly ToldTopic[];
+  /** The topic of the current question (e.g. "rumors", "secret", "work", "family"). */
+  currentTopic?: string;
+  /** Optional fresh untold facts to share instead of repeating an already-told item. */
+  freshFacts?: readonly string[];
+  /** Optional required words for the fresh facts (replaces stale must words when provided). */
+  freshMust?: readonly string[];
+  /** Max recent turns to summarize into the brief (default 4). */
+  maxTurns?: number;
+  /** If true, keep existing must words even when they match an already-told topic. */
+  keepMustWhenTold?: boolean;
+}
+
+export interface FollowUpOptions extends ConversationOptions {
+  /** Optional prior NPC replies when full ConversationTurn objects are not available. */
+  recent?: string[];
+  /** Optional full conversation turns (preferred over bare recent replies). */
+  turns?: readonly ConversationTurn[];
+  /** Grounded G021 memories for this NPC. */
+  memories?: readonly (MemoryLine | string)[];
+  /** Local hour of day (0..23) for time-of-day mood awareness. */
+  hour?: number;
+  /** Explicit relationship attitude (-1..1). */
+  attitude?: number;
+  /** Override familiarity (defaults to the brief's familiarity). */
+  familiarity?: number;
+  /** Override wanted flag (defaults to the brief's wanted flag). */
+  wanted?: boolean;
+  /** Keep b.must words from the base brief (still drops words whose rumour was already told). */
+  keepMust?: boolean;
+}
+
+const SCAFFOLD_LINES = [
+  /^Conversation so far: .*$/gm,
+  /^Already told in this talk: .*$/gm,
+  /^Do not retell what you already told;.*$/gm,
+  /^You already told all you know on this topic..*$/gm,
+  /^Do not bring up those already-told details again.*$/gm,
+];
+
+function insertBeforeExample(system: string, block: string): string {
+  if (!block.trim()) return system;
+  const at = system.indexOf('\nExample of the kind of answer:');
+  return at >= 0 ? system.slice(0, at) + '\n' + block + system.slice(at) : system + '\n' + block;
+}
+
+/**
+ * Attach a bounded multi-turn conversation summary and told-topic markers to [b].
+ * Automatically drops stale `must` words for rumours/facts already told unless `keepMustWhenTold` is set,
+ * so the model is never forced to repeat the same rumour across consecutive turns.
+ */
+export function withConversation(
+  b: Brief,
+  turns: readonly ConversationTurn[],
+  opts: ConversationOptions = {},
+): Brief {
+  const cleanTurns = turns.filter((t) => t.player.trim() || t.npc.trim());
+  const told = collectToldTopics(cleanTurns, [...(b.told ?? []), ...(opts.told ?? [])]);
+  const summary = summarizeConversation(cleanTurns, opts.maxTurns ?? 4);
+  const freshFacts = (opts.freshFacts ?? []).map((x) => x.trim()).filter(Boolean);
+  const { lines: toldLines, exhausted } = formatToldGuidance(told, opts.currentTopic, freshFacts);
+
+  let system = b.system;
+  for (const re of SCAFFOLD_LINES) system = system.replace(re, '');
+  system = system.replace(/\n{3,}/g, '\n').trimEnd();
+
+  const additions: string[] = [];
+  if (summary) additions.push(summary);
+  if (toldLines.length) additions.push(...toldLines);
+  for (const ff of freshFacts) {
+    if (!system.includes(ff)) additions.push(ff);
+  }
+  if (additions.length) {
+    system = insertBeforeExample(system, additions.join('\n'));
+  }
+
+  // Merge recent NPC replies from turns with any existing b.recent so repeats() guards the last 3 replies.
+  const turnReplies = cleanTurns.map((t) => t.npc.trim()).filter(Boolean);
+  const mergedRecent = [...(b.recent ?? []), ...turnReplies]
+    .filter((line, idx, arr) => arr.indexOf(line) === idx)
+    .slice(-3);
+
+  // Drop stale must-words belonging to already-told topics so we do not force repetition.
+  const toldSubjectSet = new Set(told.flatMap((t) => t.subjects.map((s) => s.toLowerCase())));
+  let must = opts.keepMustWhenTold
+    ? [...b.must]
+    : b.must.filter((m) => !toldSubjectSet.has(m.toLowerCase()));
+  if (opts.freshMust && opts.freshMust.length) {
+    must = [...must, ...opts.freshMust];
+  }
+
+  return {
+    ...b,
+    system,
+    must,
+    recent: mergedRecent.length ? mergedRecent : b.recent,
+    turns: cleanTurns,
+    told,
+    freshFacts: freshFacts.length ? freshFacts : b.freshFacts,
+    allowNothingMore: exhausted || b.allowNothingMore,
+  };
+}
+
+/**
+ * Derive and attach a plain, fact-grounded mood statement to [b].
+ * Replaces any earlier mood line so the brief always carries one clear mood instruction.
+ */
+export function withMood(b: Brief, input: MoodInput): Brief {
+  const mood = deriveMood({
+    ...input,
+    memories: input.memories ?? b.memories,
+    voiceKind: input.voiceKind ?? b.voiceKind,
+    turns: input.turns ?? b.turns,
+    playerSaid: input.playerSaid ?? b.user,
+  });
+  let system = b.system.replace(/\n?Mood toward the player: [^\n]*/g, '');
+  system = insertBeforeExample(system, mood.promptLine);
+  return { ...b, system, mood };
+}
+
+/**
+ * High-level builder for a live multi-turn player reply: strips the menu example, sets the player's
+ * actual words, attaches memories + conversation summary + told-topic marking, and states the
+ * fact-grounded mood plainly in the brief.
+ */
+export function followUp(b: Brief, said: string, opts: FollowUpOptions = {}): Brief {
+  const at = b.system.indexOf('\nExample of the kind of answer:');
+  const stripped = at >= 0 ? b.system.slice(0, at) : b.system;
+  let out: Brief = {
+    ...b,
+    system: stripped,
+    user: said,
+    must: opts.keepMust ? [...b.must] : [],
+  };
+
+  if (opts.memories?.length) {
+    out = withMemories(out, opts.memories);
+  }
+
+  const turns = opts.turns ?? [];
+  if (turns.length || opts.told?.length || opts.freshFacts?.length) {
+    out = withConversation(out, turns, opts);
+  } else if (opts.recent?.length) {
+    out = withRecent(out, opts.recent);
+  }
+
+  // Keep explicit recent replies when both turns and extra recent replies are passed.
+  if (opts.recent?.length && turns.length) {
+    const merged = [...opts.recent, ...(out.recent ?? [])]
+      .map((x) => x.trim())
+      .filter((x, i, a) => x && a.indexOf(x) === i)
+      .slice(-3);
+    out = { ...out, recent: merged };
+  }
+
+  out = withMood(out, {
+    familiarity: opts.familiarity ?? b.familiarity ?? 0,
+    wanted: opts.wanted ?? b.wanted ?? false,
+    voiceKind: b.voiceKind,
+    attitude: opts.attitude,
+    memories: out.memories,
+    hour: opts.hour,
+    playerSaid: said,
+    turns: out.turns,
+  });
+
+  return out;
+}
+
+
 /**
  * Build the prompt for one line of dialogue. Only the facts that bear on what was asked go in (a small
  * model repeats everything it is given, relevant or not). `facts` are extra sentences that must be
@@ -376,8 +590,24 @@ export function brief(
   ].join('\n');
   // The rules come first and never change, so the model's prompt cache can reuse them every time.
   const system = [RULES, sheet, `Example of the kind of answer: ${template.split('\n')[0]}`].join('\n');
-  const out: Brief = { system, user: PLAYER[intent] ?? 'Hmm.', must, self: fullName(p) };
-  return memories?.length ? withMemories(out, memories) : out;
+  let out: Brief = {
+    system,
+    user: PLAYER[intent] ?? 'Hmm.',
+    must,
+    self: fullName(p),
+    voiceKind: voice.kind,
+    familiarity: c.familiarity,
+    wanted: c.wanted,
+  };
+  if (memories?.length) out = withMemories(out, memories);
+  out = withMood(out, {
+    familiarity: c.familiarity,
+    wanted: c.wanted,
+    voiceKind: voice.kind,
+    memories: out.memories,
+    playerSaid: out.user,
+  });
+  return out;
 }
 
 /** The raw text prompt (ChatML with thinking switched off, which Qwen3 expects). */
@@ -387,7 +617,14 @@ export const toPrompt = (b: Brief): string =>
 /** Capitalized words a reply may use without the facts naming them. */
 const COMMON = new Set(['Mr', 'Mrs', 'Ms', 'Miss', 'Mister', 'Dr', 'Sir', 'Madam', 'God', 'Lord', 'Monday', 'Tuesday', 'Wednesday',
   'Thursday', 'Friday', 'Saturday', 'Sunday', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
-  'September', 'October', 'November', 'December', 'Christmas', 'Easter', 'English', 'American']);
+  'September', 'October', 'November', 'December', 'Christmas', 'Easter', 'Thanksgiving', 'Halloween', 'Heaven', 'Heavens', 'English', 'American']);
+
+/** Role, title, or place nouns that a model may capitalize mid-sentence ONLY when the fact sheet already mentions them (case-insensitively). */
+const SHEET_GROUNDED_CAPS = new Set([
+  'Mayor', 'Sheriff', 'Police', 'Constable', 'Judge', 'General', 'Store', 'Market', 'Shop',
+  'Street', 'Cinema', 'Gazette', 'Courthouse', 'Superstore', 'Supermarket', 'Station', 'Town',
+  'Hotel', 'Bakery', 'Mill', 'Library', 'Church', 'Chapel', 'Harbour', 'Harbor', 'Pier',
+]);
 
 /**
  * Places and events a reply may only speak of when the facts do ("the old mill", "the new library", "the fire"): after
@@ -406,7 +643,7 @@ const MOVED = /\b(moved here|came here from|not from here|not from around here)\
 /** Changing the subject: only for a topic the facts mark as one they would rather not talk about. */
 const DEFLECT = /\b(talk about something else|chat about something else|change the subject|perhaps we (can|could) (talk|chat) about|let's (talk|chat) about|(talk|chat) about [a-z' ]+ instead)\b/i;
 /** A sentence that doubts or denies: the player's own word in it is not a claim ("A library? I haven't heard of one."). */
-const HEDGE = /\?|\b(no|not|never|nothing|nobody)\b|n't\b/i;
+const HEDGE = /\?|\b(no|not|never|nothing|nobody|hard to say|beats me|news to me|first i(?:'m| am) hearing|wish i knew|who knows|no idea|doubt|unsure|uncertain)\b|n't\b/i;
 /** Claims first-hand eyewitness observation of the player or an event. */
 const CLAIMED_SEEN = /\b(i saw you|i saw them|i saw him|i saw her|i saw it|i saw the police|i saw the whole thing|i saw what you did|i watched you|i watched it|i witnessed|with my own eyes|right in front of me|i was right there|i was there when|i caught you|saw you myself|saw it myself|saw you do it)\b/i;
 /** Explicitly denies having seen it (e.g. "I didn't see it myself", "I never saw you do it"). */
@@ -498,17 +735,34 @@ export function whyRejected(raw: string, b: Brief): string | null {
   return check(raw, b)[1];
 }
 
+function stripScaffoldFromSheet(system: string): string {
+  return system
+    .replace(/You already said: [^\n]*/g, '')
+    .replace(/Conversation so far: [^\n]*/g, '')
+    .replace(/Already told in this talk: [^\n]*/g, '')
+    .replace(/Mood toward the player: [^\n]*/g, '')
+    .replace(/Do not retell what you already told;[^\n]*/g, '')
+    .replace(/You already told all you know on this topic\.[^\n]*/g, '')
+    .replace(/Do not bring up those already-told details again[^\n]*/g, '');
+}
+
 function check(raw: string, b: Brief): [string | null, string | null] {
   let t = raw.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/<\|[^|]*\|>/g, '').trim();
   t = t.replace(/^["“'‘]+|["”'’]+$/g, '').replace(/\*[^*]*\*/g, '').replace(/\s+/g, ' ').trim();
   if (t.length < 3) return [null, 'empty'];
-  if (t.length > 320) return [null, 'too long'];
-  // Keep at most the first two sentences.
+  if (t.length > 640) return [null, 'too long'];
+  // Keep at most the first two sentences BEFORE checking the 320-char cap so a good 3-sentence reply
+  // whose first two sentences are concise is trimmed rather than dropped to a template fallback.
   const sentences = t.match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g);
   if (sentences && sentences.length > 2) t = sentences.slice(0, 2).join('').trim();
+  if (t.length > 320) return [null, 'too long'];
   if (/^(as an ai|i am an ai|i'm an ai|sorry, i)/i.test(t) || /\b(language model|assistant)\b/i.test(t)) return [null, 'sounded like an AI assistant'];
   // Stage directions, assistant-speak and self-introductions are not how a neighbor talks.
-  if (/\b(i say|i respond|i reply|i smile|smiles?|nods?|my eyes|flickers?|let me know|how can i (help|assist)|anything else)\b/i.test(t)) return [null, 'stage directions'];
+  // Avoid false rejections on natural NPC speech ("I haven't heard anything else", "Like I say", "What can I say?").
+  const isStage =
+    /\b(i respond|i reply|i smile|smiles?|nods?|my eyes|flickers?|let me know|how can i (?:help|assist)|(?:glad|happy) to help|(?:is there|if there(?:'s| is)|need|want)\s+anything else|anything else\s+(?:i can|for you|you need))\b/i.test(t)
+    || (/(?<!\b(?:what can|like|as|if|need|so)\s)\bi say\b/i.test(t) && !/\bi say (?:so|that)\b/i.test(t));
+  if (isStage) return [null, 'stage directions'];
   if (b.self && t.toLowerCase().includes(b.self.toLowerCase())) return [null, 'said their own full name'];
   // the fact sheet read back: its personality words, or its "<town>, <year>" tag
   if (/\b(warm and chatty|gruff and guarded|talk warmly|talk curtly)\b/i.test(t) || /,\s*(1[89]|20)\d\d\b/.test(t)
@@ -518,15 +772,17 @@ function check(raw: string, b: Brief): [string | null, string | null] {
   if (miss !== undefined) return [null, `left out "${miss}"`];
   // Everything named comes from the facts. The player's own words may be said back only to doubt or deny them
   // ("A new library? I haven't heard of one."), not as a claim ("The new library is lovely.").
-  // (their own last replies, quoted in the facts so they say something new, are not facts)
-  const sheet = b.system.replace(/You already said: [^\n]*/, ''), said = b.user;
+  // Non-fact conversation scaffolding (quoted prior replies, turn summaries, mood instructions) is stripped.
+  const sheet = stripScaffoldFromSheet(b.system), said = b.user;
   const echoed = (i: number): boolean => HEDGE.test(sentenceAt(t, i));
   // a name the facts never mention ("We have two kids, Jake and Lisa."): a capitalized word in mid-sentence the facts lack
   if (sheet) for (const m of t.matchAll(/\b[A-Z][a-z]+\b/g)) {
     const before = t.slice(0, m.index).trimEnd();
-    if (!before || /[.!?"“‘(]$/.test(before) || COMMON.has(m[0])) continue;
+    if (!before || /[.!?"“‘(:;—–]$/.test(before) || COMMON.has(m[0])) continue;
     const name = new RegExp(`\\b${m[0]}\\b`);
     if (name.test(sheet) || (name.test(said) && echoed(m.index!))) continue;
+    // Allow mid-sentence capitalized titles/places (e.g. "the Mayor", "the General Store") when grounded lowercased in sheet.
+    if (SHEET_GROUNDED_CAPS.has(m[0]) && new RegExp(`\\b${m[0].toLowerCase()}\\b`, 'i').test(sheet)) continue;
     return [null, `made up a name ("${m[0]}")`];
   }
   if (sheet) {
@@ -541,11 +797,15 @@ function check(raw: string, b: Brief): [string | null, string | null] {
     const native = NATIVE.exec(t); // (not "I wasn't born here", nor "Born here? No.")
     if (town && ((native && !echoed(native.index)) || [`i am from ${town}`, `i'm from ${town}`, `born in ${town}`, `grew up in ${town}`].some((x) => low.includes(x)))) return [null, 'said they are from here (they moved here)'];
     if (sheet.includes('born and raised in') && MOVED.test(t)) return [null, 'said they moved here (they were born here)'];
-    // "Perhaps we can talk about something else": only about a topic they would rather not talk about
-    if (DEFLECT.test(t) && !sheet.includes(AVOID)) return [null, 'changed the subject'];
+    // "Perhaps we can talk about something else": only about a topic they would rather not talk about (or exhausted topic)
+    if (DEFLECT.test(t) && !sheet.includes(AVOID) && !b.allowNothingMore) return [null, 'changed the subject'];
     // Epistemic guard (G021): never claim to have seen something the NPC only heard about
     if (claimedSeenOnHearsay(t, b, sheet)) return [null, 'claimed to have seen something only heard'];
+    // Mood guard (G024): never lash out or threaten to call the police without a reason in the facts
+    if (isUnprovokedHostility(t, b.mood, sheet, said)) return [null, 'unprovoked hostility'];
   }
+  // Topic variety guard (G024): do not retell an already-told rumour/secret without adding something new or closing it
+  if (b.told?.length && repeatsToldTopic(t, b.told, b.freshFacts)) return [null, 'repeated an already-told topic'];
   // the same words as one of their last replies ("It is a lovely day for it, isn't it?" three times)
   if (b.recent?.length && repeats(t, b.recent)) return [null, 'said it again'];
   return [t, null];
