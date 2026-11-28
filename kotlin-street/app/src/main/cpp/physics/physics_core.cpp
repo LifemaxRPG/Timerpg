@@ -97,6 +97,8 @@ struct Vehicle {
     float shiftUp = 0.f, shiftUpFull = 0.f, shiftTime = .25f, cutLeft = 0.f;
     float inForward = 0.f, inRight = 0.f, inBrake = 0.f, inHand = 0.f;
     int drive = 0;
+    float brakeTorque = 0.f;
+    bool burnout = false;
     bool live = false;
 };
 
@@ -576,6 +578,7 @@ int addVehicle(World *w, const float *d, const float *boxes, int boxCount, float
     v.shiftUpFull = d[VD_SHIFT_UP_FULL_RPM] > 0.f ? d[VD_SHIFT_UP_FULL_RPM] : d[VD_SHIFT_UP_RPM];
     v.shiftTime = d[VD_SHIFT_TIME] > 0.f ? d[VD_SHIFT_TIME] : .25f;
     v.drive = drive;
+    v.brakeTorque = d[VD_BRAKE_TORQUE];
     v.live = true;
     w->system.AddConstraint(v.constraint);
     w->system.AddStepListener(v.constraint);
@@ -602,6 +605,24 @@ void setVehicleInput(World *w, int vehicle, float forward, float right, float br
     right = std::clamp(right, -1.f, 1.f);
     brake = std::clamp(brake, 0.f, 1.f);
     handbrake = std::clamp(handbrake, 0.f, 1.f);
+    // Simultaneous forward throttle and service brake are a burnout command from the drive loop.
+    // On a single driven axle, hold the other axle while the driven wheels stay free to spin.
+    bool burnout = forward > .02f && brake > .02f && handbrake == 0.f && v->drive != 2;
+    if (burnout) {
+        const Vec3 velocity = w->system.GetBodyInterface().GetLinearVelocity(v->body);
+        burnout = velocity.GetX() * velocity.GetX() + velocity.GetZ() * velocity.GetZ() < 4.f;
+    }
+    if (burnout != v->burnout) {
+        const auto &wheels = v->constraint->GetWheels();
+        for (int i = 0; i < 4; ++i) {
+            const bool driven = v->drive == 1 ? i < 2 : i >= 2;
+            // createVehicle allocated independent mutable settings for every wheel.
+            auto *wheel = static_cast<WheelWV *>(wheels[i]);
+            auto *settings = const_cast<WheelSettingsWV *>(wheel->GetSettings());
+            settings->mMaxBrakeTorque = burnout && driven ? 0.f : v->brakeTorque;
+        }
+        v->burnout = burnout;
+    }
     if (forward != 0.f || right != 0.f || brake != 0.f || handbrake != 0.f)
         w->system.GetBodyInterface().ActivateBody(v->body);
     v->inForward = forward; v->inRight = right; v->inBrake = brake; v->inHand = handbrake;
@@ -626,6 +647,7 @@ static void stepGearbox(Vehicle &v, float dt) {
         c->SetDriverInput(v.inForward > 0.f ? v.inForward * cut : v.inForward, v.inRight, v.inBrake, v.inHand);
         return;
     }
+    if (v.burnout) return;
     const int g = tr.GetCurrentGear();
     const int n = (int) tr.mGearRatios.size();
     if (g < 1 || g >= n || v.inForward < 0.f || !tr.AllowSleep()) return;

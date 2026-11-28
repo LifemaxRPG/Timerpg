@@ -1532,13 +1532,13 @@
     0.15
    ],
    "spring_hz": 2.9,
-   "damping": 0.62,
+   "damping": 0.69,
    "tyre_grip": 1.34,
    "drag": 0.016,
    "com_y_m": 0.36,
-   "downforce_n_at_100_kmh": 650,
-   "downforce_n_at_200_kmh": 2600,
-   "downforce_front": 0.4,
+   "downforce_n_at_100_kmh": 760,
+   "downforce_n_at_200_kmh": 3040,
+   "downforce_front": 0.43,
    "ride_height_m": 0.104,
    "splitter_height_m": 0.09,
    "road_car": {
@@ -1569,8 +1569,8 @@
     "downforce_n_at_200_kmh": 0
    },
    "lateral_grip": [
-    1.52,
-    1.48
+    1.63,
+    1.57
    ],
    "front_grip_tail": 1.0
   },

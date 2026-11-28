@@ -52,6 +52,8 @@ class VehicleWorld(
         /** The lamps: head and tail on, braking, reversing, the turn signals' side (-1 left, 1 right, 0 none). */
         var headlights = false; internal set
         var braking = false; internal set
+        internal var burnout = false
+        internal val driveAxles = spec.drivetrain.drive
         var reversing = false; internal set
         var signal = 0; internal set
         /** The steering input now (-1 left .. 1 right), eased. */
@@ -417,7 +419,7 @@ class VehicleWorld(
         }
         // the drive's input: only while driving (else the handbrake holds it)
         if (d != null && driven === d) {
-            if (phase == Phase.DRIVING) drive(d, dt, steerIn, pedalIn) else physics.input(d.handle, 0f, 0f, 0f, 1f)
+            if (phase == Phase.DRIVING) drive(d, dt, steerIn, pedalIn) else { d.burnout = false; physics.input(d.handle, 0f, 0f, 0f, 1f) }
         }
         for (i in cars.indices) easeDoors(cars[i], dt)
         // the fixed steps (at most MAX_STEPS a frame: a long hitch slows the world rather than spiralling)
@@ -464,12 +466,19 @@ class VehicleWorld(
         val pedal = (gas - brakePedal - pedalIn).coerceIn(-1f, 1f)
         val v = c.forwardSpeed
         var forward = 0f; var brake = 0f
-        if (pedal > .02f) { if (v < -REVERSE_BRAKE) brake = pedal else forward = pedal }
+        // Preserve the two HUD inputs for burnouts. At road speed, the brake wins.
+        val both = gas > .15f && brakePedal > .15f
+        c.burnout = both && !engineOff && !handbrake && hypot(c.vx, c.vz) < 2f && c.driveAxles != 2
+        if (both) {
+            brake = brakePedal.coerceIn(0f, 1f)
+            if (c.burnout) forward = gas.coerceIn(0f, 1f)
+        } else if (pedal > .02f) { if (v < -REVERSE_BRAKE) brake = pedal else forward = pedal }
         else if (pedal < -.02f) { if (v > REVERSE_BRAKE) brake = -pedal else forward = pedal }
         // (no engine: a breakdown or an empty tank; the wet or the snow loses some of the power put down)
         if (engineOff) forward = 0f else forward *= .5f + .5f * gripScale
         // the steering eased (a thumb is all or nothing), and turned less at speed (what a driver does)
-        val k = 1f - kotlin.math.exp(-dt / STEER_TIME)
+        val steerTime = if (c.spec.key == "torrel-1988-rs") STEER_TIME * .76f else STEER_TIME
+        val k = 1f - kotlin.math.exp(-dt / steerTime)
         c.steer += (steerIn.coerceIn(-1f, 1f) - c.steer) * k
         val fade = steerFadeOf(c.spec)
         val atSpeed = 1f / (1f + (abs(v) / fade) * (abs(v) / fade))
@@ -844,6 +853,7 @@ class CarPose(val spec: VehicleSpec) {
     val spin = FloatArray(4)
     val steer = FloatArray(4)
     val rise = FloatArray(4)
+    val tireSmoke = FloatArray(4)
     val doors = FloatArray(spec.doors.size)
     /** The steering wheel's turn (rad, + anticlockwise seen by the driver). */
     var wheel = 0f
@@ -879,6 +889,10 @@ class CarPose(val spec: VehicleSpec) {
             spin[k] = p[o + VehicleState.W_ANGLE] + dw * a
             steer[k] = l(o + VehicleState.W_STEER)
             rise[k] = rest - l(o + VehicleState.W_SUSPENSION)
+            val driven = if (c.driveAxles == 1) k < 2 else k >= 2
+            val slip = abs(dw) * spec.wheelRadius / VehicleWorld.STEP - abs(c.forwardSpeed)
+            tireSmoke[k] = if (c.burnout && driven && n[o + VehicleState.W_CONTACT] > .5f)
+                ((slip - 2.5f) / 12f).coerceIn(0f, 1f) else 0f
         }
         for (k in doors.indices) doors[k] = c.doorOpen[k]
         wheel = -c.steer * 2.6f
@@ -890,7 +904,7 @@ class CarPose(val spec: VehicleSpec) {
     /** Copies it into [o] (the renderer's own), under the lock. */
     fun read(o: CarPose) = synchronized(this) {
         o.x = x; o.y = y; o.z = z; o.qx = qx; o.qy = qy; o.qz = qz; o.qw = qw; o.fx = fx; o.fz = fz
-        spin.copyInto(o.spin); steer.copyInto(o.steer); rise.copyInto(o.rise); doors.copyInto(o.doors)
+        spin.copyInto(o.spin); steer.copyInto(o.steer); rise.copyInto(o.rise); tireSmoke.copyInto(o.tireSmoke); doors.copyInto(o.doors)
         o.wheel = wheel; o.head = head; o.brake = brake; o.reverse = reverse; o.signal = signal; o.colour = colour; o.speed = speed
     }
 }

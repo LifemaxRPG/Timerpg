@@ -39,6 +39,31 @@ int main() {
         steps++;
         vehicleState(w, car, s);
     };
+    // Front brakes should hold while the rear tires spin, then all brakes should return.
+    for (int i = 0; i < 45; ++i) tick(0.f, 0.f, 1.f);
+    const int front = VS_WHEELS + VW_ANGLE;
+    const int rear = VS_WHEELS + 2 * VW_COUNT + VW_ANGLE;
+    float previousFront = s[front], previousRear = s[rear];
+    float frontTravel = 0.f, rearTravel = 0.f;
+    for (int i = 0; i < 90; ++i) {
+        tick(1.f, 0.f, 1.f);
+        frontTravel += std::abs(std::remainder(s[front] - previousFront, 6.2831853f));
+        rearTravel += std::abs(std::remainder(s[rear] - previousRear, 6.2831853f));
+        previousFront = s[front]; previousRear = s[rear];
+    }
+    const float burnoutSpeed = std::abs(s[VS_FORWARD_SPEED]);
+    // Let the brakes take up the inertia of the spinning wheels, then check that they hold.
+    for (int i = 0; i < 15; ++i) tick(0.f, 0.f, 1.f);
+    float stoppedSpin = 0.f;
+    previousRear = s[rear];
+    for (int i = 0; i < 30; ++i) {
+        tick(0.f, 0.f, 1.f);
+        stoppedSpin += std::abs(std::remainder(s[rear] - previousRear, 6.2831853f));
+        previousRear = s[rear];
+    }
+    std::printf("burnout: front %.2f rad, rear %.2f rad, body %.2f m/s, released %.2f rad\n",
+        frontTravel, rearTravel, burnoutSpeed, stoppedSpin);
+    const bool burnoutOk = rearTravel > frontTravel + 6.f && burnoutSpeed < 2.f && stoppedSpin < .1f;
     float top = 0.f;
     for (int i = 0; i < 60 * 40; ++i) { tick(1.f, 0.f, 0.f); top = std::fmax(top, s[VS_FORWARD_SPEED]); }
     std::printf("top speed after 40 s: %.1f km/h (gear %d, %.0f rpm) at z %.0f m\n", top * 3.6f, (int) s[VS_GEAR], s[VS_RPM], s[VS_Z]);
@@ -49,5 +74,5 @@ int main() {
     std::printf("turning right at %.1f km/h: at (%.1f, %.1f)\n", s[VS_FORWARD_SPEED] * 3.6f, s[VS_X], s[VS_Z]);
     std::printf("step: %.3f ms average over %d steps (1 car, 1 box)\n", ns / steps / 1e6, steps);
     worldDestroy(w);
-    return top * 3.6f > 100.f ? 0 : 1;
+    return burnoutOk && top * 3.6f > 100.f ? 0 : 1;
 }

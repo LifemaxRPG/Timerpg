@@ -54,6 +54,7 @@ internal class TownCars(
     private val b = FloatArray(16)
     private val tmp = FloatArray(16)
     private var seen: VehicleWorld? = null
+    private val smoke = TireSmoke(kit)
 
     override val pending: Boolean get() = cars()?.cars?.any { c -> draws.none { it.car === c && it.ready } } == true
     override val report: String get() = "cars: ${draws.count { it.ready }} of ${draws.size} built, " +
@@ -61,7 +62,7 @@ internal class TownCars(
 
     override fun step() {
         val w = cars()
-        if (w !== seen) { for (d in draws) destroy(d); draws.clear(); seen = w }
+        if (w !== seen) { for (d in draws) destroy(d); draws.clear(); smoke.reset(); seen = w }
         if (w == null) return
         // (a car the world parked since: its draw made; one gone: freed)
         for (c in w.cars) if (draws.none { it.car === c }) draws += Draw(c)
@@ -123,6 +124,7 @@ internal class TownCars(
         val w = cars() ?: return out
         w.lights(f.dark)
         stamp++
+        smoke.begin(f.seconds)
         val blink = (f.seconds * 1.5 % 1.0) < .5
         val lm = kit.engine.lightManager
         for (d in draws) {
@@ -139,6 +141,7 @@ internal class TownCars(
             val useMid = seen && dist >= midAt && dist < farAt && d.mid.batchCount > 0
             val useFar = seen && dist < FAR_SHOWN && !useNear && !useMid && d.far.batchCount > 0
             carMatrix(p, d.carM)
+            if (useNear && d.car === w.driven) smoke.emit(p, d.carM)
             d.near.update(f.look, f.dark, useNear, 1f, useNear && dist < SHADOWS)
             d.mid.update(f.look, f.dark, useMid, 1f, useMid && dist < SHADOWS)
             d.far.update(f.look, f.dark, useFar, 1f, false)
@@ -176,6 +179,7 @@ internal class TownCars(
                 lm.setDirection(li, tmp[3] / l, tmp[4] / l, tmp[5] / l)
             }
         }
+        smoke.draw(f, out)
         return out
     }
 
@@ -264,7 +268,7 @@ internal class TownCars(
         d.lights = IntArray(0)
     }
 
-    override fun destroy() { for (d in draws) destroy(d); draws.clear() }
+    override fun destroy() { for (d in draws) destroy(d); draws.clear(); smoke.destroy() }
 
     companion object {
         private val WHEELS = arrayOf("_fl", "_fr", "_rl", "_rr")
