@@ -137,10 +137,15 @@ function dominantDistrict(plan: TownPlan, horizontal: boolean, coord: number, lo
     if (overlap <= 0) continue;
     counts.set(b.district, (counts.get(b.district) ?? 0) + overlap);
   }
+  if (!counts.size) return 'old';
   let best: District = 'old';
+  let bestYear = Infinity;
   let bestScore = -1;
   for (const [d, sc] of counts) {
-    if (sc > bestScore) {
+    if (d === 'river' && counts.size > 1) continue;
+    const yr = PLATTED[d] ?? 1900;
+    if (yr < bestYear || (yr === bestYear && sc > bestScore)) {
+      bestYear = yr;
       bestScore = sc;
       best = d;
     }
@@ -731,7 +736,7 @@ const DOVE_BEACH_RENAMES: Record<string, StreetRename[]> = {
   ],
 };
 
-function pointInPoly(x: number, z: number, poly: readonly [number, number][]): boolean {
+function pointInPoly(x: number, z: number, poly: readonly (readonly [number, number])[]): boolean {
   let c = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
     const [xi, zi] = poly[i]!;
