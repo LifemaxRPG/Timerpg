@@ -1,0 +1,218 @@
+{
+  "board_face_px": [
+    256,
+    88
+  ],
+  "art_grid_px": [
+    128,
+    44
+  ],
+  "texels_per_art_pixel": [
+    2,
+    2
+  ],
+  "board_face_m": [
+    10,
+    3.44
+  ],
+  "meters_per_texel": [
+    0.0390625,
+    0.03909090909090909
+  ],
+  "nearest": true,
+  "campaigns": {
+    "rail": {
+      "years": [
+        1920,
+        1939
+      ],
+      "paper": "#e8d6a5",
+      "dark": "#294748",
+      "accent": "#9c4834"
+    },
+    "motor": {
+      "years": [
+        1950,
+        1969
+      ],
+      "paper": "#f3dfb3",
+      "dark": "#234b52",
+      "accent": "#ad493e"
+    },
+    "modern": {
+      "years": [
+        1990,
+        2029
+      ],
+      "paper": "#e9ecdc",
+      "dark": "#203e54",
+      "accent": "#bf665d"
+    }
+  },
+  "faces": [
+    {
+      "id": "head-light",
+      "file": "faces/head-light.png",
+      "campaign": "rail",
+      "kind": "campaign"
+    },
+    {
+      "id": "fountain",
+      "file": "faces/fountain.png",
+      "campaign": "rail",
+      "kind": "campaign"
+    },
+    {
+      "id": "pier-dusk",
+      "file": "faces/pier-dusk.png",
+      "campaign": "rail",
+      "kind": "campaign"
+    },
+    {
+      "id": "rail-120",
+      "file": "faces/rail-120.png",
+      "campaign": "rail",
+      "kind": "distance",
+      "miles": 120,
+      "next_exit": false
+    },
+    {
+      "id": "rail-45",
+      "file": "faces/rail-45.png",
+      "campaign": "rail",
+      "kind": "distance",
+      "miles": 45,
+      "next_exit": false
+    },
+    {
+      "id": "rail-12",
+      "file": "faces/rail-12.png",
+      "campaign": "rail",
+      "kind": "distance",
+      "miles": 12,
+      "next_exit": false
+    },
+    {
+      "id": "rail-next-exit",
+      "file": "faces/rail-next-exit.png",
+      "campaign": "rail",
+      "kind": "distance",
+      "miles": null,
+      "next_exit": true
+    },
+    {
+      "id": "family-drive",
+      "file": "faces/family-drive.png",
+      "campaign": "motor",
+      "kind": "campaign"
+    },
+    {
+      "id": "sandcastles",
+      "file": "faces/sandcastles.png",
+      "campaign": "motor",
+      "kind": "campaign"
+    },
+    {
+      "id": "strand-treats",
+      "file": "faces/strand-treats.png",
+      "campaign": "motor",
+      "kind": "campaign"
+    },
+    {
+      "id": "motor-120",
+      "file": "faces/motor-120.png",
+      "campaign": "motor",
+      "kind": "distance",
+      "miles": 120,
+      "next_exit": false
+    },
+    {
+      "id": "motor-45",
+      "file": "faces/motor-45.png",
+      "campaign": "motor",
+      "kind": "distance",
+      "miles": 45,
+      "next_exit": false
+    },
+    {
+      "id": "motor-12",
+      "file": "faces/motor-12.png",
+      "campaign": "motor",
+      "kind": "distance",
+      "miles": 12,
+      "next_exit": false
+    },
+    {
+      "id": "motor-next-exit",
+      "file": "faces/motor-next-exit.png",
+      "campaign": "motor",
+      "kind": "distance",
+      "miles": null,
+      "next_exit": true
+    },
+    {
+      "id": "surf-break",
+      "file": "faces/surf-break.png",
+      "campaign": "modern",
+      "kind": "campaign"
+    },
+    {
+      "id": "shrimp-dock",
+      "file": "faces/shrimp-dock.png",
+      "campaign": "modern",
+      "kind": "campaign"
+    },
+    {
+      "id": "weekend-pier",
+      "file": "faces/weekend-pier.png",
+      "campaign": "modern",
+      "kind": "campaign"
+    },
+    {
+      "id": "modern-120",
+      "file": "faces/modern-120.png",
+      "campaign": "modern",
+      "kind": "distance",
+      "miles": 120,
+      "next_exit": false
+    },
+    {
+      "id": "modern-45",
+      "file": "faces/modern-45.png",
+      "campaign": "modern",
+      "kind": "distance",
+      "miles": 45,
+      "next_exit": false
+    },
+    {
+      "id": "modern-12",
+      "file": "faces/modern-12.png",
+      "campaign": "modern",
+      "kind": "distance",
+      "miles": 12,
+      "next_exit": false
+    },
+    {
+      "id": "modern-next-exit",
+      "file": "faces/modern-next-exit.png",
+      "campaign": "modern",
+      "kind": "distance",
+      "miles": null,
+      "next_exit": true
+    },
+    {
+      "id": "head-light-weathered",
+      "file": "faces/head-light-weathered.png",
+      "campaign": "rail",
+      "kind": "weathered",
+      "source": "head-light"
+    },
+    {
+      "id": "family-drive-weathered",
+      "file": "faces/family-drive-weathered.png",
+      "campaign": "motor",
+      "kind": "weathered",
+      "source": "family-drive"
+    }
+  ]
+}
