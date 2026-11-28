@@ -1,0 +1,393 @@
+{
+  "name": "Dove Fountain",
+  "naming": "fixed",
+  "site": "Fountain Circus",
+  "built_year": 1912,
+  "plot_m": [
+    12.4,
+    12.4
+  ],
+  "height_m": 6.12,
+  "texel_m": 0.0388,
+  "art_pixel_texels": [
+    2,
+    2
+  ],
+  "forward": "+Z",
+  "up": "+Y",
+  "lods": [
+    {
+      "file": "dove-fountain.glb",
+      "triangles": 2710
+    },
+    {
+      "file": "dove-fountain-mid.glb",
+      "triangles": 2170
+    },
+    {
+      "file": "dove-fountain-far.glb",
+      "triangles": 1042
+    }
+  ],
+  "collision_boxes": [
+    {
+      "center": [
+        0.0,
+        0.438,
+        3.68
+      ],
+      "size": [
+        2.02,
+        0.68,
+        0.43
+      ],
+      "shape": "box",
+      "yaw_deg": 0
+    },
+    {
+      "center": [
+        1.84,
+        0.438,
+        3.187
+      ],
+      "size": [
+        2.02,
+        0.68,
+        0.43
+      ],
+      "shape": "box",
+      "yaw_deg": 30
+    },
+    {
+      "center": [
+        3.187,
+        0.438,
+        1.84
+      ],
+      "size": [
+        2.02,
+        0.68,
+        0.43
+      ],
+      "shape": "box",
+      "yaw_deg": 60
+    },
+    {
+      "center": [
+        3.68,
+        0.438,
+        0.0
+      ],
+      "size": [
+        2.02,
+        0.68,
+        0.43
+      ],
+      "shape": "box",
+      "yaw_deg": 90
+    },
+    {
+      "center": [
+        3.187,
+        0.438,
+        -1.84
+      ],
+      "size": [
+        2.02,
+        0.68,
+        0.43
+      ],
+      "shape": "box",
+      "yaw_deg": 120
+    },
+    {
+      "center": [
+        1.84,
+        0.438,
+        -3.187
+      ],
+      "size": [
+        2.02,
+        0.68,
+        0.43
+      ],
+      "shape": "box",
+      "yaw_deg": 150
+    },
+    {
+      "center": [
+        0.0,
+        0.438,
+        -3.68
+      ],
+      "size": [
+        2.02,
+        0.68,
+        0.43
+      ],
+      "shape": "box",
+      "yaw_deg": 180
+    },
+    {
+      "center": [
+        -1.84,
+        0.438,
+        -3.187
+      ],
+      "size": [
+        2.02,
+        0.68,
+        0.43
+      ],
+      "shape": "box",
+      "yaw_deg": 210
+    },
+    {
+      "center": [
+        -3.187,
+        0.438,
+        -1.84
+      ],
+      "size": [
+        2.02,
+        0.68,
+        0.43
+      ],
+      "shape": "box",
+      "yaw_deg": 240
+    },
+    {
+      "center": [
+        -3.68,
+        0.438,
+        -0.0
+      ],
+      "size": [
+        2.02,
+        0.68,
+        0.43
+      ],
+      "shape": "box",
+      "yaw_deg": 270
+    },
+    {
+      "center": [
+        -3.187,
+        0.438,
+        1.84
+      ],
+      "size": [
+        2.02,
+        0.68,
+        0.43
+      ],
+      "shape": "box",
+      "yaw_deg": 300
+    },
+    {
+      "center": [
+        -1.84,
+        0.438,
+        3.187
+      ],
+      "size": [
+        2.02,
+        0.68,
+        0.43
+      ],
+      "shape": "box",
+      "yaw_deg": 330
+    },
+    {
+      "center": [
+        0,
+        1.73,
+        -0.2
+      ],
+      "size": [
+        1.75,
+        3.16,
+        1.75
+      ],
+      "shape": "box",
+      "yaw_deg": 0
+    },
+    {
+      "center": [
+        -3.2,
+        0.64,
+        -3.18
+      ],
+      "size": [
+        1.42,
+        0.98,
+        0.5
+      ],
+      "shape": "box",
+      "yaw_deg": 0
+    },
+    {
+      "center": [
+        -3.2,
+        0.64,
+        3.18
+      ],
+      "size": [
+        1.42,
+        0.98,
+        0.5
+      ],
+      "shape": "box",
+      "yaw_deg": 0
+    },
+    {
+      "center": [
+        3.2,
+        0.64,
+        -3.18
+      ],
+      "size": [
+        1.42,
+        0.98,
+        0.5
+      ],
+      "shape": "box",
+      "yaw_deg": 0
+    },
+    {
+      "center": [
+        3.2,
+        0.64,
+        3.18
+      ],
+      "size": [
+        1.42,
+        0.98,
+        0.5
+      ],
+      "shape": "box",
+      "yaw_deg": 0
+    },
+    {
+      "center": [
+        -4.88,
+        1.62,
+        -1.31
+      ],
+      "size": [
+        0.38,
+        2.94,
+        0.38
+      ],
+      "shape": "box",
+      "yaw_deg": 0
+    },
+    {
+      "center": [
+        -4.88,
+        1.62,
+        1.31
+      ],
+      "size": [
+        0.38,
+        2.94,
+        0.38
+      ],
+      "shape": "box",
+      "yaw_deg": 0
+    },
+    {
+      "center": [
+        4.88,
+        1.62,
+        -1.31
+      ],
+      "size": [
+        0.38,
+        2.94,
+        0.38
+      ],
+      "shape": "box",
+      "yaw_deg": 0
+    },
+    {
+      "center": [
+        4.88,
+        1.62,
+        1.31
+      ],
+      "size": [
+        0.38,
+        2.94,
+        0.38
+      ],
+      "shape": "box",
+      "yaw_deg": 0
+    }
+  ],
+  "water_nodes": [
+    "water_basin_surface",
+    "water_jet_left",
+    "water_jet_right"
+  ],
+  "night_points": [
+    {
+      "center": [
+        -4.88,
+        2.68,
+        -1.31
+      ],
+      "role": "lantern"
+    },
+    {
+      "center": [
+        -4.88,
+        2.68,
+        1.31
+      ],
+      "role": "lantern"
+    },
+    {
+      "center": [
+        4.88,
+        2.68,
+        -1.31
+      ],
+      "role": "lantern"
+    },
+    {
+      "center": [
+        4.88,
+        2.68,
+        1.31
+      ],
+      "role": "lantern"
+    },
+    {
+      "center": [
+        -1.7,
+        0.83,
+        2.1
+      ],
+      "aim_at": [
+        0,
+        4.0,
+        0
+      ],
+      "role": "uplight"
+    },
+    {
+      "center": [
+        1.7,
+        0.83,
+        2.1
+      ],
+      "aim_at": [
+        0,
+        4.0,
+        0
+      ],
+      "role": "uplight"
+    }
+  ]
+}
