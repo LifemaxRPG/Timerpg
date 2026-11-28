@@ -38,17 +38,21 @@ import kotlin.math.sin
 class OpenWalkTest {
     companion object {
         private val dir = File("../app/src/main/assets/town/gamma")
-        private val json by lazy { File(dir, "street.json").readText() }
-        private val root by lazy { JSONObject(json) }
-        val town: Town by lazy { Town.parse(root)!! }
-        val yards: TownYards by lazy { TownYards.parse(root) }
+        val town: Town
+        val yards: TownYards
         val models: Map<String, ModelShape> by lazy { ModelShape.parseAll(File(dir, "buildings/models.json").readText()) }
-        val cinema: CinemaSiteShape? by lazy { CinemaSiteShape.parse(root) }
+        val cinema: CinemaSiteShape?
         val buildMs: Double
         val map: TownCollision
         init {
+            // Parse street.json locally so its JSON tree is not pinned in the companion beside the BFS grid.
+            val root = JSONObject(File(dir, "street.json").readText())
+            town = Town.parse(root)!!
+            yards = TownYards.parse(root)
+            cinema = CinemaSiteShape.parse(root)
+            val stores = com.lifemax.rpg.feature.habits.domain.StoreLots.parse(root).map { it.sprite }.toSet()
             val t0 = System.nanoTime()
-            map = TownCollision.build(town, yards, models, cinema, com.lifemax.rpg.feature.habits.domain.StoreLots.parse(root).map { it.sprite }.toSet())
+            map = TownCollision.build(town, yards, models, cinema, stores)
             buildMs = (System.nanoTime() - t0) / 1e6
         }
         val doors: TownDoors by lazy { TownDoors(town, yards, map, cinema) }
@@ -85,29 +89,65 @@ class OpenWalkTest {
 
         val spawn by lazy { OpenWalk(town, map, yards, doors).let { it.wx to it.wz } }
 
-        /** BFS over [free] from [from] (to [stopAt], which may itself be the spawn cell a grid shift left within a walker of something): each reached cell's parent (-1 unreached; the start its own). */
-        fun bfs(from: Int, stopAt: Int = -1, grid: BitSet = free): IntArray {
-            val par = IntArray(cols * rows) { -1 }
-            val q = IntArray(cols * rows)
+        // Reused BFS scratch buffers: the planned capital + grounds grid is ~38M cells, so retaining IntArray(cols*rows)
+        // for reach plus allocating fresh par+q IntArrays per goal (459 MB live, ~19 GB churn) blows a 512 MB test heap.
+        private val bfsQ: IntArray by lazy { IntArray(cols * rows) }
+        private val bfsDir: ByteArray by lazy { ByteArray(cols * rows) }
+
+        /** Shortest 4-connected path from [from] to [stopAt] over [grid] ([stopAt] itself allowed even if a grid shift grazed something). */
+        fun bfsPath(from: Int, stopAt: Int, grid: BitSet = free): IntArray? {
+            val stepDir = bfsDir
+            stepDir.fill(0)
+            val q = bfsQ
             var h = 0; var t = 0
-            par[from] = from; q[t++] = from
+            stepDir[from] = 5; q[t++] = from
             while (h < t) {
                 val c = q[h++]
                 if (c == stopAt) break
                 val i = c % cols; val j = c / cols
-                fun go(n: Int) { if (par[n] < 0 && (grid[n] || n == stopAt)) { par[n] = c; q[t++] = n } }
-                if (i > 0) go(c - 1); if (i < cols - 1) go(c + 1); if (j > 0) go(c - cols); if (j < rows - 1) go(c + cols)
+                fun go(n: Int, d: Byte) { if (stepDir[n].toInt() == 0 && (grid[n] || n == stopAt)) { stepDir[n] = d; q[t++] = n } }
+                if (i > 0) go(c - 1, 2)
+                if (i < cols - 1) go(c + 1, 1)
+                if (j > 0) go(c - cols, 4)
+                if (j < rows - 1) go(c + cols, 3)
             }
-            return par
+            if (stepDir[stopAt].toInt() == 0) return null
+            val p = ArrayList<Int>()
+            var c = stopAt
+            while (c != from) {
+                p += c
+                c = when (stepDir[c].toInt()) {
+                    1 -> c - 1
+                    2 -> c + 1
+                    3 -> c - cols
+                    4 -> c + cols
+                    else -> error("broken bfs parent at $c")
+                }
+            }
+            p += from
+            return p.reversed().toIntArray()
         }
 
-        val reach: IntArray by lazy { bfs(cellOf(spawn.first, spawn.second)) }
-        fun reached(x: Float, z: Float) = reach[cellOf(x, z)] >= 0
+        val reach: BitSet by lazy {
+            val seen = BitSet(cols * rows)
+            val q = bfsQ
+            var h = 0; var t = 0
+            val from = cellOf(spawn.first, spawn.second)
+            seen.set(from); q[t++] = from
+            while (h < t) {
+                val c = q[h++]
+                val i = c % cols; val j = c / cols
+                fun go(n: Int) { if (!seen[n] && free[n]) { seen.set(n); q[t++] = n } }
+                if (i > 0) go(c - 1); if (i < cols - 1) go(c + 1); if (j > 0) go(c - cols); if (j < rows - 1) go(c + cols)
+            }
+            seen
+        }
+        fun reached(x: Float, z: Float) = reach[cellOf(x, z)]
         /** Some free cell within [r] of ([x], [z]) is reached from the spawn. */
         fun reachedNear(x: Float, z: Float, r: Float): Boolean {
             val n = (r / STEP).toInt()
             val c = cellOf(x, z); val i0 = c % cols; val j0 = c / cols
-            for (dj in -n..n) for (di in -n..n) { val i = i0 + di; val j = j0 + dj; if (i in 0 until cols && j in 0 until rows && reach[j * cols + i] >= 0) return true }
+            for (dj in -n..n) for (di in -n..n) { val i = i0 + di; val j = j0 + dj; if (i in 0 until cols && j in 0 until rows && reach[j * cols + i]) return true }
             return false
         }
 
@@ -150,7 +190,7 @@ class OpenWalkTest {
 
     @Test fun theWholeTownIsOneGround() {
         val total = free.cardinality()
-        val got = reach.count { it >= 0 }
+        val got = reach.cardinality()
         println("walkable cells ${total} (of ${cols * rows}), reached from the spawn ${got} (${"%.1f".format(100.0 * got / total)}%)")
         // every row's pavement, every bridge, every door and every person to talk to
         for (r in town.rows) {
@@ -171,7 +211,7 @@ class OpenWalkTest {
             backs++
             var fr = 0; var rc = 0
             var x = b[0] + 3f
-            while (x < b[2]) { var z = b[1] + 3f; while (z < b[3]) { val c = cellOf(x, z); if (free[c]) { fr++; if (reach[c] >= 0) rc++ }; z += STEP }; x += STEP }
+            while (x < b[2]) { var z = b[1] + 3f; while (z < b[3]) { val c = cellOf(x, z); if (free[c]) { fr++; if (reach[c]) rc++ }; z += STEP }; x += STEP }
             val ok = fr == 0 || rc >= fr * BACK_REACHED
             if (ok) reachedBacks++ else shut += "${y.sprite} ($rc of $fr)"
         }
@@ -245,13 +285,7 @@ class OpenWalkTest {
     private fun pathTo(fromX: Float, fromZ: Float, toCell: Int): IntArray? {
         // (a walker can stand closer to a trunk than the grid's clearance: then from the nearest reached cell by it)
         val start = cellOf(fromX, fromZ).let { c -> if (pathFree[c]) c else nearestPathCell(fromX, fromZ).takeIf { it >= 0 } ?: c }
-        val par = bfs(start, toCell, pathFree).takeIf { it[toCell] >= 0 } ?: bfs(start, toCell)
-        if (par[toCell] < 0) return null
-        val p = ArrayList<Int>()
-        var c = toCell
-        while (c != start) { p += c; c = par[c] }
-        p += start
-        return p.reversed().toIntArray()
+        return bfsPath(start, toCell, pathFree) ?: bfsPath(start, toCell)
     }
 
     /** The nearest cell ([x], [z]) a planned path may use (within 30), or -1. */
@@ -262,7 +296,7 @@ class OpenWalkTest {
             val i = i0 + di; val j = j0 + dj
             if (i !in 0 until cols || j !in 0 until rows) continue
             val c = j * cols + i
-            if (pathFree[c] && reach[c] >= 0 && di * di + dj * dj < bd) { bd = di * di + dj * dj; best = c }
+            if (pathFree[c] && reach[c] && di * di + dj * dj < bd) { bd = di * di + dj * dj; best = c }
         }
         return best
     }
@@ -276,7 +310,7 @@ class OpenWalkTest {
             val i = i0 + di; val j = j0 + dj
             if (i !in 0 until cols || j !in 0 until rows) continue
             val c = j * cols + i
-            if (reach[c] >= 0 && di * di + dj * dj < bd) { bd = di * di + dj * dj; best = c }
+            if (reach[c] && di * di + dj * dj < bd) { bd = di * di + dj * dj; best = c }
         }
         return best
     }
@@ -373,7 +407,7 @@ class OpenWalkTest {
             moved += hypot(w.wx - px, w.wz - pz)
             assertTrue(map.clearance(w.wx, w.wz) >= R - .05f)
         }
-        println("pushed at the hotel's middle from its corner: slid ${moved.toInt()} units")
+        println("pushed at ${b.sprite}'s middle from its corner: slid ${moved.toInt()} units")
     }
 
     @Test fun doorsAndPeopleFromEverySide() {
@@ -452,7 +486,7 @@ class OpenWalkTest {
         // points on reached ground
         val pts = ArrayList<Int>()
         val rnd = java.util.Random(7)
-        while (pts.size < 4096) { val c = rnd.nextInt(cols * rows); if (reach[c] >= 0) pts += c }
+        while (pts.size < 4096) { val c = rnd.nextInt(cols * rows); if (reach[c]) pts += c }
         val xs = FloatArray(pts.size) { cx(pts[it] % cols) }; val zs = FloatArray(pts.size) { cz(pts[it] / cols) }
         val o = FloatArray(2)
         val dirs = FloatArray(64) { (it * 2.0 * PI / 64).toFloat() }
@@ -508,7 +542,7 @@ class OpenWalkTest {
             for (py in 0 until size step 2) for (px in 0 until size step 2) {
                 val x = ox + px / scale; val z = oz + py / scale
                 if (x < map.minX || z < map.minZ || x >= map.maxX || z >= map.maxZ) continue
-                if (reach[cellOf(x, z)] >= 0) { g.color = Color(92, 104, 92); g.fillRect(px, py, 2, 2) }
+                if (reach[cellOf(x, z)]) { g.color = Color(92, 104, 92); g.fillRect(px, py, 2, 2) }
             }
             for (i in 0 until map.size) {
                 map.shape(i, s)
@@ -554,7 +588,7 @@ class OpenWalkTest {
         for (py in 0 until H) for (px in 0 until W) {
             val x = map.minX + px / k; val z = map.minZ + py / k
             val c = cellOf(x, z).coerceIn(0, cols * rows - 1)
-            img.setRGB(px, py, if (reach[c] >= 0) 0x5C685C else if (free[c]) 0xA03030 else 0x202420)
+            img.setRGB(px, py, if (reach[c]) 0x5C685C else if (free[c]) 0xA03030 else 0x202420)
         }
         trail?.let { t -> for ((x, z) in t) { val px = ((x - map.minX) * k).toInt(); val pz = ((z - map.minZ) * k).toInt(); if (px in 0 until W && pz in 0 until H) img.setRGB(px, pz, 0x00FFFF) } }
         ImageIO.write(img, "png", File(out, "${name}_town.png"))

@@ -54,10 +54,12 @@ class TownPlaceTest {
     }
 
     @Test fun theYardsHouseIsTheSameBox() {
-        // the whole town's export (tools/build-town.sh gamma); the fixture carries no yards
-        val f = File("../build-town/gamma/street.json").takeIf { it.exists() } ?: File("build-town/gamma/street.json")
-        assumeTrue("no build-town/gamma (run tools/build-town.sh gamma)", f.exists())
-        val json = f.readText()
+        // the whole town's export (tools/build-town.sh gamma, or the shipped app asset); the fixture carries no yards
+        val f = listOf("../build-town/gamma/street.json", "build-town/gamma/street.json", "../app/src/main/assets/town/gamma/street.json")
+            .map(::File).firstOrNull { it.exists() }
+        assumeTrue("no gamma street.json with yards (run tools/build-town.sh gamma)", f != null)
+        val file = f!!
+        val json = file.readText()
         val t = Town.parse(json)!!
         val yards = TownYards.parse(json)
         assertTrue(yards.yards.isNotEmpty())
